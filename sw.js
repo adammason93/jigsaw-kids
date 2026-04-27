@@ -1,5 +1,5 @@
 /* Minimal offline shell — network-first, cache as fallback for same-origin */
-const CACHE = "jigsaw-kids-v31";
+const CACHE = "jigsaw-kids-v33";
 const SHELL = [
   "./index.html",
   "./portal.css",

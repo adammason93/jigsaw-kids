@@ -24,6 +24,15 @@
           <p class="portal-hero__kicker">Hi Sofia — this room’s for you</p>
           <h1 class="portal-hero__title">Sofia's Game Room</h1>
           <p class="portal-hero__tagline">Tap a game to play. New ones will pop up here as we build them.</p>
+          <p
+            class="portal-hero__welcome-back"
+            id="portalWelcomeBack"
+            role="status"
+            aria-live="polite"
+            hidden
+          >
+            Welcome back, Sofia! ✨
+          </p>
         </div>
         <div class="portal-hero__mascot" aria-hidden="true">
           <img
@@ -140,6 +149,30 @@
         navigator.serviceWorker.register("./sw.js").catch(function () {});
       });
     }
+    (function () {
+      var WELCOME_BACK_MS = 3 * 24 * 60 * 60 * 1000;
+      var KEY_LAST = "portalLastVisit";
+      var KEY_SESSION = "portalWelcomeBackSession";
+      var el = document.getElementById("portalWelcomeBack");
+      var now = Date.now();
+      var prev = null;
+      try {
+        var raw = localStorage.getItem(KEY_LAST);
+        if (raw) prev = parseInt(raw, 10);
+      } catch (e) {}
+      try {
+        if (prev && !isNaN(prev) && now - prev >= WELCOME_BACK_MS) {
+          if (!sessionStorage.getItem(KEY_SESSION) && el) {
+            el.removeAttribute("hidden");
+            el.classList.add("portal-hero__welcome-back--show");
+            sessionStorage.setItem(KEY_SESSION, "1");
+          }
+        }
+      } catch (e) {}
+      try {
+        localStorage.setItem(KEY_LAST, String(now));
+      } catch (e) {}
+    })();
   </script>
 </body>
 </html>

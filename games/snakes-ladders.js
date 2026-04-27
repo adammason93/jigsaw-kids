@@ -199,6 +199,7 @@
     ? welcomePopup.querySelector(".welcome-popup__backdrop")
     : null;
   const treasurePopup = document.getElementById("treasurePopup");
+  const treasureChest = document.getElementById("treasureChest");
   const treasurePopupLead = document.getElementById("treasurePopupLead");
   const treasurePopupPrize = document.getElementById("treasurePopupPrize");
   const btnTreasureOk = document.getElementById("btnTreasureOk");
@@ -379,6 +380,11 @@
       if (btnTreasureOk) {
         btnTreasureOk.removeEventListener("click", onOk);
       }
+      treasurePopup.classList.remove("treasure-popup--reveal");
+      if (treasureChest) {
+        treasureChest.classList.remove("treasure-chest--reveal");
+        void treasureChest.offsetWidth;
+      }
       treasurePopup.classList.add("treasure-popup--hidden");
       treasurePopup.setAttribute("aria-hidden", "true");
       onDone();
@@ -417,6 +423,12 @@
     }
     treasurePopup.classList.remove("treasure-popup--hidden");
     treasurePopup.setAttribute("aria-hidden", "false");
+    if (treasureChest) {
+      treasureChest.classList.remove("treasure-chest--reveal");
+      void treasureChest.offsetWidth;
+      treasureChest.classList.add("treasure-chest--reveal");
+    }
+    treasurePopup.classList.add("treasure-popup--reveal");
     setTimeout(function () {
       if (btnTreasureOk) {
         btnTreasureOk.focus();

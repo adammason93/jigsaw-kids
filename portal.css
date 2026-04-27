@@ -138,6 +138,52 @@ h2,
   font-weight: 600;
 }
 
+.portal-hero__welcome-back {
+  margin: 0.5rem 0 0;
+  font-size: clamp(0.95rem, 2vw, 1.05rem);
+  font-weight: 800;
+  color: #0d9488;
+  letter-spacing: 0.01em;
+}
+
+.portal-hero__welcome-back[hidden] {
+  display: none;
+}
+
+.portal-hero__welcome-back--show {
+  animation: portal-welcome-fade 0.55s ease forwards;
+}
+
+@keyframes portal-mascot-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-7px);
+  }
+}
+
+@keyframes portal-welcome-fade {
+  from {
+    opacity: 0;
+    transform: translateY(0.35rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .portal-hero__mascot {
+    animation: none;
+  }
+  .portal-hero__welcome-back--show {
+    animation: none;
+  }
+}
+
 .portal-hero__mascot {
   position: relative;
   z-index: 1;
@@ -152,6 +198,7 @@ h2,
   align-items: flex-end;
   justify-content: center;
   overflow: hidden;
+  animation: portal-mascot-float 3.5s ease-in-out infinite;
 }
 
 .portal-hero__char {
