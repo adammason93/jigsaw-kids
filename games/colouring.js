@@ -5,12 +5,6 @@
   "use strict";
 
   const TEMPLATES = [
-    { id: "castle", label: "Castle", file: "images/colouring/template-castle.svg" },
-    { id: "unicorn", label: "Unicorn", file: "images/colouring/template-unicorn.svg" },
-    { id: "rainbow", label: "Rainbow", file: "images/colouring/template-rainbow.svg" },
-    { id: "dino", label: "Dinosaur", file: "images/colouring/template-dino.svg" },
-    { id: "butterfly", label: "Butterfly", file: "images/colouring/template-butterfly.svg" },
-    { id: "robot", label: "Robot", file: "images/colouring/template-robot.svg" },
     { id: "mermaid", label: "Mermaid", file: "images/colouring/template-mermaid.png" },
     { id: "dino-hill", label: "Dino & palm", file: "images/colouring/template-dino-hill.png" },
     { id: "coral-reef", label: "Coral reef", file: "images/colouring/template-coral-reef.png" },
@@ -32,6 +26,7 @@
   const paintCanvas = document.getElementById("paintCanvas");
   const templateOverlay = document.getElementById("templateOverlay");
   const colourStage = document.getElementById("colourStage");
+  const colourPanzoom = document.getElementById("colourPanzoom");
   const templateList = document.getElementById("templateList");
   const customColour = document.getElementById("customColour");
   const btnClear = document.getElementById("btnClear");
@@ -42,6 +37,8 @@
     return;
   }
 
+  const MIN_ZOOM = 1;
+  const MAX_ZOOM = 4;
   const ctx = paintCanvas.getContext("2d");
   var currentTool = "pen";
   var currentColor = "#0f172a";
@@ -52,9 +49,107 @@
   var cssW = 1;
   var cssH = 1;
   var dpr = 1;
+  var viewScale = 1;
+  var panX = 0;
+  var panY = 0;
+  /** @type {Record<number, { x: number; y: number }>} */
+  var pinchById = {};
+  var isPinchGesture = false;
+  var lastPinchDist = 1;
+  var lastPinchCx = 0;
+  var lastPinchCy = 0;
 
   function getDpr() {
     return Math.min(window.devicePixelRatio || 1, 2.5);
+  }
+
+  function pinchPointerCount() {
+    var n = 0;
+    for (var k in pinchById) {
+      if (Object.prototype.hasOwnProperty.call(pinchById, k)) {
+        n++;
+      }
+    }
+    return n;
+  }
+
+  function pinchPointValues() {
+    var vals = [];
+    for (var k in pinchById) {
+      if (Object.prototype.hasOwnProperty.call(pinchById, k)) {
+        vals.push(pinchById[k]);
+      }
+    }
+    return vals;
+  }
+
+  function distPoints(a, b) {
+    var dx = a.x - b.x;
+    var dy = a.y - b.y;
+    return Math.sqrt(dx * dx + dy * dy) || 1;
+  }
+
+  function stageLocalFromClient(clientX, clientY) {
+    var sr = colourStage.getBoundingClientRect();
+    return { x: clientX - sr.left, y: clientY - sr.top };
+  }
+
+  function applyViewTransform() {
+    if (colourPanzoom) {
+      colourPanzoom.style.transform =
+        "translate(" + panX + "px," + panY + "px) scale(" + viewScale + ")";
+    }
+  }
+
+  function clampPan() {
+    var W = colourStage.clientWidth;
+    var H = colourStage.clientHeight;
+    if (viewScale <= 1.001) {
+      viewScale = 1;
+      panX = 0;
+      panY = 0;
+      return;
+    }
+    var sw = W * viewScale;
+    var sh = H * viewScale;
+    panX = Math.min(0, Math.max(W - sw, panX));
+    panY = Math.min(0, Math.max(H - sh, panY));
+  }
+
+  function updateZoomPct() {
+    var el = document.getElementById("zoomPct");
+    if (el) {
+      el.textContent = Math.round(viewScale * 100) + "%";
+    }
+  }
+
+  function resetView() {
+    viewScale = 1;
+    panX = 0;
+    panY = 0;
+    applyViewTransform();
+    updateZoomPct();
+  }
+
+  /**
+   * @param {number} newScale
+   * @param {number} fx - focal x in stage-local px
+   * @param {number} fy - focal y in stage-local px
+   */
+  function setScaleAround(newScale, fx, fy) {
+    newScale = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, newScale));
+    if (newScale <= 1) {
+      resetView();
+      return;
+    }
+    var wx = (fx - panX) / viewScale;
+    var wy = (fy - panY) / viewScale;
+    viewScale = newScale;
+    panX = fx - wx * viewScale;
+    panY = fy - wy * viewScale;
+    clampPan();
+    applyViewTransform();
+    updateZoomPct();
   }
 
   function fitCanvas(preserve) {
@@ -64,8 +159,13 @@
     if (rect.width < 4 || rect.height < 4) {
       return;
     }
+    var prevW = cssW;
+    var prevH = cssH;
     cssW = Math.max(1, Math.floor(colourStage.clientWidth));
     cssH = Math.max(1, Math.floor(colourStage.clientHeight));
+    if (preserveDrawing && (prevW !== cssW || prevH !== cssH)) {
+      resetView();
+    }
     var snap = null;
     if (preserveDrawing && paintCanvas.width > 0 && paintCanvas.height > 0) {
       try {
@@ -135,11 +235,19 @@
   }
 
   function getPos(e) {
-    var rect = paintCanvas.getBoundingClientRect();
-    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    var pl = stageLocalFromClient(e.clientX, e.clientY);
+    var x = (pl.x - panX) / viewScale;
+    var y = (pl.y - panY) / viewScale;
+    return {
+      x: Math.max(0, Math.min(cssW, x)),
+      y: Math.max(0, Math.min(cssH, y)),
+    };
   }
 
   function onPointerDown(e) {
+    if (isPinchGesture || pinchPointerCount() > 1) {
+      return;
+    }
     if (e.pointerType === "mouse" && e.button !== 0) {
       return;
     }
@@ -160,6 +268,9 @@
   }
 
   function onPointerMove(e) {
+    if (isPinchGesture) {
+      return;
+    }
     if (!isDrawing || e.pointerId !== activePointer) {
       return;
     }
@@ -228,8 +339,9 @@
     templateOverlay.src = file;
     templateOverlay.style.display = "block";
     if (statusLine) {
-      statusLine.textContent = "Colour in the big picture area below. Change pictures any time.";
+      statusLine.textContent = "Colour on the canvas. Change pictures any time.";
     }
+    resetView();
     fitCanvas(false);
   }
 
@@ -268,6 +380,7 @@
     var mctx = merged.getContext("2d");
     mctx.drawImage(paintCanvas, 0, 0);
     if (templateOverlay.naturalWidth > 0) {
+      mctx.globalCompositeOperation = "multiply";
       mctx.drawImage(
         templateOverlay,
         0,
@@ -279,6 +392,7 @@
         merged.width,
         merged.height
       );
+      mctx.globalCompositeOperation = "source-over";
     }
     var url;
     try {
@@ -307,7 +421,77 @@
     }
   }
 
+  function onStagePointerDownCapture(e) {
+    var pl = stageLocalFromClient(e.clientX, e.clientY);
+    pinchById[e.pointerId] = pl;
+    if (pinchPointerCount() === 2) {
+      isPinchGesture = true;
+      isDrawing = false;
+      activePointer = null;
+      var vals = pinchPointValues();
+      lastPinchDist = distPoints(vals[0], vals[1]);
+      lastPinchCx = (vals[0].x + vals[1].x) / 2;
+      lastPinchCy = (vals[0].y + vals[1].y) / 2;
+    }
+  }
+
+  function onStagePointerMoveCapture(e) {
+    if (Object.prototype.hasOwnProperty.call(pinchById, e.pointerId)) {
+      pinchById[e.pointerId] = stageLocalFromClient(e.clientX, e.clientY);
+    }
+    if (!isPinchGesture || pinchPointerCount() < 2) {
+      return;
+    }
+    var vals = pinchPointValues();
+    if (vals.length < 2) {
+      return;
+    }
+    var d = distPoints(vals[0], vals[1]);
+    var cx = (vals[0].x + vals[1].x) / 2;
+    var cy = (vals[0].y + vals[1].y) / 2;
+    panX += cx - lastPinchCx;
+    panY += cy - lastPinchCy;
+    lastPinchCx = cx;
+    lastPinchCy = cy;
+    var scaleFactor = d / lastPinchDist;
+    lastPinchDist = d || lastPinchDist;
+    if (scaleFactor > 0 && isFinite(scaleFactor)) {
+      var wcx = (cx - panX) / viewScale;
+      var wcy = (cy - panY) / viewScale;
+      viewScale = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, viewScale * scaleFactor));
+      panX = cx - wcx * viewScale;
+      panY = cy - wcy * viewScale;
+    }
+    clampPan();
+    applyViewTransform();
+    updateZoomPct();
+    e.preventDefault();
+  }
+
+  function onStagePointerUpCapture(e) {
+    delete pinchById[e.pointerId];
+    if (pinchPointerCount() < 2) {
+      isPinchGesture = false;
+      lastPinchDist = 1;
+    }
+  }
+
   /* Events */
+  colourStage.addEventListener("pointerdown", onStagePointerDownCapture, true);
+  colourStage.addEventListener("pointermove", onStagePointerMoveCapture, true);
+  colourStage.addEventListener("pointerup", onStagePointerUpCapture, true);
+  colourStage.addEventListener("pointercancel", onStagePointerUpCapture, true);
+  colourStage.addEventListener(
+    "wheel",
+    function (e) {
+      e.preventDefault();
+      var factor = e.deltaY < 0 ? 1.12 : 1 / 1.12;
+      var pl = stageLocalFromClient(e.clientX, e.clientY);
+      setScaleAround(viewScale * factor, pl.x, pl.y);
+    },
+    { passive: false }
+  );
+
   paintCanvas.addEventListener("pointerdown", onPointerDown);
   paintCanvas.addEventListener("pointermove", onPointerMove);
   paintCanvas.addEventListener("pointerup", onPointerUp);
@@ -327,6 +511,29 @@
   }
   if (btnSave) {
     btnSave.addEventListener("click", savePicture);
+  }
+
+  var btnZoomIn = document.getElementById("btnZoomIn");
+  var btnZoomOut = document.getElementById("btnZoomOut");
+  var btnZoomFit = document.getElementById("btnZoomFit");
+  if (btnZoomIn && colourStage) {
+    btnZoomIn.addEventListener("click", function () {
+      var w = colourStage.clientWidth;
+      var h = colourStage.clientHeight;
+      setScaleAround(viewScale * 1.28, w / 2, h / 2);
+    });
+  }
+  if (btnZoomOut && colourStage) {
+    btnZoomOut.addEventListener("click", function () {
+      var w = colourStage.clientWidth;
+      var h = colourStage.clientHeight;
+      setScaleAround(viewScale / 1.28, w / 2, h / 2);
+    });
+  }
+  if (btnZoomFit) {
+    btnZoomFit.addEventListener("click", function () {
+      resetView();
+    });
   }
 
   document.querySelectorAll(".swatch").forEach(function (s) {
@@ -370,6 +577,8 @@
   if (firstT) {
     var firstBtn = templateList && templateList.querySelector(".tmpl-btn");
     selectTemplate(firstT.file, firstBtn);
+  } else {
+    updateZoomPct();
   }
 
   var ro = new ResizeObserver(function () {

@@ -17,59 +17,77 @@
 </head>
 <body class="page-colour">
   <div class="app colour-app" id="app">
-    <nav class="game-nav" aria-label="Breadcrumb">
-      <a class="back-link" href="../index.html">← All games</a>
-    </nav>
+    <div class="colour-workspace">
+      <div class="colour-sidebar">
+        <nav class="game-nav" aria-label="Breadcrumb">
+          <a class="back-link" href="../index.html">← All games</a>
+        </nav>
 
-    <header class="colour-header">
-      <h1>Colouring book</h1>
-      <p class="colour-header__lede">Pick a picture, a colour, and a tool (pen, pencil, crayon, marker, or eraser), then draw in the box—the black lines stay on top so you can colour inside them.</p>
-    </header>
+        <header class="colour-header">
+          <h1>Colouring book</h1>
+          <p class="colour-header__lede">Pick a picture, a colour, and a tool (pen, pencil, crayon, marker, or eraser), then draw in the box—the black lines stay on top so you can colour inside them.</p>
+        </header>
 
-    <div class="colour-tools" role="toolbar" aria-label="Drawing tools">
-      <div class="colour-tools__row">
-        <span class="colour-tools__label" id="palette-label">Colour</span>
-        <div class="colour-palette" role="group" aria-labelledby="palette-label">
-          <button type="button" class="swatch" data-hex="#dc2626" style="--sw: #dc2626" title="Red" aria-label="Red" aria-pressed="false"></button>
-          <button type="button" class="swatch" style="--sw: #ea580c" data-hex="#ea580c" title="Orange" aria-label="Orange" aria-pressed="false"></button>
-          <button type="button" class="swatch" style="--sw: #ca8a04" data-hex="#ca8a04" title="Gold" aria-label="Gold" aria-pressed="false"></button>
-          <button type="button" class="swatch" style="--sw: #16a34a" data-hex="#16a34a" title="Green" aria-label="Green" aria-pressed="false"></button>
-          <button type="button" class="swatch" style="--sw: #2563eb" data-hex="#2563eb" title="Blue" aria-label="Blue" aria-pressed="false"></button>
-          <button type="button" class="swatch" style="--sw: #7c3aed" data-hex="#7c3aed" title="Purple" aria-label="Purple" aria-pressed="false"></button>
-          <button type="button" class="swatch" style="--sw: #db2777" data-hex="#db2777" title="Pink" aria-label="Pink" aria-pressed="false"></button>
-          <button type="button" class="swatch" style="--sw: #0f172a" data-hex="#0f172a" title="Black" aria-label="Black" aria-pressed="true"></button>
+        <div class="colour-tools" role="toolbar" aria-label="Drawing tools">
+          <div class="colour-tools__row">
+            <span class="colour-tools__label" id="palette-label">Colour</span>
+            <div class="colour-palette" role="group" aria-labelledby="palette-label">
+              <button type="button" class="swatch" data-hex="#dc2626" style="--sw: #dc2626" title="Red" aria-label="Red" aria-pressed="false"></button>
+              <button type="button" class="swatch" style="--sw: #ea580c" data-hex="#ea580c" title="Orange" aria-label="Orange" aria-pressed="false"></button>
+              <button type="button" class="swatch" style="--sw: #ca8a04" data-hex="#ca8a04" title="Gold" aria-label="Gold" aria-pressed="false"></button>
+              <button type="button" class="swatch" style="--sw: #16a34a" data-hex="#16a34a" title="Green" aria-label="Green" aria-pressed="false"></button>
+              <button type="button" class="swatch" style="--sw: #2563eb" data-hex="#2563eb" title="Blue" aria-label="Blue" aria-pressed="false"></button>
+              <button type="button" class="swatch" style="--sw: #7c3aed" data-hex="#7c3aed" title="Purple" aria-label="Purple" aria-pressed="false"></button>
+              <button type="button" class="swatch" style="--sw: #db2777" data-hex="#db2777" title="Pink" aria-label="Pink" aria-pressed="false"></button>
+              <button type="button" class="swatch" style="--sw: #0f172a" data-hex="#0f172a" title="Black" aria-label="Black" aria-pressed="true"></button>
+            </div>
+            <label class="colour-custom">
+              <span class="visually-hidden">Custom colour</span>
+              <input type="color" id="customColour" value="#0f172a" />
+            </label>
+          </div>
+          <div class="colour-tools__row">
+            <span class="colour-tools__label" id="tools-label">Tool</span>
+            <div class="colour-tool-btns" role="group" aria-labelledby="tools-label">
+              <button type="button" class="tool-btn is-active" data-tool="pen" aria-pressed="true" title="Felt pen">Felt pen</button>
+              <button type="button" class="tool-btn" data-tool="pencil" aria-pressed="false" title="Pencil">Pencil</button>
+              <button type="button" class="tool-btn" data-tool="crayon" aria-pressed="false" title="Crayon">Crayon</button>
+              <button type="button" class="tool-btn" data-tool="marker" aria-pressed="false" title="Thick marker">Marker</button>
+              <button type="button" class="tool-btn tool-btn--eraser" data-tool="eraser" aria-pressed="false" title="Eraser">Eraser</button>
+            </div>
+          </div>
         </div>
-        <label class="colour-custom">
-          <span class="visually-hidden">Custom colour</span>
-          <input type="color" id="customColour" value="#0f172a" />
-        </label>
-      </div>
-      <div class="colour-tools__row">
-        <span class="colour-tools__label" id="tools-label">Tool</span>
-        <div class="colour-tool-btns" role="group" aria-labelledby="tools-label">
-          <button type="button" class="tool-btn is-active" data-tool="pen" aria-pressed="true" title="Felt pen">Felt pen</button>
-          <button type="button" class="tool-btn" data-tool="pencil" aria-pressed="false" title="Pencil">Pencil</button>
-          <button type="button" class="tool-btn" data-tool="crayon" aria-pressed="false" title="Crayon">Crayon</button>
-          <button type="button" class="tool-btn" data-tool="marker" aria-pressed="false" title="Thick marker">Marker</button>
-          <button type="button" class="tool-btn tool-btn--eraser" data-tool="eraser" aria-pressed="false" title="Eraser">Eraser</button>
+
+        <div class="colour-templates" aria-label="Outlines to colour">
+          <h2 class="colour-templates__title">Choose a picture</h2>
+          <div class="colour-templates__grid" role="list" id="templateList"></div>
         </div>
       </div>
-    </div>
 
-    <div class="colour-templates" aria-label="Outlines to colour">
-      <h2 class="colour-templates__title">Choose a picture</h2>
-      <div class="colour-templates__grid" role="list" id="templateList"></div>
-    </div>
-
-    <div class="colour-stage-wrap">
-      <div class="colour-stage" id="colourStage" aria-label="Your drawing—paint here">
-        <canvas id="paintCanvas" width="800" height="600"></canvas>
-        <img id="templateOverlay" class="colour-stage__overlay" src="" alt="" width="400" height="300" decoding="async" />
-      </div>
-      <p class="colour-hint" id="statusLine" role="status" aria-live="polite">Pick a picture above, then use your finger or mouse to colour in the area below.</p>
-      <div class="colour-actions">
-        <button type="button" class="btn btn-ghost" id="btnClear">Clear painting</button>
-        <button type="button" class="btn btn-accent" id="btnSave" title="Save as PNG">Save picture</button>
+      <div class="colour-stage-wrap">
+        <div class="colour-stage" id="colourStage" aria-label="Your drawing—paint here">
+          <div class="colour-stage__panzoom" id="colourPanzoom">
+            <canvas id="paintCanvas" width="800" height="600"></canvas>
+            <img id="templateOverlay" class="colour-stage__overlay" src="" alt="" width="400" height="300" decoding="async" />
+          </div>
+        </div>
+        <div class="colour-zoom" role="group" aria-label="Zoom">
+          <button type="button" class="btn btn-ghost colour-zoom__btn" id="btnZoomOut" aria-label="Zoom out" title="Zoom out">
+            −
+          </button>
+          <span class="colour-zoom__pct" id="zoomPct">100%</span>
+          <button type="button" class="btn btn-ghost colour-zoom__btn" id="btnZoomIn" aria-label="Zoom in" title="Zoom in">
+            +
+          </button>
+          <button type="button" class="btn btn-ghost colour-zoom__btn colour-zoom__fit" id="btnZoomFit" aria-label="Reset zoom and pan" title="Fit whole picture">
+            Reset
+          </button>
+        </div>
+        <p class="colour-hint" id="statusLine" role="status" aria-live="polite">Pick a picture, then use your finger or mouse on the canvas. Pinch or Ctrl-scroll to zoom; drag with two fingers to move when zoomed.</p>
+        <div class="colour-actions">
+          <button type="button" class="btn btn-ghost" id="btnClear">Clear painting</button>
+          <button type="button" class="btn btn-accent" id="btnSave" title="Save as PNG">Save picture</button>
+        </div>
       </div>
     </div>
   </div>

@@ -1,5 +1,5 @@
 /* Minimal offline shell — network-first, cache as fallback for same-origin */
-const CACHE = "jigsaw-kids-v48";
+const CACHE = "jigsaw-kids-v52";
 const SHELL = [
   "./index.html",
   "./portal.css",
@@ -41,12 +41,6 @@ const SHELL = [
   "./games/colouring.css",
   "./games/colouring.js",
   "./games/images/portal/colouring.svg",
-  "./games/images/colouring/template-castle.svg",
-  "./games/images/colouring/template-unicorn.svg",
-  "./games/images/colouring/template-rainbow.svg",
-  "./games/images/colouring/template-dino.svg",
-  "./games/images/colouring/template-butterfly.svg",
-  "./games/images/colouring/template-robot.svg",
   "./games/images/colouring/template-mermaid.png",
   "./games/images/colouring/template-dino-hill.png",
   "./games/images/colouring/template-coral-reef.png",

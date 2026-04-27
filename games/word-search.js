@@ -4,18 +4,15 @@
 (function () {
   "use strict";
 
-  const WORDS = ["SOFIA", "TILLY", "TABLE", "WATER", "SCHOOL", "BIKE"];
-  const ROWS = 12;
-  const COLS = 12;
+  /** Short, easy words for young children; grid stays small and words run only across or down */
+  const WORDS = ["SOFIA", "TILLY", "CAT", "SUN", "RED", "BALL"];
+  const ROWS = 8;
+  const COLS = 8;
   const DIRS = [
     [0, 1],
     [0, -1],
     [1, 0],
     [-1, 0],
-    [1, 1],
-    [1, -1],
-    [-1, 1],
-    [-1, -1],
   ];
 
   const boardEl = document.getElementById("wordSearchBoard");
@@ -148,7 +145,7 @@
     return g;
   }
 
-  /** Guaranteed layout if random placement fails (alternating rows + fill). */
+  /** Guaranteed layout if random placement fails (one horizontal word per row). */
   function fallbackPlace() {
     const g = [];
     for (let r = 0; r < ROWS; r++) {
@@ -159,7 +156,7 @@
     }
     for (let wi = 0; wi < WORDS.length; wi++) {
       const word = WORDS[wi];
-      const row = (wi * 2) % ROWS;
+      const row = wi < ROWS ? wi : wi % ROWS;
       const c0 = Math.max(0, Math.floor((COLS - word.length) / 2));
       for (let i = 0; i < word.length; i++) {
         g[row][c0 + i] = word[i];
@@ -186,7 +183,7 @@
   }
 
   /**
-   * Straight line in 8 directions from (r0,c0) to (r1,c1), inclusive.
+   * Straight line horizontally or vertically only (no diagonals), inclusive.
    * @returns {{r:number,c:number}[]|null}
    */
   function linePath(r0, c0, r1, c1) {
@@ -197,16 +194,12 @@
     }
     let sr = 0;
     let sc = 0;
-    if (dr === 0) {
+    if (dr === 0 && dc !== 0) {
       sc = dc > 0 ? 1 : -1;
-    } else if (dc === 0) {
+    } else if (dc === 0 && dr !== 0) {
       sr = dr > 0 ? 1 : -1;
     } else {
-      if (Math.abs(dr) !== Math.abs(dc)) {
-        return null;
-      }
-      sr = dr > 0 ? 1 : -1;
-      sc = dc > 0 ? 1 : -1;
+      return null;
     }
     const steps = Math.max(Math.abs(dr), Math.abs(dc));
     if (r0 + sr * steps !== r1 || c0 + sc * steps !== c1) {
@@ -536,7 +529,7 @@
       if (tooShort) {
         setStatus("Drag a bit longer to spell a full word.");
       } else {
-        setStatus("Keep trying — drag along a straight line for a full word.");
+        setStatus("Keep trying — drag in a straight row across or up-and-down.");
       }
       if (typeof KidsCore !== "undefined") {
         KidsCore.playSound("no");
@@ -586,7 +579,7 @@
     grid = buildGrid();
     renderBoard();
     renderWordList();
-    setStatus("Drag your finger or mouse across a word, let go to check it.");
+    setStatus("Drag across or up-and-down in a straight line, then let go.");
   }
 
   function init() {

@@ -54,7 +54,7 @@ h1,
 
 .colour-app {
   --colour-fab-gutter: 3.75rem;
-  max-width: min(700px, 100%);
+  max-width: min(1180px, 100%);
   margin: 0 auto;
   height: 100%;
   max-height: 100%;
@@ -67,6 +67,24 @@ h1,
   padding-left: max(0.5rem, env(safe-area-inset-left, 0px));
   padding-right: max(0.5rem, calc(var(--colour-fab-gutter) + env(safe-area-inset-right, 0px)));
   padding-bottom: max(0.35rem, calc(0.35rem + env(safe-area-inset-bottom, 0px)));
+}
+
+/* Sidebar (controls + thumbnails) + canvas: row on wide screens, column on phones */
+.colour-workspace {
+  flex: 1 1 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  overflow: hidden;
+}
+
+.colour-sidebar {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  min-height: 0;
 }
 
 .game-nav {
@@ -321,7 +339,7 @@ h1,
   flex: 1 1 0;
   min-height: 5rem;
   width: 100%;
-  max-width: 560px;
+  max-width: min(560px, 100%);
   margin: 0 auto;
   background: #fff;
   border: 2px solid var(--c-ink);
@@ -329,6 +347,14 @@ h1,
   box-shadow: 0 3px 0 rgba(30, 27, 75, 0.1);
   overflow: hidden;
   touch-action: none;
+  isolation: isolate;
+}
+
+.colour-stage__panzoom {
+  position: absolute;
+  inset: 0;
+  transform-origin: 0 0;
+  will-change: transform;
 }
 
 #paintCanvas {
@@ -351,6 +377,39 @@ h1,
   pointer-events: none;
   z-index: 2;
   display: block;
+  /* White-filled PNG line art sits on top of the canvas; multiply lets paint show through white */
+  mix-blend-mode: multiply;
+}
+
+.colour-zoom {
+  flex-shrink: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem 0.5rem;
+  margin: 0.2rem 0 0.1rem;
+}
+
+.colour-zoom__btn {
+  min-width: 2.5rem;
+  padding: 0.32rem 0.55rem;
+  font-size: 1.05rem;
+  line-height: 1;
+  font-weight: 800;
+}
+
+.colour-zoom__btn.colour-zoom__fit {
+  font-size: 0.72rem;
+  padding: 0.35rem 0.65rem;
+}
+
+.colour-zoom__pct {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #9d174d;
+  min-width: 3.2rem;
+  text-align: center;
 }
 
 .colour-hint {
@@ -407,6 +466,65 @@ h1,
 html.kids-high-contrast .colour-header h1 {
   -webkit-text-fill-color: #000;
   color: #000;
+}
+
+@media (min-width: 640px) {
+  .colour-workspace {
+    flex-direction: row;
+    align-items: stretch;
+    gap: 0.55rem;
+  }
+
+  .colour-sidebar {
+    width: min(15.75rem, 38vw);
+    max-width: 44%;
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+
+  .colour-sidebar .colour-header {
+    text-align: left;
+  }
+
+  .colour-sidebar .colour-header__lede {
+    margin-inline: 0;
+    max-width: none;
+  }
+
+  .colour-sidebar .colour-templates__title {
+    text-align: left;
+  }
+
+  .colour-sidebar .colour-tools__label {
+    width: 100%;
+  }
+
+  .colour-sidebar .colour-templates {
+    flex: 1 1 0;
+    min-height: 0;
+    margin-bottom: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .colour-sidebar .colour-templates__grid {
+    flex: 1 1 0;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-content: start;
+  }
+
+  .colour-stage-wrap {
+    min-width: 0;
+  }
+
+  .colour-stage {
+    max-width: none;
+    margin-inline: 0;
+  }
 }
 
 @media (max-height: 640px), (orientation: landscape) and (max-height: 560px) {

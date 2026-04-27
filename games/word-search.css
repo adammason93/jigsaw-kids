@@ -177,8 +177,8 @@ h2,
 /* Size from the board-wrap flex cell, not 100dvh, so the bottom bar stays on-screen */
 .word-search__board {
   display: grid;
-  grid-template-columns: repeat(var(--ws-cols, 12), minmax(0, 1fr));
-  grid-template-rows: repeat(var(--ws-rows, 12), minmax(0, 1fr));
+  grid-template-columns: repeat(var(--ws-cols, 8), minmax(0, 1fr));
+  grid-template-rows: repeat(var(--ws-rows, 8), minmax(0, 1fr));
   width: 100%;
   /* When height is the limiter, don’t let width force overflow (cqh = container query; fallback: 100%) */
   max-width: 100%;
