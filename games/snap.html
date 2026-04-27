@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="theme-color" content="#059669" />
+  <meta name="theme-color" content="#7c3aed" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <title>Snap — Sofia's Game Room</title>
@@ -25,8 +25,9 @@
       <header class="snap-header">
         <h1>Snap</h1>
         <p class="snap-header__lede">
-          Flip cards into the middle. When <strong>two in a row</strong> show the same number (or A, J, Q, K), be first to tap
-          <strong>Snap</strong> on your side. Wrong snap gives your friend a small bonus.
+          Flip animal tiles and peek at the <strong>two boxes</strong> in the middle. When you see the <strong>same animal</strong> twice
+          in a row (picture <em>and</em> name), tap <strong>Snap!</strong> on your side first. Snapped too soon? The other player gets a
+          tiny bonus.
         </p>
       </header>
 
@@ -54,36 +55,48 @@
         <div class="snap-score snap-score--p1">
           <span class="snap-score__label" id="labelP1">Player 1</span>
           <span class="snap-score__value" id="scoreP1">0</span>
-          <span class="snap-score__unit">cards</span>
+          <span class="snap-score__unit">tiles</span>
         </div>
         <div class="snap-score snap-score--deck">
-          <span class="snap-score__label">In deck</span>
+          <span class="snap-score__label">Still in pile</span>
           <span class="snap-score__value" id="stockCount">52</span>
         </div>
         <div class="snap-score snap-score--p2">
           <span class="snap-score__label" id="labelP2">Player 2</span>
           <span class="snap-score__value" id="scoreP2">0</span>
-          <span class="snap-score__unit">cards</span>
+          <span class="snap-score__unit">tiles</span>
         </div>
       </div>
-      <p class="snap-status" id="statusLine" role="status" aria-live="polite">Flip a card to begin.</p>
+      <p class="snap-status" id="statusLine" role="status" aria-live="polite">Flip to begin — cute animals ahead!</p>
 
       <div class="snap-arena" aria-label="Snap table">
         <button type="button" class="snap-side snap-side--p1" id="btnSnap1" aria-label="Player 1 snap">
           <span class="snap-side__burst" aria-hidden="true"></span>
+          <span class="snap-side__emoji" aria-hidden="true">👈</span>
           <span class="snap-side__text">Snap!</span>
           <span class="snap-side__hint" id="hintP1">Player 1</span>
         </button>
 
         <div class="snap-middle">
-          <div class="snap-pile-wrap" id="pileWrap">
-            <div class="snap-pile" id="pile">
-              <div class="snap-pile__placeholder" id="pilePlaceholder">Flip a card</div>
+          <div class="snap-table" id="pileWrap">
+            <div class="snap-showcase" id="showcase" aria-label="Compare the last two animals">
+              <div class="snap-slot">
+                <span class="snap-slot__title">The one before</span>
+                <div class="snap-slot__card" id="slotPrev"></div>
+              </div>
+              <div class="snap-showcase__mid">
+                <span class="snap-showcase__arrow" aria-hidden="true">⬇</span>
+                <p class="snap-compare" id="compareBanner">Flip to play</p>
+              </div>
+              <div class="snap-slot">
+                <span class="snap-slot__title">Just flipped</span>
+                <div class="snap-slot__card" id="slotCurr"></div>
+              </div>
             </div>
           </div>
           <div class="snap-controls">
-            <button type="button" class="snap-btn snap-btn--primary snap-btn--flip" id="btnFlip" aria-label="Flip next card">
-              Flip card
+            <button type="button" class="snap-btn snap-btn--primary snap-btn--flip" id="btnFlip" aria-label="Flip next animal tile">
+              Next animal
             </button>
             <label class="snap-auto">
               <input type="checkbox" id="chkAuto" />
@@ -94,6 +107,7 @@
 
         <button type="button" class="snap-side snap-side--p2" id="btnSnap2" aria-label="Player 2 snap">
           <span class="snap-side__burst" aria-hidden="true"></span>
+          <span class="snap-side__emoji" aria-hidden="true">👉</span>
           <span class="snap-side__text">Snap!</span>
           <span class="snap-side__hint" id="hintP2">Player 2</span>
         </button>

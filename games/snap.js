@@ -1,16 +1,25 @@
 /**
- * Snap — flip a deck into the middle; same rank on top two = valid snap.
+ * Snap — flip animal tiles; same animal on the last two = valid snap.
  */
 (function () {
   "use strict";
 
-  var SUITS = [
-    { id: "s", sym: "\u2660", red: false },
-    { id: "h", sym: "\u2665", red: true },
-    { id: "d", sym: "\u2666", red: true },
-    { id: "c", sym: "\u2663", red: false },
+  /** 13 animals × 4 copies each = 52 tiles (like a full deck). */
+  var SPECIES = [
+    { id: "cat", label: "Cat", emoji: "🐱" },
+    { id: "dog", label: "Dog", emoji: "🐶" },
+    { id: "lion", label: "Lion", emoji: "🦁" },
+    { id: "frog", label: "Frog", emoji: "🐸" },
+    { id: "cow", label: "Cow", emoji: "🐄" },
+    { id: "pig", label: "Pig", emoji: "🐷" },
+    { id: "chick", label: "Chick", emoji: "🐤" },
+    { id: "penguin", label: "Penguin", emoji: "🐧" },
+    { id: "bunny", label: "Bunny", emoji: "🐰" },
+    { id: "bear", label: "Bear", emoji: "🐻" },
+    { id: "monkey", label: "Monkey", emoji: "🐵" },
+    { id: "bee", label: "Bee", emoji: "🐝" },
+    { id: "fish", label: "Fish", emoji: "🐟" },
   ];
-  var RANKS = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
   var PENALTY_BONUS = 3;
   var CPU_SNAP_MIN_MS = 380;
   var CPU_SNAP_MAX_MS = 1100;
@@ -34,16 +43,18 @@
   var labelP2 = document.getElementById("labelP2");
   var hintP1 = document.getElementById("hintP1");
   var hintP2 = document.getElementById("hintP2");
-  var pile = document.getElementById("pile");
-  var pilePlaceholder = document.getElementById("pilePlaceholder");
+  var showcase = document.getElementById("showcase");
+  var slotPrev = document.getElementById("slotPrev");
+  var slotCurr = document.getElementById("slotCurr");
+  var compareBanner = document.getElementById("compareBanner");
 
-  if (!screenSetup || !screenPlay || !pile) {
+  if (!screenSetup || !screenPlay || !showcase || !slotPrev || !slotCurr) {
     return;
   }
 
   /** @type {"friend"|"cpu"} */
   var mode = "friend";
-  /** @type {{ rank: string, rankIdx: number, suit: string, suitSym: string, red: boolean }[]} */
+  /** @type {{ id: string, label: string, emoji: string, pal: number }[]} */
   var stock = [];
   /** @type {typeof stock} */
   var center = [];
@@ -55,16 +66,15 @@
 
   function buildDeck() {
     var d = [];
-    var si;
-    var ri;
-    for (si = 0; si < SUITS.length; si++) {
-      for (ri = 0; ri < RANKS.length; ri++) {
+    var i;
+    var k;
+    for (i = 0; i < SPECIES.length; i++) {
+      for (k = 0; k < 4; k++) {
         d.push({
-          rank: RANKS[ri],
-          rankIdx: ri,
-          suit: SUITS[si].id,
-          suitSym: SUITS[si].sym,
-          red: SUITS[si].red,
+          id: SPECIES[i].id,
+          label: SPECIES[i].label,
+          emoji: SPECIES[i].emoji,
+          pal: i % 6,
         });
       }
     }
@@ -90,7 +100,7 @@
     }
     var a = center[center.length - 1];
     var b = center[center.length - 2];
-    return a.rankIdx === b.rankIdx;
+    return a.id === b.id;
   }
 
   function clearCpuSnapTimer() {
@@ -173,47 +183,73 @@
     }
   }
 
-  function createCardEl(card, layer) {
+  function createCardEl(tile) {
     var el = document.createElement("div");
-    el.className =
-      "snap-playing-card snap-playing-card--" +
-      layer +
-      " " +
-      (card.red ? "snap-playing-card--red" : "snap-playing-card--black");
+    el.className = "snap-face snap-pal-" + tile.pal;
     el.setAttribute("aria-hidden", "true");
-    var rank = document.createElement("span");
-    rank.className = "snap-playing-card__rank";
-    rank.textContent = card.rank;
-    var suit = document.createElement("span");
-    suit.className = "snap-playing-card__suit";
-    suit.textContent = card.suitSym;
-    el.appendChild(rank);
-    el.appendChild(suit);
+    var em = document.createElement("span");
+    em.className = "snap-face__emoji";
+    em.textContent = tile.emoji;
+    var lab = document.createElement("span");
+    lab.className = "snap-face__label";
+    lab.textContent = tile.label;
+    el.appendChild(em);
+    el.appendChild(lab);
     return el;
   }
 
-  function renderPile() {
-    pile.querySelectorAll(".snap-playing-card").forEach(function (n) {
-      n.remove();
-    });
-    if (!pilePlaceholder) {
-      return;
-    }
-    if (center.length === 0) {
-      pilePlaceholder.classList.remove("is-hidden");
-      pile.classList.remove("is-match");
-      return;
-    }
-    pilePlaceholder.classList.add("is-hidden");
-    var n = center.length;
-    if (n >= 2) {
-      pile.appendChild(createCardEl(center[n - 2], "under"));
-    }
-    pile.appendChild(createCardEl(center[n - 1], "top"));
-    if (canSnap()) {
-      pile.classList.add("is-match");
+  function fillSlotPlaceholder(slot, lines) {
+    slot.innerHTML = "";
+    var wrap = document.createElement("div");
+    wrap.className = "snap-dummy";
+    if (typeof lines === "string") {
+      wrap.textContent = lines;
     } else {
-      pile.classList.remove("is-match");
+      lines.forEach(function (line, i) {
+        var span = document.createElement("span");
+        span.className = "snap-dummy__line";
+        span.textContent = line;
+        wrap.appendChild(span);
+      });
+    }
+    slot.appendChild(wrap);
+  }
+
+  function renderPile() {
+    slotPrev.innerHTML = "";
+    slotCurr.innerHTML = "";
+    if (center.length === 0) {
+      fillSlotPlaceholder(slotPrev, ["Flip the", "next one!"]);
+      fillSlotPlaceholder(slotCurr, ["Waiting…"]);
+      if (compareBanner) {
+        compareBanner.textContent = "Flip to start — two animals will show here.";
+      }
+      showcase.classList.remove("is-match", "is-near-match");
+      return;
+    }
+    if (center.length === 1) {
+      fillSlotPlaceholder(slotPrev, ["Not yet —", "flip again"]);
+      slotCurr.appendChild(createCardEl(center[0]));
+      if (compareBanner) {
+        compareBanner.textContent = "One more flip — then compare both boxes!";
+      }
+      showcase.classList.remove("is-match", "is-near-match");
+      return;
+    }
+    slotPrev.appendChild(createCardEl(center[center.length - 2]));
+    slotCurr.appendChild(createCardEl(center[center.length - 1]));
+    if (canSnap()) {
+      showcase.classList.add("is-match");
+      showcase.classList.remove("is-near-match");
+      if (compareBanner) {
+        compareBanner.textContent = "Same animal! First Snap wins the pile!";
+      }
+    } else {
+      showcase.classList.remove("is-match");
+      showcase.classList.add("is-near-match");
+      if (compareBanner) {
+        compareBanner.textContent = "Different animals — flip again or wait…";
+      }
     }
   }
 
@@ -240,16 +276,16 @@
         if (statusLine) {
           statusLine.textContent =
             mode === "cpu"
-              ? "Snap! You win " + won + " cards."
-              : "Player 1 snaps first — wins " + won + " cards.";
+              ? "Snap! You win " + won + " tiles."
+              : "Player 1 snaps first — wins " + won + " tiles.";
         }
       } else {
         score2 += won;
         if (statusLine) {
           statusLine.textContent =
             mode === "cpu"
-              ? "The computer snapped first — it wins " + won + " cards."
-              : "Player 2 snaps first — wins " + won + " cards.";
+              ? "The computer snapped first — it wins " + won + " tiles."
+              : "Player 2 snaps first — wins " + won + " tiles.";
         }
       }
       center = [];
@@ -265,10 +301,10 @@
       }
       if (statusLine) {
         statusLine.textContent =
-          "No match — " +
+          "Not the same animal — " +
           (other === 1
             ? mode === "cpu"
-              ? "you get +" + PENALTY_BONUS + " bonus cards."
+              ? "you get +" + PENALTY_BONUS + " bonus tiles."
               : "Player 1 gets +" + PENALTY_BONUS + " bonus."
             : mode === "cpu"
               ? "the computer gets +" + PENALTY_BONUS + " bonus."
@@ -295,7 +331,7 @@
     if (center.length >= 2 && canSnap()) {
       if (statusLine) {
         statusLine.textContent =
-          "Deck empty — first to snap wins the last pile! (" +
+          "No tiles left — first to snap wins the last pile! (" +
           (mode === "cpu" ? "You vs computer" : "two players") +
           ")";
       }
@@ -316,18 +352,24 @@
     if (score1 > score2) {
       msg =
         mode === "cpu"
-          ? "Deck finished — you win with " + score1 + " cards! Computer has " + score2 + "."
-          : "Deck finished — Player 1 wins with " + score1 + " cards!";
+          ? "All flipped — you win with " + score1 + " tiles! Computer has " + score2 + "."
+          : "All flipped — Player 1 wins with " + score1 + " tiles!";
     } else if (score2 > score1) {
       msg =
         mode === "cpu"
-          ? "Deck finished — the computer wins with " + score2 + " cards. You have " + score1 + "."
-          : "Deck finished — Player 2 wins with " + score2 + " cards!";
+          ? "All flipped — the computer wins with " + score2 + " tiles. You have " + score1 + "."
+          : "All flipped — Player 2 wins with " + score2 + " tiles!";
     } else {
-      msg = "Deck finished — a tie at " + score1 + " cards each!";
+      msg = "All flipped — a tie at " + score1 + " tiles each!";
     }
     if (statusLine) {
       statusLine.textContent = msg;
+    }
+    if (compareBanner) {
+      compareBanner.textContent = "Great game! Tap New game to play again.";
+    }
+    if (showcase) {
+      showcase.classList.remove("is-match", "is-near-match");
     }
     if (typeof KidsCore !== "undefined" && KidsCore.playSound) {
       KidsCore.playSound(score1 === score2 ? "tap" : "ok");
@@ -346,11 +388,13 @@
       if (canSnap()) {
         statusLine.textContent =
           mode === "cpu"
-            ? "Match! Tap Snap! or wait for the computer…"
-            : "Match! First to snap wins the pile!";
+            ? "Same animal! Tap Snap! or wait for the computer…"
+            : "Same animal! First to snap wins the pile!";
       } else {
         statusLine.textContent =
-          stock.length === 0 ? "Last card on the table." : "Keep flipping, or snap when two match.";
+          stock.length === 0
+            ? "Last animal on the table."
+            : "Keep flipping, or snap when both animals match.";
       }
     }
     if (typeof KidsCore !== "undefined" && KidsCore.haptic) {
@@ -377,7 +421,7 @@
     updateScoresUi();
     renderPile();
     if (statusLine) {
-      statusLine.textContent = "Flip a card to begin.";
+      statusLine.textContent = "Flip to begin — cute animals ahead!";
     }
     maybeStartAutoFlip();
   }
