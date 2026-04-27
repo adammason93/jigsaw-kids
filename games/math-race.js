@@ -161,6 +161,7 @@
   function showScreen(which) {
     if (appEl) {
       appEl.classList.toggle("app--playing", which === "play");
+      appEl.classList.toggle("app--setup", which === "setup");
     }
     const screens = {
       setup: screenSetup,

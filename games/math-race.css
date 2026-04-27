@@ -369,6 +369,187 @@ h2,
   display: none !important;
 }
 
+/* ——— Setup (menu): fit on one screen without page scroll on phones & tablets ——— */
+.page-math .app--setup {
+  padding: 0.4rem 0.65rem 0.4rem;
+  max-width: 560px;
+}
+
+#screenSetup .page-header--race {
+  margin-bottom: 0.4rem;
+}
+
+#screenSetup .page-header__img {
+  max-height: min(92px, 16svh);
+  object-position: 50% 40%;
+}
+
+#screenSetup .page-header__text {
+  padding: 0.4rem 0.6rem 0.5rem;
+}
+
+#screenSetup .page-header h1 {
+  font-size: clamp(1.1rem, 3.2vw, 1.4rem);
+  margin: 0 0 0.2rem;
+}
+
+#screenSetup .page-header p {
+  font-size: 0.8rem;
+  line-height: 1.3;
+  font-weight: 600;
+}
+
+#screenSetup .card {
+  padding: 0.45rem 0.6rem 0.5rem;
+  margin-bottom: 0.4rem;
+}
+
+#screenSetup .card h2 {
+  font-size: 0.86rem;
+  margin: 0 0 0.3rem;
+}
+
+#screenSetup .choice-row {
+  gap: 0.3rem;
+}
+
+#screenSetup .choice-row--mode {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.3rem;
+}
+
+#screenSetup .radio-tile {
+  padding: 0.35rem 0.35rem 0.4rem;
+  border-radius: 10px;
+}
+
+#screenSetup .radio-tile__title {
+  font-size: 0.86rem;
+}
+
+#screenSetup .radio-tile__hint {
+  font-size: 0.68rem;
+  line-height: 1.2;
+}
+
+#screenSetup .card__hint {
+  margin: 0.35rem 0 0;
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+
+#screenSetup .char-block {
+  margin-bottom: 0.35rem;
+}
+
+#screenSetup .char-block__label {
+  margin: 0 0 0.2rem;
+  font-size: 0.78rem;
+}
+
+#screenSetup .char-row {
+  gap: 0.3rem;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 0.15rem;
+  scrollbar-width: thin;
+}
+
+#screenSetup .char-btn {
+  width: 2.75rem;
+  height: 2.75rem;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  border-radius: 12px;
+}
+
+#screenSetup .char-btn__pic {
+  width: 2rem;
+  height: 2rem;
+}
+
+#screenSetup .btn-primary {
+  padding: 0.6rem 0.9rem;
+  font-size: 1.02rem;
+  margin-top: 0.1rem;
+}
+
+/* Side-by-side: difficulty + path length; mode + chars stay full width */
+@media (min-width: 500px) {
+  #screenSetup {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.4rem 0.5rem;
+    align-content: start;
+  }
+
+  #screenSetup > .page-header--race {
+    grid-column: 1 / -1;
+  }
+
+  #screenSetup > .card {
+    margin-bottom: 0;
+  }
+
+  #screenSetup > .card[aria-labelledby="lblMode"] {
+    grid-column: 1 / -1;
+  }
+
+  #screenSetup > .card[aria-labelledby="lblChar"] {
+    grid-column: 1 / -1;
+  }
+
+  #screenSetup > .btn-primary {
+    grid-column: 1 / -1;
+  }
+}
+
+/* Narrow phones: one column for play modes; keep horizontal char strip if needed */
+@media (max-width: 499.98px) {
+  #screenSetup .choice-row--mode {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Extra-tall enough: slightly larger hero, still tight */
+@media (min-height: 800px) {
+  #screenSetup .page-header__img {
+    max-height: min(120px, 18svh);
+  }
+}
+
+/* Very short viewports: minimal hero & copy */
+@media (max-height: 640px) {
+  #screenSetup .page-header__img {
+    max-height: min(64px, 12svh);
+  }
+
+  #screenSetup .page-header p {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+}
+
+/* Touch sheet in tablet-ipad: keep setup char strip scrollable, not the whole page */
+@supports (min-height: 100dvh) {
+  .page-math .app--setup {
+    min-height: 0;
+  }
+}
+
+/* tablet-ipad.css raises .page-math .char-row gap at 768px — keep setup strip tight */
+@media (min-width: 768px) {
+  .page-math #screenSetup .char-row {
+    gap: 0.3rem;
+  }
+}
+
 /* Board + side panel (Snakes & Ladders game-layout pattern) */
 .play-layout {
   display: grid;
