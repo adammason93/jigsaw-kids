@@ -31,6 +31,8 @@
   const customColour = document.getElementById("customColour");
   const btnClear = document.getElementById("btnClear");
   const btnSave = document.getElementById("btnSave");
+  const btnUndo = document.getElementById("btnUndo");
+  const btnSaveLater = document.getElementById("btnSaveLater");
   const saveLink = document.getElementById("saveLink");
   const statusLine = document.getElementById("statusLine");
   if (!paintCanvas || !templateOverlay || !colourStage) {
@@ -58,6 +60,15 @@
   var lastPinchDist = 1;
   var lastPinchCx = 0;
   var lastPinchCy = 0;
+
+  const STORAGE_KEY = "jigsawKidsColouringV1";
+  const UNDO_MAX = 28;
+  /** @type {string[]} */
+  var undoStack = [];
+  var undoPrepared = false;
+  /** @type {{ v: number; templateFile: string; cssW: number; cssH: number; paint: string; t: number } | null} */
+  var pendingRestore = null;
+  var currentTemplateFile = "";
 
   function getDpr() {
     return Math.min(window.devicePixelRatio || 1, 2.5);
@@ -152,6 +163,132 @@
     updateZoomPct();
   }
 
+  function clearUndo() {
+    undoStack = [];
+    updateUndoUi();
+  }
+
+  function updateUndoUi() {
+    if (btnUndo) {
+      btnUndo.disabled = undoStack.length === 0;
+    }
+  }
+
+  function snapshotCanvasPng() {
+    try {
+      return paintCanvas.toDataURL("image/png");
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function pushUndoCheckpoint() {
+    var s = snapshotCanvasPng();
+    if (!s) {
+      return;
+    }
+    undoStack.push(s);
+    if (undoStack.length > UNDO_MAX) {
+      undoStack.shift();
+    }
+    updateUndoUi();
+  }
+
+  function restoreFromDataUrl(url) {
+    var im = new Image();
+    im.onload = function () {
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, cssW, cssH);
+      ctx.drawImage(im, 0, 0, cssW, cssH);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      updateUndoUi();
+    };
+    im.onerror = function () {
+      updateUndoUi();
+    };
+    im.src = url;
+  }
+
+  function undoLast() {
+    if (undoStack.length === 0) {
+      return;
+    }
+    var toRestore = undoStack.pop();
+    restoreFromDataUrl(toRestore);
+    if (typeof KidsCore !== "undefined" && KidsCore.playSound) {
+      KidsCore.playSound("tap");
+    }
+  }
+
+  function readSavedSession() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) {
+        return null;
+      }
+      var o = JSON.parse(raw);
+      if (!o || o.v !== 1 || !o.templateFile || !o.paint) {
+        return null;
+      }
+      return o;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function saveForLater() {
+    if (!currentTemplateFile) {
+      if (statusLine) {
+        statusLine.textContent = "Pick a picture first, then you can save for later.";
+      }
+      return;
+    }
+    var paint;
+    try {
+      paint = paintCanvas.toDataURL("image/jpeg", 0.86);
+    } catch (e) {
+      paint = null;
+    }
+    if (!paint) {
+      if (statusLine) {
+        statusLine.textContent = "Couldn’t save — try again.";
+      }
+      return;
+    }
+    var payload = {
+      v: 1,
+      templateFile: currentTemplateFile,
+      cssW: cssW,
+      cssH: cssH,
+      paint: paint,
+      t: Date.now(),
+    };
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+    } catch (e) {
+      if (statusLine) {
+        statusLine.textContent = "Not enough space on this device — try Save picture instead.";
+      }
+      if (typeof KidsCore !== "undefined" && KidsCore.playSound) {
+        KidsCore.playSound("no");
+      }
+      return;
+    }
+    if (statusLine) {
+      statusLine.textContent =
+        "Saved for later on this tablet or computer. Come back to Colouring book anytime!";
+    }
+    if (typeof KidsCore !== "undefined") {
+      if (KidsCore.playSound) {
+        KidsCore.playSound("ok");
+      }
+      if (KidsCore.haptic) {
+        KidsCore.haptic("light");
+      }
+    }
+  }
+
   function fitCanvas(preserve) {
     var preserveDrawing = !!preserve;
     dpr = getDpr();
@@ -165,6 +302,7 @@
     cssH = Math.max(1, Math.floor(colourStage.clientHeight));
     if (preserveDrawing && (prevW !== cssW || prevH !== cssH)) {
       resetView();
+      clearUndo();
     }
     var snap = null;
     if (preserveDrawing && paintCanvas.width > 0 && paintCanvas.height > 0) {
@@ -252,6 +390,7 @@
       return;
     }
     e.preventDefault();
+    undoPrepared = false;
     isDrawing = true;
     activePointer = e.pointerId;
     var p = getPos(e);
@@ -275,6 +414,10 @@
       return;
     }
     e.preventDefault();
+    if (!undoPrepared) {
+      pushUndoCheckpoint();
+      undoPrepared = true;
+    }
     var p = getPos(e);
     drawSegment(lastX, lastY, p.x, p.y);
     lastX = p.x;
@@ -321,13 +464,52 @@
       span.textContent = t.label;
       b.appendChild(span);
       b.addEventListener("click", function () {
-        selectTemplate(t.file, b);
+        selectTemplate(t.file, b, null);
       });
       templateList.appendChild(b);
     });
   }
 
-  function selectTemplate(file, buttonEl) {
+  function findTemplateButton(file) {
+    if (!templateList || !file) {
+      return null;
+    }
+    return templateList.querySelector('.tmpl-btn[data-file="' + file + '"]');
+  }
+
+  var templateReadyOnce = false;
+
+  function finishTemplateLoad() {
+    if (templateReadyOnce) {
+      return;
+    }
+    templateReadyOnce = true;
+    resetView();
+    fitCanvas(false);
+    clearUndo();
+    if (pendingRestore && pendingRestore.templateFile === currentTemplateFile) {
+      var pr = pendingRestore;
+      pendingRestore = null;
+      restoreFromDataUrl(pr.paint);
+      if (statusLine) {
+        statusLine.textContent = "Welcome back — here’s the picture you saved!";
+      }
+    } else {
+      updateUndoUi();
+    }
+  }
+
+  /**
+   * @param {string} file
+   * @param {HTMLButtonElement | null | undefined} buttonEl
+   * @param {{ fromSavedSession?: boolean } | null} opts
+   */
+  function selectTemplate(file, buttonEl, opts) {
+    opts = opts || {};
+    if (!opts.fromSavedSession) {
+      pendingRestore = null;
+    }
+    currentTemplateFile = file;
     templateList.querySelectorAll(".tmpl-btn").forEach(function (btn) {
       btn.classList.remove("is-active");
       btn.setAttribute("aria-pressed", "false");
@@ -336,13 +518,24 @@
       buttonEl.classList.add("is-active");
       buttonEl.setAttribute("aria-pressed", "true");
     }
+    templateReadyOnce = false;
+    templateOverlay.onload = null;
+    templateOverlay.onerror = null;
+    var onReady = function () {
+      templateOverlay.onload = null;
+      templateOverlay.onerror = null;
+      finishTemplateLoad();
+    };
+    templateOverlay.onload = onReady;
+    templateOverlay.onerror = onReady;
     templateOverlay.src = file;
     templateOverlay.style.display = "block";
-    if (statusLine) {
+    if (statusLine && !opts.fromSavedSession) {
       statusLine.textContent = "Colour on the canvas. Change pictures any time.";
     }
-    resetView();
-    fitCanvas(false);
+    if (templateOverlay.decode && typeof templateOverlay.decode === "function") {
+      templateOverlay.decode().then(onReady).catch(onReady);
+    }
   }
 
   function setToolById(id) {
@@ -367,6 +560,7 @@
   }
 
   function clearPainting() {
+    clearUndo();
     fitCanvas(false);
     if (typeof KidsCore !== "undefined" && KidsCore.playSound) {
       KidsCore.playSound("tap");
@@ -509,6 +703,19 @@
   if (btnClear) {
     btnClear.addEventListener("click", clearPainting);
   }
+  if (btnUndo) {
+    btnUndo.addEventListener("click", function () {
+      undoLast();
+    });
+  }
+  if (btnSaveLater) {
+    btnSaveLater.addEventListener("click", function () {
+      saveForLater();
+      if (typeof KidsCore !== "undefined" && KidsCore.playSound) {
+        KidsCore.playSound("tap");
+      }
+    });
+  }
   if (btnSave) {
     btnSave.addEventListener("click", savePicture);
   }
@@ -573,12 +780,21 @@
   }
   setToolById("pen");
   buildTemplateList();
-  var firstT = TEMPLATES[0];
-  if (firstT) {
-    var firstBtn = templateList && templateList.querySelector(".tmpl-btn");
-    selectTemplate(firstT.file, firstBtn);
+  var savedSession = readSavedSession();
+  if (savedSession && savedSession.templateFile) {
+    pendingRestore = savedSession;
+    var savedBtn = findTemplateButton(savedSession.templateFile);
+    selectTemplate(savedSession.templateFile, savedBtn, { fromSavedSession: true });
   } else {
-    updateZoomPct();
+    pendingRestore = null;
+    var firstT = TEMPLATES[0];
+    if (firstT) {
+      var firstBtn = templateList && templateList.querySelector(".tmpl-btn");
+      selectTemplate(firstT.file, firstBtn, null);
+    } else {
+      updateZoomPct();
+      updateUndoUi();
+    }
   }
 
   var ro = new ResizeObserver(function () {

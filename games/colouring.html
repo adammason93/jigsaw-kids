@@ -25,7 +25,7 @@
 
         <header class="colour-header">
           <h1>Colouring book</h1>
-          <p class="colour-header__lede">Pick a picture, a colour, and a tool (pen, pencil, crayon, marker, or eraser), then draw in the box—the black lines stay on top so you can colour inside them.</p>
+          <p class="colour-header__lede">Pick a picture, a colour, and a tool, then draw—the black lines stay on top. <strong>Undo</strong> removes the last scribble. <strong>Save for later</strong> remembers your picture on this device.</p>
         </header>
 
         <div class="colour-tools" role="toolbar" aria-label="Drawing tools">
@@ -85,7 +85,13 @@
         </div>
         <p class="colour-hint" id="statusLine" role="status" aria-live="polite">Pick a picture, then use your finger or mouse on the canvas. Pinch or Ctrl-scroll to zoom; drag with two fingers to move when zoomed.</p>
         <div class="colour-actions">
+          <button type="button" class="btn btn-ghost" id="btnUndo" aria-label="Undo last stroke" title="Undo last stroke" disabled>
+            Undo
+          </button>
           <button type="button" class="btn btn-ghost" id="btnClear">Clear painting</button>
+          <button type="button" class="btn btn-ghost" id="btnSaveLater" title="Saves on this device so you can come back">
+            Save for later
+          </button>
           <button type="button" class="btn btn-accent" id="btnSave" title="Save as PNG">Save picture</button>
         </div>
       </div>

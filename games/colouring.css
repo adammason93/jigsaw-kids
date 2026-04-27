@@ -448,6 +448,13 @@ h1,
   transform: scale(0.98);
 }
 
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.06);
+}
+
 .btn-ghost {
   background: #f3f4f6;
   color: #374151;

@@ -4,8 +4,65 @@
 (function () {
   "use strict";
 
-  /** Short, easy words for young children; grid stays small and words run only across or down */
-  const WORDS = ["SOFIA", "TILLY", "CAT", "SUN", "RED", "BALL"];
+  /**
+   * Kid-friendly words, 4–5 letters only. Each new game picks a random handful from here.
+   */
+  const WORD_POOL = [
+    "SOFIA",
+    "TILLY",
+    "APPLE",
+    "BABY",
+    "BALL",
+    "BARN",
+    "BEAR",
+    "BIRD",
+    "BLUE",
+    "BOOK",
+    "BUNNY",
+    "CAKE",
+    "CLOUD",
+    "DANCE",
+    "DUCK",
+    "FARM",
+    "FISH",
+    "FROG",
+    "GIFT",
+    "HAND",
+    "HAPPY",
+    "HEART",
+    "HOME",
+    "HORSE",
+    "JELLY",
+    "KITE",
+    "LEMON",
+    "LION",
+    "MILK",
+    "MOON",
+    "MOUSE",
+    "PANDA",
+    "PARK",
+    "PIZZA",
+    "PLANT",
+    "PLAY",
+    "PUPPY",
+    "RAIN",
+    "ROAD",
+    "SHEEP",
+    "SHOES",
+    "SING",
+    "SNAKE",
+    "SNOW",
+    "SPACE",
+    "STAR",
+    "SUNNY",
+    "SWING",
+    "TIGER",
+    "TREE",
+    "TRUCK",
+    "WATER",
+    "ZEBRA",
+  ];
+  const WORD_COUNT = 6;
   const ROWS = 8;
   const COLS = 8;
   const DIRS = [
@@ -35,6 +92,8 @@
     "A strawberry from Dada",
   ];
 
+  /** @type {string[]} */
+  let roundWords = [];
   /** @type {string[][]} */
   let grid = [];
   /** @type {Set<string>} */
@@ -87,6 +146,23 @@
     return L[Math.floor(Math.random() * L.length)];
   }
 
+  function shuffleWordPoolCopy() {
+    const a = WORD_POOL.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      const t = a[i];
+      a[i] = a[j];
+      a[j] = t;
+    }
+    return a;
+  }
+
+  function pickWordsForRound() {
+    const shuffled = shuffleWordPoolCopy();
+    const n = Math.min(WORD_COUNT, WORD_POOL.length);
+    roundWords = shuffled.slice(0, n);
+  }
+
   function tryPlaceAll() {
     /** @type {(string|null)[][]} */
     const g = [];
@@ -96,7 +172,7 @@
         g[r][c] = null;
       }
     }
-    const shuffled = WORDS.slice().sort(function () {
+    const shuffled = roundWords.slice().sort(function () {
       return Math.random() - 0.5;
     });
     for (let wi = 0; wi < shuffled.length; wi++) {
@@ -154,8 +230,8 @@
         g[r][c] = null;
       }
     }
-    for (let wi = 0; wi < WORDS.length; wi++) {
-      const word = WORDS[wi];
+    for (let wi = 0; wi < roundWords.length; wi++) {
+      const word = roundWords[wi];
       const row = wi < ROWS ? wi : wi % ROWS;
       const c0 = Math.max(0, Math.floor((COLS - word.length) / 2));
       for (let i = 0; i < word.length; i++) {
@@ -225,8 +301,8 @@
 
   function matchWord(letters) {
     const u = letters.toUpperCase();
-    for (let i = 0; i < WORDS.length; i++) {
-      const w = WORDS[i];
+    for (let i = 0; i < roundWords.length; i++) {
+      const w = roundWords[i];
       const rev = w
         .split("")
         .reverse()
@@ -279,8 +355,8 @@
       return;
     }
     wordListEl.innerHTML = "";
-    for (let i = 0; i < WORDS.length; i++) {
-      const w = WORDS[i];
+    for (let i = 0; i < roundWords.length; i++) {
+      const w = roundWords[i];
       const li = document.createElement("li");
       li.className = "word-search__word";
       li.setAttribute("data-word", w);
@@ -316,7 +392,7 @@
   }
 
   function allFound() {
-    return found.size >= WORDS.length;
+    return found.size >= roundWords.length;
   }
 
   function randomInt(a, b) {
@@ -483,8 +559,8 @@
     }
     const path = lastPath;
     const str = pathToString(path);
-    const matched = str.length >= 3 ? matchWord(str) : null;
-    const tooShort = str.length > 0 && str.length < 3;
+    const matched = str.length >= 4 ? matchWord(str) : null;
+    const tooShort = str.length > 0 && str.length < 4;
     clearDragClasses();
     startCell = null;
     lastPath = [];
@@ -527,7 +603,7 @@
       }
     } else if (str.length > 0) {
       if (tooShort) {
-        setStatus("Drag a bit longer to spell a full word.");
+        setStatus("Drag a bit longer — words are 4 or 5 letters.");
       } else {
         setStatus("Keep trying — drag in a straight row across or up-and-down.");
       }
@@ -576,6 +652,7 @@
       kellyToast.setAttribute("aria-hidden", "true");
     }
     found = new Set();
+    pickWordsForRound();
     grid = buildGrid();
     renderBoard();
     renderWordList();
