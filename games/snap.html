@@ -80,17 +80,19 @@
         <div class="snap-middle">
           <div class="snap-table" id="pileWrap">
             <div class="snap-showcase" id="showcase" aria-label="Compare the last two animals">
-              <div class="snap-slot">
-                <span class="snap-slot__title">The one before</span>
-                <div class="snap-slot__card" id="slotPrev"></div>
+              <div class="snap-showcase__row">
+                <div class="snap-slot snap-slot--prev">
+                  <span class="snap-slot__title">The one before</span>
+                  <div class="snap-slot__card" id="slotPrev"></div>
+                </div>
+                <div class="snap-slot snap-slot--curr">
+                  <span class="snap-slot__title">Just flipped</span>
+                  <div class="snap-slot__card" id="slotCurr"></div>
+                </div>
               </div>
               <div class="snap-showcase__mid">
                 <span class="snap-showcase__arrow" aria-hidden="true">⬇</span>
                 <p class="snap-compare" id="compareBanner">Flip to play</p>
-              </div>
-              <div class="snap-slot">
-                <span class="snap-slot__title">Just flipped</span>
-                <div class="snap-slot__card" id="slotCurr"></div>
               </div>
             </div>
           </div>

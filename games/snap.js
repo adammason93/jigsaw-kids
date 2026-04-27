@@ -58,6 +58,8 @@
   var stock = [];
   /** @type {typeof stock} */
   var center = [];
+  /** Tracks pile length last painted — only the newest tile animates; previous tile is promoted in the DOM. */
+  var lastRenderedCenterLen = -1;
   var score1 = 0;
   var score2 = 0;
   var gameOver = false;
@@ -198,6 +200,81 @@
     return el;
   }
 
+  function prefersReducedMotion() {
+    return (
+      window.matchMedia &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    );
+  }
+
+  /**
+   * New tile: face-down then flips to reveal (or instant if reduced motion).
+   */
+  function createFlipDeal(tile, runFlip) {
+    var wrap = document.createElement("div");
+    wrap.className = "snap-flip";
+    var inner = document.createElement("div");
+    inner.className = "snap-flip__inner";
+    var back = document.createElement("div");
+    back.className = "snap-flip__back";
+    back.setAttribute("aria-hidden", "true");
+    back.textContent = "?";
+    var front = createCardEl(tile);
+    front.classList.add("snap-flip__front");
+    inner.appendChild(back);
+    inner.appendChild(front);
+    wrap.appendChild(inner);
+    var instant = !runFlip || prefersReducedMotion();
+    if (instant) {
+      wrap.classList.add("is-flipped");
+    } else {
+      requestAnimationFrame(function () {
+        requestAnimationFrame(function () {
+          wrap.classList.add("is-flipped");
+        });
+      });
+    }
+    return wrap;
+  }
+
+  /** Move the face that was on the right into the left slot (same node — no re-draw flash). */
+  function promoteCurrentToPrevious() {
+    var curr = slotCurr.firstElementChild;
+    if (!curr) {
+      return;
+    }
+    slotPrev.innerHTML = "";
+    if (curr.classList.contains("snap-flip")) {
+      var face = curr.querySelector(".snap-face.snap-flip__front");
+      if (face) {
+        face.classList.remove("snap-flip__front");
+        slotPrev.appendChild(face);
+      }
+    } else if (curr.classList.contains("snap-face")) {
+      slotPrev.appendChild(curr);
+    }
+  }
+
+  function applyCompareBannerAndClasses() {
+    if (center.length < 2) {
+      showcase.classList.remove("is-match", "is-near-match");
+      return;
+    }
+    if (canSnap()) {
+      showcase.classList.add("is-match");
+      showcase.classList.remove("is-near-match");
+      if (compareBanner) {
+        compareBanner.textContent = "Same animal! First Snap wins the pile!";
+      }
+    } else {
+      showcase.classList.remove("is-match");
+      showcase.classList.add("is-near-match");
+      if (compareBanner) {
+        compareBanner.textContent = "Different animals — flip again or wait…";
+      }
+    }
+  }
+
   function fillSlotPlaceholder(slot, lines) {
     slot.innerHTML = "";
     var wrap = document.createElement("div");
@@ -216,9 +293,12 @@
   }
 
   function renderPile() {
-    slotPrev.innerHTML = "";
-    slotCurr.innerHTML = "";
+    var grew = center.length > lastRenderedCenterLen;
+
     if (center.length === 0) {
+      lastRenderedCenterLen = 0;
+      slotPrev.innerHTML = "";
+      slotCurr.innerHTML = "";
       fillSlotPlaceholder(slotPrev, ["Flip the", "next one!"]);
       fillSlotPlaceholder(slotCurr, ["Waiting…"]);
       if (compareBanner) {
@@ -227,30 +307,32 @@
       showcase.classList.remove("is-match", "is-near-match");
       return;
     }
+
     if (center.length === 1) {
+      lastRenderedCenterLen = 1;
+      slotPrev.innerHTML = "";
+      slotCurr.innerHTML = "";
       fillSlotPlaceholder(slotPrev, ["Not yet —", "flip again"]);
-      slotCurr.appendChild(createCardEl(center[0]));
+      slotCurr.appendChild(createFlipDeal(center[0], true));
       if (compareBanner) {
         compareBanner.textContent = "One more flip — then compare both boxes!";
       }
       showcase.classList.remove("is-match", "is-near-match");
       return;
     }
-    slotPrev.appendChild(createCardEl(center[center.length - 2]));
-    slotCurr.appendChild(createCardEl(center[center.length - 1]));
-    if (canSnap()) {
-      showcase.classList.add("is-match");
-      showcase.classList.remove("is-near-match");
-      if (compareBanner) {
-        compareBanner.textContent = "Same animal! First Snap wins the pile!";
+
+    if (grew) {
+      promoteCurrentToPrevious();
+      if (!slotPrev.querySelector(".snap-face")) {
+        slotPrev.innerHTML = "";
+        slotPrev.appendChild(createCardEl(center[center.length - 2]));
       }
-    } else {
-      showcase.classList.remove("is-match");
-      showcase.classList.add("is-near-match");
-      if (compareBanner) {
-        compareBanner.textContent = "Different animals — flip again or wait…";
-      }
+      slotCurr.innerHTML = "";
+      slotCurr.appendChild(createFlipDeal(center[center.length - 1], true));
     }
+
+    lastRenderedCenterLen = center.length;
+    applyCompareBannerAndClasses();
   }
 
   function flashSide(btn) {
@@ -411,6 +493,7 @@
     clearCpuSnapTimer();
     clearAutoFlipTimer();
     gameOver = false;
+    lastRenderedCenterLen = -1;
     stock = shuffle(buildDeck());
     center = [];
     score1 = 0;
