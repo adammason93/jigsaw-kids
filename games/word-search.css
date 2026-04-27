@@ -1,0 +1,582 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+:root {
+  --ws-ink: #1e1b4b;
+  --ws-card: #fffef8;
+  --ws-muted: #475569;
+  --ws-accent: #6366f1;
+  --ws-accent-soft: #e0e7ff;
+  --ws-found: #22c55e;
+  --ws-found-soft: #dcfce7;
+  --ws-drag: #fbbf24;
+  --ws-drag-soft: #fef3c7;
+}
+
+html {
+  font-size: 16px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body.page-ws {
+  margin: 0;
+  min-height: 100dvh;
+  font-family: "Nunito", "Segoe UI", system-ui, sans-serif;
+  color: var(--ws-ink);
+  line-height: 1.45;
+  background: linear-gradient(165deg, #eef2ff 0%, #e0e7ff 40%, #faf5ff 100%);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+.word-search__title {
+  font-family: "Sniglet", "Nunito", system-ui, sans-serif;
+}
+
+.word-search-app {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 0.4rem 0.75rem 1rem;
+}
+
+.game-nav {
+  margin-bottom: 0.35rem;
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  color: #4338ca;
+  font-weight: 800;
+  text-decoration: none;
+  font-size: 0.95rem;
+}
+
+.back-link:hover {
+  text-decoration: underline;
+}
+
+.word-search__header {
+  text-align: center;
+  margin-bottom: 0.6rem;
+}
+
+.word-search__title {
+  margin: 0 0 0.35rem;
+  font-size: clamp(1.5rem, 4.5vw, 1.9rem);
+  font-weight: 800;
+  color: #312e81;
+  letter-spacing: 0.02em;
+}
+
+.word-search__lede {
+  margin: 0;
+  font-size: 0.86rem;
+  color: var(--ws-muted);
+  font-weight: 600;
+  line-height: 1.4;
+  max-width: 38ch;
+  margin-inline: auto;
+}
+
+.word-search__words-wrap {
+  background: var(--ws-card);
+  border: 3px solid var(--ws-ink);
+  border-radius: 16px;
+  padding: 0.5rem 0.75rem 0.6rem;
+  box-shadow: 0 3px 0 rgba(30, 27, 75, 0.12);
+  margin-bottom: 0.5rem;
+}
+
+.word-search__words-label {
+  margin: 0 0 0.4rem;
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748b;
+  text-align: center;
+}
+
+.word-search__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.35rem 0.6rem;
+}
+
+.word-search__word {
+  font-weight: 800;
+  font-size: 0.95rem;
+  color: #312e81;
+  padding: 0.2rem 0.45rem;
+  border-radius: 8px;
+  background: var(--ws-accent-soft);
+  border: 2px solid rgba(99, 102, 241, 0.35);
+}
+
+.word-search__word--found {
+  text-decoration: line-through;
+  opacity: 0.75;
+  color: #166534;
+  background: var(--ws-found-soft);
+  border-color: #86efac;
+}
+
+.word-search__board-wrap {
+  position: relative;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  background: #fff;
+  border: 3px solid var(--ws-ink);
+  border-radius: 14px;
+  padding: 0.4rem;
+  box-shadow: 0 4px 0 rgba(30, 27, 75, 0.15);
+}
+
+.word-search__board {
+  display: grid;
+  grid-template-columns: repeat(var(--ws-cols, 12), minmax(0, 1fr));
+  grid-template-rows: repeat(var(--ws-rows, 12), minmax(0, 1fr));
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  max-height: min(72vw, 400px);
+  margin-inline: auto;
+  gap: 3px;
+}
+
+.ws-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: 0;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  cursor: default;
+  transition: background 0.1s, border-color 0.1s;
+}
+
+.ws-cell__letter {
+  font-weight: 800;
+  font-size: clamp(0.7rem, 2.2vw, 0.88rem);
+  line-height: 1;
+  color: #0f172a;
+  pointer-events: none;
+}
+
+.ws-cell--drag {
+  background: var(--ws-drag-soft);
+  border-color: #d97706;
+  box-shadow: inset 0 0 0 1px #f59e0b;
+}
+
+.ws-cell--found {
+  background: var(--ws-found-soft);
+  border-color: #4ade80;
+  box-shadow: inset 0 0 0 1px #22c55e;
+}
+
+.ws-cell--found .ws-cell__letter {
+  color: #14532d;
+}
+
+.word-search__status {
+  margin: 0.45rem 0 0.25rem;
+  min-height: 1.35em;
+  text-align: center;
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: #4f46e5;
+}
+
+.word-search__actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 0.35rem;
+}
+
+.word-search__btn {
+  font-family: inherit;
+  font-weight: 800;
+  cursor: pointer;
+  border-radius: 12px;
+  border: 3px solid var(--ws-ink);
+  padding: 0.6rem 1.2rem;
+  font-size: 1rem;
+}
+
+.word-search__btn--primary {
+  background: linear-gradient(180deg, #818cf8, var(--ws-accent));
+  color: #fff;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.2);
+  box-shadow: 0 3px 0 #4338ca, 0 4px 14px rgba(67, 56, 202, 0.35);
+}
+
+.word-search__btn--primary:active {
+  transform: translateY(1px);
+  box-shadow: 0 1px 0 #4338ca;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ws-cell {
+    transition: none;
+  }
+}
+
+/* Treasure chest (same as Snakes & Ladders) */
+.btn {
+  font: inherit;
+  font-weight: 800;
+  border: none;
+  border-radius: 14px;
+  padding: 0.7rem 1.35rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  transition: transform 0.1s, box-shadow 0.15s;
+}
+
+.btn:active {
+  transform: scale(0.98);
+}
+
+.btn--primary {
+  background: linear-gradient(180deg, #a855f7, #7c3aed);
+  color: #fff;
+  box-shadow: 0 4px 0 #5b21b6, 0 8px 20px rgba(91, 33, 182, 0.35);
+}
+
+.btn--primary:hover {
+  box-shadow: 0 4px 0 #5b21b6, 0 10px 28px rgba(91, 33, 182, 0.45);
+}
+
+.treasure-popup {
+  position: fixed;
+  inset: 0;
+  z-index: 310;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: max(0.75rem, env(safe-area-inset-top)) max(0.75rem, env(safe-area-inset-right))
+    max(0.75rem, env(safe-area-inset-bottom)) max(0.75rem, env(safe-area-inset-left));
+  transition: opacity 0.25s ease, visibility 0.25s ease;
+}
+
+.treasure-popup--hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.treasure-popup__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(20, 15, 45, 0.58);
+  backdrop-filter: blur(6px);
+  cursor: pointer;
+}
+
+.treasure-popup__panel {
+  position: relative;
+  z-index: 1;
+  max-width: 400px;
+  width: 100%;
+  text-align: center;
+  background: linear-gradient(165deg, #fffbeb 0%, #fef3c7 40%, #fde68a 100%);
+  border-radius: 24px;
+  border: 4px solid #d97706;
+  box-shadow: 0 4px 0 #b45309, 0 16px 48px rgba(180, 83, 9, 0.35);
+  padding: 1.25rem 1.35rem 1.5rem;
+  pointer-events: auto;
+  cursor: default;
+}
+
+.treasure-popup__title {
+  margin: 0 0 0.35rem;
+  font-size: clamp(1.4rem, 4.2vw, 1.85rem);
+  color: #92400e;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
+  font-family: "Sniglet", "Nunito", system-ui, sans-serif;
+}
+
+.treasure-popup__lead {
+  margin: 0 0 0.75rem;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #451a03;
+}
+
+.treasure-popup__stage {
+  height: clamp(7rem, 22vw, 9.5rem);
+  margin: 0 auto 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.treasure-popup__prize {
+  margin: 0 0 1rem;
+  font-size: 1.12rem;
+  font-weight: 800;
+  line-height: 1.4;
+  color: #1c1917;
+  min-height: 2.5em;
+  opacity: 0;
+  transform: translateY(0.5rem);
+}
+
+.treasure-popup--reveal .treasure-popup__prize {
+  animation: ws-treasure-prize-appear 0.55s ease 1.05s forwards;
+}
+
+.treasure-popup__ok {
+  min-width: 10rem;
+}
+
+.treasure-popup__tap {
+  margin: 0.65rem 0 0;
+  font-size: 0.8rem;
+  color: #78716c;
+  font-weight: 600;
+}
+
+.treasure-chest-outer {
+  position: relative;
+  width: 7.5rem;
+  height: 5.5rem;
+}
+
+.treasure-chest-outer.treasure-chest--reveal {
+  animation: ws-treasure-chest-shake 0.6s ease-in-out both;
+}
+
+.treasure-chest {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.25));
+  perspective: 150px;
+  perspective-origin: 50% 100%;
+  transform-style: preserve-3d;
+}
+
+.treasure-chest__base {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 6.2rem;
+  height: 3rem;
+  margin-left: -3.1rem;
+  background: linear-gradient(180deg, #92400e 0%, #78350f 55%, #451a03 100%);
+  border-radius: 0.4rem 0.4rem 0.5rem 0.5rem;
+  border: 3px solid #5c2b08;
+  box-shadow: inset 0 3px 0 rgba(255, 255, 255, 0.2);
+  z-index: 0;
+}
+
+.treasure-chest__gift {
+  position: absolute;
+  left: 50%;
+  bottom: 0.35rem;
+  z-index: 1;
+  font-size: 2.1rem;
+  line-height: 1;
+  margin-left: -1.45rem;
+  width: 2.6rem;
+  text-align: center;
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.2));
+  opacity: 0;
+  transform: scale(0) translateY(0.2rem);
+  transform-origin: 50% 100%;
+  pointer-events: none;
+}
+
+.treasure-chest--reveal .treasure-chest__gift {
+  animation: ws-treasure-gift-reveal 0.65s cubic-bezier(0.28, 1.15, 0.42, 1) 0.85s both;
+}
+
+.treasure-chest__hinge {
+  position: absolute;
+  left: 50%;
+  bottom: 2.4rem;
+  width: 6.6rem;
+  height: 2.1rem;
+  margin-left: -3.3rem;
+  transform-origin: 50% 100%;
+  z-index: 2;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+}
+
+.treasure-chest--reveal .treasure-chest__hinge {
+  animation: ws-treasure-hinge-open 0.7s ease-out 0.58s both;
+}
+
+.treasure-chest__lid {
+  position: absolute;
+  left: 0;
+  bottom: 0.4rem;
+  width: 6.6rem;
+  height: 1.75rem;
+  background: linear-gradient(180deg, #b45309 0%, #92400e 100%);
+  border-radius: 0.5rem 0.5rem 0.2rem 0.2rem;
+  border: 3px solid #78350f;
+  border-bottom: none;
+  transform-origin: 50% 100%;
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.25);
+}
+
+.treasure-chest__lock {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 1rem;
+  height: 0.9rem;
+  margin-left: -0.5rem;
+  background: linear-gradient(180deg, #fcd34d, #d97706);
+  border: 2px solid #b45309;
+  border-radius: 3px;
+  z-index: 1;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.2);
+}
+
+.treasure-chest__sparkle--1 {
+  left: 0.1rem;
+  top: 0.6rem;
+}
+
+.treasure-chest__sparkle--2 {
+  right: 0.2rem;
+  top: 1.1rem;
+}
+
+.treasure-chest__sparkle {
+  position: absolute;
+  color: #facc15;
+  font-size: 1.1rem;
+  z-index: 4;
+  pointer-events: none;
+  text-shadow: 0 0 6px #fff7ed;
+  opacity: 0.4;
+  transform: scale(0.85);
+}
+
+.treasure-chest--reveal .treasure-chest__sparkle--1 {
+  animation: ws-treasure-sparkle-burst 0.7s ease 0.8s both;
+}
+
+.treasure-chest--reveal .treasure-chest__sparkle--2 {
+  animation: ws-treasure-sparkle-burst 0.7s ease 0.9s both;
+}
+
+@keyframes ws-treasure-chest-shake {
+  0%,
+  100% {
+    transform: translateX(0) rotate(0deg);
+  }
+  10% {
+    transform: translateX(-5px) rotate(-4deg);
+  }
+  20% {
+    transform: translateX(5px) rotate(4deg);
+  }
+  30% {
+    transform: translateX(-4px) rotate(-3deg);
+  }
+  40% {
+    transform: translateX(4px) rotate(3deg);
+  }
+  50%,
+  55% {
+    transform: translateX(0) rotate(0deg);
+  }
+}
+
+@keyframes ws-treasure-hinge-open {
+  0% {
+    transform: rotateX(0deg);
+  }
+  100% {
+    transform: rotateX(-78deg) translateY(-0.12rem);
+  }
+}
+
+@keyframes ws-treasure-gift-reveal {
+  0% {
+    opacity: 0;
+    transform: scale(0) translateY(0.35rem);
+  }
+  55% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(-0.2rem);
+  }
+}
+
+@keyframes ws-treasure-sparkle-burst {
+  0% {
+    opacity: 0.2;
+    transform: scale(0.7) rotate(0deg);
+  }
+  40% {
+    opacity: 1;
+    transform: scale(1.2) rotate(12deg);
+  }
+  100% {
+    opacity: 0.9;
+    transform: scale(1) rotate(20deg);
+  }
+}
+
+@keyframes ws-treasure-prize-appear {
+  0% {
+    opacity: 0;
+    transform: translateY(0.5rem);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .treasure-chest-outer.treasure-chest--reveal {
+    animation: none;
+  }
+  .treasure-chest--reveal .treasure-chest__hinge {
+    animation: none;
+    transform: rotateX(-75deg) translateY(-0.12rem);
+  }
+  .treasure-chest--reveal .treasure-chest__gift {
+    animation: none;
+    opacity: 1;
+    transform: scale(1) translateY(-0.2rem);
+  }
+  .treasure-chest--reveal .treasure-chest__sparkle,
+  .treasure-chest--reveal .treasure-chest__sparkle--1,
+  .treasure-chest--reveal .treasure-chest__sparkle--2 {
+    animation: none;
+    opacity: 0.85;
+    transform: scale(1) rotate(10deg);
+  }
+  .treasure-popup--reveal .treasure-popup__prize {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}

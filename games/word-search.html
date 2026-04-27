@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#6366f1" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>Word search — Sofia's Game Room</title>
+  <link rel="manifest" href="../manifest.json" />
+  <link rel="stylesheet" href="../js/kids-core.css" />
+  <link rel="stylesheet" href="word-search.css" />
+  <link rel="stylesheet" href="../tablet-ipad.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Sniglet:wght@400;800&display=swap" rel="stylesheet" />
+</head>
+<body class="page-ws">
+  <div class="word-search-app" id="app">
+    <nav class="game-nav" aria-label="Breadcrumb">
+      <a class="back-link" href="../index.html">← All games</a>
+    </nav>
+
+    <header class="word-search__header">
+      <h1 class="word-search__title">Word search</h1>
+      <p class="word-search__lede">Touch and drag across the letters in a straight line. Lift your finger (or release the mouse) when you’ve covered a whole word.</p>
+    </header>
+
+    <div class="word-search__words-wrap" aria-label="Words to find">
+      <h2 class="word-search__words-label">Find these words</h2>
+      <ul class="word-search__list" id="wordSearchList"></ul>
+    </div>
+
+    <div class="word-search__board-wrap">
+      <div
+        class="word-search__board"
+        id="wordSearchBoard"
+        role="grid"
+        aria-label="Letter grid — drag through a word"
+        tabindex="0"
+      ></div>
+    </div>
+
+    <p class="word-search__status" id="wordSearchStatus" role="status" aria-live="polite"></p>
+
+    <div class="word-search__actions">
+      <button type="button" class="word-search__btn word-search__btn--primary" id="btnWordSearchNew">New grid</button>
+    </div>
+
+    <div
+      id="treasurePopup"
+      class="treasure-popup treasure-popup--hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="treasurePopupTitle"
+      aria-hidden="true"
+    >
+      <div class="treasure-popup__backdrop" aria-hidden="true"></div>
+      <div class="treasure-popup__panel">
+        <h3 id="treasurePopupTitle" class="treasure-popup__title">Hidden treasure!</h3>
+        <p class="treasure-popup__lead" id="treasurePopupLead">You’ve found a prize!</p>
+        <div class="treasure-popup__stage" aria-hidden="true">
+          <div class="treasure-chest-outer" id="treasureChest">
+            <div class="treasure-chest" aria-hidden="true">
+              <div class="treasure-chest__sparkle treasure-chest__sparkle--1">✦</div>
+              <div class="treasure-chest__sparkle treasure-chest__sparkle--2">✦</div>
+              <div class="treasure-chest__base"></div>
+              <div class="treasure-chest__gift" aria-hidden="true">🎁</div>
+              <div class="treasure-chest__hinge">
+                <div class="treasure-chest__lid"></div>
+                <div class="treasure-chest__lock"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p class="treasure-popup__prize" id="treasurePopupPrize" aria-live="polite"></p>
+        <button type="button" class="btn btn--primary treasure-popup__ok" id="btnTreasureOk">Yay! OK</button>
+        <p class="treasure-popup__tap">Tap outside or press Escape to close</p>
+      </div>
+    </div>
+  </div>
+  <script src="../js/kids-core.js" defer></script>
+  <script src="word-search.js" defer></script>
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", function () {
+        navigator.serviceWorker.register("../sw.js").catch(function () {});
+      });
+    }
+  </script>
+</body>
+</html>

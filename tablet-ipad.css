@@ -24,7 +24,8 @@ body {
 .page-jigsaw .app,
 .page-runner .app,
 .page-ttt .app,
-.page-c4 .app {
+.page-c4 .app,
+.page-ws .word-search-app {
   box-sizing: border-box;
 }
 

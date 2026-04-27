@@ -31,6 +31,8 @@
   --theme-ttt-soft: #ecfdf5;
   --theme-c4: #7c3aed;
   --theme-c4-soft: #f3e8ff;
+  --theme-word: #6366f1;
+  --theme-word-soft: #e0e7ff;
   --theme-memory: #ec4899;
   --theme-memory-soft: #fce7f3;
   --theme-sound: #8b5cf6;
@@ -321,6 +323,11 @@ h2,
 .game-card--c4 {
   --card-accent: var(--theme-c4);
   --card-soft: var(--theme-c4-soft);
+}
+
+.game-card--word {
+  --card-accent: var(--theme-word);
+  --card-soft: var(--theme-word-soft);
 }
 
 .game-card--memory {

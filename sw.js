@@ -1,5 +1,5 @@
 /* Minimal offline shell — network-first, cache as fallback for same-origin */
-const CACHE = "jigsaw-kids-v37";
+const CACHE = "jigsaw-kids-v39";
 const SHELL = [
   "./index.html",
   "./portal.css",
@@ -23,6 +23,9 @@ const SHELL = [
   "./games/connect-four.html",
   "./games/connect-four.css",
   "./games/connect-four.js",
+  "./games/word-search.html",
+  "./games/word-search.css",
+  "./games/word-search.js",
 ];
 
 self.addEventListener("install", function (e) {
