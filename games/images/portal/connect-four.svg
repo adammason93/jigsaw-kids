@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 240" role="img" aria-hidden="true">
+  <rect width="320" height="240" rx="16" fill="#faf5ff"/>
+  <rect x="20" y="28" width="280" height="204" rx="12" fill="#6d28d9" stroke="#4c1d95" stroke-width="2"/>
+  <!-- 6 x 7 slot holes (empty) -->
+  <g fill="#3b0764">
+    <circle cx="40"  cy="70"  r="15"/><circle cx="80"  cy="70"  r="15"/><circle cx="120" cy="70"  r="15"/><circle cx="160" cy="70"  r="15"/>
+    <circle cx="200" cy="70"  r="15"/><circle cx="240" cy="70"  r="15"/><circle cx="280" cy="70"  r="15"/>
+    <circle cx="40"  cy="102" r="15"/><circle cx="80"  cy="102" r="15"/><circle cx="120" cy="102" r="15"/><circle cx="160" cy="102" r="15"/>
+    <circle cx="200" cy="102" r="15"/><circle cx="240" cy="102" r="15"/><circle cx="280" cy="102" r="15"/>
+    <circle cx="40"  cy="134" r="15"/><circle cx="80"  cy="134" r="15"/><circle cx="120" cy="134" r="15"/><circle cx="160" cy="134" r="15"/>
+    <circle cx="200" cy="134" r="15"/><circle cx="240" cy="134" r="15"/><circle cx="280" cy="134" r="15"/>
+    <circle cx="40"  cy="166" r="15"/><circle cx="80"  cy="166" r="15"/><circle cx="120" cy="166" r="15"/><circle cx="160" cy="166" r="15"/>
+    <circle cx="200" cy="166" r="15"/><circle cx="240" cy="166" r="15"/><circle cx="280" cy="166" r="15"/>
+    <circle cx="40"  cy="198" r="15"/><circle cx="80"  cy="198" r="15"/><circle cx="120" cy="198" r="15"/><circle cx="160" cy="198" r="15"/>
+    <circle cx="200" cy="198" r="15"/><circle cx="240" cy="198" r="15"/><circle cx="280" cy="198" r="15"/>
+  </g>
+  <!-- bottom row: dropping pieces (red + yellow) -->
+  <g>
+    <circle cx="80"  cy="198" r="14" fill="#dc2626"/>
+    <circle cx="120" cy="198" r="14" fill="#facc15"/>
+    <circle cx="160" cy="198" r="14" fill="#dc2626"/>
+    <circle cx="200" cy="198" r="14" fill="#facc15"/>
+  </g>
+  <g>
+    <circle cx="100" cy="166" r="14" fill="#facc15"/>
+    <circle cx="140" cy="166" r="14" fill="#dc2626"/>
+  </g>
+</svg>

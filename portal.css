@@ -20,8 +20,6 @@
   /* Per-game accents (top stripe + icon well) */
   --theme-jigsaw: #2d9cdb;
   --theme-jigsaw-soft: #e3f4fc;
-  --theme-garden: #f59e0b;
-  --theme-garden-soft: #fff7e6;
   /* Number path: warm “race day” orange (matches math-race hero) */
   --theme-math: #e85d2c;
   --theme-math-soft: #fff0e8;
@@ -33,10 +31,6 @@
   --theme-c4-soft: #f3e8ff;
   --theme-word: #6366f1;
   --theme-word-soft: #e0e7ff;
-  --theme-memory: #ec4899;
-  --theme-memory-soft: #fce7f3;
-  --theme-sound: #8b5cf6;
-  --theme-sound-soft: #ede9fe;
 }
 
 html {
@@ -233,7 +227,7 @@ h2,
   }
 }
 
-/* ——— Game sections (playable on top, soon/hidden on bottom) ——— */
+/* ——— Game list ——— */
 .game-sections {
   display: flex;
   flex-direction: column;
@@ -300,11 +294,6 @@ h2,
   --card-soft: var(--theme-jigsaw-soft);
 }
 
-.game-card--garden {
-  --card-accent: var(--theme-garden);
-  --card-soft: var(--theme-garden-soft);
-}
-
 .game-card--math {
   --card-accent: var(--theme-math);
   --card-soft: var(--theme-math-soft);
@@ -330,33 +319,14 @@ h2,
   --card-soft: var(--theme-word-soft);
 }
 
-.game-card--memory {
-  --card-accent: var(--theme-memory);
-  --card-soft: var(--theme-memory-soft);
-}
-
-.game-card--sound {
-  --card-accent: var(--theme-sound);
-  --card-soft: var(--theme-sound-soft);
-}
-
-a.game-card:hover:not(.game-card--soon) {
+a.game-card:hover {
   transform: translateY(-4px) scale(1.01);
   box-shadow: var(--shadow-card-hover);
   border-color: var(--card-accent);
 }
 
-a.game-card:active:not(.game-card--soon) {
+a.game-card:active {
   transform: translateY(-1px) scale(1.005);
-}
-
-.game-card--soon {
-  --card-accent: #94a3b8;
-  --card-soft: #f1f5f9;
-  cursor: default;
-  opacity: 0.88;
-  background: linear-gradient(180deg, #fafbfc 0%, #f1f5f9 100%);
-  border-top-color: #cbd5e1;
 }
 
 .game-card__thumb {
@@ -376,22 +346,6 @@ a.game-card:active:not(.game-card--soon) {
   height: 100%;
   object-fit: cover;
   object-position: center;
-}
-
-/* Coming soon: no art yet — big emoji in the same frame */
-.game-card__thumb--emoji {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: clamp(2.5rem, 10vw, 3.5rem);
-  line-height: 1;
-  background: var(--card-soft);
-  box-shadow: inset 0 0 0 1px var(--card-accent);
-}
-
-.game-card--soon .game-card__thumb--emoji {
-  background: #f1f5f9;
-  filter: grayscale(0.12);
 }
 
 .game-card__title {

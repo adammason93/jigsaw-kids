@@ -19,12 +19,17 @@
 html {
   font-size: 16px;
   -webkit-tap-highlight-color: transparent;
+  /* Percent height chain so the game column can use max-height: 100% for the board */
+  height: 100%;
 }
 
 body.page-ws {
   margin: 0;
-  min-height: 100dvh;
+  height: 100%;
+  min-height: 100%;
+  min-height: 100dvb;
   overflow-x: hidden;
+  /* Single column fits in the screen; no outer scroll on typical phones */
   overflow-y: auto;
   font-family: "Nunito", "Segoe UI", system-ui, sans-serif;
   color: var(--ws-ink);
@@ -42,17 +47,20 @@ h2,
 .word-search-app {
   width: 100%;
   max-width: min(640px, 100%);
-  min-height: 100dvh;
+  min-height: 100%;
+  min-height: 100dvb;
   min-height: 100svh;
   margin: 0 auto;
-  padding: 0.35rem 0.5rem max(0.75rem, env(safe-area-inset-bottom, 0px));
+  /* Insets: rely on body (tablet-ipad.css) for notch/home bar — only add inner margin here */
+  padding: 0.3rem 0.5rem 0.5rem;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
 }
 
 .game-nav {
-  margin-bottom: 0.35rem;
+  margin-bottom: 0.3rem;
+  flex-shrink: 0;
 }
 
 .back-link {
@@ -96,10 +104,13 @@ h2,
   background: var(--ws-card);
   border: 3px solid var(--ws-ink);
   border-radius: 16px;
-  padding: 0.45rem 0.65rem 0.5rem;
+  padding: 0.4rem 0.6rem 0.45rem;
   box-shadow: 0 3px 0 rgba(30, 27, 75, 0.12);
-  margin-bottom: 0.4rem;
+  margin-bottom: 0.35rem;
   flex-shrink: 0;
+  /* Keep card edges visually square with the page margins */
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .word-search__words-label {
@@ -148,26 +159,36 @@ h2,
   background: #fff;
   border: 3px solid var(--ws-ink);
   border-radius: 14px;
-  padding: 0.35rem;
+  padding: 0.3rem;
   box-shadow: 0 4px 0 rgba(30, 27, 75, 0.15);
+  /* Takes only remaining space so header + word list + status + button stay on screen */
   flex: 1 1 0;
-  min-height: 8rem;
+  min-height: 0;
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 100%;
+  box-sizing: border-box;
+  /* Lets the board use cqh to stay inside this box (avoids 100dvh vs flex mismatch) */
+  container-type: size;
+  container-name: wsboard;
 }
 
-/* Wider than tall (4:3): less vertical than a square, fits portrait screens */
+/* Size from the board-wrap flex cell, not 100dvh, so the bottom bar stays on-screen */
 .word-search__board {
-  --ws-slab: 14rem; /* room for title, word list, status, new grid */
   display: grid;
   grid-template-columns: repeat(var(--ws-cols, 12), minmax(0, 1fr));
   grid-template-rows: repeat(var(--ws-rows, 12), minmax(0, 1fr));
-  /* Cap width so height = width×¾ never exceeds the viewport slab */
-  width: min(100%, 96vw, 40rem, calc((100dvh - var(--ws-slab)) * 4 / 3), calc((100svh - var(--ws-slab)) * 4 / 3));
+  width: 100%;
+  /* When height is the limiter, don’t let width force overflow (cqh = container query; fallback: 100%) */
   max-width: 100%;
+  max-width: min(100%, calc(100cqh * 4 / 3));
+  max-height: 100%;
+  min-height: 0;
+  min-width: 0;
   aspect-ratio: 4 / 3;
-  max-height: min(calc(100dvh - var(--ws-slab)), calc(100svh - var(--ws-slab)));
+  height: auto;
+  align-self: center;
   margin-inline: auto;
   box-sizing: border-box;
   gap: 4px;
@@ -223,7 +244,8 @@ h2,
 .word-search__actions {
   display: flex;
   justify-content: center;
-  margin-top: 0.35rem;
+  margin-top: 0.3rem;
+  padding-bottom: 0.15rem;
   flex-shrink: 0;
 }
 
@@ -232,8 +254,8 @@ h2,
   position: fixed;
   z-index: 300;
   left: 50%;
-  /* Above the “New grid” bar + iPhone home indicator */
-  bottom: calc(4.75rem + env(safe-area-inset-bottom, 0px));
+  /* Above “New grid” + safe area (tuned with .word-search__actions padding) */
+  bottom: calc(4.25rem + env(safe-area-inset-bottom, 0px));
   transform: translate3d(-50%, 120%, 0);
   max-width: min(30rem, 96vw);
   width: 100%;
