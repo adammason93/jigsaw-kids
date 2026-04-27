@@ -178,8 +178,8 @@
         im.className = "ttt-char-opt__pic";
         im.src = imageIconSrc(opt.v);
         im.alt = "";
-        im.width = 44;
-        im.height = 44;
+        im.width = 96;
+        im.height = 96;
         im.decoding = "async";
         b.appendChild(im);
       } else {

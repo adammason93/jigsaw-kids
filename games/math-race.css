@@ -282,8 +282,8 @@ h2,
 }
 
 .char-btn {
-  width: 3.25rem;
-  height: 3.25rem;
+  width: 4.35rem;
+  height: 4.35rem;
   font-size: 1.75rem;
   border: 3px solid var(--ink);
   border-radius: 14px;
@@ -291,6 +291,7 @@ h2,
   cursor: pointer;
   line-height: 1;
   padding: 0;
+  overflow: hidden;
   transition: border-color 0.12s, transform 0.08s, box-shadow 0.12s;
 }
 
@@ -313,9 +314,10 @@ h2,
 
 .char-btn__pic {
   display: block;
-  width: 2.4rem;
-  height: 2.4rem;
-  object-fit: contain;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 22%;
   pointer-events: none;
 }
 
@@ -459,16 +461,16 @@ h2,
 }
 
 #screenSetup .char-btn {
-  width: 2.75rem;
-  height: 2.75rem;
-  min-width: 2.75rem;
-  min-height: 2.75rem;
+  width: 3.85rem;
+  height: 3.85rem;
+  min-width: 3.85rem;
+  min-height: 3.85rem;
   border-radius: 12px;
 }
 
 #screenSetup .char-btn__pic {
-  width: 2rem;
-  height: 2rem;
+  width: 100%;
+  height: 100%;
 }
 
 #screenSetup .btn-primary {

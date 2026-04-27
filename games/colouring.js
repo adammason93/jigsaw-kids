@@ -4,7 +4,11 @@
 (function () {
   "use strict";
 
+  /** Sentinel path: no overlay image — white canvas only. */
+  const BLANK_TEMPLATE_FILE = "__blank__";
+
   const TEMPLATES = [
+    { id: "blank", label: "Blank paper", file: BLANK_TEMPLATE_FILE },
     { id: "mermaid", label: "Mermaid", file: "images/colouring/template-mermaid.png" },
     { id: "dino-hill", label: "Dino & palm", file: "images/colouring/template-dino-hill.png" },
     { id: "coral-reef", label: "Coral reef", file: "images/colouring/template-coral-reef.png" },
@@ -228,7 +232,10 @@
         return null;
       }
       var o = JSON.parse(raw);
-      if (!o || o.v !== 1 || !o.templateFile || !o.paint) {
+      if (!o || o.v !== 1 || !o.paint || typeof o.templateFile !== "string") {
+        return null;
+      }
+      if (o.templateFile.length === 0) {
         return null;
       }
       return o;
@@ -453,13 +460,20 @@
       b.setAttribute("data-file", t.file);
       b.setAttribute("role", "listitem");
       b.setAttribute("aria-pressed", i === 0 ? "true" : "false");
-      var img = document.createElement("img");
-      img.src = t.file;
-      img.alt = "";
-      img.width = 120;
-      img.height = 90;
-      img.loading = "lazy";
-      b.appendChild(img);
+      if (t.file === BLANK_TEMPLATE_FILE) {
+        var blankThumb = document.createElement("span");
+        blankThumb.className = "tmpl-btn__blank-thumb";
+        blankThumb.setAttribute("aria-hidden", "true");
+        b.appendChild(blankThumb);
+      } else {
+        var img = document.createElement("img");
+        img.src = t.file;
+        img.alt = "";
+        img.width = 120;
+        img.height = 90;
+        img.loading = "lazy";
+        b.appendChild(img);
+      }
       var span = document.createElement("span");
       span.textContent = t.label;
       b.appendChild(span);
@@ -521,6 +535,16 @@
     templateReadyOnce = false;
     templateOverlay.onload = null;
     templateOverlay.onerror = null;
+    if (file === BLANK_TEMPLATE_FILE) {
+      templateOverlay.removeAttribute("src");
+      templateOverlay.style.display = "none";
+      if (statusLine && !opts.fromSavedSession) {
+        statusLine.textContent = "Blank paper — draw anything you like. Change to a picture any time.";
+      }
+      finishTemplateLoad();
+      return;
+    }
+    templateOverlay.style.display = "block";
     var onReady = function () {
       templateOverlay.onload = null;
       templateOverlay.onerror = null;
@@ -529,7 +553,6 @@
     templateOverlay.onload = onReady;
     templateOverlay.onerror = onReady;
     templateOverlay.src = file;
-    templateOverlay.style.display = "block";
     if (statusLine && !opts.fromSavedSession) {
       statusLine.textContent = "Colour on the canvas. Change pictures any time.";
     }
@@ -573,7 +596,11 @@
     merged.height = paintCanvas.height;
     var mctx = merged.getContext("2d");
     mctx.drawImage(paintCanvas, 0, 0);
-    if (templateOverlay.naturalWidth > 0) {
+    if (
+      templateOverlay.style.display !== "none" &&
+      templateOverlay.naturalWidth > 0 &&
+      currentTemplateFile !== BLANK_TEMPLATE_FILE
+    ) {
       mctx.globalCompositeOperation = "multiply";
       mctx.drawImage(
         templateOverlay,

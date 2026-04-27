@@ -72,6 +72,16 @@ a.game-card,
     min-height: var(--touch-min);
   }
 
+  .ttt-char-opt {
+    min-width: 4.25rem;
+    min-height: 4.25rem;
+  }
+
+  .icon-pick__opt span {
+    min-width: 3.35rem;
+    min-height: 3.35rem;
+  }
+
   .snake-quiz__btn {
     min-height: 52px;
     padding: 0.75rem 0.55rem;
