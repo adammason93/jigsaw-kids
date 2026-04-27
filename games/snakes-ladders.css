@@ -54,36 +54,47 @@ h2,
   padding: 1rem 1rem 2rem;
 }
 
-/* During play, use the full viewport width (esp. iPad portrait) */
-.app:has(#screenGame:not(.screen--hidden)) {
+/* During play, fill the viewport so the board column can use full height */
+.app:has(#screenGame:not(.screen--hidden)),
+body.page-snakes.sn-game-visible .app {
   max-width: none;
   width: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
+  height: 100vh;
+  height: 100dvh;
+  max-height: 100dvh;
   padding: 0.5rem max(0.5rem, env(safe-area-inset-right, 0px)) max(0.4rem, env(safe-area-inset-bottom, 0px))
     max(0.5rem, env(safe-area-inset-left, 0px));
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  min-height: 100dvh;
+  overflow: hidden;
 }
 
-.app:has(#screenGame:not(.screen--hidden)) .game-nav {
+.app:has(#screenGame:not(.screen--hidden)) .game-nav,
+body.page-snakes.sn-game-visible .app .game-nav {
   margin-bottom: 0.25rem;
   flex-shrink: 0;
 }
 
-.app:has(#screenGame:not(.screen--hidden)) .back-link {
+.app:has(#screenGame:not(.screen--hidden)) .back-link,
+body.page-snakes.sn-game-visible .app .back-link {
   font-size: 0.9rem;
 }
 
-.app:has(#screenGame:not(.screen--hidden)) #screenGame {
-  flex: 1 1 auto;
+.app:has(#screenGame:not(.screen--hidden)) #screenGame,
+body.page-snakes.sn-game-visible .app #screenGame {
+  flex: 1 1 0;
   min-height: 0;
   display: flex;
   flex-direction: column;
+  min-width: 0;
 }
 
-.app:has(#screenGame:not(.screen--hidden)) .game-layout {
-  flex: 1 1 auto;
+.app:has(#screenGame:not(.screen--hidden)) .game-layout,
+body.page-snakes.sn-game-visible .app .game-layout {
+  flex: 1 1 0;
   min-height: 0;
 }
 
@@ -339,31 +350,158 @@ h2,
   display: none !important;
 }
 
-.game-layout {
-  display: grid;
-  gap: 1.25rem;
-  align-items: start;
-  overflow: visible;
-}
-
-/* iPad portrait (768px+) and small tablets: side-by-side board + HUD.
-   (Was 900px — many iPads stayed stacked with a tiny board and huge panel below.) */
-@media (min-width: 700px) {
-  .game-layout {
-    grid-template-columns: minmax(0, 1fr) min(300px, 36vw);
-    gap: 0.75rem 1rem;
+/* Setup: two columns on tablet / iPad — board + players/characters without vertical scroll */
+@media (min-width: 600px) {
+  /* sn-setup-visible mirrors :has() when :has is unsupported */
+  body.page-snakes .app:has(#screenSetup:not(.screen--hidden)),
+  body.page-snakes.sn-setup-visible .app {
+    padding: 0.6rem 1rem 0.9rem;
   }
 
-  .board-wrap {
-    max-width: 100%;
+  #screenSetup .page-header {
+    margin-bottom: 0.45rem;
+  }
+
+  #screenSetup .page-header p {
+    margin-bottom: 0.4rem;
+    max-width: 68ch;
+    font-size: clamp(0.9rem, 1.4vw, 1.04rem);
+    line-height: 1.4;
+  }
+
+  .sn-setup-columns {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.28fr);
+    gap: 0.7rem 1.1rem;
+    align-items: start;
+  }
+
+  .sn-setup-columns .card {
+    padding: 0.8rem 0.95rem 0.95rem;
+  }
+
+  .sn-setup-columns .card h2 {
+    font-size: 1.08rem;
+    margin-bottom: 0.45rem;
+  }
+
+  .sn-card--board .choice-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.45rem;
+    margin-bottom: 0;
+  }
+
+  .sn-card--board .radio-tile {
+    min-width: 0;
+  }
+
+  .sn-card--players .choice-row {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.4rem;
+    margin-bottom: 0.35rem;
+  }
+
+  .sn-card--players .radio-tile {
+    min-width: 0;
+    padding: 0.42rem 0.5rem;
+  }
+
+  .sn-card--players .radio-tile__title {
+    font-size: 1rem;
+  }
+
+  .sn-card--players .radio-tile__hint {
+    font-size: 0.74rem;
+    line-height: 1.2;
+  }
+
+  .sn-card--players .hint {
+    font-size: 0.82rem;
+    margin: 0 0 0.4rem;
+    line-height: 1.3;
+  }
+
+  .sn-card--players .name-fields {
+    gap: 0.45rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .sn-card--players .player-setup {
+    padding: 0.45rem 0.55rem;
+  }
+
+  .sn-card--players .player-setup__label {
+    font-size: 0.88rem;
+    margin-bottom: 0.28rem;
+  }
+
+  .sn-card--players .icon-pick {
+    gap: 0.28rem;
+    margin-top: 0.28rem;
+  }
+
+  .sn-card--players .icon-pick__opt span {
+    width: 2.2rem;
+    height: 2.2rem;
+    font-size: 1.25rem;
+  }
+
+  .sn-card--players .icon-pick__photo {
+    border-radius: 8px;
+  }
+
+  .sn-card--players .btn--primary {
+    width: 100%;
+    padding: 0.55rem 0.9rem;
+  }
+}
+
+/* Large tablet / iPad Pro: 2×2 player setup rows to shorten the stack with 3–4 players */
+@media (min-width: 900px) {
+  .sn-card--players .name-fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.45rem 0.6rem;
+  }
+}
+
+/* Play: board uses all remaining height; stack on phones, two columns on tablet+ */
+#screenGame .game-layout {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 0;
+  min-height: 0;
+  min-width: 0;
+  gap: 0.75rem;
+  align-items: stretch;
+}
+
+@media (min-width: 700px) {
+  #screenGame .game-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) min(300px, 36vw);
+    grid-template-rows: minmax(0, 1fr);
+    align-items: stretch;
+    align-content: stretch;
+    gap: 0.75rem 1rem;
   }
 }
 
 @media (min-width: 1000px) {
-  .game-layout {
+  #screenGame .game-layout {
     grid-template-columns: minmax(0, 1fr) min(300px, 320px);
     gap: 1rem 1.25rem;
   }
+}
+
+#screenGame .hud {
+  min-height: 0;
+  max-height: 100%;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  align-self: stretch;
 }
 
 .board-wrap {
@@ -378,6 +516,24 @@ h2,
   transform-origin: 50% 50%;
   transition: transform 0.5s cubic-bezier(0.33, 1, 0.48, 1);
   will-change: transform;
+}
+
+#screenGame .board-wrap {
+  flex: 1 1 0;
+  min-height: 0;
+  min-width: 0;
+  max-width: 100%;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  align-self: stretch;
+}
+
+#screenGame .board-wrap > .start-hint,
+#screenGame .board-wrap > .start-strip {
+  flex-shrink: 0;
 }
 
 #screenGame .board-wrap--zoomed {
@@ -411,15 +567,75 @@ h2,
   box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.25);
 }
 
+#screenGame .board {
+  flex: 1 1 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Scale the grid to the largest size that fits the play area (full column height on iPad) */
+#screenGame .board__stack {
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  container-type: size;
+  container-name: sn-board;
+}
+
+#screenGame .board__face {
+  --board-aspect: 1.8;
+  position: relative;
+  box-sizing: border-box;
+  width: min(100cqw, calc(100cqh * var(--board-aspect, 1.8)));
+  max-width: 100%;
+  max-height: 100%;
+  aspect-ratio: var(--board-aspect, 1.8) / 1;
+  flex-shrink: 0;
+}
+
+@supports not (container-type: size) {
+  #screenGame .board__stack {
+    container-type: normal;
+  }
+
+  #screenGame .board__face {
+    width: min(100%, calc(78dvh * var(--board-aspect, 1.8)));
+    max-height: 78dvh;
+  }
+}
+
+#screenGame .board__face .board-grid,
+#screenGame .board__face .board-conn,
+#screenGame .board__face .board-tokens {
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  box-sizing: border-box;
+}
+
 .board-grid {
   position: relative;
   z-index: 1;
   display: grid;
   grid-template-columns: repeat(10, 1fr);
   grid-template-rows: repeat(5, 1fr);
-  /* Slightly taller than 2:1 so each row is a bit roomier (was perfect squares at 2:1). */
-  aspect-ratio: 1.8 / 1;
   gap: 4px;
+}
+
+/* JS sets grid template for full vs quick board; face aspect handles outer size */
+#screenGame .board__face .board-grid {
+  position: absolute;
 }
 
 .board-conn {
@@ -438,6 +654,27 @@ h2,
   display: none;
 }
 
+#screenGame .board__face .board-conn {
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+}
+
+#screenGame .board__face .board-grid {
+  z-index: 1;
+}
+
+#screenGame .board__face .board-conn {
+  z-index: 2;
+}
+
+#screenGame .board__face .board-tokens {
+  z-index: 3;
+}
+
 .board-tokens {
   position: absolute;
   z-index: 3;
@@ -450,6 +687,13 @@ h2,
   grid-template-rows: repeat(5, 1fr);
   gap: 4px;
   pointer-events: none;
+}
+
+#screenGame .board__face .board-tokens {
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
 }
 
 .token-slot {

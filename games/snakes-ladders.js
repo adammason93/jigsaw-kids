@@ -748,6 +748,10 @@
     boardGrid.style.gridTemplateRows = "repeat(" + board.rows + ", 1fr)";
     tokenLayer.style.gridTemplateColumns = "repeat(" + board.cols + ", 1fr)";
     tokenLayer.style.gridTemplateRows = "repeat(" + board.rows + ", 1fr)";
+    const boardFace = document.getElementById("boardFace");
+    if (boardFace) {
+      boardFace.style.setProperty("--board-aspect", String(board.cols / board.rows));
+    }
     scheduleDrawConnections();
   }
 
@@ -987,6 +991,10 @@
       if (el !== which) el.classList.add("screen--hidden");
       else el.classList.remove("screen--hidden");
     });
+    if (document.body) {
+      document.body.classList.toggle("sn-setup-visible", which === screenSetup);
+      document.body.classList.toggle("sn-game-visible", which === screenGame);
+    }
   }
 
   function buildNameFields() {
@@ -1454,6 +1462,12 @@
 
   buildNameFields();
   setDiceFace(1);
+  if (screenSetup && !screenSetup.classList.contains("screen--hidden")) {
+    document.body.classList.add("sn-setup-visible");
+  }
+  if (screenGame && !screenGame.classList.contains("screen--hidden")) {
+    document.body.classList.add("sn-game-visible");
+  }
 
   if (btnWelcomeOk) {
     btnWelcomeOk.addEventListener("click", dismissWelcomePopup);

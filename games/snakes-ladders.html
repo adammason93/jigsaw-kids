@@ -55,54 +55,60 @@
         <p>Climb the ladders, slide past the snakes, and land <strong>exactly</strong> on the gold finish square. Choose a full board or a shorter game.</p>
       </header>
 
-      <section class="card" aria-labelledby="lblBoard">
-        <h2 id="lblBoard">Board size</h2>
-        <div class="choice-row" role="group" aria-label="Board size">
-          <label class="radio-tile">
-            <input type="radio" name="boardSize" value="full" checked />
-            <span class="radio-tile__title">Full game</span>
-            <span class="radio-tile__hint">50 squares</span>
-          </label>
-          <label class="radio-tile">
-            <input type="radio" name="boardSize" value="quick" />
-            <span class="radio-tile__title">Shorter game</span>
-            <span class="radio-tile__hint">25 squares</span>
-          </label>
-        </div>
-      </section>
+      <div class="sn-setup-columns">
+        <section class="card sn-card--board" aria-labelledby="lblBoard">
+          <h2 id="lblBoard">Board size</h2>
+          <div class="choice-row" role="group" aria-label="Board size">
+            <label class="radio-tile">
+              <input type="radio" name="boardSize" value="full" checked />
+              <span class="radio-tile__title">Full game</span>
+              <span class="radio-tile__hint">50 squares</span>
+            </label>
+            <label class="radio-tile">
+              <input type="radio" name="boardSize" value="quick" />
+              <span class="radio-tile__title">Shorter game</span>
+              <span class="radio-tile__hint">25 squares</span>
+            </label>
+          </div>
+        </section>
 
-      <section class="card" aria-labelledby="lblPlayers">
-        <h2 id="lblPlayers">How many players?</h2>
-        <div class="choice-row" role="group" aria-label="Number of players">
-          <label class="radio-tile">
-            <input type="radio" name="numPlayers" value="2" checked />
-            <span class="radio-tile__title">2</span>
-            <span class="radio-tile__hint">You &amp; a friend</span>
-          </label>
-          <label class="radio-tile">
-            <input type="radio" name="numPlayers" value="3" />
-            <span class="radio-tile__title">3</span>
-            <span class="radio-tile__hint">Pass &amp; play</span>
-          </label>
-          <label class="radio-tile">
-            <input type="radio" name="numPlayers" value="4" />
-            <span class="radio-tile__title">4</span>
-            <span class="radio-tile__hint">Family game</span>
-          </label>
-        </div>
-        <p class="hint" id="nameHint">Pick a character for each player — their name fills in from that choice (you can change it if you like).</p>
-        <div class="name-fields" id="nameFields" aria-label="Players"></div>
-        <button type="button" class="btn btn--primary" id="btnStart">Start game</button>
-      </section>
+        <section class="card sn-card--players" aria-labelledby="lblPlayers">
+          <h2 id="lblPlayers">How many players?</h2>
+          <div class="choice-row" role="group" aria-label="Number of players">
+            <label class="radio-tile">
+              <input type="radio" name="numPlayers" value="2" checked />
+              <span class="radio-tile__title">2</span>
+              <span class="radio-tile__hint">You &amp; a friend</span>
+            </label>
+            <label class="radio-tile">
+              <input type="radio" name="numPlayers" value="3" />
+              <span class="radio-tile__title">3</span>
+              <span class="radio-tile__hint">Pass &amp; play</span>
+            </label>
+            <label class="radio-tile">
+              <input type="radio" name="numPlayers" value="4" />
+              <span class="radio-tile__title">4</span>
+              <span class="radio-tile__hint">Family game</span>
+            </label>
+          </div>
+          <p class="hint" id="nameHint">Pick a character for each player — their name fills in from that choice (you can change it if you like).</p>
+          <div class="name-fields" id="nameFields" aria-label="Players"></div>
+          <button type="button" class="btn btn--primary" id="btnStart">Start game</button>
+        </section>
+      </div>
     </div>
 
     <div id="screenGame" class="screen screen--hidden" hidden>
       <div class="game-layout">
         <div class="board-wrap" id="boardWrap">
           <div class="board" id="board" aria-label="Game board" role="img">
-            <div class="board-grid" id="boardGrid"></div>
-            <svg class="board-conn" id="boardConn" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"></svg>
-            <div class="board-tokens" id="tokenLayer" aria-hidden="true"></div>
+            <div class="board__stack" id="boardStack">
+              <div class="board__face" id="boardFace" style="--board-aspect: 1.8">
+                <div class="board-grid" id="boardGrid"></div>
+                <svg class="board-conn" id="boardConn" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"></svg>
+                <div class="board-tokens" id="tokenLayer" aria-hidden="true"></div>
+              </div>
+            </div>
           </div>
           <p class="start-hint" id="startHint">Start line — your characters wait here until they hop onto the board.</p>
           <div class="start-strip" id="startStrip" role="group" aria-label="Starting area"></div>

@@ -27,37 +27,39 @@
         <p class="ttt-header__lede">Get three in a row — a line, column, or diagonal.</p>
       </header>
 
-      <section class="ttt-card" aria-labelledby="lblMode">
-        <h2 id="lblMode">How do you want to play?</h2>
-        <div class="ttt-choice-row" role="group" aria-label="Game mode">
-          <label class="ttt-radio">
-            <input type="radio" name="tttMode" value="friend" checked />
-            <span class="ttt-radio__title">With a friend</span>
-            <span class="ttt-radio__hint">Pass the device and take turns on the same board</span>
-          </label>
-          <label class="ttt-radio">
-            <input type="radio" name="tttMode" value="cpu" />
-            <span class="ttt-radio__title">Play the computer</span>
-            <span class="ttt-radio__hint">You go first as crosses; the computer plays noughts</span>
-          </label>
-        </div>
-      </section>
+      <div class="ttt-setup-columns">
+        <section class="ttt-card ttt-card--mode" aria-labelledby="lblMode">
+          <h2 id="lblMode">How do you want to play?</h2>
+          <div class="ttt-choice-row" role="group" aria-label="Game mode">
+            <label class="ttt-radio">
+              <input type="radio" name="tttMode" value="friend" checked />
+              <span class="ttt-radio__title">With a friend</span>
+              <span class="ttt-radio__hint">Pass the device and take turns on the same board</span>
+            </label>
+            <label class="ttt-radio">
+              <input type="radio" name="tttMode" value="cpu" />
+              <span class="ttt-radio__title">Play the computer</span>
+              <span class="ttt-radio__hint">You go first as crosses; the computer plays noughts</span>
+            </label>
+          </div>
+        </section>
 
-      <section class="ttt-card" aria-labelledby="lblChars">
-        <h2 id="lblChars">Pick your characters</h2>
-        <p class="ttt-char-lede" id="charLede">
-          Tap a face or icon for each side. <strong>Crosses</strong> always take the first turn.
-        </p>
-        <div class="ttt-char-block">
-          <p class="ttt-char-heading" id="headingCharX">Crosses (first turn)</p>
-          <div class="ttt-char-row" id="charRowX" role="group" aria-labelledby="headingCharX"></div>
-        </div>
-        <div class="ttt-char-block" id="charBlockO">
-          <p class="ttt-char-heading" id="headingCharO">Noughts</p>
-          <div class="ttt-char-row" id="charRowO" role="group" aria-labelledby="headingCharO"></div>
-        </div>
-        <button type="button" class="ttt-btn ttt-btn--primary" id="btnStart">Start game</button>
-      </section>
+        <section class="ttt-card ttt-card--chars" aria-labelledby="lblChars">
+          <h2 id="lblChars">Pick your characters</h2>
+          <p class="ttt-char-lede" id="charLede">
+            Tap a face or icon for each side. <strong>Crosses</strong> always take the first turn.
+          </p>
+          <div class="ttt-char-block">
+            <p class="ttt-char-heading" id="headingCharX">Crosses (first turn)</p>
+            <div class="ttt-char-row" id="charRowX" role="group" aria-labelledby="headingCharX"></div>
+          </div>
+          <div class="ttt-char-block" id="charBlockO">
+            <p class="ttt-char-heading" id="headingCharO">Noughts</p>
+            <div class="ttt-char-row" id="charRowO" role="group" aria-labelledby="headingCharO"></div>
+          </div>
+          <button type="button" class="ttt-btn ttt-btn--primary" id="btnStart">Start game</button>
+        </section>
+      </div>
     </div>
 
     <div id="screenPlay" class="screen is-hidden" hidden>
