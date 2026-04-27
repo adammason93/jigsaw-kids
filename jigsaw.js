@@ -7,7 +7,26 @@ const shuffleBtn = document.getElementById("shuffleBtn");
 const statusEl = document.getElementById("status");
 const playArea = document.getElementById("playArea");
 const board = document.getElementById("board");
+const boardGrid = document.getElementById("boardGrid");
+const boardGuideImg = document.getElementById("boardGuideImg");
+const guideToggle = document.getElementById("guideToggle");
 const tray = document.getElementById("tray");
+
+const GUIDE_STORAGE_KEY = "jigsawPictureGuide";
+
+function getGuideOn() {
+  if (!guideToggle) {
+    return true;
+  }
+  return guideToggle.checked;
+}
+
+function applyBoardGuideClass() {
+  if (!board) {
+    return;
+  }
+  board.classList.toggle("board--no-guide", !getGuideOn());
+}
 
 /** @type {string | null} */
 let objectUrl = null;
@@ -15,6 +34,97 @@ let objectUrl = null;
 let dataUrl = null;
 let grid = 3;
 const placed = new Map(); // index -> correct index
+
+/** @type {boolean[][] | null} row runs 0..n-2, col 0..n-1 */
+let jigsawSeamsH = null;
+/** @type {boolean[][] | null} row 0..n-1, col 0..n-2 */
+let jigsawSeamsV = null;
+
+/**
+ * Every internal seam is a real tab / socket pair (no “flat” inner edges, which
+ * read as a plain square grid in the UI).
+ * Border edges stay flat by construction in jigsawPathD (row/col at bounds).
+ */
+function buildSeamGrids(n) {
+  jigsawSeamsH = Array.from({ length: Math.max(0, n - 1) }, () => Array(n).fill(true));
+  jigsawSeamsV = Array.from({ length: n }, () => Array(Math.max(0, n - 1)).fill(true));
+}
+
+/**
+ * Jigsaw outline in 0..100 only (viewBox 0 0 100, clipPath objectBoundingBox + scale(0.01)).
+ * Tabs/sockets are drawn *inside* the cell (coords stay in 0..100) so WebKit
+ * does not clamp the clip to a rectangle. Paired edge: right tab = inward bump on
+ * x=100, left socket = bulge from x=0, etc.
+ * @param {number} row
+ * @param {number} col
+ * @param {number} n
+ * @returns {string}
+ */
+function jigsawPathD(row, col, n) {
+  const h = jigsawSeamsH;
+  const v = jigsawSeamsV;
+  if (!h || !v) {
+    return "M0,0L100,0L100,100L0,100Z";
+  }
+
+  const m = 20;
+  const topSocket = row > 0 && h[row - 1][col];
+  const rightTab = col < n - 1 && v[row][col];
+  const bottomTab = row < n - 1 && h[row][col];
+  const leftSocket = col > 0 && v[row][col - 1];
+
+  let s = "M0,0";
+  if (topSocket) {
+    s += `L${m},0Q50,12,${100 - m},0L100,0`;
+  } else {
+    s += "L100,0";
+  }
+  if (rightTab) {
+    s += `L100,${m}C98,22,90,35,88,50C90,65,98,75,100,${100 - m}L100,100`;
+  } else {
+    s += "L100,100";
+  }
+  if (bottomTab) {
+    s += `L${100 - m},100Q50,88,${m},100L0,100`;
+  } else {
+    s += "L0,100";
+  }
+  if (leftSocket) {
+    s += `Q12,50,0,${m}L0,0`;
+  } else {
+    s += "L0,0";
+  }
+  s += "Z";
+  return s;
+}
+
+const SVG_NS = "http://www.w3.org/2000/svg";
+
+/**
+ * (Re)build &lt;clipPath&gt; elements so clip-path: url(#id) works in Safari
+ * (data-URL mask-image often shows grey pieces with no photo).
+ * @param {number} n
+ */
+function rebuildClipDefs(n) {
+  const defs = document.getElementById("jigsaw-clip-defs");
+  if (!defs) {
+    return;
+  }
+  defs.replaceChildren();
+  for (let i = 0; i < n * n; i++) {
+    const row = Math.floor(i / n);
+    const col = i % n;
+    const d = jigsawPathD(row, col, n);
+    const cp = document.createElementNS(SVG_NS, "clipPath");
+    cp.setAttribute("id", "jigsaw-clip-" + i);
+    cp.setAttribute("clipPathUnits", "objectBoundingBox");
+    const p = document.createElementNS(SVG_NS, "path");
+    p.setAttribute("d", d);
+    p.setAttribute("transform", "scale(0.01, 0.01)");
+    cp.appendChild(p);
+    defs.appendChild(cp);
+  }
+}
 
 function updateSliderLabel() {
   const n = Number(pieceSlider.value);
@@ -29,11 +139,37 @@ function releaseObjectUrl() {
   }
 }
 
+function clearPresetSelection() {
+  document.querySelectorAll(".jigsaw-preset").forEach(function (b) {
+    b.classList.remove("is-selected");
+    b.setAttribute("aria-pressed", "false");
+  });
+}
+
+/**
+ * @param {string} src - URL to image (path or blob:)
+ * @param {string} label - Shown next to controls
+ * @param {HTMLElement | null} [presetButton] - The preset tile that was tapped
+ */
+function setImageFromPreset(src, label, presetButton) {
+  releaseObjectUrl();
+  imageInput.value = "";
+  dataUrl = src;
+  fileName.textContent = label;
+  startBtn.disabled = false;
+  clearPresetSelection();
+  if (presetButton) {
+    presetButton.classList.add("is-selected");
+    presetButton.setAttribute("aria-pressed", "true");
+  }
+}
+
 function setImageFromFile(file) {
+  clearPresetSelection();
   releaseObjectUrl();
   dataUrl = null;
   if (!file || !file.type.startsWith("image/")) {
-    fileName.textContent = "No file chosen";
+    fileName.textContent = "No picture selected";
     startBtn.disabled = true;
     return;
   }
@@ -48,14 +184,44 @@ imageInput.addEventListener("change", () => {
   setImageFromFile(file ?? null);
 });
 
+document.querySelectorAll(".jigsaw-preset").forEach(function (btn) {
+  btn.setAttribute("aria-pressed", "false");
+  btn.addEventListener("click", function () {
+    const src = btn.getAttribute("data-src");
+    const label = btn.getAttribute("data-label") || "Picture";
+    if (src) {
+      setImageFromPreset(src, label, btn);
+    }
+  });
+});
+
 pieceSlider.addEventListener("input", () => {
   updateSliderLabel();
 });
 
 function clearBoard() {
-  board.replaceChildren();
+  if (boardGrid) {
+    boardGrid.replaceChildren();
+  } else if (board) {
+    board.replaceChildren();
+  }
   tray.replaceChildren();
   placed.clear();
+}
+
+function loadGuideToggleFromStorage() {
+  if (!guideToggle) {
+    return;
+  }
+  try {
+    const v = localStorage.getItem(GUIDE_STORAGE_KEY);
+    if (v === "0" || v === "1") {
+      guideToggle.checked = v === "1";
+    }
+  } catch (e) {
+    /* ignore */
+  }
+  applyBoardGuideClass();
 }
 
 /**
@@ -93,6 +259,19 @@ function showSpotFullHint() {
   setStatus(pickRandom(SPOT_FULL_HINTS), "oops");
 }
 
+/**
+ * Resolve relative preset paths against the page URL (fixes broken backgrounds on some iPad / WebKit builds).
+ * @param {string} url
+ * @returns {string}
+ */
+function resolveImageUrl(url) {
+  try {
+    return new URL(url, window.location.href).href;
+  } catch (e) {
+    return url;
+  }
+}
+
 function makePiece(correctIndex, n, imageUrl) {
   const col = correctIndex % n;
   const row = Math.floor(correctIndex / n);
@@ -100,19 +279,44 @@ function makePiece(correctIndex, n, imageUrl) {
   el.className = "piece in-tray";
   el.setAttribute("draggable", "true");
   el.dataset.correct = String(correctIndex);
-  el.style.setProperty("--img", `url(${JSON.stringify(imageUrl)})`);
+  const resolved = resolveImageUrl(String(imageUrl));
+  el.style.setProperty("--img", "url(" + JSON.stringify(resolved) + ")");
   el.style.setProperty("--cols", String(n));
   el.style.setProperty("--rows", String(n));
   el.style.setProperty("--col", String(col));
   el.style.setProperty("--row", String(row));
+  const face = document.createElement("div");
+  face.className = "piece__face";
+  face.setAttribute("aria-hidden", "true");
+  el.appendChild(face);
+  const d = jigsawPathD(row, col, n);
+  const clipRef = "url(#jigsaw-clip-" + correctIndex + ")";
+  el.style.setProperty("clip-path", clipRef);
+  el.style.setProperty("-webkit-clip-path", clipRef);
   return el;
 }
 
 function makeSlot(index, n) {
+  const row = Math.floor(index / n);
+  const col = index % n;
+  const d = jigsawPathD(row, col, n);
   const slot = document.createElement("div");
   slot.className = "slot";
   slot.dataset.index = String(index);
   slot.style.gridColumn = "span 1";
+  const svg = document.createElementNS(SVG_NS, "svg");
+  svg.setAttribute("class", "slot__shape");
+  svg.setAttribute("viewBox", "0 0 100 100");
+  svg.setAttribute("preserveAspectRatio", "none");
+  svg.setAttribute("aria-hidden", "true");
+  const path = document.createElementNS(SVG_NS, "path");
+  path.setAttribute("class", "slot__outline");
+  path.setAttribute("d", d);
+  path.setAttribute("fill", "none");
+  path.setAttribute("vector-effect", "non-scaling-stroke");
+  path.setAttribute("stroke-linejoin", "round");
+  svg.appendChild(path);
+  slot.appendChild(svg);
   return slot;
 }
 
@@ -159,7 +363,7 @@ function attachPointerDrag(piece) {
     const cx = r.left + r.width / 2;
     const cy = r.top + r.height / 2;
     const correct = Number(piece.dataset.correct);
-    const slots = board.querySelectorAll(".slot");
+    const slots = (boardGrid || board).querySelectorAll(".slot");
     let targetSlot = null;
     for (const s of slots) {
       const sr = s.getBoundingClientRect();
@@ -271,20 +475,31 @@ function confettiLight() {
 
 function startPuzzle() {
   if (!dataUrl) return;
+  if (!boardGrid) {
+    return;
+  }
   grid = Number(pieceSlider.value);
   const n = grid;
   clearBoard();
+  buildSeamGrids(n);
+  rebuildClipDefs(n);
   setStatus("");
   playArea.hidden = false;
 
-  board.style.gridTemplateColumns = `repeat(${n}, 1fr)`;
-  board.style.gridTemplateRows = `repeat(${n}, 1fr)`;
+  const resolved = resolveImageUrl(String(dataUrl));
+  if (boardGuideImg) {
+    boardGuideImg.src = resolved;
+  }
+  applyBoardGuideClass();
+
+  boardGrid.style.gridTemplateColumns = `repeat(${n}, 1fr)`;
+  boardGrid.style.gridTemplateRows = `repeat(${n}, 1fr)`;
 
   const indices = Array.from({ length: n * n }, (_, i) => i);
   shuffleInPlace(indices);
 
   for (let i = 0; i < n * n; i++) {
-    board.appendChild(makeSlot(i, n));
+    boardGrid.appendChild(makeSlot(i, n));
   }
 
   for (const idx of indices) {
@@ -322,6 +537,18 @@ shuffleBtn.addEventListener("click", () => {
 });
 
 updateSliderLabel();
+
+loadGuideToggleFromStorage();
+if (guideToggle) {
+  guideToggle.addEventListener("change", function () {
+    try {
+      localStorage.setItem(GUIDE_STORAGE_KEY, guideToggle.checked ? "1" : "0");
+    } catch (e) {
+      /* ignore */
+    }
+    applyBoardGuideClass();
+  });
+}
 
 if (typeof KidsCore !== "undefined") {
   KidsCore.init();

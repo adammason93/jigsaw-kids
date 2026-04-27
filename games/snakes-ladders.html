@@ -4,15 +4,16 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="theme-color" content="#7c3aed" />
-  <title>Snakes &amp; Ladders — Kids Game Room</title>
+  <title>Snakes &amp; Ladders — Sofia's Game Room</title>
   <link rel="manifest" href="../manifest.json" />
   <link rel="stylesheet" href="../js/kids-core.css" />
   <link rel="stylesheet" href="snakes-ladders.css" />
+  <link rel="stylesheet" href="../tablet-ipad.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Sniglet:wght@400;800&display=swap" rel="stylesheet" />
 </head>
-<body>
+<body class="page-snakes">
   <div class="app" id="app">
     <nav class="game-nav" aria-label="Breadcrumb">
       <a class="back-link" href="../index.html">← All games</a>
@@ -28,19 +29,19 @@
     >
       <div class="welcome-popup__backdrop" aria-hidden="true"></div>
       <div class="welcome-popup__panel">
-        <h2 id="welcomeTitle" class="welcome-popup__title">Welcome!</h2>
+        <h2 id="welcomeTitle" class="welcome-popup__title">Welcome, Sofia!</h2>
         <div class="welcome-popup__stage">
           <div class="welcome-popup__char-swing" aria-hidden="true">
             <img
               class="welcome-popup__char"
-              src="images/character-isaac-welcome.png"
+              src="images/character-girl-blonde.png"
               width="200"
               height="280"
               alt=""
               decoding="async"
             />
           </div>
-          <p class="welcome-popup__bubble" role="text">Hello!</p>
+          <p class="welcome-popup__bubble" role="text">This game’s for you — have fun!</p>
         </div>
         <button type="button" class="btn btn--primary" id="btnWelcomeOk">Let’s play!</button>
       </div>

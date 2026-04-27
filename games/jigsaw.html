@@ -4,32 +4,88 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="theme-color" content="#2d8cba" />
-  <title>Picture jigsaw — Kids Game Room</title>
+  <title>Picture jigsaw — Sofia's Game Room</title>
   <link rel="manifest" href="../manifest.json" />
   <link rel="stylesheet" href="../js/kids-core.css" />
   <link rel="stylesheet" href="../jigsaw.css" />
+  <link rel="stylesheet" href="../tablet-ipad.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Sniglet:wght@400;800&display=swap" rel="stylesheet" />
 </head>
-<body>
+<body class="page-jigsaw">
+  <svg class="jigsaw-clip-sprite" aria-hidden="true" width="1" height="1" focusable="false">
+    <defs id="jigsaw-clip-defs"></defs>
+  </svg>
   <div class="app" id="app">
     <nav class="game-nav" aria-label="Breadcrumb">
       <a class="back-link" href="../index.html">← All games</a>
     </nav>
 
     <header class="header">
+      <p class="header__kicker">Sofia’s puzzle</p>
       <h1>Picture jigsaw</h1>
-      <p class="tagline">Pick a photo, pick how tricky, then put it back together.</p>
+      <p class="tagline">Pick a ready picture or your own photo, choose how many pieces, then drag them into place.</p>
     </header>
 
     <section class="setup card">
+      <div class="preset-block">
+        <h3 class="preset-block__title">Ready to go</h3>
+        <p class="preset-block__hint">Tap a picture to use it straight away.</p>
+        <div class="preset-grid" role="group" aria-label="Ready-made pictures">
+          <button type="button" class="jigsaw-preset" data-src="images/jigsaw-presets/sofia-tractor.png" data-label="Sofia on the tractor">
+            <span class="jigsaw-preset__thumb-wrap">
+              <img
+                class="jigsaw-preset__thumb"
+                src="images/jigsaw-presets/sofia-tractor.png"
+                alt=""
+                width="140"
+                height="140"
+                loading="lazy"
+                decoding="async"
+              />
+            </span>
+            <span class="jigsaw-preset__label">Sofia on the tractor</span>
+          </button>
+          <button type="button" class="jigsaw-preset" data-src="images/jigsaw-presets/sofia-baby-bedtime.png" data-label="Bedtime with baby">
+            <span class="jigsaw-preset__thumb-wrap">
+              <img
+                class="jigsaw-preset__thumb"
+                src="images/jigsaw-presets/sofia-baby-bedtime.png"
+                alt=""
+                width="140"
+                height="140"
+                loading="lazy"
+                decoding="async"
+              />
+            </span>
+            <span class="jigsaw-preset__label">Bedtime with baby</span>
+          </button>
+          <button type="button" class="jigsaw-preset" data-src="images/jigsaw-presets/baby-sister-onesie.png" data-label="Baby &amp; big sister">
+            <span class="jigsaw-preset__thumb-wrap">
+              <img
+                class="jigsaw-preset__thumb"
+                src="images/jigsaw-presets/baby-sister-onesie.png"
+                alt=""
+                width="140"
+                height="140"
+                loading="lazy"
+                decoding="async"
+              />
+            </span>
+            <span class="jigsaw-preset__label">Baby &amp; big sister</span>
+          </button>
+        </div>
+      </div>
+
+      <p class="setup__or" aria-hidden="true">or use your own</p>
+
       <div class="row">
         <label class="file-label">
           <input type="file" id="imageInput" accept="image/*" hidden />
           <span class="btn btn-primary">Choose a picture</span>
         </label>
-        <span id="fileName" class="file-name">No file chosen</span>
+        <span id="fileName" class="file-name">No picture selected</span>
       </div>
       <div class="row pieces-row">
         <label for="pieceSlider">How many pieces?</label>
@@ -48,8 +104,19 @@
 
     <div class="play-area" id="playArea" hidden>
       <div class="board-wrap">
-        <h2>Put the pieces here</h2>
-        <div class="board" id="board" aria-label="Puzzle board"></div>
+        <div class="board-wrap__head">
+          <h2>Put the pieces here</h2>
+          <label class="guide-toggle">
+            <input type="checkbox" id="guideToggle" checked />
+            <span>Picture guide</span>
+          </label>
+        </div>
+        <div class="board" id="board" aria-label="Puzzle board">
+          <div class="board__guide" id="boardGuide" aria-hidden="true">
+            <img class="board__guide-img" id="boardGuideImg" alt="" decoding="async" />
+          </div>
+          <div class="board__grid" id="boardGrid"></div>
+        </div>
       </div>
       <div class="tray-wrap">
         <h2>Your pieces</h2>

@@ -5,76 +5,108 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="theme-color" content="#7c3aed" />
   <meta name="description" content="Picture jigsaw, number path, and snakes & ladders for children — works offline after one visit." />
-  <title>Kids Game Room</title>
+  <title>Sofia's Game Room</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="stylesheet" href="portal.css" />
+  <link rel="stylesheet" href="tablet-ipad.css" />
   <link rel="stylesheet" href="js/kids-core.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Sniglet:wght@400;800&display=swap" rel="stylesheet" />
 </head>
-<body>
+<body class="page-portal">
   <div class="portal">
     <header class="portal-hero">
-      <h1>Kids Game Room</h1>
-      <p>Pick a game to play. More games will show up here as we add them—puzzles is just the start.</p>
+      <div class="portal-hero__inner">
+        <div class="portal-hero__copy">
+          <p class="portal-hero__kicker">Hi Sofia — this room’s for you</p>
+          <h1 class="portal-hero__title">Sofia's Game Room</h1>
+          <p class="portal-hero__tagline">Tap a game to play. New ones will pop up here as we build them.</p>
+        </div>
+        <div class="portal-hero__mascot" aria-hidden="true">
+          <img
+            class="portal-hero__char"
+            src="games/images/character-girl-blonde.png"
+            width="128"
+            height="128"
+            alt=""
+            decoding="async"
+          />
+        </div>
+      </div>
     </header>
 
-    <ul class="game-grid" role="list">
-      <li>
-        <a class="game-card" href="games/jigsaw.html">
-          <span class="game-card__icon" aria-hidden="true">🧩</span>
-          <h2 class="game-card__title">Picture jigsaw</h2>
-          <p class="game-card__desc">Upload a photo, choose how many pieces, and put the picture back together.</p>
-          <span class="game-card__cta">Play now →</span>
-          <span class="badge badge--play">Ready to play</span>
-        </a>
-      </li>
-      <li>
-        <div class="game-card game-card--soon" aria-disabled="true">
-          <span class="game-card__icon" aria-hidden="true">🌤️</span>
-          <h2 class="game-card__title">Garden run</h2>
-          <p class="game-card__desc">Side-scrolling run—pick a place and a character, then dash for a high score. (Hidden for now.)</p>
-          <span class="game-card__cta">Hidden for now</span>
-        </div>
-      </li>
-      <li>
-        <a class="game-card" href="games/math-race.html">
-          <span class="game-card__icon" aria-hidden="true">🔢</span>
-          <h2 class="game-card__title">Number path</h2>
-          <p class="game-card__desc">Choose a level and a character, answer adding and taking-away questions, and move forward to the finish—one right answer per step.</p>
-          <span class="game-card__cta">Play now →</span>
-          <span class="badge badge--play">Ready to play</span>
-        </a>
-      </li>
-      <li>
-        <a class="game-card" href="games/snakes-ladders.html">
-          <span class="game-card__icon" aria-hidden="true">🪜</span>
-          <h2 class="game-card__title">Snakes &amp; Ladders</h2>
-          <p class="game-card__desc">Choose a cute character icon, pick 2–4 players, roll the bouncy die, and race up 50 rainbow squares to the gold finish.</p>
-          <span class="game-card__cta">Play now →</span>
-          <span class="badge badge--play">Ready to play</span>
-        </a>
-      </li>
-      <li>
-        <div class="game-card game-card--soon" aria-disabled="true">
-          <span class="game-card__icon" aria-hidden="true">🃏</span>
-          <h2 class="game-card__title">Memory match</h2>
-          <p class="game-card__desc">Flip cards and find pairs. Perfect for a quick brain warm-up.</p>
-          <span class="game-card__cta">Coming soon</span>
-        </div>
-      </li>
-      <li>
-        <div class="game-card game-card--soon" aria-disabled="true">
-          <span class="game-card__icon" aria-hidden="true">🎵</span>
-          <h2 class="game-card__title">Sound &amp; color</h2>
-          <p class="game-card__desc">Tap, listen, and match—made for little explorers.</p>
-          <span class="game-card__cta">Coming soon</span>
-        </div>
-      </li>
-    </ul>
+    <div class="game-sections">
+      <section class="game-section game-section--active" aria-labelledby="active-games-label">
+        <h2 class="game-section__label game-section__label--play" id="active-games-label">Play now</h2>
+        <ul class="game-grid game-grid--active" role="list" aria-labelledby="active-games-label">
+        <li>
+          <a class="game-card game-card--jigsaw" href="games/jigsaw.html">
+            <span class="game-card__icon" aria-hidden="true">🧩</span>
+            <h3 class="game-card__title">Picture jigsaw</h3>
+            <p class="game-card__desc">Upload a photo, choose how many pieces, and put the picture back together.</p>
+            <span class="game-card__cta">Play now →</span>
+            <span class="badge badge--play">Ready to play</span>
+          </a>
+        </li>
+        <li>
+          <a class="game-card game-card--math" href="games/math-race.html">
+            <span class="game-card__icon" aria-hidden="true">🔢</span>
+            <h3 class="game-card__title">Number path</h3>
+            <p class="game-card__desc">Solo, two or three players taking turns, or race a dinosaur that chases you along a bigger animated path—clouds, birds, and a chunky track.</p>
+            <span class="game-card__cta">Play now →</span>
+            <span class="badge badge--play">Ready to play</span>
+          </a>
+        </li>
+        <li>
+          <a class="game-card game-card--snakes" href="games/snakes-ladders.html">
+            <span class="game-card__icon" aria-hidden="true">🪜</span>
+            <h3 class="game-card__title">Snakes &amp; Ladders</h3>
+            <p class="game-card__desc">Choose a cute character icon, pick 2–4 players, roll the bouncy die, and race up 50 rainbow squares to the gold finish.</p>
+            <span class="game-card__cta">Play now →</span>
+            <span class="badge badge--play">Ready to play</span>
+          </a>
+        </li>
+      </ul>
+      </section>
 
-    <p class="portal-footer">Tip: add this page to your home screen for quick play. Tap ⚙️ on any game for sounds, read-aloud, and calm screen.</p>
+      <section class="game-section game-section--later" aria-labelledby="later-games-label">
+        <h2 class="game-section__label" id="later-games-label">Coming soon &amp; hidden</h2>
+        <ul class="game-grid game-grid--later" role="list" aria-labelledby="later-games-label">
+          <li>
+            <div class="game-card game-card--soon game-card--garden" aria-disabled="true">
+              <span class="game-card__icon" aria-hidden="true">🌤️</span>
+              <h3 class="game-card__title">Garden run</h3>
+              <p class="game-card__desc">Side-scrolling run—pick a place and a character, then dash for a high score. (Hidden for now.)</p>
+              <span class="game-card__cta">Hidden for now</span>
+            </div>
+          </li>
+          <li>
+            <div class="game-card game-card--soon game-card--memory" aria-disabled="true">
+              <span class="game-card__icon" aria-hidden="true">🃏</span>
+              <h3 class="game-card__title">Memory match</h3>
+              <p class="game-card__desc">Flip cards and find pairs. Perfect for a quick brain warm-up.</p>
+              <span class="game-card__cta">Coming soon</span>
+            </div>
+          </li>
+          <li>
+            <div class="game-card game-card--soon game-card--sound" aria-disabled="true">
+              <span class="game-card__icon" aria-hidden="true">🎵</span>
+              <h3 class="game-card__title">Sound &amp; color</h3>
+              <p class="game-card__desc">Tap, listen, and match—made for little explorers.</p>
+              <span class="game-card__cta">Coming soon</span>
+            </div>
+          </li>
+        </ul>
+      </section>
+    </div>
+
+    <p class="portal-footer">
+      <span class="portal-footer__icon" aria-hidden="true">✨</span>
+      Add to your home screen for quick play. Tap
+      <span class="portal-footer__gear" aria-hidden="true">⚙️</span>
+      in a game for sounds, read-aloud, and a calmer screen.
+    </p>
   </div>
   <script src="js/kids-core.js"></script>
   <script>

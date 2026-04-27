@@ -1,12 +1,18 @@
 /**
- * Number path: addition / subtraction, levels, character moves per correct answer.
- * Answers: multiple choice (4 options).
+ * Number path: addition / subtraction, levels, characters move per correct answer.
+ * Modes: solo, 2–3 player turns, race vs dinosaur (CPU).
  */
 (function () {
   var gameSteps = 10;
   const CHOICE_COUNT = 4;
   var pictureHelp = false;
   var wrongAttempts = 0;
+
+  /** @type {'solo'|'two'|'three'|'computer'} */
+  var playMode = "solo";
+
+  /** Dinosaur gets its own turn with a pop-up question; it answers most of the time (fair “race”) */
+  const DINO_ANSWER_CORRECT_CHANCE = 0.82;
 
   const softWrong = [
     "Almost! Try another number.",
@@ -18,9 +24,9 @@
 
   const CHAR_EMOJI = {
     dog: "🐶",
+    dino: "🦖",
   };
 
-  /** Image characters (path relative to this HTML file in games/) */
   const CHAR_IMAGE = {
     babyca: "images/character-babyca.png",
     coolegg: "images/character-baby-coolegg.png",
@@ -28,26 +34,43 @@
     kelly: "images/character-kelly.png",
   };
 
-  const praise = ["Nice one!", "You got it!", "That’s right!", "Super!", "Brilliant!", "Yes!"];
+  const praise = ["Nice one!", "You got it!", "That's right!", "Super!", "Brilliant!", "Yes!"];
 
   const screenSetup = document.getElementById("screenSetup");
   const screenPlay = document.getElementById("screenPlay");
   const screenWin = document.getElementById("screenWin");
+  const screenLose = document.getElementById("screenLose");
   const appEl = document.getElementById("app");
   const raceStage = document.getElementById("raceStage");
   const raceSteps = document.getElementById("raceSteps");
-  const raceRunner = document.getElementById("raceRunner");
-  const raceRunnerEmoji = document.getElementById("raceRunnerEmoji");
+  const raceRunners = document.getElementById("raceRunners");
   const questionText = document.getElementById("questionText");
   const choiceGrid = document.getElementById("choiceGrid");
   const feedbackText = document.getElementById("feedbackText");
   const playLevelLabel = document.getElementById("playLevelLabel");
+  const playTurn = document.getElementById("playTurn");
   const playProgress = document.getElementById("playProgress");
+  const winTitle = document.getElementById("winTitle");
   const winMessage = document.getElementById("winMessage");
+  const loseTitle = document.getElementById("loseTitle");
+  const loseMessage = document.getElementById("loseMessage");
+  const loseCard = document.getElementById("loseCard");
+  const charSectionHint = document.getElementById("charSectionHint");
+  const lblCharP1 = document.getElementById("lblCharP1");
+  const charBlockP2 = document.getElementById("charBlockP2");
+  const charBlockP3 = document.getElementById("charBlockP3");
+  const questionTurnTitle = document.getElementById("questionTurnTitle");
+  const mcHint = document.getElementById("mcHint");
+
+  /** In vs-dino mode: true while the dinosaur's question pop-up is active */
+  var dinoQuestionTurn = false;
+  /** @type {ReturnType<typeof setTimeout> | null} */
+  var dinoTurnTimer = null;
 
   let level = 0;
-  let character = "babyca";
-  let position = 0;
+  /** @type {{ id: string; label: string; character: string; position: number; lane: number; isCpu?: boolean; el?: HTMLElement }[]} */
+  let players = [];
+  let currentPlayerIndex = 0;
   /** @type {{ text: string; answer: number } | null} */
   let current = null;
   /** @type {number[]} */
@@ -78,9 +101,6 @@
     return 40;
   }
 
-  /**
-   * Four unique options including the correct answer; wrong answers are nearby or random in range.
-   */
   function buildChoices(correct) {
     const cap = answerCap();
     const set = new Set();
@@ -146,6 +166,7 @@
       setup: screenSetup,
       play: screenPlay,
       win: screenWin,
+      lose: screenLose,
     };
     Object.entries(screens).forEach(function (entry) {
       const on = entry[0] === which;
@@ -154,12 +175,225 @@
     });
   }
 
-  function setRunnerPosition() {
+  function selectedPlayMode() {
+    const r = document.querySelector('input[name="playMode"]:checked');
+    const v = r ? r.value : "solo";
+    if (v === "two" || v === "three" || v === "computer" || v === "solo") {
+      return v;
+    }
+    return "solo";
+  }
+
+  function getCharForPlayer(playerIndex) {
+    const pressed = document.querySelector('.char-btn[data-player="' + playerIndex + '"][aria-pressed="true"]');
+    return pressed ? pressed.getAttribute("data-char") || "babyca" : "babyca";
+  }
+
+  function syncSetupUiForMode() {
+    const mode = selectedPlayMode();
+    if (charBlockP2) {
+      const show2 = mode === "two" || mode === "three";
+      charBlockP2.classList.toggle("is-hidden", !show2);
+      charBlockP2.hidden = !show2;
+    }
+    if (charBlockP3) {
+      const show3 = mode === "three";
+      charBlockP3.classList.toggle("is-hidden", !show3);
+      charBlockP3.hidden = !show3;
+    }
+    if (lblCharP1) {
+      if (mode === "solo") {
+        lblCharP1.textContent = "Your runner";
+      } else if (mode === "computer") {
+        lblCharP1.textContent = "Your runner";
+      } else {
+        lblCharP1.textContent = "Player 1";
+      }
+    }
+    if (charSectionHint) {
+      if (mode === "computer") {
+        charSectionHint.textContent =
+          "You start one step ahead. You and the dinosaur take turns — each turn shows a pop-up with that player's question. Reach the finish before it catches you!";
+      } else if (mode === "two" || mode === "three") {
+        charSectionHint.textContent = "Take turns answering. Only the player whose turn it is moves forward when they're right!";
+      } else {
+        charSectionHint.textContent = "Pick your runner for the path.";
+      }
+    }
+  }
+
+  document.querySelectorAll('input[name="playMode"]').forEach(function (inp) {
+    inp.addEventListener("change", syncSetupUiForMode);
+  });
+  syncSetupUiForMode();
+
+  function buildPlayers() {
+    playMode = selectedPlayMode();
+    const list = [];
+    if (playMode === "solo") {
+      list.push({
+        id: "h0",
+        label: "You",
+        character: getCharForPlayer(0),
+        position: 0,
+        lane: 0,
+      });
+    } else if (playMode === "two") {
+      list.push({
+        id: "h0",
+        label: "Player 1",
+        character: getCharForPlayer(0),
+        position: 0,
+        lane: 1,
+      });
+      list.push({
+        id: "h1",
+        label: "Player 2",
+        character: getCharForPlayer(1),
+        position: 0,
+        lane: 0,
+      });
+    } else if (playMode === "three") {
+      list.push({
+        id: "h0",
+        label: "Player 1",
+        character: getCharForPlayer(0),
+        position: 0,
+        lane: 2,
+      });
+      list.push({
+        id: "h1",
+        label: "Player 2",
+        character: getCharForPlayer(1),
+        position: 0,
+        lane: 1,
+      });
+      list.push({
+        id: "h2",
+        label: "Player 3",
+        character: getCharForPlayer(2),
+        position: 0,
+        lane: 0,
+      });
+    } else if (playMode === "computer") {
+      list.push({
+        id: "cpu",
+        label: "Dinosaur",
+        character: "dino",
+        position: 0,
+        lane: 0,
+        isCpu: true,
+      });
+      list.push({
+        id: "h0",
+        label: "You",
+        character: getCharForPlayer(0),
+        position: 1,
+        lane: 1,
+        isCpu: false,
+      });
+    }
+    return list;
+  }
+
+  function isVersusDino() {
+    return playMode === "computer";
+  }
+
+  function childPlayer() {
+    return players.find(function (p) {
+      return !p.isCpu;
+    });
+  }
+
+  function clearDinoTimer() {
+    if (dinoTurnTimer) {
+      clearTimeout(dinoTurnTimer);
+      dinoTurnTimer = null;
+    }
+  }
+
+  function pickWrongDistractor() {
+    if (!current) {
+      return 0;
+    }
+    const wrongs = choiceOrder.filter(function (v) {
+      return v !== current.answer;
+    });
+    if (wrongs.length) {
+      return wrongs[Math.floor(Math.random() * wrongs.length)];
+    }
+    return current.answer;
+  }
+
+  function dinoPlayer() {
+    return players.find(function (p) {
+      return p.isCpu;
+    });
+  }
+
+  function layoutStageClasses() {
     if (!raceStage) {
       return;
     }
-    const pct = 2 + (position / gameSteps) * 86;
-    raceStage.style.setProperty("--runner-left", pct + "%");
+    const multi = playMode === "two" || playMode === "three" || playMode === "computer";
+    raceStage.classList.toggle("has-multi-lane", multi);
+    raceStage.classList.toggle("is-dino", playMode === "computer");
+    raceStage.classList.remove("is-caught");
+  }
+
+  function pctForPosition(pos) {
+    return 2 + (pos / gameSteps) * 86;
+  }
+
+  function fillRunnerEmoji(container, player) {
+    if (!container) {
+      return;
+    }
+    const ch = player.character;
+    const path = CHAR_IMAGE[ch];
+    if (path) {
+      container.textContent = "";
+      let im = container.querySelector("img");
+      if (!im) {
+        im = document.createElement("img");
+        im.className = "race-runner__pic";
+        im.alt = "";
+        im.setAttribute("aria-hidden", "true");
+        im.decoding = "async";
+        container.appendChild(im);
+      }
+      im.src = path;
+      container.classList.add("race-runner__emoji--pic");
+    } else {
+      container.classList.remove("race-runner__emoji--pic");
+      const im = container.querySelector("img");
+      if (im) {
+        im.remove();
+      }
+      container.textContent = CHAR_EMOJI[ch] || "⭐";
+    }
+  }
+
+  function ensureRunnersDom() {
+    if (!raceRunners) {
+      return;
+    }
+    raceRunners.innerHTML = "";
+    players.forEach(function (p, i) {
+      const row = document.createElement("div");
+      row.className = "race-runner race-runner--lane" + p.lane + (p.isCpu ? " race-runner--dino" : "");
+      row.dataset.playerId = p.id;
+      row.innerHTML =
+        '<span class="race-runner__emoji" aria-hidden="true"></span>' +
+        '<div class="race-runner__glow" aria-hidden="true"></div>' +
+        '<div class="race-runner__shadow" aria-hidden="true"></div>';
+      const emoji = row.querySelector(".race-runner__emoji");
+      fillRunnerEmoji(emoji, p);
+      p.el = row;
+      raceRunners.appendChild(row);
+      row.style.setProperty("--runner-left", pctForPosition(p.position) + "%");
+    });
   }
 
   function ensureRaceSteps() {
@@ -176,66 +410,272 @@
     }
   }
 
-  function setRunnerCharacter() {
-    if (!raceRunnerEmoji) {
-      return;
-    }
-    const path = CHAR_IMAGE[character];
-    if (path) {
-      raceRunnerEmoji.textContent = "";
-      let im = raceRunnerEmoji.querySelector("img");
-      if (!im) {
-        im = document.createElement("img");
-        im.className = "race-runner__pic";
-        im.alt = "";
-        im.setAttribute("aria-hidden", "true");
-        im.decoding = "async";
-        raceRunnerEmoji.appendChild(im);
-      }
-      im.src = path;
-      raceRunnerEmoji.classList.add("race-runner__emoji--pic");
-    } else {
-      raceRunnerEmoji.classList.remove("race-runner__emoji--pic");
-      raceRunnerEmoji.textContent = CHAR_EMOJI[character] || "⭐";
-    }
-  }
-
-  function updateRaceVisual() {
-    setRunnerPosition();
-    setRunnerCharacter();
-    if (playProgress) {
-      if (position === 0) {
-        playProgress.textContent =
-          "On the start line — reach the finish in " + gameSteps + " right answers!";
-      } else if (position >= gameSteps) {
-        playProgress.textContent = "You reached the finish line!";
-      } else {
-        playProgress.textContent = "Step " + position + " of " + gameSteps + " — keep going!";
-      }
-    }
+  function updateStepDots() {
+    const maxPos = Math.max.apply(
+      null,
+      players.map(function (p) {
+        return p.position;
+      })
+    );
     document.querySelectorAll(".race-step-dot").forEach(function (el) {
       const i = Number(el.dataset.step);
       if (!i) {
         return;
       }
-      el.classList.toggle("is-passed", position >= i);
-      el.classList.toggle("is-current", position === i);
+      el.classList.toggle("is-passed", maxPos >= i);
+      el.classList.toggle("is-current", maxPos === i);
     });
   }
 
-  function playRunnerHop() {
-    if (!raceRunner) {
+  function updateProgressText() {
+    if (!playProgress) {
       return;
     }
-    const emoji = raceRunner.querySelector(".race-runner__emoji");
-    raceRunner.classList.remove("race-runner--hop");
+    if (playMode === "solo") {
+      const p = players[0];
+      if (p.position === 0) {
+        playProgress.textContent = "On the start line — reach the finish in " + gameSteps + " right answers!";
+      } else if (p.position >= gameSteps) {
+        playProgress.textContent = "You reached the finish line!";
+      } else {
+        playProgress.textContent = "Step " + p.position + " of " + gameSteps + " — keep going!";
+      }
+      return;
+    }
+    if (playMode === "computer") {
+      const c = childPlayer();
+      const d = dinoPlayer();
+      if (!c || !d) {
+        return;
+      }
+      playProgress.textContent =
+        "You: step " + c.position + " of " + gameSteps + " · Dinosaur: step " + d.position + " — reach the finish before it catches you!";
+      return;
+    }
+    const parts = players.map(function (p) {
+      return p.label.split(" ")[0] + " " + p.position + "/" + gameSteps;
+    });
+    playProgress.textContent = parts.join(" · ");
+  }
+
+  function updateTurnLabel() {
+    if (!playTurn) {
+      return;
+    }
+    if (playMode === "solo") {
+      playTurn.textContent = "";
+      return;
+    }
+    if (playMode === "computer") {
+      if (dinoQuestionTurn) {
+        playTurn.textContent = "Dinosaur's turn — watch the pop-up!";
+      } else {
+        playTurn.textContent = "Your turn — answer in the pop-up to move!";
+      }
+      return;
+    }
+    const p = players[currentPlayerIndex];
+    playTurn.textContent = p ? p.label + "'s turn — answer to move forward!" : "";
+  }
+
+  function updateQuestionModalHeading() {
+    if (!questionTurnTitle) {
+      return;
+    }
+    questionTurnTitle.classList.remove("question-modal__turn--dino");
+    if (playMode === "solo") {
+      questionTurnTitle.textContent = "Your turn";
+    } else if (playMode === "computer") {
+      if (dinoQuestionTurn) {
+        questionTurnTitle.textContent = "Dinosaur's turn";
+        questionTurnTitle.classList.add("question-modal__turn--dino");
+      } else {
+        questionTurnTitle.textContent = "Your turn";
+      }
+    } else {
+      const p = players[currentPlayerIndex];
+      questionTurnTitle.textContent = p ? p.label + "'s turn" : "Your turn";
+    }
+  }
+
+  function setMcHintForPhase() {
+    if (!mcHint) {
+      return;
+    }
+    if (isVersusDino() && dinoQuestionTurn) {
+      mcHint.textContent = "Watch the path — the dinosaur is picking an answer…";
+      mcHint.setAttribute("aria-hidden", "false");
+    } else {
+      mcHint.textContent = "Tap an answer, or press 1–4 on the keyboard";
+      mcHint.setAttribute("aria-hidden", "false");
+    }
+  }
+
+  function updateRaceVisual() {
+    players.forEach(function (p) {
+      if (p.el) {
+        p.el.style.setProperty("--runner-left", pctForPosition(p.position) + "%");
+      }
+    });
+    updateStepDots();
+    updateProgressText();
+    updateTurnLabel();
+  }
+
+  function playRunnerHopByPlayerId(id) {
+    const p = players.find(function (x) {
+      return x.id === id;
+    });
+    if (!p || !p.el) {
+      return;
+    }
+    p.el.classList.remove("race-runner--hop");
+    const emoji = p.el.querySelector(".race-runner__emoji");
     if (emoji) {
       void emoji.offsetWidth;
     }
-    raceRunner.classList.add("race-runner--hop");
+    p.el.classList.add("race-runner--hop");
     setTimeout(function () {
-      raceRunner.classList.remove("race-runner--hop");
+      p.el.classList.remove("race-runner--hop");
     }, 580);
+  }
+
+  function advanceTurn() {
+    if (playMode === "solo" || playMode === "computer") {
+      return;
+    }
+    const n = players.length;
+    currentPlayerIndex = (currentPlayerIndex + 1) % n;
+  }
+
+  function checkWinMultiplayer(mover) {
+    if (mover.position < gameSteps) {
+      return false;
+    }
+    winTitle.textContent = mover.label + " wins!";
+    winMessage.textContent =
+      mover.label + " got to the finish first with " + gameSteps + " right answers in a row on their turns. Amazing race!";
+    if (typeof KidsCore !== "undefined") {
+      KidsCore.recordGame("math");
+      KidsCore.confetti(document.getElementById("screenWin") || document.body);
+      KidsCore.playSound("win");
+      KidsCore.haptic("success");
+    }
+    let streak = 1;
+    try {
+      streak = Number(sessionStorage.getItem("mathWinStreak") || 0) + 1;
+      sessionStorage.setItem("mathWinStreak", String(streak));
+    } catch (e) {}
+    winMessage.textContent += " Win streak this visit: " + streak + ".";
+    showScreen("win");
+    return true;
+  }
+
+  function checkWinSolo(mover) {
+    if (mover.position < gameSteps) {
+      return false;
+    }
+    winTitle.textContent = "You made it!";
+    let streak = 1;
+    try {
+      streak = Number(sessionStorage.getItem("mathWinStreak") || 0) + 1;
+      sessionStorage.setItem("mathWinStreak", String(streak));
+    } catch (e) {}
+    winMessage.textContent =
+      "You got " + gameSteps + " questions right and made it to the end. What a star! Win streak this visit: " + streak + ".";
+    if (typeof KidsCore !== "undefined") {
+      KidsCore.recordGame("math");
+      KidsCore.confetti(document.getElementById("screenWin") || document.body);
+      KidsCore.playSound("win");
+      KidsCore.haptic("success");
+    }
+    showScreen("win");
+    return true;
+  }
+
+  function checkWinVersusDino(mover) {
+    if (!mover || mover.isCpu) {
+      return false;
+    }
+    if (mover.position < gameSteps) {
+      return false;
+    }
+    winTitle.textContent = "You won the race!";
+    winMessage.textContent =
+      "You reached the finish before the dinosaur could catch you — and you kept " + gameSteps + " steps ahead on the path. Roar-some!";
+    if (typeof KidsCore !== "undefined") {
+      KidsCore.recordGame("math");
+      KidsCore.confetti(document.getElementById("screenWin") || document.body);
+      KidsCore.playSound("win");
+      KidsCore.haptic("success");
+    }
+    let streak = 1;
+    try {
+      streak = Number(sessionStorage.getItem("mathWinStreak") || 0) + 1;
+      sessionStorage.setItem("mathWinStreak", String(streak));
+    } catch (e) {}
+    winMessage.textContent += " Win streak this visit: " + streak + ".";
+    showScreen("win");
+    return true;
+  }
+
+  function showLoseDino() {
+    if (raceStage) {
+      raceStage.classList.add("is-caught");
+    }
+    loseTitle.textContent = "The dinosaur caught up!";
+    loseMessage.textContent =
+      "It got as far as you on the path. Take a breath and try again — you still get a one-step head start!";
+    if (loseCard) {
+      loseCard.classList.remove("lose-card--multi");
+    }
+    if (typeof KidsCore !== "undefined") {
+      KidsCore.playSound("no");
+      KidsCore.haptic("light");
+    }
+    showScreen("lose");
+    setTimeout(function () {
+      if (raceStage) {
+        raceStage.classList.remove("is-caught");
+      }
+    }, 700);
+  }
+
+  function resolveDinoTurn() {
+    dinoTurnTimer = null;
+    if (!isVersusDino() || !dinoQuestionTurn || !current) {
+      return;
+    }
+    const d = dinoPlayer();
+    const c = childPlayer();
+    if (!d || !c) {
+      return;
+    }
+    const gotIt = Math.random() < DINO_ANSWER_CORRECT_CHANCE;
+    const dinoPick = gotIt ? current.answer : pickWrongDistractor();
+    if (gotIt) {
+      feedbackText.textContent = "Grr! The dinosaur got " + dinoPick + " — it stomps one step forward!";
+      feedbackText.className = "feedback feedback--good";
+      d.position += 1;
+      playRunnerHopByPlayerId("cpu");
+    } else {
+      feedbackText.textContent = "Stomp! A wrong guess — the dinosaur doesn't move this time.";
+      feedbackText.className = "feedback feedback--bad";
+    }
+    const card = document.querySelector(".question-modal__panel");
+    if (card) {
+      card.classList.add("shake");
+      setTimeout(function () {
+        card.classList.remove("shake");
+      }, 400);
+    }
+    updateRaceVisual();
+    if (d.position >= c.position) {
+      showLoseDino();
+      return;
+    }
+    dinoQuestionTurn = false;
+    nextQuestion();
   }
 
   function renderChoices() {
@@ -243,7 +683,13 @@
     if (!current) {
       return;
     }
+    const dinoWait = isVersusDino() && dinoQuestionTurn;
     choiceOrder = buildChoices(current.answer);
+    if (dinoWait) {
+      choiceGrid.classList.add("mc-grid--dino-pending");
+    } else {
+      choiceGrid.classList.remove("mc-grid--dino-pending");
+    }
     choiceOrder.forEach(function (val, i) {
       const b = document.createElement("button");
       b.type = "button";
@@ -255,18 +701,25 @@
         '</span><span class="mc-btn__num">' +
         val +
         "</span>";
-      b.setAttribute("aria-label", "Answer " + val + " (keyboard " + keyNum + ")");
-      b.addEventListener("click", function () {
-        submitChoice(val);
-      });
+      b.setAttribute("aria-label", "Answer " + val + (dinoWait ? "" : " (keyboard " + keyNum + ")"));
+      if (dinoWait) {
+        b.disabled = true;
+        b.setAttribute("aria-disabled", "true");
+      } else {
+        b.addEventListener("click", function () {
+          submitChoice(val);
+        });
+      }
       choiceGrid.appendChild(b);
     });
-    setTimeout(function () {
-      const first = choiceGrid.querySelector("button");
-      if (first) {
-        first.focus();
-      }
-    }, 0);
+    if (!dinoWait) {
+      setTimeout(function () {
+        const first = choiceGrid.querySelector("button");
+        if (first) {
+          first.focus();
+        }
+      }, 0);
+    }
   }
 
   function enrichForDots(p) {
@@ -327,13 +780,33 @@
   }
 
   function nextQuestion() {
+    clearDinoTimer();
     wrongAttempts = 0;
+    if (isVersusDino() && dinoQuestionTurn) {
+      current = enrichForDots(makeProblem());
+      questionText.textContent = current.text;
+      feedbackText.textContent = "";
+      feedbackText.className = "feedback";
+      updateQuestionModalHeading();
+      setMcHintForPhase();
+      renderQuestionDots();
+      renderChoices();
+      updateTurnLabel();
+      if (typeof KidsCore !== "undefined" && KidsCore.isReadAloudOn()) {
+        KidsCore.speak("Dinosaur's turn. " + current.text.replace(/\?/g, "").replace(/=/g, "equals"));
+      }
+      dinoTurnTimer = setTimeout(resolveDinoTurn, 2000);
+      return;
+    }
     current = enrichForDots(makeProblem());
     questionText.textContent = current.text;
     feedbackText.textContent = "";
     feedbackText.className = "feedback";
+    updateQuestionModalHeading();
+    setMcHintForPhase();
     renderQuestionDots();
     renderChoices();
+    updateTurnLabel();
     if (typeof KidsCore !== "undefined" && KidsCore.isReadAloudOn()) {
       KidsCore.speak(current.text.replace(/\?/g, "").replace(/=/g, "equals"));
     }
@@ -350,20 +823,43 @@
   }
 
   function startGame() {
+    clearDinoTimer();
+    dinoQuestionTurn = false;
     level = selectedLevel();
     gameSteps = selectedPathSteps();
     const ph = document.getElementById("pictureHelp");
     pictureHelp = !!(ph && ph.checked);
-    position = 0;
+    players = buildPlayers();
+    if (playMode === "two" || playMode === "three") {
+      currentPlayerIndex = 0;
+    } else {
+      currentPlayerIndex = 0;
+    }
     playLevelLabel.textContent = LEVEL_LABELS[level] || LEVEL_LABELS[0];
+    layoutStageClasses();
     showScreen("play");
     ensureRaceSteps();
+    ensureRunnersDom();
     updateRaceVisual();
     nextQuestion();
   }
 
+  function activeMover() {
+    if (playMode === "solo" || playMode === "computer") {
+      return childPlayer() || players[0];
+    }
+    return players[currentPlayerIndex];
+  }
+
   function submitChoice(num) {
     if (!current) {
+      return;
+    }
+    if (isVersusDino() && dinoQuestionTurn) {
+      return;
+    }
+    const mover = activeMover();
+    if (!mover) {
       return;
     }
     if (num === current.answer) {
@@ -373,30 +869,31 @@
       }
       feedbackText.textContent = praise[Math.floor(Math.random() * praise.length)];
       feedbackText.className = "feedback feedback--good";
-      position += 1;
-      playRunnerHop();
-      if (position >= gameSteps) {
-        updateRaceVisual();
-        let streak = 1;
-        try {
-          streak = Number(sessionStorage.getItem("mathWinStreak") || 0) + 1;
-          sessionStorage.setItem("mathWinStreak", String(streak));
-        } catch (e) {}
-        winMessage.textContent =
-          "You got " +
-          gameSteps +
-          " questions right and made it to the end. What a star! Win streak this visit: " +
-          streak +
-          ".";
-        if (typeof KidsCore !== "undefined") {
-          KidsCore.recordGame("math");
-          KidsCore.confetti(document.getElementById("screenWin") || document.body);
-          KidsCore.playSound("win");
-          KidsCore.haptic("success");
+      mover.position += 1;
+      playRunnerHopByPlayerId(mover.id);
+
+      if (playMode === "solo") {
+        if (checkWinSolo(mover)) {
+          return;
         }
-        showScreen("win");
+      } else if (playMode === "computer") {
+        if (checkWinVersusDino(mover)) {
+          return;
+        }
+        dinoQuestionTurn = true;
+        updateRaceVisual();
+        nextQuestion();
+        return;
+      } else {
+        if (checkWinMultiplayer(mover)) {
+          return;
+        }
+        advanceTurn();
+        updateRaceVisual();
+        nextQuestion();
         return;
       }
+
       updateRaceVisual();
       nextQuestion();
     } else {
@@ -417,6 +914,13 @@
           card.classList.remove("shake");
         }, 400);
       }
+
+      if (playMode === "computer") {
+        dinoQuestionTurn = true;
+        updateTurnLabel();
+        nextQuestion();
+        return;
+      }
     }
   }
 
@@ -424,14 +928,19 @@
 
   document.querySelectorAll(".char-btn").forEach(function (btn) {
     btn.addEventListener("click", function () {
-      character = btn.getAttribute("data-char") || "babyca";
-      document.querySelectorAll(".char-btn").forEach(function (b) {
+      const pi = btn.getAttribute("data-player");
+      if (pi == null) {
+        return;
+      }
+      document.querySelectorAll('.char-btn[data-player="' + pi + '"]').forEach(function (b) {
         b.setAttribute("aria-pressed", b === btn ? "true" : "false");
       });
     });
   });
 
   document.getElementById("btnQuit").addEventListener("click", function () {
+    clearDinoTimer();
+    dinoQuestionTurn = false;
     showScreen("setup");
   });
 
@@ -443,8 +952,24 @@
     showScreen("setup");
   });
 
+  var btnLoseAgain = document.getElementById("btnLoseAgain");
+  var btnLoseMenu = document.getElementById("btnLoseMenu");
+  if (btnLoseAgain) {
+    btnLoseAgain.addEventListener("click", function () {
+      startGame();
+    });
+  }
+  if (btnLoseMenu) {
+    btnLoseMenu.addEventListener("click", function () {
+      showScreen("setup");
+    });
+  }
+
   document.addEventListener("keydown", function (e) {
     if (screenPlay.classList.contains("is-hidden") || screenPlay.hidden) {
+      return;
+    }
+    if (isVersusDino() && dinoQuestionTurn) {
       return;
     }
     const key = e.key;

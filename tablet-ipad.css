@@ -90,44 +90,72 @@ a.game-card,
 /* ——— Hub ——— */
 @media (min-width: 768px) {
   .page-portal .portal {
-    max-width: 920px;
-    padding-left: max(1.25rem, env(safe-area-inset-left, 0px));
-    padding-right: max(1.25rem, env(safe-area-inset-right, 0px));
+    max-width: min(1200px, 100%);
+    padding: 1.5rem max(1.25rem, env(safe-area-inset-left, 0px)) 2.5rem
+      max(1.25rem, env(safe-area-inset-right, 0px));
   }
 
-  .page-portal .portal-hero p {
-    font-size: 1.15rem;
+  .page-portal .portal-hero {
+    margin-bottom: 2rem;
+  }
+
+  .page-portal .portal-hero__inner {
+    padding: 1.6rem 1.75rem 1.65rem;
+    gap: 1.25rem 2rem;
+  }
+
+  .page-portal .portal-hero__mascot {
+    width: 128px;
+    height: 128px;
   }
 
   .page-portal .game-grid {
     gap: 1.5rem;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  }
+
+  .page-portal .game-sections {
+    gap: 2rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .page-portal .portal {
+    max-width: min(1320px, 100%);
+    padding-top: 1.75rem;
   }
 }
 
 /* ——— Snakes & Ladders ——— */
+body.page-snakes {
+  min-height: 100dvh;
+}
+
 @media (min-width: 768px) {
   .page-snakes .app {
-    max-width: 1100px;
-    padding-left: max(0.75rem, env(safe-area-inset-left, 0px));
-    padding-right: max(0.75rem, env(safe-area-inset-right, 0px));
+    max-width: min(100%, 1280px);
+    padding-left: max(0.5rem, env(safe-area-inset-left, 0px));
+    padding-right: max(0.5rem, env(safe-area-inset-right, 0px));
+  }
+
+  .page-snakes .page-header p {
+    max-width: min(70ch, 100%);
   }
 
   .page-snakes .board-wrap {
-    max-width: min(92vw, 780px);
+    max-width: min(98vw, 100%);
   }
 
   .page-snakes .hud {
-    padding: 1.35rem 1.5rem;
+    padding: 1.1rem 1.25rem;
   }
 
   .page-snakes .hud__title {
-    font-size: 1.22rem;
+    font-size: 1.15rem;
   }
 
   .page-snakes .player-list li {
-    font-size: 1.05rem;
-    padding: 0.55rem 0;
+    font-size: 1.02rem;
+    padding: 0.5rem 0;
   }
 
   .page-snakes .turn-popup__dice {
@@ -144,18 +172,21 @@ a.game-card,
     max-width: 440px;
     padding: 1.5rem 1.45rem 1.6rem;
   }
-}
 
-@media (min-width: 900px) {
-  .page-snakes .game-layout {
-    grid-template-columns: 1fr minmax(300px, 330px);
-    gap: 1.5rem;
+  .page-snakes .choice-row {
+    flex-direction: row;
+  }
+
+  .page-snakes .radio-tile {
+    flex: 1 1 120px;
+    min-height: 102px;
   }
 }
 
+/* Layout columns for board + HUD are in snakes-ladders.css (700px) */
 @media (min-width: 1024px) {
   .page-snakes .board-wrap {
-    max-width: min(88vw, 860px);
+    max-width: 100%;
   }
 }
 
@@ -167,7 +198,7 @@ a.game-card,
 
   .page-math.app--playing .app,
   .page-math #app.app--playing {
-    max-width: 600px;
+    max-width: min(1200px, 100%);
   }
 
   .page-math .question {
@@ -182,9 +213,23 @@ a.game-card,
 /* ——— Picture jigsaw ——— */
 @media (min-width: 768px) {
   .page-jigsaw .app {
-    max-width: 960px;
-    padding-left: max(0.75rem, env(safe-area-inset-left, 0px));
-    padding-right: max(0.75rem, env(safe-area-inset-right, 0px));
+    max-width: min(1180px, 100%);
+    padding-top: 1.25rem;
+    padding-left: max(1rem, env(safe-area-inset-left, 0px));
+    padding-right: max(1rem, env(safe-area-inset-right, 0px));
+  }
+
+  .page-jigsaw .board {
+    max-width: min(520px, 48vw);
+  }
+
+  /* Match jigsaw.css: grid-sized pieces, not oversized fixed clamps */
+  .page-jigsaw .piece.in-tray {
+    width: 100%;
+    max-width: 5.5rem;
+    min-width: 0;
+    height: auto;
+    aspect-ratio: 1;
   }
 }
 

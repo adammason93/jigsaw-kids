@@ -3,25 +3,38 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="theme-color" content="#2d8cba" />
-  <title>Number path — Kids Game Room</title>
+  <meta name="theme-color" content="#e85d2c" />
+  <title>Number path — Sofia's Game Room</title>
   <link rel="manifest" href="../manifest.json" />
   <link rel="stylesheet" href="../js/kids-core.css" />
   <link rel="stylesheet" href="math-race.css" />
+  <link rel="stylesheet" href="../tablet-ipad.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Sniglet:wght@400;800&display=swap" rel="stylesheet" />
 </head>
-<body>
+<body class="page-math">
   <div class="app" id="app">
     <nav class="game-nav" aria-label="Breadcrumb">
       <a class="back-link" href="../index.html">← All games</a>
     </nav>
 
     <div id="screenSetup" class="screen">
-      <header class="page-header">
-        <h1>Number path</h1>
-        <p>Add and subtract your way to the finish line. Every right answer moves you one step!</p>
+      <header class="page-header page-header--race">
+        <div class="page-header__art" aria-hidden="true">
+          <img
+            class="page-header__img"
+            src="images/math-race-hero.png"
+            alt=""
+            width="800"
+            height="280"
+            decoding="async"
+          />
+        </div>
+        <div class="page-header__text">
+          <h1>Number path</h1>
+          <p>Add and subtract your way to the finish line. Every right answer moves you one step!</p>
+        </div>
       </header>
 
       <section class="card" aria-labelledby="lblLevel">
@@ -72,22 +85,91 @@
         </p>
       </section>
 
+      <section class="card" aria-labelledby="lblMode">
+        <h2 id="lblMode">How do you want to play?</h2>
+        <div class="choice-row choice-row--mode" role="group" aria-label="Play mode">
+          <label class="radio-tile">
+            <input type="radio" name="playMode" value="solo" checked />
+            <span class="radio-tile__title">Just me</span>
+            <span class="radio-tile__hint">Practice on your own</span>
+          </label>
+          <label class="radio-tile">
+            <input type="radio" name="playMode" value="two" />
+            <span class="radio-tile__title">Two players</span>
+            <span class="radio-tile__hint">Take turns — first to the finish wins</span>
+          </label>
+          <label class="radio-tile">
+            <input type="radio" name="playMode" value="three" />
+            <span class="radio-tile__title">Three players</span>
+            <span class="radio-tile__hint">Three friends take turns</span>
+          </label>
+          <label class="radio-tile">
+            <input type="radio" name="playMode" value="computer" />
+            <span class="radio-tile__title">Race the dinosaur</span>
+            <span class="radio-tile__hint">You get a head start — don’t let it catch you!</span>
+          </label>
+        </div>
+      </section>
+
       <section class="card" aria-labelledby="lblChar">
         <h2 id="lblChar">Who is playing?</h2>
-        <div class="char-row" role="group" aria-label="Character">
-          <button type="button" class="char-btn char-btn--pic" data-char="babyca" aria-pressed="true" title="Baby" aria-label="Baby">
-            <img class="char-btn__pic" src="images/character-babyca.png" alt="" width="44" height="44" loading="lazy" />
-          </button>
-          <button type="button" class="char-btn" data-char="dog" title="Dog" aria-label="Dog">🐶</button>
-          <button type="button" class="char-btn char-btn--pic" data-char="coolegg" aria-pressed="false" title="Isaac" aria-label="Isaac">
-            <img class="char-btn__pic" src="images/character-baby-coolegg.png" alt="" width="44" height="44" loading="lazy" />
-          </button>
-          <button type="button" class="char-btn char-btn--pic" data-char="girlblonde" aria-pressed="false" title="Sofia" aria-label="Sofia">
-            <img class="char-btn__pic" src="images/character-girl-blonde.png" alt="" width="44" height="44" loading="lazy" />
-          </button>
-          <button type="button" class="char-btn char-btn--pic" data-char="kelly" aria-pressed="false" title="Kelly (Mummy)" aria-label="Kelly, also known as Mummy">
-            <img class="char-btn__pic" src="images/character-kelly.png" alt="" width="44" height="44" loading="lazy" />
-          </button>
+        <p class="card__hint card__hint--tight" id="charSectionHint">Pick your runner for the path.</p>
+
+        <div class="char-block" data-for-mode="solo two three computer">
+          <p class="char-block__label" id="lblCharP1">Player 1</p>
+          <div class="char-row" id="charRow0" role="group" aria-label="Player 1 character">
+            <button type="button" class="char-btn char-btn--pic" data-player="0" data-char="babyca" aria-pressed="true" title="Baby" aria-label="Baby">
+              <img class="char-btn__pic" src="images/character-babyca.png" alt="" width="44" height="44" loading="lazy" />
+            </button>
+            <button type="button" class="char-btn" data-player="0" data-char="dog" title="Dog" aria-label="Dog">🐶</button>
+            <button type="button" class="char-btn char-btn--pic" data-player="0" data-char="coolegg" aria-pressed="false" title="Isaac" aria-label="Isaac">
+              <img class="char-btn__pic" src="images/character-baby-coolegg.png" alt="" width="44" height="44" loading="lazy" />
+            </button>
+            <button type="button" class="char-btn char-btn--pic" data-player="0" data-char="girlblonde" aria-pressed="false" title="Sofia" aria-label="Sofia">
+              <img class="char-btn__pic" src="images/character-girl-blonde.png" alt="" width="44" height="44" loading="lazy" />
+            </button>
+            <button type="button" class="char-btn char-btn--pic" data-player="0" data-char="kelly" aria-pressed="false" title="Kelly (Mummy)" aria-label="Kelly, also known as Mummy">
+              <img class="char-btn__pic" src="images/character-kelly.png" alt="" width="44" height="44" loading="lazy" />
+            </button>
+          </div>
+        </div>
+
+        <div class="char-block is-hidden" id="charBlockP2" hidden>
+          <p class="char-block__label">Player 2</p>
+          <div class="char-row" id="charRow1" role="group" aria-label="Player 2 character">
+            <button type="button" class="char-btn char-btn--pic" data-player="1" data-char="girlblonde" aria-pressed="true" title="Sofia" aria-label="Sofia">
+              <img class="char-btn__pic" src="images/character-girl-blonde.png" alt="" width="44" height="44" loading="lazy" />
+            </button>
+            <button type="button" class="char-btn char-btn--pic" data-player="1" data-char="babyca" aria-pressed="false" title="Baby" aria-label="Baby">
+              <img class="char-btn__pic" src="images/character-babyca.png" alt="" width="44" height="44" loading="lazy" />
+            </button>
+            <button type="button" class="char-btn" data-player="1" data-char="dog" title="Dog" aria-label="Dog">🐶</button>
+            <button type="button" class="char-btn char-btn--pic" data-player="1" data-char="coolegg" aria-pressed="false" title="Isaac" aria-label="Isaac">
+              <img class="char-btn__pic" src="images/character-baby-coolegg.png" alt="" width="44" height="44" loading="lazy" />
+            </button>
+            <button type="button" class="char-btn char-btn--pic" data-player="1" data-char="kelly" aria-pressed="false" title="Kelly (Mummy)" aria-label="Kelly, also known as Mummy">
+              <img class="char-btn__pic" src="images/character-kelly.png" alt="" width="44" height="44" loading="lazy" />
+            </button>
+          </div>
+        </div>
+
+        <div class="char-block is-hidden" id="charBlockP3" hidden>
+          <p class="char-block__label">Player 3</p>
+          <div class="char-row" id="charRow2" role="group" aria-label="Player 3 character">
+            <button type="button" class="char-btn" data-player="2" data-char="dog" aria-pressed="true" title="Dog" aria-label="Dog">🐶</button>
+            <button type="button" class="char-btn char-btn--pic" data-player="2" data-char="babyca" aria-pressed="false" title="Baby" aria-label="Baby">
+              <img class="char-btn__pic" src="images/character-babyca.png" alt="" width="44" height="44" loading="lazy" />
+            </button>
+            <button type="button" class="char-btn char-btn--pic" data-player="2" data-char="girlblonde" aria-pressed="false" title="Sofia" aria-label="Sofia">
+              <img class="char-btn__pic" src="images/character-girl-blonde.png" alt="" width="44" height="44" loading="lazy" />
+            </button>
+            <button type="button" class="char-btn char-btn--pic" data-player="2" data-char="coolegg" aria-pressed="false" title="Isaac" aria-label="Isaac">
+              <img class="char-btn__pic" src="images/character-baby-coolegg.png" alt="" width="44" height="44" loading="lazy" />
+            </button>
+            <button type="button" class="char-btn char-btn--pic" data-player="2" data-char="kelly" aria-pressed="false" title="Kelly (Mummy)" aria-label="Kelly, also known as Mummy">
+              <img class="char-btn__pic" src="images/character-kelly.png" alt="" width="44" height="44" loading="lazy" />
+            </button>
+          </div>
         </div>
       </section>
 
@@ -97,10 +179,13 @@
     <div id="screenPlay" class="screen is-hidden" hidden>
       <div class="play-top">
         <p class="play-level" id="playLevelLabel" aria-live="polite">Step 1</p>
+        <p class="play-turn" id="playTurn" aria-live="polite"></p>
         <p class="play-progress" id="playProgress" aria-live="polite">Step 0 of 10 on the path</p>
         <button type="button" class="btn-text" id="btnQuit">Quit to menu</button>
       </div>
 
+      <div class="play-layout">
+      <div class="play-race-wrap">
       <div class="race-stage" id="raceStage" aria-label="Race to the finish">
         <div class="race-sky" aria-hidden="true"></div>
         <div class="race-sun" aria-hidden="true"></div>
@@ -109,18 +194,19 @@
         <div class="race-cloud race-cloud--a" aria-hidden="true"></div>
         <div class="race-cloud race-cloud--b" aria-hidden="true"></div>
         <div class="race-cloud race-cloud--c" aria-hidden="true"></div>
+        <div class="race-cloud race-cloud--d" aria-hidden="true"></div>
+        <div class="race-bird race-bird--1" aria-hidden="true"></div>
+        <div class="race-bird race-bird--2" aria-hidden="true"></div>
+        <div class="race-bird race-bird--3" aria-hidden="true"></div>
         <div class="race-ground" aria-hidden="true"></div>
         <div class="race-ribbon">
           <div class="race-ribbon__inner">
             <span class="race-flag race-flag--start" id="flagStart" aria-hidden="true">Start</span>
             <div class="race-lane" id="raceLane">
+              <div class="race-finish-tape" aria-hidden="true"></div>
               <div class="race-dashes" id="raceDashes" aria-hidden="true"></div>
               <div class="race-steps" id="raceSteps" role="list"></div>
-              <div class="race-runner" id="raceRunner">
-                <span class="race-runner__emoji" id="raceRunnerEmoji" aria-hidden="true"></span>
-                <div class="race-runner__glow" aria-hidden="true"></div>
-                <div class="race-runner__shadow" aria-hidden="true"></div>
-              </div>
+              <div class="race-runners" id="raceRunners"></div>
             </div>
             <span class="race-flag race-flag--end" id="flagEnd" aria-hidden="true">
               <span class="race-flag__text">Finish</span>
@@ -129,13 +215,27 @@
           </div>
         </div>
       </div>
+      </div>
 
-      <div class="question-card">
+      <aside
+        class="math-hud"
+        id="questionModal"
+        aria-label="Answer area"
+        aria-labelledby="questionTurnTitle"
+      >
+        <div
+          class="math-hud__panel question-card question-modal__panel"
+          role="region"
+          aria-labelledby="questionTurnTitle"
+        >
+        <h2 class="math-hud__title question-modal__turn" id="questionTurnTitle">Your turn</h2>
         <p class="question" id="questionText" aria-live="polite">0 + 0 = ?</p>
         <div id="questionDots" class="question-dots" hidden aria-hidden="true"></div>
         <p class="mc-hint" id="mcHint" aria-hidden="true">Tap an answer, or press 1–4 on the keyboard</p>
-        <div class="mc-grid" id="choiceGrid" role="group" aria-label="Answer choices"></div>
+        <div class="mc-grid math-hud__choices" id="choiceGrid" role="group" aria-label="Answer choices"></div>
         <p class="feedback" id="feedbackText" role="status" aria-live="assertive"></p>
+        </div>
+      </aside>
       </div>
     </div>
 
@@ -147,6 +247,18 @@
         <div class="win-actions">
           <button type="button" class="btn-primary" id="btnPlayAgain">Play again</button>
           <button type="button" class="btn-secondary" id="btnMenu">Change level or friend</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="screenLose" class="screen is-hidden" hidden>
+      <div class="lose-card lose-card--dino" id="loseCard">
+        <div class="lose-mascot" aria-hidden="true">🦖</div>
+        <h2 id="loseTitle">Oh no!</h2>
+        <p id="loseMessage">The dinosaur caught up to you. Try again — you can do it!</p>
+        <div class="win-actions">
+          <button type="button" class="btn-primary" id="btnLoseAgain">Try again</button>
+          <button type="button" class="btn-secondary" id="btnLoseMenu">Back to menu</button>
         </div>
       </div>
     </div>
