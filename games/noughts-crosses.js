@@ -1,6 +1,6 @@
 /**
  * Noughts and crosses: two players on one device, or vs a simple computer (O).
- * Character icons match Snakes & Ladders / Number path (images + dog emoji).
+ * Character icons match Snakes & Ladders / Number path (images + Tilly).
  */
 (function () {
   const LINES = [
@@ -17,7 +17,7 @@
   const IMG_PREFIX = "__img:";
   const CHARACTER_OPTIONS = [
     { v: IMG_PREFIX + "images/character-babyca.png", label: "Baby" },
-    { v: "🐶", label: "Dog" },
+    { v: IMG_PREFIX + "images/tilly-mascot.png", label: "Tilly" },
     { v: IMG_PREFIX + "images/character-baby-coolegg.png", label: "Isaac" },
     { v: IMG_PREFIX + "images/character-girl-blonde.png", label: "Sofia" },
     { v: IMG_PREFIX + "images/character-kelly.png", label: "Kelly" },
@@ -92,6 +92,8 @@
     );
   }
 
+  const LEGACY_DOG_EMOJI = "🐶";
+
   function loadCharPicks() {
     try {
       const raw = localStorage.getItem(K_CHAR_PICK);
@@ -99,6 +101,13 @@
         return;
       }
       const o = JSON.parse(raw);
+      const tillyV = IMG_PREFIX + "images/tilly-mascot.png";
+      if (o && o.x === LEGACY_DOG_EMOJI) {
+        o.x = tillyV;
+      }
+      if (o && o.o === LEGACY_DOG_EMOJI) {
+        o.o = tillyV;
+      }
       if (o && isValidToken(o.x)) {
         charX = o.x;
       }

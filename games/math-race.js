@@ -23,7 +23,6 @@
   const LEVEL_LABELS = ["Step 1 — numbers up to 5 (adding)", "Step 2 — up to 10 (adding & taking away)", "Step 3 — up to 20 (adding & taking away)"];
 
   const CHAR_EMOJI = {
-    dog: "🐶",
     dino: "🦖",
   };
 
@@ -32,6 +31,7 @@
     coolegg: "images/character-baby-coolegg.png",
     girlblonde: "images/character-girl-blonde.png",
     kelly: "images/character-kelly.png",
+    dog: "images/tilly-mascot.png",
   };
 
   const praise = ["Nice one!", "You got it!", "That's right!", "Super!", "Brilliant!", "Yes!"];

@@ -95,7 +95,7 @@
       v: IMG_PREFIX + "images/character-babyca.png",
       label: "Baby",
     },
-    { v: "🐶", label: "Dog" },
+    { v: IMG_PREFIX + "images/tilly-mascot.png", label: "Tilly" },
     {
       v: IMG_PREFIX + "images/character-baby-coolegg.png",
       label: "Isaac",
