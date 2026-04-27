@@ -1,7 +1,7 @@
 {
   "name": "Sofia's Game Room",
   "short_name": "Sofia's Games",
-  "description": "Jigsaw, colouring book, number path, word search, snakes and ladders, noughts and crosses, and Connect 4 — made for children.",
+  "description": "Jigsaw, colouring book, number path, word search, Snap, snakes and ladders, noughts and crosses, and Connect 4 — made for children.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

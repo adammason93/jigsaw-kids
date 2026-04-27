@@ -33,6 +33,8 @@
   --theme-word-soft: #e0e7ff;
   --theme-colour: #db2777;
   --theme-colour-soft: #fce7f3;
+  --theme-snap: #059669;
+  --theme-snap-soft: #ecfdf5;
 }
 
 html {
@@ -324,6 +326,11 @@ h2,
 .game-card--colour {
   --card-accent: var(--theme-colour);
   --card-soft: var(--theme-colour-soft);
+}
+
+.game-card--snap {
+  --card-accent: var(--theme-snap);
+  --card-soft: var(--theme-snap-soft);
 }
 
 a.game-card:hover {

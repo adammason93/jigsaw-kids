@@ -1,5 +1,5 @@
 /* Minimal offline shell — network-first, cache as fallback for same-origin */
-const CACHE = "jigsaw-kids-v57";
+const CACHE = "jigsaw-kids-v62";
 const SHELL = [
   "./index.html",
   "./portal.css",
@@ -26,14 +26,18 @@ const SHELL = [
   "./games/word-search.html",
   "./games/word-search.css",
   "./games/word-search.js",
+  "./games/snap.html",
+  "./games/snap.css",
+  "./games/snap.js",
+  "./games/images/portal/snap.svg",
   "./games/images/character-kelly.png",
   "./games/images/character-freya.png",
   "./games/images/character-girl-blonde.png",
   "./games/images/character-babyca.png",
-  "./games/images/portal/snakes-ladders.svg",
-  "./games/images/portal/noughts-crosses.svg",
-  "./games/images/portal/connect-four.svg",
-  "./games/images/portal/word-search.svg",
+  "./games/images/portal/snakes-ladders.png",
+  "./games/images/portal/noughts-crosses.png",
+  "./games/images/portal/connect-four.png",
+  "./games/images/portal/word-search.png",
   "./games/snakes-ladders.html",
   "./games/snakes-ladders.css",
   "./games/snakes-ladders.js",

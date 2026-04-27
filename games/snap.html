@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#059669" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>Snap — Sofia's Game Room</title>
+  <link rel="manifest" href="../manifest.json" />
+  <link rel="stylesheet" href="../js/kids-core.css" />
+  <link rel="stylesheet" href="snap.css" />
+  <link rel="stylesheet" href="../tablet-ipad.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Sniglet:wght@400;800&display=swap" rel="stylesheet" />
+</head>
+<body class="page-snap">
+  <div class="app" id="app">
+    <nav class="game-nav" aria-label="Breadcrumb">
+      <a class="back-link" href="../index.html">← All games</a>
+    </nav>
+
+    <div id="screenSetup" class="snap-screen">
+      <header class="snap-header">
+        <h1>Snap</h1>
+        <p class="snap-header__lede">
+          Flip cards into the middle. When <strong>two in a row</strong> show the same number (or A, J, Q, K), be first to tap
+          <strong>Snap</strong> on your side. Wrong snap gives your friend a small bonus.
+        </p>
+      </header>
+
+      <section class="snap-card snap-card--setup" aria-labelledby="lblMode">
+        <h2 id="lblMode">How do you want to play?</h2>
+        <div class="snap-choice-row" role="group" aria-label="Game mode">
+          <label class="snap-radio">
+            <input type="radio" name="snapMode" value="friend" checked />
+            <span class="snap-radio__title">Two players</span>
+            <span class="snap-radio__hint">Left tap for player 1 · Right tap for player 2</span>
+          </label>
+          <label class="snap-radio">
+            <input type="radio" name="snapMode" value="cpu" />
+            <span class="snap-radio__title">Play the computer</span>
+            <span class="snap-radio__hint">You tap left; the computer snaps on the right</span>
+          </label>
+        </div>
+        <button type="button" class="snap-btn snap-btn--primary" id="btnStart">Start game</button>
+      </section>
+    </div>
+
+    <div id="screenPlay" class="snap-screen snap-screen--play is-hidden" hidden>
+      <p class="snap-mode-line" id="modeLine" aria-live="polite">Two players</p>
+      <div class="snap-scores" aria-label="Scores">
+        <div class="snap-score snap-score--p1">
+          <span class="snap-score__label" id="labelP1">Player 1</span>
+          <span class="snap-score__value" id="scoreP1">0</span>
+          <span class="snap-score__unit">cards</span>
+        </div>
+        <div class="snap-score snap-score--deck">
+          <span class="snap-score__label">In deck</span>
+          <span class="snap-score__value" id="stockCount">52</span>
+        </div>
+        <div class="snap-score snap-score--p2">
+          <span class="snap-score__label" id="labelP2">Player 2</span>
+          <span class="snap-score__value" id="scoreP2">0</span>
+          <span class="snap-score__unit">cards</span>
+        </div>
+      </div>
+      <p class="snap-status" id="statusLine" role="status" aria-live="polite">Flip a card to begin.</p>
+
+      <div class="snap-arena" aria-label="Snap table">
+        <button type="button" class="snap-side snap-side--p1" id="btnSnap1" aria-label="Player 1 snap">
+          <span class="snap-side__burst" aria-hidden="true"></span>
+          <span class="snap-side__text">Snap!</span>
+          <span class="snap-side__hint" id="hintP1">Player 1</span>
+        </button>
+
+        <div class="snap-middle">
+          <div class="snap-pile-wrap" id="pileWrap">
+            <div class="snap-pile" id="pile">
+              <div class="snap-pile__placeholder" id="pilePlaceholder">Flip a card</div>
+            </div>
+          </div>
+          <div class="snap-controls">
+            <button type="button" class="snap-btn snap-btn--primary snap-btn--flip" id="btnFlip" aria-label="Flip next card">
+              Flip card
+            </button>
+            <label class="snap-auto">
+              <input type="checkbox" id="chkAuto" />
+              <span>Auto-flip</span>
+            </label>
+          </div>
+        </div>
+
+        <button type="button" class="snap-side snap-side--p2" id="btnSnap2" aria-label="Player 2 snap">
+          <span class="snap-side__burst" aria-hidden="true"></span>
+          <span class="snap-side__text">Snap!</span>
+          <span class="snap-side__hint" id="hintP2">Player 2</span>
+        </button>
+      </div>
+
+      <div class="snap-actions">
+        <button type="button" class="snap-btn snap-btn--ghost" id="btnMenu">Change mode</button>
+        <button type="button" class="snap-btn snap-btn--primary" id="btnAgain">New game</button>
+      </div>
+    </div>
+  </div>
+  <script src="../js/kids-core.js" defer></script>
+  <script src="snap.js" defer></script>
+  <script>
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("../sw.js").catch(function () {});
+    }
+  </script>
+</body>
+</html>

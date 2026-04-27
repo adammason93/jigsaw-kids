@@ -26,7 +26,8 @@ body {
 .page-ttt .app,
 .page-c4 .app,
 .page-ws .word-search-app,
-.page-colour .colour-app {
+.page-colour .colour-app,
+.page-snap .app {
   box-sizing: border-box;
 }
 
@@ -98,6 +99,14 @@ a.game-card,
 
   .page-portal .game-card {
     padding: 0 0 0.9rem;
+  }
+
+  .snap-btn {
+    min-height: var(--touch-min);
+  }
+
+  .snap-side {
+    min-height: 6.5rem;
   }
 }
 
