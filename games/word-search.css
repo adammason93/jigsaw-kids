@@ -24,6 +24,8 @@ html {
 body.page-ws {
   margin: 0;
   min-height: 100dvh;
+  overflow-x: hidden;
+  overflow-y: auto;
   font-family: "Nunito", "Segoe UI", system-ui, sans-serif;
   color: var(--ws-ink);
   line-height: 1.45;
@@ -41,8 +43,9 @@ h2,
   width: 100%;
   max-width: min(640px, 100%);
   min-height: 100dvh;
+  min-height: 100svh;
   margin: 0 auto;
-  padding: 0.35rem 0.5rem 0.75rem;
+  padding: 0.35rem 0.5rem max(0.75rem, env(safe-area-inset-bottom, 0px));
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
@@ -147,22 +150,27 @@ h2,
   border-radius: 14px;
   padding: 0.35rem;
   box-shadow: 0 4px 0 rgba(30, 27, 75, 0.15);
-  flex: 1 1 auto;
-  min-height: 0;
+  flex: 1 1 0;
+  min-height: 8rem;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
+/* Wider than tall (4:3): less vertical than a square, fits portrait screens */
 .word-search__board {
+  --ws-slab: 14rem; /* room for title, word list, status, new grid */
   display: grid;
   grid-template-columns: repeat(var(--ws-cols, 12), minmax(0, 1fr));
   grid-template-rows: repeat(var(--ws-rows, 12), minmax(0, 1fr));
-  width: min(100%, 96vw, calc(100dvh - 10.5rem));
-  aspect-ratio: 1 / 1;
-  max-height: min(82dvh, 96vw, 580px);
+  /* Cap width so height = width×¾ never exceeds the viewport slab */
+  width: min(100%, 96vw, 40rem, calc((100dvh - var(--ws-slab)) * 4 / 3), calc((100svh - var(--ws-slab)) * 4 / 3));
+  max-width: 100%;
+  aspect-ratio: 4 / 3;
+  max-height: min(calc(100dvh - var(--ws-slab)), calc(100svh - var(--ws-slab)));
   margin-inline: auto;
-  gap: 5px;
+  box-sizing: border-box;
+  gap: 4px;
 }
 
 .ws-cell {
@@ -224,11 +232,12 @@ h2,
   position: fixed;
   z-index: 300;
   left: 50%;
-  bottom: max(1rem, env(safe-area-inset-bottom));
+  /* Above the “New grid” bar + iPhone home indicator */
+  bottom: calc(4.75rem + env(safe-area-inset-bottom, 0px));
   transform: translate3d(-50%, 120%, 0);
-  max-width: min(22rem, 94vw);
+  max-width: min(30rem, 96vw);
   width: 100%;
-  padding: 0 0.5rem;
+  padding: 0 0.65rem;
   pointer-events: none;
   opacity: 0;
   visibility: hidden;
@@ -248,28 +257,28 @@ h2,
 .word-search__kelly-bubble {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 1rem;
   background: linear-gradient(145deg, #fff, #f8fafc);
-  border: 3px solid #1e1b4b;
-  border-radius: 20px;
-  padding: 0.55rem 0.9rem 0.55rem 0.6rem;
-  box-shadow: 0 4px 0 #4338ca, 0 10px 28px rgba(30, 27, 75, 0.25);
+  border: 4px solid #1e1b4b;
+  border-radius: 24px;
+  padding: 0.75rem 1.1rem 0.75rem 0.75rem;
+  box-shadow: 0 5px 0 #4338ca, 0 12px 36px rgba(30, 27, 75, 0.28);
 }
 
 .word-search__kelly-pic {
-  width: 4.5rem;
-  height: 4.5rem;
-  min-width: 4.5rem;
+  width: clamp(4.5rem, 16vw, 6.5rem);
+  height: clamp(4.5rem, 16vw, 6.5rem);
+  min-width: clamp(4.5rem, 16vw, 6.5rem);
   object-fit: cover;
   border-radius: 50%;
-  border: 3px solid #a78bfa;
+  border: 4px solid #a78bfa;
   background: #f5f3ff;
   flex-shrink: 0;
 }
 
 .word-search__kelly-text {
   margin: 0;
-  font-size: 1.05rem;
+  font-size: clamp(1.1rem, 3.6vw, 1.4rem);
   font-weight: 800;
   line-height: 1.3;
   color: #1e1b4b;
@@ -279,10 +288,10 @@ h2,
 
 .word-search__kelly-name {
   display: block;
-  font-size: 0.88rem;
+  font-size: clamp(0.95rem, 2.8vw, 1.1rem);
   text-transform: none;
   color: #5b21b6;
-  margin-bottom: 0.15rem;
+  margin-bottom: 0.2rem;
 }
 
 @media (prefers-reduced-motion: reduce) {
