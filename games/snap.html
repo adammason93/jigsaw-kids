@@ -25,12 +25,14 @@
       <header class="snap-header">
         <h1>Snap</h1>
         <p class="snap-header__lede">
-          <strong>First to 100 cards wins the game.</strong> Flip tiles and look at the <strong>two boxes</strong> in the middle. When
+          <strong>First to 100 cards wins the game.</strong> Each round starts with a <strong>5, 4, 3, 2, 1, Go!</strong> countdown, then
+          the cards <strong>flip for you</strong> (auto-flip turns on) until you change it. Flip tiles and look at the
+          <strong>two boxes</strong> in the middle. When
           the <strong>last two</strong> show the <strong>same animal</strong> (picture and name), the first to tap <strong>Snap!</strong> on
           their side takes <strong>the whole middle pile</strong> and those cards go toward their 100. If the deck runs out, it gets shuffled
           in again (with any leftover on the table) so you can keep going until someone wins. Tapped
-          <strong>too soon</strong> (not a real match)? The <strong>other</strong> player gets a <strong>+3</strong> card bonus. Pick
-          your side below, then <strong>Start game</strong>.
+          <strong>too soon</strong> (not a real match)? The <strong>other</strong> player gets a <strong>+3</strong> card bonus. Choose
+          <strong>characters</strong>, <strong>which side is yours</strong>, then tap <strong>Start game</strong>.
         </p>
       </header>
 
@@ -47,6 +49,18 @@
             <span class="snap-radio__title">Play the computer</span>
             <span class="snap-radio__hint">You play on one side, the computer uses the other</span>
           </label>
+        </div>
+        <h3 class="snap-setup-sub" id="lblChars">Choose your characters</h3>
+        <p class="snap-setup-note" id="snapCharLede">
+          Tap a face for each side. They appear under the scores in the game.
+        </p>
+        <div class="snap-char-block">
+          <p class="snap-char-heading" id="headingCharP1">Player 1 (left)</p>
+          <div class="snap-char-row" id="charRowP1" role="group" aria-labelledby="headingCharP1"></div>
+        </div>
+        <div class="snap-char-block" id="snapCharBlockP2">
+          <p class="snap-char-heading" id="headingCharP2">Player 2 (right)</p>
+          <div class="snap-char-row" id="charRowP2" role="group" aria-labelledby="headingCharP2"></div>
         </div>
         <h3 class="snap-setup-sub" id="lblSeat">Which side is yours?</h3>
         <div class="snap-choice-row snap-choice-row--seat" role="group" aria-labelledby="lblSeat">
@@ -75,6 +89,7 @@
       <div class="snap-scores" aria-label="Scores">
         <div class="snap-score snap-score--p1">
           <span class="snap-score__label" id="labelP1">Player 1</span>
+          <div class="snap-score__mascot" id="mascotP1" aria-hidden="true"></div>
           <span class="snap-score__value" id="scoreP1">0</span>
           <span class="snap-score__unit">cards</span>
         </div>
@@ -84,6 +99,7 @@
         </div>
         <div class="snap-score snap-score--p2">
           <span class="snap-score__label" id="labelP2">Player 2</span>
+          <div class="snap-score__mascot" id="mascotP2" aria-hidden="true"></div>
           <span class="snap-score__value" id="scoreP2">0</span>
           <span class="snap-score__unit">cards</span>
         </div>
@@ -140,6 +156,20 @@
         <button type="button" class="snap-btn snap-btn--ghost" id="btnMenu">Change mode</button>
         <button type="button" class="snap-btn snap-btn--primary" id="btnAgain">New game</button>
       </div>
+    </div>
+  </div>
+
+  <div
+    id="snapCountdown"
+    class="snap-countdown is-hidden"
+    hidden
+    role="status"
+    aria-live="assertive"
+    aria-atomic="true"
+  >
+    <div class="snap-countdown__inner">
+      <p class="snap-countdown__kicker" id="snapCountdownKicker">Get ready</p>
+      <p class="snap-countdown__num" id="snapCountdownNum">5</p>
     </div>
   </div>
 

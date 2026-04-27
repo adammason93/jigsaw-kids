@@ -108,6 +108,11 @@ a.game-card,
   .snap-side {
     min-height: 7.75rem;
   }
+
+  .page-snap .snap-char-opt {
+    min-width: 3.1rem;
+    min-height: 3.1rem;
+  }
 }
 
 /* ——— Hub ——— */

@@ -55,12 +55,31 @@
     return;
   }
 
+  var IMG_PREFIX = "__img:";
+  var CHARACTER_OPTIONS = [
+    { v: IMG_PREFIX + "images/character-babyca.png", label: "Baby" },
+    { v: IMG_PREFIX + "images/tilly-mascot.png", label: "Tilly" },
+    { v: IMG_PREFIX + "images/character-baby-coolegg.png", label: "Isaac" },
+    { v: IMG_PREFIX + "images/character-girl-blonde.png", label: "Sofia" },
+    { v: IMG_PREFIX + "images/character-kelly.png", label: "Kelly" },
+    { v: IMG_PREFIX + "images/character-freya.png", label: "Freya" },
+  ];
+  var K_SNAP_CHARS = "snapCharPickV1";
+  var DEFAULT_P1 = 3;
+  var DEFAULT_P2 = 0;
+  var charP1 = CHARACTER_OPTIONS[DEFAULT_P1].v;
+  var charP2 = CHARACTER_OPTIONS[DEFAULT_P2].v;
+
   /** @type {"friend"|"cpu"} */
   var mode = "friend";
   /** 1 = left / Player 1, 2 = right / Player 2 (your side in setup). */
   var humanPlayer = 1;
   var matchPopupOpen = false;
   var matchPopupContinue = null;
+  /** No play until 5-1-Go countdown has finished. */
+  var countdownLock = false;
+  /** Prevents double-stacking countdown if New game is double-tapped. */
+  var countdownInProgress = false;
   /** @type {{ id: string, label: string, emoji: string, pal: number }[]} */
   var stock = [];
   /** @type {typeof stock} */
@@ -103,6 +122,197 @@
     return arr;
   }
 
+  function isImageIcon(icon) {
+    return typeof icon === "string" && icon.indexOf(IMG_PREFIX) === 0;
+  }
+
+  function imageIconSrc(icon) {
+    return icon.slice(IMG_PREFIX.length);
+  }
+
+  function isValidToken(v) {
+    return (
+      v &&
+      CHARACTER_OPTIONS.some(function (opt) {
+        return opt.v === v;
+      })
+    );
+  }
+
+  function loadSnapCharPicks() {
+    try {
+      var raw = localStorage.getItem(K_SNAP_CHARS);
+      if (!raw) {
+        return;
+      }
+      var o = JSON.parse(raw);
+      if (o && isValidToken(o.p1)) {
+        charP1 = o.p1;
+      }
+      if (o && isValidToken(o.p2)) {
+        charP2 = o.p2;
+      }
+    } catch (e) {}
+  }
+
+  function saveSnapCharPicks() {
+    try {
+      localStorage.setItem(
+        K_SNAP_CHARS,
+        JSON.stringify({ p1: charP1, p2: charP2 })
+      );
+    } catch (e) {}
+  }
+
+  function clearElement(el) {
+    if (!el) {
+      return;
+    }
+    if (typeof el.replaceChildren === "function") {
+      el.replaceChildren();
+    } else {
+      while (el.firstChild) {
+        el.removeChild(el.firstChild);
+      }
+    }
+  }
+
+  function getSetupModeCpu() {
+    var r = document.querySelector('input[name="snapMode"]:checked');
+    return r && r.value === "cpu";
+  }
+
+  function getSetupSeatN() {
+    var r = document.querySelector('input[name="snapSeat"]:checked');
+    var n = r ? parseInt(r.value, 10) : 1;
+    return n === 2 ? 2 : 1;
+  }
+
+  function syncSnapCharHeadings() {
+    var cpu = getSetupModeCpu();
+    var h = getSetupSeatN();
+    var h1 = document.getElementById("headingCharP1");
+    var h2 = document.getElementById("headingCharP2");
+    var lede = document.getElementById("snapCharLede");
+    if (lede) {
+      lede.innerHTML = cpu
+        ? "Pick a face for <strong>you</strong> and for the <strong>computer</strong> — they show under the scores."
+        : "Tap a face for each side. They appear under the scores during the game.";
+    }
+    if (h1 && h2) {
+      if (cpu) {
+        if (h === 1) {
+          h1.textContent = "You (left)";
+          h2.textContent = "Computer (right)";
+        } else {
+          h1.textContent = "Computer (left)";
+          h2.textContent = "You (right)";
+        }
+      } else {
+        h1.textContent = "Player 1 (left)";
+        h2.textContent = "Player 2 (right)";
+      }
+    }
+  }
+
+  function setRowSelection(rowEl, value) {
+    if (!rowEl) {
+      return;
+    }
+    rowEl.querySelectorAll(".snap-char-opt").forEach(function (el) {
+      el.setAttribute(
+        "aria-pressed",
+        el.getAttribute("data-value") === value ? "true" : "false"
+      );
+    });
+  }
+
+  function buildCharRow(rowEl, which) {
+    if (!rowEl) {
+      return;
+    }
+    clearElement(rowEl);
+    for (var i = 0; i < CHARACTER_OPTIONS.length; i++) {
+      (function (opt) {
+        var b = document.createElement("button");
+        b.type = "button";
+        b.className = "snap-char-opt";
+        b.setAttribute("data-which", which);
+        b.setAttribute("data-value", opt.v);
+        b.setAttribute("title", opt.label);
+        b.setAttribute("aria-label", opt.label);
+        if (isImageIcon(opt.v)) {
+          b.classList.add("snap-char-opt--pic");
+          var im = document.createElement("img");
+          im.className = "snap-char-opt__pic";
+          im.src = imageIconSrc(opt.v);
+          im.alt = "";
+          im.width = 96;
+          im.height = 96;
+          im.decoding = "async";
+          b.appendChild(im);
+        } else {
+          b.classList.add("snap-char-opt--emoji");
+          b.appendChild(document.createTextNode(opt.v));
+        }
+        b.addEventListener("click", function () {
+          if (which === "p1") {
+            charP1 = opt.v;
+          } else {
+            charP2 = opt.v;
+          }
+          saveSnapCharPicks();
+          setRowSelection(rowEl, opt.v);
+          if (typeof KidsCore !== "undefined" && KidsCore.playSound) {
+            KidsCore.playSound("tap");
+          }
+        });
+        rowEl.appendChild(b);
+      })(CHARACTER_OPTIONS[i]);
+    }
+  }
+
+  function initCharPickers() {
+    loadSnapCharPicks();
+    var row1 = document.getElementById("charRowP1");
+    var row2 = document.getElementById("charRowP2");
+    if (row1) {
+      buildCharRow(row1, "p1");
+    }
+    if (row2) {
+      buildCharRow(row2, "p2");
+    }
+    setRowSelection(row1, charP1);
+    setRowSelection(row2, charP2);
+    syncSnapCharHeadings();
+    document.querySelectorAll('input[name="snapMode"]').forEach(function (x) {
+      x.addEventListener("change", syncSnapCharHeadings);
+    });
+    document.querySelectorAll('input[name="snapSeat"]').forEach(function (x) {
+      x.addEventListener("change", syncSnapCharHeadings);
+    });
+  }
+
+  function renderScoreMascot(host, tokenV) {
+    if (!host) {
+      return;
+    }
+    clearElement(host);
+    if (isImageIcon(tokenV)) {
+      var im = document.createElement("img");
+      im.src = imageIconSrc(tokenV);
+      im.alt = "";
+      im.decoding = "async";
+      host.appendChild(im);
+    } else {
+      var sp = document.createElement("span");
+      sp.className = "snap-score__mascot--emoji";
+      sp.setAttribute("aria-hidden", "true");
+      sp.textContent = tokenV;
+      host.appendChild(sp);
+    }
+  }
+
   function canSnap() {
     if (center.length < 2) {
       return false;
@@ -133,7 +343,7 @@
 
   function scheduleCpuSnap() {
     clearCpuSnapTimer();
-    if (mode !== "cpu" || gameOver || matchPopupOpen || !canSnap()) {
+    if (mode !== "cpu" || gameOver || matchPopupOpen || countdownLock || !canSnap()) {
       return;
     }
     var delay = CPU_SNAP_MIN_MS + Math.random() * (CPU_SNAP_MAX_MS - CPU_SNAP_MIN_MS);
@@ -155,7 +365,7 @@
         clearAutoFlipTimer();
         return;
       }
-      if (matchPopupOpen) {
+      if (matchPopupOpen || countdownLock) {
         return;
       }
       if (canSnap()) {
@@ -336,10 +546,38 @@
         cpu ? (h === 2 ? "Your snap — Player 2" : "Computer snap — Player 2") : "Player 2 snap"
       );
     }
+    if (countdownLock) {
+      if (btnFlip) {
+        btnFlip.disabled = true;
+      }
+      if (btnSnap1) {
+        btnSnap1.disabled = true;
+        btnSnap1.setAttribute("aria-disabled", "true");
+      }
+      if (btnSnap2) {
+        btnSnap2.disabled = true;
+        btnSnap2.setAttribute("aria-disabled", "true");
+      }
+      if (btnAgain) {
+        btnAgain.disabled = true;
+      }
+      if (btnMenu) {
+        btnMenu.disabled = true;
+      }
+    } else {
+      if (btnAgain) {
+        btnAgain.disabled = false;
+      }
+      if (btnMenu) {
+        btnMenu.disabled = false;
+      }
+    }
     var goalEl = document.getElementById("snapGoalLine");
     if (goalEl) {
       goalEl.textContent = "First to " + WIN_SCORE + " cards wins the game.";
     }
+    renderScoreMascot(document.getElementById("mascotP1"), charP1);
+    renderScoreMascot(document.getElementById("mascotP2"), charP2);
   }
 
   function createCardEl(tile) {
@@ -503,7 +741,7 @@
   }
 
   function resolveSnap(player) {
-    if (gameOver || matchPopupOpen) {
+    if (gameOver || matchPopupOpen || countdownLock) {
       return;
     }
     clearCpuSnapTimer();
@@ -668,7 +906,7 @@
   }
 
   function flipCard() {
-    if (gameOver || stock.length === 0 || matchPopupOpen) {
+    if (gameOver || stock.length === 0 || matchPopupOpen || countdownLock) {
       return;
     }
     clearCpuSnapTimer();
@@ -698,7 +936,58 @@
     checkEndAfterAction();
   }
 
-  function newGame() {
+  function runSnapCountdownThen(onDone) {
+    var kicker = document.getElementById("snapCountdownKicker");
+    var numEl = document.getElementById("snapCountdownNum");
+    var layer = document.getElementById("snapCountdown");
+    if (!layer || !numEl) {
+      if (onDone) {
+        onDone();
+      }
+      return;
+    }
+    if (kicker) {
+      kicker.textContent = "Get ready";
+    }
+    layer.classList.remove("is-hidden");
+    layer.hidden = false;
+    var n = 5;
+    function showStep() {
+      if (kicker) {
+        kicker.textContent = "Get ready";
+      }
+      numEl.textContent = String(n);
+      if (typeof KidsCore !== "undefined" && KidsCore.playSound) {
+        KidsCore.playSound("tap");
+      }
+    }
+    function afterOne() {
+      if (n > 1) {
+        n -= 1;
+        showStep();
+        window.setTimeout(afterOne, 720);
+        return;
+      }
+      if (kicker) {
+        kicker.textContent = "Go!";
+      }
+      numEl.textContent = "Go!";
+      if (typeof KidsCore !== "undefined" && KidsCore.playSound) {
+        KidsCore.playSound("ok");
+      }
+      window.setTimeout(function () {
+        layer.classList.add("is-hidden");
+        layer.hidden = true;
+        if (onDone) {
+          onDone();
+        }
+      }, 600);
+    }
+    showStep();
+    window.setTimeout(afterOne, 720);
+  }
+
+  function resetNewGameState() {
     matchPopupContinue = null;
     if (snapMatchPopup && !snapMatchPopup.classList.contains("is-hidden")) {
       snapMatchPopup.classList.add("is-hidden");
@@ -723,10 +1012,53 @@
     updateScoresUi();
     renderPile();
     if (statusLine) {
-      statusLine.textContent = "Flip to begin — first to " + WIN_SCORE + " cards wins!";
+      statusLine.textContent = "Get ready — 5, 4, 3, 2, 1… then the cards will flip for you.";
     }
+  }
+
+  function startRoundWithCountdown() {
+    if (countdownInProgress) {
+      return;
+    }
+    countdownInProgress = true;
+    resetNewGameState();
+    countdownLock = true;
     setPlayUi();
-    maybeStartAutoFlip();
+    if (statusLine) {
+      statusLine.textContent = "Get ready for the countdown!";
+    }
+
+    function afterCount() {
+      countdownInProgress = false;
+      countdownLock = false;
+      if (statusLine) {
+        statusLine.textContent = "Flipping! Tap Snap! when the last two match.";
+      }
+      setPlayUi();
+      if (chkAuto) {
+        chkAuto.checked = true;
+      }
+      maybeStartAutoFlip();
+    }
+
+    if (prefersReducedMotion() || !document.getElementById("snapCountdown")) {
+      countdownInProgress = false;
+      countdownLock = false;
+      setPlayUi();
+      if (chkAuto) {
+        chkAuto.checked = true;
+      }
+      if (statusLine) {
+        statusLine.textContent = "Flipping! Tap Snap! when the last two match.";
+      }
+      maybeStartAutoFlip();
+      return;
+    }
+    runSnapCountdownThen(afterCount);
+  }
+
+  function newGame() {
+    startRoundWithCountdown();
   }
 
   function showSetup() {
@@ -749,6 +1081,7 @@
     screenPlay.hidden = true;
     screenSetup.classList.remove("is-hidden");
     screenSetup.hidden = false;
+    syncSnapCharHeadings();
   }
 
   function showPlay() {
@@ -865,6 +1198,8 @@
     e.preventDefault();
     closeMatchPopup();
   });
+
+  initCharPickers();
 
   if (typeof KidsCore !== "undefined") {
     KidsCore.init();
