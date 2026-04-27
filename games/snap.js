@@ -20,6 +20,7 @@
     { id: "bee", label: "Bee", emoji: "🐝" },
     { id: "fish", label: "Fish", emoji: "🐟" },
   ];
+  var WIN_SCORE = 100;
   var PENALTY_BONUS = 3;
   var CPU_SNAP_MIN_MS = 380;
   var CPU_SNAP_MAX_MS = 1100;
@@ -47,6 +48,8 @@
   var slotPrev = document.getElementById("slotPrev");
   var slotCurr = document.getElementById("slotCurr");
   var compareBanner = document.getElementById("compareBanner");
+  var snapMatchPopup = document.getElementById("snapMatchPopup");
+  var snapMatchOk = document.getElementById("snapMatchOk");
 
   if (!screenSetup || !screenPlay || !showcase || !slotPrev || !slotCurr) {
     return;
@@ -54,6 +57,10 @@
 
   /** @type {"friend"|"cpu"} */
   var mode = "friend";
+  /** 1 = left / Player 1, 2 = right / Player 2 (your side in setup). */
+  var humanPlayer = 1;
+  var matchPopupOpen = false;
+  var matchPopupContinue = null;
   /** @type {{ id: string, label: string, emoji: string, pal: number }[]} */
   var stock = [];
   /** @type {typeof stock} */
@@ -119,16 +126,21 @@
     }
   }
 
+  /** The computer is always the other seat. */
+  function cpuPlayerNumber() {
+    return humanPlayer === 1 ? 2 : 1;
+  }
+
   function scheduleCpuSnap() {
     clearCpuSnapTimer();
-    if (mode !== "cpu" || gameOver || !canSnap()) {
+    if (mode !== "cpu" || gameOver || matchPopupOpen || !canSnap()) {
       return;
     }
     var delay = CPU_SNAP_MIN_MS + Math.random() * (CPU_SNAP_MAX_MS - CPU_SNAP_MIN_MS);
     cpuSnapTimer = setTimeout(function () {
       cpuSnapTimer = null;
-      if (!gameOver && canSnap()) {
-        resolveSnap(2);
+      if (!gameOver && !matchPopupOpen && canSnap()) {
+        resolveSnap(cpuPlayerNumber());
       }
     }, delay);
   }
@@ -141,6 +153,9 @@
     autoFlipTimer = window.setInterval(function () {
       if (gameOver || stock.length === 0) {
         clearAutoFlipTimer();
+        return;
+      }
+      if (matchPopupOpen) {
         return;
       }
       if (canSnap()) {
@@ -162,26 +177,168 @@
     }
   }
 
+  function winnerDisplayName(playerNum) {
+    if (mode === "cpu") {
+      return playerNum === humanPlayer ? "You" : "The computer";
+    }
+    return playerNum === 1 ? "Player 1" : "Player 2";
+  }
+
+  function fillMatchPopup(winnerPlayer, won) {
+    var name = winnerDisplayName(winnerPlayer);
+    var kicker = document.getElementById("snapMatchKicker");
+    var title = document.getElementById("snapMatchTitle");
+    var sub = document.getElementById("snapMatchSub");
+    var count = document.getElementById("snapMatchCount");
+    if (kicker) {
+      kicker.textContent = "SNAP!";
+    }
+    if (title) {
+      if (name === "You") {
+        title.textContent = "You got there first!";
+      } else if (name === "The computer") {
+        title.textContent = "The computer snapped first!";
+      } else {
+        title.textContent = name + " got there first!";
+      }
+    }
+    if (sub) {
+      if (name === "You") {
+        sub.textContent = "You picked up " + won + " " + (won === 1 ? "card" : "cards") + " from the table!";
+      } else if (name === "The computer") {
+        sub.textContent = "The computer won " + won + " " + (won === 1 ? "card" : "cards") + " this time!";
+      } else {
+        sub.textContent = name + " won " + won + " " + (won === 1 ? "card" : "cards") + " this time!";
+      }
+    }
+    if (count) {
+      count.textContent = String(won);
+    }
+    if (snapMatchPopup) {
+      snapMatchPopup.classList.remove("snap-popup--p1-win", "snap-popup--p2-win", "snap-popup--cpu-win");
+      if (mode === "cpu" && winnerPlayer !== humanPlayer) {
+        snapMatchPopup.classList.add("snap-popup--cpu-win");
+      } else if (winnerPlayer === 1) {
+        snapMatchPopup.classList.add("snap-popup--p1-win");
+      } else {
+        snapMatchPopup.classList.add("snap-popup--p2-win");
+      }
+    }
+  }
+
+  function showMatchPopup(winnerPlayer, won, onClosed) {
+    if (!snapMatchPopup) {
+      if (onClosed) {
+        onClosed();
+      }
+      return;
+    }
+    matchPopupOpen = true;
+    matchPopupContinue = onClosed;
+    fillMatchPopup(winnerPlayer, won);
+    snapMatchPopup.classList.remove("is-hidden");
+    snapMatchPopup.hidden = false;
+    if (document.getElementById("app")) {
+      document.getElementById("app").setAttribute("aria-hidden", "true");
+    }
+    if (typeof KidsCore !== "undefined" && KidsCore.confetti) {
+      KidsCore.confetti(document.body);
+      window.setTimeout(function () {
+        var layers = document.querySelectorAll(".kids-confetti-layer");
+        if (layers.length) {
+          layers[layers.length - 1].style.zIndex = "10000";
+        }
+      }, 0);
+    }
+    window.setTimeout(function () {
+      if (snapMatchOk) {
+        snapMatchOk.focus();
+      }
+    }, 100);
+  }
+
+  function closeMatchPopup() {
+    if (!snapMatchPopup) {
+      return;
+    }
+    snapMatchPopup.classList.add("is-hidden");
+    snapMatchPopup.hidden = true;
+    if (document.getElementById("app")) {
+      document.getElementById("app").removeAttribute("aria-hidden");
+    }
+    matchPopupOpen = false;
+    if (matchPopupContinue) {
+      var cb = matchPopupContinue;
+      matchPopupContinue = null;
+      cb();
+    }
+  }
+
   function setPlayUi() {
     var cpu = mode === "cpu";
+    var h = humanPlayer;
     if (modeLine) {
-      modeLine.textContent = cpu ? "You vs computer" : "Two players";
+      if (cpu) {
+        modeLine.textContent =
+          h === 1
+            ? "You vs computer — your Snap! is on the left"
+            : "You vs computer — your Snap! is on the right";
+      } else {
+        modeLine.textContent =
+          h === 1
+            ? "Two players — you use the left (Player 1)"
+            : "Two players — you use the right (Player 2)";
+      }
     }
     if (labelP1) {
-      labelP1.textContent = cpu ? "You" : "Player 1";
+      if (cpu) {
+        labelP1.textContent = h === 1 ? "You" : "Computer";
+      } else {
+        labelP1.textContent = "Player 1";
+      }
     }
     if (labelP2) {
-      labelP2.textContent = cpu ? "Computer" : "Player 2";
+      if (cpu) {
+        labelP2.textContent = h === 2 ? "You" : "Computer";
+      } else {
+        labelP2.textContent = "Player 2";
+      }
     }
     if (hintP1) {
-      hintP1.textContent = cpu ? "Your snap" : "Player 1";
+      if (cpu) {
+        hintP1.textContent = h === 1 ? "Your snap" : "Computer";
+      } else {
+        hintP1.textContent = "Player 1";
+      }
     }
     if (hintP2) {
-      hintP2.textContent = cpu ? "Computer" : "Player 2";
+      if (cpu) {
+        hintP2.textContent = h === 2 ? "Your snap" : "Computer";
+      } else {
+        hintP2.textContent = "Player 2";
+      }
+    }
+    if (btnSnap1) {
+      var d1 = cpu && h !== 1;
+      btnSnap1.disabled = d1;
+      btnSnap1.setAttribute("aria-disabled", d1 ? "true" : "false");
+      btnSnap1.setAttribute(
+        "aria-label",
+        cpu ? (h === 1 ? "Your snap — Player 1" : "Computer snap — Player 1") : "Player 1 snap"
+      );
     }
     if (btnSnap2) {
-      btnSnap2.disabled = cpu;
-      btnSnap2.setAttribute("aria-disabled", cpu ? "true" : "false");
+      var d2 = cpu && h !== 2;
+      btnSnap2.disabled = d2;
+      btnSnap2.setAttribute("aria-disabled", d2 ? "true" : "false");
+      btnSnap2.setAttribute(
+        "aria-label",
+        cpu ? (h === 2 ? "Your snap — Player 2" : "Computer snap — Player 2") : "Player 2 snap"
+      );
+    }
+    var goalEl = document.getElementById("snapGoalLine");
+    if (goalEl) {
+      goalEl.textContent = "First to " + WIN_SCORE + " cards wins the game.";
     }
   }
 
@@ -346,7 +503,7 @@
   }
 
   function resolveSnap(player) {
-    if (gameOver) {
+    if (gameOver || matchPopupOpen) {
       return;
     }
     clearCpuSnapTimer();
@@ -355,111 +512,163 @@
       var won = center.length;
       if (player === 1) {
         score1 += won;
-        if (statusLine) {
-          statusLine.textContent =
-            mode === "cpu"
-              ? "Snap! You win " + won + " tiles."
-              : "Player 1 snaps first — wins " + won + " tiles.";
-        }
       } else {
         score2 += won;
-        if (statusLine) {
-          statusLine.textContent =
-            mode === "cpu"
-              ? "The computer snapped first — it wins " + won + " tiles."
-              : "Player 2 snaps first — wins " + won + " tiles.";
-        }
+      }
+      if (statusLine) {
+        statusLine.textContent = "Great snap! Tap OK on the pop-up to continue.";
       }
       center = [];
+      updateScoresUi();
+      renderPile();
+      flashSide(player === 1 ? btnSnap1 : btnSnap2);
       if (typeof KidsCore !== "undefined" && KidsCore.playSound) {
         KidsCore.playSound("ok");
       }
+      showMatchPopup(player, won, function () {
+        if (checkForGameWinner()) {
+          return;
+        }
+        checkEndAfterAction();
+        maybeStartAutoFlip();
+      });
+      return;
+    }
+    var other = player === 1 ? 2 : 1;
+    if (other === 1) {
+      score1 += PENALTY_BONUS;
     } else {
-      var other = player === 1 ? 2 : 1;
-      if (other === 1) {
-        score1 += PENALTY_BONUS;
-      } else {
-        score2 += PENALTY_BONUS;
-      }
-      if (statusLine) {
+      score2 += PENALTY_BONUS;
+    }
+    if (statusLine) {
+      if (mode === "cpu") {
         statusLine.textContent =
           "Not the same animal — " +
-          (other === 1
-            ? mode === "cpu"
-              ? "you get +" + PENALTY_BONUS + " bonus tiles."
-              : "Player 1 gets +" + PENALTY_BONUS + " bonus."
-            : mode === "cpu"
-              ? "the computer gets +" + PENALTY_BONUS + " bonus."
-              : "Player 2 gets +" + PENALTY_BONUS + " bonus.");
+          (other === humanPlayer
+            ? "you get +" + PENALTY_BONUS + " bonus tiles."
+            : "the computer gets +" + PENALTY_BONUS + " bonus.");
+      } else {
+        statusLine.textContent =
+          "Not the same animal — " +
+          (other === 1 ? "Player 1" : "Player 2") +
+          " gets +" +
+          PENALTY_BONUS +
+          " bonus.";
       }
-      if (typeof KidsCore !== "undefined" && KidsCore.playSound) {
-        KidsCore.playSound("no");
-      }
+    }
+    if (typeof KidsCore !== "undefined" && KidsCore.playSound) {
+      KidsCore.playSound("no");
     }
     updateScoresUi();
     renderPile();
     flashSide(player === 1 ? btnSnap1 : btnSnap2);
+    if (checkForGameWinner()) {
+      return;
+    }
     checkEndAfterAction();
   }
 
-  function checkEndAfterAction() {
-    if (stock.length > 0) {
-      return;
+  function checkForGameWinner() {
+    if (gameOver) {
+      return true;
     }
-    if (center.length === 0) {
-      endRound();
-      return;
+    if (score1 >= WIN_SCORE || score2 >= WIN_SCORE) {
+      endGameWin();
+      return true;
     }
-    if (center.length >= 2 && canSnap()) {
-      if (statusLine) {
-        statusLine.textContent =
-          "No tiles left — first to snap wins the last pile! (" +
-          (mode === "cpu" ? "You vs computer" : "two players") +
-          ")";
-      }
-      scheduleCpuSnap();
-      return;
-    }
-    endRound();
+    return false;
   }
 
-  function endRound() {
+  function endGameWin() {
     gameOver = true;
     clearCpuSnapTimer();
     clearAutoFlipTimer();
     if (btnFlip) {
       btnFlip.disabled = true;
     }
-    var msg;
-    if (score1 > score2) {
-      msg =
-        mode === "cpu"
-          ? "All flipped — you win with " + score1 + " tiles! Computer has " + score2 + "."
-          : "All flipped — Player 1 wins with " + score1 + " tiles!";
-    } else if (score2 > score1) {
-      msg =
-        mode === "cpu"
-          ? "All flipped — the computer wins with " + score2 + " tiles. You have " + score1 + "."
-          : "All flipped — Player 2 wins with " + score2 + " tiles!";
-    } else {
-      msg = "All flipped — a tie at " + score1 + " tiles each!";
+    if (btnSnap1) {
+      btnSnap1.disabled = true;
     }
+    if (btnSnap2) {
+      btnSnap2.disabled = true;
+    }
+    var p1Wins = score1 >= WIN_SCORE;
+    var name = p1Wins ? winnerDisplayName(1) : winnerDisplayName(2);
+    var s1 = score1;
+    var s2 = score2;
     if (statusLine) {
-      statusLine.textContent = msg;
+      statusLine.textContent = name + " won the game with " + (p1Wins ? s1 : s2) + " cards! (" + s1 + " – " + s2 + ")";
     }
     if (compareBanner) {
-      compareBanner.textContent = "Great game! Tap New game to play again.";
+      if (name === "You") {
+        compareBanner.textContent = "You made it to " + WIN_SCORE + " first! Tap New game to play again.";
+      } else {
+        compareBanner.textContent = name + " made it to " + WIN_SCORE + " first! Tap New game to play again.";
+      }
     }
     if (showcase) {
       showcase.classList.remove("is-match", "is-near-match");
     }
     if (typeof KidsCore !== "undefined" && KidsCore.playSound) {
-      KidsCore.playSound(score1 === score2 ? "tap" : "ok");
+      KidsCore.playSound("ok");
     }
   }
 
+  function newShuffledPack() {
+    center = [];
+    lastRenderedCenterLen = -1;
+    stock = shuffle(buildDeck());
+    if (btnFlip) {
+      btnFlip.disabled = false;
+    }
+    updateScoresUi();
+    renderPile();
+    if (statusLine) {
+      statusLine.textContent = "New shuffled pack! First to " + WIN_SCORE + " cards — keep going!";
+    }
+  }
+
+  function recycleCenterIntoNewPack() {
+    var carry = center.slice();
+    center = [];
+    lastRenderedCenterLen = -1;
+    stock = shuffle(buildDeck().concat(carry));
+    if (btnFlip) {
+      btnFlip.disabled = false;
+    }
+    updateScoresUi();
+    renderPile();
+    if (statusLine) {
+      statusLine.textContent = "The pile is shuffled in again! Flip the next card.";
+    }
+  }
+
+  function checkEndAfterAction() {
+    if (checkForGameWinner()) {
+      return;
+    }
+    if (stock.length > 0) {
+      return;
+    }
+    if (center.length === 0) {
+      newShuffledPack();
+      return;
+    }
+    if (center.length >= 2 && canSnap()) {
+      if (statusLine) {
+        statusLine.textContent =
+          "No cards left to flip — first to snap wins this pile! (" +
+          (mode === "cpu" ? "You vs computer" : "two players") +
+          ")";
+      }
+      scheduleCpuSnap();
+      return;
+    }
+    recycleCenterIntoNewPack();
+  }
+
   function flipCard() {
-    if (gameOver || stock.length === 0) {
+    if (gameOver || stock.length === 0 || matchPopupOpen) {
       return;
     }
     clearCpuSnapTimer();
@@ -470,7 +679,7 @@
       if (canSnap()) {
         statusLine.textContent =
           mode === "cpu"
-            ? "Same animal! Tap Snap! or wait for the computer…"
+            ? "Same animal! Tap your Snap! or the computer might beat you…"
             : "Same animal! First to snap wins the pile!";
       } else {
         statusLine.textContent =
@@ -490,6 +699,16 @@
   }
 
   function newGame() {
+    matchPopupContinue = null;
+    if (snapMatchPopup && !snapMatchPopup.classList.contains("is-hidden")) {
+      snapMatchPopup.classList.add("is-hidden");
+      snapMatchPopup.hidden = true;
+      var appEl = document.getElementById("app");
+      if (appEl) {
+        appEl.removeAttribute("aria-hidden");
+      }
+      matchPopupOpen = false;
+    }
     clearCpuSnapTimer();
     clearAutoFlipTimer();
     gameOver = false;
@@ -504,12 +723,23 @@
     updateScoresUi();
     renderPile();
     if (statusLine) {
-      statusLine.textContent = "Flip to begin — cute animals ahead!";
+      statusLine.textContent = "Flip to begin — first to " + WIN_SCORE + " cards wins!";
     }
+    setPlayUi();
     maybeStartAutoFlip();
   }
 
   function showSetup() {
+    matchPopupContinue = null;
+    if (snapMatchPopup && !snapMatchPopup.classList.contains("is-hidden")) {
+      snapMatchPopup.classList.add("is-hidden");
+      snapMatchPopup.hidden = true;
+      var appA = document.getElementById("app");
+      if (appA) {
+        appA.removeAttribute("aria-hidden");
+      }
+      matchPopupOpen = false;
+    }
     if (typeof KidsCore !== "undefined" && typeof KidsCore.setPlayMode === "function") {
       KidsCore.setPlayMode(false);
     }
@@ -530,11 +760,20 @@
       }
     });
     mode = v === "cpu" ? "cpu" : "friend";
+    var seatRadios = document.querySelectorAll('input[name="snapSeat"]');
+    humanPlayer = 1;
+    seatRadios.forEach(function (r) {
+      if (r.checked) {
+        var n = parseInt(r.value, 10);
+        if (n === 1 || n === 2) {
+          humanPlayer = n;
+        }
+      }
+    });
     screenSetup.classList.add("is-hidden");
     screenSetup.hidden = true;
     screenPlay.classList.remove("is-hidden");
     screenPlay.hidden = false;
-    setPlayUi();
     if (typeof KidsCore !== "undefined" && typeof KidsCore.setPlayMode === "function") {
       KidsCore.setPlayMode(true);
     }
@@ -573,7 +812,7 @@
 
   if (btnSnap2) {
     btnSnap2.addEventListener("click", function () {
-      if (gameOver || mode === "cpu") {
+      if (gameOver) {
         return;
       }
       resolveSnap(2);
@@ -609,6 +848,23 @@
       }
     });
   }
+
+  if (snapMatchOk) {
+    snapMatchOk.addEventListener("click", function () {
+      if (typeof KidsCore !== "undefined" && KidsCore.playSound) {
+        KidsCore.playSound("tap");
+      }
+      closeMatchPopup();
+    });
+  }
+
+  document.addEventListener("keydown", function (e) {
+    if (e.key !== "Escape" || !matchPopupOpen) {
+      return;
+    }
+    e.preventDefault();
+    closeMatchPopup();
+  });
 
   if (typeof KidsCore !== "undefined") {
     KidsCore.init();
