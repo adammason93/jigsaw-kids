@@ -30,6 +30,7 @@
   const treasurePopupBackdrop = treasurePopup
     ? treasurePopup.querySelector(".treasure-popup__backdrop")
     : null;
+  const kellyToast = document.getElementById("kellyWellDone");
 
   const TREASURE_PRIZES = [
     "5 minutes extra to stay up at bedtime",
@@ -44,6 +45,45 @@
   let startCell = null;
   let lastPath = [];
   let pointerId = null;
+  /** @type {number|null} */
+  let kellyHideTimer = null;
+  let kellyDoneTimer = null;
+
+  const KELLY_SHOW_MS = 2200;
+  const KELLY_EXIT_MS = 400;
+
+  /**
+   * Kelly (Mummy) toast, then callback (e.g. open treasure on last word).
+   * @param {() => void} [onHidden]
+   */
+  function showKellyWellDone(onHidden) {
+    onHidden = onHidden || function () {};
+    if (!kellyToast) {
+      onHidden();
+      return;
+    }
+    if (kellyHideTimer) {
+      clearTimeout(kellyHideTimer);
+      kellyHideTimer = null;
+    }
+    if (kellyDoneTimer) {
+      clearTimeout(kellyDoneTimer);
+      kellyDoneTimer = null;
+    }
+    kellyToast.removeAttribute("hidden");
+    kellyToast.setAttribute("aria-hidden", "false");
+    kellyToast.classList.add("word-search__kelly-toast--on");
+    kellyHideTimer = window.setTimeout(function () {
+      kellyHideTimer = null;
+      kellyToast.classList.remove("word-search__kelly-toast--on");
+      kellyDoneTimer = window.setTimeout(function () {
+        kellyDoneTimer = null;
+        kellyToast.setAttribute("hidden", "");
+        kellyToast.setAttribute("aria-hidden", "true");
+        onHidden();
+      }, KELLY_EXIT_MS);
+    }, KELLY_SHOW_MS);
+  }
 
   function randLetter() {
     const L = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -469,25 +509,28 @@
       if (allFound()) {
         setStatus("You found every word!");
         const prize = TREASURE_PRIZES[randomInt(0, TREASURE_PRIZES.length - 1)];
-        showTreasurePopup(
-          { prize: prize, playerName: "Sofia" },
-          function () {
-            if (typeof KidsCore !== "undefined") {
-              KidsCore.playSound("win");
-              KidsCore.haptic("success");
-              var ap = document.getElementById("app");
-              if (KidsCore.confetti) {
-                KidsCore.confetti(ap || document.body);
+        showKellyWellDone(function () {
+          showTreasurePopup(
+            { prize: prize, playerName: "Sofia" },
+            function () {
+              if (typeof KidsCore !== "undefined") {
+                KidsCore.playSound("win");
+                KidsCore.haptic("success");
+                var ap = document.getElementById("app");
+                if (KidsCore.confetti) {
+                  KidsCore.confetti(ap || document.body);
+                }
               }
             }
-          }
-        );
+          );
+        });
       } else {
         setStatus("Nice! You found " + titleCase(matched) + "!");
         if (typeof KidsCore !== "undefined") {
           KidsCore.playSound("ok");
           KidsCore.haptic("light");
         }
+        showKellyWellDone();
       }
     } else if (str.length > 0) {
       if (tooShort) {
@@ -526,6 +569,19 @@
   }
 
   function newGame() {
+    if (kellyHideTimer) {
+      clearTimeout(kellyHideTimer);
+      kellyHideTimer = null;
+    }
+    if (kellyDoneTimer) {
+      clearTimeout(kellyDoneTimer);
+      kellyDoneTimer = null;
+    }
+    if (kellyToast) {
+      kellyToast.classList.remove("word-search__kelly-toast--on");
+      kellyToast.setAttribute("hidden", "");
+      kellyToast.setAttribute("aria-hidden", "true");
+    }
     found = new Set();
     grid = buildGrid();
     renderBoard();

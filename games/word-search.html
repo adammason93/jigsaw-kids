@@ -43,6 +43,26 @@
 
     <p class="word-search__status" id="wordSearchStatus" role="status" aria-live="polite"></p>
 
+    <div
+      id="kellyWellDone"
+      class="word-search__kelly-toast"
+      role="status"
+      aria-live="assertive"
+      aria-atomic="true"
+      hidden
+    >
+      <div class="word-search__kelly-bubble">
+        <img
+          class="word-search__kelly-pic"
+          src="images/character-kelly.png"
+          width="88"
+          height="88"
+          alt=""
+        />
+        <p class="word-search__kelly-text"><span class="word-search__kelly-name">Kelly (Mummy)</span> says: Well done!</p>
+      </div>
+    </div>
+
     <div class="word-search__actions">
       <button type="button" class="word-search__btn word-search__btn--primary" id="btnWordSearchNew">New grid</button>
     </div>
