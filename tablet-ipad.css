@@ -25,7 +25,8 @@ body {
 .page-runner .app,
 .page-ttt .app,
 .page-c4 .app,
-.page-ws .word-search-app {
+.page-ws .word-search-app,
+.page-colour .colour-app {
   box-sizing: border-box;
 }
 
