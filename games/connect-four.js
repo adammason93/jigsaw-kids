@@ -54,6 +54,9 @@
       appEl.classList.toggle("c4-app--play", onPlay);
     }
     document.body.classList.toggle("c4-playing", onPlay);
+    if (typeof KidsCore !== "undefined" && typeof KidsCore.setPlayMode === "function") {
+      KidsCore.setPlayMode(onPlay);
+    }
   }
 
   function selectedMode() {

@@ -150,3 +150,16 @@ html.kids-reduce-motion * {
   animation-duration: 0.001ms !important;
   animation-iteration-count: 1 !important;
 }
+
+/* No page scroll while playing (games call KidsCore.setPlayMode) */
+html.kids-play-mode {
+  height: 100%;
+  overflow: hidden;
+}
+html.kids-play-mode body {
+  min-height: 100%;
+  min-height: 100dvh;
+  max-height: 100dvh;
+  overflow: hidden;
+  overscroll-behavior: none;
+}

@@ -995,6 +995,9 @@
       document.body.classList.toggle("sn-setup-visible", which === screenSetup);
       document.body.classList.toggle("sn-game-visible", which === screenGame);
     }
+    if (typeof KidsCore !== "undefined" && typeof KidsCore.setPlayMode === "function") {
+      KidsCore.setPlayMode(which === screenGame);
+    }
   }
 
   function buildNameFields() {

@@ -69,6 +69,14 @@
     document.documentElement.classList.toggle("kids-reduce-motion", K.isForceReduceMotion());
   };
 
+  /**
+   * Lock the document (no page scroll) while a game is in “play” — helps touch devices.
+   * Call with false when returning to setup or leaving the play screen.
+   */
+  K.setPlayMode = function (on) {
+    document.documentElement.classList.toggle("kids-play-mode", !!on);
+  };
+
   var audioCtx = null;
   function getCtx() {
     if (!K.isSoundOn()) {

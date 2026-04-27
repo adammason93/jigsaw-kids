@@ -1207,6 +1207,9 @@
 
   function showSetupView() {
     gameActive = false;
+    if (typeof KidsCore !== "undefined" && typeof KidsCore.setPlayMode === "function") {
+      KidsCore.setPlayMode(false);
+    }
     mode = "play";
     setupEl.classList.remove("is-hidden");
     gameSection.classList.add("is-hidden");
@@ -1273,6 +1276,9 @@
     }
     showGameView();
     gameActive = true;
+    if (typeof KidsCore !== "undefined" && typeof KidsCore.setPlayMode === "function") {
+      KidsCore.setPlayMode(true);
+    }
     mode = "play";
     resetRun();
   }

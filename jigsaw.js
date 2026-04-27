@@ -461,6 +461,9 @@ function startPuzzle() {
   rebuildClipDefs(n);
   setStatus("");
   playArea.hidden = false;
+  if (typeof KidsCore !== "undefined" && typeof KidsCore.setPlayMode === "function") {
+    KidsCore.setPlayMode(true);
+  }
 
   const resolved = resolveImageUrl(String(dataUrl));
   if (boardGuideImg) {

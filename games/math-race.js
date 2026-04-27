@@ -173,6 +173,9 @@
       entry[1].classList.toggle("is-hidden", !on);
       entry[1].hidden = !on;
     });
+    if (typeof KidsCore !== "undefined" && typeof KidsCore.setPlayMode === "function") {
+      KidsCore.setPlayMode(which === "play");
+    }
   }
 
   function selectedPlayMode() {

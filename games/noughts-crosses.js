@@ -246,6 +246,9 @@
     screenSetup.hidden = onPlay;
     screenPlay.classList.toggle("is-hidden", !onPlay);
     screenPlay.hidden = !onPlay;
+    if (typeof KidsCore !== "undefined" && typeof KidsCore.setPlayMode === "function") {
+      KidsCore.setPlayMode(onPlay);
+    }
     if (!onPlay) {
       initCharPickers();
     }
