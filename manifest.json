@@ -1,0 +1,11 @@
+{
+  "name": "Kids Game Room",
+  "short_name": "Kids Games",
+  "description": "Jigsaw, number path, snakes and ladders — made for children.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#fef3c7",
+  "theme_color": "#7c3aed",
+  "orientation": "any"
+}

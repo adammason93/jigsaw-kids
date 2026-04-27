@@ -1,0 +1,152 @@
+/* Floating bar + settings + confetti + high contrast (KidsCore) */
+.kids-fbar {
+  position: fixed;
+  z-index: 9000;
+  right: max(0.5rem, env(safe-area-inset-right));
+  bottom: max(0.5rem, env(safe-area-inset-bottom));
+  display: flex;
+  gap: 0.35rem;
+  align-items: center;
+}
+
+.kids-fbar__mute,
+.kids-fbar__help {
+  width: 3rem;
+  height: 3rem;
+  min-width: 48px;
+  min-height: 48px;
+  border-radius: 50%;
+  border: 3px solid #fff;
+  font-size: 1.35rem;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+  background: linear-gradient(180deg, #fff, #f3e8ff);
+}
+
+.kids-settings {
+  position: fixed;
+  inset: 0;
+  z-index: 9500;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom)
+    env(safe-area-inset-left);
+}
+
+.kids-settings.is-open {
+  display: flex;
+}
+
+.kids-settings__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(20, 15, 40, 0.5);
+  backdrop-filter: blur(3px);
+}
+
+.kids-settings__panel {
+  position: relative;
+  z-index: 1;
+  max-width: 400px;
+  width: 100%;
+  margin: 1rem;
+  padding: 1.25rem 1.35rem;
+  background: #fff;
+  border-radius: 20px;
+  border: 4px solid #a78bfa;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  text-align: left;
+}
+
+.kids-settings__title {
+  margin: 0 0 0.5rem;
+  font-size: 1.35rem;
+  color: #4c1d95;
+}
+
+.kids-settings__lead {
+  margin: 0 0 1rem;
+  font-size: 0.9rem;
+  color: #5b5a6a;
+  line-height: 1.4;
+}
+
+.kids-settings__row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  margin: 0.55rem 0;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: #312c44;
+  cursor: pointer;
+}
+
+.kids-settings__row input {
+  width: 1.2rem;
+  height: 1.2rem;
+  margin-top: 0.15rem;
+}
+
+.kids-settings__stat {
+  font-size: 0.88rem;
+  color: #6b5a7a;
+  font-weight: 600;
+}
+
+.kids-settings__close {
+  margin-top: 0.75rem;
+  width: 100%;
+  padding: 0.65rem;
+  font-weight: 800;
+  border-radius: 12px;
+  border: none;
+  background: linear-gradient(180deg, #a78bfa, #7c3aed);
+  color: #fff;
+  cursor: pointer;
+}
+
+.kids-confetti-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 8000;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.kids-confetti-piece {
+  position: absolute;
+  top: -10px;
+  width: 9px;
+  height: 14px;
+  border-radius: 2px;
+  animation: kids-confetti-fall 2.8s ease-in forwards;
+  opacity: 0.95;
+}
+
+@keyframes kids-confetti-fall {
+  0% {
+    transform: translateY(0) rotate(0deg);
+  }
+  100% {
+    transform: translateY(110vh) rotate(720deg);
+  }
+}
+
+/* High contrast (optional) */
+html.kids-high-contrast {
+  --ink: #0a0a0f;
+  --muted: #1a1520;
+}
+
+html.kids-high-contrast body {
+  filter: contrast(1.08) saturate(1.15);
+}
+
+/* Calm screen — shorten animations (settings → Calm) */
+html.kids-reduce-motion * {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+}

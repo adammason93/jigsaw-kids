@@ -2,12 +2,15 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#7c3aed" />
   <title>Snakes &amp; Ladders — Kids Game Room</title>
+  <link rel="manifest" href="../manifest.json" />
+  <link rel="stylesheet" href="../js/kids-core.css" />
   <link rel="stylesheet" href="snakes-ladders.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Sniglet:wght@400;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Sniglet:wght@400;800&display=swap" rel="stylesheet" />
 </head>
 <body>
   <div class="app" id="app">
@@ -15,11 +18,55 @@
       <a class="back-link" href="../index.html">← All games</a>
     </nav>
 
+    <div
+      id="welcomePopup"
+      class="welcome-popup welcome-popup--hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="welcomeTitle"
+      aria-hidden="true"
+    >
+      <div class="welcome-popup__backdrop" aria-hidden="true"></div>
+      <div class="welcome-popup__panel">
+        <h2 id="welcomeTitle" class="welcome-popup__title">Welcome!</h2>
+        <div class="welcome-popup__stage">
+          <div class="welcome-popup__char-swing" aria-hidden="true">
+            <img
+              class="welcome-popup__char"
+              src="images/character-isaac-welcome.png"
+              width="200"
+              height="280"
+              alt=""
+              decoding="async"
+            />
+          </div>
+          <p class="welcome-popup__bubble" role="text">Hello!</p>
+        </div>
+        <button type="button" class="btn btn--primary" id="btnWelcomeOk">Let’s play!</button>
+      </div>
+    </div>
+
     <div id="screenSetup" class="screen">
       <header class="page-header">
         <h1>Snakes &amp; Ladders</h1>
-        <p>Climb the ladders, slide past the snakes, and be first to the <strong>shiny 50</strong> at the top!</p>
+        <p>Climb the ladders, slide past the snakes, and land <strong>exactly</strong> on the gold finish square. Choose a full board or a shorter game.</p>
       </header>
+
+      <section class="card" aria-labelledby="lblBoard">
+        <h2 id="lblBoard">Board size</h2>
+        <div class="choice-row" role="group" aria-label="Board size">
+          <label class="radio-tile">
+            <input type="radio" name="boardSize" value="full" checked />
+            <span class="radio-tile__title">Full game</span>
+            <span class="radio-tile__hint">50 squares</span>
+          </label>
+          <label class="radio-tile">
+            <input type="radio" name="boardSize" value="quick" />
+            <span class="radio-tile__title">Shorter game</span>
+            <span class="radio-tile__hint">25 squares</span>
+          </label>
+        </div>
+      </section>
 
       <section class="card" aria-labelledby="lblPlayers">
         <h2 id="lblPlayers">How many players?</h2>
@@ -40,7 +87,7 @@
             <span class="radio-tile__hint">Family game</span>
           </label>
         </div>
-        <p class="hint" id="nameHint">Pick a name and a buddy icon for each player — then you’re ready!</p>
+        <p class="hint" id="nameHint">Pick a character for each player — their name fills in from that choice (you can change it if you like).</p>
         <div class="name-fields" id="nameFields" aria-label="Players"></div>
         <button type="button" class="btn btn--primary" id="btnStart">Start game</button>
       </section>
@@ -64,19 +111,91 @@
             <div
               class="dice"
               id="dice"
+              data-face="1"
               role="img"
               aria-label="Die"
             >
-              <div class="dice-inner" id="diceInner">
-                <span class="pip pip--1"></span>
-                <span class="pip pip--2"></span>
-                <span class="pip pip--3"></span>
-                <span class="pip pip--4"></span>
-                <span class="pip pip--5"></span>
-                <span class="pip pip--6"></span>
-                <span class="pip pip--7"></span>
-                <span class="pip pip--8"></span>
-                <span class="pip pip--9"></span>
+              <div class="dice-scene">
+                <div class="dice-cube" aria-hidden="true">
+                  <div class="dice-face dice-face--1">
+                    <div class="dice-face-grid">
+                      <span class="pip pip--1"></span>
+                      <span class="pip pip--2"></span>
+                      <span class="pip pip--3"></span>
+                      <span class="pip pip--4"></span>
+                      <span class="pip pip--5"></span>
+                      <span class="pip pip--6"></span>
+                      <span class="pip pip--7"></span>
+                      <span class="pip pip--8"></span>
+                      <span class="pip pip--9"></span>
+                    </div>
+                  </div>
+                  <div class="dice-face dice-face--2">
+                    <div class="dice-face-grid">
+                      <span class="pip pip--1"></span>
+                      <span class="pip pip--2"></span>
+                      <span class="pip pip--3"></span>
+                      <span class="pip pip--4"></span>
+                      <span class="pip pip--5"></span>
+                      <span class="pip pip--6"></span>
+                      <span class="pip pip--7"></span>
+                      <span class="pip pip--8"></span>
+                      <span class="pip pip--9"></span>
+                    </div>
+                  </div>
+                  <div class="dice-face dice-face--3">
+                    <div class="dice-face-grid">
+                      <span class="pip pip--1"></span>
+                      <span class="pip pip--2"></span>
+                      <span class="pip pip--3"></span>
+                      <span class="pip pip--4"></span>
+                      <span class="pip pip--5"></span>
+                      <span class="pip pip--6"></span>
+                      <span class="pip pip--7"></span>
+                      <span class="pip pip--8"></span>
+                      <span class="pip pip--9"></span>
+                    </div>
+                  </div>
+                  <div class="dice-face dice-face--4">
+                    <div class="dice-face-grid">
+                      <span class="pip pip--1"></span>
+                      <span class="pip pip--2"></span>
+                      <span class="pip pip--3"></span>
+                      <span class="pip pip--4"></span>
+                      <span class="pip pip--5"></span>
+                      <span class="pip pip--6"></span>
+                      <span class="pip pip--7"></span>
+                      <span class="pip pip--8"></span>
+                      <span class="pip pip--9"></span>
+                    </div>
+                  </div>
+                  <div class="dice-face dice-face--5">
+                    <div class="dice-face-grid">
+                      <span class="pip pip--1"></span>
+                      <span class="pip pip--2"></span>
+                      <span class="pip pip--3"></span>
+                      <span class="pip pip--4"></span>
+                      <span class="pip pip--5"></span>
+                      <span class="pip pip--6"></span>
+                      <span class="pip pip--7"></span>
+                      <span class="pip pip--8"></span>
+                      <span class="pip pip--9"></span>
+                    </div>
+                  </div>
+                  <div class="dice-face dice-face--6">
+                    <div class="dice-face-grid">
+                      <span class="pip pip--1"></span>
+                      <span class="pip pip--2"></span>
+                      <span class="pip pip--3"></span>
+                      <span class="pip pip--4"></span>
+                      <span class="pip pip--5"></span>
+                      <span class="pip pip--6"></span>
+                      <span class="pip pip--7"></span>
+                      <span class="pip pip--8"></span>
+                      <span class="pip pip--9"></span>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
             <p class="dice-hint" id="diceHint">Roll the die</p>
@@ -106,19 +225,91 @@
             <div
               class="dice turn-popup__dice"
               id="turnPopupDice"
+              data-face="1"
               role="img"
               aria-label="Die"
             >
-              <div class="dice-inner" id="turnPopupDiceInner">
-                <span class="pip pip--1"></span>
-                <span class="pip pip--2"></span>
-                <span class="pip pip--3"></span>
-                <span class="pip pip--4"></span>
-                <span class="pip pip--5"></span>
-                <span class="pip pip--6"></span>
-                <span class="pip pip--7"></span>
-                <span class="pip pip--8"></span>
-                <span class="pip pip--9"></span>
+              <div class="dice-scene">
+                <div class="dice-cube" aria-hidden="true">
+                  <div class="dice-face dice-face--1">
+                    <div class="dice-face-grid">
+                      <span class="pip pip--1"></span>
+                      <span class="pip pip--2"></span>
+                      <span class="pip pip--3"></span>
+                      <span class="pip pip--4"></span>
+                      <span class="pip pip--5"></span>
+                      <span class="pip pip--6"></span>
+                      <span class="pip pip--7"></span>
+                      <span class="pip pip--8"></span>
+                      <span class="pip pip--9"></span>
+                    </div>
+                  </div>
+                  <div class="dice-face dice-face--2">
+                    <div class="dice-face-grid">
+                      <span class="pip pip--1"></span>
+                      <span class="pip pip--2"></span>
+                      <span class="pip pip--3"></span>
+                      <span class="pip pip--4"></span>
+                      <span class="pip pip--5"></span>
+                      <span class="pip pip--6"></span>
+                      <span class="pip pip--7"></span>
+                      <span class="pip pip--8"></span>
+                      <span class="pip pip--9"></span>
+                    </div>
+                  </div>
+                  <div class="dice-face dice-face--3">
+                    <div class="dice-face-grid">
+                      <span class="pip pip--1"></span>
+                      <span class="pip pip--2"></span>
+                      <span class="pip pip--3"></span>
+                      <span class="pip pip--4"></span>
+                      <span class="pip pip--5"></span>
+                      <span class="pip pip--6"></span>
+                      <span class="pip pip--7"></span>
+                      <span class="pip pip--8"></span>
+                      <span class="pip pip--9"></span>
+                    </div>
+                  </div>
+                  <div class="dice-face dice-face--4">
+                    <div class="dice-face-grid">
+                      <span class="pip pip--1"></span>
+                      <span class="pip pip--2"></span>
+                      <span class="pip pip--3"></span>
+                      <span class="pip pip--4"></span>
+                      <span class="pip pip--5"></span>
+                      <span class="pip pip--6"></span>
+                      <span class="pip pip--7"></span>
+                      <span class="pip pip--8"></span>
+                      <span class="pip pip--9"></span>
+                    </div>
+                  </div>
+                  <div class="dice-face dice-face--5">
+                    <div class="dice-face-grid">
+                      <span class="pip pip--1"></span>
+                      <span class="pip pip--2"></span>
+                      <span class="pip pip--3"></span>
+                      <span class="pip pip--4"></span>
+                      <span class="pip pip--5"></span>
+                      <span class="pip pip--6"></span>
+                      <span class="pip pip--7"></span>
+                      <span class="pip pip--8"></span>
+                      <span class="pip pip--9"></span>
+                    </div>
+                  </div>
+                  <div class="dice-face dice-face--6">
+                    <div class="dice-face-grid">
+                      <span class="pip pip--1"></span>
+                      <span class="pip pip--2"></span>
+                      <span class="pip pip--3"></span>
+                      <span class="pip pip--4"></span>
+                      <span class="pip pip--5"></span>
+                      <span class="pip pip--6"></span>
+                      <span class="pip pip--7"></span>
+                      <span class="pip pip--8"></span>
+                      <span class="pip pip--9"></span>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
             <p class="turn-popup__dice-hint" id="turnDiceHint">Ready to roll!</p>
@@ -176,7 +367,7 @@
       <div class="win-card" role="dialog" aria-modal="true" aria-labelledby="winTitle">
         <h2 id="winTitle" class="win-title">We have a winner!</h2>
         <p class="win-name" id="winName">Player 1</p>
-        <p class="win-sub">reached the rainbow square 50 first!</p>
+        <p class="win-sub" id="winSub">reached the finish first!</p>
         <div class="win-actions">
           <button type="button" class="btn btn--primary" id="btnPlayAgain">Play again</button>
           <a class="btn btn--ghost" href="../index.html">All games</a>
@@ -184,6 +375,7 @@
       </div>
     </div>
   </div>
+  <script src="../js/kids-core.js"></script>
   <script src="snakes-ladders.js"></script>
 </body>
 </html>

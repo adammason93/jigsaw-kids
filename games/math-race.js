@@ -3,8 +3,17 @@
  * Answers: multiple choice (4 options).
  */
 (function () {
-  const STEPS = 10;
+  var gameSteps = 10;
   const CHOICE_COUNT = 4;
+  var pictureHelp = false;
+  var wrongAttempts = 0;
+
+  const softWrong = [
+    "Almost! Try another number.",
+    "Good try — pick a different answer!",
+    "Not that one — have another go!",
+    "You can do it — try another!",
+  ];
   const LEVEL_LABELS = ["Step 1 — numbers up to 5 (adding)", "Step 2 — up to 10 (adding & taking away)", "Step 3 — up to 20 (adding & taking away)"];
 
   const CHAR_EMOJI = {
@@ -16,6 +25,7 @@
     babyca: "images/character-babyca.png",
     coolegg: "images/character-baby-coolegg.png",
     girlblonde: "images/character-girl-blonde.png",
+    kelly: "images/character-kelly.png",
   };
 
   const praise = ["Nice one!", "You got it!", "That’s right!", "Super!", "Brilliant!", "Yes!"];
@@ -148,7 +158,7 @@
     if (!raceStage) {
       return;
     }
-    const pct = 2 + (position / STEPS) * 86;
+    const pct = 2 + (position / gameSteps) * 86;
     raceStage.style.setProperty("--runner-left", pct + "%");
   }
 
@@ -157,7 +167,7 @@
       return;
     }
     raceSteps.innerHTML = "";
-    for (let i = 1; i <= STEPS; i++) {
+    for (let i = 1; i <= gameSteps; i++) {
       const d = document.createElement("div");
       d.className = "race-step-dot";
       d.dataset.step = String(i);
@@ -195,11 +205,12 @@
     setRunnerCharacter();
     if (playProgress) {
       if (position === 0) {
-        playProgress.textContent = "On the start line — reach the finish in " + STEPS + " right answers!";
-      } else if (position >= STEPS) {
+        playProgress.textContent =
+          "On the start line — reach the finish in " + gameSteps + " right answers!";
+      } else if (position >= gameSteps) {
         playProgress.textContent = "You reached the finish line!";
       } else {
-        playProgress.textContent = "Step " + position + " of " + STEPS + " — keep going!";
+        playProgress.textContent = "Step " + position + " of " + gameSteps + " — keep going!";
       }
     }
     document.querySelectorAll(".race-step-dot").forEach(function (el) {
@@ -258,12 +269,74 @@
     }, 0);
   }
 
+  function enrichForDots(p) {
+    p.showDots = false;
+    p.isSub = false;
+    p.dA = 0;
+    p.dB = 0;
+    const add = p.text.match(/^(\d+)\s*\+\s*(\d+)\s*=\s*\?/);
+    const sub = p.text.match(/^(\d+)\s*[\u2212-]\s*(\d+)\s*=\s*\?/);
+    if (pictureHelp && add) {
+      p.dA = Number(add[1]);
+      p.dB = Number(add[2]);
+      p.showDots = p.dA <= 10 && p.dB <= 10;
+    }
+    if (pictureHelp && sub) {
+      p.dA = Number(sub[1]);
+      p.dB = Number(sub[2]);
+      p.isSub = true;
+      p.showDots = p.dA <= 12;
+    }
+    return p;
+  }
+
+  function renderQuestionDots() {
+    const el = document.getElementById("questionDots");
+    if (!el) {
+      return;
+    }
+    if (!current || !current.showDots) {
+      el.hidden = true;
+      el.setAttribute("aria-hidden", "true");
+      el.innerHTML = "";
+      return;
+    }
+    el.hidden = false;
+    el.setAttribute("aria-hidden", "true");
+    el.innerHTML = "";
+    function row(n, cls) {
+      const r = document.createElement("div");
+      r.className = "question-dots__row";
+      for (let i = 0; i < n; i++) {
+        const d = document.createElement("span");
+        d.className = "question-dot " + cls;
+        r.appendChild(d);
+      }
+      return r;
+    }
+    if (current.isSub) {
+      el.appendChild(row(current.dA, "question-dot--a"));
+      const h = document.createElement("p");
+      h.className = "question-dots__hint";
+      h.textContent = "Take away " + current.dB + " (count down in your head!)";
+      el.appendChild(h);
+    } else {
+      el.appendChild(row(current.dA, "question-dot--a"));
+      el.appendChild(row(current.dB, "question-dot--b"));
+    }
+  }
+
   function nextQuestion() {
-    current = makeProblem();
+    wrongAttempts = 0;
+    current = enrichForDots(makeProblem());
     questionText.textContent = current.text;
     feedbackText.textContent = "";
     feedbackText.className = "feedback";
+    renderQuestionDots();
     renderChoices();
+    if (typeof KidsCore !== "undefined" && KidsCore.isReadAloudOn()) {
+      KidsCore.speak(current.text.replace(/\?/g, "").replace(/=/g, "equals"));
+    }
   }
 
   function selectedLevel() {
@@ -271,8 +344,16 @@
     return r ? Number(r.value) : 0;
   }
 
+  function selectedPathSteps() {
+    const r = document.querySelector('input[name="pathLen"]:checked');
+    return r ? Number(r.value) : 10;
+  }
+
   function startGame() {
     level = selectedLevel();
+    gameSteps = selectedPathSteps();
+    const ph = document.getElementById("pictureHelp");
+    pictureHelp = !!(ph && ph.checked);
     position = 0;
     playLevelLabel.textContent = LEVEL_LABELS[level] || LEVEL_LABELS[0];
     showScreen("play");
@@ -286,20 +367,48 @@
       return;
     }
     if (num === current.answer) {
+      if (typeof KidsCore !== "undefined") {
+        KidsCore.playSound("ok");
+        KidsCore.haptic("success");
+      }
       feedbackText.textContent = praise[Math.floor(Math.random() * praise.length)];
       feedbackText.className = "feedback feedback--good";
       position += 1;
       playRunnerHop();
-      if (position >= STEPS) {
+      if (position >= gameSteps) {
         updateRaceVisual();
-        winMessage.textContent = "You got " + STEPS + " questions right and made it to the end. What a star!";
+        let streak = 1;
+        try {
+          streak = Number(sessionStorage.getItem("mathWinStreak") || 0) + 1;
+          sessionStorage.setItem("mathWinStreak", String(streak));
+        } catch (e) {}
+        winMessage.textContent =
+          "You got " +
+          gameSteps +
+          " questions right and made it to the end. What a star! Win streak this visit: " +
+          streak +
+          ".";
+        if (typeof KidsCore !== "undefined") {
+          KidsCore.recordGame("math");
+          KidsCore.confetti(document.getElementById("screenWin") || document.body);
+          KidsCore.playSound("win");
+          KidsCore.haptic("success");
+        }
         showScreen("win");
         return;
       }
       updateRaceVisual();
       nextQuestion();
     } else {
-      feedbackText.textContent = "Not quite — try another answer!";
+      wrongAttempts += 1;
+      if (typeof KidsCore !== "undefined") {
+        KidsCore.playSound("no");
+        KidsCore.haptic("light");
+      }
+      feedbackText.textContent =
+        wrongAttempts === 1
+          ? softWrong[Math.floor(Math.random() * softWrong.length)]
+          : "Not quite — try another answer!";
       feedbackText.className = "feedback feedback--bad";
       const card = document.querySelector(".question-card");
       if (card) {
@@ -348,4 +457,9 @@
       submitChoice(choiceOrder[idx]);
     }
   });
+
+  if (typeof KidsCore !== "undefined") {
+    KidsCore.init();
+    KidsCore.bindTapSound(document.getElementById("app"));
+  }
 })();

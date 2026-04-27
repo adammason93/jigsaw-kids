@@ -1,16 +1,19 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en-GB">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#2d8cba" />
   <title>Picture jigsaw — Kids Game Room</title>
+  <link rel="manifest" href="../manifest.json" />
+  <link rel="stylesheet" href="../js/kids-core.css" />
   <link rel="stylesheet" href="../jigsaw.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Sniglet:wght@400;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Sniglet:wght@400;800&display=swap" rel="stylesheet" />
 </head>
 <body>
-  <div class="app">
+  <div class="app" id="app">
     <nav class="game-nav" aria-label="Breadcrumb">
       <a class="back-link" href="../index.html">← All games</a>
     </nav>
@@ -54,6 +57,12 @@
       </div>
     </div>
   </div>
+  <script src="../js/kids-core.js" defer></script>
   <script src="../jigsaw.js" defer></script>
+  <script>
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("../sw.js").catch(function () {});
+    }
+  </script>
 </body>
 </html>

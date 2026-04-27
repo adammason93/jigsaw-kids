@@ -1398,7 +1398,7 @@
             ctx.fill();
           }
           ctx.fillStyle = "rgba(100, 20, 20, 0.35)";
-          ctx.font = "800 11px Sniglet, system-ui, sans-serif";
+          ctx.font = "800 11px Nunito, system-ui, sans-serif";
           ctx.textAlign = "center";
           ctx.fillText("jump", b.x + b.w / 2, b.y + 30);
           ctx.textAlign = "left";
@@ -1441,7 +1441,7 @@
           ctx.lineTo(b.x + b.w - 6, b.y + 28);
           ctx.stroke();
           ctx.fillStyle = "rgba(40, 25, 15, 0.4)";
-          ctx.font = "800 12px Sniglet, system-ui, sans-serif";
+          ctx.font = "800 12px Nunito, system-ui, sans-serif";
           ctx.textAlign = "center";
           ctx.fillText("jump", b.x + b.w / 2, b.y + 32);
           ctx.textAlign = "left";
@@ -1464,7 +1464,7 @@
             ctx.stroke();
           }
           ctx.fillStyle = "#0f1f0a";
-          ctx.font = "800 14px Sniglet, system-ui, sans-serif";
+          ctx.font = "800 14px Nunito, system-ui, sans-serif";
           ctx.textAlign = "center";
           ctx.fillText("jump", b.x + b.w / 2, b.y + 32);
           ctx.textAlign = "left";
@@ -1490,7 +1490,7 @@
             ctx.fill();
           }
           ctx.fillStyle = "rgba(40, 30, 25, 0.9)";
-          ctx.font = "800 12px Sniglet, system-ui, sans-serif";
+          ctx.font = "800 12px Nunito, system-ui, sans-serif";
           ctx.textAlign = "center";
           ctx.fillText("duck", b.x + b.w / 2, archY + 28);
           ctx.textAlign = "left";
@@ -1518,7 +1518,7 @@
             ctx.stroke();
           }
           ctx.fillStyle = "rgba(20, 40, 60, 0.85)";
-          ctx.font = "800 12px Sniglet, system-ui, sans-serif";
+          ctx.font = "800 12px Nunito, system-ui, sans-serif";
           ctx.textAlign = "center";
           ctx.fillText("duck", b.x + b.w / 2, archY + 30);
           ctx.textAlign = "left";
@@ -1533,7 +1533,7 @@
             ctx.fill();
           }
           ctx.fillStyle = "#0a0f05";
-          ctx.font = "800 12px Sniglet, system-ui, sans-serif";
+          ctx.font = "800 12px Nunito, system-ui, sans-serif";
           ctx.textAlign = "center";
           ctx.fillText("duck", b.x + b.w / 2, b.y + 23);
           ctx.textAlign = "left";

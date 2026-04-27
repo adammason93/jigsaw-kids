@@ -1,0 +1,202 @@
+/**
+ * iPad & touch: safe areas, ~48px tap targets, layout breathing room.
+ * Loaded after each page’s main stylesheet. Body uses a page-* class.
+ */
+
+:root {
+  --touch-min: 48px;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  padding-top: max(0.5rem, env(safe-area-inset-top, 0px));
+  padding-right: max(0.5rem, env(safe-area-inset-right, 0px));
+  padding-bottom: max(0.5rem, env(safe-area-inset-bottom, 0px));
+  padding-left: max(0.5rem, env(safe-area-inset-left, 0px));
+}
+
+.portal,
+.page-snakes .app,
+.page-math .app,
+.page-jigsaw .app,
+.page-runner .app {
+  box-sizing: border-box;
+}
+
+button,
+a.game-card,
+.btn,
+.btn-primary,
+.btn-secondary,
+.btn-text,
+.char-btn,
+.mc-btn,
+.radio-tile,
+.snake-quiz__btn,
+.icon-pick__opt,
+.back-link,
+.turn-popup__btn,
+.og-btn {
+  touch-action: manipulation;
+}
+
+/* Touch-first: larger hit areas (iPad, phones) */
+@media (hover: none), (pointer: coarse) {
+  .btn,
+  .btn-primary,
+  .btn-secondary,
+  .btn-text,
+  #btnWelcomeOk,
+  #btnStart,
+  #btnRoll,
+  #btnPlayAgain,
+  .turn-popup__btn,
+  .snake-quiz__btn,
+  .btn--roll,
+  .btn--primary,
+  .btn--ghost,
+  .og-btn {
+    min-height: var(--touch-min);
+  }
+
+  .char-btn {
+    min-width: var(--touch-min);
+    min-height: var(--touch-min);
+  }
+
+  .snake-quiz__btn {
+    min-height: 52px;
+    padding: 0.75rem 0.55rem;
+  }
+
+  .mc-btn {
+    min-height: 52px;
+  }
+
+  .radio-tile {
+    min-height: 92px;
+    padding: 0.85rem 1rem;
+  }
+
+  .page-portal .game-card {
+    min-height: 200px;
+    padding: 1.5rem 1.35rem;
+  }
+}
+
+/* ——— Hub ——— */
+@media (min-width: 768px) {
+  .page-portal .portal {
+    max-width: 920px;
+    padding-left: max(1.25rem, env(safe-area-inset-left, 0px));
+    padding-right: max(1.25rem, env(safe-area-inset-right, 0px));
+  }
+
+  .page-portal .portal-hero p {
+    font-size: 1.15rem;
+  }
+
+  .page-portal .game-grid {
+    gap: 1.5rem;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  }
+}
+
+/* ——— Snakes & Ladders ——— */
+@media (min-width: 768px) {
+  .page-snakes .app {
+    max-width: 1100px;
+    padding-left: max(0.75rem, env(safe-area-inset-left, 0px));
+    padding-right: max(0.75rem, env(safe-area-inset-right, 0px));
+  }
+
+  .page-snakes .board-wrap {
+    max-width: min(92vw, 780px);
+  }
+
+  .page-snakes .hud {
+    padding: 1.35rem 1.5rem;
+  }
+
+  .page-snakes .hud__title {
+    font-size: 1.22rem;
+  }
+
+  .page-snakes .player-list li {
+    font-size: 1.05rem;
+    padding: 0.55rem 0;
+  }
+
+  .page-snakes .turn-popup__dice {
+    width: 132px;
+    height: 132px;
+  }
+
+  .page-snakes .turn-popup__panel {
+    max-width: 440px;
+    padding: 1.4rem 1.5rem 1.55rem;
+  }
+
+  .page-snakes .welcome-popup__panel {
+    max-width: 440px;
+    padding: 1.5rem 1.45rem 1.6rem;
+  }
+}
+
+@media (min-width: 900px) {
+  .page-snakes .game-layout {
+    grid-template-columns: 1fr minmax(300px, 330px);
+    gap: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .page-snakes .board-wrap {
+    max-width: min(88vw, 860px);
+  }
+}
+
+/* ——— Number path ——— */
+@media (min-width: 768px) {
+  .page-math .app {
+    max-width: 560px;
+  }
+
+  .page-math.app--playing .app,
+  .page-math #app.app--playing {
+    max-width: 600px;
+  }
+
+  .page-math .question {
+    font-size: clamp(1.85rem, 4vw, 2.15rem);
+  }
+
+  .page-math .char-row {
+    gap: 0.75rem;
+  }
+}
+
+/* ——— Picture jigsaw ——— */
+@media (min-width: 768px) {
+  .page-jigsaw .app {
+    max-width: 960px;
+    padding-left: max(0.75rem, env(safe-area-inset-left, 0px));
+    padding-right: max(0.75rem, env(safe-area-inset-right, 0px));
+  }
+}
+
+/* ——— Runner ——— */
+@media (min-width: 768px) {
+  .page-runner .app {
+    max-width: 720px;
+    padding-left: max(0.75rem, env(safe-area-inset-left, 0px));
+    padding-right: max(0.75rem, env(safe-area-inset-right, 0px));
+  }
+
+  .page-runner .mc-btn {
+    min-height: 56px;
+  }
+}

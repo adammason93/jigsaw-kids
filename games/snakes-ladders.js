@@ -4,58 +4,118 @@
 (function () {
   "use strict";
 
-  const FINISH = 50;
-  const COLS = 10;
-  const ROWS = 5;
+  const BOARD_PRESETS = {
+    full: {
+      finish: 50,
+      cols: 10,
+      rows: 5,
+      ladders: [
+        [1, 19],
+        [2, 12],
+        [4, 18],
+        [6, 20],
+        [9, 26],
+        [11, 32],
+        [15, 30],
+        [22, 40],
+        [28, 45],
+        [35, 48],
+      ],
+      snakes: [
+        [47, 20],
+        [42, 8],
+        [38, 5],
+        [33, 7],
+        [29, 2],
+        [24, 1],
+        [21, 2],
+        [44, 15],
+        [36, 9],
+        [49, 28],
+      ],
+    },
+    quick: {
+      finish: 25,
+      cols: 5,
+      rows: 5,
+      ladders: [
+        [1, 8],
+        [2, 12],
+        [3, 15],
+        [4, 20],
+        [5, 10],
+        [6, 18],
+        [9, 22],
+        [11, 24],
+      ],
+      snakes: [
+        [24, 4],
+        [22, 2],
+        [20, 1],
+        [18, 5],
+        [16, 3],
+        [14, 6],
+        [19, 1],
+        [13, 2],
+        [10, 1],
+        [7, 1],
+      ],
+    },
+  };
 
-  const LADDERS = new Map([
-    [1, 19],
-    [2, 12],
-    [4, 18],
-    [6, 20],
-    [9, 26],
-    [11, 32],
-    [15, 30],
-    [22, 40],
-    [28, 45],
-    [35, 48],
-  ]);
-  const SNAKES = new Map([
-    [47, 20],
-    [42, 8],
-    [38, 5],
-    [33, 7],
-    [29, 2],
-    [24, 1],
-    [21, 2],
-    [44, 15],
-    [36, 9],
-    [49, 28],
-  ]);
+  var board;
+  var JUMPS = new Map();
 
-  const JUMPS = new Map();
-  LADDERS.forEach((to, from) => JUMPS.set(from, to));
-  SNAKES.forEach((to, from) => JUMPS.set(from, to));
+  function setBoardPreset(name) {
+    const p = BOARD_PRESETS[name] || BOARD_PRESETS.full;
+    board = {
+      finish: p.finish,
+      cols: p.cols,
+      rows: p.rows,
+      ladders: new Map(p.ladders),
+      snakes: new Map(p.snakes),
+    };
+    JUMPS = new Map();
+    board.ladders.forEach(function (to, from) {
+      JUMPS.set(from, to);
+    });
+    board.snakes.forEach(function (to, from) {
+      JUMPS.set(from, to);
+    });
+  }
 
-  const PLAYER_RING = ["#e11d48", "#2563eb", "#16a34a", "#ca8a04"];
+  setBoardPreset("full");
+
+  const PLAYER_RING = ["#e11d48", "#2563eb", "#16a34a", "#ca8a04", "#db2777"];
 
   /** Image tokens use value prefix + path under games/ (HTML is in games/) */
   const IMG_PREFIX = "__img:";
   const CHARACTER_OPTIONS = [
     {
       v: IMG_PREFIX + "images/character-babyca.png",
-      label: "Dolly (ragdoll girl)",
+      label: "Baby",
     },
     { v: "🐶", label: "Dog" },
     {
       v: IMG_PREFIX + "images/character-baby-coolegg.png",
-      label: "Cool Egg baby",
+      label: "Isaac",
     },
     {
       v: IMG_PREFIX + "images/character-girl-blonde.png",
-      label: "Sofia (blonde girl)",
+      label: "Sofia",
+    },
+    {
+      v: IMG_PREFIX + "images/character-kelly.png",
+      label: "Kelly (Mummy)",
     },
   ];
+
+  function characterLabelForValue(v) {
+    const opt = CHARACTER_OPTIONS.find(function (o) {
+      return o.v === v;
+    });
+    return opt ? opt.label : "";
+  }
 
   function isImageIcon(icon) {
     return typeof icon === "string" && icon.indexOf(IMG_PREFIX) === 0;
@@ -108,6 +168,7 @@
   const dice = document.getElementById("dice");
   const diceHint = document.getElementById("diceHint");
   const winName = document.getElementById("winName");
+  const winSub = document.getElementById("winSub");
   const boardWrap = document.getElementById("boardWrap");
   const turnPopup = document.getElementById("turnPopup");
   const turnPopupTitle = document.getElementById("turnPopupTitle");
@@ -132,8 +193,64 @@
   const snakeQuizBackdrop = snakeQuiz
     ? snakeQuiz.querySelector(".snake-quiz__backdrop")
     : null;
+  const welcomePopup = document.getElementById("welcomePopup");
+  const btnWelcomeOk = document.getElementById("btnWelcomeOk");
+  const welcomeBackdrop = welcomePopup
+    ? welcomePopup.querySelector(".welcome-popup__backdrop")
+    : null;
+  const WELCOME_SESSION_KEY = "jigsawKidsSnakesWelcome";
 
   let jumpTimeoutId = 0;
+  /** True while the board path-walk (zoom + steps) is playing */
+  let walkAnimActive = false;
+  let walkAnimPlayerIndex = 0;
+
+  function dismissWelcomePopup() {
+    if (!welcomePopup) {
+      return;
+    }
+    welcomePopup.classList.add("welcome-popup--hidden");
+    welcomePopup.setAttribute("aria-hidden", "true");
+    try {
+      sessionStorage.setItem(WELCOME_SESSION_KEY, "1");
+    } catch (e) {
+      /* private mode */
+    }
+    const back = document.querySelector(".back-link");
+    if (back) {
+      back.focus();
+    }
+  }
+
+  function showWelcomePopupIfFirstVisit() {
+    if (!welcomePopup) {
+      return;
+    }
+    try {
+      if (sessionStorage.getItem(WELCOME_SESSION_KEY)) {
+        return;
+      }
+    } catch (e) {
+      /* show once */
+    }
+    welcomePopup.classList.remove("welcome-popup--hidden");
+    welcomePopup.setAttribute("aria-hidden", "false");
+    if (btnWelcomeOk) {
+      setTimeout(function () {
+        btnWelcomeOk.focus();
+      }, 100);
+    }
+  }
+
+  function onWelcomeKey(e) {
+    if (!welcomePopup || welcomePopup.classList.contains("welcome-popup--hidden")) {
+      return;
+    }
+    if (e.key === "Escape") {
+      e.preventDefault();
+      dismissWelcomePopup();
+    }
+  }
   function showJumpPopup(opts, onDone) {
     if (!jumpPopup || !jumpPopupMover || !jumpPopupAvatar) {
       onDone();
@@ -188,6 +305,12 @@
     if (jumpPopupMeta) {
       jumpPopupMeta.textContent = p.name + " — square " + from + " to " + to + ".";
     }
+    jumpPopupAvatar.className = "jump-popup__avatar";
+    if (isImageIcon(p.icon)) {
+      jumpPopupAvatar.classList.add("jump-popup__avatar--full");
+    } else {
+      jumpPopupAvatar.classList.add("jump-popup__avatar--emoji");
+    }
     setPlayerIconOn(
       jumpPopupAvatar,
       p.icon,
@@ -201,7 +324,8 @@
     if (jumpPopupBackdrop) {
       jumpPopupBackdrop.addEventListener("click", onSkip);
     }
-    jumpTimeoutId = setTimeout(done, 1600);
+    /* Match CSS animation length + short beat so motion finishes before close */
+    jumpTimeoutId = setTimeout(done, 2500);
   }
 
   let state = {
@@ -217,18 +341,85 @@
   var pendingRoll = 0;
 
   function cellNumber(visualRow, col) {
-    const bottomRow = ROWS - 1 - visualRow;
+    const bottomRow = board.rows - 1 - visualRow;
     if (bottomRow % 2 === 0) {
-      return 1 + bottomRow * COLS + col;
+      return 1 + bottomRow * board.cols + col;
     }
-    return 1 + bottomRow * COLS + (COLS - 1 - col);
+    return 1 + bottomRow * board.cols + (board.cols - 1 - col);
   }
 
   function applyBounce(pos, roll) {
-    if (pos === 0) return Math.min(roll, FINISH);
+    if (pos === 0) return Math.min(roll, board.finish);
     let n = pos + roll;
-    if (n > FINISH) n = FINISH - (n - FINISH);
+    if (n > board.finish) n = board.finish - (n - board.finish);
     return n;
+  }
+
+  /**
+   * Die value (1–6) that would land exactly on board.finish, or null if not reachable in one roll.
+   */
+  function dieNeededToFinish(pos) {
+    if (pos < 1 || pos >= board.finish) {
+      return null;
+    }
+    const d = board.finish - pos;
+    if (d >= 1 && d <= 6) {
+      return d;
+    }
+    return null;
+  }
+
+  function openTurnModalFinishCopy(turnPopupSub, turnDiceHint, pos) {
+    const need = dieNeededToFinish(pos);
+    if (turnPopupSub) {
+      if (need !== null) {
+        let detail =
+          "To win, land exactly on square " +
+          board.finish +
+          ". You’re on " +
+          pos +
+          ", so you need to roll a " +
+          need +
+          ".";
+        if (need < 6) {
+          detail +=
+            " If you roll a " +
+            (need + 1) +
+            " or more, you go past 50 and bounce back toward the start!";
+        } else {
+          detail += " A roll of 1–5 doesn’t get you to 50 in one go; only a 6 will do from here.";
+        }
+        turnPopupSub.textContent = detail;
+      } else if (pos >= 1 && pos < board.finish) {
+        const dist = board.finish - pos;
+        if (dist > 6) {
+          turnPopupSub.textContent =
+            "Roll the die, then move. You’re " +
+            dist +
+            " squares from " +
+            board.finish +
+            " — get within 6 of " +
+            board.finish +
+            " to have a one-roll shot at winning. You must land exactly on " +
+            board.finish +
+            " to win.";
+        } else {
+          turnPopupSub.textContent =
+            "Roll the 3D die, then use the button to move along the path.";
+        }
+      } else {
+        turnPopupSub.textContent =
+          "Roll the 3D die, then use the button to move along the path.";
+      }
+    }
+    if (turnDiceHint) {
+      if (need !== null) {
+        turnDiceHint.textContent =
+          "Aim for a " + need + " to land on " + board.finish + "!";
+      } else {
+        turnDiceHint.textContent = "Ready to roll!";
+      }
+    }
   }
 
   function applyJumps(n) {
@@ -242,7 +433,7 @@
   }
 
   /**
-   * One square per pip: from 0, walk 1..min(roll, FINISH); on board, add with bounce.
+   * One square per pip: from 0, walk 1..min(roll, board.finish); on board, add with bounce.
    * @returns {number[]}
    */
   function computeStepPath(from, roll) {
@@ -250,7 +441,7 @@
       return [];
     }
     if (from === 0) {
-      const end = Math.min(roll, FINISH);
+      const end = Math.min(roll, board.finish);
       return Array.from({ length: end }, function (_, i) {
         return i + 1;
       });
@@ -259,8 +450,8 @@
     let pos = from;
     for (let s = 0; s < roll; s++) {
       pos = pos + 1;
-      if (pos > FINISH) {
-        pos = FINISH - (pos - FINISH);
+      if (pos > board.finish) {
+        pos = board.finish - (pos - board.finish);
       }
       out.push(pos);
     }
@@ -268,7 +459,7 @@
   }
 
   function setBoardZoomToSquare(n) {
-    if (!boardWrap || n < 1 || n > FINISH) {
+    if (!boardWrap || n < 1 || n > board.finish) {
       return;
     }
     const cell = boardGrid && boardGrid.querySelector('.board-cell[data-n="' + n + '"]');
@@ -287,7 +478,7 @@
     if (!boardWrap) {
       return;
     }
-    boardWrap.classList.remove("board-wrap--zoomed");
+    boardWrap.classList.remove("board-wrap--zoomed", "board-wrap--walk-active");
     boardWrap.style.removeProperty("transform-origin");
   }
 
@@ -302,16 +493,13 @@
     if (turnPopupTitle) {
       turnPopupTitle.textContent = cur.name + "’s go!";
     }
-    if (turnPopupSub) {
-      turnPopupSub.textContent =
-        "Roll the 3D die, then use the button to move along the path.";
-    }
+    openTurnModalFinishCopy(turnPopupSub, turnDiceHint, cur.pos);
     if (turnPlayerAvatar) {
       setPlayerIconOn(turnPlayerAvatar, cur.icon, PLAYER_RING[idx % PLAYER_RING.length]);
     }
     setDiceFace(1);
-    if (turnDiceHint) {
-      turnDiceHint.textContent = "Ready to roll!";
+    if (dice) {
+      dice.classList.remove("dice--rolling", "dice--spin");
     }
     if (turnPopupDice) {
       turnPopupDice.classList.remove("dice--rolling", "dice--spin");
@@ -381,8 +569,8 @@
     if (!boardGrid || !tokenLayer) return;
     boardGrid.textContent = "";
     tokenLayer.textContent = "";
-    for (let r = 0; r < ROWS; r++) {
-      for (let c = 0; c < COLS; c++) {
+    for (let r = 0; r < board.rows; r++) {
+      for (let c = 0; c < board.cols; c++) {
         const n = cellNumber(r, c);
         const cell = document.createElement("div");
         const tone = (r + c) % 5;
@@ -391,25 +579,25 @@
         if (n === 1) {
           cell.classList.add("board-cell--start");
         }
-        if (n === FINISH) {
+        if (n === board.finish) {
           cell.classList.add("board-cell--finish");
         }
-        if (LADDERS.has(n) && n > 1 && n !== FINISH) {
+        if (board.ladders.has(n) && n > 1 && n !== board.finish) {
           cell.classList.add("board-cell--ladder");
         }
-        if (SNAKES.has(n) && n !== FINISH) {
+        if (board.snakes.has(n) && n !== board.finish) {
           cell.classList.add("board-cell--snake");
         }
         const num = document.createElement("span");
         num.className = "board-cell__n";
         num.textContent = n;
         cell.appendChild(num);
-        if (LADDERS.has(n) || SNAKES.has(n)) {
+        if (board.ladders.has(n) || board.snakes.has(n)) {
           cell.classList.add("board-cell--has-jump");
           const row = document.createElement("div");
           row.className = "board-cell__row";
-          if (LADDERS.has(n)) {
-            const dest = LADDERS.get(n);
+          if (board.ladders.has(n)) {
+            const dest = board.ladders.get(n);
             const m = document.createElement("span");
             m.className = "board-cell__mark";
             m.textContent = "🪜";
@@ -422,7 +610,7 @@
             row.appendChild(m);
             row.appendChild(to);
           } else {
-            const dest = SNAKES.get(n);
+            const dest = board.snakes.get(n);
             const m = document.createElement("span");
             m.className = "board-cell__mark";
             m.textContent = "🐍";
@@ -448,6 +636,10 @@
         tokenLayer.appendChild(slot);
       }
     }
+    boardGrid.style.gridTemplateColumns = "repeat(" + board.cols + ", 1fr)";
+    boardGrid.style.gridTemplateRows = "repeat(" + board.rows + ", 1fr)";
+    tokenLayer.style.gridTemplateColumns = "repeat(" + board.cols + ", 1fr)";
+    tokenLayer.style.gridTemplateRows = "repeat(" + board.rows + ", 1fr)";
     scheduleDrawConnections();
   }
 
@@ -455,6 +647,9 @@
     if (!tokenLayer || !startStrip) return;
     tokenLayer.querySelectorAll(".token").forEach(function (e) {
       e.remove();
+    });
+    tokenLayer.querySelectorAll(".token-slot--walker").forEach(function (s) {
+      s.classList.remove("token-slot--walker");
     });
     startStrip.textContent = "";
     state.players.forEach(function (p, i) {
@@ -478,6 +673,17 @@
       const t = document.createElement("span");
       t.className = "token";
       if (isImageIcon(p.icon)) t.classList.add("token--photo");
+      const showWalk =
+        walkAnimActive && i === walkAnimPlayerIndex && p.pos >= 1;
+      if (showWalk) {
+        t.classList.add("token--walking");
+        if (isImageIcon(p.icon)) {
+          t.classList.add("token--walking--pic");
+        } else {
+          t.classList.add("token--walking--emoji");
+        }
+        cell.classList.add("token-slot--walker");
+      }
       t.title = p.name;
       setPlayerIconOn(t, p.icon, PLAYER_RING[i % PLAYER_RING.length]);
       cell.appendChild(t);
@@ -500,7 +706,7 @@
       if (i === state.current && !state.won) label.className = "on-turn";
       let posText;
       if (p.pos < 1) posText = "At the start line";
-      else if (p.pos === FINISH) posText = FINISH + " — you did it!";
+      else if (p.pos === board.finish) posText = board.finish + " — you did it!";
       else posText = "Square " + p.pos;
       label.textContent = p.name + " — " + posText;
       li.appendChild(label);
@@ -530,9 +736,28 @@
         turnModalPhase === "closed"
       ) {
         turnReadyHint.hidden = false;
-        turnReadyHint.textContent =
+        let ready =
           cur.name +
           " — take a look at the board, then tap the button when you’re ready to roll in the pop-up.";
+        const needB = dieNeededToFinish(cur.pos);
+        if (needB !== null) {
+          if (needB < 6) {
+            ready +=
+              " To win, land on " +
+              board.finish +
+              " exactly — you need a " +
+              needB +
+              " (a " +
+              (needB + 1) +
+              " or more bounces you back).";
+          } else {
+            ready +=
+              " To win, land on " +
+              board.finish +
+              " exactly — only a 6 from this square gets you there in one roll.";
+          }
+        }
+        turnReadyHint.textContent = ready;
       } else {
         turnReadyHint.hidden = true;
       }
@@ -674,7 +899,7 @@
       input.id = "name" + i;
       input.className = "player-setup__name";
       input.type = "text";
-      input.placeholder = "Name (or leave blank)";
+      input.placeholder = "Optional";
       input.maxLength = 24;
       input.autocomplete = "off";
       input.setAttribute("aria-labelledby", "lblPlayer" + i);
@@ -708,12 +933,21 @@
         lab.appendChild(span);
         pick.appendChild(lab);
       });
+      input.value = characterLabelForValue(defaultV);
+      pick.addEventListener("change", function () {
+        const sel = document.querySelector(
+          'input[name="icon-' + i + '"]:checked'
+        );
+        if (sel) input.value = characterLabelForValue(sel.value);
+      });
       block.appendChild(pick);
       nameFields.appendChild(block);
     }
   }
 
   function startGame() {
+    const sz = document.querySelector('input[name="boardSize"]:checked');
+    setBoardPreset(sz && sz.value === "quick" ? "quick" : "full");
     const n = parseInt(
       document.querySelector('input[name="numPlayers"]:checked').value,
       10
@@ -721,9 +955,13 @@
     const players = [];
     for (let i = 0; i < n; i++) {
       const inp = document.getElementById("name" + i);
-      const raw = (inp && inp.value.trim()) || "Player " + (i + 1);
       const iconRadio = document.querySelector("input[name=\"icon-" + i + "\"]:checked");
       const icon = (iconRadio && iconRadio.value) || CHARACTER_OPTIONS[i % CHARACTER_OPTIONS.length].v;
+      const fromChar = characterLabelForValue(icon);
+      const raw =
+        (inp && inp.value.trim()) ||
+        fromChar ||
+        "Player " + (i + 1);
       players.push({ name: raw, pos: 0, icon: icon });
     }
     state = {
@@ -736,6 +974,9 @@
     turnModalPhase = "closed";
     pendingRoll = 0;
     closeTurnModal();
+    if (dice) {
+      dice.classList.remove("dice--rolling", "dice--spin");
+    }
     if (turnPopupDice) {
       turnPopupDice.classList.remove("dice--rolling", "dice--spin");
     }
@@ -764,43 +1005,72 @@
       return;
     }
     state.rolling = true;
+    if (typeof KidsCore !== "undefined") {
+      KidsCore.playSound("roll");
+      KidsCore.haptic("light");
+    }
     btnRoll.disabled = true;
     if (btnTurnRoll) {
       btnTurnRoll.disabled = true;
     }
     const dieEl = turnPopupDice || dice;
-    dieEl.classList.add("dice--rolling");
     const final = randomInt(1, 6);
-    let t = 0;
-    const tick = 45;
-    const id = setInterval(function () {
-      t += tick;
-      setDiceFace(randomInt(1, 6));
-      if (t >= 420) {
-        clearInterval(id);
-        dieEl.classList.remove("dice--rolling");
-        dieEl.classList.add("dice--spin");
-        setDiceFace(final);
-        if (turnDiceHint) {
-          turnDiceHint.textContent = "You rolled a " + final + "!";
+    const rollDurationMs = 500;
+    dieEl.classList.add("dice--rolling");
+    setTimeout(function () {
+      dieEl.classList.remove("dice--rolling");
+      setDiceFace(final);
+      dieEl.classList.add("dice--spin");
+      if (turnDiceHint) {
+        const pRoll = state.players[state.current];
+        const needR = dieNeededToFinish(pRoll.pos);
+        let line = "You rolled a " + final + "!";
+        if (needR !== null) {
+          if (final > needR) {
+            line =
+              "You rolled a " +
+              final +
+              " — you need a " +
+              needR +
+              " to land on " +
+              board.finish +
+              " from square " +
+              pRoll.pos +
+              ", so you’ll bounce off the end. Tap “Move” to go.";
+          } else if (final === needR) {
+            line =
+              "You rolled a " +
+              final +
+              " — that’s the exact number to land on " +
+              board.finish +
+              "! Tap “Move” to finish the steps.";
+          } else {
+            line =
+              "You rolled a " +
+              final +
+              ". You need a " +
+              needR +
+              " to win this turn, so you’ll get closer. Tap “Move” to go.";
+          }
         }
-        diceHint.textContent = "Rolled a " + final + "!";
-        setTimeout(function () {
-          dieEl.classList.remove("dice--spin");
-          pendingRoll = final;
-          turnModalPhase = "move";
-          if (btnTurnRoll) {
-            btnTurnRoll.hidden = true;
-          }
-          if (btnTurnMove) {
-            btnTurnMove.hidden = false;
-            btnTurnMove.textContent = "Move " + final + (final === 1 ? " space" : " spaces");
-            btnTurnMove.disabled = false;
-            btnTurnMove.focus();
-          }
-        }, 200);
+        turnDiceHint.textContent = line;
       }
-    }, tick);
+      diceHint.textContent = "Rolled a " + final + "!";
+      setTimeout(function () {
+        dieEl.classList.remove("dice--spin");
+        pendingRoll = final;
+        turnModalPhase = "move";
+        if (btnTurnRoll) {
+          btnTurnRoll.hidden = true;
+        }
+        if (btnTurnMove) {
+          btnTurnMove.hidden = false;
+          btnTurnMove.textContent = "Move " + final + (final === 1 ? " space" : " spaces");
+          btnTurnMove.disabled = false;
+          btnTurnMove.focus();
+        }
+      }, 460);
+    }, rollDurationMs);
   }
 
   function tryRoll() {
@@ -829,9 +1099,18 @@
     function resolveAndContinue(finalPos, snakeSaved) {
       p.pos = finalPos;
 
-      if (p.pos === FINISH) {
+      if (p.pos === board.finish) {
         state.won = true;
-        messageEl.textContent = p.name + " wins! Landed on " + FINISH + "!";
+        messageEl.textContent = p.name + " wins! Landed on " + board.finish + "!";
+        if (winSub) {
+          winSub.textContent = "You did it — first to the top!";
+        }
+        if (typeof KidsCore !== "undefined") {
+          KidsCore.recordGame("snakes");
+          KidsCore.confetti(screenWin || document.body);
+          KidsCore.playSound("win");
+          KidsCore.haptic("success");
+        }
         winName.textContent = "";
         if (isImageIcon(p.icon)) {
           const ic = document.createElement("span");
@@ -865,11 +1144,11 @@
         }
       } else if (before === 0) {
         msg = p.name + " hops onto square " + finalPos + " — let’s go!";
-      } else if (before < FINISH && before + roll > FINISH) {
+      } else if (before < board.finish && before + roll > board.finish) {
         msg =
           p.name +
           " almost passed " +
-          FINISH +
+          board.finish +
           ", bounced, and stopped on " +
           finalPos +
           ".";
@@ -930,7 +1209,7 @@
       }
     }
 
-    if (SNAKES.has(afterBounce)) {
+    if (board.snakes.has(afterBounce)) {
       showSnakeQuiz(function (passed) {
         if (passed) {
           resolveAndContinue(afterBounce, true);
@@ -965,6 +1244,12 @@
       return;
     }
 
+    walkAnimActive = true;
+    walkAnimPlayerIndex = state.current;
+    if (boardWrap) {
+      boardWrap.classList.add("board-wrap--walk-active");
+    }
+
     let stepIndex = 0;
     function walkStep() {
       p.pos = path[stepIndex];
@@ -980,6 +1265,7 @@
       stepIndex += 1;
       if (stepIndex >= path.length) {
         setTimeout(function () {
+          walkAnimActive = false;
           clearBoardZoom();
           p.pos = afterBounce;
           renderTokens();
@@ -1013,6 +1299,15 @@
   buildNameFields();
   setDiceFace(1);
 
+  if (btnWelcomeOk) {
+    btnWelcomeOk.addEventListener("click", dismissWelcomePopup);
+  }
+  if (welcomeBackdrop) {
+    welcomeBackdrop.addEventListener("click", dismissWelcomePopup);
+  }
+  document.addEventListener("keydown", onWelcomeKey);
+  showWelcomePopupIfFirstVisit();
+
   let _resizeTimer;
   window.addEventListener("resize", function () {
     clearTimeout(_resizeTimer);
@@ -1023,5 +1318,10 @@
       scheduleDrawConnections();
     });
     ro.observe(boardEl);
+  }
+
+  if (typeof KidsCore !== "undefined") {
+    KidsCore.init();
+    KidsCore.bindTapSound(document.getElementById("app"));
   }
 })();

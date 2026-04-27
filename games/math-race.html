@@ -1,13 +1,16 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en-GB">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#2d8cba" />
   <title>Number path — Kids Game Room</title>
+  <link rel="manifest" href="../manifest.json" />
+  <link rel="stylesheet" href="../js/kids-core.css" />
   <link rel="stylesheet" href="math-race.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Sniglet:wght@400;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Sniglet:wght@400;800&display=swap" rel="stylesheet" />
 </head>
 <body>
   <div class="app" id="app">
@@ -42,18 +45,48 @@
         </div>
       </section>
 
+      <section class="card" aria-labelledby="lblPath">
+        <h2 id="lblPath">How long is the path?</h2>
+        <div class="choice-row" role="group" aria-label="Number of steps to the finish">
+          <label class="radio-tile">
+            <input type="radio" name="pathLen" value="6" />
+            <span class="radio-tile__title">Short</span>
+            <span class="radio-tile__hint">6 steps</span>
+          </label>
+          <label class="radio-tile">
+            <input type="radio" name="pathLen" value="10" checked />
+            <span class="radio-tile__title">Medium</span>
+            <span class="radio-tile__hint">10 steps</span>
+          </label>
+          <label class="radio-tile">
+            <input type="radio" name="pathLen" value="15" />
+            <span class="radio-tile__title">Longer</span>
+            <span class="radio-tile__hint">15 steps</span>
+          </label>
+        </div>
+        <p class="card__hint">
+          <label class="checkbox-line">
+            <input type="checkbox" id="pictureHelp" />
+            <span>Picture help — show little dots for adding and taking away (up to 10/12)</span>
+          </label>
+        </p>
+      </section>
+
       <section class="card" aria-labelledby="lblChar">
         <h2 id="lblChar">Who is playing?</h2>
         <div class="char-row" role="group" aria-label="Character">
-          <button type="button" class="char-btn char-btn--pic" data-char="babyca" aria-pressed="true" title="Dolly" aria-label="Dolly, ragdoll girl">
+          <button type="button" class="char-btn char-btn--pic" data-char="babyca" aria-pressed="true" title="Baby" aria-label="Baby">
             <img class="char-btn__pic" src="images/character-babyca.png" alt="" width="44" height="44" loading="lazy" />
           </button>
           <button type="button" class="char-btn" data-char="dog" title="Dog" aria-label="Dog">🐶</button>
-          <button type="button" class="char-btn char-btn--pic" data-char="coolegg" aria-pressed="false" title="Cool Egg baby" aria-label="Cool Egg baby">
+          <button type="button" class="char-btn char-btn--pic" data-char="coolegg" aria-pressed="false" title="Isaac" aria-label="Isaac">
             <img class="char-btn__pic" src="images/character-baby-coolegg.png" alt="" width="44" height="44" loading="lazy" />
           </button>
-          <button type="button" class="char-btn char-btn--pic" data-char="girlblonde" aria-pressed="false" title="Sofia" aria-label="Sofia, blonde girl">
+          <button type="button" class="char-btn char-btn--pic" data-char="girlblonde" aria-pressed="false" title="Sofia" aria-label="Sofia">
             <img class="char-btn__pic" src="images/character-girl-blonde.png" alt="" width="44" height="44" loading="lazy" />
+          </button>
+          <button type="button" class="char-btn char-btn--pic" data-char="kelly" aria-pressed="false" title="Kelly (Mummy)" aria-label="Kelly, also known as Mummy">
+            <img class="char-btn__pic" src="images/character-kelly.png" alt="" width="44" height="44" loading="lazy" />
           </button>
         </div>
       </section>
@@ -99,6 +132,7 @@
 
       <div class="question-card">
         <p class="question" id="questionText" aria-live="polite">0 + 0 = ?</p>
+        <div id="questionDots" class="question-dots" hidden aria-hidden="true"></div>
         <p class="mc-hint" id="mcHint" aria-hidden="true">Tap an answer, or press 1–4 on the keyboard</p>
         <div class="mc-grid" id="choiceGrid" role="group" aria-label="Answer choices"></div>
         <p class="feedback" id="feedbackText" role="status" aria-live="assertive"></p>
@@ -117,6 +151,12 @@
       </div>
     </div>
   </div>
+  <script src="../js/kids-core.js" defer></script>
   <script src="math-race.js" defer></script>
+  <script>
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("../sw.js").catch(function () {});
+    }
+  </script>
 </body>
 </html>

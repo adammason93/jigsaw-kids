@@ -228,7 +228,14 @@ function checkWin() {
   const need = n * n;
   if (placed.size === need) {
     setStatus("You did it! Great job!", "win");
-    confettiLight();
+    if (typeof KidsCore !== "undefined") {
+      KidsCore.recordGame("jigsaw");
+      KidsCore.confetti(document.querySelector(".play-area") || document.body);
+      KidsCore.playSound("win");
+      KidsCore.haptic("success");
+    } else {
+      confettiLight();
+    }
   }
 }
 
@@ -315,3 +322,8 @@ shuffleBtn.addEventListener("click", () => {
 });
 
 updateSliderLabel();
+
+if (typeof KidsCore !== "undefined") {
+  KidsCore.init();
+  KidsCore.bindTapSound(document.getElementById("app"));
+}

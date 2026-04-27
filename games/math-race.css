@@ -27,12 +27,21 @@ html {
 body {
   margin: 0;
   min-height: 100dvh;
-  font-family: "Sniglet", "Segoe UI", system-ui, sans-serif;
+  font-family: "Nunito", "Segoe UI", system-ui, sans-serif;
   background: var(--bg);
   color: var(--text);
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+h1,
+h2,
+.page-header h1,
+.card h2,
+.play-level,
+#winTitle {
+  font-family: "Sniglet", "Nunito", system-ui, sans-serif;
 }
 
 .app {
@@ -91,6 +100,29 @@ body {
   font-size: 1.05rem;
   font-weight: 800;
   color: #2c4a5c;
+}
+
+.card__hint {
+  margin: 0.75rem 0 0;
+  font-size: 0.9rem;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.checkbox-line {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.checkbox-line input {
+  margin-top: 0.2rem;
+  flex-shrink: 0;
+  width: 1.1rem;
+  height: 1.1rem;
+  accent-color: var(--primary);
 }
 
 .choice-row {
@@ -653,6 +685,56 @@ body {
   font-weight: 800;
   margin: 0 0 0.5rem;
   color: #1a3040;
+}
+
+.question-dots {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.45rem;
+  margin: 0 0 0.75rem;
+  min-height: 0;
+}
+
+.question-dots[hidden] {
+  display: none;
+}
+
+.question-dots__row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.28rem;
+  max-width: 18rem;
+}
+
+.question-dot {
+  display: inline-block;
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+  background: #2d8cba;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08) inset;
+}
+
+.question-dot--b {
+  background: #5cb85c;
+}
+
+.question-dots__hint {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--muted);
+  text-align: center;
+}
+
+html.kids-high-contrast .question-dot {
+  background: #00e;
+  box-shadow: none;
+}
+html.kids-high-contrast .question-dot--b {
+  background: #060;
 }
 
 .mc-hint {
