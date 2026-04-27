@@ -108,6 +108,10 @@
       v: IMG_PREFIX + "images/character-kelly.png",
       label: "Kelly (Mummy)",
     },
+    {
+      v: IMG_PREFIX + "images/character-freya.png",
+      label: "Freya",
+    },
   ];
 
   function characterLabelForValue(v) {

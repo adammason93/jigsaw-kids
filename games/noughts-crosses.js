@@ -21,6 +21,7 @@
     { v: IMG_PREFIX + "images/character-baby-coolegg.png", label: "Isaac" },
     { v: IMG_PREFIX + "images/character-girl-blonde.png", label: "Sofia" },
     { v: IMG_PREFIX + "images/character-kelly.png", label: "Kelly" },
+    { v: IMG_PREFIX + "images/character-freya.png", label: "Freya" },
   ];
 
   const K_CHAR_PICK = "tttCharPickV1";

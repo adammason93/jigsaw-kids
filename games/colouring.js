@@ -11,6 +11,14 @@
     { id: "dino", label: "Dinosaur", file: "images/colouring/template-dino.svg" },
     { id: "butterfly", label: "Butterfly", file: "images/colouring/template-butterfly.svg" },
     { id: "robot", label: "Robot", file: "images/colouring/template-robot.svg" },
+    { id: "mermaid", label: "Mermaid", file: "images/colouring/template-mermaid.png" },
+    { id: "dino-hill", label: "Dino & palm", file: "images/colouring/template-dino-hill.png" },
+    { id: "coral-reef", label: "Coral reef", file: "images/colouring/template-coral-reef.png" },
+    { id: "shark-party", label: "Shark & fish", file: "images/colouring/template-shark-party.png" },
+    { id: "winged-unicorn", label: "Winged unicorn", file: "images/colouring/template-winged-unicorn.png" },
+    { id: "pony", label: "Pony", file: "images/colouring/template-pony.png" },
+    { id: "winter-friend", label: "Winter friend", file: "images/colouring/template-winter-friend.png" },
+    { id: "splash-friends", label: "Splashing friends", file: "images/colouring/template-splash-friends.png" },
   ];
 
   const TOOL = {

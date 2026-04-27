@@ -31,6 +31,7 @@
     coolegg: "images/character-baby-coolegg.png",
     girlblonde: "images/character-girl-blonde.png",
     kelly: "images/character-kelly.png",
+    freya: "images/character-freya.png",
     dog: "images/tilly-mascot.png",
   };
 

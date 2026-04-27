@@ -1,5 +1,5 @@
 /* Minimal offline shell — network-first, cache as fallback for same-origin */
-const CACHE = "jigsaw-kids-v46";
+const CACHE = "jigsaw-kids-v48";
 const SHELL = [
   "./index.html",
   "./portal.css",
@@ -27,6 +27,7 @@ const SHELL = [
   "./games/word-search.css",
   "./games/word-search.js",
   "./games/images/character-kelly.png",
+  "./games/images/character-freya.png",
   "./games/images/character-girl-blonde.png",
   "./games/images/character-babyca.png",
   "./games/images/portal/snakes-ladders.svg",
@@ -46,6 +47,14 @@ const SHELL = [
   "./games/images/colouring/template-dino.svg",
   "./games/images/colouring/template-butterfly.svg",
   "./games/images/colouring/template-robot.svg",
+  "./games/images/colouring/template-mermaid.png",
+  "./games/images/colouring/template-dino-hill.png",
+  "./games/images/colouring/template-coral-reef.png",
+  "./games/images/colouring/template-shark-party.png",
+  "./games/images/colouring/template-winged-unicorn.png",
+  "./games/images/colouring/template-pony.png",
+  "./games/images/colouring/template-winter-friend.png",
+  "./games/images/colouring/template-splash-friends.png",
 ];
 
 self.addEventListener("install", function (e) {
