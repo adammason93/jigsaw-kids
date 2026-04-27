@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Picture jigsaw — Kids Game Room</title>
+  <link rel="stylesheet" href="../jigsaw.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Sniglet:wght@400;800&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <div class="app">
+    <nav class="game-nav" aria-label="Breadcrumb">
+      <a class="back-link" href="../index.html">← All games</a>
+    </nav>
+
+    <header class="header">
+      <h1>Picture jigsaw</h1>
+      <p class="tagline">Pick a photo, pick how tricky, then put it back together.</p>
+    </header>
+
+    <section class="setup card">
+      <div class="row">
+        <label class="file-label">
+          <input type="file" id="imageInput" accept="image/*" hidden />
+          <span class="btn btn-primary">Choose a picture</span>
+        </label>
+        <span id="fileName" class="file-name">No file chosen</span>
+      </div>
+      <div class="row pieces-row">
+        <label for="pieceSlider">How many pieces?</label>
+        <div class="slider-wrap">
+          <input type="range" id="pieceSlider" min="2" max="8" value="3" step="1" />
+          <output id="pieceOut" for="pieceSlider">3 × 3 = 9</output>
+        </div>
+      </div>
+      <div class="row actions">
+        <button type="button" id="startBtn" class="btn btn-accent" disabled>Start puzzle</button>
+        <button type="button" id="shuffleBtn" class="btn btn-ghost" disabled>Shuffle again</button>
+      </div>
+    </section>
+
+    <p id="status" class="status" role="status"></p>
+
+    <div class="play-area" id="playArea" hidden>
+      <div class="board-wrap">
+        <h2>Put the pieces here</h2>
+        <div class="board" id="board" aria-label="Puzzle board"></div>
+      </div>
+      <div class="tray-wrap">
+        <h2>Your pieces</h2>
+        <div class="tray" id="tray" aria-label="Puzzle pieces"></div>
+      </div>
+    </div>
+  </div>
+  <script src="../jigsaw.js" defer></script>
+</body>
+</html>

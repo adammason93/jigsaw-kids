@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Number path — Kids Game Room</title>
+  <link rel="stylesheet" href="math-race.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Sniglet:wght@400;800&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <div class="app" id="app">
+    <nav class="game-nav" aria-label="Breadcrumb">
+      <a class="back-link" href="../index.html">← All games</a>
+    </nav>
+
+    <div id="screenSetup" class="screen">
+      <header class="page-header">
+        <h1>Number path</h1>
+        <p>Add and subtract your way to the finish line. Every right answer moves you one step!</p>
+      </header>
+
+      <section class="card" aria-labelledby="lblLevel">
+        <h2 id="lblLevel">How tricky?</h2>
+        <div class="choice-row" role="group" aria-label="Difficulty level">
+          <label class="radio-tile">
+            <input type="radio" name="level" value="0" checked />
+            <span class="radio-tile__title">Step 1</span>
+            <span class="radio-tile__hint">0–5, adding</span>
+          </label>
+          <label class="radio-tile">
+            <input type="radio" name="level" value="1" />
+            <span class="radio-tile__title">Step 2</span>
+            <span class="radio-tile__hint">0–10, + and −</span>
+          </label>
+          <label class="radio-tile">
+            <input type="radio" name="level" value="2" />
+            <span class="radio-tile__title">Step 3</span>
+            <span class="radio-tile__hint">0–20, + and −</span>
+          </label>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="lblChar">
+        <h2 id="lblChar">Who is playing?</h2>
+        <div class="char-row" role="group" aria-label="Character">
+          <button type="button" class="char-btn char-btn--pic" data-char="babyca" aria-pressed="true" title="Dolly" aria-label="Dolly, ragdoll girl">
+            <img class="char-btn__pic" src="images/character-babyca.png" alt="" width="44" height="44" loading="lazy" />
+          </button>
+          <button type="button" class="char-btn" data-char="dog" title="Dog" aria-label="Dog">🐶</button>
+          <button type="button" class="char-btn char-btn--pic" data-char="coolegg" aria-pressed="false" title="Cool Egg baby" aria-label="Cool Egg baby">
+            <img class="char-btn__pic" src="images/character-baby-coolegg.png" alt="" width="44" height="44" loading="lazy" />
+          </button>
+          <button type="button" class="char-btn char-btn--pic" data-char="girlblonde" aria-pressed="false" title="Sofia" aria-label="Sofia, blonde girl">
+            <img class="char-btn__pic" src="images/character-girl-blonde.png" alt="" width="44" height="44" loading="lazy" />
+          </button>
+        </div>
+      </section>
+
+      <button type="button" class="btn-primary" id="btnStart">Start the path</button>
+    </div>
+
+    <div id="screenPlay" class="screen is-hidden" hidden>
+      <div class="play-top">
+        <p class="play-level" id="playLevelLabel" aria-live="polite">Step 1</p>
+        <p class="play-progress" id="playProgress" aria-live="polite">Step 0 of 10 on the path</p>
+        <button type="button" class="btn-text" id="btnQuit">Quit to menu</button>
+      </div>
+
+      <div class="race-stage" id="raceStage" aria-label="Race to the finish">
+        <div class="race-sky" aria-hidden="true"></div>
+        <div class="race-sun" aria-hidden="true"></div>
+        <div class="race-hill race-hill--1" aria-hidden="true"></div>
+        <div class="race-hill race-hill--2" aria-hidden="true"></div>
+        <div class="race-cloud race-cloud--a" aria-hidden="true"></div>
+        <div class="race-cloud race-cloud--b" aria-hidden="true"></div>
+        <div class="race-cloud race-cloud--c" aria-hidden="true"></div>
+        <div class="race-ground" aria-hidden="true"></div>
+        <div class="race-ribbon">
+          <div class="race-ribbon__inner">
+            <span class="race-flag race-flag--start" id="flagStart" aria-hidden="true">Start</span>
+            <div class="race-lane" id="raceLane">
+              <div class="race-dashes" id="raceDashes" aria-hidden="true"></div>
+              <div class="race-steps" id="raceSteps" role="list"></div>
+              <div class="race-runner" id="raceRunner">
+                <span class="race-runner__emoji" id="raceRunnerEmoji" aria-hidden="true"></span>
+                <div class="race-runner__glow" aria-hidden="true"></div>
+                <div class="race-runner__shadow" aria-hidden="true"></div>
+              </div>
+            </div>
+            <span class="race-flag race-flag--end" id="flagEnd" aria-hidden="true">
+              <span class="race-flag__text">Finish</span>
+              <span class="race-flag__pole" aria-hidden="true"></span>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="question-card">
+        <p class="question" id="questionText" aria-live="polite">0 + 0 = ?</p>
+        <p class="mc-hint" id="mcHint" aria-hidden="true">Tap an answer, or press 1–4 on the keyboard</p>
+        <div class="mc-grid" id="choiceGrid" role="group" aria-label="Answer choices"></div>
+        <p class="feedback" id="feedbackText" role="status" aria-live="assertive"></p>
+      </div>
+    </div>
+
+    <div id="screenWin" class="screen is-hidden" hidden>
+      <div class="win-card">
+        <div class="win-stars" aria-hidden="true">⭐ ⭐ ⭐</div>
+        <h2 id="winTitle">You made it!</h2>
+        <p id="winMessage">You finished the path. Brilliant!</p>
+        <div class="win-actions">
+          <button type="button" class="btn-primary" id="btnPlayAgain">Play again</button>
+          <button type="button" class="btn-secondary" id="btnMenu">Change level or friend</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="math-race.js" defer></script>
+</body>
+</html>

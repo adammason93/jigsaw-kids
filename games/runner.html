@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Your run — Kids Game Room</title>
+  <link rel="stylesheet" href="runner.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Sniglet:wght@400;800&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <div class="app" id="app">
+    <nav class="game-nav" aria-label="Breadcrumb">
+      <a class="back-link" href="../index.html">← All games</a>
+    </nav>
+
+    <div id="setup" class="setup">
+      <div class="setup-header">
+        <h1>Build your run</h1>
+        <p>Pick your name, where you are, and who is running. Then the path is all yours.</p>
+      </div>
+
+      <div class="setup-block">
+        <h2>What should we call you?</h2>
+        <div class="name-field">
+          <label for="playerName">Your name</label>
+          <input type="text" id="playerName" name="name" maxlength="20" placeholder="E.g. Sam, Lily, or you!" autocomplete="given-name" />
+          <p class="name-hint">This shows on your run so it feels like your own game.</p>
+        </div>
+      </div>
+
+      <div class="setup-block">
+        <h2>Where are you today?</h2>
+        <div class="choice-grid" role="group" aria-label="Environment">
+          <button type="button" class="env-card" data-env="field" aria-pressed="true">
+            <span class="env-card__icon" aria-hidden="true">🌼</span>
+            <span class="env-card__name">Sunny field</span>
+            <span class="env-card__hint">flowers &amp; open sky</span>
+          </button>
+          <button type="button" class="env-card" data-env="woods">
+            <span class="env-card__icon" aria-hidden="true">🌲</span>
+            <span class="env-card__name">Woods</span>
+            <span class="env-card__hint">trees &amp; green paths</span>
+          </button>
+          <button type="button" class="env-card" data-env="beach">
+            <span class="env-card__icon" aria-hidden="true">🏖</span>
+            <span class="env-card__name">Beach</span>
+            <span class="env-card__hint">sand &amp; big sky</span>
+          </button>
+          <button type="button" class="env-card" data-env="snow">
+            <span class="env-card__icon" aria-hidden="true">⛄</span>
+            <span class="env-card__name">Snowy place</span>
+            <span class="env-card__hint">soft &amp; bright</span>
+          </button>
+          <button type="button" class="env-card" data-env="park">
+            <span class="env-card__icon" aria-hidden="true">🛝</span>
+            <span class="env-card__name">Playground</span>
+            <span class="env-card__hint">toy-bright &amp; sunny</span>
+          </button>
+          <button type="button" class="env-card" data-env="pool">
+            <span class="env-card__icon" aria-hidden="true">🏊</span>
+            <span class="env-card__name">Pool race</span>
+            <span class="env-card__hint">tiles, floats &amp; rings</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="setup-block">
+        <h2>Who is running?</h2>
+        <div class="choice-grid choice-grid--5" role="group" aria-label="Character">
+          <button type="button" class="char-card char-card--friend" data-char="friend" aria-pressed="true">
+            <div class="char-card__art" role="img" aria-label="Doll friend"></div>
+            <span class="env-card__name">Friend</span>
+            <span class="env-card__hint">soft doll</span>
+          </button>
+          <button type="button" class="char-card" data-char="bear">
+            <div class="char-card__art" aria-hidden="true">🧸</div>
+            <span class="env-card__name">Bear</span>
+            <span class="env-card__hint">bouncy</span>
+          </button>
+          <button type="button" class="char-card" data-char="robot">
+            <div class="char-card__art" aria-hidden="true">🤖</div>
+            <span class="env-card__name">Robot</span>
+            <span class="env-card__hint">beep boop</span>
+          </button>
+          <button type="button" class="char-card" data-char="bunny">
+            <div class="char-card__art" aria-hidden="true">🐰</div>
+            <span class="env-card__name">Bunny</span>
+            <span class="env-card__hint">quick hops</span>
+          </button>
+          <label class="char-card char-card--you" data-char="custom">
+            <input type="file" id="charPhoto" class="custom-file" accept="image/*" tabindex="-1" />
+            <span class="custom-file-label" tabindex="0" role="button" aria-pressed="false">
+              <div class="char-card__art">Use<br />your photo</div>
+              <span class="env-card__name">You</span>
+              <span class="env-card__hint">from your device</span>
+            </span>
+            <span class="custom-picked" id="customPickedName" aria-live="polite"></span>
+          </label>
+        </div>
+      </div>
+
+      <button type="button" class="btn-start" id="beginBtn">Start my adventure</button>
+    </div>
+
+    <div id="gameSection" class="is-hidden" hidden>
+      <div class="run-header">
+        <h2 id="runTitle">Your run</h2>
+        <p id="runSubtitle">Jump logs &amp; puddles, duck under branches</p>
+      </div>
+      <div class="canvas-wrap">
+        <div class="hud" aria-hidden="true">
+          <span class="hud__who"><output id="hudNameLine" for="game">Your run</output></span>
+          <span>Steps: <output id="score" for="game">0</output></span>
+          <span>Best: <span id="best">0</span></span>
+        </div>
+        <canvas id="game" width="900" height="400" role="img" aria-label="Your side-scrolling run"></canvas>
+        <p id="live" class="sr-only" role="status" aria-live="polite"></p>
+        <div id="overlay" class="is-hidden">
+          <div class="overlay-card">
+            <h2 id="overlayTitle">Ouch!</h2>
+            <p id="overlayText">Try again when you are ready.</p>
+            <div class="overlay-actions">
+              <button type="button" class="og-btn" id="againBtn">Run again (same you)</button>
+              <button type="button" class="og-btn og-btn--alt" id="newSetupBtn">Change name / place / character</button>
+            </div>
+            <p class="og-hint">Space: jump &amp; double jump &nbsp;·&nbsp; ↓: duck</p>
+          </div>
+        </div>
+      </div>
+      <p class="help">Keyboard: <strong>Space / ↑</strong> jump (press again in the air for a double jump) &nbsp;·&nbsp; <strong>↓ or S</strong> hold to duck. <br />Touch: tap Jump twice while airborne to double jump.</p>
+      <div class="mobile-controls" role="group" aria-label="Touch controls">
+        <button type="button" class="mc-btn mc-btn--jump" id="btnJump">Jump</button>
+        <button type="button" class="mc-btn mc-btn--duck" id="btnDuck">Duck (hold)</button>
+      </div>
+    </div>
+  </div>
+  <script src="runner.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,163 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+:root {
+  --bg: #e8f4fc;
+  --card: #ffffff;
+  --text: #0f2433;
+  --muted: #2d4d62;
+  --primary: #2d9cdb;
+  --primary-dark: #1a6a9e;
+  --accent: #f5a623;
+  --accent-dark: #d48f0f;
+  --radius: 16px;
+  --shadow: 0 4px 14px rgba(27, 58, 82, 0.12);
+}
+
+html {
+  font-size: 16px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  font-family: "Sniglet", "Segoe UI", system-ui, sans-serif;
+  background: var(--bg);
+  background-image: radial-gradient(circle at 15% 20%, #fff5e6 0%, transparent 42%),
+    radial-gradient(circle at 85% 80%, #e3f2fd 0%, transparent 45%),
+    radial-gradient(circle at 50% 50%, #f0e8ff 0%, transparent 55%);
+  color: var(--text);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.portal {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 3rem;
+}
+
+.portal-hero {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.portal-hero h1 {
+  margin: 0 0 0.5rem;
+  font-size: clamp(1.85rem, 5vw, 2.5rem);
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.portal-hero p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 1.1rem;
+  max-width: 32em;
+  margin-inline: auto;
+  line-height: 1.5;
+  font-weight: 600;
+}
+
+.game-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1.25rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.game-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 1.35rem 1.25rem;
+  text-decoration: none;
+  color: inherit;
+  border: 3px solid transparent;
+  transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+  min-height: 180px;
+}
+
+a.game-card:hover:not(.game-card--soon) {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(27, 58, 82, 0.15);
+  border-color: rgba(45, 156, 219, 0.45);
+}
+
+.game-card--soon {
+  cursor: default;
+  opacity: 0.92;
+  background: linear-gradient(145deg, #ffffff 0%, #f4f8fb 100%);
+}
+
+.game-card__icon {
+  font-size: 2.5rem;
+  line-height: 1;
+  margin-bottom: 0.65rem;
+}
+
+.game-card__title {
+  margin: 0 0 0.35rem;
+  font-size: 1.25rem;
+  font-weight: 800;
+}
+
+.game-card__desc {
+  margin: 0;
+  flex: 1;
+  color: var(--muted);
+  font-size: 1rem;
+  line-height: 1.45;
+  font-weight: 600;
+}
+
+.game-card__cta {
+  margin-top: 1rem;
+  font-weight: 800;
+  font-size: 0.95rem;
+  color: var(--primary-dark);
+}
+
+a.game-card:hover:not(.game-card--soon) .game-card__cta {
+  text-decoration: underline;
+}
+
+.game-card--soon .game-card__cta {
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+.badge {
+  display: inline-block;
+  margin-top: 0.5rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: #eef6fa;
+  color: var(--muted);
+}
+
+.badge--play {
+  background: rgba(60, 179, 113, 0.2);
+  color: #2a8f55;
+}
+
+.portal-footer {
+  text-align: center;
+  margin-top: 2.5rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
