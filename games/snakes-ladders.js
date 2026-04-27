@@ -1,5 +1,5 @@
 /**
- * Snakes & Ladders — 5×10 serpentine board, 1–50, bounce at 50, emoji tokens
+ * Snakes & Ladders — 5×10 serpentine board, 1–50, exact finish, bust if roll too high, emoji tokens
  */
 (function () {
   "use strict";
@@ -198,7 +198,37 @@
   const welcomeBackdrop = welcomePopup
     ? welcomePopup.querySelector(".welcome-popup__backdrop")
     : null;
+  const treasurePopup = document.getElementById("treasurePopup");
+  const treasurePopupLead = document.getElementById("treasurePopupLead");
+  const treasurePopupPrize = document.getElementById("treasurePopupPrize");
+  const btnTreasureOk = document.getElementById("btnTreasureOk");
+  const treasurePopupBackdrop = treasurePopup
+    ? treasurePopup.querySelector(".treasure-popup__backdrop")
+    : null;
   const WELCOME_SESSION_KEY = "jigsawKidsSnakesWelcome";
+
+  const TREASURE_PRIZES = [
+    "5 minutes extra to stay up at bedtime",
+    "A sweet from Mama’s cupboard",
+    "A strawberry from Dada",
+  ];
+
+  function pickBonusSquares() {
+    const candidates = [];
+    for (let s = 2; s < board.finish; s++) {
+      if (JUMPS.has(s)) {
+        continue;
+      }
+      candidates.push(s);
+    }
+    const want = board.finish > 30 ? 5 : 3;
+    const shuffled = shuffle(candidates);
+    const out = new Set();
+    for (let i = 0; i < Math.min(want, shuffled.length); i++) {
+      out.add(shuffled[i]);
+    }
+    return out;
+  }
 
   let jumpTimeoutId = 0;
   /** True while the board path-walk (zoom + steps) is playing */
@@ -328,6 +358,72 @@
     jumpTimeoutId = setTimeout(done, 2500);
   }
 
+  function showTreasurePopup(opts, onDone) {
+    if (!treasurePopup) {
+      onDone();
+      return;
+    }
+    const prize = opts.prize;
+    const playerName = opts.playerName || "You";
+
+    let finished = false;
+    function done() {
+      if (finished) {
+        return;
+      }
+      finished = true;
+      document.removeEventListener("keydown", onKey);
+      if (treasurePopupBackdrop) {
+        treasurePopupBackdrop.removeEventListener("click", onBackdrop);
+      }
+      if (btnTreasureOk) {
+        btnTreasureOk.removeEventListener("click", onOk);
+      }
+      treasurePopup.classList.add("treasure-popup--hidden");
+      treasurePopup.setAttribute("aria-hidden", "true");
+      onDone();
+    }
+    function onKey(e) {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        done();
+      }
+    }
+    function onBackdrop() {
+      done();
+    }
+    function onOk() {
+      done();
+    }
+
+    if (treasurePopupLead) {
+      treasurePopupLead.textContent = playerName + " — you’ve won a prize!";
+    }
+    if (treasurePopupPrize) {
+      treasurePopupPrize.textContent = prize;
+    }
+
+    if (typeof KidsCore !== "undefined") {
+      KidsCore.playSound("ok");
+      KidsCore.haptic("light");
+    }
+
+    document.addEventListener("keydown", onKey);
+    if (treasurePopupBackdrop) {
+      treasurePopupBackdrop.addEventListener("click", onBackdrop);
+    }
+    if (btnTreasureOk) {
+      btnTreasureOk.addEventListener("click", onOk);
+    }
+    treasurePopup.classList.remove("treasure-popup--hidden");
+    treasurePopup.setAttribute("aria-hidden", "false");
+    setTimeout(function () {
+      if (btnTreasureOk) {
+        btnTreasureOk.focus();
+      }
+    }, 50);
+  }
+
   let state = {
     numPlayers: 2,
     players: [],
@@ -385,9 +481,12 @@
           detail +=
             " If you roll a " +
             (need + 1) +
-            " or more, you go past 50 and bounce back toward the start!";
+            " or more, that’s a bust — you don’t move this turn.";
         } else {
-          detail += " A roll of 1–5 doesn’t get you to 50 in one go; only a 6 will do from here.";
+          detail +=
+            " Only a 6 gets you to " +
+            board.finish +
+            " from here in one roll. Anything less, you move forward but don’t win yet.";
         }
         turnPopupSub.textContent = detail;
       } else if (pos >= 1 && pos < board.finish) {
@@ -433,7 +532,8 @@
   }
 
   /**
-   * One square per pip: from 0, walk 1..min(roll, board.finish); on board, add with bounce.
+   * One square per pip: from 0, walk 1..min(roll, board.finish); on board, walk with bounce past finish
+   * (bust turns are handled before this — no path).
    * @returns {number[]}
    */
   function computeStepPath(from, roll) {
@@ -625,6 +725,14 @@
           }
           cell.appendChild(row);
         }
+        if (state.bonusSquares && state.bonusSquares.has(n)) {
+          cell.classList.add("board-cell--bonus");
+          const bm = document.createElement("span");
+          bm.className = "board-cell__bonus-mark";
+          bm.setAttribute("aria-hidden", "true");
+          bm.textContent = "🎁";
+          cell.appendChild(bm);
+        }
         cell.style.gridRow = String(r + 1);
         cell.style.gridColumn = String(c + 1);
         boardGrid.appendChild(cell);
@@ -747,9 +855,9 @@
               board.finish +
               " exactly — you need a " +
               needB +
-              " (a " +
+              ". Roll a " +
               (needB + 1) +
-              " or more bounces you back).";
+              " or more and it’s a bust (no move).";
           } else {
             ready +=
               " To win, land on " +
@@ -970,6 +1078,7 @@
       current: 0,
       rolling: false,
       won: false,
+      bonusSquares: pickBonusSquares(),
     };
     turnModalPhase = "closed";
     pendingRoll = 0;
@@ -1018,25 +1127,25 @@
     const rollDurationMs = 500;
     dieEl.classList.add("dice--rolling");
     setTimeout(function () {
+      const pRoll = state.players[state.current];
+      const needR = dieNeededToFinish(pRoll.pos);
       dieEl.classList.remove("dice--rolling");
       setDiceFace(final);
       dieEl.classList.add("dice--spin");
       if (turnDiceHint) {
-        const pRoll = state.players[state.current];
-        const needR = dieNeededToFinish(pRoll.pos);
         let line = "You rolled a " + final + "!";
         if (needR !== null) {
           if (final > needR) {
             line =
               "You rolled a " +
               final +
-              " — you need a " +
+              " — bust! You need a " +
               needR +
               " to land on " +
               board.finish +
               " from square " +
               pRoll.pos +
-              ", so you’ll bounce off the end. Tap “Move” to go.";
+              ". You won’t move. Tap the button to end your turn.";
           } else if (final === needR) {
             line =
               "You rolled a " +
@@ -1055,7 +1164,10 @@
         }
         turnDiceHint.textContent = line;
       }
-      diceHint.textContent = "Rolled a " + final + "!";
+      diceHint.textContent =
+        needR !== null && final > needR
+          ? "Bust! You needed a " + needR + " to land on " + board.finish + "."
+          : "Rolled a " + final + "!";
       setTimeout(function () {
         dieEl.classList.remove("dice--spin");
         pendingRoll = final;
@@ -1065,7 +1177,10 @@
         }
         if (btnTurnMove) {
           btnTurnMove.hidden = false;
-          btnTurnMove.textContent = "Move " + final + (final === 1 ? " space" : " spaces");
+          const busted = needR !== null && final > needR;
+          btnTurnMove.textContent = busted
+            ? "Bust — end turn (no move)"
+            : "Move " + final + (final === 1 ? " space" : " spaces");
           btnTurnMove.disabled = false;
           btnTurnMove.focus();
         }
@@ -1144,14 +1259,6 @@
         }
       } else if (before === 0) {
         msg = p.name + " hops onto square " + finalPos + " — let’s go!";
-      } else if (before < board.finish && before + roll > board.finish) {
-        msg =
-          p.name +
-          " almost passed " +
-          board.finish +
-          ", bounced, and stopped on " +
-          finalPos +
-          ".";
       } else {
         msg = p.name + " moves to " + finalPos + ".";
       }
@@ -1174,6 +1281,21 @@
         updateHud();
       }
 
+      function maybeTreasureThen(done) {
+        if (!state.bonusSquares || !state.bonusSquares.has(finalPos)) {
+          done();
+          return;
+        }
+        const prize = TREASURE_PRIZES[randomInt(0, TREASURE_PRIZES.length - 1)];
+        showTreasurePopup(
+          {
+            prize: prize,
+            playerName: p.name,
+          },
+          done
+        );
+      }
+
       const moved = finalPos !== afterBounce;
       const isLadder = moved && finalPos > afterBounce;
       const isSnakeSlide = moved && finalPos < afterBounce;
@@ -1189,7 +1311,9 @@
             to: finalPos,
             playerIndex: moverIndex,
           },
-          finishTurn
+          function () {
+            maybeTreasureThen(finishTurn);
+          }
         );
       } else if (moved && isSnakeSlide) {
         renderTokens();
@@ -1202,10 +1326,12 @@
             to: finalPos,
             playerIndex: moverIndex,
           },
-          finishTurn
+          function () {
+            maybeTreasureThen(finishTurn);
+          }
         );
       } else {
-        finishTurn();
+        maybeTreasureThen(finishTurn);
       }
     }
 
@@ -1229,6 +1355,36 @@
     const roll = pendingRoll;
     const p = state.players[state.current];
     const before = p.pos;
+    const needWin = dieNeededToFinish(before);
+    if (needWin !== null && roll > needWin) {
+      pendingRoll = 0;
+      turnModalPhase = "closed";
+      closeTurnModal();
+      const idxNext = (state.current + 1) % state.numPlayers;
+      const whoNext = state.players[idxNext].name;
+      const nextIcon = iconForMessage(state.players[idxNext].icon);
+      messageEl.textContent =
+        p.name +
+        " — bust! You needed a " +
+        needWin +
+        " to land on " +
+        board.finish +
+        ", not a " +
+        roll +
+        ". No move. " +
+        nextIcon +
+        " " +
+        whoNext +
+        " is next — tap “Open your turn” when you’re ready to roll.";
+      state.current = idxNext;
+      state.rolling = false;
+      if (typeof KidsCore !== "undefined") {
+        KidsCore.playSound("no");
+        KidsCore.haptic("light");
+      }
+      updateHud();
+      return;
+    }
     const afterBounce = applyBounce(before, roll);
     const path = computeStepPath(before, roll);
     pendingRoll = 0;

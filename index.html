@@ -4,7 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="theme-color" content="#7c3aed" />
-  <meta name="description" content="Picture jigsaw, number path, and snakes & ladders for children — works offline after one visit." />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="description" content="Picture jigsaw, number path, snakes and ladders, noughts and crosses, and Connect 4 for children — works offline after one visit." />
   <title>Sofia's Game Room</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="stylesheet" href="portal.css" />
@@ -67,6 +69,24 @@
             <span class="badge badge--play">Ready to play</span>
           </a>
         </li>
+        <li>
+          <a class="game-card game-card--ttt" href="games/noughts-crosses.html">
+            <span class="game-card__icon" aria-hidden="true">⭕</span>
+            <h3 class="game-card__title">Noughts and crosses</h3>
+            <p class="game-card__desc">Play on the same screen with a friend, or try the computer — get three in a row to win.</p>
+            <span class="game-card__cta">Play now →</span>
+            <span class="badge badge--play">Ready to play</span>
+          </a>
+        </li>
+        <li>
+          <a class="game-card game-card--c4" href="games/connect-four.html">
+            <span class="game-card__icon" aria-hidden="true">🔴</span>
+            <h3 class="game-card__title">Connect 4</h3>
+            <p class="game-card__desc">Drop red and yellow discs to get four in a row—two players on one device, or play the computer.</p>
+            <span class="game-card__cta">Play now →</span>
+            <span class="badge badge--play">Ready to play</span>
+          </a>
+        </li>
       </ul>
       </section>
 
@@ -103,7 +123,8 @@
 
     <p class="portal-footer">
       <span class="portal-footer__icon" aria-hidden="true">✨</span>
-      Add to your home screen for quick play. Tap
+      Add to your home screen for quick play (no Safari bar when you open it from the icon). On many tablets
+      and computers, the first tap in a game can switch to full screen. Tap
       <span class="portal-footer__gear" aria-hidden="true">⚙️</span>
       in a game for sounds, read-aloud, and a calmer screen.
     </p>

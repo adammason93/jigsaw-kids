@@ -4,6 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="theme-color" content="#2d8cba" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <title>Picture jigsaw — Sofia's Game Room</title>
   <link rel="manifest" href="../manifest.json" />
   <link rel="stylesheet" href="../js/kids-core.css" />
@@ -25,14 +27,15 @@
     <header class="header">
       <p class="header__kicker">Sofia’s puzzle</p>
       <h1>Picture jigsaw</h1>
-      <p class="tagline">Pick a ready picture or your own photo, choose how many pieces, then drag them into place.</p>
+      <p class="tagline">Pick a picture, choose how many pieces, then drag them into place.</p>
     </header>
 
     <section class="setup card">
       <div class="preset-block">
         <h3 class="preset-block__title">Ready to go</h3>
         <p class="preset-block__hint">Tap a picture to use it straight away.</p>
-        <div class="preset-grid" role="group" aria-label="Ready-made pictures">
+        <div class="setup-toolbar">
+          <div class="preset-grid" role="group" aria-label="Ready-made pictures">
           <button type="button" class="jigsaw-preset" data-src="images/jigsaw-presets/sofia-tractor.png" data-label="Sofia on the tractor">
             <span class="jigsaw-preset__thumb-wrap">
               <img
@@ -75,28 +78,19 @@
             </span>
             <span class="jigsaw-preset__label">Baby &amp; big sister</span>
           </button>
+          </div>
+          <div class="setup-toolbar__pieces pieces-row">
+            <label for="pieceSlider">How many pieces?</label>
+            <div class="slider-wrap">
+              <input type="range" id="pieceSlider" min="2" max="8" value="3" step="1" />
+              <output id="pieceOut" for="pieceSlider">3 × 3 = 9</output>
+            </div>
+          </div>
+          <div class="setup-toolbar__actions row actions">
+            <button type="button" id="startBtn" class="btn btn-accent" disabled>Start puzzle</button>
+            <button type="button" id="shuffleBtn" class="btn btn-ghost" disabled>Shuffle again</button>
+          </div>
         </div>
-      </div>
-
-      <p class="setup__or" aria-hidden="true">or use your own</p>
-
-      <div class="row">
-        <label class="file-label">
-          <input type="file" id="imageInput" accept="image/*" hidden />
-          <span class="btn btn-primary">Choose a picture</span>
-        </label>
-        <span id="fileName" class="file-name">No picture selected</span>
-      </div>
-      <div class="row pieces-row">
-        <label for="pieceSlider">How many pieces?</label>
-        <div class="slider-wrap">
-          <input type="range" id="pieceSlider" min="2" max="8" value="3" step="1" />
-          <output id="pieceOut" for="pieceSlider">3 × 3 = 9</output>
-        </div>
-      </div>
-      <div class="row actions">
-        <button type="button" id="startBtn" class="btn btn-accent" disabled>Start puzzle</button>
-        <button type="button" id="shuffleBtn" class="btn btn-ghost" disabled>Shuffle again</button>
       </div>
     </section>
 

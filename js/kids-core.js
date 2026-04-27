@@ -255,9 +255,70 @@
     }
   };
 
+  var _fullscreenListenerAttached = false;
+
+  /**
+   * True fullscreen (hides browser UI) is only allowed after a user gesture, not on page load.
+   * We request it on the first tap / press on this page. No-op in standalone PWA or if unsupported
+   * (e.g. iPhone Safari in a tab — use “Add to Home Screen” for an app-style chrome).
+   */
+  K.attachFullscreenOnFirstInteraction = function () {
+    if (_fullscreenListenerAttached) {
+      return;
+    }
+    if (global.matchMedia && global.matchMedia("(display-mode: standalone)").matches) {
+      return;
+    }
+    if (global.navigator && global.navigator.standalone) {
+      return;
+    }
+    var el = document.documentElement;
+    if (!el.requestFullscreen && !el.webkitRequestFullscreen && !el.msRequestFullscreen) {
+      return;
+    }
+    if (document.fullscreenElement || document.webkitFullscreenElement) {
+      return;
+    }
+    _fullscreenListenerAttached = true;
+
+    function tearDown() {
+      document.removeEventListener("pointerdown", onFirst, true);
+      document.removeEventListener("touchstart", onFirst, true);
+      document.removeEventListener("click", onFirst, true);
+    }
+
+    function onFirst() {
+      tearDown();
+      if (document.fullscreenElement || document.webkitFullscreenElement) {
+        return;
+      }
+      var el2 = document.documentElement;
+      try {
+        var p = null;
+        if (el2.requestFullscreen) {
+          p = el2.requestFullscreen();
+        } else if (el2.webkitRequestFullscreen) {
+          p = el2.webkitRequestFullscreen();
+        } else if (el2.msRequestFullscreen) {
+          p = el2.msRequestFullscreen();
+        }
+        if (p && p.catch) {
+          p.catch(function () {});
+        }
+      } catch (e) {}
+    }
+
+    document.addEventListener("pointerdown", onFirst, { capture: true, passive: true });
+    document.addEventListener("touchstart", onFirst, { capture: true, passive: true });
+    document.addEventListener("click", onFirst, { capture: true, passive: true });
+  };
+
   K.init = function (opts) {
     opts = opts || {};
     K.applyBodyClasses();
+    if (!opts.skipFullscreen) {
+      K.attachFullscreenOnFirstInteraction();
+    }
     if (opts.skipBar) {
       return;
     }

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#059669" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>Noughts and crosses — Sofia's Game Room</title>
+  <link rel="manifest" href="../manifest.json" />
+  <link rel="stylesheet" href="../js/kids-core.css" />
+  <link rel="stylesheet" href="noughts-crosses.css" />
+  <link rel="stylesheet" href="../tablet-ipad.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Sniglet:wght@400;800&display=swap" rel="stylesheet" />
+</head>
+<body class="page-ttt">
+  <div class="app" id="app">
+    <nav class="game-nav" aria-label="Breadcrumb">
+      <a class="back-link" href="../index.html">← All games</a>
+    </nav>
+
+    <div id="screenSetup" class="screen">
+      <header class="ttt-header">
+        <h1>Noughts and crosses</h1>
+        <p class="ttt-header__lede">Get three in a row — a line, column, or diagonal.</p>
+      </header>
+
+      <section class="ttt-card" aria-labelledby="lblMode">
+        <h2 id="lblMode">How do you want to play?</h2>
+        <div class="ttt-choice-row" role="group" aria-label="Game mode">
+          <label class="ttt-radio">
+            <input type="radio" name="tttMode" value="friend" checked />
+            <span class="ttt-radio__title">With a friend</span>
+            <span class="ttt-radio__hint">Pass the device and take turns on the same board</span>
+          </label>
+          <label class="ttt-radio">
+            <input type="radio" name="tttMode" value="cpu" />
+            <span class="ttt-radio__title">Play the computer</span>
+            <span class="ttt-radio__hint">You go first as crosses; the computer plays noughts</span>
+          </label>
+        </div>
+      </section>
+
+      <section class="ttt-card" aria-labelledby="lblChars">
+        <h2 id="lblChars">Pick your characters</h2>
+        <p class="ttt-char-lede" id="charLede">
+          Tap a face or icon for each side. <strong>Crosses</strong> always take the first turn.
+        </p>
+        <div class="ttt-char-block">
+          <p class="ttt-char-heading" id="headingCharX">Crosses (first turn)</p>
+          <div class="ttt-char-row" id="charRowX" role="group" aria-labelledby="headingCharX"></div>
+        </div>
+        <div class="ttt-char-block" id="charBlockO">
+          <p class="ttt-char-heading" id="headingCharO">Noughts</p>
+          <div class="ttt-char-row" id="charRowO" role="group" aria-labelledby="headingCharO"></div>
+        </div>
+        <button type="button" class="ttt-btn ttt-btn--primary" id="btnStart">Start game</button>
+      </section>
+    </div>
+
+    <div id="screenPlay" class="screen is-hidden" hidden>
+      <p class="ttt-mode-line" id="modeLine" aria-live="polite">Two players</p>
+      <p class="ttt-status" id="statusLine" role="status" aria-live="polite">Crosses to play</p>
+
+      <div class="ttt-play-wrap">
+        <div class="ttt-board-shell" id="boardShell">
+          <div
+            class="ttt-board"
+            id="board"
+            role="grid"
+            aria-label="3 by 3 board"
+          ></div>
+        </div>
+      </div>
+
+      <div
+        class="ttt-win-overlay is-hidden"
+        id="tttWinOverlay"
+        hidden
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="tttWinTitle"
+        aria-describedby="tttWinMsg"
+      >
+        <div class="ttt-win-overlay__fx" id="tttWinFx" aria-hidden="true"></div>
+        <div class="ttt-win-dialog">
+          <div class="ttt-win-dialog__hero is-hidden" id="tttWinHero" aria-hidden="true"></div>
+          <h2 class="ttt-win-dialog__title" id="tttWinTitle">Hooray!</h2>
+          <p class="ttt-win-dialog__msg" id="tttWinMsg"></p>
+          <button type="button" class="ttt-btn ttt-btn--primary" id="tttWinClose">OK</button>
+        </div>
+      </div>
+
+      <div class="ttt-actions">
+        <button type="button" class="ttt-btn ttt-btn--primary" id="btnAgain">Play again</button>
+        <button type="button" class="ttt-btn ttt-btn--ghost" id="btnMenu">Change mode</button>
+      </div>
+    </div>
+  </div>
+  <script src="../js/kids-core.js" defer></script>
+  <script src="noughts-crosses.js" defer></script>
+  <script>
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("../sw.js").catch(function () {});
+    }
+  </script>
+</body>
+</html>

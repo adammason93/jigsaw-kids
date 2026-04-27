@@ -137,7 +137,7 @@ body.page-jigsaw::before {
 }
 
 .preset-block {
-  margin-bottom: 1.1rem;
+  margin-bottom: 0;
 }
 
 .preset-block__title {
@@ -160,6 +160,46 @@ body.page-jigsaw::before {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 140px), 1fr));
   gap: 0.75rem;
+}
+
+/* One horizontal band: thumbnails + pieces + actions (stacks on narrow screens) */
+.setup-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.85rem 1.1rem;
+  margin-top: 0.35rem;
+}
+
+.setup-toolbar .preset-grid {
+  flex: 1 1 280px;
+  min-width: min(100%, 260px);
+  max-width: 100%;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.setup-toolbar .jigsaw-preset {
+  padding: 0.35rem;
+}
+
+.setup-toolbar .jigsaw-preset__label {
+  font-size: 0.72rem;
+  margin-top: 0.35rem;
+}
+
+.setup-toolbar__pieces {
+  flex: 0 1 200px;
+  min-width: min(100%, 190px);
+}
+
+.setup-toolbar__actions {
+  flex: 0 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-top: 0 !important;
+  margin-bottom: 0;
 }
 
 .jigsaw-preset {
@@ -220,27 +260,6 @@ body.page-jigsaw::before {
   line-height: 1.25;
 }
 
-.setup__or {
-  margin: 1rem 0 0.85rem;
-  text-align: center;
-  font-size: 0.88rem;
-  font-weight: 800;
-  color: var(--muted);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-.setup__or::before,
-.setup__or::after {
-  content: "";
-  display: inline-block;
-  width: min(80px, 22vw);
-  height: 2px;
-  background: linear-gradient(90deg, transparent, #b8d4e8, transparent);
-  vertical-align: middle;
-  margin: 0 0.5rem;
-}
-
 .setup .row {
   display: flex;
   flex-wrap: wrap;
@@ -256,6 +275,34 @@ body.page-jigsaw::before {
 .pieces-row {
   flex-direction: column;
   align-items: stretch;
+}
+
+@media (max-width: 640px) {
+  .setup-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .setup-toolbar .preset-grid {
+    flex: none;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .setup-toolbar__pieces {
+    flex: none;
+    min-width: 0;
+  }
+
+  .setup-toolbar__actions {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .setup-toolbar__actions .btn {
+    flex: 1 1 auto;
+    min-width: 0;
+    text-align: center;
+  }
 }
 
 .pieces-row > label {
@@ -332,16 +379,6 @@ body.page-jigsaw::before {
   color: var(--text);
   border: 2px solid #c8e2f0;
   box-shadow: 0 2px 0 #dbe9f0;
-}
-
-.file-label {
-  cursor: pointer;
-}
-
-.file-name {
-  color: var(--muted);
-  font-size: 0.95rem;
-  font-weight: 600;
 }
 
 .actions {

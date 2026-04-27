@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#7c3aed" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>Connect 4 — Sofia's Game Room</title>
+  <link rel="manifest" href="../manifest.json" />
+  <link rel="stylesheet" href="../js/kids-core.css" />
+  <link rel="stylesheet" href="connect-four.css" />
+  <link rel="stylesheet" href="../tablet-ipad.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Sniglet:wght@400;800&display=swap" rel="stylesheet" />
+</head>
+<body class="page-c4">
+  <div class="app" id="app">
+    <nav class="game-nav" aria-label="Breadcrumb">
+      <a class="back-link" href="../index.html">← All games</a>
+    </nav>
+
+    <div id="screenSetup" class="screen">
+      <header class="c4-header">
+        <h1>Connect 4</h1>
+        <p class="c4-header__lede">Drop a piece in a column — first to get <strong>four in a row</strong> (across, down, or diagonal) wins.</p>
+      </header>
+
+      <section class="c4-card" aria-labelledby="lblMode">
+        <h2 id="lblMode">How do you want to play?</h2>
+        <div class="c4-choice-row" role="group" aria-label="Game mode">
+          <label class="c4-radio">
+            <input type="radio" name="c4Mode" value="friend" checked />
+            <span class="c4-radio__title">With a friend</span>
+            <span class="c4-radio__hint">Take turns — red and yellow</span>
+          </label>
+          <label class="c4-radio">
+            <input type="radio" name="c4Mode" value="cpu" />
+            <span class="c4-radio__title">Play the computer</span>
+            <span class="c4-radio__hint">You are red and go first; the computer is yellow</span>
+          </label>
+        </div>
+        <button type="button" class="c4-btn c4-btn--primary" id="btnStart">Start game</button>
+      </section>
+    </div>
+
+    <div id="screenPlay" class="screen is-hidden" hidden>
+      <p class="c4-mode-line" id="modeLine" aria-live="polite">Two players</p>
+      <p class="c4-status" id="statusLine" role="status" aria-live="polite">Red to play</p>
+
+      <p class="c4-hint" id="playHint" aria-hidden="true">Tap a column to drop your piece</p>
+
+      <div class="c4-play-wrap">
+        <div
+          class="c4-columns"
+          id="columns"
+          role="group"
+          aria-label="Game board — pick a column"
+        ></div>
+      </div>
+
+      <div class="c4-actions">
+        <button type="button" class="c4-btn c4-btn--primary" id="btnAgain">Play again</button>
+        <button type="button" class="c4-btn c4-btn--ghost" id="btnMenu">Change mode</button>
+      </div>
+    </div>
+  </div>
+  <script src="../js/kids-core.js" defer></script>
+  <script src="connect-four.js" defer></script>
+  <script>
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("../sw.js").catch(function () {});
+    }
+  </script>
+</body>
+</html>

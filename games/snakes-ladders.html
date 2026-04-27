@@ -4,6 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="theme-color" content="#7c3aed" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <title>Snakes &amp; Ladders — Sofia's Game Room</title>
   <link rel="manifest" href="../manifest.json" />
   <link rel="stylesheet" href="../js/kids-core.css" />
@@ -360,6 +362,33 @@
           </div>
           <p class="jump-popup__meta" id="jumpPopupMeta"></p>
           <p class="jump-popup__tap" id="jumpPopupTap">Tap outside the box or press Escape to skip</p>
+        </div>
+      </div>
+
+      <div
+        id="treasurePopup"
+        class="treasure-popup treasure-popup--hidden"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="treasurePopupTitle"
+        aria-hidden="true"
+      >
+        <div class="treasure-popup__backdrop" aria-hidden="true"></div>
+        <div class="treasure-popup__panel">
+          <h3 id="treasurePopupTitle" class="treasure-popup__title">Hidden treasure!</h3>
+          <p class="treasure-popup__lead" id="treasurePopupLead">You’ve found a prize!</p>
+          <div class="treasure-popup__stage" aria-hidden="true">
+            <div class="treasure-chest" id="treasureChest">
+              <div class="treasure-chest__sparkle treasure-chest__sparkle--1">✦</div>
+              <div class="treasure-chest__sparkle treasure-chest__sparkle--2">✦</div>
+              <div class="treasure-chest__base"></div>
+              <div class="treasure-chest__lid"></div>
+              <div class="treasure-chest__lock"></div>
+            </div>
+          </div>
+          <p class="treasure-popup__prize" id="treasurePopupPrize" aria-live="polite"></p>
+          <button type="button" class="btn btn--primary treasure-popup__ok" id="btnTreasureOk">Yay! OK</button>
+          <p class="treasure-popup__tap">Tap outside or press Escape to close</p>
         </div>
       </div>
     </div>

@@ -22,7 +22,9 @@ body {
 .page-snakes .app,
 .page-math .app,
 .page-jigsaw .app,
-.page-runner .app {
+.page-runner .app,
+.page-ttt .app,
+.page-c4 .app {
   box-sizing: border-box;
 }
 
@@ -37,6 +39,7 @@ a.game-card,
 .radio-tile,
 .snake-quiz__btn,
 .icon-pick__opt,
+.ttt-char-opt,
 .back-link,
 .turn-popup__btn,
 .og-btn {
@@ -243,5 +246,17 @@ body.page-snakes {
 
   .page-runner .mc-btn {
     min-height: 56px;
+  }
+}
+
+/* ——— Connect 4 ——— */
+@media (hover: none), (pointer: coarse) {
+  .page-c4 .c4-col {
+    min-width: 0;
+    min-height: var(--touch-min);
+  }
+
+  .page-c4 .c4-btn {
+    min-height: var(--touch-min);
   }
 }

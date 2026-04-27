@@ -1,0 +1,702 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* Aligned with games/snakes-ladders.css – warm gradient + purple accents */
+:root {
+  --bg-top: #fff5e6;
+  --bg-mid: #e8f5ff;
+  --bg-bot: #ffe8f4;
+  --c4-ink: #151020;
+  --c4-muted: #3d3346;
+  --c4-accent: #7c3aed;
+  --c4-accent-dark: #4c1d95;
+  --c4-card: #ffffff;
+  --c4-card-border: #e9d5ff;
+  --c4-card-shadow: 0 4px 0 #c4b5fd, 0 12px 32px rgba(124, 58, 237, 0.12);
+  /* Discs */
+  --c4-red: #dc2626;
+  --c4-red-dark: #991b1b;
+  --c4-yellow: #facc15;
+  --c4-yellow-dark: #a16207;
+  /* Board frame */
+  --c4-frame-top: #8b5cf6;
+  --c4-frame-bot: #4c1d95;
+  --c4-cell-hole: #f0e7ff;
+  --c4-grid-line: rgba(255, 255, 255, 0.42);
+  /* Placed disc sits a bit inside the “hole” so the frame and grid read in front */
+  --c4-coin-inset-scale: 0.9;
+  --c4-radius: 22px;
+  --c4-board-pad: 12px;
+  --c4-board-gap: 3px;
+  /* 2× board pad + 5 row gaps between 6 cells (keeps W/H math aligned with 7×6 + gaps) */
+  --c4-board-h-extra: calc(2 * var(--c4-board-pad) + 5 * var(--c4-board-gap));
+}
+
+html {
+  font-size: 16px;
+  -webkit-tap-highlight-color: transparent;
+  height: 100%;
+}
+
+body.page-c4 {
+  margin: 0;
+  min-height: 100dvh;
+  min-height: 100svh;
+  font-family: "Nunito", "Segoe UI", system-ui, sans-serif;
+  color: var(--c4-ink);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: linear-gradient(165deg, var(--bg-top) 0%, var(--bg-mid) 45%, var(--bg-bot) 100%);
+  background-attachment: fixed;
+}
+
+/* Play screen: one viewport, no page scroll; board shrinks to fit
+   .c4-playing mirrors :has() for browsers without :has() support. */
+body.page-c4:has(#screenPlay:not(.is-hidden)),
+body.page-c4.c4-playing {
+  overflow: hidden;
+  height: 100vh;
+  max-height: 100vh;
+}
+@supports (height: 100dvh) {
+  body.page-c4:has(#screenPlay:not(.is-hidden)),
+  body.page-c4.c4-playing {
+    height: 100dvh;
+    max-height: 100dvh;
+  }
+}
+
+h1,
+h2,
+.c4-header h1,
+.c4-card h2,
+.c4-status {
+  font-family: "Sniglet", "Nunito", system-ui, sans-serif;
+}
+
+.app {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0.75rem 1rem 2rem;
+}
+
+/* Play screen: fill viewport; extra bottom padding clears fixed KidsCore bar so board never sits under UI */
+.app:has(#screenPlay:not(.is-hidden)),
+.app.c4-app--play {
+  max-width: none;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  max-height: 100vh;
+  max-height: 100dvh;
+  max-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  padding: max(0.2rem, env(safe-area-inset-top, 0px)) max(0.35rem, env(safe-area-inset-right, 0px))
+    max(4.25rem, calc(0.5rem + env(safe-area-inset-bottom, 0px)))
+    max(0.35rem, env(safe-area-inset-left, 0px));
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.app:has(#screenPlay:not(.is-hidden)) .game-nav,
+.app.c4-app--play .game-nav {
+  margin-bottom: 0.1rem;
+  flex-shrink: 0;
+}
+
+.app:has(#screenPlay:not(.is-hidden)) .back-link,
+.app.c4-app--play .back-link {
+  font-size: 0.9rem;
+}
+
+.game-nav {
+  margin-bottom: 0.75rem;
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  color: var(--c4-accent-dark);
+  font-weight: 800;
+  text-decoration: none;
+  font-size: 0.95rem;
+}
+
+.back-link:hover {
+  text-decoration: underline;
+}
+
+.c4-header {
+  text-align: center;
+  margin-bottom: 1.25rem;
+  padding: 1rem 1.1rem;
+}
+
+.c4-header h1 {
+  margin: 0 0 0.35rem;
+  font-size: clamp(1.85rem, 4vw, 2.4rem);
+  font-weight: 800;
+  background: linear-gradient(90deg, #5b21b6, #be185d, #b45309);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.9)) drop-shadow(0 0 1px rgba(255, 255, 255, 0.5));
+}
+
+.c4-header__lede {
+  margin: 0;
+  color: var(--c4-muted);
+  font-size: 1.08rem;
+  font-weight: 600;
+  line-height: 1.5;
+  max-width: 38ch;
+  margin-inline: auto;
+}
+
+.c4-header__lede strong {
+  color: var(--c4-accent-dark);
+}
+
+.c4-card {
+  background: var(--c4-card);
+  border-radius: var(--c4-radius);
+  padding: 1.35rem 1.5rem;
+  box-shadow: var(--c4-card-shadow);
+  border: 3px solid var(--c4-card-border);
+}
+
+.c4-card h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1.2rem;
+  color: var(--c4-accent-dark);
+}
+
+.c4-choice-row {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.c4-radio {
+  display: block;
+  margin: 0;
+  padding: 0.7rem 0.9rem;
+  border: 3px solid #d8b4fe;
+  border-radius: 16px;
+  background: linear-gradient(180deg, #faf5ff, #f3e8ff);
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.1s;
+}
+
+.c4-radio:has(input:focus-visible) {
+  outline: 2px solid var(--c4-accent);
+  outline-offset: 2px;
+}
+
+.c4-radio:has(input:checked) {
+  border-color: var(--c4-accent);
+  background: linear-gradient(180deg, #ede9fe, #e9d5ff);
+  box-shadow: 0 0 0 2px #fff, 0 6px 16px rgba(124, 58, 237, 0.2);
+}
+
+.c4-radio input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.c4-radio__title {
+  display: block;
+  font-weight: 800;
+  font-size: 1.1rem;
+  margin-bottom: 0.2rem;
+  color: var(--c4-ink);
+}
+
+.c4-radio__hint {
+  font-size: 0.82rem;
+  color: var(--c4-muted);
+  line-height: 1.4;
+  font-weight: 600;
+}
+
+.c4-btn {
+  display: block;
+  width: 100%;
+  font: inherit;
+  font-weight: 800;
+  font-size: 1.05rem;
+  border: none;
+  border-radius: 14px;
+  padding: 0.75rem 1.2rem;
+  cursor: pointer;
+  transition: transform 0.1s, box-shadow 0.15s;
+}
+
+.c4-btn--primary {
+  background: linear-gradient(180deg, #a855f7, #7c3aed);
+  color: #fff;
+  box-shadow: 0 4px 0 #5b21b6, 0 8px 20px rgba(91, 33, 182, 0.35);
+}
+
+.c4-btn--primary:hover:not(:disabled) {
+  box-shadow: 0 4px 0 #5b21b6, 0 10px 28px rgba(91, 33, 182, 0.45);
+}
+
+.c4-btn--primary:active {
+  transform: scale(0.98);
+}
+
+.c4-btn--ghost {
+  background: #fff;
+  color: var(--c4-ink);
+  border: 2px solid #e9d5ff;
+  box-shadow: 0 2px 0 #ede9fe;
+  margin-top: 0.5rem;
+}
+
+.c4-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.screen.is-hidden {
+  display: none !important;
+}
+
+.c4-mode-line {
+  margin: 0 0 0.3rem;
+  font-size: 0.86rem;
+  font-weight: 800;
+  color: var(--c4-muted);
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.c4-status {
+  margin: 0 0 0.4rem;
+  font-size: clamp(1.1rem, 3.2vw, 1.45rem);
+  font-weight: 800;
+  text-align: center;
+  min-height: 1.4em;
+  color: var(--c4-ink);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.c4-hint {
+  margin: 0 0 0.35rem;
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--c4-muted);
+  font-weight: 600;
+}
+
+#screenPlay {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1 1 0;
+  width: 100%;
+  overflow: hidden;
+  gap: 0.1rem;
+}
+
+#screenPlay .c4-mode-line,
+#screenPlay .c4-status,
+#screenPlay .c4-hint {
+  flex-shrink: 0;
+}
+
+#screenPlay .c4-mode-line {
+  margin-bottom: 0.05rem;
+}
+
+#screenPlay .c4-status {
+  margin-bottom: 0.15rem;
+  min-height: 1.15em;
+  font-size: clamp(1rem, 2.9vw, 1.3rem);
+}
+
+#screenPlay .c4-hint {
+  margin-bottom: 0.1rem;
+  font-size: 0.82rem;
+}
+
+.c4-play-wrap {
+  position: relative;
+  z-index: 2;
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  min-height: 0;
+  margin-bottom: 0;
+  padding: 0.15rem 0 0.25rem;
+  overflow: hidden;
+  overscroll-behavior: none;
+  touch-action: manipulation;
+}
+
+/*
+ * 7×6 cells (square) + padding + gaps: width is solved from vertical budget so 6 rows always fit.
+ * No max-height (that clipped the grid). No @container cqb=0. No aspect-ratio (padding fight).
+ */
+.c4-columns {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  align-items: stretch;
+  justify-items: stretch;
+  gap: var(--c4-board-gap);
+  /* 100vh first so the whole min() is not invalid if dvh is unsupported in a WebView */
+  --c4-v: 100vh;
+  --c4-v: min(100dvh, 100svh);
+  /* ~nav + status + 2 buttons + kids bar + safe area; tune if bar overlaps on tiny screens */
+  --c4-budget: max(11rem, calc(var(--c4-v) - 7.25rem));
+  --c4-w-outer: max(
+    200px,
+    calc(
+      (var(--c4-budget) - var(--c4-board-h-extra)) * 7 / 6 + 2 * var(--c4-board-pad) + 6 * var(--c4-board-gap)
+    )
+  );
+  /* vmin cap: board always fits short viewports */
+  width: min(100%, calc(100vw - 1rem), var(--c4-w-outer), 92vw, 88vmin, 32rem);
+  max-width: 100%;
+  min-width: 0;
+  height: auto;
+  padding: var(--c4-board-pad);
+  overflow: hidden;
+  background: linear-gradient(180deg, var(--c4-frame-top) 0%, #6d28d9 40%, var(--c4-frame-bot) 100%);
+  border-radius: 20px;
+  border: 3px solid #c4b5fd;
+  box-shadow: 0 6px 0 #5b21b6, 0 16px 40px rgba(91, 33, 182, 0.28);
+  box-sizing: border-box;
+}
+
+/* 7×6 line guides — in front of coins so pieces read as behind the slot grid */
+.c4-columns::before {
+  content: "";
+  position: absolute;
+  left: var(--c4-board-pad);
+  right: var(--c4-board-pad);
+  top: var(--c4-board-pad);
+  bottom: var(--c4-board-pad);
+  border-radius: 12px;
+  pointer-events: none;
+  z-index: 3;
+  background-image: repeating-linear-gradient(
+      0deg,
+      var(--c4-grid-line) 0,
+      var(--c4-grid-line) 1px,
+      transparent 1px,
+      transparent calc(100% / 6)
+    ),
+    repeating-linear-gradient(
+      90deg,
+      var(--c4-grid-line) 0,
+      var(--c4-grid-line) 1px,
+      transparent 1px,
+      transparent calc(100% / 7)
+    );
+  background-blend-mode: normal;
+  opacity: 0.95;
+}
+
+.c4-columns--over {
+  box-shadow: 0 4px 0 #6b21b5, 0 12px 28px rgba(0, 0, 0, 0.12);
+  border-color: #a78bfa;
+  pointer-events: none;
+}
+
+.c4-col {
+  position: relative;
+  z-index: 0;
+  display: flex;
+  flex-direction: column-reverse;
+  min-width: 0;
+  min-height: 0;
+  gap: var(--c4-board-gap);
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  border-radius: 0;
+  touch-action: manipulation;
+  width: 100%;
+  align-self: stretch;
+  min-height: 0;
+  transition: filter 0.1s, transform 0.1s;
+}
+
+/* After tablet-ipad (48px) — min-height on column can fight flex+aspect cell math on some WebViews */
+body.page-c4.c4-playing .c4-col {
+  min-height: 0;
+}
+
+.c4-col:disabled,
+.c4-col[aria-disabled="true"] {
+  cursor: not-allowed;
+  opacity: 0.9;
+  filter: saturate(0.95);
+}
+
+.c4-col:hover:not(:disabled):not([aria-disabled="true"]) {
+  filter: brightness(1.06);
+}
+
+.c4-col:active:not(:disabled):not([aria-disabled="true"]) {
+  transform: scale(0.99);
+}
+
+.c4-cell {
+  display: block;
+  position: relative;
+  z-index: 0;
+  width: 100%;
+  aspect-ratio: 1;
+  min-height: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 50%, #faf5ff 0%, var(--c4-cell-hole) 50%, #ddd6fe 100%);
+  box-shadow: inset 0 2px 8px rgba(12, 6, 40, 0.35);
+  flex-shrink: 0;
+  pointer-events: none;
+  margin: 0 auto;
+  isolation: isolate;
+}
+
+/* --- Plastic “coin” pieces: rings, cog rim, embossed 4 (spin reads in drop animation) --- */
+.c4-cell--R,
+.c4-cell--Y,
+.c4-fall-disc--R,
+.c4-fall-disc--Y {
+  overflow: hidden;
+}
+
+/* Slightly smaller + no outward shadow — disc sits in the slot, not on the face */
+.c4-col .c4-cell--R,
+.c4-col .c4-cell--Y {
+  transform: scale(var(--c4-coin-inset-scale));
+  transform-origin: center center;
+}
+
+.c4-cell--R,
+.c4-fall-disc--R {
+  background-color: #991b1b;
+  background-image:
+    radial-gradient(
+      circle,
+      transparent 0 38%,
+      rgba(0, 0, 0, 0.12) 38% 40%,
+      transparent 40% 100%
+    ),
+    radial-gradient(
+      circle,
+      transparent 0 55%,
+      rgba(0, 0, 0, 0.1) 55% 57%,
+      transparent 57% 100%
+    ),
+    radial-gradient(ellipse 85% 45% at 50% 18%, rgba(255, 255, 255, 0.5) 0%, transparent 50%),
+    radial-gradient(ellipse 70% 50% at 50% 100%, rgba(0, 0, 0, 0.28) 0%, transparent 55%),
+    radial-gradient(
+      circle at 32% 32%,
+      #fecaca,
+      #e11d48 42%,
+      #9f1239 78%,
+      #450a0a 100%
+    );
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  background-position: center;
+  /* Inset-only: avoids halos that paint over the purple face / grid */
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.35),
+    inset 0 -4px 10px rgba(0, 0, 0, 0.22);
+}
+
+.c4-cell--Y,
+.c4-fall-disc--Y {
+  background-color: #a16207;
+  background-image:
+    radial-gradient(
+      circle,
+      transparent 0 38%,
+      rgba(0, 0, 0, 0.1) 38% 40%,
+      transparent 40% 100%
+    ),
+    radial-gradient(
+      circle,
+      transparent 0 55%,
+      rgba(0, 0, 0, 0.1) 55% 57%,
+      transparent 57% 100%
+    ),
+    radial-gradient(ellipse 85% 45% at 50% 18%, rgba(255, 255, 255, 0.45) 0%, transparent 50%),
+    radial-gradient(ellipse 70% 50% at 50% 100%, rgba(0, 0, 0, 0.2) 0%, transparent 55%),
+    radial-gradient(
+      circle at 32% 32%,
+      #fef08a,
+      #eab308 44%,
+      #a16207 80%,
+      #422006 100%
+    );
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  background-position: center;
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.4),
+    inset 0 -4px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* Scalloped / cogged outer rim (visible while rotating) */
+.c4-cell--R::before,
+.c4-cell--Y::before,
+.c4-fall-disc--R::before,
+.c4-fall-disc--Y::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  z-index: 0;
+  pointer-events: none;
+  background: repeating-conic-gradient(
+    from 0deg at 50% 50%,
+    rgba(0, 0, 0, 0.1) 0deg 2.2deg,
+    rgba(255, 255, 255, 0.07) 2.2deg 4.4deg
+  );
+  -webkit-mask: radial-gradient(farthest-side, #000 84%, #000 92%, transparent 100%);
+  mask: radial-gradient(farthest-side, #000 84%, #000 92%, transparent 100%);
+  opacity: 0.9;
+}
+
+.c4-cell--R::after,
+.c4-cell--Y::after,
+.c4-fall-disc--R::after,
+.c4-fall-disc--Y::after {
+  content: "4";
+  position: absolute;
+  z-index: 1;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -54%) rotate(0.001deg);
+  font-family: "Sniglet", "Nunito", system-ui, sans-serif;
+  font-size: clamp(0.6rem, 2.5vmin, 1.4rem);
+  line-height: 0.9;
+  font-weight: 800;
+  pointer-events: none;
+  -webkit-text-stroke: 0.4px rgba(0, 0, 0, 0.12);
+}
+
+.c4-col .c4-cell--R::after,
+.c4-col .c4-cell--Y::after {
+  font-size: clamp(0.5rem, 2.1vmin, 1.1rem);
+}
+
+.c4-fall-disc--R::after,
+.c4-fall-disc--Y::after {
+  font-size: min(1.1rem, 3.2vmin);
+  color: rgba(255, 255, 255, 0.5);
+  text-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.4),
+    0 -1px 0 rgba(0, 0, 0, 0.35);
+}
+
+.c4-fall-disc--Y::after {
+  color: rgba(120, 53, 15, 0.85);
+  text-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.35),
+    0 -1px 0 rgba(0, 0, 0, 0.2);
+}
+
+.c4-cell--R::after {
+  color: rgba(255, 240, 240, 0.65);
+  text-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.5),
+    0 -1px 0 rgba(0, 0, 0, 0.4),
+    1px 1px 0 rgba(0, 0, 0, 0.15);
+}
+
+.c4-cell--Y::after {
+  color: rgba(66, 32, 6, 0.7);
+  text-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.45),
+    0 -1px 0 rgba(0, 0, 0, 0.2);
+}
+
+/* Falling disc (Web Animations API — spin reads against embossed “4” + rim) */
+.c4-fall-disc {
+  position: fixed;
+  z-index: 10050;
+  box-sizing: border-box;
+  border-radius: 50%;
+  pointer-events: none;
+  will-change: transform;
+  backface-visibility: hidden;
+  isolation: isolate;
+  box-shadow:
+    inset 0 2px 4px rgba(255, 255, 255, 0.35),
+    inset 0 -5px 12px rgba(0, 0, 0, 0.25),
+    0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.c4-cell--R.c4-cell--win {
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.35),
+    inset 0 -4px 10px rgba(0, 0, 0, 0.22),
+    0 0 0 3px #fff,
+    0 0 0 6px #4ade80;
+  animation: c4-win 0.6s ease;
+}
+
+.c4-cell--Y.c4-cell--win {
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.4),
+    inset 0 -4px 10px rgba(0, 0, 0, 0.2),
+    0 0 0 3px #fff,
+    0 0 0 6px #4ade80;
+  animation: c4-win 0.6s ease;
+}
+
+@keyframes c4-win {
+  0%,
+  100% {
+    transform: scale(var(--c4-coin-inset-scale));
+  }
+  50% {
+    transform: scale(0.96);
+  }
+}
+
+.c4-actions {
+  position: relative;
+  z-index: 1;
+  max-width: 24rem;
+  margin: 0 auto;
+  width: 100%;
+  flex-shrink: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .c4-col,
+  .c4-btn {
+    transition: none;
+  }
+  .c4-cell--win {
+    animation: none;
+  }
+  .c4-fall-disc {
+    will-change: auto;
+  }
+}

@@ -1,5 +1,3 @@
-const imageInput = document.getElementById("imageInput");
-const fileName = document.getElementById("fileName");
 const pieceSlider = document.getElementById("pieceSlider");
 const pieceOut = document.getElementById("pieceOut");
 const startBtn = document.getElementById("startBtn");
@@ -153,9 +151,7 @@ function clearPresetSelection() {
  */
 function setImageFromPreset(src, label, presetButton) {
   releaseObjectUrl();
-  imageInput.value = "";
   dataUrl = src;
-  fileName.textContent = label;
   startBtn.disabled = false;
   clearPresetSelection();
   if (presetButton) {
@@ -163,26 +159,6 @@ function setImageFromPreset(src, label, presetButton) {
     presetButton.setAttribute("aria-pressed", "true");
   }
 }
-
-function setImageFromFile(file) {
-  clearPresetSelection();
-  releaseObjectUrl();
-  dataUrl = null;
-  if (!file || !file.type.startsWith("image/")) {
-    fileName.textContent = "No picture selected";
-    startBtn.disabled = true;
-    return;
-  }
-  objectUrl = URL.createObjectURL(file);
-  dataUrl = objectUrl;
-  fileName.textContent = file.name;
-  startBtn.disabled = false;
-}
-
-imageInput.addEventListener("change", () => {
-  const file = imageInput.files?.[0];
-  setImageFromFile(file ?? null);
-});
 
 document.querySelectorAll(".jigsaw-preset").forEach(function (btn) {
   btn.setAttribute("aria-pressed", "false");
