@@ -461,9 +461,9 @@ function startPuzzle() {
   rebuildClipDefs(n);
   setStatus("");
   playArea.hidden = false;
-  if (typeof KidsCore !== "undefined" && typeof KidsCore.setPlayMode === "function") {
-    KidsCore.setPlayMode(true);
-  }
+  /* Do not use KidsCore.setPlayMode(true): it locks page scroll (kids-core.css) and on
+     phones the board + tray are taller than the viewport — the player must be able
+     to scroll to the drop zone and pieces. */
 
   const resolved = resolveImageUrl(String(dataUrl));
   if (boardGuideImg) {
