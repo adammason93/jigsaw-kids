@@ -25,7 +25,7 @@
   --sky-mid: #d8f1e8;
   --park-shade: rgba(25, 80, 50, 0.45);
   /* In-game park + track — shared by .race-stage and .race-ribbon */
-  --race-section-min-height: clamp(320px, 56dvh, 640px);
+  --race-section-min-height: clamp(300px, 48dvh, 520px);
   --radius: 16px;
   --shadow: 0 4px 0 var(--ink), 0 8px 24px rgba(20, 50, 40, 0.12);
   --shadow-card: 0 3px 0 rgba(0, 0, 0, 0.08), 0 4px 18px rgba(27, 58, 50, 0.08);
@@ -831,9 +831,9 @@ body.page-math:has(#screenSetup:not(.is-hidden)) #screenSetup .btn-primary {
   --step: 0;
   --race-progress: 0;
   /* Bottom band for track; park pane ends higher so path overlaps up into the image */
-  --race-path-band: clamp(200px, 28vh, 316px);
+  --race-path-band: clamp(180px, 24vh, 280px);
   /* Bottom band height + extra lift so track reads as one layer with the park */
-  --race-park-overlap: min(56px, 18vmin);
+  --race-park-overlap: min(48px, 15vmin);
   position: relative;
   flex: 1 1 auto;
   min-height: var(--race-section-min-height);
@@ -849,7 +849,7 @@ body.page-math:has(#screenSetup:not(.is-hidden)) #screenSetup .btn-primary {
 }
 
 .race-stage.has-multi-lane {
-  --race-path-band: clamp(284px, 40vh, 404px);
+  --race-path-band: clamp(255px, 34vh, 360px);
 }
 
 /* Park art — full frame; path strip paints on top so track overlaps the picture */
@@ -1049,7 +1049,7 @@ html.kids-reduce-motion .race-canopy {
   left: 5%;
   animation: cloud-drift-wide 52s linear infinite;
   animation-delay: -4s;
-  opacity: 0.48;
+  opacity: 0.56;
 }
 
 .race-cloud--b {
@@ -1059,7 +1059,7 @@ html.kids-reduce-motion .race-canopy {
   left: 18%;
   animation: cloud-drift-wide 64s linear infinite reverse;
   animation-delay: -12s;
-  opacity: 0.4;
+  opacity: 0.48;
 }
 
 .race-cloud--c {
@@ -1069,7 +1069,7 @@ html.kids-reduce-motion .race-canopy {
   right: 22%;
   animation: cloud-drift-wide 58s linear infinite;
   animation-delay: -8s;
-  opacity: 0.38;
+  opacity: 0.46;
 }
 
 .race-cloud--d {
@@ -1078,7 +1078,7 @@ html.kids-reduce-motion .race-canopy {
   top: 16%;
   left: -18%;
   animation: cloud-drift-wide 72s linear infinite reverse;
-  opacity: 0.35;
+  opacity: 0.42;
 }
 
 /* Simple side foliage — suggests treetops swaying in the breeze */
@@ -1132,51 +1132,143 @@ html.kids-reduce-motion .race-canopy {
 
 @keyframes cloud-drift-wide {
   0% {
-    transform: translateX(-28vw);
+    transform: translateX(-22vw);
   }
   100% {
-    transform: translateX(28vw);
+    transform: translateX(34vw);
   }
 }
 
-/* Birds — 3×3 sprite sheet; each cell 338×338 in 1014×1014 sheet */
+/* Birds — 3×3 sprite sheet; wing flap + gentle sky paths */
+@keyframes bird-flap-row0 {
+  0% {
+    background-position: 0% 0%;
+  }
+  33% {
+    background-position: 50% 0%;
+  }
+  66% {
+    background-position: 100% 0%;
+  }
+  100% {
+    background-position: 0% 0%;
+  }
+}
+
+@keyframes bird-flap-row1 {
+  0% {
+    background-position: 0% 50%;
+  }
+  33% {
+    background-position: 50% 50%;
+  }
+  66% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes bird-flap-row2 {
+  0% {
+    background-position: 0% 100%;
+  }
+  33% {
+    background-position: 50% 100%;
+  }
+  66% {
+    background-position: 100% 100%;
+  }
+  100% {
+    background-position: 0% 100%;
+  }
+}
+
+@keyframes bird-sky-1 {
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(-2deg);
+  }
+  50% {
+    transform: translate(10vw, -12px) rotate(3deg);
+  }
+}
+
+@keyframes bird-sky-2 {
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(2deg);
+  }
+  33% {
+    transform: translate(-8vw, 6px) rotate(-4deg);
+  }
+  66% {
+    transform: translate(4vw, -10px) rotate(1deg);
+  }
+}
+
+@keyframes bird-sky-3 {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  25% {
+    transform: translate(-6vw, -8px);
+  }
+  75% {
+    transform: translate(12vw, 4px);
+  }
+}
+
 .race-bird {
   position: absolute;
   z-index: 2;
   pointer-events: none;
-  width: clamp(32px, 8.5vw, 48px);
-  height: clamp(32px, 8.5vw, 48px);
+  width: clamp(40px, 11vw, 64px);
+  height: clamp(40px, 11vw, 64px);
   background-image: url("images/math-race-birds-sheet.png");
   background-repeat: no-repeat;
   background-size: 300% 300%;
   filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.15));
-  animation: none;
+  transform-origin: 50% 50%;
 }
 
 .race-bird::before {
   content: none;
 }
 
-/* Static sky birds — avoids distracting fly-by motion */
 .race-bird--1 {
   left: 12%;
   right: auto;
   top: 12%;
   background-position: 0% 0%;
+  animation:
+    bird-flap-row0 0.7s linear infinite,
+    bird-sky-1 16s ease-in-out infinite;
+  animation-delay: 0s, -2s;
 }
 
 .race-bird--2 {
   left: 46%;
   right: auto;
   top: 16%;
-  background-position: 100% 0%;
+  background-position: 0% 50%;
+  animation:
+    bird-flap-row1 0.78s linear infinite,
+    bird-sky-2 20s ease-in-out infinite reverse;
+  animation-delay: 0s, -5s;
 }
 
 .race-bird--3 {
   left: 70%;
   right: auto;
   top: 9%;
-  background-position: 50% 50%;
+  background-position: 0% 100%;
+  animation:
+    bird-flap-row2 0.65s linear infinite,
+    bird-sky-3 14s ease-in-out infinite;
+  animation-delay: 0s, -3.5s;
 }
 /* Bottom strip: anchored to floor but pulled up over the park artwork */
 .race-path-shell {
@@ -1217,18 +1309,24 @@ html.kids-reduce-motion .race-canopy {
 /* Start + finish markers on top of the brick path */
 .race-path-shell .race-flag--on-path.race-flag--start {
   position: absolute;
-  left: clamp(0.4rem, 2.2vw, 0.85rem);
-  bottom: clamp(0.18rem, 1.8vmin, 0.55rem);
+  left: clamp(0.35rem, 2vw, 0.75rem);
+  bottom: clamp(0.12rem, 1.5vmin, 0.5rem);
   z-index: 5;
+  font-size: clamp(0.72rem, 2.1vmin, 0.88rem);
+}
+
+.race-path-shell .race-flag--on-path.race-flag--start::before {
+  font-size: clamp(1.6rem, 5.2vmin, 2.35rem);
+  margin-bottom: 0.12rem;
 }
 
 .race-path-shell .race-finish-tape.race-flag--on-path {
   position: absolute;
-  right: clamp(0.35rem, 2.2vw, 0.9rem);
-  bottom: clamp(0.1rem, 1.5vmin, 0.45rem);
+  right: clamp(0.3rem, 2vw, 0.85rem);
+  bottom: clamp(0.08rem, 1.2vmin, 0.42rem);
   left: auto;
   top: auto;
-  width: clamp(76px, 22vw, 132px);
+  width: clamp(110px, 38vw, 220px);
   z-index: 5;
   display: flex;
   align-items: flex-end;
@@ -1341,7 +1439,7 @@ html.kids-reduce-motion .race-canopy {
   display: block;
   width: 100%;
   height: auto;
-  max-height: min(30vh, 118px);
+  max-height: min(40vh, 200px);
   object-fit: contain;
 }
 
@@ -1400,7 +1498,7 @@ html.kids-reduce-motion .race-canopy {
   justify-content: space-between;
   align-items: center;
   padding: 0 0.1rem;
-  padding-right: clamp(82px, 28vw, 150px); /* room for finish banner */
+  padding-right: clamp(120px, 42vw, 230px); /* room for finish banner */
   pointer-events: none;
   z-index: 3;
 }
@@ -1459,8 +1557,8 @@ html.kids-reduce-motion .race-canopy {
   left: var(--runner-left, 2%);
   bottom: var(--runner-bottom, 0.2rem);
   z-index: 4;
-  width: clamp(4.25rem, 18vmin, 7rem);
-  height: clamp(5.5rem, 28vmin, 8.75rem);
+  width: clamp(5.75rem, 26vmin, 10.5rem);
+  height: clamp(7rem, 36vmin, 12rem);
   margin-left: 0;
   display: flex;
   align-items: flex-end;
@@ -1491,11 +1589,11 @@ html.kids-reduce-motion .race-canopy {
 }
 
 .race-runner--dino .race-runner__emoji {
-  font-size: clamp(2.65rem, 10vmin, 4.25rem);
+  font-size: clamp(3.35rem, 13vmin, 5.75rem);
 }
 
 .race-runner__emoji {
-  font-size: clamp(2.95rem, 9.5vmin, 4.75rem);
+  font-size: clamp(3.65rem, 13vmin, 6.25rem);
   line-height: 1;
   display: block;
   transform-origin: 50% 85%;
@@ -1512,9 +1610,9 @@ html.kids-reduce-motion .race-canopy {
 
 .race-runner__emoji--pic .race-runner__pic {
   display: block;
-  width: clamp(3.35rem, 13vmin, 5.5rem);
+  width: clamp(4.65rem, 19vmin, 8.5rem);
   height: auto;
-  max-height: clamp(5.5rem, 20vmin, 7.5rem);
+  max-height: clamp(7.5rem, 32vmin, 11rem);
   object-fit: contain;
   transform-origin: 50% 85%;
   filter:
