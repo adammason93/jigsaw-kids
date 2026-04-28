@@ -32,20 +32,38 @@
       <section class="memory-card memory-card--panel" aria-labelledby="lblDifficulty">
         <h2 id="lblDifficulty">Choose your game size</h2>
         <div class="memory-choice-grid" role="radiogroup" aria-labelledby="lblDifficulty">
-          <label class="memory-radio">
+          <label class="memory-radio memory-radio--visual" aria-label="Quick: 16 cards, smaller grid">
             <input type="radio" name="memorySize" value="quick" checked />
-            <span class="memory-radio__title">Quick</span>
-            <span class="memory-radio__hint">16 cards — smaller grid</span>
+            <img
+              class="memory-radio__art"
+              src="images/memory-size-quick.png"
+              alt=""
+              width="1024"
+              height="1024"
+              decoding="async"
+            />
           </label>
-          <label class="memory-radio">
+          <label class="memory-radio memory-radio--visual" aria-label="Normal: 24 cards — great for most">
             <input type="radio" name="memorySize" value="normal" />
-            <span class="memory-radio__title">Normal</span>
-            <span class="memory-radio__hint">24 cards — great for most</span>
+            <img
+              class="memory-radio__art"
+              src="images/memory-size-normal.png"
+              alt=""
+              width="1024"
+              height="1024"
+              decoding="async"
+            />
           </label>
-          <label class="memory-radio">
+          <label class="memory-radio memory-radio--visual" aria-label="Big game: 30 cards — longest search">
             <input type="radio" name="memorySize" value="big" />
-            <span class="memory-radio__title">Big game</span>
-            <span class="memory-radio__hint">30 cards — longest search</span>
+            <img
+              class="memory-radio__art"
+              src="images/memory-size-big.png"
+              alt=""
+              width="1024"
+              height="1024"
+              decoding="async"
+            />
           </label>
         </div>
         <button type="button" class="memory-btn memory-btn--primary" id="btnStart">Start game</button>

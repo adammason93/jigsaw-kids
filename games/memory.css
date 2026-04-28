@@ -220,6 +220,28 @@ html.kids-play-mode .page-memory .memory-app {
   transition: border-color 0.15s ease, background 0.15s ease;
 }
 
+.memory-radio--visual {
+  padding: 0.45rem;
+  overflow: hidden;
+}
+
+.memory-radio__art {
+  display: block;
+  width: 100%;
+  max-height: 200px;
+  height: auto;
+  border-radius: 12px;
+  object-fit: contain;
+  object-position: center center;
+  vertical-align: top;
+}
+
+@media (min-width: 520px) {
+  .memory-radio__art {
+    max-height: 240px;
+  }
+}
+
 .memory-radio:has(input:checked) {
   border-color: rgba(250, 204, 21, 0.75);
   background: rgba(30, 58, 138, 0.45);

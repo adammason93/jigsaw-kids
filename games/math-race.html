@@ -222,17 +222,22 @@
         <div class="race-path-shell">
           <div class="race-ribbon">
             <div class="race-ribbon__inner">
-              <span class="race-flag race-flag--start" id="flagStart" aria-hidden="true">Start</span>
               <div class="race-lane" id="raceLane">
-                <div class="race-finish-tape" aria-hidden="true"></div>
                 <div class="race-dashes" id="raceDashes" aria-hidden="true"></div>
+                <span class="race-flag race-flag--start race-flag--on-path" id="flagStart" aria-hidden="true">Start</span>
+                <div class="race-finish-tape race-flag--on-path" id="flagEnd" aria-hidden="true">
+                  <img
+                    class="race-finish-tape__img"
+                    src="images/math-race-finish-line.png"
+                    alt=""
+                    width="120"
+                    height="80"
+                    decoding="async"
+                  />
+                </div>
                 <div class="race-steps" id="raceSteps" role="list"></div>
                 <div class="race-runners" id="raceRunners"></div>
               </div>
-              <span class="race-flag race-flag--end" id="flagEnd" aria-hidden="true">
-                <span class="race-flag__text">Finish</span>
-                <span class="race-flag__pole" aria-hidden="true"></span>
-              </span>
             </div>
           </div>
         </div>
