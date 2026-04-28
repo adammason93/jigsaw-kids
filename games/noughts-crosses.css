@@ -32,7 +32,7 @@ body.page-ttt {
   background: #ecfdf5;
 }
 
-/* Single full-bleed artwork — no repeat, slight zoom via oversized layer + cover */
+/* Single full-bleed artwork — no repeat, slight zoom; soft blue wash on top */
 body.page-ttt::before {
   content: "";
   position: fixed;
@@ -43,11 +43,17 @@ body.page-ttt::before {
   transform: translate(-50%, -50%);
   z-index: -2;
   pointer-events: none;
-  background-color: #7ec8e3;
-  background-image: url("images/ttt-play-bg.png");
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: cover;
+  background-color: #6bb6d8;
+  background-image: linear-gradient(
+      155deg,
+      rgba(59, 130, 246, 0.2) 0%,
+      rgba(56, 189, 248, 0.12) 42%,
+      rgba(14, 165, 233, 0.18) 100%
+    ),
+    url("images/ttt-play-bg.png");
+  background-repeat: no-repeat, no-repeat;
+  background-position: center, center;
+  background-size: 100% 100%, cover;
 }
 
 /* Veil + soft blooms — keeps board and sidebars readable on a busy illustration */
