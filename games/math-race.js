@@ -70,11 +70,16 @@
   const loseCard = document.getElementById("loseCard");
   const questionTurnTitle = document.getElementById("questionTurnTitle");
   const mcHint = document.getElementById("mcHint");
+  const dinoCorrectPopup = document.getElementById("dinoCorrectPopup");
+  const dinoCorrectLine = document.getElementById("dinoCorrectLine");
 
   /** In vs-dino mode: true while the dinosaur's question pop-up is active */
   var dinoQuestionTurn = false;
   /** @type {ReturnType<typeof setTimeout> | null} */
   var dinoTurnTimer = null;
+  /** @type {ReturnType<typeof setTimeout> | null} */
+  var dinoResultDelayTimer = null;
+  var dinoCorrectFlowPending = false;
 
   let level = 0;
   /** @type {{ id: string; label: string; character: string; position: number; lane: number; isCpu?: boolean; el?: HTMLElement }[]} */
@@ -226,6 +231,64 @@
     if (dinoTurnTimer) {
       clearTimeout(dinoTurnTimer);
       dinoTurnTimer = null;
+    }
+  }
+
+  function dinoCorrectPopupDelayMs() {
+    try {
+      if (document.documentElement.classList.contains("kids-reduce-motion")) {
+        return 1200;
+      }
+      if (typeof matchMedia !== "undefined" && matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        return 1200;
+      }
+    } catch (e) {}
+    return 2000;
+  }
+
+  function hideDinoGotItPopup() {
+    if (dinoCorrectPopup) {
+      dinoCorrectPopup.classList.remove("dino-correct-popup--open");
+      dinoCorrectPopup.hidden = true;
+    }
+  }
+
+  function clearDinoResultDelay() {
+    if (dinoResultDelayTimer) {
+      clearTimeout(dinoResultDelayTimer);
+      dinoResultDelayTimer = null;
+    }
+    dinoCorrectFlowPending = false;
+    hideDinoGotItPopup();
+  }
+
+  function finishDinoCorrectAndNext() {
+    if (!dinoCorrectFlowPending) {
+      return;
+    }
+    dinoCorrectFlowPending = false;
+    if (dinoResultDelayTimer) {
+      clearTimeout(dinoResultDelayTimer);
+      dinoResultDelayTimer = null;
+    }
+    hideDinoGotItPopup();
+    dinoQuestionTurn = false;
+    nextQuestion();
+  }
+
+  function showDinoGotItPopup(correctNum) {
+    dinoCorrectFlowPending = true;
+    if (dinoCorrectLine) {
+      dinoCorrectLine.textContent =
+        "It picked " + correctNum + " — that’s the right answer. One stomp closer!";
+    }
+    if (dinoCorrectPopup) {
+      dinoCorrectPopup.hidden = false;
+      requestAnimationFrame(function () {
+        if (dinoCorrectPopup) {
+          dinoCorrectPopup.classList.add("dino-correct-popup--open");
+        }
+      });
     }
   }
 
@@ -530,6 +593,7 @@
       feedbackText.className = "feedback feedback--good";
       d.position += 1;
       playRunnerHopByPlayerId("cpu");
+      showDinoGotItPopup(dinoPick);
     } else {
       feedbackText.textContent = "Stomp! A wrong guess — the dinosaur doesn't move this time.";
       feedbackText.className = "feedback feedback--bad";
@@ -543,11 +607,16 @@
     }
     updateRaceVisual();
     if (d.position >= c.position) {
+      clearDinoResultDelay();
       showLoseDino();
       return;
     }
-    dinoQuestionTurn = false;
-    nextQuestion();
+    if (gotIt) {
+      dinoResultDelayTimer = setTimeout(finishDinoCorrectAndNext, dinoCorrectPopupDelayMs());
+    } else {
+      dinoQuestionTurn = false;
+      nextQuestion();
+    }
   }
 
   function renderChoices() {
@@ -717,6 +786,7 @@
 
   function startGame() {
     clearDinoTimer();
+    clearDinoResultDelay();
     dinoQuestionTurn = false;
     document.querySelectorAll(".race-runner__bubble--show").forEach(function (b) {
       b.classList.remove("race-runner__bubble--show");
@@ -802,6 +872,7 @@
 
   document.getElementById("btnQuit").addEventListener("click", function () {
     clearDinoTimer();
+    clearDinoResultDelay();
     dinoQuestionTurn = false;
     showScreen("setup");
   });
@@ -844,6 +915,14 @@
       submitChoice(choiceOrder[idx]);
     }
   });
+
+  if (dinoCorrectPopup) {
+    dinoCorrectPopup.addEventListener("click", function () {
+      if (dinoCorrectFlowPending) {
+        finishDinoCorrectAndNext();
+      }
+    });
+  }
 
   if (typeof KidsCore !== "undefined") {
     KidsCore.init();
