@@ -32,23 +32,25 @@ body.page-ttt {
   background: #ecfdf5;
 }
 
-/* X/O pattern: two layers at different scales + offset — breaks obvious “same square repeated” */
+/* Single full-bleed artwork — no repeat, slight zoom via oversized layer + cover */
 body.page-ttt::before {
   content: "";
   position: fixed;
-  inset: 0;
+  left: 50%;
+  top: 50%;
+  width: 112vw;
+  height: 112vh;
+  transform: translate(-50%, -50%);
   z-index: -2;
   pointer-events: none;
-  background-image: url("images/ttt-xo-pattern.png"), url("images/ttt-xo-pattern.png");
-  /* Same seamless tile as before (half native = 512×309.5); second layer smaller + phase-shifted */
-  background-size: 512px 309.5px, 256px 154.75px;
-  background-position: 0 0, 119px 71px;
-  background-repeat: repeat, repeat;
-  animation: ttt-pattern-sail 96s linear infinite;
-  will-change: background-position;
+  background-color: #7ec8e3;
+  background-image: url("images/ttt-play-bg.png");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
 }
 
-/* Veil + soft blooms so the pattern reads as atmosphere behind the game */
+/* Veil + soft blooms — keeps board and sidebars readable on a busy illustration */
 body.page-ttt::after {
   content: "";
   position: fixed;
@@ -56,26 +58,16 @@ body.page-ttt::after {
   z-index: -1;
   pointer-events: none;
   background:
-    radial-gradient(ellipse 120% 80% at 50% -20%, rgba(255, 255, 255, 0.55) 0%, transparent 55%),
-    radial-gradient(ellipse 90% 70% at 100% 80%, rgba(224, 242, 254, 0.35) 0%, transparent 50%),
-    radial-gradient(ellipse 80% 60% at 0% 60%, rgba(236, 253, 245, 0.4) 0%, transparent 45%),
+    radial-gradient(ellipse 120% 80% at 50% -20%, rgba(255, 255, 255, 0.62) 0%, transparent 55%),
+    radial-gradient(ellipse 90% 70% at 100% 80%, rgba(224, 242, 254, 0.42) 0%, transparent 50%),
+    radial-gradient(ellipse 80% 60% at 0% 60%, rgba(236, 253, 245, 0.45) 0%, transparent 45%),
     linear-gradient(
       165deg,
-      rgba(255, 255, 255, 0.88) 0%,
-      rgba(236, 253, 245, 0.78) 32%,
-      rgba(224, 242, 254, 0.65) 68%,
-      rgba(236, 253, 232, 0.72) 100%
+      rgba(255, 255, 255, 0.9) 0%,
+      rgba(236, 253, 245, 0.82) 32%,
+      rgba(224, 242, 254, 0.72) 68%,
+      rgba(236, 253, 232, 0.78) 100%
     );
-}
-
-@keyframes ttt-pattern-sail {
-  from {
-    background-position: 0 0, 119px 71px;
-  }
-  to {
-    /* One full tile of the primary layer — keeps the loop invisible */
-    background-position: 512px 309.5px, 119px 71px;
-  }
 }
 
 h1,
