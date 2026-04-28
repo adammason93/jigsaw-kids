@@ -65,6 +65,8 @@
   const mcHint = document.getElementById("mcHint");
   const dinoCorrectPopup = document.getElementById("dinoCorrectPopup");
   const dinoCorrectLine = document.getElementById("dinoCorrectLine");
+  const sofiaCorrectPopup = document.getElementById("sofiaCorrectPopup");
+  const sofiaCorrectLine = document.getElementById("sofiaCorrectLine");
 
   /** In vs-dino mode: true while the dinosaur's question pop-up is active */
   var dinoQuestionTurn = false;
@@ -73,6 +75,9 @@
   /** @type {ReturnType<typeof setTimeout> | null} */
   var dinoResultDelayTimer = null;
   var dinoCorrectFlowPending = false;
+  /** @type {ReturnType<typeof setTimeout> | null} */
+  var sofiaResultDelayTimer = null;
+  var sofiaCorrectFlowPending = false;
 
   let level = 0;
   /** @type {{ id: string; label: string; character: string; position: number; lane: number; isCpu?: boolean; el?: HTMLElement }[]} */
@@ -227,7 +232,7 @@
     }
   }
 
-  function dinoCorrectPopupDelayMs() {
+  function celebrationPopupDelayMs() {
     try {
       if (document.documentElement.classList.contains("kids-reduce-motion")) {
         return 1200;
@@ -237,6 +242,53 @@
       }
     } catch (e) {}
     return 2000;
+  }
+
+  function hideSofiaGotItPopup() {
+    if (sofiaCorrectPopup) {
+      sofiaCorrectPopup.classList.remove("sofia-correct-popup--open");
+      sofiaCorrectPopup.hidden = true;
+    }
+  }
+
+  function clearSofiaResultDelay() {
+    if (sofiaResultDelayTimer) {
+      clearTimeout(sofiaResultDelayTimer);
+      sofiaResultDelayTimer = null;
+    }
+    sofiaCorrectFlowPending = false;
+    hideSofiaGotItPopup();
+  }
+
+  function finishSofiaCorrectAndNext() {
+    if (!sofiaCorrectFlowPending) {
+      return;
+    }
+    sofiaCorrectFlowPending = false;
+    if (sofiaResultDelayTimer) {
+      clearTimeout(sofiaResultDelayTimer);
+      sofiaResultDelayTimer = null;
+    }
+    hideSofiaGotItPopup();
+    dinoQuestionTurn = true;
+    updateRaceVisual();
+    nextQuestion();
+  }
+
+  function showSofiaGotItPopup(answerNum, praisePhrase) {
+    sofiaCorrectFlowPending = true;
+    if (sofiaCorrectLine) {
+      sofiaCorrectLine.textContent =
+        "You chose " + answerNum + " — " + praisePhrase + " Step forward on the path!";
+    }
+    if (sofiaCorrectPopup) {
+      sofiaCorrectPopup.hidden = false;
+      requestAnimationFrame(function () {
+        if (sofiaCorrectPopup) {
+          sofiaCorrectPopup.classList.add("sofia-correct-popup--open");
+        }
+      });
+    }
   }
 
   function hideDinoGotItPopup() {
@@ -607,7 +659,7 @@
       return;
     }
     if (gotIt) {
-      dinoResultDelayTimer = setTimeout(finishDinoCorrectAndNext, dinoCorrectPopupDelayMs());
+      dinoResultDelayTimer = setTimeout(finishDinoCorrectAndNext, celebrationPopupDelayMs());
     } else {
       dinoQuestionTurn = false;
       nextQuestion();
@@ -780,6 +832,7 @@
   function startGame() {
     clearDinoTimer();
     clearDinoResultDelay();
+    clearSofiaResultDelay();
     dinoQuestionTurn = false;
     document.querySelectorAll(".race-runner__bubble--show").forEach(function (b) {
       b.classList.remove("race-runner__bubble--show");
@@ -811,6 +864,9 @@
     if (!current) {
       return;
     }
+    if (sofiaCorrectFlowPending) {
+      return;
+    }
     if (isVersusDino() && dinoQuestionTurn) {
       return;
     }
@@ -823,18 +879,17 @@
         KidsCore.playSound("ok");
         KidsCore.haptic("success");
       }
-      feedbackText.textContent =
-        "You got it right! " + praise[Math.floor(Math.random() * praise.length)];
-      feedbackText.className = "feedback feedback--good";
+      const praisePick = praise[Math.floor(Math.random() * praise.length)];
+      feedbackText.textContent = "";
+      feedbackText.className = "feedback";
       mover.position += 1;
       playRunnerHopByPlayerId(mover.id);
 
       if (checkWinVersusDino(mover)) {
         return;
       }
-      dinoQuestionTurn = true;
-      updateRaceVisual();
-      nextQuestion();
+      showSofiaGotItPopup(num, praisePick);
+      sofiaResultDelayTimer = setTimeout(finishSofiaCorrectAndNext, celebrationPopupDelayMs());
       return;
     } else {
       const correctAnswer = current.answer;
@@ -867,6 +922,7 @@
   document.getElementById("btnQuit").addEventListener("click", function () {
     clearDinoTimer();
     clearDinoResultDelay();
+    clearSofiaResultDelay();
     dinoQuestionTurn = false;
     showScreen("setup");
   });
@@ -896,6 +952,9 @@
     if (screenPlay.classList.contains("is-hidden") || screenPlay.hidden) {
       return;
     }
+    if (sofiaCorrectFlowPending) {
+      return;
+    }
     if (isVersusDino() && dinoQuestionTurn) {
       return;
     }
@@ -914,6 +973,14 @@
     dinoCorrectPopup.addEventListener("click", function () {
       if (dinoCorrectFlowPending) {
         finishDinoCorrectAndNext();
+      }
+    });
+  }
+
+  if (sofiaCorrectPopup) {
+    sofiaCorrectPopup.addEventListener("click", function () {
+      if (sofiaCorrectFlowPending) {
+        finishSofiaCorrectAndNext();
       }
     });
   }

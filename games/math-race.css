@@ -73,6 +73,7 @@ h2,
   padding: 0.5rem max(0.5rem, env(safe-area-inset-left, 0)) max(0.4rem, env(safe-area-inset-bottom, 0))
     max(0.5rem, env(safe-area-inset-right, 0));
   box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 .app--playing .game-nav {
@@ -916,6 +917,104 @@ body.page-math:has(#screenSetup:not(.is-hidden)) #screenSetup .btn-primary {
   }
 }
 
+/* Sofia’s turn — same layout as dino celebration, forest-green accents */
+.sofia-correct-popup {
+  position: fixed;
+  inset: 0;
+  z-index: 125;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: max(0.75rem, env(safe-area-inset-top, 0)) max(0.75rem, env(safe-area-inset-right, 0))
+    max(0.75rem, env(safe-area-inset-bottom, 0)) max(0.75rem, env(safe-area-inset-left, 0));
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 0.18s ease,
+    visibility 0.18s ease;
+}
+
+.sofia-correct-popup--open {
+  pointer-events: auto;
+  opacity: 1;
+  visibility: visible;
+}
+
+.sofia-correct-popup__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 55, 35, 0.42);
+  backdrop-filter: blur(2px);
+}
+
+.sofia-correct-popup__card {
+  position: relative;
+  z-index: 1;
+  max-width: min(22rem, 92vw);
+  width: 100%;
+  margin: 0;
+  padding: 1.1rem 1.2rem 1.15rem;
+  text-align: center;
+  background: linear-gradient(180deg, #f0fdf4 0%, #ecfdf5 100%);
+  border: 3px solid #15803d;
+  border-radius: 20px;
+  box-shadow: 0 4px 0 #166534, 0 16px 40px rgba(22, 101, 52, 0.18);
+  transform: scale(0.96) translateY(8px);
+  transition:
+    transform 0.22s cubic-bezier(0.34, 1.2, 0.64, 1),
+    opacity 0.2s ease;
+}
+
+.sofia-correct-popup--open .sofia-correct-popup__card {
+  transform: scale(1) translateY(0);
+}
+
+.sofia-correct-popup__mascot {
+  margin: 0 0 0.25rem;
+  font-size: clamp(2rem, 9vw, 3rem);
+  line-height: 1;
+}
+
+.sofia-correct-popup__title {
+  margin: 0 0 0.45rem;
+  font-family: "Sniglet", "Nunito", system-ui, sans-serif;
+  font-size: clamp(1.2rem, 4.2vw, 1.55rem);
+  font-weight: 800;
+  color: #14532d;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.sofia-correct-popup__line {
+  margin: 0 0 0.55rem;
+  font-size: clamp(0.95rem, 2.8vw, 1.1rem);
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.35;
+}
+
+.sofia-correct-popup__hint {
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #3f6212;
+  opacity: 0.95;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sofia-correct-popup {
+    transition: none;
+  }
+
+  .sofia-correct-popup__card {
+    transition: none;
+  }
+
+  .sofia-correct-popup--open .sofia-correct-popup__card {
+    transform: none;
+  }
+}
+
 .play-level {
   margin: 0;
   font-weight: 800;
@@ -973,6 +1072,11 @@ body.page-math:has(#screenSetup:not(.is-hidden)) #screenSetup .btn-primary {
     0 14px 32px rgba(20, 60, 48, 0.22);
   transition: filter 0.2s ease;
   background-color: #93c29e;
+}
+
+/* Large dinosaur sprite extends past the left edge of the track — don’t clip it */
+.race-stage.is-dino {
+  overflow: visible;
 }
 
 .race-stage.has-multi-lane {
