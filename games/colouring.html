@@ -32,6 +32,12 @@
           </p>
         </header>
 
+        <section class="colour-saved" id="colourSavedWrap" aria-label="Pictures you saved for later">
+          <h2 class="colour-saved__title">My saved pictures</h2>
+          <p class="colour-saved__hint" id="colourSavedHint">Save for later updates the highlighted one. “Save as another picture” keeps a copy so you can have more than one.</p>
+          <div class="colour-saved__strip" id="colourSavedStrip" role="list"></div>
+        </section>
+
         <div class="colour-tools" role="toolbar" aria-label="Drawing tools">
           <div class="colour-tools__row">
             <span class="colour-tools__label" id="palette-label">Colour</span>
@@ -93,8 +99,11 @@
             Undo
           </button>
           <button type="button" class="btn btn-ghost" id="btnClear">Clear painting</button>
-          <button type="button" class="btn btn-ghost" id="btnSaveLater" title="Saves on this device so you can come back">
+          <button type="button" class="btn btn-ghost" id="btnSaveLater" title="Updates your current saved slot on this device">
             Save for later
+          </button>
+          <button type="button" class="btn btn-ghost" id="btnSaveAsNew" title="Keep this drawing as another saved picture">
+            Save as another picture
           </button>
           <button type="button" class="btn btn-accent" id="btnSave" title="Save as PNG">Save picture</button>
         </div>
@@ -105,7 +114,8 @@
           </label>
           <p class="colour-autosave__hint">
             On by default — your work is saved quietly as you go so a refresh doesn’t clear it. Turn off if you prefer a
-            fresh canvas every visit. You can still tap <strong>Save for later</strong> or <strong>Save picture</strong> whenever you like.
+            fresh canvas every visit. Use <strong>Save as another picture</strong> to keep more than one drawing in “My saved pictures”.
+            You can still tap <strong>Save for later</strong> or <strong>Save picture</strong> whenever you like.
           </p>
         </div>
       </div>

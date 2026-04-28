@@ -37,6 +37,7 @@
   const btnSave = document.getElementById("btnSave");
   const btnUndo = document.getElementById("btnUndo");
   const btnSaveLater = document.getElementById("btnSaveLater");
+  const btnSaveAsNew = document.getElementById("btnSaveAsNew");
   const saveLink = document.getElementById("saveLink");
   const statusLine = document.getElementById("statusLine");
   if (!paintCanvas || !templateOverlay || !colourStage) {
@@ -69,14 +70,218 @@
   const PREF_AUTO_SAVE = "jigsawKidsColouringAutoSaveV1";
   const AUTO_SAVE_DEBOUNCE_MS = 2200;
   const UNDO_MAX = 28;
+  const MAX_SLOTS = 10;
   /** @type {ReturnType<typeof setTimeout> | null} */
   var autoSaveDebounceTimer = null;
   /** @type {string[]} */
   var undoStack = [];
   var undoPrepared = false;
-  /** @type {{ v: number; templateFile: string; cssW: number; cssH: number; paint: string; t: number } | null} */
+  /** @type {{ v: number; templateFile: string; cssW: number; cssH: number; paint: string; t: number; id?: string } | null} */
   var pendingRestore = null;
   var currentTemplateFile = "";
+  const colourSavedStrip = document.getElementById("colourSavedStrip");
+  const colourSavedHint = document.getElementById("colourSavedHint");
+
+  function makeSlotId() {
+    return (
+      "s_" +
+      Date.now().toString(36) +
+      "_" +
+      Math.floor(Math.random() * 1e9).toString(36)
+    );
+  }
+
+  function emptyStore() {
+    return { v: 2, bundleT: 0, activeSlotId: null, slots: [] };
+  }
+
+  function ensureActiveValid(st) {
+    if (!st.slots || st.slots.length === 0) {
+      st.activeSlotId = null;
+      return st;
+    }
+    var ids = {};
+    st.slots.forEach(function (s) {
+      ids[s.id] = true;
+    });
+    if (!st.activeSlotId || !ids[st.activeSlotId]) {
+      st.activeSlotId = st.slots[0].id;
+    }
+    return st;
+  }
+
+  function trimSlotsStore(st) {
+    if (!st.slots || st.slots.length <= MAX_SLOTS) {
+      return ensureActiveValid(st);
+    }
+    var sorted = st.slots.slice().sort(function (a, b) {
+      return (b.t || 0) - (a.t || 0);
+    });
+    sorted = sorted.slice(0, MAX_SLOTS);
+    var idset = {};
+    sorted.forEach(function (s) {
+      idset[s.id] = true;
+    });
+    if (st.activeSlotId && !idset[st.activeSlotId]) {
+      st.activeSlotId = sorted[0] ? sorted[0].id : null;
+    }
+    st.slots = sorted;
+    return ensureActiveValid(st);
+  }
+
+  function migrateV1SessionToStore(o) {
+    if (!isValidSavedSession(o)) {
+      return null;
+    }
+    var id = makeSlotId();
+    return {
+      v: 2,
+      bundleT: o.t || Date.now(),
+      activeSlotId: id,
+      slots: [
+        {
+          id: id,
+          v: 1,
+          templateFile: o.templateFile,
+          cssW: o.cssW,
+          cssH: o.cssH,
+          paint: o.paint,
+          t: o.t || Date.now(),
+        },
+      ],
+    };
+  }
+
+  function storeOrMigrate(x) {
+    if (!x) {
+      return null;
+    }
+    if (x.v === 2 && Array.isArray(x.slots)) {
+      try {
+        return trimSlotsStore(JSON.parse(JSON.stringify(x)));
+      } catch (e) {
+        return null;
+      }
+    }
+    return migrateV1SessionToStore(x);
+  }
+
+  function mergeColourStores(L, R) {
+    var a = storeOrMigrate(L);
+    var b = storeOrMigrate(R);
+    if (!a && !b) {
+      return null;
+    }
+    if (!b) {
+      return a;
+    }
+    if (!a) {
+      return b;
+    }
+    var byId = Object.create(null);
+    function insertSlots(arr) {
+      var i;
+      for (i = 0; i < arr.length; i++) {
+        var sl = arr[i];
+        if (!sl || !sl.id || !isValidSavedSession(sl)) {
+          continue;
+        }
+        var old = byId[sl.id];
+        if (!old || (sl.t || 0) > (old.t || 0)) {
+          byId[sl.id] = sl;
+        }
+      }
+    }
+    insertSlots(a.slots);
+    insertSlots(b.slots);
+    var ids = Object.keys(byId);
+    var mergedSlots = ids.map(function (k) {
+      return byId[k];
+    });
+    mergedSlots.sort(function (x, y) {
+      return (y.t || 0) - (x.t || 0);
+    });
+    if (mergedSlots.length > MAX_SLOTS) {
+      mergedSlots = mergedSlots.slice(0, MAX_SLOTS);
+    }
+    var idset = {};
+    mergedSlots.forEach(function (s) {
+      idset[s.id] = true;
+    });
+    var active =
+      a.activeSlotId && idset[a.activeSlotId]
+        ? a.activeSlotId
+        : b.activeSlotId && idset[b.activeSlotId]
+          ? b.activeSlotId
+          : mergedSlots.length
+            ? mergedSlots[0].id
+            : null;
+    var bt = Math.max(
+      a.bundleT || 0,
+      b.bundleT || 0,
+      mergedSlots[0] ? mergedSlots[0].t || 0 : 0
+    );
+    return trimSlotsStore({
+      v: 2,
+      bundleT: bt,
+      activeSlotId: active,
+      slots: mergedSlots,
+    });
+  }
+
+  /** @returns {typeof emptyStore()}
+   */
+  function readColourStore() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) {
+        return emptyStore();
+      }
+      var o = JSON.parse(raw);
+      if (o && o.v === 1 && isValidSavedSession(o)) {
+        var m = migrateV1SessionToStore(o);
+        if (m) {
+          writeColourStore(m);
+          return trimSlotsStore(m);
+        }
+      }
+      var s = storeOrMigrate(o);
+      return s || emptyStore();
+    } catch (e) {
+      return emptyStore();
+    }
+  }
+
+  function writeColourStore(st) {
+    st = trimSlotsStore(st);
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(st));
+    } catch (e) {
+      return false;
+    }
+    return true;
+  }
+
+  function scheduleCloudStoreUpload(st) {
+    try {
+      if (
+        typeof KidsScoreCloud !== "undefined" &&
+        KidsScoreCloud.scheduleColouringUpload
+      ) {
+        KidsScoreCloud.scheduleColouringUpload(JSON.stringify(st));
+      }
+    } catch (eC) {}
+  }
+
+  function getTemplateLabel(file) {
+    var i;
+    for (i = 0; i < TEMPLATES.length; i++) {
+      if (TEMPLATES[i].file === file) {
+        return TEMPLATES[i].label;
+      }
+    }
+    return "Picture";
+  }
 
   function getDpr() {
     return Math.min(window.devicePixelRatio || 1, 2.5);
@@ -290,22 +495,8 @@
     );
   }
 
-  function mergeColouringPreferNewer(local, cloud) {
-    var lOk = isValidSavedSession(local);
-    var cOk = isValidSavedSession(cloud);
-    if (!cOk && !lOk) {
-      return null;
-    }
-    if (!cOk) {
-      return local;
-    }
-    if (!lOk) {
-      return cloud;
-    }
-    return (cloud.t || 0) >= (local.t || 0) ? cloud : local;
-  }
-
   function finalizeCanvasBootstrap() {
+    renderSavedSlotsBar();
     var savedSession = readSavedSession();
     if (savedSession && savedSession.templateFile) {
       pendingRestore = savedSession;
@@ -325,35 +516,39 @@
   }
 
   /**
-   * If signed into Supabase sync, prefers newer of local vs cloud session JSON.
+   * If signed into Supabase sync, merge local bundle with cloud bundle (slots by id).
    */
   function bootstrapCanvas() {
     if (
       typeof KidsScoreCloud !== "undefined" &&
       KidsScoreCloud.downloadColouringSession
     ) {
-      KidsScoreCloud.downloadColouringSession(function (err, cloud) {
+      KidsScoreCloud.downloadColouringSession(function (err, cloudRaw) {
         if (err) {
           finalizeCanvasBootstrap();
           return;
         }
-        var local = readSavedSession();
-        var chosen = mergeColouringPreferNewer(local, cloud || null);
-        if (chosen && isValidSavedSession(chosen)) {
-          var takeCloud =
-            cloud &&
-            isValidSavedSession(cloud) &&
-            (!local ||
-              !isValidSavedSession(local) ||
-              (cloud.t || 0) > (local.t || 0));
-          try {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(chosen));
-          } catch (eStore) {}
-          if (takeCloud && statusLine) {
-            statusLine.textContent =
-              "Loaded your picture from the cloud — you can keep colouring!";
-          }
+        var merged = mergeColourStores(readColourStore(), cloudRaw);
+        if (!merged || !merged.slots.length) {
+          finalizeCanvasBootstrap();
+          return;
         }
+        var prev = "";
+        try {
+          prev = localStorage.getItem(STORAGE_KEY) || "";
+        } catch (eP) {}
+        var nextStr = JSON.stringify(merged);
+        var hadCloud = !!storeOrMigrate(cloudRaw);
+        try {
+          if (prev !== nextStr) {
+            localStorage.setItem(STORAGE_KEY, nextStr);
+            if (hadCloud && statusLine) {
+              statusLine.textContent =
+                "Loaded your saved pictures from the cloud — tap one to carry on!";
+            }
+          }
+        } catch (eStore) {}
+
         finalizeCanvasBootstrap();
       });
     } else {
@@ -361,34 +556,174 @@
     }
   }
 
+  /** Active slot snapshot (same shape as legacy v1 document) — or null */
   function readSavedSession() {
-    try {
-      var raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) {
-        return null;
-      }
-      var o = JSON.parse(raw);
-      if (!o || o.v !== 1 || !o.paint || typeof o.templateFile !== "string") {
-        return null;
-      }
-      if (o.templateFile.length === 0) {
-        return null;
-      }
-      return o;
-    } catch (e) {
+    var st = readColourStore();
+    if (!st.slots || !st.slots.length || !st.activeSlotId) {
       return null;
+    }
+    var i;
+    for (i = 0; i < st.slots.length; i++) {
+      if (
+        st.slots[i].id === st.activeSlotId &&
+        isValidSavedSession(st.slots[i])
+      ) {
+        return st.slots[i];
+      }
+    }
+    return null;
+  }
+
+  function persistStoreAndSync(st) {
+    if (!writeColourStore(st)) {
+      if (statusLine) {
+        statusLine.textContent =
+          "Not enough space on this device — try Save picture instead.";
+      }
+      if (typeof KidsCore !== "undefined" && KidsCore.playSound) {
+        KidsCore.playSound("no");
+      }
+      return false;
+    }
+    scheduleCloudStoreUpload(st);
+    renderSavedSlotsBar();
+    return true;
+  }
+
+  /**
+   * @param {(function(): void)|undefined} done
+   */
+  function applyThumbToPayload(paintDataUrl, payload, done) {
+    done = done || function () {};
+    var im = new Image();
+    im.onload = function () {
+      try {
+        var c = document.createElement("canvas");
+        c.width = 120;
+        c.height = 90;
+        var cx = c.getContext("2d");
+        cx.drawImage(im, 0, 0, c.width, c.height);
+        payload.thumb = c.toDataURL("image/jpeg", 0.74);
+      } catch (eThumb) {}
+      done();
+    };
+    im.onerror = function () {
+      done();
+    };
+    im.src = paintDataUrl;
+  }
+
+  function renderSavedSlotsBar() {
+    if (!colourSavedStrip) {
+      return;
+    }
+    colourSavedStrip.innerHTML = "";
+    var st = readColourStore();
+    if (colourSavedHint) {
+      colourSavedHint.style.display =
+        st.slots && st.slots.length ? "none" : "";
+    }
+    if (!st.slots || !st.slots.length) {
+      return;
+    }
+    st.slots.forEach(function (sl) {
+      if (!isValidSavedSession(sl)) {
+        return;
+      }
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "colour-saved__chip";
+      btn.setAttribute("role", "listitem");
+      if (sl.id === st.activeSlotId) {
+        btn.classList.add("is-active");
+      }
+      btn.setAttribute("data-slot-id", sl.id);
+      var lab = getTemplateLabel(sl.templateFile);
+      var d = new Date(sl.t || 0);
+      var timeStr = d.toLocaleString(undefined, {
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+      btn.setAttribute(
+        "aria-label",
+        "Open saved picture: " + lab + " · " + timeStr
+      );
+      btn.title = lab + " · " + timeStr;
+
+      var vis = document.createElement("div");
+      vis.className = "colour-saved__chip-vis";
+      if (sl.thumb) {
+        var thumbImg = document.createElement("img");
+        thumbImg.src = sl.thumb;
+        thumbImg.alt = "";
+        vis.appendChild(thumbImg);
+      } else if (sl.templateFile !== BLANK_TEMPLATE_FILE) {
+        var lineImg = document.createElement("img");
+        lineImg.src = sl.templateFile;
+        lineImg.alt = "";
+        vis.appendChild(lineImg);
+      } else {
+        var blankMk = document.createElement("span");
+        blankMk.className = "colour-saved__chip-blank";
+        blankMk.setAttribute("aria-hidden", "true");
+        vis.appendChild(blankMk);
+      }
+      btn.appendChild(vis);
+      var cap = document.createElement("span");
+      cap.className = "colour-saved__chip-cap";
+      cap.textContent = lab;
+      btn.appendChild(cap);
+
+      btn.addEventListener("click", function () {
+        loadSavedSlot(sl.id);
+      });
+
+      colourSavedStrip.appendChild(btn);
+    });
+  }
+
+  function loadSavedSlot(slotId) {
+    var st = readColourStore();
+    var target = null;
+    var i;
+    for (i = 0; i < st.slots.length; i++) {
+      if (st.slots[i].id === slotId && isValidSavedSession(st.slots[i])) {
+        target = st.slots[i];
+        break;
+      }
+    }
+    if (!target) {
+      return;
+    }
+    st.activeSlotId = slotId;
+    writeColourStore(st);
+    pendingRestore = target;
+    var btnBk = findTemplateButton(target.templateFile);
+    selectTemplate(target.templateFile, btnBk, { fromSavedSession: true });
+    renderSavedSlotsBar();
+    if (statusLine) {
+      statusLine.textContent =
+        "Showing this saved picture — keep colouring!";
+    }
+    scheduleCloudStoreUpload(st);
+    if (typeof KidsCore !== "undefined" && KidsCore.playSound) {
+      KidsCore.playSound("tap");
     }
   }
 
   /**
-   * @param {{ silent?: boolean }} [opts] - silent: no sound/haptic/long status (used for auto-save)
+   * @param {{ silent?: boolean; asNewSlot?: boolean }} [opts]
    */
   function saveForLater(opts) {
     opts = opts || {};
     var silent = !!opts.silent;
+    var asNew = !!opts.asNewSlot;
     if (!currentTemplateFile) {
       if (statusLine && !silent) {
-        statusLine.textContent = "Pick a picture first, then you can save for later.";
+        statusLine.textContent =
+          "Pick a picture first, then you can save for later.";
       }
       return;
     }
@@ -399,12 +734,13 @@
       paint = null;
     }
     if (!paint) {
-      if (statusLine) {
+      if (statusLine && !silent) {
         statusLine.textContent = "Couldn’t save — try again.";
       }
       return;
     }
-    var payload = {
+
+    var basePayload = {
       v: 1,
       templateFile: currentTemplateFile,
       cssW: cssW,
@@ -412,38 +748,79 @@
       paint: paint,
       t: Date.now(),
     };
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
-    } catch (e) {
-      if (statusLine) {
-        statusLine.textContent = "Not enough space on this device — try Save picture instead.";
+
+    function applySlotToStore(slotPayload) {
+      var st = readColourStore();
+      if (asNew) {
+        slotPayload.id = makeSlotId();
+        if (!st.slots) {
+          st.slots = [];
+        }
+        st.slots.unshift(slotPayload);
+        st.activeSlotId = slotPayload.id;
+      } else if (!st.slots.length || !st.activeSlotId) {
+        slotPayload.id = makeSlotId();
+        if (!st.slots) {
+          st.slots = [];
+        }
+        st.slots.unshift(slotPayload);
+        st.activeSlotId = slotPayload.id;
+      } else {
+        var found = false;
+        var j;
+        for (j = 0; j < st.slots.length; j++) {
+          if (st.slots[j].id === st.activeSlotId) {
+            slotPayload.id = st.activeSlotId;
+            st.slots[j] = slotPayload;
+            found = true;
+            break;
+          }
+        }
+        if (!found) {
+          slotPayload.id = makeSlotId();
+          st.slots.unshift(slotPayload);
+          st.activeSlotId = slotPayload.id;
+        }
       }
-      if (typeof KidsCore !== "undefined" && KidsCore.playSound) {
-        KidsCore.playSound("no");
-      }
-      return;
+      st.bundleT = Date.now();
+      return persistStoreAndSync(st);
     }
-    try {
-      if (
-        typeof KidsScoreCloud !== "undefined" &&
-        KidsScoreCloud.scheduleColouringUpload
-      ) {
-        KidsScoreCloud.scheduleColouringUpload(JSON.stringify(payload));
+
+    function afterReady(body) {
+      if (!applySlotToStore(body)) {
+        return;
       }
-    } catch (eCloud) {}
-    if (!silent) {
-      if (statusLine) {
-        statusLine.textContent =
-          "Saved for later on this tablet or computer. Come back to Colouring book anytime!";
-      }
-      if (typeof KidsCore !== "undefined") {
-        if (KidsCore.playSound) {
-          KidsCore.playSound("ok");
+      if (!silent) {
+        if (statusLine) {
+          statusLine.textContent = asNew
+            ? "Saved as another picture — tap it in the list any time!"
+            : "Saved for later on this tablet or computer. Come back to Colouring book anytime!";
         }
-        if (KidsCore.haptic) {
-          KidsCore.haptic("light");
+        if (typeof KidsCore !== "undefined") {
+          if (KidsCore.playSound) {
+            KidsCore.playSound("ok");
+          }
+          if (KidsCore.haptic) {
+            KidsCore.haptic("light");
+          }
         }
       }
+    }
+
+    var needThumb = !silent || asNew;
+    if (needThumb) {
+      var labeled = {};
+      labeled.v = basePayload.v;
+      labeled.templateFile = basePayload.templateFile;
+      labeled.cssW = basePayload.cssW;
+      labeled.cssH = basePayload.cssH;
+      labeled.paint = basePayload.paint;
+      labeled.t = basePayload.t;
+      applyThumbToPayload(paint, labeled, function () {
+        afterReady(labeled);
+      });
+    } else {
+      afterReady(basePayload);
     }
   }
 
@@ -897,6 +1274,14 @@
   if (btnSaveLater) {
     btnSaveLater.addEventListener("click", function () {
       saveForLater();
+      if (typeof KidsCore !== "undefined" && KidsCore.playSound) {
+        KidsCore.playSound("tap");
+      }
+    });
+  }
+  if (btnSaveAsNew) {
+    btnSaveAsNew.addEventListener("click", function () {
+      saveForLater({ asNewSlot: true });
       if (typeof KidsCore !== "undefined" && KidsCore.playSound) {
         KidsCore.playSound("tap");
       }
