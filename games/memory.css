@@ -28,6 +28,7 @@
   margin: 0;
   min-height: 100dvh;
   min-height: 100svh;
+  overflow-x: hidden;
   display: flex;
   flex-direction: column;
   font-family:
@@ -99,8 +100,11 @@ html.kids-play-mode .page-memory .memory-app {
   flex-direction: column;
   margin-left: calc(-1 * max(0.65rem, env(safe-area-inset-left, 0px)));
   margin-right: calc(-1 * max(0.65rem, env(safe-area-inset-right, 0px)));
+  /* Must match both horizontal margins (L/R safe areas can differ — old 2×left caused overflow) */
   width: calc(
-    100% + 2 * max(0.65rem, env(safe-area-inset-left, 0px))
+    100% +
+      max(0.65rem, env(safe-area-inset-left, 0px)) +
+      max(0.65rem, env(safe-area-inset-right, 0px))
   );
   max-width: none;
 }

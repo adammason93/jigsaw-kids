@@ -31,8 +31,9 @@
   --theme-c4-soft: #f3e8ff;
   --theme-word: #6366f1;
   --theme-word-soft: #e0e7ff;
-  --theme-colour: #db2777;
-  --theme-colour-soft: #fce7f3;
+  /* Warm yellow “Sofias Colouring Book” portal art */
+  --theme-colour: #ca8a04;
+  --theme-colour-soft: #fff8e6;
   --theme-snap: #059669;
   --theme-snap-soft: #ecfdf5;
   /* Lime comic splash (portal memory.png) */
