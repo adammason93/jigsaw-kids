@@ -1555,6 +1555,20 @@ html.kids-reduce-motion .race-canopy {
     drop-shadow(0 4px 6px rgba(35, 75, 45, 0.35));
 }
 
+/* Transparent PNG + clipped “peek” — dinosaur chasing mostly just off-screen left */
+.race-runner--dino.race-runner__emoji--pic {
+  overflow: hidden;
+  width: clamp(2.85rem, 10vmin, 4.5rem);
+}
+
+.race-runner--dino.race-runner__emoji--pic .race-runner__pic {
+  width: clamp(7rem, 28vmin, 12.5rem) !important;
+  max-width: none;
+  max-height: clamp(9rem, 40vmin, 13.5rem);
+  transform-origin: 82% 92%;
+  transform: translateX(-54%) translateY(4%);
+}
+
 /* Extra bounce for the long-neck dino */
 .race-stage.is-dino .race-runner__emoji:not(.race-runner__emoji--pic) {
   animation: dino-idle 2.2s ease-in-out infinite;
