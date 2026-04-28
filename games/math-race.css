@@ -1037,13 +1037,14 @@ html.kids-reduce-motion .race-canopy {
 .race-cloud {
   position: absolute;
   z-index: 2;
-  background: rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.55);
   border-radius: 50px;
-  opacity: 0.14;
+  opacity: 0.38;
   pointer-events: none;
-  filter: blur(0.75px);
-  mix-blend-mode: soft-light;
-  box-shadow: 0 1px 8px rgba(255, 255, 255, 0.08);
+  filter: blur(0.65px);
+  mix-blend-mode: normal;
+  box-shadow: 0 2px 12px rgba(255, 255, 255, 0.15);
+  will-change: transform;
 }
 
 .race-cloud--a {
@@ -1051,9 +1052,9 @@ html.kids-reduce-motion .race-canopy {
   height: 9%;
   top: 11%;
   left: 0;
-  animation: cloud-pan-ltr 96s linear infinite;
+  animation: cloud-pan-ltr 56s linear infinite;
   animation-delay: -8s;
-  opacity: 0.16;
+  opacity: 0.42;
 }
 
 .race-cloud--b {
@@ -1061,9 +1062,9 @@ html.kids-reduce-motion .race-canopy {
   height: 7%;
   top: 19%;
   left: 0;
-  animation: cloud-pan-ltr 118s linear infinite;
-  animation-delay: -42s;
-  opacity: 0.12;
+  animation: cloud-pan-ltr 68s linear infinite;
+  animation-delay: -32s;
+  opacity: 0.34;
 }
 
 .race-cloud--c {
@@ -1071,9 +1072,9 @@ html.kids-reduce-motion .race-canopy {
   height: 5.5%;
   top: 8%;
   left: 0;
-  animation: cloud-pan-ltr 104s linear infinite;
-  animation-delay: -68s;
-  opacity: 0.13;
+  animation: cloud-pan-ltr 62s linear infinite;
+  animation-delay: -48s;
+  opacity: 0.36;
 }
 
 .race-cloud--d {
@@ -1081,9 +1082,9 @@ html.kids-reduce-motion .race-canopy {
   height: 10%;
   top: 15%;
   left: 0;
-  animation: cloud-pan-ltr 132s linear infinite;
-  animation-delay: -22s;
-  opacity: 0.11;
+  animation: cloud-pan-ltr 74s linear infinite;
+  animation-delay: -18s;
+  opacity: 0.32;
 }
 
 /* Simple side foliage — suggests treetops swaying in the breeze */
