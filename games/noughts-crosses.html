@@ -27,6 +27,44 @@
         <p class="ttt-header__lede">Get three in a row — a line, column, or diagonal.</p>
       </header>
 
+      <section class="ttt-card ttt-card--scores" aria-labelledby="lblScores">
+        <h2 id="lblScores">Score card</h2>
+        <p class="ttt-scorecard__hint" id="scorecardHint">
+          Totals are saved on this phone or tablet. Use <strong>Copy scores</strong> on one device and <strong>Paste scores</strong> on another to move them over.
+        </p>
+        <div class="ttt-score-grid" role="group" aria-label="Win counts by mode">
+          <div class="ttt-score-block">
+            <h3 class="ttt-score-block__title">Two players</h3>
+            <ul class="ttt-score-list">
+              <li><span class="ttt-score-list__label">Crosses won</span> <strong id="scoreFriendX">0</strong></li>
+              <li><span class="ttt-score-list__label">Noughts won</span> <strong id="scoreFriendO">0</strong></li>
+              <li><span class="ttt-score-list__label">Draws</span> <strong id="scoreFriendDraw">0</strong></li>
+            </ul>
+          </div>
+          <div class="ttt-score-block">
+            <h3 class="ttt-score-block__title">vs computer — Easy</h3>
+            <ul class="ttt-score-list">
+              <li><span class="ttt-score-list__label">You won</span> <strong id="scoreCpuEasyYou">0</strong></li>
+              <li><span class="ttt-score-list__label">Computer won</span> <strong id="scoreCpuEasyCpu">0</strong></li>
+              <li><span class="ttt-score-list__label">Draws</span> <strong id="scoreCpuEasyDraw">0</strong></li>
+            </ul>
+          </div>
+          <div class="ttt-score-block">
+            <h3 class="ttt-score-block__title">vs computer — Hard</h3>
+            <ul class="ttt-score-list">
+              <li><span class="ttt-score-list__label">You won</span> <strong id="scoreCpuHardYou">0</strong></li>
+              <li><span class="ttt-score-list__label">Computer won</span> <strong id="scoreCpuHardCpu">0</strong></li>
+              <li><span class="ttt-score-list__label">Draws</span> <strong id="scoreCpuHardDraw">0</strong></li>
+            </ul>
+          </div>
+        </div>
+        <div class="ttt-score-actions">
+          <button type="button" class="ttt-btn ttt-btn--ghost ttt-btn--small" id="btnCopyScores">Copy scores</button>
+          <button type="button" class="ttt-btn ttt-btn--ghost ttt-btn--small" id="btnPasteScores">Paste scores</button>
+          <button type="button" class="ttt-btn ttt-btn--ghost ttt-btn--small ttt-score-actions__danger" id="btnResetScores">Reset scores</button>
+        </div>
+      </section>
+
       <div class="ttt-setup-columns">
         <section class="ttt-card ttt-card--mode" aria-labelledby="lblMode">
           <h2 id="lblMode">How do you want to play?</h2>

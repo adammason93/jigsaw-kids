@@ -25,6 +25,7 @@
   ];
 
   const K_CHAR_PICK = "tttCharPickV1";
+  const K_TTT_SCORES = "tttScorecardV1";
   const DEFAULT_X = 3;
   const DEFAULT_O = 0;
 
@@ -61,6 +62,10 @@
   /** @type {string} */
   var charO = CHARACTER_OPTIONS[DEFAULT_O].v;
   var winLineRaf = 0;
+  /** CPU difficulty for the current round (set in startGame). @type {'easy'|'hard'} */
+  var gameCpuSkill = "easy";
+
+  const scorecardHint = document.getElementById("scorecardHint");
 
   function prefersReducedMotion() {
     return (
@@ -125,6 +130,186 @@
         JSON.stringify({ x: charX, o: charO })
       );
     } catch (e) {}
+  }
+
+  function defaultScores() {
+    return {
+      friend: { x: 0, o: 0, draw: 0 },
+      cpuEasy: { you: 0, cpu: 0, draw: 0 },
+      cpuHard: { you: 0, cpu: 0, draw: 0 },
+    };
+  }
+
+  function n0(v) {
+    const n = parseInt(v, 10);
+    return isFinite(n) && n >= 0 ? n : 0;
+  }
+
+  function normalizeScores(raw) {
+    const d = defaultScores();
+    if (!raw || typeof raw !== "object") {
+      return d;
+    }
+    if (raw.friend && typeof raw.friend === "object") {
+      d.friend.x = n0(raw.friend.x);
+      d.friend.o = n0(raw.friend.o);
+      d.friend.draw = n0(raw.friend.draw);
+    }
+    if (raw.cpuEasy && typeof raw.cpuEasy === "object") {
+      d.cpuEasy.you = n0(raw.cpuEasy.you);
+      d.cpuEasy.cpu = n0(raw.cpuEasy.cpu);
+      d.cpuEasy.draw = n0(raw.cpuEasy.draw);
+    }
+    if (raw.cpuHard && typeof raw.cpuHard === "object") {
+      d.cpuHard.you = n0(raw.cpuHard.you);
+      d.cpuHard.cpu = n0(raw.cpuHard.cpu);
+      d.cpuHard.draw = n0(raw.cpuHard.draw);
+    }
+    return d;
+  }
+
+  function loadScores() {
+    try {
+      const s = localStorage.getItem(K_TTT_SCORES);
+      if (!s) {
+        return defaultScores();
+      }
+      return normalizeScores(JSON.parse(s));
+    } catch (e) {
+      return defaultScores();
+    }
+  }
+
+  function saveScores(scores) {
+    try {
+      localStorage.setItem(K_TTT_SCORES, JSON.stringify(scores));
+    } catch (e) {}
+  }
+
+  function renderScorecard() {
+    const s = loadScores();
+    const map = {
+      scoreFriendX: s.friend.x,
+      scoreFriendO: s.friend.o,
+      scoreFriendDraw: s.friend.draw,
+      scoreCpuEasyYou: s.cpuEasy.you,
+      scoreCpuEasyCpu: s.cpuEasy.cpu,
+      scoreCpuEasyDraw: s.cpuEasy.draw,
+      scoreCpuHardYou: s.cpuHard.you,
+      scoreCpuHardCpu: s.cpuHard.cpu,
+      scoreCpuHardDraw: s.cpuHard.draw,
+    };
+    Object.keys(map).forEach(function (id) {
+      const el = document.getElementById(id);
+      if (el) {
+        el.textContent = String(map[id]);
+      }
+    });
+  }
+
+  function flashScorecardHint(msg) {
+    if (!scorecardHint) {
+      return;
+    }
+    const prev = scorecardHint.innerHTML;
+    scorecardHint.textContent = msg;
+    window.setTimeout(function () {
+      if (scorecardHint) {
+        scorecardHint.innerHTML = prev;
+      }
+    }, 2600);
+  }
+
+  function recordGameResult(w) {
+    const scores = loadScores();
+    if (mode === "friend") {
+      if (!w) {
+        scores.friend.draw++;
+      } else if (w.player === "X") {
+        scores.friend.x++;
+      } else {
+        scores.friend.o++;
+      }
+    } else {
+      const bucket = gameCpuSkill === "hard" ? scores.cpuHard : scores.cpuEasy;
+      if (!w) {
+        bucket.draw++;
+      } else if (w.player === "X") {
+        bucket.you++;
+      } else {
+        bucket.cpu++;
+      }
+    }
+    saveScores(scores);
+    renderScorecard();
+  }
+
+  function fallbackCopyText(text) {
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.setAttribute("readonly", "");
+    ta.style.position = "fixed";
+    ta.style.left = "-9999px";
+    document.body.appendChild(ta);
+    ta.select();
+    try {
+      document.execCommand("copy");
+      flashScorecardHint("Copied! On another device, tap Paste scores.");
+    } catch (e) {
+      window.prompt("Copy this text:", text);
+    }
+    document.body.removeChild(ta);
+  }
+
+  function copyScores() {
+    const text = JSON.stringify(loadScores());
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(
+        function () {
+          flashScorecardHint("Copied! On another device, tap Paste scores.");
+        },
+        function () {
+          fallbackCopyText(text);
+        }
+      );
+    } else {
+      fallbackCopyText(text);
+    }
+  }
+
+  function pasteScores() {
+    const raw = window.prompt(
+      "Paste the scores text you copied (from Copy scores on another device):",
+      ""
+    );
+    if (raw === null) {
+      return;
+    }
+    const t = raw.trim();
+    if (!t) {
+      return;
+    }
+    try {
+      const parsed = JSON.parse(t);
+      saveScores(normalizeScores(parsed));
+      renderScorecard();
+      flashScorecardHint("Scores updated from paste.");
+    } catch (e) {
+      window.alert(
+        "Could not read that as scores. Copy the full line from the other device and try again."
+      );
+    }
+  }
+
+  function resetScores() {
+    if (!window.confirm("Clear all score counts saved on this device?")) {
+      return;
+    }
+    try {
+      localStorage.removeItem(K_TTT_SCORES);
+    } catch (e) {}
+    renderScorecard();
+    flashScorecardHint("Scores cleared.");
   }
 
   function syncModeLabels() {
@@ -262,6 +447,7 @@
     }
     if (!onPlay) {
       initCharPickers();
+      renderScorecard();
     }
   }
 
@@ -679,6 +865,7 @@
 
   function endGame(w) {
     gameOver = true;
+    recordGameResult(w);
     clearWinHighlight();
     if (w) {
       const winLabel =
@@ -780,6 +967,7 @@
     closeWinModal();
     clearWinLineSvg();
     mode = selectedMode();
+    gameCpuSkill = selectedCpuSkill();
     saveCharPicks();
     board = Array(9).fill(null);
     current = "X";
@@ -832,6 +1020,19 @@
     if (typeof KidsCore !== "undefined") {
       KidsCore.init();
       KidsCore.bindTapSound(document.getElementById("app"));
+    }
+    renderScorecard();
+    var btnCopy = document.getElementById("btnCopyScores");
+    var btnPaste = document.getElementById("btnPasteScores");
+    var btnReset = document.getElementById("btnResetScores");
+    if (btnCopy) {
+      btnCopy.addEventListener("click", copyScores);
+    }
+    if (btnPaste) {
+      btnPaste.addEventListener("click", pasteScores);
+    }
+    if (btnReset) {
+      btnReset.addEventListener("click", resetScores);
     }
   }
 
