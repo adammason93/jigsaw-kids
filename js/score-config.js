@@ -5,6 +5,6 @@
  */
 window.SCORE_SYNC = {
   supabaseUrl: "https://enuzrcjnrxwglacivlnu.supabase.co",
-  supabaseAnonKey: "",
-  syncLoginEmail: "",
+  supabaseAnonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVudXpyY2pucnh3Z2xhY2l2bG51Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyNDI2OTYsImV4cCI6MjA5MjgxODY5Nn0.vYbFLRoKgpeNkzPntutSc3P1DxURjBP7qd40_kk8peA",
+  syncLoginEmail: "sofia-room@fam.local",
 };
