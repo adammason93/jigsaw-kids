@@ -138,17 +138,19 @@
     var bestWaste = 999;
     var minC = 3;
     var maxC = Math.min(12, n);
+    /* Portrait “playing card” fit: width : height = 5 : 7 within each cell */
+    var cardRatio = 5 / 7;
     for (var cols = minC; cols <= maxC; cols++) {
       var rows = Math.ceil(n / cols);
       var cw = (W - gap * (cols - 1)) / cols;
       var ch = (H - gap * (rows - 1)) / rows;
-      var s = Math.min(cw, ch);
+      var cardW = Math.min(cw, ch * cardRatio);
       var waste = cols * rows - n;
-      if (s > bestSize + 0.5) {
-        bestSize = s;
+      if (cardW > bestSize + 0.5) {
+        bestSize = cardW;
         bestCols = cols;
         bestWaste = waste;
-      } else if (Math.abs(s - bestSize) <= 0.5 && waste < bestWaste) {
+      } else if (Math.abs(cardW - bestSize) <= 0.5 && waste < bestWaste) {
         bestCols = cols;
         bestWaste = waste;
       }
@@ -220,7 +222,10 @@
       btn.addEventListener("click", function () {
         onTileTap(index);
       });
-      boardEl.appendChild(btn);
+      var cell = document.createElement("div");
+      cell.className = "memory-tile-cell";
+      cell.appendChild(btn);
+      boardEl.appendChild(cell);
       tileButtons.push(btn);
     });
     scheduleBoardLayout();
