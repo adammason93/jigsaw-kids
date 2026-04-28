@@ -523,7 +523,7 @@
         return;
       }
       sb.auth.onAuthStateChange(function (event, session) {
-        /** Avoid reload() here — SIGNED_IN can re-fire after reload and loop the page. */
+        // do not reload here — listener can repeat
         if (session && session.user && event === "SIGNED_IN") {
           pullAndApply(function (changed) {
             if (changed) {
