@@ -241,6 +241,36 @@ h2,
   display: none !important;
 }
 
+.char-block--sofia-only {
+  margin-bottom: 0;
+}
+
+.char-sofia-lock {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  background: rgba(255, 255, 255, 0.55);
+  border: 3px solid rgba(22, 101, 52, 0.28);
+  border-radius: 14px;
+  box-shadow: 0 2px 0 rgba(22, 101, 52, 0.12);
+}
+
+.char-sofia-lock__pic {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.char-sofia-lock__name {
+  margin: 0;
+  font-family: "Sniglet", "Nunito", system-ui, sans-serif;
+  font-weight: 800;
+  font-size: 1.35rem;
+  color: var(--text);
+}
+
 .radio-tile {
   flex: 1 1 140px;
   display: flex;
@@ -1523,6 +1553,15 @@ html.kids-reduce-motion .race-canopy {
   --runner-bottom: clamp(1.6rem, 4.45vmin, 2.75rem);
 }
 
+/* VS dinosaur: same lane/height; child ahead on the path layers above the dino */
+.race-stage.is-dino .race-runner--dino {
+  z-index: 5;
+}
+
+.race-stage.is-dino .race-runner:not(.race-runner--dino) {
+  z-index: 8;
+}
+
 .race-runner--dino .race-runner__emoji {
   font-size: clamp(3.95rem, 15vmin, 6.75rem);
 }
@@ -1566,7 +1605,7 @@ html.kids-reduce-motion .race-canopy {
   max-width: none;
   max-height: clamp(9rem, 40vmin, 13.5rem);
   transform-origin: 82% 92%;
-  transform: translateX(-54%) translateY(4%);
+  transform: translateX(-54%);
 }
 
 /* Extra bounce for the long-neck dino */

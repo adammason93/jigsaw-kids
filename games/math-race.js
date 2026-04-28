@@ -58,9 +58,6 @@
   const loseMessage = document.getElementById("loseMessage");
   const loseCard = document.getElementById("loseCard");
   const charSectionHint = document.getElementById("charSectionHint");
-  const lblCharP1 = document.getElementById("lblCharP1");
-  const charBlockP2 = document.getElementById("charBlockP2");
-  const charBlockP3 = document.getElementById("charBlockP3");
   const questionTurnTitle = document.getElementById("questionTurnTitle");
   const mcHint = document.getElementById("mcHint");
 
@@ -190,40 +187,21 @@
     return "solo";
   }
 
-  function getCharForPlayer(playerIndex) {
-    const pressed = document.querySelector('.char-btn[data-player="' + playerIndex + '"][aria-pressed="true"]');
-    return pressed ? pressed.getAttribute("data-char") || "babyca" : "babyca";
+  function getCharForPlayer() {
+    return "girlblonde";
   }
 
   function syncSetupUiForMode() {
     const mode = selectedPlayMode();
-    if (charBlockP2) {
-      const show2 = mode === "two" || mode === "three";
-      charBlockP2.classList.toggle("is-hidden", !show2);
-      charBlockP2.hidden = !show2;
-    }
-    if (charBlockP3) {
-      const show3 = mode === "three";
-      charBlockP3.classList.toggle("is-hidden", !show3);
-      charBlockP3.hidden = !show3;
-    }
-    if (lblCharP1) {
-      if (mode === "solo") {
-        lblCharP1.textContent = "Your runner";
-      } else if (mode === "computer") {
-        lblCharP1.textContent = "Your runner";
-      } else {
-        lblCharP1.textContent = "Player 1";
-      }
-    }
     if (charSectionHint) {
       if (mode === "computer") {
         charSectionHint.textContent =
           "You start one step ahead. You and the dinosaur take turns — each turn shows a pop-up with that player's question. Reach the finish before it catches you!";
       } else if (mode === "two" || mode === "three") {
-        charSectionHint.textContent = "Take turns answering. Only the player whose turn it is moves forward when they're right!";
+        charSectionHint.textContent =
+          "Take turns as Sofia. Only the player whose turn it is moves forward when they're right!";
       } else {
-        charSectionHint.textContent = "Pick your runner for the path.";
+        charSectionHint.textContent = "You play as Sofia.";
       }
     }
   }
@@ -295,7 +273,7 @@
         label: "You",
         character: getCharForPlayer(0),
         position: 1,
-        lane: 1,
+        lane: 0,
         isCpu: false,
       });
     }
@@ -342,7 +320,7 @@
     if (!raceStage) {
       return;
     }
-    const multi = playMode === "two" || playMode === "three" || playMode === "computer";
+    const multi = playMode === "two" || playMode === "three";
     raceStage.classList.toggle("has-multi-lane", multi);
     raceStage.classList.toggle("is-dino", playMode === "computer");
     raceStage.classList.remove("is-caught");
@@ -978,18 +956,6 @@
   }
 
   document.getElementById("btnStart").addEventListener("click", startGame);
-
-  document.querySelectorAll(".char-btn").forEach(function (btn) {
-    btn.addEventListener("click", function () {
-      const pi = btn.getAttribute("data-player");
-      if (pi == null) {
-        return;
-      }
-      document.querySelectorAll('.char-btn[data-player="' + pi + '"]').forEach(function (b) {
-        b.setAttribute("aria-pressed", b === btn ? "true" : "false");
-      });
-    });
-  });
 
   document.getElementById("btnQuit").addEventListener("click", function () {
     clearDinoTimer();
