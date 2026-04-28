@@ -12,7 +12,6 @@
     "runnerScorecardV1",
     "snakesScorecardV1",
     "snapScorecardV1",
-    "colouringScorecardV1",
     "c4ScorecardV1",
     "wordSearchScorecardV1",
     "mathRaceScorecardV1",

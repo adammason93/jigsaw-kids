@@ -9,7 +9,6 @@
   <title>Colouring book — Sofia's Game Room</title>
   <link rel="manifest" href="../manifest.json" />
   <link rel="stylesheet" href="../js/kids-core.css" />
-  <link rel="stylesheet" href="../js/game-scorecard.css" />
   <link rel="stylesheet" href="colouring.css" />
   <link rel="stylesheet" href="../tablet-ipad.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -26,24 +25,12 @@
 
         <header class="colour-header">
           <h1>Colouring book</h1>
-          <p class="colour-header__lede">Pick <strong>blank paper</strong> to draw freely, or a picture—the outlines stay on top when you colour. <strong>Undo</strong> removes the last scribble. Tap <strong>Save for later</strong> anytime, or turn on <strong>auto-save</strong> below so this tablet remembers your picture while you draw (optional).</p>
-        </header>
-
-        <section class="gsc" aria-labelledby="colscTitle">
-          <h2 id="colscTitle" class="gsc__title">Score card</h2>
-          <p class="gsc__hint" id="colscHint" hidden>
-            Counts each time you <strong>save a picture</strong> to your device. Copy/paste to move totals.
+          <p class="colour-header__lede">
+            Pick <strong>blank paper</strong> or a picture—the outlines stay on top. <strong>Undo</strong> fixes the last stroke.
+            When you leave and come back, your drawing reloads automatically on this device. If a grown-up signs in from the
+            gear menu, the same picture can also load from the cloud on another device.
           </p>
-          <div class="gsc__block">
-            <p class="gsc__stat-label">Pictures saved</p>
-            <p class="gsc__stat" id="colscSaved">0</p>
-          </div>
-          <div class="gsc__actions">
-            <button type="button" class="gsc__btn" id="colscCopy">Copy scores</button>
-            <button type="button" class="gsc__btn" id="colscPaste">Paste scores</button>
-            <button type="button" class="gsc__btn gsc__btn--danger" id="colscReset">Reset scores</button>
-          </div>
-        </section>
+        </header>
 
         <div class="colour-tools" role="toolbar" aria-label="Drawing tools">
           <div class="colour-tools__row">
@@ -128,7 +115,6 @@
   <script src="../js/score-config.js"></script>
   <script src="../js/kids-core.js" defer></script>
   <script src="../js/score-cloud.js" defer></script>
-  <script src="../js/game-scorecard.js" defer></script>
   <script src="colouring.js" defer></script>
   <script>
     if ("serviceWorker" in navigator) {

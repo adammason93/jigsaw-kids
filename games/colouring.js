@@ -43,25 +43,6 @@
     return;
   }
 
-  /** @type {{ update: function(Function): void, render: function(): void }|null} */
-  var colScorecard = null;
-  if (typeof GameScorecard !== "undefined") {
-    colScorecard = GameScorecard.wire({
-      storageKey: "colouringScorecardV1",
-      defaults: { picturesSaved: 0 },
-      display: {
-        colscSaved: function (s) {
-          return s.picturesSaved;
-        },
-      },
-      hintId: "colscHint",
-      btnCopyId: "colscCopy",
-      btnPasteId: "colscPaste",
-      btnResetId: "colscReset",
-    });
-    colScorecard.render();
-  }
-
   const MIN_ZOOM = 1;
   const MAX_ZOOM = 4;
   const ctx = paintCanvas.getContext("2d");
@@ -804,11 +785,6 @@
       saveLink.href = url;
       saveLink.download = "sofiacolour-" + (Date.now() % 100000) + ".png";
       saveLink.click();
-      if (colScorecard) {
-        colScorecard.update(function (s) {
-          s.picturesSaved++;
-        });
-      }
     }
     /* Keep an in-app copy so refresh / come back still shows this picture (export alone does not). */
     saveForLater({ silent: true });
