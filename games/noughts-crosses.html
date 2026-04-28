@@ -30,7 +30,7 @@
 
       <section class="gsc" aria-labelledby="lblScores">
         <h2 id="lblScores" class="gsc__title">Score card</h2>
-        <p class="gsc__hint" id="tttscHint">
+        <p class="gsc__hint" id="tttscHint" hidden>
           Totals are saved on this phone or tablet. Use <strong>Copy scores</strong> on one device and <strong>Paste scores</strong> on another to move them over.
         </p>
         <div class="gsc__grid gsc__grid--cols3" role="group" aria-label="Win counts by mode">
@@ -155,7 +155,9 @@
       </div>
     </div>
   </div>
+  <script src="../js/score-config.js"></script>
   <script src="../js/kids-core.js" defer></script>
+  <script src="../js/score-cloud.js" defer></script>
   <script src="../js/game-scorecard.js" defer></script>
   <script src="noughts-crosses.js" defer></script>
   <script>

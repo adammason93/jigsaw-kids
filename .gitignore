@@ -4,6 +4,8 @@
 .env.*
 node_modules/
 
+supabase/.temp/
+
 # wrangler files
 .wrangler
 .dev.vars*

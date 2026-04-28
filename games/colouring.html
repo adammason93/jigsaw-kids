@@ -31,7 +31,7 @@
 
         <section class="gsc" aria-labelledby="colscTitle">
           <h2 id="colscTitle" class="gsc__title">Score card</h2>
-          <p class="gsc__hint" id="colscHint">
+          <p class="gsc__hint" id="colscHint" hidden>
             Counts each time you <strong>save a picture</strong> to your device. Copy/paste to move totals.
           </p>
           <div class="gsc__block">
@@ -113,16 +113,21 @@
         </div>
         <div class="colour-save-prefs">
           <label class="colour-autosave">
-            <input type="checkbox" id="chkColourAutoSave" />
-            <span class="colour-autosave__text">Auto-save on this device while I draw</span>
+            <input type="checkbox" id="chkColourAutoSave" checked />
+            <span class="colour-autosave__text">Keep my picture on this device while I draw</span>
           </label>
-          <p class="colour-autosave__hint">When this is on, your picture is saved quietly as you go. You can still tap <strong>Save for later</strong> or <strong>Save picture</strong> whenever you like.</p>
+          <p class="colour-autosave__hint">
+            On by default — your work is saved quietly as you go so a refresh doesn’t clear it. Turn off if you prefer a
+            fresh canvas every visit. You can still tap <strong>Save for later</strong> or <strong>Save picture</strong> whenever you like.
+          </p>
         </div>
       </div>
     </div>
   </div>
   <a id="saveLink" class="visually-hidden" href="#" download="sofiacolour.png" aria-hidden="true">save</a>
+  <script src="../js/score-config.js"></script>
   <script src="../js/kids-core.js" defer></script>
+  <script src="../js/score-cloud.js" defer></script>
   <script src="../js/game-scorecard.js" defer></script>
   <script src="colouring.js" defer></script>
   <script>

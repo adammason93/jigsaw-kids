@@ -25,21 +25,14 @@
     <div id="screenSetup" class="snap-screen">
       <header class="snap-header">
         <h1>Snap</h1>
-        <p class="snap-header__lede">
-          <strong>First to 100 cards wins the game.</strong> Each round starts with a <strong>5, 4, 3, 2, 1, Go!</strong> countdown, then
-          the cards <strong>flip for you</strong> (auto-flip turns on) until you change it. Flip tiles and look at the
-          <strong>two boxes</strong> in the middle. When
-          the <strong>last two</strong> show the <strong>same animal</strong> (picture and name), the first to tap <strong>Snap!</strong> on
-          their side takes <strong>the whole middle pile</strong> and those cards go toward their 100. If the deck runs out, it gets shuffled
-          in again (with any leftover on the table) so you can keep going until someone wins. Tapped
-          <strong>too soon</strong> (not a real match)? The <strong>other</strong> player gets a <strong>+3</strong> card bonus. Choose
-          <strong>characters</strong>, <strong>which side is yours</strong>, then tap <strong>Start game</strong>.
+        <p class="snap-header__tagline">
+          <strong>First to 100 cards wins.</strong> Tap the floating <strong class="snap-header__q">?</strong> for how to play.
         </p>
       </header>
 
       <section class="gsc" aria-labelledby="snapscTitle">
         <h2 id="snapscTitle" class="gsc__title">Score card</h2>
-        <p class="gsc__hint" id="snapscHint">
+        <p class="gsc__hint" id="snapscHint" hidden>
           Counts <strong>full games</strong> (first to 100 cards). Saved on this device — copy/paste to move.
         </p>
         <div class="gsc__grid gsc__grid--cols2">
@@ -225,7 +218,47 @@
       </button>
     </div>
   </div>
+
+  <button
+    type="button"
+    class="snap-rules-fab"
+    id="snapRulesFab"
+    aria-label="How to play Snap"
+    aria-expanded="false"
+    title="How to play"
+  >
+    <span aria-hidden="true">?</span>
+  </button>
+
+  <div id="snapRulesModal" class="gsc__help snap-rules-modal" hidden>
+    <div class="gsc__help-backdrop" tabindex="-1" aria-hidden="true"></div>
+    <div class="gsc__help-panel" role="dialog" aria-modal="true" aria-labelledby="snapRulesTitle">
+      <h3 class="gsc__help-title" id="snapRulesTitle">How to play Snap</h3>
+      <div class="gsc__help-body">
+        <p>
+          <strong>First to 100 cards wins the game.</strong> Each round starts with a
+          <strong>5, 4, 3, 2, 1, Go!</strong> countdown, then the cards <strong>flip for you</strong> (auto-flip turns on) until
+          you change it.
+        </p>
+        <p>
+          Flip tiles and look at the <strong>two boxes</strong> in the middle. When the <strong>last two</strong> show the
+          <strong>same animal</strong> (picture and name), the first to tap <strong>Snap!</strong> on their side takes
+          <strong>the whole middle pile</strong> and those cards go toward their 100.
+        </p>
+        <p>
+          If the deck runs out, it gets shuffled in again (with any leftover on the table) so you can keep going until
+          someone wins. Tapped <strong>too soon</strong> (not a real match)? The <strong>other</strong> player gets a
+          <strong>+3</strong> card bonus.
+        </p>
+        <p>Choose <strong>characters</strong>, <strong>which side is yours</strong>, then tap <strong>Start game</strong>.</p>
+      </div>
+      <button type="button" class="gsc__help-close" id="snapRulesClose">Done</button>
+    </div>
+  </div>
+
+  <script src="../js/score-config.js"></script>
   <script src="../js/kids-core.js" defer></script>
+  <script src="../js/score-cloud.js" defer></script>
   <script src="../js/game-scorecard.js" defer></script>
   <script src="snap.js" defer></script>
   <script>

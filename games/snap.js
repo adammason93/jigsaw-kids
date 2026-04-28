@@ -86,6 +86,78 @@
     snapScorecard.render();
   }
 
+  var snapRulesFab = document.getElementById("snapRulesFab");
+  var snapRulesModal = document.getElementById("snapRulesModal");
+  var snapRulesClose = document.getElementById("snapRulesClose");
+  var snapRulesBackdrop =
+    snapRulesModal && snapRulesModal.querySelector
+      ? snapRulesModal.querySelector(".gsc__help-backdrop")
+      : null;
+  /** @type {HTMLElement|null} */
+  var snapRulesLastFocus = null;
+
+  function closeSnapRules() {
+    if (!snapRulesModal) {
+      return;
+    }
+    snapRulesModal.setAttribute("hidden", "");
+    if (snapRulesFab) {
+      snapRulesFab.setAttribute("aria-expanded", "false");
+    }
+    document.body.classList.remove("snap-rules-open");
+    if (snapRulesLastFocus && typeof snapRulesLastFocus.focus === "function") {
+      snapRulesLastFocus.focus();
+    }
+  }
+
+  function openSnapRules() {
+    if (!snapRulesModal) {
+      return;
+    }
+    snapRulesLastFocus = /** @type {HTMLElement|null} */ (document.activeElement);
+    snapRulesModal.removeAttribute("hidden");
+    if (snapRulesFab) {
+      snapRulesFab.setAttribute("aria-expanded", "true");
+    }
+    document.body.classList.add("snap-rules-open");
+    if (snapRulesClose && typeof snapRulesClose.focus === "function") {
+      snapRulesClose.focus();
+    }
+  }
+
+  if (snapRulesFab && snapRulesModal && snapRulesClose) {
+    snapRulesFab.addEventListener("click", function (e) {
+      e.preventDefault();
+      openSnapRules();
+    });
+    snapRulesClose.addEventListener("click", closeSnapRules);
+    if (snapRulesBackdrop) {
+      snapRulesBackdrop.addEventListener("click", closeSnapRules);
+    }
+    document.addEventListener("keydown", function (e) {
+      if (
+        e.key === "Escape" &&
+        snapRulesModal &&
+        !snapRulesModal.hasAttribute("hidden")
+      ) {
+        e.preventDefault();
+        closeSnapRules();
+      }
+    });
+  }
+
+  /**
+   * "How to play" FAB is for setup only — hide during gameplay.
+   */
+  function syncSnapRulesFab() {
+    if (!snapRulesFab || !screenPlay) {
+      return;
+    }
+    snapRulesFab.hidden = !screenPlay.hidden;
+  }
+
+  syncSnapRulesFab();
+
   var IMG_PREFIX = "__img:";
   var CHARACTER_OPTIONS = [
     { v: IMG_PREFIX + "images/character-babyca.png", label: "Baby" },
@@ -1136,9 +1208,13 @@
     if (snapScorecard) {
       snapScorecard.render();
     }
+    syncSnapRulesFab();
   }
 
   function showPlay() {
+    if (snapRulesModal && !snapRulesModal.hasAttribute("hidden")) {
+      closeSnapRules();
+    }
     var radios = document.querySelectorAll('input[name="snapMode"]');
     var v = "friend";
     radios.forEach(function (r) {
@@ -1164,6 +1240,7 @@
     if (typeof KidsCore !== "undefined" && typeof KidsCore.setPlayMode === "function") {
       KidsCore.setPlayMode(true);
     }
+    syncSnapRulesFab();
     newGame();
   }
 

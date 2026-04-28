@@ -368,7 +368,7 @@
       '<div class="kids-settings__backdrop" data-close="1"></div>' +
       '<div class="kids-settings__panel">' +
       "<h2 id=\"kidsSetTitle\" class=\"kids-settings__title\">Grown-up &amp; comfort</h2>" +
-      "<p class=\"kids-settings__lead\">These stay on this device. Nothing is sent to a server yet.</p>" +
+      "<p class=\"kids-settings__lead\">Comfort and sound options stay on this device. Below you can optionally sign in with email to sync scores across devices when cloud sync is configured.</p>" +
       '<label class="kids-settings__row"><input type="checkbox" id="kidsSetSound" checked /> <span>Fun sounds (beeps &amp; chimes)</span></label>' +
       '<label class="kids-settings__row"><input type="checkbox" id="kidsSetHap" checked /> <span>Little buzz on taps (if your tablet supports it)</span></label>' +
       '<label class="kids-settings__row"><input type="checkbox" id="kidsSetRead" /> <span>Read questions aloud (read to me)</span></label>' +

@@ -110,12 +110,52 @@ html.kids-play-mode .page-snap .app {
   letter-spacing: 0.02em;
 }
 
-.snap-header__lede {
-  margin: 0;
-  font-size: 0.86rem;
+.snap-header__tagline {
+  margin: 0 auto;
+  max-width: 24rem;
+  font-size: 0.93rem;
+  font-weight: 700;
   color: #5b4d7a;
-  max-width: 38rem;
-  margin-inline: auto;
+  line-height: 1.35;
+}
+
+.snap-header__q {
+  color: var(--snap-table-deep);
+}
+
+/* Full rules — sits above mute + settings (KidsCore bar scale) */
+.snap-rules-fab {
+  position: fixed;
+  z-index: 9010;
+  right: max(0.5rem, env(safe-area-inset-right, 0px));
+  bottom: calc(max(0.5rem, env(safe-area-inset-bottom, 0px)) + 3.35rem);
+  width: 3rem;
+  height: 3rem;
+  min-width: 48px;
+  min-height: 48px;
+  padding: 0;
+  border-radius: 50%;
+  border: 3px solid #fff;
+  font-family: "Sniglet", "Nunito", system-ui, sans-serif;
+  font-size: 1.35rem;
+  font-weight: 800;
+  line-height: 1;
+  color: #5b21b6;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+  background: linear-gradient(180deg, #fef3c7, #fde68a);
+}
+
+.snap-rules-fab:hover {
+  filter: brightness(1.04);
+}
+
+.snap-rules-fab:active {
+  transform: translateY(1px);
+}
+
+body.snap-rules-open {
+  overflow: hidden;
 }
 
 .snap-card--setup {

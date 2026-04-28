@@ -96,6 +96,77 @@
   font-weight: 600;
 }
 
+.kids-settings__sync {
+  margin: 1rem 0;
+  padding-top: 0.75rem;
+  border-top: 1px dashed #d8b4fe;
+}
+
+.kids-settings__sync-title {
+  margin: 0 0 0.35rem;
+  font-size: 1.05rem;
+  color: #4c1d95;
+}
+
+.kids-settings__sync-lead {
+  margin: 0 0 0.65rem;
+  font-size: 0.88rem;
+  color: #5b5a6a;
+  line-height: 1.4;
+  font-weight: 600;
+}
+
+.kids-settings__sync-status {
+  margin: 0 0 0.5rem;
+  font-size: 0.82rem;
+  color: #4338ca;
+  font-weight: 600;
+  min-height: 1.2rem;
+}
+
+.kids-settings__row--email {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.35rem;
+}
+
+.kids-settings__sync-label {
+  font-size: 0.8rem;
+  color: #64748b;
+  font-weight: 700;
+}
+
+.kids-settings__sync-input {
+  width: 100%;
+  padding: 0.55rem 0.65rem;
+  border-radius: 10px;
+  border: 2px solid #cbd5e1;
+  font: inherit;
+  font-weight: 600;
+  box-sizing: border-box;
+}
+
+.kids-settings__sync-btn {
+  display: block;
+  width: 100%;
+  margin-top: 0.45rem;
+  padding: 0.55rem;
+  border-radius: 11px;
+  border: none;
+  font: inherit;
+  font-weight: 800;
+  font-size: 0.9rem;
+  cursor: pointer;
+  background: linear-gradient(180deg, #6366f1, #4f46e5);
+  color: #fff;
+}
+
+.kids-settings__sync-btn--ghost {
+  background: #f1f5f9;
+  color: #312c44;
+  border: 2px solid #94a3b8;
+}
+
 .kids-settings__close {
   margin-top: 0.75rem;
   width: 100%;

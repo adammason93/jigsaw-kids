@@ -60,6 +60,14 @@
     try {
       global.localStorage.setItem(key, JSON.stringify(data));
     } catch (e) {}
+    try {
+      if (
+        global.KidsScoreCloud &&
+        typeof global.KidsScoreCloud.onScoreSaved === "function"
+      ) {
+        global.KidsScoreCloud.onScoreSaved(key);
+      }
+    } catch (e2) {}
   }
 
   function renderFields(display, data) {
@@ -116,12 +124,139 @@
    * @param {string} [opts.btnResetId]
    * @param {function(object): void} [opts.onRender]
    */
+  function escapeHtml(text) {
+    var d = document.createElement("div");
+    d.textContent = text;
+    return d.innerHTML;
+  }
+
   function wire(opts) {
     var key = opts.storageKey;
     var defaults = opts.defaults;
     var display = opts.display;
     var hintEl = opts.hintId ? document.getElementById(opts.hintId) : null;
     var hintHtml = hintEl ? hintEl.innerHTML : "";
+    /** @type {HTMLElement|null} */
+    var toastEl = null;
+    /** @type {HTMLElement|null} */
+    var helpRoot = null;
+    var helpOpen = false;
+    /** @type {HTMLElement|null} */
+    var fabBtn = null;
+    /** @type {HTMLElement|null} */
+    var lastFocusEl = null;
+
+    if (hintEl) {
+      var gsc = hintEl.closest(".gsc");
+      hintEl.setAttribute("hidden", "");
+      hintEl.classList.add("gsc__hint--stored");
+      if (gsc) {
+        toastEl = document.createElement("div");
+        toastEl.className = "gsc__toast";
+        toastEl.setAttribute("role", "status");
+        toastEl.setAttribute("aria-live", "polite");
+
+        fabBtn = document.createElement("button");
+        fabBtn.type = "button";
+        fabBtn.className = "gsc__help-fab";
+        fabBtn.setAttribute("aria-label", "About this score card");
+        fabBtn.setAttribute("aria-expanded", "false");
+        fabBtn.setAttribute("title", "How scores work");
+        fabBtn.innerHTML =
+          '<span class="gsc__help-fab-mark" aria-hidden="true">?</span>';
+
+        var helpId = "gscHelpDlg-" + opts.hintId;
+        var titleId = helpId + "-title";
+        helpRoot = document.createElement("div");
+        helpRoot.id = helpId;
+        helpRoot.className = "gsc__help";
+        helpRoot.setAttribute("hidden", "");
+        helpRoot.innerHTML =
+          '<div class="gsc__help-backdrop" tabindex="-1" aria-hidden="true"></div>' +
+          '<div class="gsc__help-panel" role="dialog" aria-modal="true" aria-labelledby="' +
+          titleId +
+          '">' +
+          '<h3 class="gsc__help-title" id="' +
+          titleId +
+          '">Scores</h3>' +
+          '<div class="gsc__help-body">' +
+          hintHtml +
+          '<p class="gsc__help-sync-note">' +
+          "Scores are stored in <strong>this browser on this device only</strong> — they are not uploaded or synced online. " +
+          "To show the same totals on another phone or tablet, tap <strong>Copy scores</strong> here, then on the other device open this same game and tap <strong>Paste scores</strong> (your clipboard or a message works)." +
+          "</p>" +
+          "</div>" +
+          '<button type="button" class="gsc__help-close">Done</button>' +
+          "</div>";
+
+        gsc.classList.add("gsc--has-help");
+        var title = gsc.querySelector(".gsc__title");
+        if (title) {
+          title.insertAdjacentElement("afterend", toastEl);
+        } else {
+          gsc.insertBefore(toastEl, gsc.firstChild);
+        }
+        gsc.appendChild(fabBtn);
+        gsc.appendChild(helpRoot);
+
+        var backdrop = helpRoot.querySelector(".gsc__help-backdrop");
+        var closeBtn = helpRoot.querySelector(".gsc__help-close");
+
+        function closeHelp() {
+          if (!helpRoot || !helpOpen) {
+            return;
+          }
+          helpOpen = false;
+          helpRoot.setAttribute("hidden", "");
+          fabBtn.setAttribute("aria-expanded", "false");
+          global.document.body.classList.remove("gsc-help-open");
+          if (lastFocusEl && typeof lastFocusEl.focus === "function") {
+            lastFocusEl.focus();
+          }
+        }
+
+        function openHelp() {
+          if (!helpRoot || helpOpen) {
+            return;
+          }
+          lastFocusEl =
+            /** @type {HTMLElement} */ (global.document.activeElement);
+          helpOpen = true;
+          helpRoot.removeAttribute("hidden");
+          fabBtn.setAttribute("aria-expanded", "true");
+          global.document.body.classList.add("gsc-help-open");
+          if (closeBtn && typeof closeBtn.focus === "function") {
+            closeBtn.focus();
+          }
+        }
+
+        fabBtn.addEventListener("click", function (e) {
+          e.preventDefault();
+          if (helpOpen) {
+            closeHelp();
+          } else {
+            openHelp();
+          }
+        });
+        if (backdrop) {
+          backdrop.addEventListener("click", closeHelp);
+        }
+        if (closeBtn) {
+          closeBtn.addEventListener("click", closeHelp);
+        }
+        global.document.addEventListener("keydown", function (e) {
+          if (
+            helpOpen &&
+            e.key === "Escape" &&
+            helpRoot &&
+            !helpRoot.hasAttribute("hidden")
+          ) {
+            e.preventDefault();
+            closeHelp();
+          }
+        });
+      }
+    }
 
     function render() {
       var data = load(key, defaults);
@@ -132,15 +267,28 @@
     }
 
     function flash(msg) {
-      if (!hintEl) {
+      if (toastEl) {
+        toastEl.innerHTML =
+          '<span class="gsc__toast-msg">' + escapeHtml(String(msg)) + "</span>";
+        global.setTimeout(function () {
+          if (toastEl) {
+            toastEl.innerHTML = "";
+          }
+        }, 2600);
         return;
       }
-      hintEl.textContent = msg;
-      global.setTimeout(function () {
-        if (hintEl) {
-          hintEl.innerHTML = hintHtml;
-        }
-      }, 2600);
+      if (hintEl) {
+        hintEl.removeAttribute("hidden");
+        hintEl.classList.remove("gsc__hint--stored");
+        hintEl.textContent = msg;
+        global.setTimeout(function () {
+          if (hintEl) {
+            hintEl.setAttribute("hidden", "");
+            hintEl.classList.add("gsc__hint--stored");
+            hintEl.innerHTML = hintHtml;
+          }
+        }, 2600);
+      }
     }
 
     function doCopy() {
@@ -149,7 +297,9 @@
       copyToClipboard(
         text,
         function () {
-          flash("Copied! On another device, tap Paste scores.");
+          flash(
+            "Copied! On the other device, open this game and tap Paste scores."
+          );
         },
         function (t) {
           global.prompt("Copy this text:", t);
@@ -157,25 +307,57 @@
       );
     }
 
+    function applyPastedJson(raw) {
+      var parsed = JSON.parse(String(raw).trim());
+      var next = deepNormalize(defaults, parsed);
+      save(key, next);
+      render();
+      flash("Scores updated from paste.");
+    }
+
     function doPaste() {
-      var raw = global.prompt(
-        "Paste the scores text you copied (from Copy scores on another device):",
-        ""
-      );
-      if (raw === null || !String(raw).trim()) {
+      function promptForPaste() {
+        var raw = global.prompt(
+          "Paste the scores text you copied (from Copy scores on another device):",
+          ""
+        );
+        if (raw === null || !String(raw).trim()) {
+          return;
+        }
+        try {
+          applyPastedJson(raw);
+        } catch (e) {
+          global.alert(
+            "Could not read that as scores. Copy the full line from the other device and try again."
+          );
+        }
+      }
+
+      if (
+        global.navigator.clipboard &&
+        typeof global.navigator.clipboard.readText === "function"
+      ) {
+        global.navigator.clipboard.readText().then(
+          function (text) {
+            if (text && String(text).trim()) {
+              try {
+                applyPastedJson(text);
+                return;
+              } catch (e) {
+                global.alert(
+                  "Clipboard doesn’t look like scores from Copy scores. Copy again on the other device, or paste the text in the next box."
+                );
+              }
+            }
+            promptForPaste();
+          },
+          function () {
+            promptForPaste();
+          }
+        );
         return;
       }
-      try {
-        var parsed = JSON.parse(String(raw).trim());
-        var next = deepNormalize(defaults, parsed);
-        save(key, next);
-        render();
-        flash("Scores updated from paste.");
-      } catch (e) {
-        global.alert(
-          "Could not read that as scores. Copy the full line from the other device and try again."
-        );
-      }
+      promptForPaste();
     }
 
     function doReset() {

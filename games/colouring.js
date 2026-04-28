@@ -248,11 +248,16 @@
     }
   }
 
+  /** Default on so a refresh doesn’t lose work; user can turn off in the checkbox. */
   function loadAutoSavePref() {
     try {
-      return localStorage.getItem(PREF_AUTO_SAVE) === "1";
+      var v = localStorage.getItem(PREF_AUTO_SAVE);
+      if (v === null) {
+        return true;
+      }
+      return v === "1";
     } catch (e) {
-      return false;
+      return true;
     }
   }
 
@@ -292,6 +297,87 @@
     }
     cancelScheduledAutoSave();
     saveForLater({ silent: true });
+  }
+
+  function isValidSavedSession(o) {
+    return !!(
+      o &&
+      o.v === 1 &&
+      o.paint &&
+      typeof o.templateFile === "string" &&
+      o.templateFile.length > 0
+    );
+  }
+
+  function mergeColouringPreferNewer(local, cloud) {
+    var lOk = isValidSavedSession(local);
+    var cOk = isValidSavedSession(cloud);
+    if (!cOk && !lOk) {
+      return null;
+    }
+    if (!cOk) {
+      return local;
+    }
+    if (!lOk) {
+      return cloud;
+    }
+    return (cloud.t || 0) >= (local.t || 0) ? cloud : local;
+  }
+
+  function finalizeCanvasBootstrap() {
+    var savedSession = readSavedSession();
+    if (savedSession && savedSession.templateFile) {
+      pendingRestore = savedSession;
+      var savedBtn = findTemplateButton(savedSession.templateFile);
+      selectTemplate(savedSession.templateFile, savedBtn, { fromSavedSession: true });
+    } else {
+      pendingRestore = null;
+      var firstT = TEMPLATES[0];
+      if (firstT) {
+        var firstBtn = templateList && templateList.querySelector(".tmpl-btn");
+        selectTemplate(firstT.file, firstBtn, null);
+      } else {
+        updateZoomPct();
+        updateUndoUi();
+      }
+    }
+  }
+
+  /**
+   * If signed into Supabase sync, prefers newer of local vs cloud session JSON.
+   */
+  function bootstrapCanvas() {
+    if (
+      typeof KidsScoreCloud !== "undefined" &&
+      KidsScoreCloud.downloadColouringSession
+    ) {
+      KidsScoreCloud.downloadColouringSession(function (err, cloud) {
+        if (err) {
+          finalizeCanvasBootstrap();
+          return;
+        }
+        var local = readSavedSession();
+        var chosen = mergeColouringPreferNewer(local, cloud || null);
+        if (chosen && isValidSavedSession(chosen)) {
+          var takeCloud =
+            cloud &&
+            isValidSavedSession(cloud) &&
+            (!local ||
+              !isValidSavedSession(local) ||
+              (cloud.t || 0) > (local.t || 0));
+          try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(chosen));
+          } catch (eStore) {}
+          if (takeCloud && statusLine) {
+            statusLine.textContent =
+              "Loaded your picture from the cloud — you can keep colouring!";
+          }
+        }
+        finalizeCanvasBootstrap();
+      });
+    } else {
+      finalizeCanvasBootstrap();
+    }
   }
 
   function readSavedSession() {
@@ -356,6 +442,14 @@
       }
       return;
     }
+    try {
+      if (
+        typeof KidsScoreCloud !== "undefined" &&
+        KidsScoreCloud.scheduleColouringUpload
+      ) {
+        KidsScoreCloud.scheduleColouringUpload(JSON.stringify(payload));
+      }
+    } catch (eCloud) {}
     if (!silent) {
       if (statusLine) {
         statusLine.textContent =
@@ -716,6 +810,8 @@
         });
       }
     }
+    /* Keep an in-app copy so refresh / come back still shows this picture (export alone does not). */
+    saveForLater({ silent: true });
     if (statusLine) {
       statusLine.textContent = "Picture saved! Check your Downloads folder (or the share sheet on iPad).";
     }
@@ -894,22 +990,7 @@
   }
   setToolById("pen");
   buildTemplateList();
-  var savedSession = readSavedSession();
-  if (savedSession && savedSession.templateFile) {
-    pendingRestore = savedSession;
-    var savedBtn = findTemplateButton(savedSession.templateFile);
-    selectTemplate(savedSession.templateFile, savedBtn, { fromSavedSession: true });
-  } else {
-    pendingRestore = null;
-    var firstT = TEMPLATES[0];
-    if (firstT) {
-      var firstBtn = templateList && templateList.querySelector(".tmpl-btn");
-      selectTemplate(firstT.file, firstBtn, null);
-    } else {
-      updateZoomPct();
-      updateUndoUi();
-    }
-  }
+  bootstrapCanvas();
 
   var ro = new ResizeObserver(function () {
     fitCanvas(true);
