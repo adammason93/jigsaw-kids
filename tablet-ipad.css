@@ -140,6 +140,11 @@ a.game-card,
     gap: 1.25rem 2rem;
   }
 
+  .page-portal .portal-hero__mascot-ring {
+    width: 156px;
+    height: 156px;
+  }
+
   .page-portal .portal-hero__mascot {
     width: 128px;
     height: 128px;

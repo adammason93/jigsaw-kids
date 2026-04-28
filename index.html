@@ -18,12 +18,24 @@
 </head>
 <body class="page-portal">
   <div class="portal">
+    <div class="portal-bg" aria-hidden="true">
+      <span class="portal-bg__blob portal-bg__blob--1"></span>
+      <span class="portal-bg__blob portal-bg__blob--2"></span>
+      <span class="portal-bg__blob portal-bg__blob--3"></span>
+      <span class="portal-bg__mesh"></span>
+    </div>
+
     <header class="portal-hero">
       <div class="portal-hero__inner">
         <div class="portal-hero__copy">
           <p class="portal-hero__kicker">Hi Sofia — this room’s for you</p>
           <h1 class="portal-hero__title">Sofia's Game Room</h1>
-          <p class="portal-hero__tagline">Tap a game to play.</p>
+          <p class="portal-hero__tagline">Tap a game and jump in — puzzles, colours, races, and classics on one happy screen.</p>
+          <div class="portal-hero__chips" aria-label="Quick facts">
+            <span class="portal-chip">Works offline</span>
+            <span class="portal-chip">No sign-up</span>
+            <span class="portal-chip">9 games</span>
+          </div>
           <p
             class="portal-hero__welcome-back"
             id="portalWelcomeBack"
@@ -34,22 +46,31 @@
             Welcome back, Sofia! ✨
           </p>
         </div>
-        <div class="portal-hero__mascot" aria-hidden="true">
-          <img
-            class="portal-hero__char"
-            src="games/images/character-girl-blonde.png"
-            width="128"
-            height="128"
-            alt=""
-            decoding="async"
-          />
+        <div class="portal-hero__mascot-wrap" aria-hidden="true">
+          <div class="portal-hero__mascot-ring"></div>
+          <div class="portal-hero__mascot">
+            <img
+              class="portal-hero__char"
+              src="games/images/character-girl-blonde.png"
+              width="128"
+              height="128"
+              alt=""
+              decoding="async"
+            />
+          </div>
         </div>
       </div>
     </header>
 
     <div class="game-sections">
       <section class="game-section game-section--active" aria-labelledby="active-games-label">
-        <h2 class="game-section__label game-section__label--play" id="active-games-label">Play now</h2>
+        <div class="game-section-head">
+          <span class="game-section-head__glyph" aria-hidden="true">🎮</span>
+          <div class="game-section-head__text">
+            <h2 class="game-section__label game-section__label--play" id="active-games-label">Play now</h2>
+            <p class="game-section-head__sub">Every card is a mini adventure — tap where your eyes land first.</p>
+          </div>
+        </div>
         <ul class="game-grid game-grid--active" role="list" aria-labelledby="active-games-label">
         <li>
           <a class="game-card game-card--jigsaw" href="games/jigsaw.html">
@@ -199,13 +220,17 @@
       </section>
     </div>
 
-    <p class="portal-footer">
-      <span class="portal-footer__icon" aria-hidden="true">✨</span>
-      Add to your home screen for quick play (no Safari bar when you open it from the icon). On many tablets
-      and computers, the first tap in a game can switch to full screen. Tap
-      <span class="portal-footer__gear" aria-hidden="true">⚙️</span>
-      in a game for sounds, read-aloud, and a calmer screen.
-    </p>
+    <aside class="portal-footer" aria-label="Tips for playing">
+      <div class="portal-footer__accent" aria-hidden="true"></div>
+      <div class="portal-footer__inner">
+        <span class="portal-footer__emoji" aria-hidden="true">💡</span>
+        <p class="portal-footer__text">
+          <strong class="portal-footer__lead">Tip for grown-ups &amp; kids:</strong>
+          Add to your home screen for quick play (full screen from the icon). In many games the first tap can go full screen.
+          Tap <span class="portal-footer__gear" aria-hidden="true">⚙️</span> in a game for sounds, read-aloud, and a calmer screen.
+        </p>
+      </div>
+    </aside>
   </div>
   <script src="js/kids-core.js"></script>
   <script>
