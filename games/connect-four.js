@@ -2,11 +2,27 @@
  * Connect 4 — two players or vs computer (yellow).
  * Board: row 0 = top, row 5 = bottom. R = red (first), Y = yellow.
  *
- * @typedef {{ friendRed: string; friendYellow: string; cpuYou: string }} C4Names
+ * Character picks match Snap / Noughts & Crosses (image tokens).
+ *
+ * @typedef {{ friendRed: string; friendYellow: string; cpuYou: string }} C4CharPick
  */
 (function () {
   const ROWS = 6;
   const COLS = 7;
+
+  const IMG_PREFIX = "__img:";
+  const CHARACTER_OPTIONS = [
+    { v: IMG_PREFIX + "images/character-babyca.png", label: "Baby" },
+    { v: IMG_PREFIX + "images/tilly-mascot.png", label: "Tilly" },
+    { v: IMG_PREFIX + "images/character-baby-coolegg.png", label: "Isaac" },
+    { v: IMG_PREFIX + "images/character-girl-blonde.png", label: "Sofia" },
+    { v: IMG_PREFIX + "images/character-kelly.png", label: "Kelly" },
+    { v: IMG_PREFIX + "images/character-freya.png", label: "Freya" },
+  ];
+  const K_C4_CHARS = "c4CharacterPickV1";
+  const DEFAULT_FRIEND_RED = 3;
+  const DEFAULT_FRIEND_YELLOW = 0;
+  const DEFAULT_CPU_YOU = 3;
 
   const appEl = document.getElementById("app");
   const screenSetup = document.getElementById("screenSetup");
@@ -18,92 +34,118 @@
   const btnStart = document.getElementById("btnStart");
   const btnAgain = document.getElementById("btnAgain");
   const btnMenu = document.getElementById("btnMenu");
-  const inpFriendRed = /** @type {HTMLInputElement | null} */ (document.getElementById("inpC4FriendRed"));
-  const inpFriendYellow = /** @type {HTMLInputElement | null} */ (
-    document.getElementById("inpC4FriendYellow")
-  );
-  const inpCpuYou = /** @type {HTMLInputElement | null} */ (document.getElementById("inpC4CpuYou"));
+  const rowFriendRed = document.getElementById("c4CharRowFriendRed");
+  const rowFriendYellow = document.getElementById("c4CharRowFriendYellow");
+  const rowCpuYou = document.getElementById("c4CharRowCpuYou");
   const paneNamesFriend = document.getElementById("c4NamesFriendPane");
   const paneNamesCpu = document.getElementById("c4NamesCpuPane");
   const playScoreLineEl = document.getElementById("c4PlayScoreLine");
   /** @type {HTMLInputElement[]} */
   const modeRadios = Array.prototype.slice.call(document.querySelectorAll('input[name="c4Mode"]'));
 
-  const NAMES_STORAGE_KEY = "c4PlayerNamesV1";
-
-  /** @returns {string} */
-  function sanitizeName(raw) {
-    if (typeof raw !== "string") {
-      return "";
-    }
-    return raw.trim().replace(/[<>]/g, "").slice(0, 28);
+  function defaultCharPick() {
+    return {
+      friendRed: CHARACTER_OPTIONS[DEFAULT_FRIEND_RED].v,
+      friendYellow: CHARACTER_OPTIONS[DEFAULT_FRIEND_YELLOW].v,
+      cpuYou: CHARACTER_OPTIONS[DEFAULT_CPU_YOU].v,
+    };
   }
 
-  /** @returns {C4Names} */
-  function namesDefault() {
-    return { friendRed: "", friendYellow: "", cpuYou: "" };
+  /** @param {string} v */
+  function isValidToken(v) {
+    return (
+      typeof v === "string" &&
+      CHARACTER_OPTIONS.some(function (opt) {
+        return opt.v === v;
+      })
+    );
   }
 
-  /** @returns {C4Names} */
-  function loadStoredNames() {
+  /** @param {string} icon */
+  function imageIconSrc(icon) {
+    return icon.slice(IMG_PREFIX.length);
+  }
+
+  /** @returns {C4CharPick} */
+  function loadStoredCharPick() {
+    var def = defaultCharPick();
     try {
-      var raw = localStorage.getItem(NAMES_STORAGE_KEY);
+      var raw = localStorage.getItem(K_C4_CHARS);
       if (!raw) {
-        return namesDefault();
+        return def;
       }
       var o = JSON.parse(raw);
       if (!o || typeof o !== "object") {
-        return namesDefault();
+        return def;
       }
       return {
-        friendRed: sanitizeName(o.friendRed),
-        friendYellow: sanitizeName(o.friendYellow),
-        cpuYou: sanitizeName(o.cpuYou),
+        friendRed: isValidToken(o.friendRed) ? o.friendRed : def.friendRed,
+        friendYellow: isValidToken(o.friendYellow) ? o.friendYellow : def.friendYellow,
+        cpuYou: isValidToken(o.cpuYou) ? o.cpuYou : def.cpuYou,
       };
     } catch (e1) {
-      return namesDefault();
+      return def;
     }
   }
 
-  /** @param {C4Names} nm */
-  function persistNames(nm) {
+  /** @param {C4CharPick} p */
+  function persistCharPick(p) {
     try {
-      localStorage.setItem(NAMES_STORAGE_KEY, JSON.stringify(nm));
+      localStorage.setItem(K_C4_CHARS, JSON.stringify(p));
     } catch (e2) {}
   }
 
-  /** @type {C4Names} */
-  var namesState = loadStoredNames();
+  /** @type {C4CharPick} */
+  var charPick = loadStoredCharPick();
 
-  function readNamesFromForm() {
-    /** @type {C4Names} */
-    var nm = namesDefault();
-    if (inpFriendRed) {
-      nm.friendRed = sanitizeName(inpFriendRed.value);
+  /**
+   * @param {HTMLElement | null} container
+   * @param {'friendRed'|'friendYellow'|'cpuYou'} which
+   */
+  function buildCharRow(container, which) {
+    if (!container) {
+      return;
     }
-    if (inpFriendYellow) {
-      nm.friendYellow = sanitizeName(inpFriendYellow.value);
+    container.replaceChildren();
+    for (var i = 0; i < CHARACTER_OPTIONS.length; i++) {
+      (function (opt) {
+        var b = document.createElement("button");
+        b.type = "button";
+        b.className = "c4-char-opt c4-char-opt--pic";
+        b.setAttribute("data-value", opt.v);
+        b.setAttribute("aria-label", opt.label);
+        b.setAttribute("aria-pressed", charPick[which] === opt.v ? "true" : "false");
+        var im = document.createElement("img");
+        im.className = "c4-char-opt__pic";
+        im.src = imageIconSrc(opt.v);
+        im.alt = "";
+        im.width = 96;
+        im.height = 96;
+        im.decoding = "async";
+        b.appendChild(im);
+        b.addEventListener("click", function () {
+          charPick[which] = opt.v;
+          persistCharPick(charPick);
+          container.querySelectorAll(".c4-char-opt").forEach(function (el) {
+            el.setAttribute(
+              "aria-pressed",
+              el.getAttribute("data-value") === opt.v ? "true" : "false"
+            );
+          });
+          refreshScoreLabels();
+          updatePlayScoreLine();
+          syncModeLine();
+        });
+        container.appendChild(b);
+      })(CHARACTER_OPTIONS[i]);
     }
-    if (inpCpuYou) {
-      nm.cpuYou = sanitizeName(inpCpuYou.value);
-    }
-    namesState = nm;
-    persistNames(nm);
-    return nm;
   }
 
-  function fillNameInputs() {
-    var n = loadStoredNames();
-    if (inpFriendRed) {
-      inpFriendRed.value = n.friendRed;
-    }
-    if (inpFriendYellow) {
-      inpFriendYellow.value = n.friendYellow;
-    }
-    if (inpCpuYou) {
-      inpCpuYou.value = n.cpuYou;
-    }
-    namesState = n;
+  function initCharPickRows() {
+    charPick = loadStoredCharPick();
+    buildCharRow(rowFriendRed, "friendRed");
+    buildCharRow(rowFriendYellow, "friendYellow");
+    buildCharRow(rowCpuYou, "cpuYou");
   }
 
   function syncNamePanesVisibility() {
@@ -117,23 +159,31 @@
     }
   }
 
+  /** @param {string} token */
+  function labelForToken(token) {
+    var o = CHARACTER_OPTIONS.find(function (x) {
+      return x.v === token;
+    });
+    return o ? o.label : "";
+  }
+
   /** @returns {string} */
   function displayRed() {
     if (mode === "cpu") {
-      return namesState.cpuYou || "You";
+      return labelForToken(charPick.cpuYou) || "You";
     }
-    return namesState.friendRed || "Red";
+    return labelForToken(charPick.friendRed) || "Red";
   }
 
   /** @returns {string} */
   function displayYellow() {
-    return namesState.friendYellow || "Yellow";
+    return labelForToken(charPick.friendYellow) || "Yellow";
   }
 
   function refreshScoreLabels() {
-    var lr = namesState.friendRed || "Red";
-    var ly = namesState.friendYellow || "Yellow";
-    var u = namesState.cpuYou || "You";
+    var lr = labelForToken(charPick.friendRed) || "Red";
+    var ly = labelForToken(charPick.friendYellow) || "Yellow";
+    var u = labelForToken(charPick.cpuYou) || "You";
     var elR = document.getElementById("c4LblFriendR");
     var elY = document.getElementById("c4LblFriendY");
     var elU = document.getElementById("c4LblCpuYou");
@@ -159,7 +209,7 @@
       playScoreLineEl.textContent =
         rN + ": " + s.friend.r + " · " + yN + ": " + s.friend.y + " · Draws: " + s.friend.draw;
     } else {
-      var you = namesState.cpuYou || "You";
+      var you = displayRed();
       playScoreLineEl.textContent =
         you + ": " + s.cpu.you + " · Computer: " + s.cpu.cpu + " · Draws: " + s.cpu.draw;
     }
@@ -411,16 +461,9 @@
 
   function syncModeLine() {
     if (mode === "cpu") {
-      var un = namesState.cpuYou || "";
-      modeLine.textContent = un ? un + " vs computer" : "You vs computer";
+      modeLine.textContent = displayRed() + " vs computer";
     } else {
-      var a = namesState.friendRed;
-      var b = namesState.friendYellow;
-      if (!a && !b) {
-        modeLine.textContent = "Two players";
-      } else {
-        modeLine.textContent = (a || "Red") + " vs " + (b || "Yellow");
-      }
+      modeLine.textContent = displayRed() + " vs " + displayYellow();
     }
   }
 
@@ -439,8 +482,7 @@
       playHint.setAttribute("aria-hidden", "false");
     }
     if (mode === "cpu") {
-      var nm = namesState.cpuYou;
-      setStatus(nm ? nm + " — your turn (red)" : "Your turn — you are red");
+      setStatus(displayRed() + " — your turn (red)");
     } else if (mode === "friend") {
       var label = current === "R" ? displayRed() : displayYellow();
       var hue = current === "R" ? "red" : "yellow";
@@ -574,11 +616,7 @@
       /** @type {string} */
       var winPhrase;
       if (winnerInfo.player === "R") {
-        if (mode === "cpu") {
-          winPhrase = namesState.cpuYou ? namesState.cpuYou + " wins!" : "You win!";
-        } else {
-          winPhrase = displayRed() + " wins!";
-        }
+        winPhrase = displayRed() + " wins!";
       } else if (mode === "cpu") {
         winPhrase = "Computer wins!";
       } else {
@@ -718,7 +756,6 @@
 
   function startGame() {
     mode = selectedMode();
-    readNamesFromForm();
     board = emptyBoard();
     current = "R";
     gameOver = false;
@@ -750,7 +787,7 @@
     showScreen("setup");
   });
 
-  fillNameInputs();
+  initCharPickRows();
   syncNamePanesVisibility();
   for (var ri = 0; ri < modeRadios.length; ri++) {
     modeRadios[ri].addEventListener("change", syncNamePanesVisibility);

@@ -41,6 +41,7 @@
   const btnAgain = document.getElementById("btnAgain");
   const btnMenu = document.getElementById("btnMenu");
   const boardShell = document.getElementById("boardShell");
+  const appEl = document.getElementById("app");
   const tttWinOverlay = document.getElementById("tttWinOverlay");
   const tttWinTitle = document.getElementById("tttWinTitle");
   const tttWinMsg = document.getElementById("tttWinMsg");
@@ -87,6 +88,95 @@
       return x.v === v;
     });
     return o ? o.label : "Player";
+  }
+
+  /**
+   * @param {HTMLElement | null} host
+   * @param {string} tokenV
+   */
+  function renderAvatarInto(host, tokenV) {
+    if (!host) {
+      return;
+    }
+    host.replaceChildren();
+    const wrap = document.createElement("div");
+    wrap.className = "ttt-side__token";
+    if (isImageIcon(tokenV)) {
+      const im = document.createElement("img");
+      im.className = "ttt-side__token-img";
+      im.src = imageIconSrc(tokenV);
+      im.alt = "";
+      im.decoding = "async";
+      wrap.appendChild(im);
+    } else {
+      const em = document.createElement("span");
+      em.className = "ttt-side__token-emoji";
+      em.textContent = tokenV;
+      em.setAttribute("aria-hidden", "true");
+      wrap.appendChild(em);
+    }
+    host.appendChild(wrap);
+  }
+
+  function playSidebarTotals() {
+    if (!tttScorecard) {
+      return { leftW: 0, rightW: 0, draws: 0 };
+    }
+    const s = tttScorecard.load();
+    if (mode === "friend") {
+      return {
+        leftW: s.friend.x,
+        rightW: s.friend.o,
+        draws: s.friend.draw,
+      };
+    }
+    const b = gameCpuSkill === "hard" ? s.cpuHard : s.cpuEasy;
+    return { leftW: b.you, rightW: b.cpu, draws: b.draw };
+  }
+
+  function syncPlaySidebars() {
+    const nx = document.getElementById("tttPlayNameX");
+    const nO = document.getElementById("tttPlayNameO");
+    const wx = document.getElementById("tttPlayWinsX");
+    const wO = document.getElementById("tttPlayWinsO");
+    const dx = document.getElementById("tttPlayDrawsX");
+    const dO = document.getElementById("tttPlayDrawsO");
+    const ax = document.getElementById("tttAvatarX");
+    const aO = document.getElementById("tttAvatarO");
+    if (nx) {
+      nx.textContent = labelForValue(charX);
+    }
+    if (nO) {
+      nO.textContent = labelForValue(charO);
+    }
+    const t = playSidebarTotals();
+    if (wx) {
+      wx.textContent = String(t.leftW);
+    }
+    if (wO) {
+      wO.textContent = String(t.rightW);
+    }
+    if (dx) {
+      dx.textContent = String(t.draws);
+    }
+    if (dO) {
+      dO.textContent = String(t.draws);
+    }
+    renderAvatarInto(ax, charX);
+    renderAvatarInto(aO, charO);
+    syncPlaySidebarTurn();
+  }
+
+  function syncPlaySidebarTurn() {
+    const sx = document.getElementById("tttSideX");
+    const so = document.getElementById("tttSideO");
+    if (!sx || !so) {
+      return;
+    }
+    const activeX = !gameOver && current === "X";
+    const activeO = !gameOver && current === "O";
+    sx.classList.toggle("ttt-side--active", activeX);
+    so.classList.toggle("ttt-side--active", activeO);
   }
 
   function isValidToken(v) {
@@ -288,6 +378,9 @@
     screenSetup.hidden = onPlay;
     screenPlay.classList.toggle("is-hidden", !onPlay);
     screenPlay.hidden = !onPlay;
+    if (appEl) {
+      appEl.classList.toggle("ttt-app--play", onPlay);
+    }
     if (typeof KidsCore !== "undefined" && typeof KidsCore.setPlayMode === "function") {
       KidsCore.setPlayMode(onPlay);
     }
@@ -675,6 +768,7 @@
       boardEl.appendChild(btn);
     }
     boardEl.classList.toggle("ttt-board--over", gameOver);
+    syncPlaySidebarTurn();
   }
 
   function setStatus(msg) {
@@ -826,6 +920,7 @@
     updateTurnMessage();
     showScreen("play");
     renderBoard();
+    syncPlaySidebars();
   }
 
   function resetRound() {
@@ -838,6 +933,7 @@
     clearWinHighlight();
     updateTurnMessage();
     renderBoard();
+    syncPlaySidebars();
   }
 
   function runBoot() {
@@ -906,6 +1002,9 @@
         btnCopyId: "tttscCopy",
         btnPasteId: "tttscPaste",
         btnResetId: "tttscReset",
+        onRender: function () {
+          syncPlaySidebars();
+        },
       });
       tttScorecard.render();
     }

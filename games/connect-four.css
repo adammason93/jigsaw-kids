@@ -184,7 +184,7 @@ h2,
   margin-bottom: 1rem;
 }
 
-/* Who’s playing — names for scorekeeping */
+/* Who’s playing — character picks (same roster as other games) */
 .c4-names {
   margin-bottom: 1.1rem;
   padding-top: 0.2rem;
@@ -213,17 +213,15 @@ h2,
 .c4-names__pane {
   display: flex;
   flex-direction: column;
-  gap: 0.65rem;
+  gap: 0.85rem;
 }
 
-.c4-field {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
+.c4-char-block {
   margin: 0;
 }
 
-.c4-field__label {
+.c4-char-heading {
+  margin: 0 0 0.45rem;
   font-size: 0.78rem;
   font-weight: 800;
   color: var(--c4-accent-dark);
@@ -231,25 +229,56 @@ h2,
   text-transform: uppercase;
 }
 
-.c4-field__input {
-  font: inherit;
-  font-weight: 700;
-  font-size: 1rem;
-  padding: 0.55rem 0.72rem;
-  border-radius: 12px;
-  border: 2px solid #d8b4fe;
-  background: #fff;
-  color: var(--c4-ink);
+.c4-char-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  align-items: center;
+  min-height: 4.5rem;
 }
 
-.c4-field__input:focus {
+.c4-char-opt {
+  width: 4.35rem;
+  height: 4.35rem;
+  min-width: 3.85rem;
+  min-height: 3.85rem;
+  padding: 0;
+  border: 3px solid #d8b4fe;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #fff, #faf5ff);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  transition: border-color 0.12s, box-shadow 0.12s, transform 0.1s;
+  touch-action: manipulation;
+  overflow: hidden;
+}
+
+.c4-char-opt:focus-visible {
   outline: 2px solid var(--c4-accent);
   outline-offset: 2px;
-  border-color: var(--c4-accent);
 }
 
-.c4-field__input::placeholder {
-  color: #a19bb8;
+.c4-char-opt[aria-pressed="true"] {
+  border-color: var(--c4-accent);
+  background: linear-gradient(180deg, #ede9fe, #e9d5ff);
+  box-shadow: 0 2px 0 var(--c4-accent-dark), 0 0 0 1px rgba(124, 58, 237, 0.2);
+}
+
+.c4-char-opt:hover:not([aria-pressed="true"]) {
+  border-color: #c4b5fd;
+  transform: scale(1.04);
+}
+
+.c4-char-opt__pic {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 22%;
+  display: block;
+  border-radius: 9px;
 }
 
 .c4-radio {

@@ -120,7 +120,24 @@
       <p class="ttt-mode-line" id="modeLine" aria-live="polite">Two players</p>
       <p class="ttt-status" id="statusLine" role="status" aria-live="polite">Crosses to play</p>
 
-      <div class="ttt-play-wrap">
+      <div class="ttt-play-arena">
+        <aside class="ttt-side ttt-side--x" id="tttSideX" aria-label="Crosses player">
+          <div class="ttt-side__scoreboard">
+            <p class="ttt-side__name" id="tttPlayNameX">—</p>
+            <div class="ttt-side__stats">
+              <div class="ttt-side__stat">
+                <span class="ttt-side__stat-label">Wins</span>
+                <strong class="ttt-side__stat-val" id="tttPlayWinsX">0</strong>
+              </div>
+              <div class="ttt-side__stat">
+                <span class="ttt-side__stat-label">Draws</span>
+                <strong class="ttt-side__stat-val" id="tttPlayDrawsX">0</strong>
+              </div>
+            </div>
+          </div>
+          <div class="ttt-side__avatar" id="tttAvatarX" aria-hidden="true"></div>
+        </aside>
+
         <div class="ttt-board-shell" id="boardShell">
           <div
             class="ttt-board"
@@ -129,6 +146,23 @@
             aria-label="3 by 3 board"
           ></div>
         </div>
+
+        <aside class="ttt-side ttt-side--o" id="tttSideO" aria-label="Noughts player">
+          <div class="ttt-side__scoreboard">
+            <p class="ttt-side__name" id="tttPlayNameO">—</p>
+            <div class="ttt-side__stats">
+              <div class="ttt-side__stat">
+                <span class="ttt-side__stat-label">Wins</span>
+                <strong class="ttt-side__stat-val" id="tttPlayWinsO">0</strong>
+              </div>
+              <div class="ttt-side__stat">
+                <span class="ttt-side__stat-label">Draws</span>
+                <strong class="ttt-side__stat-val" id="tttPlayDrawsO">0</strong>
+              </div>
+            </div>
+          </div>
+          <div class="ttt-side__avatar" id="tttAvatarO" aria-hidden="true"></div>
+        </aside>
       </div>
 
       <div

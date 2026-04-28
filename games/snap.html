@@ -75,7 +75,7 @@
         </div>
         <h3 class="snap-setup-sub" id="lblChars">Choose your characters</h3>
         <p class="snap-setup-note" id="snapCharLede">
-          Tap a face for each side. They appear under the scores in the game.
+          Tap a face for each side. During play they sit above your Snap! button with your card count.
         </p>
         <div class="snap-char-block">
           <p class="snap-char-heading" id="headingCharP1">Player 1 (left)</p>
@@ -109,35 +109,29 @@
     <div id="screenPlay" class="snap-screen snap-screen--play is-hidden" hidden>
       <p class="snap-mode-line" id="modeLine" aria-live="polite">Two players</p>
       <p class="snap-goal" id="snapGoalLine">First to 100 cards wins the game.</p>
-      <div class="snap-scores" aria-label="Scores">
-        <div class="snap-score snap-score--p1">
-          <span class="snap-score__label" id="labelP1">Player 1</span>
-          <div class="snap-score__mascot" id="mascotP1" aria-hidden="true"></div>
-          <span class="snap-score__value" id="scoreP1">0</span>
-          <span class="snap-score__unit">cards</span>
-        </div>
-        <div class="snap-score snap-score--deck">
-          <span class="snap-score__label">Still in pile</span>
-          <span class="snap-score__value" id="stockCount">52</span>
-        </div>
-        <div class="snap-score snap-score--p2">
-          <span class="snap-score__label" id="labelP2">Player 2</span>
-          <div class="snap-score__mascot" id="mascotP2" aria-hidden="true"></div>
-          <span class="snap-score__value" id="scoreP2">0</span>
-          <span class="snap-score__unit">cards</span>
-        </div>
-      </div>
       <p class="snap-status" id="statusLine" role="status" aria-live="polite">Flip to begin — cute animals ahead!</p>
 
       <div class="snap-arena" aria-label="Snap table">
-        <button type="button" class="snap-side snap-side--p1" id="btnSnap1" aria-label="Player 1 snap">
-          <span class="snap-side__burst" aria-hidden="true"></span>
-          <span class="snap-side__emoji" aria-hidden="true">👈</span>
-          <span class="snap-side__text">Snap!</span>
-          <span class="snap-side__hint" id="hintP1">Player 1</span>
-        </button>
+        <div class="snap-pillar snap-pillar--p1">
+          <div class="snap-pillar__hud snap-pillar__hud--p1" aria-label="Player 1 score">
+            <span class="snap-score__label" id="labelP1">Player 1</span>
+            <div class="snap-score__mascot" id="mascotP1" aria-hidden="true"></div>
+            <span class="snap-score__value" id="scoreP1">0</span>
+            <span class="snap-score__unit">cards</span>
+          </div>
+          <button type="button" class="snap-side snap-side--p1" id="btnSnap1" aria-label="Player 1 snap">
+            <span class="snap-side__burst" aria-hidden="true"></span>
+            <span class="snap-side__emoji" aria-hidden="true">👈</span>
+            <span class="snap-side__text">Snap!</span>
+            <span class="snap-side__hint" id="hintP1">Player 1</span>
+          </button>
+        </div>
 
         <div class="snap-middle">
+          <div class="snap-deck-badge" aria-label="Cards left in pile">
+            <span class="snap-deck-badge__label">Still in pile</span>
+            <span class="snap-deck-badge__value" id="stockCount">52</span>
+          </div>
           <div class="snap-table" id="pileWrap">
             <div class="snap-showcase" id="showcase" aria-label="Compare the last two animals">
               <div class="snap-showcase__row">
@@ -167,12 +161,20 @@
           </div>
         </div>
 
-        <button type="button" class="snap-side snap-side--p2" id="btnSnap2" aria-label="Player 2 snap">
-          <span class="snap-side__burst" aria-hidden="true"></span>
-          <span class="snap-side__emoji" aria-hidden="true">👉</span>
-          <span class="snap-side__text">Snap!</span>
-          <span class="snap-side__hint" id="hintP2">Player 2</span>
-        </button>
+        <div class="snap-pillar snap-pillar--p2">
+          <div class="snap-pillar__hud snap-pillar__hud--p2" aria-label="Player 2 score">
+            <span class="snap-score__label" id="labelP2">Player 2</span>
+            <div class="snap-score__mascot" id="mascotP2" aria-hidden="true"></div>
+            <span class="snap-score__value" id="scoreP2">0</span>
+            <span class="snap-score__unit">cards</span>
+          </div>
+          <button type="button" class="snap-side snap-side--p2" id="btnSnap2" aria-label="Player 2 snap">
+            <span class="snap-side__burst" aria-hidden="true"></span>
+            <span class="snap-side__emoji" aria-hidden="true">👉</span>
+            <span class="snap-side__text">Snap!</span>
+            <span class="snap-side__hint" id="hintP2">Player 2</span>
+          </button>
+        </div>
       </div>
 
       <div class="snap-actions">

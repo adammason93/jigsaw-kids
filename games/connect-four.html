@@ -76,54 +76,39 @@
         <div class="c4-names" id="c4NamesBlock" aria-labelledby="lblPlayers">
           <h3 id="lblPlayers" class="c4-names__title">Who’s playing?</h3>
           <p id="c4NamesHelp" class="c4-names__hint">
-            Names show on turns, the scoreboard, and when someone wins — so you can remember who scored.
+            Tap a face for each side — the same characters as in Snap and Noughts &amp; Crosses. Your choice shows on turns and when someone wins.
           </p>
           <div class="c4-names__panes">
             <div class="c4-names__pane" id="c4NamesFriendPane" role="group" aria-labelledby="lblPlayers">
-              <label class="c4-field">
-                <span class="c4-field__label">Red player</span>
-                <input
-                  type="text"
-                  id="inpC4FriendRed"
-                  name="c4FriendRed"
-                  maxlength="28"
-                  autocomplete="off"
-                  autocapitalize="words"
-                  enterkeyhint="next"
-                  placeholder="e.g. Sofia"
-                  class="c4-field__input"
-                />
-              </label>
-              <label class="c4-field">
-                <span class="c4-field__label">Yellow player</span>
-                <input
-                  type="text"
-                  id="inpC4FriendYellow"
-                  name="c4FriendYellow"
-                  maxlength="28"
-                  autocomplete="off"
-                  autocapitalize="words"
-                  enterkeyhint="done"
-                  placeholder="e.g. Uncle Alex"
-                  class="c4-field__input"
-                />
-              </label>
+              <div class="c4-char-block">
+                <p class="c4-char-heading" id="lblC4Red">Red player</p>
+                <div
+                  class="c4-char-row"
+                  id="c4CharRowFriendRed"
+                  role="radiogroup"
+                  aria-labelledby="lblC4Red"
+                ></div>
+              </div>
+              <div class="c4-char-block">
+                <p class="c4-char-heading" id="lblC4Yellow">Yellow player</p>
+                <div
+                  class="c4-char-row"
+                  id="c4CharRowFriendYellow"
+                  role="radiogroup"
+                  aria-labelledby="lblC4Yellow"
+                ></div>
+              </div>
             </div>
             <div class="c4-names__pane" id="c4NamesCpuPane" role="group" aria-labelledby="lblPlayers" hidden>
-              <label class="c4-field">
-                <span class="c4-field__label">Your name</span>
-                <input
-                  type="text"
-                  id="inpC4CpuYou"
-                  name="c4CpuYou"
-                  maxlength="28"
-                  autocomplete="name"
-                  autocapitalize="words"
-                  enterkeyhint="done"
-                  placeholder="You"
-                  class="c4-field__input"
-                />
-              </label>
+              <div class="c4-char-block">
+                <p class="c4-char-heading" id="lblC4You">You (red)</p>
+                <div
+                  class="c4-char-row"
+                  id="c4CharRowCpuYou"
+                  role="radiogroup"
+                  aria-labelledby="lblC4You"
+                ></div>
+              </div>
             </div>
           </div>
         </div>
