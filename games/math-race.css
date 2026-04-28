@@ -821,6 +821,7 @@ body.page-math:has(#screenSetup:not(.is-hidden)) #screenSetup .btn-primary {
 /* —— Race stage — park illustration + sandy path overlay —— */
 .race-stage {
   --step: 0;
+  --race-progress: 0;
   position: relative;
   flex: 1 1 auto;
   min-height: clamp(280px, 48dvh, 480px);
@@ -844,35 +845,61 @@ body.page-math:has(#screenSetup:not(.is-hidden)) #screenSetup .btn-primary {
   background-color: transparent;
   background-image: url("images/math-race-park-bg.png");
   background-repeat: no-repeat;
-  background-position: center 36%;
+  /* Pan with leading runner (same 2%–88% band as .race-runner --runner-left) */
+  background-position: calc(2% + var(--race-progress) * 86%) 36%;
   background-size: contain;
-  animation: race-park-drift 72s ease-in-out infinite alternate;
-  will-change: transform;
+  transition: background-position 0.85s cubic-bezier(0.33, 1, 0.48, 1);
+  animation: race-park-drift 88s ease-in-out infinite alternate;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .race-stage::before {
     animation: none;
-    transform: none;
     inset: 0;
     background-position: center 36%;
     background-size: contain;
+    transition: none;
+  }
+  .race-cloud {
+    animation: none !important;
+  }
+  .race-bird {
+    display: none !important;
+  }
+  .race-canopy {
+    animation: none !important;
+    transform: rotate(0deg);
   }
 }
 
 html.kids-reduce-motion .race-stage::before {
   animation: none;
-  transform: none;
   background-position: center 36%;
   background-size: contain;
+  transition: none;
 }
 
+html.kids-reduce-motion .race-cloud {
+  animation: none !important;
+}
+
+html.kids-reduce-motion .race-bird {
+  display: none !important;
+}
+
+html.kids-reduce-motion .race-canopy {
+  animation: none !important;
+  transform: rotate(0deg);
+}
+
+/* Idle shimmer only — avoids conflicting with progress pan on ::before */
 @keyframes race-park-drift {
-  0% {
-    transform: scale(1.01) translate(-0.3%, -0.2%);
-  }
+  0%,
   100% {
-    transform: scale(1.03) translate(0.3%, 0.15%);
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(1.04);
   }
 }
 
@@ -881,13 +908,14 @@ html.kids-reduce-motion .race-stage::before {
   filter: saturate(0.85) brightness(0.97);
 }
 
+/* Photo covers the scene; hide old vector sky/hills only */
 .race-sky,
 .race-sun,
-.race-hill,
-.race-cloud,
-.race-bird {
+.race-hill {
   display: none !important;
 }
+
+/* Soft clouds, canopy wobble, birds — layered over park art (see z-index below) */
 
 .race-ground {
   position: absolute;
@@ -988,49 +1016,93 @@ html.kids-reduce-motion .race-stage::before {
 
 .race-cloud {
   position: absolute;
-  background: rgba(255, 255, 255, 0.9);
+  z-index: 1;
+  background: rgba(255, 255, 255, 0.88);
   border-radius: 50px;
-  opacity: 0.85;
+  opacity: 0.42;
   pointer-events: none;
-  filter: blur(0.3px);
+  filter: blur(0.5px);
+  mix-blend-mode: soft-light;
+  box-shadow: 0 2px 16px rgba(255, 255, 255, 0.25);
 }
 
 .race-cloud--a {
-  width: 18%;
-  height: 8%;
-  top: 14%;
+  width: 20%;
+  height: 9%;
+  top: 11%;
   left: 5%;
-  animation: cloud-drift-wide 38s linear infinite;
+  animation: cloud-drift-wide 52s linear infinite;
   animation-delay: -4s;
+  opacity: 0.48;
 }
 
 .race-cloud--b {
-  width: 14%;
-  height: 6%;
-  top: 22%;
-  left: 20%;
-  animation: cloud-drift-wide 48s linear infinite reverse;
+  width: 15%;
+  height: 7%;
+  top: 20%;
+  left: 18%;
+  animation: cloud-drift-wide 64s linear infinite reverse;
   animation-delay: -12s;
-  opacity: 0.75;
+  opacity: 0.4;
 }
 
 .race-cloud--c {
-  width: 12%;
-  height: 5%;
-  top: 10%;
-  right: 25%;
-  animation: cloud-drift-wide 42s linear infinite;
+  width: 13%;
+  height: 5.5%;
+  top: 8%;
+  right: 22%;
+  animation: cloud-drift-wide 58s linear infinite;
   animation-delay: -8s;
-  opacity: 0.7;
+  opacity: 0.38;
 }
 
 .race-cloud--d {
-  width: 22%;
-  height: 9%;
-  top: 18%;
-  left: -15%;
-  animation: cloud-drift-wide 55s linear infinite reverse;
-  opacity: 0.55;
+  width: 24%;
+  height: 10%;
+  top: 16%;
+  left: -18%;
+  animation: cloud-drift-wide 72s linear infinite reverse;
+  opacity: 0.35;
+}
+
+/* Simple side foliage — suggests treetops swaying in the breeze */
+.race-canopy {
+  position: absolute;
+  z-index: 1;
+  bottom: 38%;
+  width: clamp(56px, 16%, 104px);
+  height: clamp(72px, 22%, 120px);
+  pointer-events: none;
+  border-radius: 52% 52% 40% 40%;
+  opacity: 0.32;
+  mix-blend-mode: multiply;
+  background: radial-gradient(
+    120% 90% at 50% 100%,
+    rgba(28, 95, 55, 0.55) 0%,
+    rgba(40, 120, 70, 0.22) 55%,
+    transparent 76%
+  );
+  transform-origin: 50% 100%;
+}
+
+.race-canopy--l {
+  left: 1%;
+  animation: race-canopy-sway 5.2s ease-in-out infinite alternate;
+}
+
+.race-canopy--r {
+  right: 1%;
+  animation: race-canopy-sway 6.8s ease-in-out infinite alternate-reverse;
+  animation-delay: -1.4s;
+}
+
+@keyframes race-canopy-sway {
+  0% {
+    transform: rotate(-1.4deg) scaleX(1);
+  }
+  100% {
+    transform: rotate(1.25deg) scaleX(1.02);
+  }
 }
 
 @keyframes cloud-drift {
@@ -1044,19 +1116,19 @@ html.kids-reduce-motion .race-stage::before {
 
 @keyframes cloud-drift-wide {
   0% {
-    transform: translateX(-35vw);
+    transform: translateX(-28vw);
   }
   100% {
-    transform: translateX(35vw);
+    transform: translateX(28vw);
   }
 }
 
 /* Birds — simple silhouettes crossing the sky */
 .race-bird {
   position: absolute;
-  pointer-events: none;
   z-index: 1;
-  opacity: 0.92;
+  pointer-events: none;
+  opacity: 0.72;
   font-size: clamp(0.85rem, 3vw, 1.15rem);
   line-height: 1;
   filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.12));
@@ -1067,24 +1139,24 @@ html.kids-reduce-motion .race-stage::before {
 }
 
 .race-bird--1 {
-  top: 12%;
-  animation: bird-fly 14s linear infinite;
+  top: 11%;
+  animation: bird-fly 18s linear infinite;
   animation-delay: 0s;
 }
 
 .race-bird--2 {
-  top: 20%;
+  top: 18%;
   font-size: clamp(0.7rem, 2.5vw, 0.95rem);
-  opacity: 0.88;
-  animation: bird-fly 19s linear infinite reverse;
+  opacity: 0.62;
+  animation: bird-fly 24s linear infinite reverse;
   animation-delay: -6s;
 }
 
 .race-bird--3 {
-  top: 8%;
-  animation: bird-fly 22s linear infinite;
+  top: 7%;
+  animation: bird-fly 28s linear infinite;
   animation-delay: -11s;
-  opacity: 0.8;
+  opacity: 0.58;
 }
 
 @keyframes bird-fly {

@@ -516,12 +516,37 @@
     }
   }
 
+  function updateRaceBgProgress() {
+    if (!raceStage || gameSteps < 1) {
+      return;
+    }
+    try {
+      if (
+        document.documentElement.classList.contains("kids-reduce-motion") ||
+        (typeof window.matchMedia !== "undefined" &&
+          window.matchMedia("(prefers-reduced-motion: reduce)").matches)
+      ) {
+        raceStage.style.removeProperty("--race-progress");
+        return;
+      }
+    } catch (e) {}
+    var maxPos = 0;
+    for (var i = 0; i < players.length; i++) {
+      if (players[i].position > maxPos) {
+        maxPos = players[i].position;
+      }
+    }
+    var t = Math.min(1, Math.max(0, maxPos / gameSteps));
+    raceStage.style.setProperty("--race-progress", String(t));
+  }
+
   function updateRaceVisual() {
     players.forEach(function (p) {
       if (p.el) {
         p.el.style.setProperty("--runner-left", pctForPosition(p.position) + "%");
       }
     });
+    updateRaceBgProgress();
     updateStepDots();
     updateProgressText();
     updateTurnLabel();
