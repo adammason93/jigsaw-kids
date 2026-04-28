@@ -1,0 +1,321 @@
+/* Memory — flip matching pairs (same stack + faces as Snap / Noughts) */
+
+.page-memory {
+  margin: 0;
+  min-height: 100dvh;
+  font-family:
+    Nunito,
+    system-ui,
+    -apple-system,
+    sans-serif;
+  color: #0f2433;
+  background: linear-gradient(165deg, #cffafe 0%, #e0f2fe 45%, #f0fdf4 100%);
+}
+
+html.kids-play-mode .page-memory .memory-app {
+  min-height: 0;
+  max-height: 100dvh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+}
+
+.game-nav {
+  margin-bottom: 0.35rem;
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  color: #0891b2;
+  font-weight: 800;
+  text-decoration: none;
+  font-size: 0.88rem;
+}
+
+.back-link:hover {
+  text-decoration: underline;
+}
+
+.memory-app {
+  max-width: 52rem;
+  margin: 0 auto;
+  padding: 0.75rem 1rem 5.5rem;
+}
+
+.memory-screen.is-hidden {
+  display: none !important;
+}
+
+.memory-header h1 {
+  margin: 0 0 0.35rem;
+  font-family: Sniglet, Nunito, sans-serif;
+  font-size: clamp(1.75rem, 5vw, 2.25rem);
+  font-weight: 800;
+  color: #0e7490;
+}
+
+.memory-header__lede {
+  margin: 0 0 1.25rem;
+  font-size: 0.98rem;
+  line-height: 1.55;
+  color: #134e4a;
+  max-width: 40em;
+}
+
+.memory-card--panel {
+  background: #fff;
+  border-radius: 22px;
+  border: 3px solid rgba(8, 145, 178, 0.25);
+  box-shadow: 0 6px 0 rgba(8, 145, 178, 0.12), 0 16px 40px rgba(15, 36, 51, 0.08);
+  padding: 1.15rem 1.25rem 1.35rem;
+}
+
+.memory-card--panel h2 {
+  margin: 0 0 0.85rem;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #0e7490;
+}
+
+.memory-choice-grid {
+  display: grid;
+  gap: 0.65rem;
+  margin-bottom: 1.1rem;
+}
+
+@media (min-width: 520px) {
+  .memory-choice-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.memory-radio {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.65rem 0.75rem;
+  border-radius: 16px;
+  border: 3px solid #e2e8f0;
+  background: #f8fafc;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.memory-radio:has(input:checked) {
+  border-color: #0891b2;
+  background: #ecfeff;
+}
+
+.memory-radio input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.memory-radio__title {
+  font-weight: 800;
+  font-size: 1rem;
+  color: #134e4a;
+}
+
+.memory-radio__hint {
+  font-size: 0.82rem;
+  color: #64748b;
+  line-height: 1.35;
+}
+
+.memory-btn {
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 800;
+  padding: 0.75rem 1.35rem;
+  border-radius: 999px;
+  border: 3px solid transparent;
+  cursor: pointer;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.1);
+}
+
+.memory-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.08);
+}
+
+.memory-btn--primary {
+  background: linear-gradient(180deg, #22d3ee, #0891b2);
+  color: #fff;
+  border-color: #0e7490;
+  width: 100%;
+}
+
+.memory-btn--secondary {
+  background: #f1f5f9;
+  color: #0f2433;
+  border-color: #cbd5e1;
+}
+
+.memory-play-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  margin: 0 0 0.75rem;
+  font-weight: 700;
+  color: #0e7490;
+  font-size: 0.95rem;
+}
+
+#memoryMoves {
+  color: #64748b;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.memory-board {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 5.25rem), 1fr));
+  gap: 0.55rem;
+  margin-bottom: 1rem;
+}
+
+@media (min-width: 600px) {
+  .memory-board {
+    gap: 0.65rem;
+  }
+}
+
+.memory-tile {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  perspective: 800px;
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+}
+
+.memory-tile:focus-visible .memory-tile__inner {
+  box-shadow:
+    0 0 0 3px #fff,
+    0 0 0 6px #0891b2;
+}
+
+.memory-tile:disabled {
+  cursor: default;
+}
+
+.memory-tile__inner {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  transition:
+    transform 0.45s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.25s ease;
+  border-radius: 16px;
+  box-shadow: 0 4px 0 rgba(15, 23, 42, 0.12), 0 8px 20px rgba(15, 23, 42, 0.08);
+}
+
+.memory-tile.is-flipped .memory-tile__inner {
+  transform: rotateY(180deg);
+}
+
+.kids-reduce-motion .memory-tile__inner {
+  transition-duration: 0.15s;
+}
+
+.memory-tile__face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0.35rem;
+  border: 3px solid #0e7490;
+}
+
+.memory-tile__face--back {
+  background: linear-gradient(145deg, #22d3ee, #0891b2);
+  color: #fff;
+  font-size: clamp(1.75rem, 8vw, 2.5rem);
+  font-weight: 800;
+  font-family: Sniglet, sans-serif;
+}
+
+.memory-tile__face--front {
+  transform: rotateY(180deg);
+  background: #fff;
+  border-color: #67e8f9;
+  position: relative;
+}
+
+.memory-tile--animal .memory-tile__emoji {
+  font-size: clamp(1.6rem, 7vw, 2.25rem);
+  line-height: 1;
+}
+
+.memory-tile--animal .memory-tile__label {
+  margin-top: 0.2rem;
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #0f172a;
+  text-align: center;
+  line-height: 1.15;
+}
+
+.memory-tile--character .memory-tile__pic {
+  width: 78%;
+  height: 78%;
+  object-fit: contain;
+  object-position: center bottom;
+}
+
+.memory-tile--character .memory-tile__label {
+  position: absolute;
+  bottom: 0.15rem;
+  left: 0.2rem;
+  right: 0.2rem;
+  font-size: 0.58rem;
+  font-weight: 800;
+  text-align: center;
+  color: #0f172a;
+  line-height: 1.1;
+}
+
+.memory-tile.is-matched .memory-tile__inner {
+  box-shadow: 0 2px 0 rgba(5, 150, 105, 0.35), 0 6px 16px rgba(5, 150, 105, 0.2);
+}
+
+.memory-tile.is-matched .memory-tile__face--front {
+  border-color: #34d399;
+  background: #ecfdf5;
+}
+
+.memory-status {
+  min-height: 1.5rem;
+  margin: 0 0 0.75rem;
+  font-weight: 800;
+  font-size: 1.05rem;
+  color: #059669;
+}
+
+.memory-play-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.memory-play-actions .memory-btn {
+  flex: 1 1 auto;
+  min-width: 9rem;
+}

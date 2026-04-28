@@ -27,7 +27,8 @@ body {
 .page-c4 .app,
 .page-ws .word-search-app,
 .page-colour .colour-app,
-.page-snap .app {
+.page-snap .app,
+.page-memory .memory-app {
   box-sizing: border-box;
 }
 
@@ -44,6 +45,8 @@ a.game-card,
 .icon-pick__opt,
 .ttt-char-opt,
 .back-link,
+.memory-tile,
+.memory-btn,
 .turn-popup__btn,
 .og-btn {
   touch-action: manipulation;
@@ -112,6 +115,10 @@ a.game-card,
   .page-snap .snap-char-opt {
     min-width: 3.1rem;
     min-height: 3.1rem;
+  }
+
+  .memory-btn {
+    min-height: var(--touch-min);
   }
 }
 
