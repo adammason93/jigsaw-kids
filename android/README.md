@@ -65,6 +65,43 @@ Sideload APKs on Fire often work **without** asset links; add them if you publis
 
 ---
 
+## APK shows a URL bar and a close button?
+
+That chrome is **not** coming from your HTML. The wrapper (PWABuilder / Bubblewrap / TWA) is opening your site in **Custom Tabs fallback** because **Digital Asset Links** are missing or wrong.
+
+**Fix:**
+
+1. Use the **same hostname** in the browser as in the APK (`https://jigsaw-kids.adammason93.workers.dev` — or whatever you ship in `twa-manifest.json` / PWABuilder).
+2. **Get your app’s SHA-256 cert fingerprint**  
+   - *Bubblewrap:* after `build`, check the project or run  
+     `keytool -list -v -keystore YOUR.keystore -alias android`  
+   - *PWABuilder:* it usually shows the fingerprint when you generate the package, or use Play App Signing in Play Console if published.
+3. Publish **`/.well-known/assetlinks.json`** on **that exact host** (HTTPS, no redirect to a different domain), for example:
+
+```json
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "YOUR.APPLICATION.ID",
+      "sha256_cert_fingerprints": [
+        "AA:BB:CC:…full SHA-256 of your signing cert…"
+      ]
+    }
+  }
+]
+```
+
+4. Replace `YOUR.APPLICATION.ID` with the **Java application id** from your Android project (e.g. `dev.adammason93.jigsawkids`).
+5. Deploy, wait a few minutes, **reinstall the APK** (or clear Chrome / WebView data for the app), then open again — the bar should disappear when verification succeeds.
+
+Details: [Digital Asset Links](https://developer.android.com/training/sign-in/passkeys#add-link) (Google) and [TWA quality criteria](https://developer.chrome.com/docs/android/trusted-web-activity/).
+
+**Note:** A plain **WebView** APK (not TWA) hides the bar by using a fullscreen `WebViewActivity` with **no** Custom Tabs — but then you build/configure that in Android Studio, not in this repo.
+
+---
+
 ## What this repo added for you
 
 | Item | Purpose |
