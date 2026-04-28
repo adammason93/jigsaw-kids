@@ -1,5 +1,5 @@
 /* Minimal offline shell — network-first, cache as fallback for same-origin */
-const CACHE = "jigsaw-kids-v90";
+const CACHE = "jigsaw-kids-v95";
 const SHELL = [
   "./index.html",
   "./manifest.json",
@@ -22,6 +22,7 @@ const SHELL = [
   "./games/math-race.js",
   "./games/images/math-race-park-wide.png",
   "./games/images/math-race-park-bg.png",
+  "./games/images/math-race-birds-sheet.png",
   "./games/images/math-race-hero.png",
   "./games/noughts-crosses.html",
   "./games/noughts-crosses.css",
@@ -44,6 +45,7 @@ const SHELL = [
   "./games/images/character-kelly.png",
   "./games/images/character-freya.png",
   "./games/images/character-girl-blonde.png",
+  "./games/images/character-sofia-running.png",
   "./games/images/character-babyca.png",
   "./games/images/portal/snakes-ladders.png",
   "./games/images/portal/noughts-crosses.png",

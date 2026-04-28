@@ -129,8 +129,8 @@
             <button type="button" class="char-btn char-btn--pic" data-player="0" data-char="coolegg" aria-pressed="false" title="Isaac" aria-label="Isaac">
               <img class="char-btn__pic" src="images/character-baby-coolegg.png" alt="" width="44" height="44" loading="lazy" />
             </button>
-            <button type="button" class="char-btn char-btn--pic" data-player="0" data-char="girlblonde" aria-pressed="false" title="Sofia" aria-label="Sofia">
-              <img class="char-btn__pic" src="images/character-girl-blonde.png" alt="" width="44" height="44" loading="lazy" />
+            <button type="button" class="char-btn char-btn--pic char-btn--sofia" data-player="0" data-char="girlblonde" aria-pressed="false" title="Sofia" aria-label="Sofia">
+              <img class="char-btn__pic" src="images/character-sofia-running.png" alt="" width="44" height="44" loading="lazy" />
             </button>
             <button type="button" class="char-btn char-btn--pic" data-player="0" data-char="kelly" aria-pressed="false" title="Kelly (Mummy)" aria-label="Kelly, also known as Mummy">
               <img class="char-btn__pic" src="images/character-kelly.png" alt="" width="44" height="44" loading="lazy" />
@@ -144,8 +144,8 @@
         <div class="char-block is-hidden" id="charBlockP2" hidden>
           <p class="char-block__label">Player 2</p>
           <div class="char-row" id="charRow1" role="group" aria-label="Player 2 character">
-            <button type="button" class="char-btn char-btn--pic" data-player="1" data-char="girlblonde" aria-pressed="true" title="Sofia" aria-label="Sofia">
-              <img class="char-btn__pic" src="images/character-girl-blonde.png" alt="" width="44" height="44" loading="lazy" />
+            <button type="button" class="char-btn char-btn--pic char-btn--sofia" data-player="1" data-char="girlblonde" aria-pressed="true" title="Sofia" aria-label="Sofia">
+              <img class="char-btn__pic" src="images/character-sofia-running.png" alt="" width="44" height="44" loading="lazy" />
             </button>
             <button type="button" class="char-btn char-btn--pic" data-player="1" data-char="babyca" aria-pressed="false" title="Baby" aria-label="Baby">
               <img class="char-btn__pic" src="images/character-babyca.png" alt="" width="44" height="44" loading="lazy" />
@@ -174,8 +174,8 @@
             <button type="button" class="char-btn char-btn--pic" data-player="2" data-char="babyca" aria-pressed="false" title="Baby" aria-label="Baby">
               <img class="char-btn__pic" src="images/character-babyca.png" alt="" width="44" height="44" loading="lazy" />
             </button>
-            <button type="button" class="char-btn char-btn--pic" data-player="2" data-char="girlblonde" aria-pressed="false" title="Sofia" aria-label="Sofia">
-              <img class="char-btn__pic" src="images/character-girl-blonde.png" alt="" width="44" height="44" loading="lazy" />
+            <button type="button" class="char-btn char-btn--pic char-btn--sofia" data-player="2" data-char="girlblonde" aria-pressed="false" title="Sofia" aria-label="Sofia">
+              <img class="char-btn__pic" src="images/character-sofia-running.png" alt="" width="44" height="44" loading="lazy" />
             </button>
             <button type="button" class="char-btn char-btn--pic" data-player="2" data-char="coolegg" aria-pressed="false" title="Isaac" aria-label="Isaac">
               <img class="char-btn__pic" src="images/character-baby-coolegg.png" alt="" width="44" height="44" loading="lazy" />
@@ -204,6 +204,7 @@
       <div class="play-layout">
       <div class="play-race-wrap">
       <div class="race-stage" id="raceStage" aria-label="Race to the finish">
+        <div class="race-park-pane" aria-hidden="true"></div>
         <div class="race-sky" aria-hidden="true"></div>
         <div class="race-sun" aria-hidden="true"></div>
         <div class="race-hill race-hill--1" aria-hidden="true"></div>
@@ -218,19 +219,21 @@
         <div class="race-bird race-bird--2" aria-hidden="true"></div>
         <div class="race-bird race-bird--3" aria-hidden="true"></div>
         <div class="race-ground" aria-hidden="true"></div>
-        <div class="race-ribbon">
-          <div class="race-ribbon__inner">
-            <span class="race-flag race-flag--start" id="flagStart" aria-hidden="true">Start</span>
-            <div class="race-lane" id="raceLane">
-              <div class="race-finish-tape" aria-hidden="true"></div>
-              <div class="race-dashes" id="raceDashes" aria-hidden="true"></div>
-              <div class="race-steps" id="raceSteps" role="list"></div>
-              <div class="race-runners" id="raceRunners"></div>
+        <div class="race-path-shell">
+          <div class="race-ribbon">
+            <div class="race-ribbon__inner">
+              <span class="race-flag race-flag--start" id="flagStart" aria-hidden="true">Start</span>
+              <div class="race-lane" id="raceLane">
+                <div class="race-finish-tape" aria-hidden="true"></div>
+                <div class="race-dashes" id="raceDashes" aria-hidden="true"></div>
+                <div class="race-steps" id="raceSteps" role="list"></div>
+                <div class="race-runners" id="raceRunners"></div>
+              </div>
+              <span class="race-flag race-flag--end" id="flagEnd" aria-hidden="true">
+                <span class="race-flag__text">Finish</span>
+                <span class="race-flag__pole" aria-hidden="true"></span>
+              </span>
             </div>
-            <span class="race-flag race-flag--end" id="flagEnd" aria-hidden="true">
-              <span class="race-flag__text">Finish</span>
-              <span class="race-flag__pole" aria-hidden="true"></span>
-            </span>
           </div>
         </div>
       </div>

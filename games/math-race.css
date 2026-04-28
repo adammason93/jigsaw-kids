@@ -24,6 +24,8 @@
   --sky-top: #b8dfd0;
   --sky-mid: #d8f1e8;
   --park-shade: rgba(25, 80, 50, 0.45);
+  /* In-game park + track — shared by .race-stage and .race-ribbon */
+  --race-section-min-height: clamp(320px, 56dvh, 640px);
   --radius: 16px;
   --shadow: 0 4px 0 var(--ink), 0 8px 24px rgba(20, 50, 40, 0.12);
   --shadow-card: 0 3px 0 rgba(0, 0, 0, 0.08), 0 4px 18px rgba(27, 58, 50, 0.08);
@@ -320,6 +322,11 @@ h2,
   object-fit: cover;
   object-position: center 22%;
   pointer-events: none;
+}
+
+.char-btn--sofia .char-btn__pic {
+  object-fit: contain;
+  object-position: center bottom;
 }
 
 .btn-primary,
@@ -675,7 +682,7 @@ body.page-math:has(#screenSetup:not(.is-hidden)) #screenSetup .btn-primary {
 .play-layout {
   display: grid;
   gap: 1.1rem;
-  align-items: start;
+  align-items: stretch;
   flex: 1 1 auto;
   min-height: 0;
   overflow: visible;
@@ -698,7 +705,8 @@ body.page-math:has(#screenSetup:not(.is-hidden)) #screenSetup .btn-primary {
 .play-race-wrap {
   display: flex;
   flex-direction: column;
-  min-height: 0;
+  flex: 1 1 auto;
+  min-height: var(--race-section-min-height);
   min-width: 0;
   width: 100%;
 }
@@ -818,13 +826,16 @@ body.page-math:has(#screenSetup:not(.is-hidden)) #screenSetup .btn-primary {
   align-self: start;
 }
 
-/* —— Race stage — park illustration + sandy path overlay —— */
+/* —— Race stage — park (upper) + path strip (bottom), layered like sketch —— */
 .race-stage {
   --step: 0;
   --race-progress: 0;
+  /* Bottom band for track; park pane ends higher so path overlaps up into the image */
+  --race-path-band: clamp(200px, 28vh, 316px);
+  --race-park-overlap: min(52px, 15vmin);
   position: relative;
   flex: 1 1 auto;
-  min-height: clamp(280px, 48dvh, 480px);
+  min-height: var(--race-section-min-height);
   border-radius: 20px;
   overflow: hidden;
   margin: 0 -0.25rem 0;
@@ -836,26 +847,33 @@ body.page-math:has(#screenSetup:not(.is-hidden)) #screenSetup .btn-primary {
   background-color: #93c29e;
 }
 
-/* Full park in frame — contain + tinted stage so edges blend (avoid cover zoom crop) */
-.race-stage::before {
-  content: "";
+.race-stage.has-multi-lane {
+  --race-path-band: clamp(284px, 40vh, 404px);
+}
+
+/* Park image only in upper ~75–80%; bottom stops short so path can overlap */
+.race-park-pane {
   position: absolute;
-  inset: 0;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: calc(var(--race-path-band) - var(--race-park-overlap));
   z-index: 0;
   background-color: transparent;
   background-image: url("images/math-race-park-bg.png");
   background-repeat: no-repeat;
-  /* Pan with leading runner (same 2%–88% band as .race-runner --runner-left) */
   background-position: calc(2% + var(--race-progress) * 86%) 36%;
   background-size: contain;
   transition: background-position 0.85s cubic-bezier(0.33, 1, 0.48, 1);
   animation: race-park-drift 88s ease-in-out infinite alternate;
+  pointer-events: none;
 }
 
+/* Full-bleed park layer removed — see .race-park-pane */
+
 @media (prefers-reduced-motion: reduce) {
-  .race-stage::before {
+  .race-park-pane {
     animation: none;
-    inset: 0;
     background-position: center 36%;
     background-size: contain;
     transition: none;
@@ -872,7 +890,7 @@ body.page-math:has(#screenSetup:not(.is-hidden)) #screenSetup .btn-primary {
   }
 }
 
-html.kids-reduce-motion .race-stage::before {
+html.kids-reduce-motion .race-park-pane {
   animation: none;
   background-position: center 36%;
   background-size: contain;
@@ -921,8 +939,8 @@ html.kids-reduce-motion .race-canopy {
   position: absolute;
   left: 0;
   right: 0;
-  bottom: 0;
-  top: 48%;
+  top: 44%;
+  bottom: calc(var(--race-path-band) - var(--race-park-overlap));
   z-index: 1;
   background: linear-gradient(
     180deg,
@@ -1016,7 +1034,7 @@ html.kids-reduce-motion .race-canopy {
 
 .race-cloud {
   position: absolute;
-  z-index: 1;
+  z-index: 2;
   background: rgba(255, 255, 255, 0.88);
   border-radius: 50px;
   opacity: 0.42;
@@ -1068,7 +1086,7 @@ html.kids-reduce-motion .race-canopy {
 /* Simple side foliage — suggests treetops swaying in the breeze */
 .race-canopy {
   position: absolute;
-  z-index: 1;
+  z-index: 2;
   bottom: 38%;
   width: clamp(56px, 16%, 104px);
   height: clamp(72px, 22%, 120px);
@@ -1123,82 +1141,125 @@ html.kids-reduce-motion .race-canopy {
   }
 }
 
-/* Birds — simple silhouettes crossing the sky */
+/* Birds — 3×3 sprite sheet; each cell 338×338 in 1014×1014 sheet */
 .race-bird {
   position: absolute;
-  z-index: 1;
+  z-index: 2;
   pointer-events: none;
-  opacity: 0.72;
-  font-size: clamp(0.85rem, 3vw, 1.15rem);
-  line-height: 1;
-  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.12));
+  width: clamp(32px, 8.5vw, 48px);
+  height: clamp(32px, 8.5vw, 48px);
+  background-image: url("images/math-race-birds-sheet.png");
+  background-repeat: no-repeat;
+  background-size: 300% 300%;
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.15));
 }
 
 .race-bird::before {
-  content: "🐦";
+  content: none;
 }
 
 .race-bird--1 {
   top: 11%;
+  background-position: 0% 0%;
   animation: bird-fly 18s linear infinite;
   animation-delay: 0s;
 }
 
 .race-bird--2 {
   top: 18%;
-  font-size: clamp(0.7rem, 2.5vw, 0.95rem);
-  opacity: 0.62;
-  animation: bird-fly 24s linear infinite reverse;
+  background-position: 100% 0%;
+  animation: bird-fly-rtl 24s linear infinite;
   animation-delay: -6s;
 }
 
 .race-bird--3 {
   top: 7%;
+  background-position: 50% 50%;
   animation: bird-fly 28s linear infinite;
   animation-delay: -11s;
-  opacity: 0.58;
 }
 
 @keyframes bird-fly {
   0% {
     left: -12%;
-    transform: translateY(0) scaleX(1);
+    transform: translateY(0);
   }
   25% {
-    transform: translateY(-4px) scaleX(1);
+    transform: translateY(-4px);
   }
   50% {
-    transform: translateY(2px) scaleX(1);
+    transform: translateY(2px);
   }
   75% {
-    transform: translateY(-3px) scaleX(1);
+    transform: translateY(-3px);
   }
   100% {
     left: 112%;
-    transform: translateY(0) scaleX(1);
+    transform: translateY(0);
   }
 }
 
-.race-ribbon {
+@keyframes bird-fly-rtl {
+  0% {
+    left: 112%;
+    transform: translateY(0);
+  }
+  25% {
+    transform: translateY(-3px);
+  }
+  50% {
+    transform: translateY(2px);
+  }
+  75% {
+    transform: translateY(-4px);
+  }
+  100% {
+    left: -12%;
+    transform: translateY(0);
+  }
+}
+
+/* Bottom path strip (sketch): above park in z-order, overlaps into park image */
+.race-path-shell {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: var(--race-path-band);
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  pointer-events: none;
+  padding: 0 0.3rem max(0.45rem, env(safe-area-inset-bottom, 0px)) 0.3rem;
+}
+
+.race-path-shell .race-ribbon {
   position: relative;
-  z-index: 2;
-  height: 100%;
-  min-height: clamp(280px, 48dvh, 480px);
-  display: flex;
-  align-items: flex-end;
-  padding: 0 0.4rem 0.65rem;
-}
-
-.race-ribbon__inner {
+  z-index: 1;
+  flex: 1 1 auto;
   width: 100%;
+  min-height: 0;
+  height: 100%;
   display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 0.25rem;
-  padding: 0 0.2rem;
+  align-items: stretch;
+  padding: 0;
+  pointer-events: auto;
 }
 
-.race-flag {
+.race-path-shell .race-ribbon__inner {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: stretch;
+  gap: 0.25rem;
+  padding: 0 0.1rem;
+}
+
+
+
   flex: 0 0 auto;
   display: flex;
   flex-direction: column;
@@ -1226,100 +1287,148 @@ html.kids-reduce-motion .race-canopy {
 
 .race-flag--end .race-flag__text {
   display: block;
-  border-radius: 4px 4px 0 0;
-  padding: 0.2rem 0.35rem 0.1rem;
-  font-size: 0.6rem;
+  border-radius: 6px 6px 0 0;
+  padding: 0.28rem 0.4rem 0.16rem 0.62rem;
+  font-size: 0.62rem;
   line-height: 1.1;
-  margin-bottom: 0.1rem;
-  color: #7f1a12;
-  background: linear-gradient(180deg, #fff 0%, #f2f2f2 100%);
-  border: 2px solid #5a2010;
-  box-shadow: 0 2px 0 #3d1508, inset 0 0 0 1px rgba(255, 255, 255, 0.55);
+  margin-bottom: 0.08rem;
+  color: #2a0d0a;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  background: linear-gradient(180deg, #fffefd 0%, #f0ebe6 55%, #ddd5cc 100%);
+  border: 3px solid #3d1f16;
+  box-shadow:
+    0 3px 0 #2a130c,
+    inset 0 1px 0 rgba(255, 255, 255, 0.85);
+  position: relative;
+}
+
+.race-flag--end .race-flag__text::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  border-radius: 3px 0 0 0;
+  background: repeating-linear-gradient(
+    -18deg,
+    #f8f9fb 0 4px,
+    #d61024 4px 8px,
+    #f8f9fb 8px 12px,
+    #bd0e1f 12px 16px
+  );
+  opacity: 0.95;
+  pointer-events: none;
 }
 
 .race-flag__pole {
   display: block;
-  width: 5px;
-  height: 1.15rem;
-  background: linear-gradient(90deg, #9d6b3f, #5c3a22);
-  border-radius: 1px;
-  border: 1px solid #2a1a0f;
-  box-shadow: 1px 0 0 rgba(255, 255, 255, 0.2) inset;
+  width: 7px;
+  height: 1.25rem;
+  background: linear-gradient(90deg, #aa7245 10%, #6b4228 52%, #4e2f1c);
+  border-radius: 2px;
+  border: 2px solid #2a1a0f;
+  box-shadow:
+    2px 0 1px rgba(255, 255, 255, 0.15) inset,
+    -1px 0 2px rgba(0, 0, 0, 0.25) inset;
 }
 
 .race-lane {
+  --race-path-top: 32%;
   position: relative;
-  flex: 1 1 auto;
+  grid-column: 2;
   min-width: 0;
-  height: 5.25rem;
-  margin-bottom: 0.1rem;
+  width: 100%;
+  height: 100%;
+  margin-bottom: 0;
 }
 
-/* Tall lane so runners read as “on the grass” — path band sits at feet */
-.race-stage:not(.has-multi-lane) .race-lane {
-  height: clamp(11rem, 34vmin, 18rem);
-}
-
-/* Taller lane when 2–3 runners need stacked paths */
 .race-stage.has-multi-lane .race-lane {
-  height: clamp(12rem, 40vmin, 19rem);
+  --race-path-top: 26%;
 }
 
-/* Red-and-white finish tape (matches classic race ribbon) */
+/* Checkered finish line — spans full brick overlay height */
 .race-finish-tape {
   position: absolute;
   right: 0;
-  top: 0.15rem;
-  bottom: 0.4rem;
-  width: 14px;
+  top: var(--race-path-top, 38%);
+  bottom: 0.35rem;
+  width: clamp(22px, 6vw, 30px);
   z-index: 2;
-  border-radius: 3px;
-  border: 2px solid var(--ink);
-  background: repeating-linear-gradient(125deg, #e11d2e 0 5px, #fff 5px 10px, #e11d2e 10px 15px, #fff 15px 20px);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+  border: 3px solid #1f120c;
+  background: repeating-linear-gradient(
+    -12deg,
+    #f5f7fa 0 8px,
+    #e20922 8px 16px,
+    #f5f7fa 16px 24px,
+    #c5081a 24px 32px
+  );
+  box-shadow:
+    inset 1px 0 0 rgba(255, 255, 255, 0.35),
+    inset -2px 0 0 rgba(0, 0, 0, 0.12),
+    2px 3px 6px rgba(0, 0, 0, 0.28);
   pointer-events: none;
 }
 
+.race-finish-tape::after {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border-radius: 2px;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+  pointer-events: none;
+}
+
+/* Brick path — tall overlay blending into park so it reads as one scene */
 .race-dashes {
   position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0.4rem;
-  height: clamp(1.25rem, 3.5vmin, 1.65rem);
+  left: -0.55rem;
+  right: -0.55rem;
+  bottom: 0;
+  top: var(--race-path-top, 38%);
   z-index: 1;
+  pointer-events: none;
   background: linear-gradient(
     180deg,
-    rgba(220, 185, 148, 0.95) 0%,
-    rgba(185, 148, 106, 0.98) 55%,
-    #8a5a30 100%
+    rgba(130, 55, 44, 0) 0%,
+    rgba(150, 68, 50, 0.18) 10%,
+    rgba(172, 78, 55, 0.45) 24%,
+    rgba(183, 85, 60, 0.78) 40%,
+    #c0644a 62%,
+    #b24a38 82%,
+    #8c3a2f 100%
   );
-  border-radius: 8px 8px 10px 10px;
-  box-shadow: inset 0 3px 0 rgba(255, 255, 255, 0.22), 0 2px 0 rgba(0, 0, 0, 0.12);
-  border: 2px solid rgba(92, 62, 38, 0.75);
+  border-radius: 10px 10px 16px 16px;
+  box-shadow:
+    inset 0 3px 18px rgba(255, 255, 255, 0.1),
+    inset 0 -5px 0 rgba(0, 0, 0, 0.1),
+    0 3px 0 rgba(0, 0, 0, 0.14);
+  border: 3px solid rgba(75, 40, 30, 0.65);
+  border-top: 2px solid rgba(115, 70, 55, 0.22);
 }
 
-.race-stage.has-multi-lane .race-dashes {
-  height: 1.65rem;
-  bottom: 0.35rem;
-}
-
-/* Lane markings on the clay path */
+/* Light dashed “road lines” near the footpath (like the sketch — kept subtle) */
 .race-dashes::after {
   content: "";
   position: absolute;
-  left: 0;
-  right: 0;
-  top: 50%;
-  height: 4px;
+  left: 6%;
+  right: 10%;
+  top: 40%;
+  height: 3px;
   transform: translateY(-50%);
   background: repeating-linear-gradient(
     90deg,
-    transparent 0 14px,
-    rgba(255, 255, 255, 0.85) 14px 22px,
-    transparent 22px 36px
+    rgba(255, 253, 250, 0.45) 0 9px,
+    transparent 9px 20px,
+    rgba(255, 253, 250, 0.32) 20px 30px,
+    transparent 30px 44px,
+    rgba(255, 253, 250, 0.36) 44px 56px,
+    transparent 56px 68px
   );
-  border-radius: 1px;
-  opacity: 0.9;
+  opacity: 0.55;
+  pointer-events: none;
 }
 
 .race-steps {
@@ -1332,7 +1441,7 @@ html.kids-reduce-motion .race-canopy {
   justify-content: space-between;
   align-items: center;
   padding: 0 0.1rem;
-  padding-right: 16px; /* room for finish tape */
+  padding-right: clamp(26px, 8vw, 36px); /* room for wider finish tape */
   pointer-events: none;
   z-index: 3;
 }

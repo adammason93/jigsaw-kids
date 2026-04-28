@@ -29,7 +29,7 @@
   const CHAR_IMAGE = {
     babyca: "images/character-babyca.png",
     coolegg: "images/character-baby-coolegg.png",
-    girlblonde: "images/character-girl-blonde.png",
+    girlblonde: "images/character-sofia-running.png",
     kelly: "images/character-kelly.png",
     freya: "images/character-freya.png",
     dog: "images/tilly-mascot.png",
