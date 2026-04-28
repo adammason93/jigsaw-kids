@@ -27,6 +27,7 @@
   };
 
   const CHAR_IMAGE = {
+    dino: "images/math-race-dino.png",
     babyca: "images/character-babyca.png",
     coolegg: "images/character-baby-coolegg.png",
     girlblonde: "images/character-sofia-running.png",
