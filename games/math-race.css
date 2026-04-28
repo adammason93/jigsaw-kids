@@ -25,8 +25,8 @@
   --sky-mid: #d8f1e8;
   --park-shade: rgba(25, 80, 50, 0.45);
   /* In-game park + track — shared by .race-stage and .race-ribbon */
-  /* ~80% viewport; leave room for nav + play strip; floor so tiny screens still work */
-  --race-section-height: max(260px, min(80dvh, calc(100dvh - 7.5rem)));
+  /* ~72% viewport (about 10% shorter than prior 80dvh); room for nav + play strip */
+  --race-section-height: max(234px, min(72dvh, calc(100dvh - 7.5rem)));
   --radius: 16px;
   --shadow: 0 4px 0 var(--ink), 0 8px 24px rgba(20, 50, 40, 0.12);
   --shadow-card: 0 3px 0 rgba(0, 0, 0, 0.08), 0 4px 18px rgba(27, 58, 50, 0.08);
@@ -1193,7 +1193,7 @@ html.kids-reduce-motion .race-canopy {
   left: 12%;
   top: 10%;
   background-position: 0% 0%;
-  animation: bird-float-a 16s ease-in-out infinite;
+  animation: bird-float-a 13s ease-in-out infinite;
   animation-delay: var(--bird-anim-delay, 0s);
 }
 
@@ -1201,7 +1201,7 @@ html.kids-reduce-motion .race-canopy {
   left: 72%;
   top: 11%;
   background-position: 50% 50%;
-  animation: bird-float-b 18s ease-in-out infinite;
+  animation: bird-float-b 15s ease-in-out infinite;
   animation-delay: var(--bird-anim-delay-2, -4s);
 }
 /* Bottom strip: anchored to floor but pulled up over the park artwork */
