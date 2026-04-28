@@ -25,7 +25,7 @@
   --sky-mid: #d8f1e8;
   --park-shade: rgba(25, 80, 50, 0.45);
   /* In-game park + track — shared by .race-stage and .race-ribbon */
-  --race-section-min-height: clamp(260px, 40dvh, 440px);
+  --race-section-min-height: clamp(195px, 30dvh, 330px);
   --radius: 16px;
   --shadow: 0 4px 0 var(--ink), 0 8px 24px rgba(20, 50, 40, 0.12);
   --shadow-card: 0 3px 0 rgba(0, 0, 0, 0.08), 0 4px 18px rgba(27, 58, 50, 0.08);
@@ -831,9 +831,9 @@ body.page-math:has(#screenSetup:not(.is-hidden)) #screenSetup .btn-primary {
   --step: 0;
   --race-progress: 0;
   /* Bottom band for track; park pane ends higher so path overlaps up into the image */
-  --race-path-band: clamp(165px, 21vh, 250px);
+  --race-path-band: clamp(124px, 16vh, 188px);
   /* Bottom band height + extra lift so track reads as one layer with the park */
-  --race-park-overlap: min(40px, 12vmin);
+  --race-park-overlap: min(30px, 9vmin);
   position: relative;
   flex: 1 1 auto;
   min-height: var(--race-section-min-height);
@@ -849,7 +849,7 @@ body.page-math:has(#screenSetup:not(.is-hidden)) #screenSetup .btn-primary {
 }
 
 .race-stage.has-multi-lane {
-  --race-path-band: clamp(228px, 28vh, 330px);
+  --race-path-band: clamp(171px, 21vh, 248px);
 }
 
 /* Park art — full frame; path strip paints on top so track overlaps the picture */
@@ -1140,14 +1140,17 @@ html.kids-reduce-motion .race-canopy {
   }
 }
 
-/* Birds — 2 in the sky, soft float (positions set per game in math-race.js) */
+/* Birds — two zones L/R; gentle visible drift (placeRaceBirds() spreads each game) */
 @keyframes bird-float-a {
   0%,
   100% {
     transform: translate(0, 0);
   }
-  50% {
-    transform: translate(0.4vw, -2px);
+  33% {
+    transform: translate(3vw, -10px);
+  }
+  66% {
+    transform: translate(1.2vw, 4px);
   }
 }
 
@@ -1156,8 +1159,11 @@ html.kids-reduce-motion .race-canopy {
   100% {
     transform: translate(0, 0);
   }
-  50% {
-    transform: translate(-0.35vw, 2px);
+  40% {
+    transform: translate(-2.5vw, 7px);
+  }
+  70% {
+    transform: translate(-4vw, -6px);
   }
 }
 
@@ -1172,27 +1178,27 @@ html.kids-reduce-motion .race-canopy {
   background-size: 300% 300%;
   filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.12));
   transform-origin: 50% 50%;
+  will-change: transform;
 }
 
 .race-bird::before {
   content: none;
 }
 
-/* Static frame + very slow wing crossfade feel (one pose each) */
 .race-bird--1 {
-  left: 14%;
-  top: 11%;
+  left: 12%;
+  top: 10%;
   background-position: 0% 0%;
-  animation: bird-float-a 36s ease-in-out infinite;
+  animation: bird-float-a 16s ease-in-out infinite;
   animation-delay: var(--bird-anim-delay, 0s);
 }
 
 .race-bird--2 {
-  left: 58%;
-  top: 10%;
+  left: 72%;
+  top: 11%;
   background-position: 50% 50%;
-  animation: bird-float-b 42s ease-in-out infinite reverse;
-  animation-delay: var(--bird-anim-delay-2, -8s);
+  animation: bird-float-b 18s ease-in-out infinite;
+  animation-delay: var(--bird-anim-delay-2, -4s);
 }
 /* Bottom strip: anchored to floor but pulled up over the park artwork */
 .race-path-shell {
@@ -1363,7 +1369,7 @@ html.kids-reduce-motion .race-canopy {
   display: block;
   width: 100%;
   height: auto;
-  max-height: min(34vh, 175px);
+  max-height: min(26vh, 135px);
   object-fit: contain;
 }
 

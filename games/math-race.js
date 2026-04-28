@@ -858,19 +858,17 @@
     if (!b1 || !b2) {
       return;
     }
-    const left1 = 8 + Math.random() * 32;
-    const top1 = 6 + Math.random() * 11;
-    let left2 = 48 + Math.random() * 32;
-    const top2 = 6 + Math.random() * 12;
-    if (Math.abs(left1 - left2) < 14) {
-      left2 = Math.min(82, left2 + 20);
-    }
+    /* Left third vs right third so they never bunch in the middle */
+    const left1 = 5 + Math.random() * 22;
+    const left2 = 63 + Math.random() * 21;
+    const top1 = 7 + Math.random() * 9;
+    const top2 = 8 + Math.random() * 12;
     b1.style.left = left1 + "%";
     b1.style.top = top1 + "%";
     b2.style.left = left2 + "%";
     b2.style.top = top2 + "%";
-    const d1 = -(Math.random() * 32).toFixed(1);
-    const d2 = -(Math.random() * 36).toFixed(1);
+    const d1 = -(Math.random() * 14).toFixed(1);
+    const d2 = -(Math.random() * 16).toFixed(1);
     b1.style.setProperty("--bird-anim-delay", d1 + "s");
     b2.style.setProperty("--bird-anim-delay-2", d2 + "s");
   }
