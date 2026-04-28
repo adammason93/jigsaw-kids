@@ -5,7 +5,6 @@
   var gameSteps = 10;
   const CHOICE_COUNT = 4;
   var pictureHelp = false;
-  var wrongAttempts = 0;
 
   /** Dinosaur gets its own turn with a pop-up question; it answers most of the time (fair “race”) */
   const DINO_ANSWER_CORRECT_CHANCE = 0.82;
@@ -25,12 +24,6 @@
     "Behind you!",
   ];
 
-  const softWrong = [
-    "Almost! Try another number.",
-    "Good try — pick a different answer!",
-    "Not that one — have another go!",
-    "You can do it — try another!",
-  ];
   const LEVEL_LABELS = ["Step 1 — numbers up to 5 (adding)", "Step 2 — up to 10 (adding & taking away)", "Step 3 — up to 20 (adding & taking away)"];
 
   const CHAR_EMOJI = {
@@ -280,7 +273,7 @@
     dinoCorrectFlowPending = true;
     if (dinoCorrectLine) {
       dinoCorrectLine.textContent =
-        "It picked " + correctNum + " — that’s the right answer. One stomp closer!";
+        "It chose " + correctNum + " — that’s correct. The dinosaur moves one step closer to you!";
     }
     if (dinoCorrectPopup) {
       dinoCorrectPopup.hidden = false;
@@ -589,13 +582,15 @@
     const gotIt = Math.random() < DINO_ANSWER_CORRECT_CHANCE;
     const dinoPick = gotIt ? current.answer : pickWrongDistractor();
     if (gotIt) {
-      feedbackText.textContent = "Grr! The dinosaur got " + dinoPick + " — it stomps one step forward!";
+      feedbackText.textContent =
+        "The dinosaur got it right! It picked " + dinoPick + " and stomps one step forward!";
       feedbackText.className = "feedback feedback--good";
       d.position += 1;
       playRunnerHopByPlayerId("cpu");
       showDinoGotItPopup(dinoPick);
     } else {
-      feedbackText.textContent = "Stomp! A wrong guess — the dinosaur doesn't move this time.";
+      feedbackText.textContent =
+        "The dinosaur got it wrong — it doesn't move. Your turn again next!";
       feedbackText.className = "feedback feedback--bad";
     }
     const card = document.querySelector(".question-modal__panel");
@@ -722,7 +717,6 @@
 
   function nextQuestion() {
     clearDinoTimer();
-    wrongAttempts = 0;
     if (isVersusDino() && dinoQuestionTurn) {
       current = enrichForDots(makeProblem());
       questionText.textContent = current.text;
@@ -830,7 +824,8 @@
         KidsCore.playSound("ok");
         KidsCore.haptic("success");
       }
-      feedbackText.textContent = praise[Math.floor(Math.random() * praise.length)];
+      feedbackText.textContent =
+        "You got it right! " + praise[Math.floor(Math.random() * praise.length)];
       feedbackText.className = "feedback feedback--good";
       mover.position += 1;
       playRunnerHopByPlayerId(mover.id);
@@ -843,15 +838,15 @@
       nextQuestion();
       return;
     } else {
-      wrongAttempts += 1;
+      const correctAnswer = current.answer;
       if (typeof KidsCore !== "undefined") {
         KidsCore.playSound("no");
         KidsCore.haptic("light");
       }
       feedbackText.textContent =
-        wrongAttempts === 1
-          ? softWrong[Math.floor(Math.random() * softWrong.length)]
-          : "Not quite — try another answer!";
+        "You got that one wrong — the answer was " +
+        correctAnswer +
+        ". Now it's the dinosaur's turn!";
       feedbackText.className = "feedback feedback--bad";
       const card = document.querySelector(".question-card");
       if (card) {

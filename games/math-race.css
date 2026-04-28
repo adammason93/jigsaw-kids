@@ -1651,15 +1651,15 @@ html.kids-reduce-motion .race-canopy {
   z-index: 5;
   /* Nudge sprite slightly back on the track so it reads clearly behind Sofia */
   transform: translateX(calc(-50% - clamp(0.2rem, 1.4vmin, 0.55rem)));
-  width: clamp(8.5rem, 36vmin, 15.5rem);
-  max-width: min(45vw, 16rem);
-  height: clamp(9.5rem, 46vmin, 17rem);
+  width: clamp(10rem, 42vmin, 18rem);
+  max-width: min(52vw, 19rem);
+  height: clamp(11rem, 52vmin, 19.5rem);
 }
 
 .race-stage.is-dino .race-runner:not(.race-runner--dino) {
   z-index: 8;
-  width: clamp(5.25rem, 22vmin, 9.75rem);
-  height: clamp(7.25rem, 35vmin, 12.25rem);
+  width: clamp(4.75rem, 20vmin, 9rem);
+  height: clamp(6.75rem, 32vmin, 11.5rem);
 }
 
 .race-runner--dino .race-runner__emoji {
@@ -1667,7 +1667,7 @@ html.kids-reduce-motion .race-canopy {
 }
 
 .race-stage.is-dino .race-runner--dino .race-runner__emoji {
-  font-size: clamp(4.5rem, 17vmin, 7.5rem);
+  font-size: clamp(5rem, 19vmin, 8.5rem);
 }
 
 .race-runner__emoji {
@@ -1698,10 +1698,10 @@ html.kids-reduce-motion .race-canopy {
     drop-shadow(0 4px 6px rgba(35, 75, 45, 0.35));
 }
 
-/* Vs-dino: Sofia a bit smaller; dinosaur clearly bigger — full sprite on the path behind her */
+/* Vs-dino: Sofia smaller; dinosaur much bigger — full sprite on the path behind her */
 .race-stage.is-dino .race-runner:not(.race-runner--dino) .race-runner__emoji--pic .race-runner__pic {
-  width: clamp(4.35rem, 18vmin, 7.25rem);
-  max-height: clamp(6.25rem, 28vmin, 10rem);
+  width: clamp(3.85rem, 15vmin, 6.5rem);
+  max-height: clamp(5.75rem, 24vmin, 9rem);
 }
 
 .race-stage.is-dino .race-runner--dino.race-runner__emoji--pic {
@@ -1709,9 +1709,9 @@ html.kids-reduce-motion .race-canopy {
 }
 
 .race-stage.is-dino .race-runner--dino.race-runner__emoji--pic .race-runner__pic {
-  width: clamp(8.75rem, 34vmin, 15rem);
+  width: clamp(10.5rem, 40vmin, 18rem);
   max-width: none;
-  max-height: clamp(11rem, 44vmin, 17rem);
+  max-height: clamp(13.5rem, 52vmin, 21rem);
   transform: translateX(-50%);
   transform-origin: 50% 92%;
 }
