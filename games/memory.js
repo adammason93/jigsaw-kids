@@ -136,6 +136,7 @@
     var bestCols = Math.max(3, Math.min(12, Math.round(Math.sqrt(n))));
     var bestSize = -1;
     var bestWaste = 999;
+    var bestSquareness = 999;
     var minC = 3;
     var maxC = Math.min(12, n);
     /* Portrait “playing card” fit: width : height = 5 : 7 within each cell */
@@ -146,13 +147,21 @@
       var ch = (H - gap * (rows - 1)) / rows;
       var cardW = Math.min(cw, ch * cardRatio);
       var waste = cols * rows - n;
+      var squareness = Math.abs(rows - cols);
       if (cardW > bestSize + 0.5) {
         bestSize = cardW;
         bestCols = cols;
         bestWaste = waste;
-      } else if (Math.abs(cardW - bestSize) <= 0.5 && waste < bestWaste) {
-        bestCols = cols;
-        bestWaste = waste;
+        bestSquareness = squareness;
+      } else if (Math.abs(cardW - bestSize) <= 0.5) {
+        if (waste < bestWaste) {
+          bestCols = cols;
+          bestWaste = waste;
+          bestSquareness = squareness;
+        } else if (waste === bestWaste && squareness < bestSquareness) {
+          bestCols = cols;
+          bestSquareness = squareness;
+        }
       }
     }
     var rowsUsed = Math.ceil(n / bestCols);
@@ -435,6 +444,9 @@
       layoutMemoryBoard();
     });
     ro.observe(boardWrap);
+  }
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener("resize", scheduleBoardLayout);
   }
 
   if (typeof KidsCore !== "undefined") {

@@ -93,7 +93,7 @@ html.kids-play-mode .page-memory .memory-app {
 }
 
 .memory-screen--play {
-  flex: 1 1 auto;
+  flex: 1 1 0%;
   min-height: 0;
   display: flex;
   flex-direction: column;
@@ -288,8 +288,10 @@ html.kids-play-mode .page-memory .memory-app {
 /* ——— Navy deck: grid field + cyan stars ——— */
 .memory-board-wrap {
   position: relative;
-  flex: 1 1 auto;
-  min-height: 0;
+  flex: 1 1 0%;
+  display: flex;
+  flex-direction: column;
+  min-height: 12rem;
   width: 100%;
   margin-top: 0.45rem;
   margin-bottom: 0.5rem;
@@ -334,15 +336,17 @@ html.kids-play-mode .page-memory .memory-app {
   --memory-card-radius: clamp(10px, 2.2vmin, 14px);
   position: relative;
   z-index: 1;
+  flex: 1 1 0%;
+  min-height: 0;
   width: 100%;
-  height: 100%;
-  min-height: 12rem;
   display: grid;
   gap: var(--memory-gap);
   grid-template-columns: repeat(var(--memory-cols, 4), minmax(0, 1fr));
   grid-template-rows: repeat(var(--memory-rows, 4), minmax(0, 1fr));
   align-content: stretch;
   justify-content: stretch;
+  align-items: stretch;
+  justify-items: stretch;
 }
 
 /* One grid slot per card — container query sizes portrait playing cards (5×7) */
