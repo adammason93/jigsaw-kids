@@ -26,7 +26,7 @@
 
         <header class="colour-header">
           <h1>Colouring book</h1>
-          <p class="colour-header__lede">Pick <strong>blank paper</strong> to draw freely, or a picture—the outlines stay on top when you colour. <strong>Undo</strong> removes the last scribble. <strong>Save for later</strong> remembers your picture on this device.</p>
+          <p class="colour-header__lede">Pick <strong>blank paper</strong> to draw freely, or a picture—the outlines stay on top when you colour. <strong>Undo</strong> removes the last scribble. Tap <strong>Save for later</strong> anytime, or turn on <strong>auto-save</strong> below so this tablet remembers your picture while you draw (optional).</p>
         </header>
 
         <section class="gsc" aria-labelledby="colscTitle">
@@ -110,6 +110,13 @@
             Save for later
           </button>
           <button type="button" class="btn btn-accent" id="btnSave" title="Save as PNG">Save picture</button>
+        </div>
+        <div class="colour-save-prefs">
+          <label class="colour-autosave">
+            <input type="checkbox" id="chkColourAutoSave" />
+            <span class="colour-autosave__text">Auto-save on this device while I draw</span>
+          </label>
+          <p class="colour-autosave__hint">When this is on, your picture is saved quietly as you go. You can still tap <strong>Save for later</strong> or <strong>Save picture</strong> whenever you like.</p>
         </div>
       </div>
     </div>

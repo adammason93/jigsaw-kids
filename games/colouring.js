@@ -85,7 +85,11 @@
   var lastPinchCy = 0;
 
   const STORAGE_KEY = "jigsawKidsColouringV1";
+  const PREF_AUTO_SAVE = "jigsawKidsColouringAutoSaveV1";
+  const AUTO_SAVE_DEBOUNCE_MS = 2200;
   const UNDO_MAX = 28;
+  /** @type {ReturnType<typeof setTimeout> | null} */
+  var autoSaveDebounceTimer = null;
   /** @type {string[]} */
   var undoStack = [];
   var undoPrepared = false;
@@ -244,6 +248,52 @@
     }
   }
 
+  function loadAutoSavePref() {
+    try {
+      return localStorage.getItem(PREF_AUTO_SAVE) === "1";
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function saveAutoSavePref(on) {
+    try {
+      localStorage.setItem(PREF_AUTO_SAVE, on ? "1" : "0");
+    } catch (e) {}
+  }
+
+  function isAutoSaveEnabled() {
+    var el = document.getElementById("chkColourAutoSave");
+    return !!(el && el.checked);
+  }
+
+  function cancelScheduledAutoSave() {
+    if (autoSaveDebounceTimer) {
+      clearTimeout(autoSaveDebounceTimer);
+      autoSaveDebounceTimer = null;
+    }
+  }
+
+  function scheduleAutoSaveAfterStroke() {
+    if (!isAutoSaveEnabled()) {
+      return;
+    }
+    cancelScheduledAutoSave();
+    autoSaveDebounceTimer = window.setTimeout(function () {
+      autoSaveDebounceTimer = null;
+      saveForLater({ silent: true });
+    }, AUTO_SAVE_DEBOUNCE_MS);
+  }
+
+  /** Flush pending debounced save (e.g. tab hidden, leaving page). */
+  function flushAutoSaveNow() {
+    if (!isAutoSaveEnabled()) {
+      return;
+    }
+    cancelScheduledAutoSave();
+    saveForLater({ silent: true });
+  }
+
   function readSavedSession() {
     try {
       var raw = localStorage.getItem(STORAGE_KEY);
@@ -263,9 +313,14 @@
     }
   }
 
-  function saveForLater() {
+  /**
+   * @param {{ silent?: boolean }} [opts] - silent: no sound/haptic/long status (used for auto-save)
+   */
+  function saveForLater(opts) {
+    opts = opts || {};
+    var silent = !!opts.silent;
     if (!currentTemplateFile) {
-      if (statusLine) {
+      if (statusLine && !silent) {
         statusLine.textContent = "Pick a picture first, then you can save for later.";
       }
       return;
@@ -301,16 +356,18 @@
       }
       return;
     }
-    if (statusLine) {
-      statusLine.textContent =
-        "Saved for later on this tablet or computer. Come back to Colouring book anytime!";
-    }
-    if (typeof KidsCore !== "undefined") {
-      if (KidsCore.playSound) {
-        KidsCore.playSound("ok");
+    if (!silent) {
+      if (statusLine) {
+        statusLine.textContent =
+          "Saved for later on this tablet or computer. Come back to Colouring book anytime!";
       }
-      if (KidsCore.haptic) {
-        KidsCore.haptic("light");
+      if (typeof KidsCore !== "undefined") {
+        if (KidsCore.playSound) {
+          KidsCore.playSound("ok");
+        }
+        if (KidsCore.haptic) {
+          KidsCore.haptic("light");
+        }
       }
     }
   }
@@ -458,12 +515,16 @@
       return;
     }
     e.preventDefault();
+    var hadStroke = undoPrepared;
     isDrawing = false;
     activePointer = null;
     try {
       paintCanvas.releasePointerCapture(e.pointerId);
     } catch (err) {
       /* */
+    }
+    if (hadStroke) {
+      scheduleAutoSaveAfterStroke();
     }
   }
 
@@ -539,6 +600,7 @@
    */
   function selectTemplate(file, buttonEl, opts) {
     opts = opts || {};
+    cancelScheduledAutoSave();
     if (!opts.fromSavedSession) {
       pendingRestore = null;
     }
@@ -602,6 +664,7 @@
   }
 
   function clearPainting() {
+    cancelScheduledAutoSave();
     clearUndo();
     fitCanvas(false);
     if (typeof KidsCore !== "undefined" && KidsCore.playSound) {
@@ -860,6 +923,28 @@
     setTimeout(function () {
       fitCanvas(true);
     }, 200);
+  });
+
+  var chkColourAutoSave = document.getElementById("chkColourAutoSave");
+  if (chkColourAutoSave) {
+    chkColourAutoSave.checked = loadAutoSavePref();
+    chkColourAutoSave.addEventListener("change", function () {
+      saveAutoSavePref(chkColourAutoSave.checked);
+      if (chkColourAutoSave.checked) {
+        saveForLater({ silent: true });
+      } else {
+        cancelScheduledAutoSave();
+      }
+    });
+  }
+
+  document.addEventListener("visibilitychange", function () {
+    if (document.hidden) {
+      flushAutoSaveNow();
+    }
+  });
+  window.addEventListener("pagehide", function () {
+    flushAutoSaveNow();
   });
 
   if (typeof KidsCore !== "undefined") {
