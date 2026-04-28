@@ -2,27 +2,28 @@
   "name": "Sofia's Game Room",
   "short_name": "Sofia's Games",
   "description": "Jigsaw, colouring book, number path, word search, Memory, Snap, snakes and ladders, noughts and crosses, and Connect 4 — made for children.",
-  "start_url": "./index.html",
-  "scope": "./",
+  "id": "/index.html",
+  "start_url": "/index.html",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#fef3c7",
   "theme_color": "#7c3aed",
   "orientation": "any",
   "icons": [
     {
-      "src": "./icons/icon-192.png",
+      "src": "/icons/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "./icons/icon-512.png",
+      "src": "/icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "./icons/icon-384-maskable.png",
+      "src": "/icons/icon-384-maskable.png",
       "sizes": "384x384",
       "type": "image/png",
       "purpose": "maskable"

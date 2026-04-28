@@ -38,12 +38,15 @@
   };
 
   var MISMATCH_MS = 750;
+  /** Time to show match celebration before locking cards as matched */
+  var MATCH_CELEBRATE_MS = 560;
 
   var screenSetup = document.getElementById("screenSetup");
   var screenPlay = document.getElementById("screenPlay");
   var btnStart = document.getElementById("btnStart");
   var btnAgainMenu = document.getElementById("btnAgainMenu");
   var btnPlayAgain = document.getElementById("btnPlayAgain");
+  var boardWrap = document.getElementById("memoryBoardWrap");
   var boardEl = document.getElementById("memoryBoard");
   var pairsLine = document.getElementById("pairsLine");
   var movesEl = document.getElementById("memoryMoves");
@@ -51,7 +54,7 @@
 
   var app = document.getElementById("app");
 
-  if (!screenSetup || !screenPlay || !boardEl || !btnStart) {
+  if (!screenSetup || !screenPlay || !boardWrap || !boardEl || !btnStart) {
     return;
   }
 
@@ -109,6 +112,56 @@
       return card.character.label;
     }
     return "card";
+  }
+
+  function getBoardGapPx() {
+    if (!boardEl) return 10;
+    var g = window.getComputedStyle(boardEl).gap;
+    var v = parseFloat(g);
+    return isNaN(v) ? 10 : v;
+  }
+
+  /**
+   * Pick column count so tiles are as large as possible in the board area; prefer fewer
+   * empty grid slots on the last row when sizes are similar.
+   */
+  function layoutMemoryBoard() {
+    if (!boardWrap || !boardEl || !deck.length) return;
+    if (!boardEl.childElementCount) return;
+    var n = deck.length;
+    var W = boardWrap.clientWidth;
+    var H = boardWrap.clientHeight;
+    if (W < 16 || H < 16) return;
+    var gap = getBoardGapPx();
+    var bestCols = Math.max(3, Math.min(12, Math.round(Math.sqrt(n))));
+    var bestSize = -1;
+    var bestWaste = 999;
+    var minC = 3;
+    var maxC = Math.min(12, n);
+    for (var cols = minC; cols <= maxC; cols++) {
+      var rows = Math.ceil(n / cols);
+      var cw = (W - gap * (cols - 1)) / cols;
+      var ch = (H - gap * (rows - 1)) / rows;
+      var s = Math.min(cw, ch);
+      var waste = cols * rows - n;
+      if (s > bestSize + 0.5) {
+        bestSize = s;
+        bestCols = cols;
+        bestWaste = waste;
+      } else if (Math.abs(s - bestSize) <= 0.5 && waste < bestWaste) {
+        bestCols = cols;
+        bestWaste = waste;
+      }
+    }
+    var rowsUsed = Math.ceil(n / bestCols);
+    boardEl.style.setProperty("--memory-cols", String(bestCols));
+    boardEl.style.setProperty("--memory-rows", String(rowsUsed));
+  }
+
+  function scheduleBoardLayout() {
+    requestAnimationFrame(function () {
+      requestAnimationFrame(layoutMemoryBoard);
+    });
   }
 
   function renderBoard() {
@@ -170,6 +223,7 @@
       boardEl.appendChild(btn);
       tileButtons.push(btn);
     });
+    scheduleBoardLayout();
   }
 
   function updateProgress() {
@@ -237,14 +291,22 @@
     if (c1.pairId === c2.pairId) {
       lockInput = true;
       matchedPairs += 1;
+      var winA = firstIndex;
+      var winB = secondIndex;
+      var tb1 = tileButtons[winA];
+      var tb2 = tileButtons[winB];
+      if (tb1) tb1.classList.add("is-match-burst");
+      if (tb2) tb2.classList.add("is-match-burst");
       window.setTimeout(function () {
-        var b1 = tileButtons[firstIndex];
-        var b2 = tileButtons[secondIndex];
+        var b1 = tileButtons[winA];
+        var b2 = tileButtons[winB];
         if (b1) {
+          b1.classList.remove("is-match-burst");
           b1.classList.add("is-matched");
           b1.disabled = true;
         }
         if (b2) {
+          b2.classList.remove("is-match-burst");
           b2.classList.add("is-matched");
           b2.disabled = true;
         }
@@ -259,17 +321,25 @@
         if (matchedPairs >= pairCount) {
           finishWin();
         }
-      }, 350);
+      }, MATCH_CELEBRATE_MS);
       return;
     }
 
     lockInput = true;
+    var loseA = firstIndex;
+    var loseB = secondIndex;
+    var lb1 = tileButtons[loseA];
+    var lb2 = tileButtons[loseB];
+    if (lb1) lb1.classList.add("is-mismatch-wiggle");
+    if (lb2) lb2.classList.add("is-mismatch-wiggle");
     if (typeof KidsCore !== "undefined") {
       KidsCore.playSound("no");
     }
     window.setTimeout(function () {
-      flipVisual(firstIndex, false);
-      flipVisual(secondIndex, false);
+      if (lb1) lb1.classList.remove("is-mismatch-wiggle");
+      if (lb2) lb2.classList.remove("is-mismatch-wiggle");
+      flipVisual(loseA, false);
+      flipVisual(loseB, false);
       firstIndex = -1;
       secondIndex = -1;
       lockInput = false;
@@ -316,6 +386,8 @@
       KidsCore.setPlayMode(true);
     }
 
+    document.body.classList.add("memory-playing");
+
     renderBoard();
     updateProgress();
   }
@@ -325,11 +397,15 @@
     screenPlay.hidden = true;
     screenSetup.classList.remove("is-hidden");
     screenSetup.hidden = false;
+    deck = [];
+    tileButtons = [];
     boardEl.innerHTML = "";
     if (winEl) winEl.textContent = "";
     if (typeof KidsCore !== "undefined" && KidsCore.setPlayMode) {
       KidsCore.setPlayMode(false);
     }
+
+    document.body.classList.remove("memory-playing");
   }
 
   function playAgainSameSize() {
@@ -347,6 +423,13 @@
   }
   if (btnPlayAgain) {
     btnPlayAgain.addEventListener("click", playAgainSameSize);
+  }
+
+  if (typeof ResizeObserver !== "undefined" && boardWrap) {
+    var ro = new ResizeObserver(function () {
+      layoutMemoryBoard();
+    });
+    ro.observe(boardWrap);
   }
 
   if (typeof KidsCore !== "undefined") {

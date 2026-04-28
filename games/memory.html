@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="theme-color" content="#0891b2" />
+  <meta name="theme-color" content="#f97316" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <title>Memory — Sofia's Game Room</title>
@@ -53,16 +53,24 @@
     </div>
 
     <div id="screenPlay" class="memory-screen memory-screen--play is-hidden" hidden>
+      <header class="memory-play-header" aria-label="Memory game">
+        <a class="memory-play-header__back" href="../index.html">← All games</a>
+        <h2 class="memory-play-header__title">Memory pairs</h2>
+        <span class="memory-play-header__spacer" aria-hidden="true"></span>
+      </header>
       <p class="memory-play-line">
         <span id="pairsLine" aria-live="polite"></span>
         <span id="memoryMoves" aria-live="polite"></span>
       </p>
-      <div
-        class="memory-board"
-        id="memoryBoard"
-        role="application"
-        aria-label="Matching pairs — tap two cards"
-      ></div>
+      <div class="memory-board-wrap" id="memoryBoardWrap">
+        <div class="memory-board-stars" aria-hidden="true"></div>
+        <div
+          class="memory-board"
+          id="memoryBoard"
+          role="application"
+          aria-label="Matching pairs — tap two cards"
+        ></div>
+      </div>
       <p class="memory-status" id="memoryWin" role="status" aria-live="polite"></p>
       <div class="memory-play-actions">
         <button type="button" class="memory-btn memory-btn--secondary" id="btnAgainMenu">Different size</button>

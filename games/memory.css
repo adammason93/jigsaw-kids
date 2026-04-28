@@ -1,15 +1,29 @@
-/* Memory — flip matching pairs (same stack + faces as Snap / Noughts) */
+/* Memory — bright kids’ playfield (orange header, yellow grid, navy cards) */
+
+:root {
+  --memory-orange: #ff8c3a;
+  --memory-orange-deep: #ea6a1f;
+  --memory-yellow: #ffe94a;
+  --memory-yellow-deep: #fcd34d;
+  --memory-navy: #1a2b4c;
+  --memory-navy-light: #243a63;
+  --memory-ink: #0f172a;
+  --memory-white: #ffffff;
+}
 
 .page-memory {
   margin: 0;
   min-height: 100dvh;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
   font-family:
     Nunito,
     system-ui,
     -apple-system,
     sans-serif;
-  color: #0f2433;
-  background: linear-gradient(165deg, #cffafe 0%, #e0f2fe 45%, #f0fdf4 100%);
+  color: var(--memory-ink);
+  background: linear-gradient(180deg, #fff9e6 0%, var(--memory-yellow) 35%, #fff4c2 100%);
 }
 
 html.kids-play-mode .page-memory .memory-app {
@@ -20,6 +34,10 @@ html.kids-play-mode .page-memory .memory-app {
   overscroll-behavior-y: contain;
 }
 
+/* Hide top nav in play mode — back link is in the orange bar */
+.page-memory.memory-playing .game-nav {
+  display: none;
+}
 .game-nav {
   margin-bottom: 0.35rem;
 }
@@ -27,7 +45,7 @@ html.kids-play-mode .page-memory .memory-app {
 .back-link {
   display: inline-flex;
   align-items: center;
-  color: #0891b2;
+  color: var(--memory-orange-deep);
   font-weight: 800;
   text-decoration: none;
   font-size: 0.88rem;
@@ -38,13 +56,82 @@ html.kids-play-mode .page-memory .memory-app {
 }
 
 .memory-app {
-  max-width: 52rem;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 100%;
   margin: 0 auto;
-  padding: 0.75rem 1rem 5.5rem;
+  padding: 0.4rem max(0.65rem, env(safe-area-inset-left, 0px)) 5.25rem
+    max(0.65rem, env(safe-area-inset-right, 0px));
+  padding-top: max(0.4rem, env(safe-area-inset-top, 0px));
 }
 
 .memory-screen.is-hidden {
   display: none !important;
+}
+
+.memory-screen--setup {
+  flex: 0 0 auto;
+}
+
+.memory-screen--play {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  margin-left: calc(-1 * max(0.65rem, env(safe-area-inset-left, 0px)));
+  margin-right: calc(-1 * max(0.65rem, env(safe-area-inset-right, 0px)));
+  width: calc(
+    100% + 2 * max(0.65rem, env(safe-area-inset-left, 0px))
+  );
+  max-width: none;
+}
+
+/* ——— Play: orange title bar ——— */
+.memory-play-header {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem max(0.65rem, env(safe-area-inset-left, 0px)) 0.7rem
+    max(0.65rem, env(safe-area-inset-right, 0px));
+  padding-top: max(0.55rem, env(safe-area-inset-top, 0px));
+  background: linear-gradient(180deg, var(--memory-orange) 0%, var(--memory-orange-deep) 100%);
+  box-shadow: 0 4px 0 rgba(180, 80, 20, 0.35);
+  border-radius: 0 0 18px 18px;
+}
+
+.memory-play-header__back {
+  justify-self: start;
+  font-weight: 800;
+  font-size: 0.88rem;
+  color: var(--memory-white);
+  text-decoration: none;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.15);
+}
+
+.memory-play-header__back:active {
+  opacity: 0.9;
+}
+
+.memory-play-header__title {
+  margin: 0;
+  justify-self: center;
+  grid-column: 2;
+  font-family: Sniglet, Nunito, sans-serif;
+  font-size: clamp(1.2rem, 4.2vw, 1.55rem);
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  color: var(--memory-white);
+  text-shadow:
+    0 2px 0 rgba(0, 0, 0, 0.12),
+    0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.memory-play-header__spacer {
+  grid-column: 3;
 }
 
 .memory-header h1 {
@@ -52,22 +139,22 @@ html.kids-play-mode .page-memory .memory-app {
   font-family: Sniglet, Nunito, sans-serif;
   font-size: clamp(1.75rem, 5vw, 2.25rem);
   font-weight: 800;
-  color: #0e7490;
+  color: var(--memory-orange-deep);
 }
 
 .memory-header__lede {
   margin: 0 0 1.25rem;
   font-size: 0.98rem;
   line-height: 1.55;
-  color: #134e4a;
+  color: #78350f;
   max-width: 40em;
 }
 
 .memory-card--panel {
-  background: #fff;
+  background: rgba(255, 255, 255, 0.92);
   border-radius: 22px;
-  border: 3px solid rgba(8, 145, 178, 0.25);
-  box-shadow: 0 6px 0 rgba(8, 145, 178, 0.12), 0 16px 40px rgba(15, 36, 51, 0.08);
+  border: 3px solid rgba(234, 106, 31, 0.35);
+  box-shadow: 0 6px 0 rgba(234, 106, 31, 0.15), 0 14px 32px rgba(120, 53, 15, 0.1);
   padding: 1.15rem 1.25rem 1.35rem;
 }
 
@@ -75,7 +162,7 @@ html.kids-play-mode .page-memory .memory-app {
   margin: 0 0 0.85rem;
   font-size: 1.1rem;
   font-weight: 800;
-  color: #0e7490;
+  color: #9a3412;
 }
 
 .memory-choice-grid {
@@ -96,15 +183,15 @@ html.kids-play-mode .page-memory .memory-app {
   gap: 0.15rem;
   padding: 0.65rem 0.75rem;
   border-radius: 16px;
-  border: 3px solid #e2e8f0;
-  background: #f8fafc;
+  border: 3px solid #fde68a;
+  background: #fffbeb;
   cursor: pointer;
   transition: border-color 0.15s ease, background 0.15s ease;
 }
 
 .memory-radio:has(input:checked) {
-  border-color: #0891b2;
-  background: #ecfeff;
+  border-color: var(--memory-orange);
+  background: #fff7ed;
 }
 
 .memory-radio input {
@@ -117,12 +204,12 @@ html.kids-play-mode .page-memory .memory-app {
 .memory-radio__title {
   font-weight: 800;
   font-size: 1rem;
-  color: #134e4a;
+  color: #78350f;
 }
 
 .memory-radio__hint {
   font-size: 0.82rem;
-  color: #64748b;
+  color: #a16207;
   line-height: 1.35;
 }
 
@@ -134,7 +221,7 @@ html.kids-play-mode .page-memory .memory-app {
   border-radius: 999px;
   border: 3px solid transparent;
   cursor: pointer;
-  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.12);
 }
 
 .memory-btn:active {
@@ -143,66 +230,116 @@ html.kids-play-mode .page-memory .memory-app {
 }
 
 .memory-btn--primary {
-  background: linear-gradient(180deg, #22d3ee, #0891b2);
+  background: linear-gradient(180deg, #fb923c, var(--memory-orange-deep));
   color: #fff;
-  border-color: #0e7490;
+  border-color: #c2410c;
   width: 100%;
 }
 
 .memory-btn--secondary {
-  background: #f1f5f9;
-  color: #0f2433;
-  border-color: #cbd5e1;
+  background: #fffbeb;
+  color: var(--memory-ink);
+  border-color: #fcd34d;
 }
 
 .memory-play-line {
+  flex: 0 0 auto;
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
   justify-content: space-between;
   gap: 0.5rem 1rem;
-  margin: 0 0 0.75rem;
-  font-weight: 700;
-  color: #0e7490;
+  margin: 0;
+  padding: 0.55rem max(0.75rem, env(safe-area-inset-left, 0px)) 0.45rem
+    max(0.75rem, env(safe-area-inset-right, 0px));
+  font-weight: 800;
+  color: #78350f;
   font-size: 0.95rem;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
 }
 
 #memoryMoves {
-  color: #64748b;
-  font-weight: 600;
+  color: #a16207;
+  font-weight: 700;
   font-size: 0.9rem;
 }
 
-.memory-board {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 5.25rem), 1fr));
-  gap: 0.55rem;
-  margin-bottom: 1rem;
+/* ——— Yellow grid playfield + stars ——— */
+.memory-board-wrap {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  margin-bottom: 0.5rem;
+  padding: 0.6rem max(0.55rem, env(safe-area-inset-left, 0px)) 0.65rem
+    max(0.55rem, env(safe-area-inset-right, 0px));
+  background-color: var(--memory-yellow);
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.35) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.35) 1px, transparent 1px),
+    radial-gradient(ellipse 120% 80% at 50% 0%, rgba(255, 255, 255, 0.45) 0%, transparent 55%);
+  background-size:
+    22px 22px,
+    22px 22px,
+    100% 100%;
+  background-position: center;
+  border-radius: 18px;
+  box-shadow:
+    inset 0 0 0 2px rgba(255, 255, 255, 0.5),
+    inset 0 2px 12px rgba(253, 224, 71, 0.6);
+  overflow: hidden;
 }
 
-@media (min-width: 600px) {
-  .memory-board {
-    gap: 0.65rem;
-  }
+.memory-board-stars {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 8% 18%, rgba(255, 255, 255, 0.95) 0, rgba(255, 255, 255, 0.95) 1.5px, transparent 2px),
+    radial-gradient(circle at 18% 72%, rgba(255, 255, 255, 0.85) 0, rgba(255, 255, 255, 0.85) 1px, transparent 1.5px),
+    radial-gradient(circle at 92% 22%, rgba(255, 255, 255, 0.9) 0, rgba(255, 255, 255, 0.9) 1.8px, transparent 2.3px),
+    radial-gradient(circle at 88% 65%, rgba(255, 255, 255, 0.75) 0, rgba(255, 255, 255, 0.75) 1px, transparent 1.5px),
+    radial-gradient(circle at 5% 55%, rgba(255, 255, 255, 0.65) 0, rgba(255, 255, 255, 0.65) 1px, transparent 1.5px),
+    radial-gradient(circle at 95% 88%, rgba(255, 255, 255, 0.7) 0, rgba(255, 255, 255, 0.7) 1px, transparent 1.5px);
+  opacity: 0.9;
+  z-index: 0;
+}
+
+.memory-board {
+  --memory-gap: clamp(0.35rem, 1.2vmin, 0.65rem);
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  min-height: 12rem;
+  display: grid;
+  gap: var(--memory-gap);
+  grid-template-columns: repeat(var(--memory-cols, 4), minmax(0, 1fr));
+  grid-template-rows: repeat(var(--memory-rows, 4), minmax(0, 1fr));
+  align-content: stretch;
+  justify-content: stretch;
 }
 
 .memory-tile {
   position: relative;
-  aspect-ratio: 1 / 1;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
   padding: 0;
   margin: 0;
   border: none;
   background: transparent;
   cursor: pointer;
-  perspective: 800px;
+  perspective: 900px;
   -webkit-tap-highlight-color: transparent;
   outline: none;
 }
 
 .memory-tile:focus-visible .memory-tile__inner {
   box-shadow:
-    0 0 0 3px #fff,
-    0 0 0 6px #0891b2;
+    0 0 0 3px var(--memory-yellow),
+    0 0 0 6px var(--memory-orange-deep);
 }
 
 .memory-tile:disabled {
@@ -216,8 +353,10 @@ html.kids-play-mode .page-memory .memory-app {
   transition:
     transform 0.45s cubic-bezier(0.4, 0, 0.2, 1),
     box-shadow 0.25s ease;
-  border-radius: 16px;
-  box-shadow: 0 4px 0 rgba(15, 23, 42, 0.12), 0 8px 20px rgba(15, 23, 42, 0.08);
+  border-radius: 15px;
+  box-shadow:
+    0 4px 0 rgba(15, 23, 42, 0.25),
+    0 10px 20px rgba(26, 43, 76, 0.2);
 }
 
 .memory-tile.is-flipped .memory-tile__inner {
@@ -233,89 +372,270 @@ html.kids-play-mode .page-memory .memory-app {
   inset: 0;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
-  border-radius: 16px;
+  border-radius: 15px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 0.35rem;
-  border: 3px solid #0e7490;
+  padding: clamp(0.2rem, 1vmin, 0.45rem);
+  border: 4px solid var(--memory-white);
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
 .memory-tile__face--back {
-  background: linear-gradient(145deg, #22d3ee, #0891b2);
-  color: #fff;
-  font-size: clamp(1.75rem, 8vw, 2.5rem);
+  background: linear-gradient(155deg, var(--memory-navy-light) 0%, var(--memory-navy) 50%, #0f1a2e 100%);
+  color: #fef3c7;
+  font-size: clamp(1.25rem, 5.5vmin, 3rem);
   font-weight: 800;
   font-family: Sniglet, sans-serif;
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .memory-tile__face--front {
   transform: rotateY(180deg);
-  background: #fff;
-  border-color: #67e8f9;
+  background: linear-gradient(165deg, var(--memory-navy-light), var(--memory-navy) 55%, #121f36 100%);
+  border-color: var(--memory-white);
   position: relative;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
 .memory-tile--animal .memory-tile__emoji {
-  font-size: clamp(1.6rem, 7vw, 2.25rem);
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(1.1rem, min(13vmin, 11vw), 3.5rem);
   line-height: 1;
+  min-height: 0;
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.35));
 }
 
 .memory-tile--animal .memory-tile__label {
-  margin-top: 0.2rem;
-  font-size: 0.65rem;
+  flex: 0 0 auto;
+  margin-top: auto;
+  padding-top: 0.1rem;
+  font-size: clamp(0.45rem, 2.4vmin, 0.75rem);
   font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: #0f172a;
+  letter-spacing: 0.06em;
+  color: #fef9c3;
   text-align: center;
-  line-height: 1.15;
+  line-height: 1.1;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.memory-tile--character .memory-tile__face--front {
+  padding: clamp(0.15rem, 1vmin, 0.35rem);
 }
 
 .memory-tile--character .memory-tile__pic {
-  width: 78%;
-  height: 78%;
+  flex: 1 1 auto;
+  width: 100%;
+  max-width: 100%;
+  min-height: 0;
+  max-height: 100%;
   object-fit: contain;
   object-position: center bottom;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.4));
 }
 
 .memory-tile--character .memory-tile__label {
-  position: absolute;
-  bottom: 0.15rem;
-  left: 0.2rem;
-  right: 0.2rem;
-  font-size: 0.58rem;
+  flex: 0 0 auto;
+  font-size: clamp(0.45rem, 2.4vmin, 0.75rem);
   font-weight: 800;
   text-align: center;
-  color: #0f172a;
+  color: #fef9c3;
   line-height: 1.1;
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
 }
 
 .memory-tile.is-matched .memory-tile__inner {
-  box-shadow: 0 2px 0 rgba(5, 150, 105, 0.35), 0 6px 16px rgba(5, 150, 105, 0.2);
+  box-shadow:
+    0 0 0 3px rgba(74, 222, 128, 0.9),
+    0 4px 0 rgba(5, 150, 105, 0.45),
+    0 12px 20px rgba(22, 101, 52, 0.25);
 }
 
 .memory-tile.is-matched .memory-tile__face--front {
-  border-color: #34d399;
-  background: #ecfdf5;
+  border-color: #86efac;
+  background: linear-gradient(165deg, #166534 0%, #14532d 100%);
+}
+
+.memory-tile.is-matched.memory-tile--animal .memory-tile__label,
+.memory-tile.is-matched.memory-tile--character .memory-tile__label {
+  color: #ecfccb;
+}
+
+/* ——— Match celebration + mismatch feedback ——— */
+@keyframes memory-match-pop {
+  0% {
+    transform: rotateY(180deg) scale(1);
+    filter: brightness(1) drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+  }
+  28% {
+    transform: rotateY(180deg) scale(1.12) rotateZ(-3deg);
+    filter: brightness(1.2) drop-shadow(0 0 16px rgba(250, 204, 21, 0.85));
+  }
+  48% {
+    transform: rotateY(180deg) scale(1.06) rotateZ(4deg);
+  }
+  68% {
+    transform: rotateY(180deg) scale(1.1) rotateZ(-2deg);
+  }
+  100% {
+    transform: rotateY(180deg) scale(1);
+    filter: brightness(1.05) drop-shadow(0 6px 12px rgba(34, 197, 94, 0.45));
+  }
+}
+
+@keyframes memory-spark-ring {
+  0% {
+    transform: translate(-50%, -50%) scale(0.5);
+    opacity: 0;
+  }
+  35% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.2);
+    opacity: 0;
+  }
+}
+
+@keyframes memory-star-spin {
+  0% {
+    transform: rotate(0deg) scale(0.3);
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    transform: rotate(220deg) scale(1);
+    opacity: 0;
+  }
+}
+
+@keyframes memory-mismatch-wiggle {
+  0%,
+  100% {
+    transform: rotateY(180deg) translateX(0);
+  }
+  15% {
+    transform: rotateY(180deg) translateX(-6px) rotateZ(-2deg);
+  }
+  30% {
+    transform: rotateY(180deg) translateX(6px) rotateZ(2deg);
+  }
+  45% {
+    transform: rotateY(180deg) translateX(-4px);
+  }
+  60% {
+    transform: rotateY(180deg) translateX(4px);
+  }
+}
+
+.memory-tile.is-match-burst {
+  z-index: 12;
+}
+
+.memory-tile.is-match-burst .memory-tile__inner {
+  animation: memory-match-pop 0.56s cubic-bezier(0.34, 1.4, 0.64, 1) forwards;
+}
+
+/* Golden sparkle burst (sits above the card) */
+.memory-tile.is-match-burst::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: min(135%, 8rem);
+  height: min(135%, 8rem);
+  margin: 0;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 20;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(255, 237, 150, 0.55) 0%, transparent 42%),
+    radial-gradient(circle at 28% 32%, rgba(255, 255, 255, 0.95) 0, rgba(255, 255, 255, 0.95) 2px, transparent 3px),
+    radial-gradient(circle at 72% 28%, rgba(255, 251, 200, 0.9) 0, rgba(255, 251, 200, 0.9) 1.5px, transparent 2.5px),
+    radial-gradient(circle at 64% 70%, rgba(255, 255, 255, 0.85) 0, rgba(255, 255, 255, 0.85) 1.5px, transparent 2.5px),
+    radial-gradient(circle at 30% 68%, rgba(254, 240, 138, 0.9) 0, rgba(254, 240, 138, 0.9) 2px, transparent 3px),
+    radial-gradient(circle at 50% 12%, rgba(255, 255, 255, 0.8) 0, rgba(255, 255, 255, 0.8) 1px, transparent 2px);
+  animation: memory-spark-ring 0.58s ease-out forwards;
+}
+
+.memory-tile.is-match-burst .memory-tile__face--front::before {
+  content: "✦";
+  position: absolute;
+  top: 8%;
+  right: 10%;
+  font-size: clamp(0.75rem, 4vmin, 1.25rem);
+  color: rgba(254, 240, 138, 0.95);
+  text-shadow: 0 0 8px rgba(250, 204, 21, 0.8);
+  pointer-events: none;
+  animation: memory-star-spin 0.55s ease-out forwards;
+  z-index: 2;
+}
+
+.memory-tile.is-mismatch-wiggle .memory-tile__inner {
+  animation: memory-mismatch-wiggle 0.55s ease-in-out forwards;
+}
+
+.kids-reduce-motion .memory-tile.is-match-burst .memory-tile__inner,
+.kids-reduce-motion .memory-tile.is-mismatch-wiggle .memory-tile__inner {
+  animation: none !important;
+}
+
+.kids-reduce-motion .memory-tile.is-match-burst::after,
+.kids-reduce-motion .memory-tile.is-match-burst .memory-tile__face--front::before {
+  animation: none !important;
+  opacity: 0 !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .memory-tile.is-match-burst .memory-tile__inner,
+  .memory-tile.is-mismatch-wiggle .memory-tile__inner {
+    animation: none !important;
+  }
+
+  .memory-tile.is-match-burst::after,
+  .memory-tile.is-match-burst .memory-tile__face--front::before {
+    animation: none !important;
+    opacity: 0 !important;
+  }
 }
 
 .memory-status {
-  min-height: 1.5rem;
-  margin: 0 0 0.75rem;
+  flex: 0 0 auto;
+  min-height: 1.35rem;
+  margin: 0 0 0.5rem;
+  padding: 0 max(0.65rem, env(safe-area-inset-left, 0px)) 0 max(0.65rem, env(safe-area-inset-right, 0px));
   font-weight: 800;
   font-size: 1.05rem;
-  color: #059669;
+  color: #15803d;
 }
 
 .memory-play-actions {
+  flex: 0 0 auto;
   display: flex;
   flex-wrap: wrap;
-  gap: 0.6rem;
+  gap: 0.55rem;
+  margin-top: auto;
+  padding: 0.35rem max(0.65rem, env(safe-area-inset-left, 0px)) 0
+    max(0.65rem, env(safe-area-inset-right, 0px));
 }
 
 .memory-play-actions .memory-btn {
-  flex: 1 1 auto;
-  min-width: 9rem;
+  flex: 1 1 calc(50% - 0.3rem);
+  min-width: 0;
+  max-width: 100%;
 }
