@@ -1,5 +1,6 @@
 /**
- * Cloud score sync via Supabase (magic-link email). Configure keys in score-config.js.
+ * Cloud sync: family password (signInWithPassword). See score-config.example.js.
+ */
  * Loads @supabase/supabase-js UMD when settings open or when a session restores.
  */
 (function (global) {
@@ -33,7 +34,12 @@
 
   function isConfigured() {
     var c = cfg();
-    return !!(c.supabaseUrl && c.supabaseAnonKey);
+    return !!(
+      c.supabaseUrl &&
+      c.supabaseAnonKey &&
+      c.syncLoginEmail &&
+      String(c.syncLoginEmail).trim().length > 0
+    );
   }
 
   function loadSupabaseLib(cb) {
@@ -362,11 +368,11 @@
       zone.setAttribute("data-score-sync", "1");
       zone.className = "kids-settings__sync";
       zone.innerHTML =
-        '<h3 class="kids-settings__sync-title">Sync scores (optional)</h3>' +
-        '<p class="kids-settings__sync-lead">Use one grown-up email on each device. Tap the link in your email — then scores and colouring pictures (when saved) stay in sync in the background.</p>' +
+        '<h3 class="kids-settings__sync-title">Sync (optional)</h3>' +
+        '<p class="kids-settings__sync-lead">A grown-up sets this up once in Supabase (one login email + password that match your site config). Here you only type the <strong>family password</strong>—no email.</p>' +
         '<p class="kids-settings__sync-status" id="kidsSyncStatus" role="status"></p>' +
-        '<label class="kids-settings__row kids-settings__row--email"><span class="kids-settings__sync-label">Email</span><input type="email" id="kidsSyncEmail" class="kids-settings__sync-input" autocomplete="email" placeholder="you@example.com" /></label>' +
-        '<button type="button" class="kids-settings__sync-btn" id="kidsSyncSend">Email me a sign-in link</button>' +
+        '<label class="kids-settings__row kids-settings__row--email"><span class="kids-settings__sync-label">Family password</span><input type="password" id="kidsSyncPassword" class="kids-settings__sync-input" autocomplete="current-password" placeholder="••••••••" /></label>' +
+        '<button type="button" class="kids-settings__sync-btn" id="kidsSyncSignIn">Sign in for cloud sync</button>' +
         '<button type="button" class="kids-settings__sync-btn kids-settings__sync-btn--ghost" id="kidsSyncPull">Pull scores from cloud now</button>' +
         '<button type="button" class="kids-settings__sync-btn kids-settings__sync-btn--ghost" id="kidsSyncOut">Sign out</button>';
       if (hr) {
@@ -376,8 +382,8 @@
       }
 
       var statusEl = zone.querySelector("#kidsSyncStatus");
-      var emailEl = zone.querySelector("#kidsSyncEmail");
-      var btnSend = zone.querySelector("#kidsSyncSend");
+      var passEl = zone.querySelector("#kidsSyncPassword");
+      var btnSignIn = zone.querySelector("#kidsSyncSignIn");
       var btnPull = zone.querySelector("#kidsSyncPull");
       var btnOut = zone.querySelector("#kidsSyncOut");
 
@@ -389,18 +395,16 @@
           }
           sb.auth.getSession().then(function (res) {
             var sess = res.data && res.data.session;
-            if (sess && sess.user && sess.user.email) {
+            if (sess && sess.user) {
               setStatus(
                 statusEl,
-                "Signed in as " +
-                  sess.user.email +
-                  " — scores can sync automatically."
+                "Cloud sync is on — scores and colouring can stay in sync on this tablet."
               );
               btnOut.style.display = "";
             } else {
               setStatus(
                 statusEl,
-                "Not signed in yet — enter an email below to link this device."
+                "Sign in with the family password to turn on sync."
               );
               btnOut.style.display = "none";
             }
@@ -410,11 +414,18 @@
 
       refreshAuthUi();
 
-      if (btnSend) {
-        btnSend.addEventListener("click", function () {
-          var em = emailEl ? String(emailEl.value || "").trim() : "";
-          if (!em || em.indexOf("@") < 0) {
-            setStatus(statusEl, "Enter a valid email address.");
+      if (btnSignIn) {
+        btnSignIn.addEventListener("click", function () {
+          var pwd = passEl ? String(passEl.value || "") : "";
+          var c = cfg();
+          var loginEmail =
+            (c.syncLoginEmail && String(c.syncLoginEmail).trim()) || "";
+          if (!loginEmail) {
+            setStatus(statusEl, "Configure syncLoginEmail in score-config.js.");
+            return;
+          }
+          if (pwd.length < 6) {
+            setStatus(statusEl, "Enter the family password (at least 6 characters).");
             return;
           }
           ensureClient(function (sb) {
@@ -423,24 +434,35 @@
               return;
             }
             sb.auth
-              .signInWithOtp({
-                email: em,
-                options: {
-                  emailRedirectTo: global.location.href,
-                },
+              .signInWithPassword({
+                email: loginEmail,
+                password: pwd,
               })
               .then(function (r) {
                 if (r.error) {
-                  setStatus(
-                    statusEl,
-                    r.error.message || "Could not send email."
-                  );
+                  var m = r.error.message || "Could not sign in.";
+                  if (/Invalid login|invalid/i.test(m)) {
+                    setStatus(statusEl, "Wrong password — try again or ask a grown-up.");
+                  } else {
+                    setStatus(statusEl, m);
+                  }
                   return;
                 }
-                setStatus(
-                  statusEl,
-                  "Check your email — tap the magic link. You can leave this tab open."
-                );
+                if (passEl) {
+                  passEl.value = "";
+                }
+                setStatus(statusEl, "Signed in — syncing…");
+                refreshAuthUi();
+                pullAndApply(function (changed) {
+                  if (changed) {
+                    refreshOpenScoreUis();
+                    global.setTimeout(function () {
+                      global.location.reload();
+                    }, 400);
+                  } else {
+                    pushBundle();
+                  }
+                });
               });
           });
         });
