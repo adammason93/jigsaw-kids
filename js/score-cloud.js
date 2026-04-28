@@ -469,9 +469,6 @@
                 pullAndApply(function (changed) {
                   if (changed) {
                     refreshOpenScoreUis();
-                    global.setTimeout(function () {
-                      global.location.reload();
-                    }, 400);
                   } else {
                     pushBundle();
                   }
@@ -486,11 +483,8 @@
           setStatus(statusEl, "Fetching…");
           pullAndApply(function (changed) {
             if (changed) {
-              setStatus(statusEl, "Merged scores from cloud — refreshing…");
+              setStatus(statusEl, "Merged scores from cloud.");
               refreshOpenScoreUis();
-              global.setTimeout(function () {
-                global.location.reload();
-              }, 450);
             } else {
               setStatus(
                 statusEl,
