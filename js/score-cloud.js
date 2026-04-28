@@ -1,6 +1,5 @@
 /**
  * Cloud sync: family password (signInWithPassword). See score-config.example.js.
- */
  * Loads @supabase/supabase-js UMD when settings open or when a session restores.
  */
 (function (global) {
