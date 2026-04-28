@@ -143,6 +143,7 @@
     if (charBlockO) {
       charBlockO.hidden = false;
     }
+    syncCpuSkillBlock();
   }
 
   function clearElement(el) {
@@ -269,6 +270,21 @@
     return r && r.value === "cpu" ? "cpu" : "friend";
   }
 
+  function selectedCpuSkill() {
+    const r = document.querySelector('input[name="tttCpuSkill"]:checked');
+    return r && r.value === "hard" ? "hard" : "easy";
+  }
+
+  function syncCpuSkillBlock() {
+    const block = document.getElementById("cpuSkillBlock");
+    if (!block) {
+      return;
+    }
+    const show = selectedMode() === "cpu";
+    block.hidden = !show;
+    block.setAttribute("aria-hidden", show ? "false" : "true");
+  }
+
   function winner(b) {
     for (let i = 0; i < LINES.length; i++) {
       const [a, c, d] = LINES[i];
@@ -295,7 +311,8 @@
     return out;
   }
 
-  function pickCpuMove(b) {
+  /** Strong play: win if possible, block X, centre, corner, edge. */
+  function pickCpuMoveOptimal(b) {
     const empties = emptyIndices(b);
     if (empties.length === 0) {
       return -1;
@@ -328,6 +345,31 @@
       return corners[Math.floor(Math.random() * corners.length)];
     }
     return empties[Math.floor(Math.random() * empties.length)];
+  }
+
+  /**
+   * Easy: often picks a weaker square so the human can win sometimes.
+   * Hard: same as pickCpuMoveOptimal.
+   */
+  function pickCpuMove(b) {
+    const optimal = pickCpuMoveOptimal(b);
+    if (selectedCpuSkill() === "hard") {
+      return optimal;
+    }
+    const empties = emptyIndices(b);
+    if (empties.length <= 1) {
+      return optimal;
+    }
+    /* ~40% of turns: play a random non-best move when one exists */
+    if (Math.random() < 0.4) {
+      const mistakes = empties.filter(function (i) {
+        return i !== optimal;
+      });
+      if (mistakes.length > 0) {
+        return mistakes[Math.floor(Math.random() * mistakes.length)];
+      }
+    }
+    return optimal;
   }
 
   function clearWinLineSvg() {
@@ -607,7 +649,10 @@
 
   function syncModeLine() {
     if (mode === "cpu") {
-      modeLine.textContent = "You vs computer";
+      modeLine.textContent =
+        selectedCpuSkill() === "hard"
+          ? "You vs computer (hard)"
+          : "You vs computer (easy)";
     } else {
       modeLine.textContent = "Two players";
     }

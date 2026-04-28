@@ -141,6 +141,19 @@ h2,
   color: #0f172a;
 }
 
+.ttt-cpu-skill {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 2px dashed rgba(5, 150, 105, 0.22);
+}
+
+.ttt-cpu-skill__title {
+  margin: 0 0 0.65rem;
+  font-size: 0.98rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
 .ttt-choice-row {
   display: flex;
   flex-direction: column;

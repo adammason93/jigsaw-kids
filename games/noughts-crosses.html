@@ -42,6 +42,21 @@
               <span class="ttt-radio__hint">You go first as crosses; the computer plays noughts</span>
             </label>
           </div>
+          <div class="ttt-cpu-skill" id="cpuSkillBlock" hidden aria-labelledby="lblCpuSkill">
+            <h3 class="ttt-cpu-skill__title" id="lblCpuSkill">Computer skill</h3>
+            <div class="ttt-choice-row" role="group" aria-label="Computer difficulty">
+              <label class="ttt-radio">
+                <input type="radio" name="tttCpuSkill" value="easy" checked />
+                <span class="ttt-radio__title">Easy</span>
+                <span class="ttt-radio__hint">The computer sometimes slips up — easier to get three in a row</span>
+              </label>
+              <label class="ttt-radio">
+                <input type="radio" name="tttCpuSkill" value="hard" />
+                <span class="ttt-radio__title">Hard</span>
+                <span class="ttt-radio__hint">The computer blocks threats and tries to win</span>
+              </label>
+            </div>
+          </div>
         </section>
 
         <section class="ttt-card ttt-card--chars" aria-labelledby="lblChars">
