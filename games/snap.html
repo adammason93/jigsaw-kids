@@ -9,6 +9,7 @@
   <title>Snap — Sofia's Game Room</title>
   <link rel="manifest" href="../manifest.json" />
   <link rel="stylesheet" href="../js/kids-core.css" />
+  <link rel="stylesheet" href="../js/game-scorecard.css" />
   <link rel="stylesheet" href="snap.css" />
   <link rel="stylesheet" href="../tablet-ipad.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -35,6 +36,34 @@
           <strong>characters</strong>, <strong>which side is yours</strong>, then tap <strong>Start game</strong>.
         </p>
       </header>
+
+      <section class="gsc" aria-labelledby="snapscTitle">
+        <h2 id="snapscTitle" class="gsc__title">Score card</h2>
+        <p class="gsc__hint" id="snapscHint">
+          Counts <strong>full games</strong> (first to 100 cards). Saved on this device — copy/paste to move.
+        </p>
+        <div class="gsc__grid gsc__grid--cols2">
+          <div class="gsc__block">
+            <h3 class="gsc__block-title">Two players</h3>
+            <ul class="gsc__list">
+              <li><span class="gsc__label">Player 1 won</span> <strong id="snapscP1">0</strong></li>
+              <li><span class="gsc__label">Player 2 won</span> <strong id="snapscP2">0</strong></li>
+            </ul>
+          </div>
+          <div class="gsc__block">
+            <h3 class="gsc__block-title">vs computer</h3>
+            <ul class="gsc__list">
+              <li><span class="gsc__label">You won</span> <strong id="snapscYou">0</strong></li>
+              <li><span class="gsc__label">Computer won</span> <strong id="snapscCpu">0</strong></li>
+            </ul>
+          </div>
+        </div>
+        <div class="gsc__actions">
+          <button type="button" class="gsc__btn" id="snapscCopy">Copy scores</button>
+          <button type="button" class="gsc__btn" id="snapscPaste">Paste scores</button>
+          <button type="button" class="gsc__btn gsc__btn--danger" id="snapscReset">Reset scores</button>
+        </div>
+      </section>
 
       <section class="snap-card snap-card--setup" aria-labelledby="lblMode">
         <h2 id="lblMode">How do you want to play?</h2>
@@ -197,6 +226,7 @@
     </div>
   </div>
   <script src="../js/kids-core.js" defer></script>
+  <script src="../js/game-scorecard.js" defer></script>
   <script src="snap.js" defer></script>
   <script>
     if ("serviceWorker" in navigator) {

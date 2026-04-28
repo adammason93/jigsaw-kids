@@ -1,5 +1,5 @@
 /* Minimal offline shell — network-first, cache as fallback for same-origin */
-const CACHE = "jigsaw-kids-v123";
+const CACHE = "jigsaw-kids-v124";
 const SHELL = [
   "./index.html",
   "./manifest.json",
@@ -10,6 +10,8 @@ const SHELL = [
   "./games/images/tilly-mascot.png",
   "./js/kids-core.js",
   "./js/kids-core.css",
+  "./js/game-scorecard.js",
+  "./js/game-scorecard.css",
   "./jigsaw.css",
   "./jigsaw.js",
   "./tablet-ipad.css",

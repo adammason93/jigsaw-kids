@@ -9,6 +9,7 @@
   <title>Colouring book — Sofia's Game Room</title>
   <link rel="manifest" href="../manifest.json" />
   <link rel="stylesheet" href="../js/kids-core.css" />
+  <link rel="stylesheet" href="../js/game-scorecard.css" />
   <link rel="stylesheet" href="colouring.css" />
   <link rel="stylesheet" href="../tablet-ipad.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -27,6 +28,22 @@
           <h1>Colouring book</h1>
           <p class="colour-header__lede">Pick <strong>blank paper</strong> to draw freely, or a picture—the outlines stay on top when you colour. <strong>Undo</strong> removes the last scribble. <strong>Save for later</strong> remembers your picture on this device.</p>
         </header>
+
+        <section class="gsc" aria-labelledby="colscTitle">
+          <h2 id="colscTitle" class="gsc__title">Score card</h2>
+          <p class="gsc__hint" id="colscHint">
+            Counts each time you <strong>save a picture</strong> to your device. Copy/paste to move totals.
+          </p>
+          <div class="gsc__block">
+            <p class="gsc__stat-label">Pictures saved</p>
+            <p class="gsc__stat" id="colscSaved">0</p>
+          </div>
+          <div class="gsc__actions">
+            <button type="button" class="gsc__btn" id="colscCopy">Copy scores</button>
+            <button type="button" class="gsc__btn" id="colscPaste">Paste scores</button>
+            <button type="button" class="gsc__btn gsc__btn--danger" id="colscReset">Reset scores</button>
+          </div>
+        </section>
 
         <div class="colour-tools" role="toolbar" aria-label="Drawing tools">
           <div class="colour-tools__row">
@@ -99,6 +116,7 @@
   </div>
   <a id="saveLink" class="visually-hidden" href="#" download="sofiacolour.png" aria-hidden="true">save</a>
   <script src="../js/kids-core.js" defer></script>
+  <script src="../js/game-scorecard.js" defer></script>
   <script src="colouring.js" defer></script>
   <script>
     if ("serviceWorker" in navigator) {

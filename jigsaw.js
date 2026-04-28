@@ -403,11 +403,19 @@ function resetPieceToTray(piece) {
   tray.appendChild(piece);
 }
 
+/** @type {{ update: function(Function): void }|null} */
+let jigsawScorecard = null;
+
 function checkWin() {
   const n = grid;
   const need = n * n;
   if (placed.size === need) {
     setStatus("You did it! Great job!", "win");
+    if (jigsawScorecard) {
+      jigsawScorecard.update(function (s) {
+        s.completed++;
+      });
+    }
     if (typeof KidsCore !== "undefined") {
       KidsCore.recordGame("jigsaw");
       KidsCore.confetti(document.querySelector(".play-area") || document.body);
@@ -527,6 +535,23 @@ if (guideToggle) {
     }
     applyBoardGuideClass();
   });
+}
+
+if (typeof GameScorecard !== "undefined") {
+  jigsawScorecard = GameScorecard.wire({
+    storageKey: "jigsawScorecardV1",
+    defaults: { completed: 0 },
+    display: {
+      jgscDone: function (s) {
+        return s.completed;
+      },
+    },
+    hintId: "jgscHint",
+    btnCopyId: "jgscCopy",
+    btnPasteId: "jgscPaste",
+    btnResetId: "jgscReset",
+  });
+  jigsawScorecard.render();
 }
 
 if (typeof KidsCore !== "undefined") {

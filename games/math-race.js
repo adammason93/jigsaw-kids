@@ -79,6 +79,9 @@
   var sofiaResultDelayTimer = null;
   var sofiaCorrectFlowPending = false;
 
+  /** @type {{ update: function(Function): void, render: function(): void }|null} */
+  var mathScorecard = null;
+
   let level = 0;
   /** @type {{ id: string; label: string; character: string; position: number; lane: number; isCpu?: boolean; el?: HTMLElement }[]} */
   let players = [];
@@ -187,6 +190,9 @@
     });
     if (typeof KidsCore !== "undefined" && typeof KidsCore.setPlayMode === "function") {
       KidsCore.setPlayMode(which === "play");
+    }
+    if (which === "setup" && mathScorecard) {
+      mathScorecard.render();
     }
   }
 
@@ -583,6 +589,11 @@
     winTitle.textContent = "You won the race!";
     winMessage.textContent =
       "You reached the finish before the dinosaur could catch you — and you kept " + gameSteps + " steps ahead on the path. Roar-some!";
+    if (mathScorecard) {
+      mathScorecard.update(function (s) {
+        s.wins++;
+      });
+    }
     if (typeof KidsCore !== "undefined") {
       KidsCore.recordGame("math");
       KidsCore.confetti(document.getElementById("screenWin") || document.body);
@@ -612,6 +623,11 @@
     if (typeof KidsCore !== "undefined") {
       KidsCore.playSound("no");
       KidsCore.haptic("light");
+    }
+    if (mathScorecard) {
+      mathScorecard.update(function (s) {
+        s.losses++;
+      });
     }
     showScreen("lose");
     setTimeout(function () {
@@ -983,6 +999,26 @@
         finishSofiaCorrectAndNext();
       }
     });
+  }
+
+  if (typeof GameScorecard !== "undefined") {
+    mathScorecard = GameScorecard.wire({
+      storageKey: "mathRaceScorecardV1",
+      defaults: { wins: 0, losses: 0 },
+      display: {
+        mathscWin: function (s) {
+          return s.wins;
+        },
+        mathscLoss: function (s) {
+          return s.losses;
+        },
+      },
+      hintId: "mathscHint",
+      btnCopyId: "mathscCopy",
+      btnPasteId: "mathscPaste",
+      btnResetId: "mathscReset",
+    });
+    mathScorecard.render();
   }
 
   if (typeof KidsCore !== "undefined") {

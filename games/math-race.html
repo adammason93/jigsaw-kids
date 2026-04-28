@@ -9,6 +9,7 @@
   <title>Number path — Sofia's Game Room</title>
   <link rel="manifest" href="../manifest.json" />
   <link rel="stylesheet" href="../js/kids-core.css" />
+  <link rel="stylesheet" href="../js/game-scorecard.css" />
   <link rel="stylesheet" href="math-race.css" />
   <link rel="stylesheet" href="../tablet-ipad.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -108,6 +109,30 @@
             />
             <p class="char-sofia-lock__name">Sofia</p>
           </div>
+        </div>
+      </section>
+
+      <section class="gsc" aria-labelledby="mathscTitle">
+        <h2 id="mathscTitle" class="gsc__title">Score card</h2>
+        <p class="gsc__hint" id="mathscHint">
+          Counts races <strong>won</strong> vs the dinosaur and times it <strong>caught you</strong>. Saved here — copy/paste to move.
+        </p>
+        <div class="gsc__grid gsc__grid--cols2">
+          <div class="gsc__block">
+            <ul class="gsc__list">
+              <li><span class="gsc__label">Races won</span> <strong id="mathscWin">0</strong></li>
+            </ul>
+          </div>
+          <div class="gsc__block">
+            <ul class="gsc__list">
+              <li><span class="gsc__label">Caught by dino</span> <strong id="mathscLoss">0</strong></li>
+            </ul>
+          </div>
+        </div>
+        <div class="gsc__actions">
+          <button type="button" class="gsc__btn" id="mathscCopy">Copy scores</button>
+          <button type="button" class="gsc__btn" id="mathscPaste">Paste scores</button>
+          <button type="button" class="gsc__btn gsc__btn--danger" id="mathscReset">Reset scores</button>
         </div>
       </section>
 
@@ -245,6 +270,7 @@
     </div>
   </div>
   <script src="../js/kids-core.js" defer></script>
+  <script src="../js/game-scorecard.js" defer></script>
   <script src="math-race.js" defer></script>
   <script>
     if ("serviceWorker" in navigator) {

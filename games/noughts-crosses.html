@@ -9,6 +9,7 @@
   <title>Noughts and crosses — Sofia's Game Room</title>
   <link rel="manifest" href="../manifest.json" />
   <link rel="stylesheet" href="../js/kids-core.css" />
+  <link rel="stylesheet" href="../js/game-scorecard.css" />
   <link rel="stylesheet" href="noughts-crosses.css" />
   <link rel="stylesheet" href="../tablet-ipad.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -27,41 +28,41 @@
         <p class="ttt-header__lede">Get three in a row — a line, column, or diagonal.</p>
       </header>
 
-      <section class="ttt-card ttt-card--scores" aria-labelledby="lblScores">
-        <h2 id="lblScores">Score card</h2>
-        <p class="ttt-scorecard__hint" id="scorecardHint">
+      <section class="gsc" aria-labelledby="lblScores">
+        <h2 id="lblScores" class="gsc__title">Score card</h2>
+        <p class="gsc__hint" id="tttscHint">
           Totals are saved on this phone or tablet. Use <strong>Copy scores</strong> on one device and <strong>Paste scores</strong> on another to move them over.
         </p>
-        <div class="ttt-score-grid" role="group" aria-label="Win counts by mode">
-          <div class="ttt-score-block">
-            <h3 class="ttt-score-block__title">Two players</h3>
-            <ul class="ttt-score-list">
-              <li><span class="ttt-score-list__label">Crosses won</span> <strong id="scoreFriendX">0</strong></li>
-              <li><span class="ttt-score-list__label">Noughts won</span> <strong id="scoreFriendO">0</strong></li>
-              <li><span class="ttt-score-list__label">Draws</span> <strong id="scoreFriendDraw">0</strong></li>
+        <div class="gsc__grid gsc__grid--cols3" role="group" aria-label="Win counts by mode">
+          <div class="gsc__block">
+            <h3 class="gsc__block-title">Two players</h3>
+            <ul class="gsc__list">
+              <li><span class="gsc__label">Crosses won</span> <strong id="scoreFriendX">0</strong></li>
+              <li><span class="gsc__label">Noughts won</span> <strong id="scoreFriendO">0</strong></li>
+              <li><span class="gsc__label">Draws</span> <strong id="scoreFriendDraw">0</strong></li>
             </ul>
           </div>
-          <div class="ttt-score-block">
-            <h3 class="ttt-score-block__title">vs computer — Easy</h3>
-            <ul class="ttt-score-list">
-              <li><span class="ttt-score-list__label">You won</span> <strong id="scoreCpuEasyYou">0</strong></li>
-              <li><span class="ttt-score-list__label">Computer won</span> <strong id="scoreCpuEasyCpu">0</strong></li>
-              <li><span class="ttt-score-list__label">Draws</span> <strong id="scoreCpuEasyDraw">0</strong></li>
+          <div class="gsc__block">
+            <h3 class="gsc__block-title">vs computer — Easy</h3>
+            <ul class="gsc__list">
+              <li><span class="gsc__label">You won</span> <strong id="scoreCpuEasyYou">0</strong></li>
+              <li><span class="gsc__label">Computer won</span> <strong id="scoreCpuEasyCpu">0</strong></li>
+              <li><span class="gsc__label">Draws</span> <strong id="scoreCpuEasyDraw">0</strong></li>
             </ul>
           </div>
-          <div class="ttt-score-block">
-            <h3 class="ttt-score-block__title">vs computer — Hard</h3>
-            <ul class="ttt-score-list">
-              <li><span class="ttt-score-list__label">You won</span> <strong id="scoreCpuHardYou">0</strong></li>
-              <li><span class="ttt-score-list__label">Computer won</span> <strong id="scoreCpuHardCpu">0</strong></li>
-              <li><span class="ttt-score-list__label">Draws</span> <strong id="scoreCpuHardDraw">0</strong></li>
+          <div class="gsc__block">
+            <h3 class="gsc__block-title">vs computer — Hard</h3>
+            <ul class="gsc__list">
+              <li><span class="gsc__label">You won</span> <strong id="scoreCpuHardYou">0</strong></li>
+              <li><span class="gsc__label">Computer won</span> <strong id="scoreCpuHardCpu">0</strong></li>
+              <li><span class="gsc__label">Draws</span> <strong id="scoreCpuHardDraw">0</strong></li>
             </ul>
           </div>
         </div>
-        <div class="ttt-score-actions">
-          <button type="button" class="ttt-btn ttt-btn--ghost ttt-btn--small" id="btnCopyScores">Copy scores</button>
-          <button type="button" class="ttt-btn ttt-btn--ghost ttt-btn--small" id="btnPasteScores">Paste scores</button>
-          <button type="button" class="ttt-btn ttt-btn--ghost ttt-btn--small ttt-score-actions__danger" id="btnResetScores">Reset scores</button>
+        <div class="gsc__actions">
+          <button type="button" class="gsc__btn" id="tttscCopy">Copy scores</button>
+          <button type="button" class="gsc__btn" id="tttscPaste">Paste scores</button>
+          <button type="button" class="gsc__btn gsc__btn--danger" id="tttscReset">Reset scores</button>
         </div>
       </section>
 
@@ -155,6 +156,7 @@
     </div>
   </div>
   <script src="../js/kids-core.js" defer></script>
+  <script src="../js/game-scorecard.js" defer></script>
   <script src="noughts-crosses.js" defer></script>
   <script>
     if ("serviceWorker" in navigator) {

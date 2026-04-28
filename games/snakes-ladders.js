@@ -1014,6 +1014,9 @@
     if (typeof KidsCore !== "undefined" && typeof KidsCore.setPlayMode === "function") {
       KidsCore.setPlayMode(which === screenGame);
     }
+    if (which === screenSetup && snScorecard) {
+      snScorecard.render();
+    }
   }
 
   function buildNameFields() {
@@ -1246,6 +1249,15 @@
         messageEl.textContent = p.name + " wins! Landed on " + board.finish + "!";
         if (winSub) {
           winSub.textContent = "You did it — first to the top!";
+        }
+        if (snScorecard) {
+          snScorecard.update(function (s) {
+            if (board.finish <= 30) {
+              s.quick.finished++;
+            } else {
+              s.full.finished++;
+            }
+          });
         }
         if (typeof KidsCore !== "undefined") {
           KidsCore.recordGame("snakes");
@@ -1507,6 +1519,31 @@
       scheduleDrawConnections();
     });
     ro.observe(boardEl);
+  }
+
+  /** @type {{ update: function(Function): void, render: function(): void }|null} */
+  var snScorecard = null;
+  if (typeof GameScorecard !== "undefined") {
+    snScorecard = GameScorecard.wire({
+      storageKey: "snakesScorecardV1",
+      defaults: {
+        full: { finished: 0 },
+        quick: { finished: 0 },
+      },
+      display: {
+        snkscFull: function (s) {
+          return s.full.finished;
+        },
+        snkscQuick: function (s) {
+          return s.quick.finished;
+        },
+      },
+      hintId: "snkscHint",
+      btnCopyId: "snkscCopy",
+      btnPasteId: "snkscPaste",
+      btnResetId: "snkscReset",
+    });
+    snScorecard.render();
   }
 
   if (typeof KidsCore !== "undefined") {

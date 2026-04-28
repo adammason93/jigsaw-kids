@@ -9,6 +9,7 @@
   <title>Snakes &amp; Ladders — Sofia's Game Room</title>
   <link rel="manifest" href="../manifest.json" />
   <link rel="stylesheet" href="../js/kids-core.css" />
+  <link rel="stylesheet" href="../js/game-scorecard.css" />
   <link rel="stylesheet" href="snakes-ladders.css" />
   <link rel="stylesheet" href="../tablet-ipad.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -54,6 +55,32 @@
         <h1>Snakes &amp; Ladders</h1>
         <p>Climb the ladders, slide past the snakes, and land <strong>exactly</strong> on the gold finish square. Choose a full board or a shorter game.</p>
       </header>
+
+      <section class="gsc" aria-labelledby="snkscTitle">
+        <h2 id="snkscTitle" class="gsc__title">Score card</h2>
+        <p class="gsc__hint" id="snkscHint">
+          Counts every time someone reaches the finish. Separate totals for the <strong>full</strong> and <strong>shorter</strong> boards. Copy/paste to move between devices.
+        </p>
+        <div class="gsc__grid gsc__grid--cols2">
+          <div class="gsc__block">
+            <h3 class="gsc__block-title">Full board (50)</h3>
+            <ul class="gsc__list">
+              <li><span class="gsc__label">Games finished</span> <strong id="snkscFull">0</strong></li>
+            </ul>
+          </div>
+          <div class="gsc__block">
+            <h3 class="gsc__block-title">Shorter (25)</h3>
+            <ul class="gsc__list">
+              <li><span class="gsc__label">Games finished</span> <strong id="snkscQuick">0</strong></li>
+            </ul>
+          </div>
+        </div>
+        <div class="gsc__actions">
+          <button type="button" class="gsc__btn" id="snkscCopy">Copy scores</button>
+          <button type="button" class="gsc__btn" id="snkscPaste">Paste scores</button>
+          <button type="button" class="gsc__btn gsc__btn--danger" id="snkscReset">Reset scores</button>
+        </div>
+      </section>
 
       <div class="sn-setup-columns">
         <section class="card sn-card--board" aria-labelledby="lblBoard">
@@ -417,6 +444,7 @@
     </div>
   </div>
   <script src="../js/kids-core.js"></script>
+  <script src="../js/game-scorecard.js"></script>
   <script src="snakes-ladders.js"></script>
 </body>
 </html>

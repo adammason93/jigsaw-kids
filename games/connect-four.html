@@ -9,6 +9,7 @@
   <title>Connect 4 — Sofia's Game Room</title>
   <link rel="manifest" href="../manifest.json" />
   <link rel="stylesheet" href="../js/kids-core.css" />
+  <link rel="stylesheet" href="../js/game-scorecard.css" />
   <link rel="stylesheet" href="connect-four.css" />
   <link rel="stylesheet" href="../tablet-ipad.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -26,6 +27,36 @@
         <h1>Connect 4</h1>
         <p class="c4-header__lede">Drop a piece in a column — first to get <strong>four in a row</strong> (across, down, or diagonal) wins.</p>
       </header>
+
+      <section class="gsc" aria-labelledby="c4scTitle">
+        <h2 id="c4scTitle" class="gsc__title">Score card</h2>
+        <p class="gsc__hint" id="c4scHint">
+          Totals save on this device. Use <strong>Copy scores</strong> here and <strong>Paste scores</strong> on another device to move them.
+        </p>
+        <div class="gsc__grid gsc__grid--cols2">
+          <div class="gsc__block">
+            <h3 class="gsc__block-title">Two players</h3>
+            <ul class="gsc__list">
+              <li><span class="gsc__label">Red won</span> <strong id="c4scFriendR">0</strong></li>
+              <li><span class="gsc__label">Yellow won</span> <strong id="c4scFriendY">0</strong></li>
+              <li><span class="gsc__label">Draws</span> <strong id="c4scFriendD">0</strong></li>
+            </ul>
+          </div>
+          <div class="gsc__block">
+            <h3 class="gsc__block-title">vs computer</h3>
+            <ul class="gsc__list">
+              <li><span class="gsc__label">You won</span> <strong id="c4scCpuYou">0</strong></li>
+              <li><span class="gsc__label">Computer won</span> <strong id="c4scCpuCpu">0</strong></li>
+              <li><span class="gsc__label">Draws</span> <strong id="c4scCpuD">0</strong></li>
+            </ul>
+          </div>
+        </div>
+        <div class="gsc__actions">
+          <button type="button" class="gsc__btn" id="c4scCopy">Copy scores</button>
+          <button type="button" class="gsc__btn" id="c4scPaste">Paste scores</button>
+          <button type="button" class="gsc__btn gsc__btn--danger" id="c4scReset">Reset scores</button>
+        </div>
+      </section>
 
       <section class="c4-card" aria-labelledby="lblMode">
         <h2 id="lblMode">How do you want to play?</h2>
@@ -67,6 +98,7 @@
     </div>
   </div>
   <script src="../js/kids-core.js" defer></script>
+  <script src="../js/game-scorecard.js" defer></script>
   <script src="connect-four.js" defer></script>
   <script>
     if ("serviceWorker" in navigator) {

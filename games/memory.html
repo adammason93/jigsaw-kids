@@ -9,6 +9,7 @@
   <title>Memory — Sofia's Game Room</title>
   <link rel="manifest" href="../manifest.json" />
   <link rel="stylesheet" href="../js/kids-core.css" />
+  <link rel="stylesheet" href="../js/game-scorecard.css" />
   <link rel="stylesheet" href="memory.css" />
   <link rel="stylesheet" href="../tablet-ipad.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -28,6 +29,38 @@
           Find matching <strong>pairs</strong>: same <strong>animal</strong> or same <strong>person</strong>. Tap a card to turn it over — only two cards stay face-up at once. Match them all!
         </p>
       </header>
+
+      <section class="gsc" aria-labelledby="memscTitle">
+        <h2 id="memscTitle" class="gsc__title">Score card</h2>
+        <p class="gsc__hint" id="memscHint">
+          Wins after you match every pair for each grid size. Saved here — use Copy / Paste on another device if you like.
+        </p>
+        <div class="gsc__grid gsc__grid--cols3">
+          <div class="gsc__block">
+            <h3 class="gsc__block-title">Quick</h3>
+            <ul class="gsc__list">
+              <li><span class="gsc__label">Games won</span> <strong id="memscQuick">0</strong></li>
+            </ul>
+          </div>
+          <div class="gsc__block">
+            <h3 class="gsc__block-title">Normal</h3>
+            <ul class="gsc__list">
+              <li><span class="gsc__label">Games won</span> <strong id="memscNormal">0</strong></li>
+            </ul>
+          </div>
+          <div class="gsc__block">
+            <h3 class="gsc__block-title">Big</h3>
+            <ul class="gsc__list">
+              <li><span class="gsc__label">Games won</span> <strong id="memscBig">0</strong></li>
+            </ul>
+          </div>
+        </div>
+        <div class="gsc__actions">
+          <button type="button" class="gsc__btn" id="memscCopy">Copy scores</button>
+          <button type="button" class="gsc__btn" id="memscPaste">Paste scores</button>
+          <button type="button" class="gsc__btn gsc__btn--danger" id="memscReset">Reset scores</button>
+        </div>
+      </section>
 
       <section class="memory-card memory-card--panel" aria-labelledby="lblDifficulty">
         <h2 id="lblDifficulty">Choose your game size</h2>
@@ -97,6 +130,7 @@
     </div>
   </div>
   <script src="../js/kids-core.js"></script>
+  <script src="../js/game-scorecard.js"></script>
   <script src="memory.js"></script>
   <script>
     if ("serviceWorker" in navigator) {

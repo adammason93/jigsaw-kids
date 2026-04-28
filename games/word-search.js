@@ -105,6 +105,9 @@
   let kellyHideTimer = null;
   let kellyDoneTimer = null;
 
+  /** @type {{ update: function(Function): void, render: function(): void }|null} */
+  let wsScorecard = null;
+
   const KELLY_SHOW_MS = 2200;
   const KELLY_EXIT_MS = 400;
 
@@ -577,6 +580,11 @@
       renderWordList();
       if (allFound()) {
         setStatus("You found every word!");
+        if (wsScorecard) {
+          wsScorecard.update(function (s) {
+            s.gridsCompleted++;
+          });
+        }
         const prize = TREASURE_PRIZES[randomInt(0, TREASURE_PRIZES.length - 1)];
         showKellyWellDone(function () {
           showTreasurePopup(
@@ -662,6 +670,22 @@
   function init() {
     if (!boardEl) {
       return;
+    }
+    if (typeof GameScorecard !== "undefined") {
+      wsScorecard = GameScorecard.wire({
+        storageKey: "wordSearchScorecardV1",
+        defaults: { gridsCompleted: 0 },
+        display: {
+          wsscGrids: function (s) {
+            return s.gridsCompleted;
+          },
+        },
+        hintId: "wsscHint",
+        btnCopyId: "wsscCopy",
+        btnPasteId: "wsscPaste",
+        btnResetId: "wsscReset",
+      });
+      wsScorecard.render();
     }
     newGame();
     boardEl.addEventListener("pointerdown", onPointerDown);

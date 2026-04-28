@@ -6,6 +6,7 @@
   <title>Your run — Sofia's Game Room</title>
   <link rel="stylesheet" href="runner.css" />
   <link rel="stylesheet" href="../js/kids-core.css" />
+  <link rel="stylesheet" href="../js/game-scorecard.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Sniglet:wght@400;800&display=swap" rel="stylesheet" />
@@ -21,6 +22,22 @@
         <h1>Build your run</h1>
         <p>Pick your name, where you are, and who is running. Then the path is all yours.</p>
       </div>
+
+      <section class="gsc" aria-labelledby="runscTitle">
+        <h2 id="runscTitle" class="gsc__title">Score card</h2>
+        <p class="gsc__hint" id="runscHint">
+          Your <strong>best distance</strong> (steps) saves here. Copy/paste to move to another device. The same number shows during your run.
+        </p>
+        <div class="gsc__block">
+          <p class="gsc__stat-label">Best distance (steps)</p>
+          <p class="gsc__stat" id="runscBestSetup">0</p>
+        </div>
+        <div class="gsc__actions">
+          <button type="button" class="gsc__btn" id="runscCopy">Copy scores</button>
+          <button type="button" class="gsc__btn" id="runscPaste">Paste scores</button>
+          <button type="button" class="gsc__btn gsc__btn--danger" id="runscReset">Reset scores</button>
+        </div>
+      </section>
 
       <div class="setup-block">
         <h2>What should we call you?</h2>
@@ -138,6 +155,7 @@
     </div>
   </div>
   <script src="../js/kids-core.js" defer></script>
+  <script src="../js/game-scorecard.js" defer></script>
   <script src="runner.js" defer></script>
 </body>
 </html>

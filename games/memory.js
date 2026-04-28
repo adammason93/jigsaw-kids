@@ -58,6 +58,34 @@
     return;
   }
 
+  /** @type {{ update: function(Function): void, render: function(): void }|null} */
+  var memScorecard = null;
+  if (typeof GameScorecard !== "undefined") {
+    memScorecard = GameScorecard.wire({
+      storageKey: "memoryScorecardV1",
+      defaults: { quick: 0, normal: 0, big: 0 },
+      display: {
+        memscQuick: function (s) {
+          return s.quick;
+        },
+        memscNormal: function (s) {
+          return s.normal;
+        },
+        memscBig: function (s) {
+          return s.big;
+        },
+      },
+      hintId: "memscHint",
+      btnCopyId: "memscCopy",
+      btnPasteId: "memscPaste",
+      btnResetId: "memscReset",
+    });
+    memScorecard.render();
+  }
+
+  /** Size key for the active round (for score card). */
+  var lastMemorySize = "normal";
+
   /** @type {{ pairId: string, kind: "animal"|"character", species?: object, character?: object }[]} */
   var deck = [];
   var pairCount = 0;
@@ -333,7 +361,7 @@
           KidsCore.haptic("success");
         }
         if (matchedPairs >= pairCount) {
-          finishWin();
+          finishWin(lastMemorySize);
         }
       }, MATCH_CELEBRATE_MS);
       return;
@@ -360,7 +388,18 @@
     }, MISMATCH_MS);
   }
 
-  function finishWin() {
+  function finishWin(sizeKey) {
+    if (memScorecard && sizeKey) {
+      memScorecard.update(function (s) {
+        if (sizeKey === "quick") {
+          s.quick++;
+        } else if (sizeKey === "big") {
+          s.big++;
+        } else {
+          s.normal++;
+        }
+      });
+    }
     if (winEl) {
       winEl.textContent =
         "You matched them all — great job! Moves: " +
@@ -388,6 +427,7 @@
   function startGame() {
     var sizeInput = document.querySelector('input[name="memorySize"]:checked');
     var sizeKey = sizeInput ? sizeInput.value : "normal";
+    lastMemorySize = sizeKey;
     deck = buildDeck(sizeKey);
     resetPlayState();
 
@@ -420,11 +460,15 @@
     }
 
     document.body.classList.remove("memory-playing");
+    if (memScorecard) {
+      memScorecard.render();
+    }
   }
 
   function playAgainSameSize() {
     var sizeInput = document.querySelector('input[name="memorySize"]:checked');
     var sizeKey = sizeInput ? sizeInput.value : "normal";
+    lastMemorySize = sizeKey;
     deck = buildDeck(sizeKey);
     resetPlayState();
     renderBoard();

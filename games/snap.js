@@ -55,6 +55,37 @@
     return;
   }
 
+  /** @type {{ update: function(Function): void, render: function(): void }|null} */
+  var snapScorecard = null;
+  if (typeof GameScorecard !== "undefined") {
+    snapScorecard = GameScorecard.wire({
+      storageKey: "snapScorecardV1",
+      defaults: {
+        friend: { p1: 0, p2: 0 },
+        cpu: { you: 0, cpu: 0 },
+      },
+      display: {
+        snapscP1: function (s) {
+          return s.friend.p1;
+        },
+        snapscP2: function (s) {
+          return s.friend.p2;
+        },
+        snapscYou: function (s) {
+          return s.cpu.you;
+        },
+        snapscCpu: function (s) {
+          return s.cpu.cpu;
+        },
+      },
+      hintId: "snapscHint",
+      btnCopyId: "snapscCopy",
+      btnPasteId: "snapscPaste",
+      btnResetId: "snapscReset",
+    });
+    snapScorecard.render();
+  }
+
   var IMG_PREFIX = "__img:";
   var CHARACTER_OPTIONS = [
     { v: IMG_PREFIX + "images/character-babyca.png", label: "Baby" },
@@ -819,6 +850,27 @@
 
   function endGameWin() {
     gameOver = true;
+    var p1Wins = score1 >= WIN_SCORE;
+    if (snapScorecard) {
+      snapScorecard.update(function (s) {
+        if (mode === "friend") {
+          if (p1Wins) {
+            s.friend.p1++;
+          } else {
+            s.friend.p2++;
+          }
+        } else {
+          var humanIsP1 = humanPlayer === 1;
+          var youWin =
+            (p1Wins && humanIsP1) || (!p1Wins && !humanIsP1);
+          if (youWin) {
+            s.cpu.you++;
+          } else {
+            s.cpu.cpu++;
+          }
+        }
+      });
+    }
     clearCpuSnapTimer();
     clearAutoFlipTimer();
     if (btnFlip) {
@@ -830,7 +882,6 @@
     if (btnSnap2) {
       btnSnap2.disabled = true;
     }
-    var p1Wins = score1 >= WIN_SCORE;
     var name = p1Wins ? winnerDisplayName(1) : winnerDisplayName(2);
     var s1 = score1;
     var s2 = score2;
@@ -1082,6 +1133,9 @@
     screenSetup.classList.remove("is-hidden");
     screenSetup.hidden = false;
     syncSnapCharHeadings();
+    if (snapScorecard) {
+      snapScorecard.render();
+    }
   }
 
   function showPlay() {

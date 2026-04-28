@@ -71,7 +71,48 @@
   let scrollPxPerSec = 95;
   const SCROLL_BASE = 95;
   const SCROLL_MAX = 150;
-  let best = Number(localStorage.getItem("runnerBest") || 0) || 0;
+  /** @type {{ update: function(Function): void, render: function(): void, load: function(): object }|null} */
+  let runnerScorecard = null;
+
+  let best = 0;
+
+  if (typeof GameScorecard !== "undefined") {
+    runnerScorecard = GameScorecard.wire({
+      storageKey: "runnerScorecardV1",
+      defaults: { best: 0 },
+      display: {
+        runscBestSetup: function (s) {
+          return Math.floor(s.best);
+        },
+      },
+      hintId: "runscHint",
+      btnCopyId: "runscCopy",
+      btnPasteId: "runscPaste",
+      btnResetId: "runscReset",
+      onRender: function (data) {
+        best = data.best;
+        if (bestEl) {
+          bestEl.textContent = String(Math.floor(best));
+        }
+        try {
+          localStorage.setItem("runnerBest", String(Math.floor(best)));
+        } catch (e) {}
+      },
+    });
+    var legacyBest = localStorage.getItem("runnerBest");
+    var st = runnerScorecard.load();
+    if (legacyBest) {
+      var lg = Number(legacyBest) || 0;
+      if (lg > st.best) {
+        runnerScorecard.update(function (s) {
+          s.best = lg;
+        });
+      }
+    }
+    best = runnerScorecard.load().best;
+  } else {
+    best = Number(localStorage.getItem("runnerBest") || 0) || 0;
+  }
   if (bestEl) bestEl.textContent = String(Math.floor(best));
 
   const keys = { duck: false };
@@ -1175,6 +1216,11 @@
       if (d > best) {
         best = d;
         localStorage.setItem("runnerBest", String(best));
+        if (runnerScorecard) {
+          runnerScorecard.update(function (s) {
+            s.best = best;
+          });
+        }
         if (bestEl) bestEl.textContent = String(best);
       }
       showOver(d);
@@ -1217,6 +1263,9 @@
     overlay.classList.add("is-hidden");
     overlay.classList.remove("is-visible");
     if (app) app.classList.remove("app--wider");
+    if (runnerScorecard) {
+      runnerScorecard.render();
+    }
   }
 
   function applyPrefsToRun() {

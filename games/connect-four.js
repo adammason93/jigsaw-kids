@@ -30,6 +30,9 @@
   /** true while a disc is animating (blocks input) */
   var isDropping = false;
 
+  /** @type {{ update: function(Function): void, render: function(): void }|null} */
+  var scorecard = null;
+
   function prefersReducedMotion() {
     return (
       window.matchMedia &&
@@ -56,6 +59,9 @@
     document.body.classList.toggle("c4-playing", onPlay);
     if (typeof KidsCore !== "undefined" && typeof KidsCore.setPlayMode === "function") {
       KidsCore.setPlayMode(onPlay);
+    }
+    if (!onPlay && scorecard) {
+      scorecard.render();
     }
   }
 
@@ -368,8 +374,34 @@
     }
   }
 
+  function recordC4Result(winnerInfo, draw) {
+    if (!scorecard) {
+      return;
+    }
+    scorecard.update(function (s) {
+      if (mode === "friend") {
+        if (draw) {
+          s.friend.draw++;
+        } else if (winnerInfo && winnerInfo.player === "R") {
+          s.friend.r++;
+        } else if (winnerInfo) {
+          s.friend.y++;
+        }
+      } else {
+        if (draw) {
+          s.cpu.draw++;
+        } else if (winnerInfo && winnerInfo.player === "R") {
+          s.cpu.you++;
+        } else if (winnerInfo) {
+          s.cpu.cpu++;
+        }
+      }
+    });
+  }
+
   function endGame(winnerInfo, draw) {
     gameOver = true;
+    recordC4Result(winnerInfo, draw);
     if (playHint) {
       playHint.setAttribute("aria-hidden", "true");
     }
@@ -541,6 +573,41 @@
   btnMenu.addEventListener("click", function () {
     showScreen("setup");
   });
+
+  if (typeof GameScorecard !== "undefined") {
+    scorecard = GameScorecard.wire({
+      storageKey: "c4ScorecardV1",
+      defaults: {
+        friend: { r: 0, y: 0, draw: 0 },
+        cpu: { you: 0, cpu: 0, draw: 0 },
+      },
+      display: {
+        c4scFriendR: function (s) {
+          return s.friend.r;
+        },
+        c4scFriendY: function (s) {
+          return s.friend.y;
+        },
+        c4scFriendD: function (s) {
+          return s.friend.draw;
+        },
+        c4scCpuYou: function (s) {
+          return s.cpu.you;
+        },
+        c4scCpuCpu: function (s) {
+          return s.cpu.cpu;
+        },
+        c4scCpuD: function (s) {
+          return s.cpu.draw;
+        },
+      },
+      hintId: "c4scHint",
+      btnCopyId: "c4scCopy",
+      btnPasteId: "c4scPaste",
+      btnResetId: "c4scReset",
+    });
+    scorecard.render();
+  }
 
   if (typeof KidsCore !== "undefined") {
     KidsCore.init();
