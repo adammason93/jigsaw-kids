@@ -20,6 +20,24 @@ Opening the installed app uses your **Workers URL**; offline behaviour still fol
 
 ---
 
+### PWABuilder not working? Check these first
+
+1. **Use the live HTTPS URL only** — Paste your **deployed** root, e.g. `https://jigsaw-kids.adammason93.workers.dev/` (with trailing slash is fine). **Localhost / file:// will fail** unless you use a tunnel (ngrok, Cloudflare Tunnel).
+
+2. **Same URL you ship** — `manifest.json` uses **paths relative to the manifest** (`./index.html`, `icons/...`). That matches both a **root domain** and a **subfolder** (e.g. GitHub Pages `…/jigsaw-kids/`). If you previously used `/manifest.json` only at the **origin root**, a project site would 404 the manifest; the repo now uses `href="manifest.json"` on the portal so the link always matches the folder the app lives in.
+
+3. **Open the site once in a normal browser** before re-running PWABuilder so the **service worker** can register; then run the report again.
+
+4. **403/404 on manifest or icons** — In the browser, open `yoursite/manifest.json` and `yoursite/icons/icon-192.png` ; both must load. **Content-Type** for the manifest should be `application/manifest+json` or `application/json` (this repo’s `_headers` does that on static hosts that respect it).
+
+5. **Ad / privacy blockers** — Some block service workers; try an incognito window with extensions off, or another device.
+
+6. **Interpreting PWABuilder** — A yellow “Service worker” or “Installable” item is a **hint**; the **Package** / **Download** step for Android can still work if the **required** fields (name, icons, start_url, display) are valid. Use the in-site **Report card** copy-paste or “View errors” for the exact line.
+
+If it still fails, copy the **exact error text** or a screenshot of the report card and compare to [Bubblewrap](https://github.com/GoogleChromeLabs/bubblewrap) (Option B) with the same public `manifest` URL.
+
+---
+
 ## Option B — Bubblewrap (CLI, more control)
 
 Needs **Node.js**, **JDK**, and **Android SDK** installed (typical Android Studio install).

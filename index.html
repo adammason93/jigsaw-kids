@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="description" content="Picture jigsaw, colouring book, number path, word search, Memory, Snap, snakes and ladders, noughts and crosses, and Connect 4 for children — works offline after one visit." />
   <title>Sofia's Game Room</title>
-  <link rel="manifest" href="/manifest.json" />
+  <link rel="manifest" href="manifest.json" />
   <link rel="stylesheet" href="portal.css" />
   <link rel="stylesheet" href="tablet-ipad.css" />
   <link rel="stylesheet" href="js/kids-core.css" />
@@ -215,7 +215,7 @@
     }
     /* Register ASAP — automated PWA auditors often miss late SW registration */
     if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("./sw.js").catch(function () {});
+      navigator.serviceWorker.register("./sw.js", { scope: "./" }).catch(function () {});
     }
     (function () {
       var WELCOME_BACK_MS = 3 * 24 * 60 * 60 * 1000;
@@ -244,3 +244,4 @@
   </script>
 </body>
 </html>
+  
