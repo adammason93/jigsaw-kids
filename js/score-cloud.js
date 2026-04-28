@@ -388,6 +388,7 @@
 
       var statusEl = zone.querySelector("#kidsSyncStatus");
       var passEl = zone.querySelector("#kidsSyncPassword");
+      var showPassEl = zone.querySelector("#kidsSyncShowPass");
       var btnSignIn = zone.querySelector("#kidsSyncSignIn");
       var btnPull = zone.querySelector("#kidsSyncPull");
       var btnOut = zone.querySelector("#kidsSyncOut");
