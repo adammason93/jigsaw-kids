@@ -25,7 +25,9 @@
   --sky-mid: #d8f1e8;
   --park-shade: rgba(25, 80, 50, 0.45);
   /* In-game park + track — shared by .race-stage and .race-ribbon */
-  --race-section-min-height: clamp(195px, 30dvh, 330px);
+  --race-section-min-height: clamp(195px, 28dvh, 300px);
+  /* Stop the stage stretching to fill the viewport */
+  --race-section-max-height: min(42dvh, 320px);
   --radius: 16px;
   --shadow: 0 4px 0 var(--ink), 0 8px 24px rgba(20, 50, 40, 0.12);
   --shadow-card: 0 3px 0 rgba(0, 0, 0, 0.08), 0 4px 18px rgba(27, 58, 50, 0.08);
@@ -682,7 +684,7 @@ body.page-math:has(#screenSetup:not(.is-hidden)) #screenSetup .btn-primary {
 .play-layout {
   display: grid;
   gap: 1.1rem;
-  align-items: stretch;
+  align-items: start;
   flex: 1 1 auto;
   min-height: 0;
   overflow: visible;
@@ -705,8 +707,9 @@ body.page-math:has(#screenSetup:not(.is-hidden)) #screenSetup .btn-primary {
 .play-race-wrap {
   display: flex;
   flex-direction: column;
-  flex: 1 1 auto;
-  min-height: var(--race-section-min-height);
+  flex: 0 1 auto;
+  align-self: stretch;
+  min-height: 0;
   min-width: 0;
   width: 100%;
 }
@@ -835,8 +838,10 @@ body.page-math:has(#screenSetup:not(.is-hidden)) #screenSetup .btn-primary {
   /* Bottom band height + extra lift so track reads as one layer with the park */
   --race-park-overlap: min(30px, 9vmin);
   position: relative;
-  flex: 1 1 auto;
+  flex: 0 0 auto;
+  width: 100%;
   min-height: var(--race-section-min-height);
+  max-height: var(--race-section-max-height);
   border-radius: 20px;
   overflow: hidden;
   margin: 0 -0.25rem 0;
@@ -850,6 +855,8 @@ body.page-math:has(#screenSetup:not(.is-hidden)) #screenSetup .btn-primary {
 
 .race-stage.has-multi-lane {
   --race-path-band: clamp(171px, 21vh, 248px);
+  min-height: clamp(235px, 36dvh, 360px);
+  max-height: min(56dvh, 440px);
 }
 
 /* Park art — full frame; path strip paints on top so track overlaps the picture */
@@ -1242,11 +1249,11 @@ html.kids-reduce-motion .race-canopy {
   left: clamp(0.35rem, 2vw, 0.75rem);
   bottom: clamp(0.5rem, 2.4vmin, 1rem);
   z-index: 5;
-  font-size: clamp(0.72rem, 2.1vmin, 0.88rem);
+  font-size: clamp(0.82rem, 2.35vmin, 1rem);
 }
 
 .race-path-shell .race-flag--on-path.race-flag--start::before {
-  font-size: clamp(1.6rem, 5.2vmin, 2.35rem);
+  font-size: clamp(1.95rem, 6vmin, 2.85rem);
   margin-bottom: 0.12rem;
 }
 
@@ -1256,7 +1263,7 @@ html.kids-reduce-motion .race-canopy {
   bottom: clamp(0.42rem, 2vmin, 0.95rem);
   left: auto;
   top: auto;
-  width: clamp(110px, 38vw, 220px);
+  width: clamp(145px, 46vw, 275px);
   z-index: 5;
   display: flex;
   align-items: flex-end;
@@ -1369,7 +1376,7 @@ html.kids-reduce-motion .race-canopy {
   display: block;
   width: 100%;
   height: auto;
-  max-height: min(26vh, 135px);
+  max-height: min(34vh, 215px);
   object-fit: contain;
 }
 
@@ -1428,7 +1435,7 @@ html.kids-reduce-motion .race-canopy {
   justify-content: space-between;
   align-items: center;
   padding: 0 0.1rem;
-  padding-right: clamp(120px, 42vw, 230px); /* room for finish banner */
+  padding-right: clamp(140px, 48vw, 280px); /* room for finish banner */
   pointer-events: none;
   z-index: 3;
 }
@@ -1487,8 +1494,8 @@ html.kids-reduce-motion .race-canopy {
   left: var(--runner-left, 2%);
   bottom: var(--runner-bottom, 0.2rem);
   z-index: 4;
-  width: clamp(5.75rem, 26vmin, 10.5rem);
-  height: clamp(7rem, 36vmin, 12rem);
+  width: clamp(7rem, 32vmin, 13rem);
+  height: clamp(8.75rem, 44vmin, 14.5rem);
   margin-left: 0;
   display: flex;
   align-items: flex-end;
@@ -1500,30 +1507,30 @@ html.kids-reduce-motion .race-canopy {
 
 /* Stacked lanes: lower = closer to grass (lane 0), higher = upper path */
 .race-runner--lane0 {
-  --runner-bottom: clamp(1.55rem, 4.25vmin, 2.45rem);
+  --runner-bottom: clamp(1.65rem, 4.6vmin, 2.65rem);
   z-index: 5;
 }
 
 .race-runner--lane1 {
-  --runner-bottom: clamp(4.15rem, 11.75vmin, 6rem);
+  --runner-bottom: clamp(4.55rem, 13vmin, 6.75rem);
   z-index: 6;
 }
 
 .race-runner--lane2 {
-  --runner-bottom: clamp(7.25rem, 18.5vmin, 9.35rem);
+  --runner-bottom: clamp(7.85rem, 20vmin, 10.25rem);
   z-index: 7;
 }
 
 .race-stage:not(.has-multi-lane) .race-runner--lane0 {
-  --runner-bottom: clamp(1.5rem, 4.1vmin, 2.55rem);
+  --runner-bottom: clamp(1.6rem, 4.45vmin, 2.75rem);
 }
 
 .race-runner--dino .race-runner__emoji {
-  font-size: clamp(3.35rem, 13vmin, 5.75rem);
+  font-size: clamp(3.95rem, 15vmin, 6.75rem);
 }
 
 .race-runner__emoji {
-  font-size: clamp(3.65rem, 13vmin, 6.25rem);
+  font-size: clamp(4.35rem, 15vmin, 7.25rem);
   line-height: 1;
   display: block;
   transform-origin: 50% 85%;
@@ -1540,9 +1547,9 @@ html.kids-reduce-motion .race-canopy {
 
 .race-runner__emoji--pic .race-runner__pic {
   display: block;
-  width: clamp(4.65rem, 19vmin, 8.5rem);
+  width: clamp(5.75rem, 23vmin, 10.5rem);
   height: auto;
-  max-height: clamp(7.5rem, 32vmin, 11rem);
+  max-height: clamp(9rem, 40vmin, 13.5rem);
   object-fit: contain;
   transform-origin: 50% 85%;
   filter:
