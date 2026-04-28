@@ -1548,17 +1548,28 @@ html.kids-reduce-motion .race-canopy {
   --runner-bottom: clamp(1.6rem, 4.45vmin, 2.75rem);
 }
 
-/* VS dinosaur: same lane/height; child ahead on the path layers above the dino */
+/* VS dinosaur: Sofia closer to the camera; dino trails on the path (left = behind) */
 .race-stage.is-dino .race-runner--dino {
   z-index: 5;
+  /* Nudge sprite slightly back on the track so it reads clearly behind Sofia */
+  transform: translateX(calc(-50% - clamp(0.2rem, 1.4vmin, 0.55rem)));
+  width: clamp(8.5rem, 36vmin, 15.5rem);
+  max-width: min(45vw, 16rem);
+  height: clamp(9.5rem, 46vmin, 17rem);
 }
 
 .race-stage.is-dino .race-runner:not(.race-runner--dino) {
   z-index: 8;
+  width: clamp(5.25rem, 22vmin, 9.75rem);
+  height: clamp(7.25rem, 35vmin, 12.25rem);
 }
 
 .race-runner--dino .race-runner__emoji {
   font-size: clamp(3.95rem, 15vmin, 6.75rem);
+}
+
+.race-stage.is-dino .race-runner--dino .race-runner__emoji {
+  font-size: clamp(4.5rem, 17vmin, 7.5rem);
 }
 
 .race-runner__emoji {
@@ -1589,18 +1600,22 @@ html.kids-reduce-motion .race-canopy {
     drop-shadow(0 4px 6px rgba(35, 75, 45, 0.35));
 }
 
-/* Transparent PNG + clipped “peek” — dinosaur chasing mostly just off-screen left */
-.race-runner--dino.race-runner__emoji--pic {
-  overflow: hidden;
-  width: clamp(2.85rem, 10vmin, 4.5rem);
+/* Vs-dino: Sofia a bit smaller; dinosaur clearly bigger — full sprite on the path behind her */
+.race-stage.is-dino .race-runner:not(.race-runner--dino) .race-runner__emoji--pic .race-runner__pic {
+  width: clamp(4.35rem, 18vmin, 7.25rem);
+  max-height: clamp(6.25rem, 28vmin, 10rem);
 }
 
-.race-runner--dino.race-runner__emoji--pic .race-runner__pic {
-  width: clamp(7rem, 28vmin, 12.5rem) !important;
+.race-stage.is-dino .race-runner--dino.race-runner__emoji--pic {
+  overflow: visible;
+}
+
+.race-stage.is-dino .race-runner--dino.race-runner__emoji--pic .race-runner__pic {
+  width: clamp(8.75rem, 34vmin, 15rem);
   max-width: none;
-  max-height: clamp(9rem, 40vmin, 13.5rem);
-  transform-origin: 82% 92%;
-  transform: translateX(-54%);
+  max-height: clamp(11rem, 44vmin, 17rem);
+  transform: translateX(-50%);
+  transform-origin: 50% 92%;
 }
 
 /* Extra bounce for the long-neck dino */
@@ -1667,6 +1682,77 @@ html.kids-reduce-motion .race-canopy {
 .race-runner--hop .race-runner__shadow {
   transform: translateX(-50%) scale(0.7);
   opacity: 0.5;
+}
+
+/* Speech bubble when the dinosaur hops forward */
+.race-runner__bubble {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 0.15rem);
+  transform: translateX(-50%);
+  padding: 0.28rem 0.6rem 0.32rem;
+  max-width: min(12rem, 42vw);
+  background: #fffef8;
+  border: 2.5px solid #1a3038;
+  border-radius: 11px;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.12);
+  font-family: "Sniglet", "Nunito", system-ui, sans-serif;
+  font-size: clamp(0.62rem, 2.5vmin, 0.82rem);
+  font-weight: 800;
+  line-height: 1.15;
+  color: #1a3040;
+  text-align: center;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  z-index: 12;
+  transition:
+    opacity 0.12s ease,
+    transform 0.12s ease;
+}
+
+.race-runner__bubble::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -7px;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 7px solid transparent;
+  border-right: 7px solid transparent;
+  border-top: 8px solid #1a3038;
+}
+
+.race-runner__bubble::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -4px;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 6px solid #fffef8;
+  z-index: 1;
+}
+
+.race-runner__bubble--show {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(-2px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .race-runner__bubble {
+    transition: none;
+  }
+
+  .race-runner__bubble--show {
+    transform: translateX(-50%);
+  }
 }
 
 .question-card {

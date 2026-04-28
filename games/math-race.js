@@ -10,6 +10,21 @@
   /** Dinosaur gets its own turn with a pop-up question; it answers most of the time (fair “race”) */
   const DINO_ANSWER_CORRECT_CHANCE = 0.82;
 
+  const DINO_JUMP_QUIPS = [
+    "Roar!",
+    "Watch out!",
+    "I'm catching up!",
+    "Stomp stomp!",
+    "Grrr!",
+    "Here I come!",
+    "Run!",
+    "Almost got you!",
+    "Don't look back!",
+    "Faster!",
+    "Yikes!",
+    "Behind you!",
+  ];
+
   const softWrong = [
     "Almost! Try another number.",
     "Good try — pick a different answer!",
@@ -285,6 +300,7 @@
       row.className = "race-runner race-runner--lane" + p.lane + (p.isCpu ? " race-runner--dino" : "");
       row.dataset.playerId = p.id;
       row.innerHTML =
+        (p.isCpu ? '<div class="race-runner__bubble" aria-hidden="true"></div>' : "") +
         '<span class="race-runner__emoji" aria-hidden="true"></span>' +
         '<div class="race-runner__glow" aria-hidden="true"></div>' +
         '<div class="race-runner__shadow" aria-hidden="true"></div>';
@@ -413,12 +429,30 @@
     updateTurnLabel();
   }
 
+  function showDinoJumpBubble(runnerEl) {
+    const bubble = runnerEl.querySelector(".race-runner__bubble");
+    if (!bubble) {
+      return;
+    }
+    bubble.textContent = DINO_JUMP_QUIPS[Math.floor(Math.random() * DINO_JUMP_QUIPS.length)];
+    bubble.classList.add("race-runner__bubble--show");
+    if (bubble._hideTimer) {
+      clearTimeout(bubble._hideTimer);
+    }
+    bubble._hideTimer = setTimeout(function () {
+      bubble.classList.remove("race-runner__bubble--show");
+    }, 1400);
+  }
+
   function playRunnerHopByPlayerId(id) {
     const p = players.find(function (x) {
       return x.id === id;
     });
     if (!p || !p.el) {
       return;
+    }
+    if (id === "cpu") {
+      showDinoJumpBubble(p.el);
     }
     p.el.classList.remove("race-runner--hop");
     const emoji = p.el.querySelector(".race-runner__emoji");
@@ -684,6 +718,13 @@
   function startGame() {
     clearDinoTimer();
     dinoQuestionTurn = false;
+    document.querySelectorAll(".race-runner__bubble--show").forEach(function (b) {
+      b.classList.remove("race-runner__bubble--show");
+      if (b._hideTimer) {
+        clearTimeout(b._hideTimer);
+        b._hideTimer = null;
+      }
+    });
     level = selectedLevel();
     gameSteps = selectedPathSteps();
     const ph = document.getElementById("pictureHelp");
