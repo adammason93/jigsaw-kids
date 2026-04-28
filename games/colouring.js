@@ -283,6 +283,50 @@
     return "Picture";
   }
 
+  function sanitizePhotoName(raw) {
+    if (raw == null || typeof raw !== "string") {
+      return "";
+    }
+    var s = raw.replace(/\s+/g, " ").replace(/[^\S\r\n]+/g, " ").trim();
+    s = s.replace(/[<>"']/g, "");
+    if (s.length > 48) {
+      s = s.slice(0, 48);
+    }
+    return s;
+  }
+
+  function getSlotCaption(sl) {
+    if (!sl) {
+      return "Picture";
+    }
+    var custom = sanitizePhotoName(sl.photoName || "");
+    if (custom) {
+      return custom;
+    }
+    return getTemplateLabel(sl.templateFile);
+  }
+
+  /** Shown inside the naming dialog — child-friendly default */
+  function defaultPhotoNameSuggestion() {
+    return (
+      getTemplateLabel(currentTemplateFile) +
+      " · " +
+      new Date().toLocaleDateString(undefined, { month: "short", day: "numeric" })
+    );
+  }
+
+  function slugifyForFilename(s) {
+    if (!s || typeof s !== "string") {
+      return "sofiacolour";
+    }
+    var t = s
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+    return t ? t.slice(0, 40) : "sofiacolour";
+  }
+
   function getDpr() {
     return Math.min(window.devicePixelRatio || 1, 2.5);
   }
@@ -591,26 +635,51 @@
   }
 
   /**
+   * Small JPEG preview of paint + line art (matches what you see). For saved strip.
    * @param {(function(): void)|undefined} done
    */
-  function applyThumbToPayload(paintDataUrl, payload, done) {
+  function applyPreviewThumb(paintDataUrl, templateFile, payload, done) {
     done = done || function () {};
-    var im = new Image();
-    im.onload = function () {
-      try {
-        var c = document.createElement("canvas");
-        c.width = 120;
-        c.height = 90;
-        var cx = c.getContext("2d");
-        cx.drawImage(im, 0, 0, c.width, c.height);
-        payload.thumb = c.toDataURL("image/jpeg", 0.74);
-      } catch (eThumb) {}
+    var tw = 176;
+    var th = 132;
+    var paintIm = new Image();
+    paintIm.onload = function () {
+      var c = document.createElement("canvas");
+      c.width = tw;
+      c.height = th;
+      var cx = c.getContext("2d");
+      cx.fillStyle = "#ffffff";
+      cx.fillRect(0, 0, tw, th);
+      cx.drawImage(paintIm, 0, 0, tw, th);
+      if (templateFile === BLANK_TEMPLATE_FILE) {
+        try {
+          payload.thumb = c.toDataURL("image/jpeg", 0.82);
+        } catch (eBlank) {}
+        done();
+        return;
+      }
+      var lineIm = new Image();
+      lineIm.onload = function () {
+        try {
+          cx.globalCompositeOperation = "multiply";
+          cx.drawImage(lineIm, 0, 0, tw, th);
+          cx.globalCompositeOperation = "source-over";
+          payload.thumb = c.toDataURL("image/jpeg", 0.82);
+        } catch (eMul) {}
+        done();
+      };
+      lineIm.onerror = function () {
+        try {
+          payload.thumb = c.toDataURL("image/jpeg", 0.82);
+        } catch (eFb) {}
+        done();
+      };
+      lineIm.src = templateFile;
+    };
+    paintIm.onerror = function () {
       done();
     };
-    im.onerror = function () {
-      done();
-    };
-    im.src = paintDataUrl;
+    paintIm.src = paintDataUrl;
   }
 
   function renderSavedSlotsBar() {
@@ -638,7 +707,6 @@
         btn.classList.add("is-active");
       }
       btn.setAttribute("data-slot-id", sl.id);
-      var lab = getTemplateLabel(sl.templateFile);
       var d = new Date(sl.t || 0);
       var timeStr = d.toLocaleString(undefined, {
         month: "short",
@@ -648,9 +716,9 @@
       });
       btn.setAttribute(
         "aria-label",
-        "Open saved picture: " + lab + " · " + timeStr
+        "Open saved picture: " + getSlotCaption(sl) + " · " + timeStr
       );
-      btn.title = lab + " · " + timeStr;
+      btn.title = getSlotCaption(sl) + " · " + timeStr;
 
       var vis = document.createElement("div");
       vis.className = "colour-saved__chip-vis";
@@ -658,11 +726,13 @@
         var thumbImg = document.createElement("img");
         thumbImg.src = sl.thumb;
         thumbImg.alt = "";
+        thumbImg.draggable = false;
         vis.appendChild(thumbImg);
       } else if (sl.templateFile !== BLANK_TEMPLATE_FILE) {
         var lineImg = document.createElement("img");
         lineImg.src = sl.templateFile;
         lineImg.alt = "";
+        lineImg.draggable = false;
         vis.appendChild(lineImg);
       } else {
         var blankMk = document.createElement("span");
@@ -670,10 +740,28 @@
         blankMk.setAttribute("aria-hidden", "true");
         vis.appendChild(blankMk);
       }
+      var delBtn = document.createElement("button");
+      delBtn.type = "button";
+      delBtn.className = "colour-saved__del";
+      delBtn.setAttribute(
+        "aria-label",
+        "Remove saved picture: " + getSlotCaption(sl)
+      );
+      delBtn.title = "Remove";
+      delBtn.textContent = "\u00D7";
+      delBtn.addEventListener("click", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        requestDeleteSlot(sl.id);
+      });
+      delBtn.addEventListener("pointerdown", function (e) {
+        e.stopPropagation();
+      });
+      vis.appendChild(delBtn);
       btn.appendChild(vis);
       var cap = document.createElement("span");
       cap.className = "colour-saved__chip-cap";
-      cap.textContent = lab;
+      cap.textContent = getSlotCaption(sl);
       btn.appendChild(cap);
 
       btn.addEventListener("click", function () {
@@ -682,6 +770,84 @@
 
       colourSavedStrip.appendChild(btn);
     });
+  }
+
+  function deleteSavedSlot(slotId) {
+    var st = readColourStore();
+    var wasActive = st.activeSlotId === slotId;
+    var next = [];
+    var removed = false;
+    var i;
+    for (i = 0; i < st.slots.length; i++) {
+      if (st.slots[i].id === slotId) {
+        removed = true;
+      } else {
+        next.push(st.slots[i]);
+      }
+    }
+    if (!removed) {
+      return;
+    }
+    st.slots = next;
+    st.bundleT = Date.now();
+    ensureActiveValid(st);
+    if (!writeColourStore(st)) {
+      return;
+    }
+    scheduleCloudStoreUpload(st);
+    renderSavedSlotsBar();
+    if (!st.slots.length) {
+      cancelScheduledAutoSave();
+      pendingRestore = null;
+      var firstT = TEMPLATES[0];
+      if (firstT && templateList) {
+        var fb = templateList.querySelector(".tmpl-btn");
+        selectTemplate(firstT.file, fb, null);
+      }
+      if (statusLine) {
+        statusLine.textContent =
+          "That picture was removed. Pick a picture and start again!";
+      }
+      if (typeof KidsCore !== "undefined" && KidsCore.playSound) {
+        KidsCore.playSound("tap");
+      }
+      return;
+    }
+    if (wasActive) {
+      loadSavedSlot(st.activeSlotId);
+      return;
+    }
+    if (statusLine) {
+      statusLine.textContent = "Removed from saved pictures.";
+    }
+    if (typeof KidsCore !== "undefined" && KidsCore.playSound) {
+      KidsCore.playSound("tap");
+    }
+  }
+
+  function requestDeleteSlot(slotId) {
+    var st = readColourStore();
+    var sl = null;
+    var k;
+    for (k = 0; k < st.slots.length; k++) {
+      if (st.slots[k].id === slotId) {
+        sl = st.slots[k];
+        break;
+      }
+    }
+    if (!sl) {
+      return;
+    }
+    var cap = getSlotCaption(sl);
+    var msg =
+      "Remove \u201c" + cap + "\u201d from your saved pictures?";
+    if (
+      typeof window.confirm === "function" &&
+      !window.confirm(msg)
+    ) {
+      return;
+    }
+    deleteSavedSlot(slotId);
   }
 
   function loadSavedSlot(slotId) {
@@ -714,12 +880,13 @@
   }
 
   /**
-   * @param {{ silent?: boolean; asNewSlot?: boolean }} [opts]
+   * @param {{ silent?: boolean; asNewSlot?: boolean; naming?: boolean; photoName?: string }} [opts]
    */
   function saveForLater(opts) {
     opts = opts || {};
     var silent = !!opts.silent;
     var asNew = !!opts.asNewSlot;
+    var naming = !!opts.naming;
     if (!currentTemplateFile) {
       if (statusLine && !silent) {
         statusLine.textContent =
@@ -749,10 +916,25 @@
       t: Date.now(),
     };
 
+    function mergeNameOntoSlot(slotPayload, prevSlot) {
+      if (naming) {
+        var entered = opts.photoName !== undefined ? String(opts.photoName) : "";
+        var nm = sanitizePhotoName(entered);
+        if (nm) {
+          slotPayload.photoName = nm;
+        } else {
+          delete slotPayload.photoName;
+        }
+      } else if (!asNew && prevSlot && prevSlot.photoName) {
+        slotPayload.photoName = prevSlot.photoName;
+      }
+    }
+
     function applySlotToStore(slotPayload) {
       var st = readColourStore();
       if (asNew) {
         slotPayload.id = makeSlotId();
+        mergeNameOntoSlot(slotPayload, null);
         if (!st.slots) {
           st.slots = [];
         }
@@ -760,6 +942,7 @@
         st.activeSlotId = slotPayload.id;
       } else if (!st.slots.length || !st.activeSlotId) {
         slotPayload.id = makeSlotId();
+        mergeNameOntoSlot(slotPayload, null);
         if (!st.slots) {
           st.slots = [];
         }
@@ -770,7 +953,9 @@
         var j;
         for (j = 0; j < st.slots.length; j++) {
           if (st.slots[j].id === st.activeSlotId) {
+            var prev = st.slots[j];
             slotPayload.id = st.activeSlotId;
+            mergeNameOntoSlot(slotPayload, prev);
             st.slots[j] = slotPayload;
             found = true;
             break;
@@ -778,6 +963,7 @@
         }
         if (!found) {
           slotPayload.id = makeSlotId();
+          mergeNameOntoSlot(slotPayload, null);
           st.slots.unshift(slotPayload);
           st.activeSlotId = slotPayload.id;
         }
@@ -807,21 +993,115 @@
       }
     }
 
-    var needThumb = !silent || asNew;
-    if (needThumb) {
-      var labeled = {};
-      labeled.v = basePayload.v;
-      labeled.templateFile = basePayload.templateFile;
-      labeled.cssW = basePayload.cssW;
-      labeled.cssH = basePayload.cssH;
-      labeled.paint = basePayload.paint;
-      labeled.t = basePayload.t;
-      applyThumbToPayload(paint, labeled, function () {
-        afterReady(labeled);
-      });
-    } else {
-      afterReady(basePayload);
+    /* Always rebuild preview so the strip matches how the picture looks (paint + outlines). */
+    var labeled = {};
+    labeled.v = basePayload.v;
+    labeled.templateFile = basePayload.templateFile;
+    labeled.cssW = basePayload.cssW;
+    labeled.cssH = basePayload.cssH;
+    labeled.paint = basePayload.paint;
+    labeled.t = basePayload.t;
+    applyPreviewThumb(paint, currentTemplateFile, labeled, function () {
+      afterReady(labeled);
+    });
+  }
+
+  function getInitialDialogName(asNewSlot) {
+    if (!asNewSlot) {
+      var st = readColourStore();
+      if (st.slots && st.activeSlotId) {
+        var z;
+        for (z = 0; z < st.slots.length; z++) {
+          if (st.slots[z].id === st.activeSlotId) {
+            var nm = sanitizePhotoName(st.slots[z].photoName || "");
+            if (nm) {
+              return nm;
+            }
+            break;
+          }
+        }
+      }
     }
+    return defaultPhotoNameSuggestion();
+  }
+
+  /** @param {(name: string|null) => void} onConfirm — null if cancelled */
+  function openColourNamingDialog(asNewSlot, onConfirm) {
+    if (typeof onConfirm !== "function") {
+      return;
+    }
+    var dlg = document.getElementById("colourSaveNameDialog");
+    var inp = document.getElementById("colourPhotoNameInput");
+    var ttl = document.getElementById("colourNameDialogTitle");
+    var hin = document.getElementById("colourNameDialogHint");
+    var btOk = document.getElementById("colourNameConfirmBtn");
+    if (!dlg || !inp || !btOk) {
+      saveForLater({
+        silent: false,
+        asNewSlot: !!asNewSlot,
+        naming: true,
+        photoName: getInitialDialogName(asNewSlot),
+      });
+      return;
+    }
+    var suggest = getInitialDialogName(asNewSlot);
+    if (ttl) {
+      ttl.textContent = asNewSlot ? "Save as another picture" : "Save for later";
+    }
+    if (hin) {
+      hin.textContent =
+        "Give it a name (optional). The preview shows your colours and the picture outlines.";
+    }
+    inp.value = suggest;
+    inp.onkeydown = function (e) {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        onOk();
+      }
+    };
+    dlg.classList.add("is-open");
+    dlg.setAttribute("aria-hidden", "false");
+
+    function teardown() {
+      dlg.classList.remove("is-open");
+      dlg.setAttribute("aria-hidden", "true");
+    }
+
+    function onOk() {
+      teardown();
+      onConfirm(inp.value);
+      document.removeEventListener("keydown", onKey);
+    }
+    function onCancel() {
+      teardown();
+      onConfirm(null);
+      document.removeEventListener("keydown", onKey);
+    }
+    function onKey(e) {
+      if (!dlg.classList.contains("is-open")) {
+        return;
+      }
+      if (e.key === "Escape") {
+        e.preventDefault();
+        onCancel();
+      }
+    }
+
+    btOk.onclick = onOk;
+
+    dlg.querySelectorAll("[data-close]").forEach(function (el) {
+      el.onclick = onCancel;
+    });
+
+    document.addEventListener("keydown", onKey);
+    window.setTimeout(function () {
+      try {
+        inp.focus();
+        if (inp.select) {
+          inp.select();
+        }
+      } catch (eF) {}
+    }, 50);
   }
 
   function fitCanvas(preserve) {
@@ -1160,7 +1440,10 @@
     }
     if (saveLink) {
       saveLink.href = url;
-      saveLink.download = "sofiacolour-" + (Date.now() % 100000) + ".png";
+      var sess = readSavedSession();
+      var nm = sess && sanitizePhotoName(sess.photoName || "");
+      var base = nm ? slugifyForFilename(nm) : "sofiacolour";
+      saveLink.download = base + "-" + (Date.now() % 100000) + ".png";
       saveLink.click();
     }
     /* Keep an in-app copy so refresh / come back still shows this picture (export alone does not). */
@@ -1273,18 +1556,36 @@
   }
   if (btnSaveLater) {
     btnSaveLater.addEventListener("click", function () {
-      saveForLater();
       if (typeof KidsCore !== "undefined" && KidsCore.playSound) {
         KidsCore.playSound("tap");
       }
+      openColourNamingDialog(false, function (nameStr) {
+        if (nameStr === null) {
+          return;
+        }
+        saveForLater({
+          naming: true,
+          photoName: nameStr,
+          asNewSlot: false,
+        });
+      });
     });
   }
   if (btnSaveAsNew) {
     btnSaveAsNew.addEventListener("click", function () {
-      saveForLater({ asNewSlot: true });
       if (typeof KidsCore !== "undefined" && KidsCore.playSound) {
         KidsCore.playSound("tap");
       }
+      openColourNamingDialog(true, function (nameStr) {
+        if (nameStr === null) {
+          return;
+        }
+        saveForLater({
+          naming: true,
+          photoName: nameStr,
+          asNewSlot: true,
+        });
+      });
     });
   }
   if (btnSave) {

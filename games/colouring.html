@@ -34,7 +34,7 @@
 
         <section class="colour-saved" id="colourSavedWrap" aria-label="Pictures you saved for later">
           <h2 class="colour-saved__title">My saved pictures</h2>
-          <p class="colour-saved__hint" id="colourSavedHint">Save for later updates the highlighted one. “Save as another picture” keeps a copy so you can have more than one.</p>
+          <p class="colour-saved__hint" id="colourSavedHint">When you save, you can name the picture. Use <strong>&times;</strong> on a thumbnail to remove it (you’ll be asked first).</p>
           <div class="colour-saved__strip" id="colourSavedStrip" role="list"></div>
         </section>
 
@@ -122,6 +122,21 @@
     </div>
   </div>
   <a id="saveLink" class="visually-hidden" href="#" download="sofiacolour.png" aria-hidden="true">save</a>
+  <div id="colourSaveNameDialog" class="colour-name-dialog" aria-hidden="true" aria-labelledby="colourNameDialogTitle">
+    <button type="button" class="colour-name-dialog__backdrop" data-close="1" tabindex="-1" aria-label="Close"></button>
+    <div class="colour-name-dialog__panel" role="dialog" aria-modal="true" aria-labelledby="colourNameDialogTitle">
+      <h3 id="colourNameDialogTitle" class="colour-name-dialog__title">Save this picture</h3>
+      <p id="colourNameDialogHint" class="colour-name-dialog__hint">Give it a name (optional) — you’ll see it under the thumbnail.</p>
+      <label class="colour-name-dialog__label">
+        <span class="visually-hidden">Picture name</span>
+        <input type="text" id="colourPhotoNameInput" class="colour-name-dialog__input" maxlength="48" autocomplete="off" placeholder="e.g. Rainbow dragon" />
+      </label>
+      <div class="colour-name-dialog__actions">
+        <button type="button" class="btn btn-accent" id="colourNameConfirmBtn">Save</button>
+        <button type="button" class="btn btn-ghost" id="colourNameCancelBtn" data-close="1">Cancel</button>
+      </div>
+    </div>
+  </div>
   <script src="../js/score-config.js"></script>
   <script src="../js/kids-core.js" defer></script>
   <script src="../js/score-cloud.js" defer></script>
