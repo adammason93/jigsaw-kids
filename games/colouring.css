@@ -31,7 +31,11 @@ body.page-colour {
   color: var(--c-ink);
   line-height: 1.45;
   -webkit-font-smoothing: antialiased;
-  background: linear-gradient(165deg, #fff1f2 0%, #ffe4e6 35%, #fdf4ff 100%);
+  /* Soft sky base + repeating nautical doodle texture */
+  background-color: #e5f4fc;
+  background-image: url("images/colouring-texture-bg.png");
+  background-repeat: repeat;
+  background-size: 274px auto;
 }
 
 h1,
@@ -95,7 +99,7 @@ h1,
 .back-link {
   display: inline-flex;
   align-items: center;
-  color: #be185d;
+  color: #0369a1;
   font-weight: 800;
   text-decoration: none;
   font-size: 0.82rem;

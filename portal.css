@@ -18,11 +18,12 @@
   --shadow-card-hover: 0 6px 0 rgba(45, 156, 219, 0.2), 0 18px 40px rgba(27, 58, 82, 0.14);
 
   /* Per-game accents (top stripe + icon well) */
-  --theme-jigsaw: #2d9cdb;
-  --theme-jigsaw-soft: #e3f4fc;
-  /* Number path: warm “race day” orange (matches math-race hero) */
-  --theme-math: #e85d2c;
-  --theme-math-soft: #fff0e8;
+  /* “Sofias Puzzle Board” portal art — purple splash */
+  --theme-jigsaw: #7c3aed;
+  --theme-jigsaw-soft: #f3e8ff;
+  /* Sunny park path (math-race-park-bg) */
+  --theme-math: #15803d;
+  --theme-math-soft: #ecfdf3;
   --theme-snakes: #7c3aed;
   --theme-snakes-soft: #f3e8ff;
   --theme-ttt: #059669;

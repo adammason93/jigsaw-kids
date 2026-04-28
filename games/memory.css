@@ -24,6 +24,11 @@
   --memory-white: #ffffff;
 }
 
+/* memory.css loads only on memory.html — stop any child from widening the scrollport */
+html {
+  overflow-x: hidden;
+}
+
 .page-memory {
   margin: 0;
   min-height: 100dvh;
@@ -45,6 +50,7 @@
 html.kids-play-mode .page-memory .memory-app {
   min-height: 0;
   max-height: 100dvh;
+  overflow-x: hidden;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-y: contain;
@@ -296,7 +302,10 @@ html.kids-play-mode .page-memory .memory-app {
   display: flex;
   flex-direction: column;
   min-height: 12rem;
-  width: 100%;
+  min-width: 0;
+  /* width:auto + side margins — width:100% plus margins overflowed the parent */
+  width: auto;
+  max-width: 100%;
   margin-top: 0.45rem;
   margin-bottom: 0.5rem;
   margin-left: clamp(0.35rem, 2vmin, 0.65rem);
