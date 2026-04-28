@@ -2281,3 +2281,52 @@ html.kids-high-contrast .question-dot--b {
   color: var(--muted);
   font-size: 1.05rem;
 }
+
+/* ——— Short landscape / tablet + browser chrome: keep finish line + HUD on screen ——— */
+@media (orientation: landscape) and (max-height: 820px) {
+  :root {
+    --race-section-height: clamp(170px, min(56dvh, calc(100svh - 11.5rem)), 420px);
+  }
+
+  .app--playing {
+    padding-top: 0.35rem;
+    padding-bottom: max(0.35rem, env(safe-area-inset-bottom, 0));
+  }
+
+  .play-top {
+    margin-bottom: 0.45rem;
+    padding: 0.3rem 0.45rem 0.42rem;
+    gap: 0.2rem 0.35rem;
+  }
+
+  .play-level {
+    font-size: clamp(0.85rem, 2.2vmin, 0.98rem);
+  }
+
+  .play-turn {
+    font-size: clamp(0.78rem, 2vmin, 0.92rem);
+    line-height: 1.3;
+  }
+
+  .play-progress {
+    font-size: clamp(0.72rem, 1.8vmin, 0.84rem);
+    line-height: 1.3;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 620px) {
+  :root {
+    --race-section-height: clamp(150px, min(50dvh, calc(100svh - 10.5rem)), 360px);
+  }
+
+  .play-layout {
+    gap: 0.55rem 0.85rem;
+  }
+
+  /* Slightly narrower HUD so park column keeps a bit more width */
+  @media (min-width: 700px) {
+    .play-layout {
+      grid-template-columns: minmax(0, 1fr) min(240px, 32vw);
+    }
+  }
+}

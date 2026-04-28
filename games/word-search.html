@@ -19,9 +19,10 @@
 <body class="page-ws">
   <div class="word-search-app" id="app">
     <nav class="game-nav" aria-label="Breadcrumb">
-      <a class="back-link" href="../index.html">← All games</a>
+      <a class="back-link back-btn" href="../index.html" aria-label="Back to all games"><span class="back-btn__icon" aria-hidden="true">&#8592;</span><span class="back-btn__text">Back</span></a>
     </nav>
 
+    <div class="word-search__meta" aria-label="Score and word list">
     <header class="word-search__header">
       <h1 class="word-search__title">Word search</h1>
       <p class="word-search__lede">Words are <strong>4 or 5 letters</strong> and change every time you tap <strong>New grid</strong>. Drag in a straight line — sideways or up and down only — then let go.</p>
@@ -46,6 +47,8 @@
     <div class="word-search__words-wrap" aria-label="Words to find">
       <h2 class="word-search__words-label">Find these words</h2>
       <ul class="word-search__list" id="wordSearchList"></ul>
+    </div>
+
     </div>
 
     <div class="word-search__board-wrap">

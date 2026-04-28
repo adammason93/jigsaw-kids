@@ -58,6 +58,16 @@ h2,
   box-sizing: border-box;
 }
 
+/* Header + score + word list — portrait stacks; landscape becomes a side rail next to the board */
+.word-search__meta {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  gap: 0;
+  width: 100%;
+  min-height: 0;
+}
+
 .game-nav {
   margin-bottom: 0.3rem;
   flex-shrink: 0;
@@ -698,5 +708,114 @@ h2,
     animation: none;
     opacity: 1;
     transform: none;
+  }
+}
+
+/* ——— Landscape / tablet: board + meta side-by-side so the letter grid keeps real height ——— */
+@media (orientation: landscape) and (min-width: 600px) {
+  body.page-ws {
+    overflow-y: auto;
+  }
+
+  .word-search-app {
+    max-width: 100%;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: stretch;
+    align-content: flex-start;
+    padding-inline: max(0.5rem, env(safe-area-inset-left))
+      max(0.5rem, env(safe-area-inset-right));
+  }
+
+  .word-search-app > .game-nav {
+    flex: 1 0 100%;
+  }
+
+  .word-search__meta {
+    flex: 0 1 min(336px, 36vw);
+    max-width: min(336px, 36vw);
+    overflow-x: visible;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    gap: 0.25rem;
+  }
+
+  /* Don’t dominate vertical space vs the grid */
+  .word-search__meta .gsc {
+    margin-bottom: 0.35rem;
+    padding: 0.45rem 0.55rem 0.55rem;
+  }
+
+  .word-search__meta .gsc__title {
+    font-size: 0.92rem;
+    margin-bottom: 0.28rem;
+  }
+
+  .word-search__meta .gsc__actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.35rem;
+  }
+
+  .word-search__meta .gsc__btn:nth-child(3) {
+    grid-column: 1 / -1;
+  }
+
+  .word-search__meta .word-search__header {
+    margin-bottom: 0.2rem;
+  }
+
+  .word-search__meta .word-search__lede {
+    font-size: 0.72rem;
+    line-height: 1.3;
+    max-width: none;
+  }
+
+  .word-search__meta .word-search__words-wrap {
+    padding: 0.3rem 0.45rem 0.38rem;
+    margin-bottom: 0;
+    flex-shrink: 0;
+  }
+
+  .word-search__meta .word-search__list {
+    gap: 0.25rem 0.4rem;
+  }
+
+  .word-search__meta .word-search__word {
+    font-size: 0.78rem;
+    padding: 0.12rem 0.3rem;
+  }
+
+  .word-search__board-wrap {
+    flex: 1 1 55%;
+    min-width: min(280px, 48vw);
+    /* Reserve enough height so flex children don’t collapse to overlapping text */
+    min-height: min(62vmin, calc(100dvh - 5.5rem));
+    max-height: min(94dvh, 900px);
+  }
+
+  .word-search-app > .word-search__status {
+    flex: 0 0 auto;
+    width: 100%;
+    margin-block: 0.25rem 0.15rem;
+  }
+
+  .word-search-app > .word-search__actions {
+    flex: 0 0 auto;
+    width: 100%;
+    margin-top: 0;
+    padding-bottom: max(0.35rem, env(safe-area-inset-bottom));
+  }
+
+  /* Keep toast above bar in wide layout */
+  .word-search__kelly-toast {
+    bottom: calc(5rem + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* Phones in landscape still get a sane floor height for the grid */
+@media (orientation: landscape) and (max-width: 599.98px) {
+  .word-search__board-wrap {
+    min-height: clamp(210px, 46vh, 420px);
   }
 }

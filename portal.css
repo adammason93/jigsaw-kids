@@ -311,9 +311,9 @@ h2,
 
 .portal-hero__mascot-ring {
   position: absolute;
-  width: 148px;
-  height: 148px;
-  border-radius: 36px;
+  width: 202px;
+  height: 202px;
+  border-radius: 44px;
   background: conic-gradient(
     from 200deg,
     #c084fc,
@@ -345,9 +345,9 @@ h2,
 
 .portal-hero__mascot {
   position: relative;
-  width: 124px;
-  height: 124px;
-  border-radius: 30px;
+  width: 168px;
+  height: 168px;
+  border-radius: 36px;
   background: linear-gradient(155deg, #fff 0%, #fae8ff 45%, #e0f2fe 100%);
   border: 3px solid #fff;
   box-shadow: 0 6px 0 rgba(124, 58, 237, 0.18), 0 16px 36px rgba(15, 23, 42, 0.12);
@@ -378,13 +378,15 @@ h2,
   }
 
   .portal-hero__mascot-ring {
-    width: 132px;
-    height: 132px;
+    width: 176px;
+    height: 176px;
+    border-radius: 40px;
   }
 
   .portal-hero__mascot {
-    width: 112px;
-    height: 112px;
+    width: 146px;
+    height: 146px;
+    border-radius: 32px;
   }
 }
 
@@ -847,5 +849,51 @@ html.kids-high-contrast .portal-chip {
 
   a.game-card:hover .game-card__img {
     transform: none;
+  }
+}
+
+/* Tablet / phone landscape: shorten hero so game cards stay in view (APK + browser chrome). */
+@media (orientation: landscape) and (max-height: 720px) {
+  body.page-portal {
+    overflow-y: auto;
+  }
+
+  .portal {
+    padding-top: max(0.65rem, env(safe-area-inset-top, 0px));
+    padding-bottom: 1.5rem;
+  }
+
+  .portal-hero {
+    margin-bottom: 0.95rem;
+  }
+
+  .portal-hero__inner {
+    padding: 1rem 1.15rem 1.05rem;
+    gap: 0.85rem 1.25rem;
+  }
+
+  .portal-hero__title {
+    font-size: clamp(1.45rem, 4.5vw, 2rem);
+  }
+
+  .portal-hero__tagline {
+    font-size: clamp(0.82rem, 2.2vw, 0.92rem);
+    max-width: 55ch;
+  }
+
+  .portal-hero__mascot-ring {
+    width: clamp(108px, 22vw, 168px);
+    height: clamp(108px, 22vw, 168px);
+    border-radius: clamp(28px, 4.2vw, 40px);
+  }
+
+  .portal-hero__mascot {
+    width: clamp(90px, 18.5vw, 138px);
+    height: clamp(90px, 18.5vw, 138px);
+    border-radius: clamp(22px, 3.4vw, 32px);
+  }
+
+  .game-section {
+    scroll-margin-top: 0.75rem;
   }
 }

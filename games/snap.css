@@ -1124,41 +1124,84 @@ body.snap-rules-open {
   }
 }
 
-/* Tablets / landscape: big tiles, but cap table height so middle controls + action row stay on-screen. */
-@media (orientation: landscape) and (min-height: 420px) {
-  .app {
-    max-width: 100%;
-    padding: 0.35rem 0.5rem max(4.5rem, calc(0.4rem + env(safe-area-inset-bottom, 0px)));
+/* Tablets / landscape: stop side “Snap!” rails stretching full viewport — balance table vs controls. */
+@media (orientation: landscape) and (min-height: 380px) {
+  .page-snap .app {
+    max-width: min(1400px, 100%);
+    padding: 0.3rem clamp(0.35rem, 1.8vw, 0.85rem)
+      max(4.35rem, calc(0.4rem + env(safe-area-inset-bottom, 0px)));
   }
 
   .snap-arena {
-    align-items: stretch;
-    gap: 0.5rem;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(0.35rem, 1.5vw, 0.95rem);
   }
 
   .snap-side {
-    align-self: stretch;
+    align-self: center;
+    flex: 0 0 auto;
+    width: clamp(5.35rem, 11.5vw, 7.75rem);
+    min-width: 5rem;
+    max-width: 8rem;
+    max-height: min(62vh, 360px);
     min-height: 0;
+    padding: 0.5rem 0.42rem;
+  }
+
+  .snap-side__text {
+    font-size: clamp(0.82rem, 2.6vw, 1.06rem);
+  }
+
+  .snap-side__hint {
+    font-size: clamp(0.58rem, 1.55vw, 0.72rem);
+  }
+
+  .snap-middle {
+    flex: 1 1 0;
+    min-width: 0;
+    max-width: min(880px, 70vw);
   }
 
   .snap-table {
     min-height: 0;
-    max-height: min(52vh, calc(100dvh - 15rem));
+    max-height: min(42vh, calc(100dvh - 10.5rem));
     flex: 1 1 auto;
   }
 
   .snap-showcase {
-    min-height: 0;
+    min-height: 6.5rem;
     max-height: 100%;
   }
 
   .snap-slot {
-    max-width: min(380px, 42vw);
+    max-width: min(320px, 36vw);
   }
 
   .snap-slot__card {
-    min-height: min(28vh, 220px);
-    max-height: min(45vh, 400px);
+    min-height: 0;
+    max-height: min(34vh, 280px);
+    aspect-ratio: 52 / 72;
+    width: 100%;
+  }
+
+  .snap-face__emoji {
+    font-size: clamp(2rem, min(22vw, 18vh), 5rem);
+  }
+
+  .snap-controls,
+  .snap-actions {
+    justify-content: center;
+  }
+}
+
+@media (min-width: 900px) and (orientation: landscape) {
+  .snap-side {
+    width: clamp(5.85rem, 10vw, 8.25rem);
+  }
+
+  .snap-table {
+    max-height: min(44vh, calc(100dvh - 9.5rem));
   }
 }
 

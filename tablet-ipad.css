@@ -42,10 +42,11 @@ a.game-card,
 .mc-btn,
 .radio-tile,
 .snake-quiz__btn,
-.icon-pick__opt,
-.ttt-char-opt,
-.back-link,
-.memory-play-header__back,
+  .icon-pick__opt,
+  .ttt-char-opt,
+  .back-btn,
+  .back-link.back-btn,
+  .memory-play-header__back,
 .memory-tile,
 .memory-btn,
 .turn-popup__btn,
@@ -120,6 +121,13 @@ a.game-card,
 
   .memory-btn {
     min-height: var(--touch-min);
+  }
+}
+
+/* Landscape: Snap side rails use width/max-height — drop touch min-height stretch. */
+@media (orientation: landscape) {
+  .page-snap .snap-side {
+    min-height: unset;
   }
 }
 

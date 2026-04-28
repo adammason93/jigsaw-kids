@@ -133,15 +133,26 @@ html.kids-play-mode .page-memory .memory-app {
 
 .memory-play-header__back {
   justify-self: start;
-  font-weight: 800;
-  font-size: 0.88rem;
-  color: #fef9c3;
-  text-decoration: none;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
 }
 
-.memory-play-header__back:active {
-  opacity: 0.9;
+/* Dark deck: pill back control — keeps yellow copy on navy */
+.memory-play-header .memory-play-header__back.back-link.back-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(254, 249, 195, 0.35);
+  color: #fef9c3;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.25), 0 6px 14px rgba(0, 0, 0, 0.22);
+}
+
+.memory-play-header .back-link.back-btn:hover {
+  text-decoration: none;
+  filter: brightness(1.12);
+  border-color: rgba(254, 249, 195, 0.55);
+}
+
+.memory-play-header .back-link.back-btn:active {
+  opacity: 1;
+  filter: brightness(0.95);
 }
 
 .memory-play-header__title {

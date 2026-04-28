@@ -24,12 +24,52 @@ html {
 body.page-ttt {
   margin: 0;
   min-height: 100dvh;
+  position: relative;
   font-family: "Nunito", "Segoe UI", system-ui, sans-serif;
   color: var(--ttt-ink);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
-  background: linear-gradient(165deg, #ecfdf5 0%, #e0f2fe 50%, #f0fdf4 100%);
-  background-attachment: fixed;
+  background: #ecfdf5;
+}
+
+/* Seamless X/O pattern — one full tile drift (1024×619 at half scale = 512×309.5) loops smoothly */
+body.page-ttt::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  background-image: url("images/ttt-xo-pattern.png");
+  background-repeat: repeat;
+  background-size: 512px 309.5px;
+  background-position: 0 0;
+  animation: ttt-pattern-sail 80s linear infinite;
+  will-change: background-position;
+}
+
+/* Light veil so grid and cards stay readable */
+body.page-ttt::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(
+    165deg,
+    rgba(255, 255, 255, 0.82) 0%,
+    rgba(236, 253, 245, 0.72) 35%,
+    rgba(224, 242, 254, 0.58) 70%,
+    rgba(236, 253, 232, 0.65) 100%
+  );
+}
+
+@keyframes ttt-pattern-sail {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 512px 309.5px;
+  }
 }
 
 h1,
@@ -676,6 +716,10 @@ body.ttt-win-open {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  body.page-ttt::before {
+    animation: none;
+  }
+
   .ttt-cell,
   .ttt-btn {
     transition: none;

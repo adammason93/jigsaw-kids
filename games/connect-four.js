@@ -1,6 +1,8 @@
 /**
  * Connect 4 — two players or vs computer (yellow).
  * Board: row 0 = top, row 5 = bottom. R = red (first), Y = yellow.
+ *
+ * @typedef {{ friendRed: string; friendYellow: string; cpuYou: string }} C4Names
  */
 (function () {
   const ROWS = 6;
@@ -16,6 +18,152 @@
   const btnStart = document.getElementById("btnStart");
   const btnAgain = document.getElementById("btnAgain");
   const btnMenu = document.getElementById("btnMenu");
+  const inpFriendRed = /** @type {HTMLInputElement | null} */ (document.getElementById("inpC4FriendRed"));
+  const inpFriendYellow = /** @type {HTMLInputElement | null} */ (
+    document.getElementById("inpC4FriendYellow")
+  );
+  const inpCpuYou = /** @type {HTMLInputElement | null} */ (document.getElementById("inpC4CpuYou"));
+  const paneNamesFriend = document.getElementById("c4NamesFriendPane");
+  const paneNamesCpu = document.getElementById("c4NamesCpuPane");
+  const playScoreLineEl = document.getElementById("c4PlayScoreLine");
+  /** @type {HTMLInputElement[]} */
+  const modeRadios = Array.prototype.slice.call(document.querySelectorAll('input[name="c4Mode"]'));
+
+  const NAMES_STORAGE_KEY = "c4PlayerNamesV1";
+
+  /** @returns {string} */
+  function sanitizeName(raw) {
+    if (typeof raw !== "string") {
+      return "";
+    }
+    return raw.trim().replace(/[<>]/g, "").slice(0, 28);
+  }
+
+  /** @returns {C4Names} */
+  function namesDefault() {
+    return { friendRed: "", friendYellow: "", cpuYou: "" };
+  }
+
+  /** @returns {C4Names} */
+  function loadStoredNames() {
+    try {
+      var raw = localStorage.getItem(NAMES_STORAGE_KEY);
+      if (!raw) {
+        return namesDefault();
+      }
+      var o = JSON.parse(raw);
+      if (!o || typeof o !== "object") {
+        return namesDefault();
+      }
+      return {
+        friendRed: sanitizeName(o.friendRed),
+        friendYellow: sanitizeName(o.friendYellow),
+        cpuYou: sanitizeName(o.cpuYou),
+      };
+    } catch (e1) {
+      return namesDefault();
+    }
+  }
+
+  /** @param {C4Names} nm */
+  function persistNames(nm) {
+    try {
+      localStorage.setItem(NAMES_STORAGE_KEY, JSON.stringify(nm));
+    } catch (e2) {}
+  }
+
+  /** @type {C4Names} */
+  var namesState = loadStoredNames();
+
+  function readNamesFromForm() {
+    /** @type {C4Names} */
+    var nm = namesDefault();
+    if (inpFriendRed) {
+      nm.friendRed = sanitizeName(inpFriendRed.value);
+    }
+    if (inpFriendYellow) {
+      nm.friendYellow = sanitizeName(inpFriendYellow.value);
+    }
+    if (inpCpuYou) {
+      nm.cpuYou = sanitizeName(inpCpuYou.value);
+    }
+    namesState = nm;
+    persistNames(nm);
+    return nm;
+  }
+
+  function fillNameInputs() {
+    var n = loadStoredNames();
+    if (inpFriendRed) {
+      inpFriendRed.value = n.friendRed;
+    }
+    if (inpFriendYellow) {
+      inpFriendYellow.value = n.friendYellow;
+    }
+    if (inpCpuYou) {
+      inpCpuYou.value = n.cpuYou;
+    }
+    namesState = n;
+  }
+
+  function syncNamePanesVisibility() {
+    var m = selectedMode();
+    var cpu = m === "cpu";
+    if (paneNamesFriend) {
+      paneNamesFriend.hidden = cpu;
+    }
+    if (paneNamesCpu) {
+      paneNamesCpu.hidden = !cpu;
+    }
+  }
+
+  /** @returns {string} */
+  function displayRed() {
+    if (mode === "cpu") {
+      return namesState.cpuYou || "You";
+    }
+    return namesState.friendRed || "Red";
+  }
+
+  /** @returns {string} */
+  function displayYellow() {
+    return namesState.friendYellow || "Yellow";
+  }
+
+  function refreshScoreLabels() {
+    var lr = namesState.friendRed || "Red";
+    var ly = namesState.friendYellow || "Yellow";
+    var u = namesState.cpuYou || "You";
+    var elR = document.getElementById("c4LblFriendR");
+    var elY = document.getElementById("c4LblFriendY");
+    var elU = document.getElementById("c4LblCpuYou");
+    if (elR) {
+      elR.textContent = lr + " won";
+    }
+    if (elY) {
+      elY.textContent = ly + " won";
+    }
+    if (elU) {
+      elU.textContent = u + " won";
+    }
+  }
+
+  function updatePlayScoreLine() {
+    if (!playScoreLineEl || !scorecard) {
+      return;
+    }
+    var s = scorecard.load();
+    if (mode === "friend") {
+      var rN = displayRed();
+      var yN = displayYellow();
+      playScoreLineEl.textContent =
+        rN + ": " + s.friend.r + " · " + yN + ": " + s.friend.y + " · Draws: " + s.friend.draw;
+    } else {
+      var you = namesState.cpuYou || "You";
+      playScoreLineEl.textContent =
+        you + ": " + s.cpu.you + " · Computer: " + s.cpu.cpu + " · Draws: " + s.cpu.draw;
+    }
+  }
 
   /** @type {('R'|'Y'|null)[][]} */
   var board = [];
@@ -262,7 +410,18 @@
   }
 
   function syncModeLine() {
-    modeLine.textContent = mode === "cpu" ? "You vs computer" : "Two players";
+    if (mode === "cpu") {
+      var un = namesState.cpuYou || "";
+      modeLine.textContent = un ? un + " vs computer" : "You vs computer";
+    } else {
+      var a = namesState.friendRed;
+      var b = namesState.friendYellow;
+      if (!a && !b) {
+        modeLine.textContent = "Two players";
+      } else {
+        modeLine.textContent = (a || "Red") + " vs " + (b || "Yellow");
+      }
+    }
   }
 
   function updateTurnMessage() {
@@ -280,9 +439,12 @@
       playHint.setAttribute("aria-hidden", "false");
     }
     if (mode === "cpu") {
-      setStatus("Your turn — you are red");
-    } else {
-      setStatus(current === "R" ? "Red to play" : "Yellow to play");
+      var nm = namesState.cpuYou;
+      setStatus(nm ? nm + " — your turn (red)" : "Your turn — you are red");
+    } else if (mode === "friend") {
+      var label = current === "R" ? displayRed() : displayYellow();
+      var hue = current === "R" ? "red" : "yellow";
+      setStatus(label + " to play (" + hue + ")");
     }
   }
 
@@ -409,8 +571,20 @@
       if (winnerInfo.cells) {
         setWinHighlight(winnerInfo.cells);
       }
-      const who = winnerInfo.player === "R" ? "Red" : "Yellow";
-      setStatus(who + " wins!");
+      /** @type {string} */
+      var winPhrase;
+      if (winnerInfo.player === "R") {
+        if (mode === "cpu") {
+          winPhrase = namesState.cpuYou ? namesState.cpuYou + " wins!" : "You win!";
+        } else {
+          winPhrase = displayRed() + " wins!";
+        }
+      } else if (mode === "cpu") {
+        winPhrase = "Computer wins!";
+      } else {
+        winPhrase = displayYellow() + " wins!";
+      }
+      setStatus(winPhrase);
       if (typeof KidsCore !== "undefined") {
         KidsCore.playSound("win");
         KidsCore.haptic("success");
@@ -544,6 +718,7 @@
 
   function startGame() {
     mode = selectedMode();
+    readNamesFromForm();
     board = emptyBoard();
     current = "R";
     gameOver = false;
@@ -553,6 +728,7 @@
     updateTurnMessage();
     showScreen("play");
     render();
+    updatePlayScoreLine();
   }
 
   function resetRound() {
@@ -573,6 +749,12 @@
   btnMenu.addEventListener("click", function () {
     showScreen("setup");
   });
+
+  fillNameInputs();
+  syncNamePanesVisibility();
+  for (var ri = 0; ri < modeRadios.length; ri++) {
+    modeRadios[ri].addEventListener("change", syncNamePanesVisibility);
+  }
 
   if (typeof GameScorecard !== "undefined") {
     scorecard = GameScorecard.wire({
@@ -605,6 +787,10 @@
       btnCopyId: "c4scCopy",
       btnPasteId: "c4scPaste",
       btnResetId: "c4scReset",
+      onRender: function () {
+        refreshScoreLabels();
+        updatePlayScoreLine();
+      },
     });
     scorecard.render();
   }

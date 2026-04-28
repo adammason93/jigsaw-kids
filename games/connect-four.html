@@ -19,7 +19,7 @@
 <body class="page-c4">
   <div class="app" id="app">
     <nav class="game-nav" aria-label="Breadcrumb">
-      <a class="back-link" href="../index.html">← All games</a>
+      <a class="back-link back-btn" href="../index.html" aria-label="Back to all games"><span class="back-btn__icon" aria-hidden="true">&#8592;</span><span class="back-btn__text">Back</span></a>
     </nav>
 
     <div id="screenSetup" class="screen">
@@ -37,15 +37,15 @@
           <div class="gsc__block">
             <h3 class="gsc__block-title">Two players</h3>
             <ul class="gsc__list">
-              <li><span class="gsc__label">Red won</span> <strong id="c4scFriendR">0</strong></li>
-              <li><span class="gsc__label">Yellow won</span> <strong id="c4scFriendY">0</strong></li>
+              <li><span class="gsc__label" id="c4LblFriendR">Red won</span> <strong id="c4scFriendR">0</strong></li>
+              <li><span class="gsc__label" id="c4LblFriendY">Yellow won</span> <strong id="c4scFriendY">0</strong></li>
               <li><span class="gsc__label">Draws</span> <strong id="c4scFriendD">0</strong></li>
             </ul>
           </div>
           <div class="gsc__block">
             <h3 class="gsc__block-title">vs computer</h3>
             <ul class="gsc__list">
-              <li><span class="gsc__label">You won</span> <strong id="c4scCpuYou">0</strong></li>
+              <li><span class="gsc__label" id="c4LblCpuYou">You won</span> <strong id="c4scCpuYou">0</strong></li>
               <li><span class="gsc__label">Computer won</span> <strong id="c4scCpuCpu">0</strong></li>
               <li><span class="gsc__label">Draws</span> <strong id="c4scCpuD">0</strong></li>
             </ul>
@@ -72,12 +72,71 @@
             <span class="c4-radio__hint">You are red and go first; the computer is yellow</span>
           </label>
         </div>
+
+        <div class="c4-names" id="c4NamesBlock" aria-labelledby="lblPlayers">
+          <h3 id="lblPlayers" class="c4-names__title">Who’s playing?</h3>
+          <p id="c4NamesHelp" class="c4-names__hint">
+            Names show on turns, the scoreboard, and when someone wins — so you can remember who scored.
+          </p>
+          <div class="c4-names__panes">
+            <div class="c4-names__pane" id="c4NamesFriendPane" role="group" aria-labelledby="lblPlayers">
+              <label class="c4-field">
+                <span class="c4-field__label">Red player</span>
+                <input
+                  type="text"
+                  id="inpC4FriendRed"
+                  name="c4FriendRed"
+                  maxlength="28"
+                  autocomplete="off"
+                  autocapitalize="words"
+                  enterkeyhint="next"
+                  placeholder="e.g. Sofia"
+                  class="c4-field__input"
+                />
+              </label>
+              <label class="c4-field">
+                <span class="c4-field__label">Yellow player</span>
+                <input
+                  type="text"
+                  id="inpC4FriendYellow"
+                  name="c4FriendYellow"
+                  maxlength="28"
+                  autocomplete="off"
+                  autocapitalize="words"
+                  enterkeyhint="done"
+                  placeholder="e.g. Uncle Alex"
+                  class="c4-field__input"
+                />
+              </label>
+            </div>
+            <div class="c4-names__pane" id="c4NamesCpuPane" role="group" aria-labelledby="lblPlayers" hidden>
+              <label class="c4-field">
+                <span class="c4-field__label">Your name</span>
+                <input
+                  type="text"
+                  id="inpC4CpuYou"
+                  name="c4CpuYou"
+                  maxlength="28"
+                  autocomplete="name"
+                  autocapitalize="words"
+                  enterkeyhint="done"
+                  placeholder="You"
+                  class="c4-field__input"
+                />
+              </label>
+            </div>
+          </div>
+        </div>
+
         <button type="button" class="c4-btn c4-btn--primary" id="btnStart">Start game</button>
       </section>
     </div>
 
     <div id="screenPlay" class="screen is-hidden" hidden>
       <p class="c4-mode-line" id="modeLine" aria-live="polite">Two players</p>
+      <div class="c4-play-scoreboard" id="c4PlayScores" aria-label="Scores on this tablet">
+        <p class="c4-play-scoreboard__inner" id="c4PlayScoreLine">—</p>
+      </div>
       <p class="c4-status" id="statusLine" role="status" aria-live="polite">Red to play</p>
 
       <p class="c4-hint" id="playHint" aria-hidden="true">Tap a column to drop your piece</p>

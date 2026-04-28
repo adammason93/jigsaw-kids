@@ -1462,11 +1462,11 @@ body.page-snakes.sn-game-visible .app .game-layout {
   align-items: center;
 }
 
-.win-actions .btn {
+.win-actions .back-link.back-btn {
   min-width: 200px;
+  justify-content: center;
 }
 
-/* Ladder / snake “wow” pop-up */
 .jump-popup {
   position: fixed;
   inset: 0;

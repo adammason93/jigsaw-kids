@@ -33,6 +33,9 @@
   const colourPanzoom = document.getElementById("colourPanzoom");
   const templateList = document.getElementById("templateList");
   const customColour = document.getElementById("customColour");
+  const colourPaletteWrap = document.getElementById("colourPaletteWrap");
+  const colourPaletteToggle = document.getElementById("colourPaletteToggle");
+  const colourPaletteTogglePreview = document.getElementById("colourPaletteTogglePreview");
   const btnClear = document.getElementById("btnClear");
   const btnSave = document.getElementById("btnSave");
   const btnUndo = document.getElementById("btnUndo");
@@ -1383,6 +1386,34 @@
     });
   }
 
+  var paletteCompactMq =
+    typeof window.matchMedia === "function"
+      ? window.matchMedia("(min-width: 640px)")
+      : { matches: false, addEventListener: function () {} };
+
+  function updatePaletteTogglePreview() {
+    if (colourPaletteTogglePreview) {
+      colourPaletteTogglePreview.style.setProperty("--palette-preview", currentColor);
+      colourPaletteTogglePreview.style.backgroundColor = currentColor;
+    }
+  }
+
+  function setPaletteDropdownOpen(open) {
+    if (!colourPaletteWrap || !colourPaletteToggle || !paletteCompactMq.matches) {
+      return;
+    }
+    colourPaletteWrap.classList.toggle("palette-open", !!open);
+    colourPaletteToggle.setAttribute("aria-expanded", open ? "true" : "false");
+  }
+
+  function togglePaletteDropdown() {
+    if (!colourPaletteWrap || !paletteCompactMq.matches) {
+      return;
+    }
+    var on = colourPaletteWrap.classList.contains("palette-open");
+    setPaletteDropdownOpen(!on);
+  }
+
   function setColor(hex) {
     var norm = (hex + "").toLowerCase();
     currentColor = norm;
@@ -1393,6 +1424,7 @@
       var h = (s.getAttribute("data-hex") || "").toLowerCase();
       s.setAttribute("aria-pressed", h === norm ? "true" : "false");
     });
+    updatePaletteTogglePreview();
   }
 
   function clearPainting() {
@@ -1615,11 +1647,51 @@
     });
   }
 
+  if (paletteCompactMq.addEventListener) {
+    paletteCompactMq.addEventListener("change", function () {
+      setPaletteDropdownOpen(false);
+    });
+  }
+
+  if (colourPaletteToggle) {
+    colourPaletteToggle.addEventListener("click", function (e) {
+      e.stopPropagation();
+      togglePaletteDropdown();
+    });
+  }
+
+  document.addEventListener(
+    "click",
+    function (e) {
+      if (!paletteCompactMq.matches || !colourPaletteWrap) {
+        return;
+      }
+      if (!colourPaletteWrap.classList.contains("palette-open")) {
+        return;
+      }
+      var t = e.target;
+      if (t && typeof t.closest === "function" && t.closest(".colour-palette-wrap")) {
+        return;
+      }
+      setPaletteDropdownOpen(false);
+    },
+    true
+  );
+
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") {
+      setPaletteDropdownOpen(false);
+    }
+  });
+
   document.querySelectorAll(".swatch").forEach(function (s) {
     s.addEventListener("click", function () {
       var h = s.getAttribute("data-hex");
       if (h) {
         setColor(h);
+      }
+      if (paletteCompactMq.matches) {
+        setPaletteDropdownOpen(false);
       }
     });
   });
@@ -1630,6 +1702,11 @@
       document.querySelectorAll(".swatch").forEach(function (sw) {
         sw.setAttribute("aria-pressed", "false");
       });
+    });
+    customColour.addEventListener("change", function () {
+      if (paletteCompactMq.matches) {
+        setPaletteDropdownOpen(false);
+      }
     });
   }
 

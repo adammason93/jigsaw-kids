@@ -229,6 +229,59 @@
   }
 }
 
+/* —— Shared back control (games link to hub) —— */
+a.back-link.back-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.42rem;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0.4rem 1rem 0.4rem 0.55rem;
+  border-radius: 999px;
+  font-weight: 800;
+  font-size: clamp(0.9rem, 2.6vw, 1.02rem);
+  line-height: 1.1;
+  text-decoration: none;
+  color: #27233a;
+  background: linear-gradient(180deg, #ffffff 0%, #f4f4f7 100%);
+  border: 3px solid rgba(30, 27, 75, 0.14);
+  box-shadow: 0 2px 0 rgba(30, 27, 75, 0.08), 0 4px 14px rgba(30, 27, 75, 0.06);
+  vertical-align: middle;
+  transition:
+    transform 0.1s ease,
+    box-shadow 0.15s ease,
+    filter 0.12s ease;
+}
+
+a.back-link.back-btn:focus-visible {
+  outline: 3px solid #7c3aed;
+  outline-offset: 2px;
+}
+
+a.back-link.back-btn:hover {
+  text-decoration: none;
+  filter: brightness(0.98);
+  box-shadow: 0 3px 0 rgba(30, 27, 75, 0.1), 0 6px 18px rgba(30, 27, 75, 0.1);
+}
+
+a.back-link.back-btn:active {
+  transform: translateY(1px);
+  box-shadow: 0 1px 0 rgba(30, 27, 75, 0.12);
+}
+
+.back-btn__icon {
+  font-size: 1.2rem;
+  line-height: 1;
+  font-weight: 900;
+  opacity: 0.88;
+}
+
+.back-btn__text {
+  position: relative;
+  top: 0.03em;
+}
+
 /* High contrast (optional) */
 html.kids-high-contrast {
   --ink: #0a0a0f;
