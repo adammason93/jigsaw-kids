@@ -631,6 +631,42 @@ h2,
   }
 }
 
+/* Setup screen: park panorama behind translucent cards (no extra scroll) */
+body.page-math:has(#screenSetup:not(.is-hidden)) {
+  background-color: #d4eee4;
+  background-image:
+    linear-gradient(180deg, rgba(239, 251, 246, 0.94) 0%, rgba(220, 243, 232, 0.9) 45%, rgba(205, 235, 223, 0.96) 100%),
+    url("images/math-race-park-wide.png");
+  background-size: cover;
+  background-position: center bottom;
+  background-repeat: no-repeat;
+}
+
+@supports (background-attachment: fixed) {
+  body.page-math:has(#screenSetup:not(.is-hidden)) {
+    background-attachment: fixed;
+  }
+}
+
+body.page-math:has(#screenSetup:not(.is-hidden)) #screenSetup .card {
+  background: rgba(255, 253, 249, 0.94);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-color: rgba(22, 101, 52, 0.42);
+  box-shadow: 0 2px 16px rgba(20, 80, 55, 0.1);
+}
+
+body.page-math:has(#screenSetup:not(.is-hidden)) #screenSetup .page-header--race {
+  background: rgba(255, 252, 248, 0.95);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-color: rgba(22, 101, 52, 0.42);
+}
+
+body.page-math:has(#screenSetup:not(.is-hidden)) #screenSetup .btn-primary {
+  box-shadow: 0 4px 0 var(--primary-dark), 0 8px 24px rgba(21, 128, 61, 0.28);
+}
+
 /* Board + side panel (Snakes & Ladders game-layout pattern) */
 .play-layout {
   display: grid;
@@ -808,7 +844,7 @@ h2,
       transparent 42%,
       rgba(25, 80, 50, 0.12) 100%
     ),
-    url("images/math-race-park-bg.png") center 38% / cover no-repeat;
+    url("images/math-race-park-wide.png") center bottom / cover no-repeat;
   animation: race-park-drift 60s ease-in-out infinite alternate;
   will-change: transform;
 }
@@ -855,24 +891,24 @@ html.kids-reduce-motion .race-stage::before {
   left: 0;
   right: 0;
   bottom: 0;
-  top: 52%;
+  top: 42%;
   z-index: 1;
   background: linear-gradient(
     180deg,
     rgba(40, 100, 60, 0) 0%,
-    rgba(35, 95, 60, 0.22) 55%,
-    rgba(28, 75, 45, 0.48) 100%
+    rgba(35, 95, 60, 0.08) 62%,
+    rgba(28, 75, 45, 0.2) 100%
   );
   box-shadow: none;
   pointer-events: none;
 }
 
 .race-ground::before {
-  opacity: 0.25;
+  opacity: 0.12;
 }
 
 .race-ground::after {
-  opacity: 0.12;
+  opacity: 0;
 }
 
 @keyframes stage-shake {
@@ -1068,39 +1104,6 @@ html.kids-reduce-motion .race-stage::before {
   }
 }
 
-.race-ground {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  top: 60%;
-  background: linear-gradient(180deg, #6fd68a 0%, var(--accent-bush) 38%, #228a3a 100%);
-  box-shadow: 0 -4px 0 rgba(30, 100, 50, 0.4);
-}
-
-/* Extra “bush” silhouettes along the horizon */
-.race-ground::before {
-  content: "";
-  position: absolute;
-  left: -5%;
-  right: -5%;
-  bottom: 72%;
-  height: 35%;
-  background: radial-gradient(ellipse 45% 90% at 20% 100%, #2d8f45 0%, transparent 55%),
-    radial-gradient(ellipse 40% 85% at 55% 100%, #34a853 0%, transparent 50%),
-    radial-gradient(ellipse 50% 95% at 85% 100%, #26833d 0%, transparent 55%);
-  pointer-events: none;
-  opacity: 0.9;
-}
-
-.race-ground::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: repeating-linear-gradient(90deg, transparent, transparent 10px, rgba(30, 90, 40, 0.07) 10px, rgba(30, 90, 40, 0.07) 12px);
-  pointer-events: none;
-}
-
 .race-ribbon {
   position: relative;
   z-index: 2;
@@ -1177,9 +1180,14 @@ html.kids-reduce-motion .race-stage::before {
   margin-bottom: 0.1rem;
 }
 
+/* Tall lane so runners read as “on the grass” — path band sits at feet */
+.race-stage:not(.has-multi-lane) .race-lane {
+  height: clamp(11rem, 34vmin, 18rem);
+}
+
 /* Taller lane when 2–3 runners need stacked paths */
 .race-stage.has-multi-lane .race-lane {
-  height: clamp(6.75rem, 22vw, 9.25rem);
+  height: clamp(12rem, 40vmin, 19rem);
 }
 
 /* Red-and-white finish tape (matches classic race ribbon) */
@@ -1202,12 +1210,17 @@ html.kids-reduce-motion .race-stage::before {
   left: 0;
   right: 0;
   bottom: 0.4rem;
-  height: 1.45rem;
+  height: clamp(1.25rem, 3.5vmin, 1.65rem);
   z-index: 1;
-  background: linear-gradient(180deg, var(--track-clay) 0%, var(--track-clay-dark) 55%, #a64d16 100%);
-  border-radius: 6px 6px 8px 8px;
-  box-shadow: inset 0 3px 0 rgba(255, 255, 255, 0.28), 0 3px 0 rgba(0, 0, 0, 0.22);
-  border: 3px solid #5c3010;
+  background: linear-gradient(
+    180deg,
+    rgba(220, 185, 148, 0.95) 0%,
+    rgba(185, 148, 106, 0.98) 55%,
+    #8a5a30 100%
+  );
+  border-radius: 8px 8px 10px 10px;
+  box-shadow: inset 0 3px 0 rgba(255, 255, 255, 0.22), 0 2px 0 rgba(0, 0, 0, 0.12);
+  border: 2px solid rgba(92, 62, 38, 0.75);
 }
 
 .race-stage.has-multi-lane .race-dashes {
@@ -1239,7 +1252,7 @@ html.kids-reduce-motion .race-stage::before {
   left: 2%;
   right: 2%;
   bottom: 0.4rem;
-  height: 1.45rem;
+  height: clamp(1.25rem, 3.5vmin, 1.65rem);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -1303,11 +1316,11 @@ html.kids-reduce-motion .race-stage::before {
   left: var(--runner-left, 2%);
   bottom: var(--runner-bottom, 0.2rem);
   z-index: 4;
-  width: 3.75rem;
-  height: 3.75rem;
+  width: clamp(5rem, 22vmin, 8rem);
+  height: clamp(6.75rem, 34vmin, 10rem);
   margin-left: 0;
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: center;
   transform: translateX(-50%);
   transition: left 0.7s cubic-bezier(0.33, 1.15, 0.48, 1);
@@ -1316,36 +1329,36 @@ html.kids-reduce-motion .race-stage::before {
 
 /* Stacked lanes: lower = closer to grass (lane 0), higher = upper path */
 .race-runner--lane0 {
-  --runner-bottom: 0.15rem;
+  --runner-bottom: clamp(1.05rem, 3.5vmin, 1.85rem);
   z-index: 5;
 }
 
 .race-runner--lane1 {
-  --runner-bottom: 2.35rem;
+  --runner-bottom: clamp(3.65rem, 11vmin, 5.5rem);
   z-index: 6;
 }
 
 .race-runner--lane2 {
-  --runner-bottom: 4.55rem;
+  --runner-bottom: clamp(6.75rem, 18vmin, 8.85rem);
   z-index: 7;
 }
 
 .race-stage:not(.has-multi-lane) .race-runner--lane0 {
-  --runner-bottom: 0.35rem;
+  --runner-bottom: clamp(1rem, 3.25vmin, 1.95rem);
 }
 
 .race-runner--dino .race-runner__emoji {
-  font-size: clamp(2.6rem, 9vw, 3.5rem);
+  font-size: clamp(3rem, 12vmin, 4.85rem);
 }
 
 .race-runner__emoji {
-  font-size: clamp(2.55rem, 8.5vw, 3.45rem);
+  font-size: clamp(3.4rem, 11vmin, 5.25rem);
   line-height: 1;
   display: block;
   transform-origin: 50% 85%;
   position: relative;
   z-index: 2;
-  filter: drop-shadow(0 3px 4px rgba(0, 0, 0, 0.2));
+  filter: drop-shadow(0 4px 5px rgba(0, 0, 0, 0.25));
 }
 
 .race-runner__emoji--pic {
@@ -1356,12 +1369,12 @@ html.kids-reduce-motion .race-stage::before {
 
 .race-runner__emoji--pic .race-runner__pic {
   display: block;
-  width: clamp(2.65rem, 8.5vw, 3.35rem);
+  width: clamp(4rem, 16vmin, 6.8rem);
   height: auto;
-  max-height: 3.5rem;
+  max-height: clamp(7rem, 28vmin, 10rem);
   object-fit: contain;
   transform-origin: 50% 85%;
-  filter: drop-shadow(0 3px 4px rgba(0, 0, 0, 0.2));
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.28));
 }
 
 /* Extra bounce for the long-neck dino */
@@ -1414,12 +1427,12 @@ html.kids-reduce-motion .race-stage::before {
 
 .race-runner__shadow {
   position: absolute;
-  bottom: -0.1rem;
+  bottom: 0.15rem;
   left: 50%;
   transform: translateX(-50%);
-  width: 55%;
-  height: 0.4rem;
-  background: rgba(0, 0, 0, 0.15);
+  width: 58%;
+  height: clamp(0.35rem, 1.2vmin, 0.55rem);
+  background: rgba(15, 60, 30, 0.22);
   border-radius: 50%;
   z-index: 0;
   transition: transform 0.3s;
