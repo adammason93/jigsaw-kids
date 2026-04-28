@@ -1700,18 +1700,18 @@ html.kids-reduce-motion .race-canopy {
 
 /* Vs-dino: Sofia smaller; dinosaur much bigger — full sprite on the path behind her */
 .race-stage.is-dino .race-runner:not(.race-runner--dino) .race-runner__emoji--pic .race-runner__pic {
-  width: clamp(3.85rem, 15vmin, 6.5rem);
-  max-height: clamp(5.75rem, 24vmin, 9rem);
+  width: clamp(3.85rem, 15vmin, 6.5rem) !important;
+  max-height: clamp(5.75rem, 24vmin, 9rem) !important;
 }
 
-.race-stage.is-dino .race-runner--dino.race-runner__emoji--pic {
+.race-stage.is-dino .race-runner--dino .race-runner__emoji--pic {
   overflow: visible;
 }
 
-.race-stage.is-dino .race-runner--dino.race-runner__emoji--pic .race-runner__pic {
-  width: clamp(10.5rem, 40vmin, 18rem);
-  max-width: none;
-  max-height: clamp(13.5rem, 52vmin, 21rem);
+.race-stage.is-dino .race-runner--dino .race-runner__emoji--pic .race-runner__pic {
+  width: clamp(10.5rem, 40vmin, 18rem) !important;
+  max-width: none !important;
+  max-height: clamp(13.5rem, 52vmin, 21rem) !important;
   transform: translateX(-50%);
   transform-origin: 50% 92%;
 }

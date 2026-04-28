@@ -720,8 +720,7 @@
     if (isVersusDino() && dinoQuestionTurn) {
       current = enrichForDots(makeProblem());
       questionText.textContent = current.text;
-      feedbackText.textContent = "";
-      feedbackText.className = "feedback";
+      /* Keep prior feedback (e.g. "You got it right!") visible until the dino acts */
       updateQuestionModalHeading();
       setMcHintForPhase();
       renderQuestionDots();
