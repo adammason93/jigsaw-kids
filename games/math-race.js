@@ -1,15 +1,11 @@
 /**
- * Number path: addition / subtraction, levels, characters move per correct answer.
- * Modes: solo, 2–3 player turns, race vs dinosaur (CPU).
+ * Number path: one player (Sofia) vs CPU dinosaur — addition / subtraction levels.
  */
 (function () {
   var gameSteps = 10;
   const CHOICE_COUNT = 4;
   var pictureHelp = false;
   var wrongAttempts = 0;
-
-  /** @type {'solo'|'two'|'three'|'computer'} */
-  var playMode = "solo";
 
   /** Dinosaur gets its own turn with a pop-up question; it answers most of the time (fair “race”) */
   const DINO_ANSWER_CORRECT_CHANCE = 0.82;
@@ -57,7 +53,6 @@
   const loseTitle = document.getElementById("loseTitle");
   const loseMessage = document.getElementById("loseMessage");
   const loseCard = document.getElementById("loseCard");
-  const charSectionHint = document.getElementById("charSectionHint");
   const questionTurnTitle = document.getElementById("questionTurnTitle");
   const mcHint = document.getElementById("mcHint");
 
@@ -69,7 +64,6 @@
   let level = 0;
   /** @type {{ id: string; label: string; character: string; position: number; lane: number; isCpu?: boolean; el?: HTMLElement }[]} */
   let players = [];
-  let currentPlayerIndex = 0;
   /** @type {{ text: string; answer: number } | null} */
   let current = null;
   /** @type {number[]} */
@@ -178,110 +172,33 @@
     }
   }
 
-  function selectedPlayMode() {
-    const r = document.querySelector('input[name="playMode"]:checked');
-    const v = r ? r.value : "solo";
-    if (v === "two" || v === "three" || v === "computer" || v === "solo") {
-      return v;
-    }
-    return "solo";
-  }
-
   function getCharForPlayer() {
     return "girlblonde";
   }
 
-  function syncSetupUiForMode() {
-    const mode = selectedPlayMode();
-    if (charSectionHint) {
-      if (mode === "computer") {
-        charSectionHint.textContent =
-          "You start one step ahead. You and the dinosaur take turns — each turn shows a pop-up with that player's question. Reach the finish before it catches you!";
-      } else if (mode === "two" || mode === "three") {
-        charSectionHint.textContent =
-          "Take turns as Sofia. Only the player whose turn it is moves forward when they're right!";
-      } else {
-        charSectionHint.textContent = "You play as Sofia.";
-      }
-    }
-  }
-
-  document.querySelectorAll('input[name="playMode"]').forEach(function (inp) {
-    inp.addEventListener("change", syncSetupUiForMode);
-  });
-  syncSetupUiForMode();
-
   function buildPlayers() {
-    playMode = selectedPlayMode();
-    const list = [];
-    if (playMode === "solo") {
-      list.push({
-        id: "h0",
-        label: "You",
-        character: getCharForPlayer(0),
-        position: 0,
-        lane: 0,
-      });
-    } else if (playMode === "two") {
-      list.push({
-        id: "h0",
-        label: "Player 1",
-        character: getCharForPlayer(0),
-        position: 0,
-        lane: 1,
-      });
-      list.push({
-        id: "h1",
-        label: "Player 2",
-        character: getCharForPlayer(1),
-        position: 0,
-        lane: 0,
-      });
-    } else if (playMode === "three") {
-      list.push({
-        id: "h0",
-        label: "Player 1",
-        character: getCharForPlayer(0),
-        position: 0,
-        lane: 2,
-      });
-      list.push({
-        id: "h1",
-        label: "Player 2",
-        character: getCharForPlayer(1),
-        position: 0,
-        lane: 1,
-      });
-      list.push({
-        id: "h2",
-        label: "Player 3",
-        character: getCharForPlayer(2),
-        position: 0,
-        lane: 0,
-      });
-    } else if (playMode === "computer") {
-      list.push({
+    return [
+      {
         id: "cpu",
         label: "Dinosaur",
         character: "dino",
         position: 0,
         lane: 0,
         isCpu: true,
-      });
-      list.push({
+      },
+      {
         id: "h0",
         label: "You",
-        character: getCharForPlayer(0),
+        character: getCharForPlayer(),
         position: 1,
         lane: 0,
         isCpu: false,
-      });
-    }
-    return list;
+      },
+    ];
   }
 
   function isVersusDino() {
-    return playMode === "computer";
+    return true;
   }
 
   function childPlayer() {
@@ -320,9 +237,8 @@
     if (!raceStage) {
       return;
     }
-    const multi = playMode === "two" || playMode === "three";
-    raceStage.classList.toggle("has-multi-lane", multi);
-    raceStage.classList.toggle("is-dino", playMode === "computer");
+    raceStage.classList.remove("has-multi-lane");
+    raceStage.classList.add("is-dino");
     raceStage.classList.remove("is-caught");
   }
 
@@ -415,51 +331,24 @@
     if (!playProgress) {
       return;
     }
-    if (playMode === "solo") {
-      const p = players[0];
-      if (p.position === 0) {
-        playProgress.textContent = "On the start line — reach the finish in " + gameSteps + " right answers!";
-      } else if (p.position >= gameSteps) {
-        playProgress.textContent = "You reached the finish line!";
-      } else {
-        playProgress.textContent = "Step " + p.position + " of " + gameSteps + " — keep going!";
-      }
+    const c = childPlayer();
+    const d = dinoPlayer();
+    if (!c || !d) {
       return;
     }
-    if (playMode === "computer") {
-      const c = childPlayer();
-      const d = dinoPlayer();
-      if (!c || !d) {
-        return;
-      }
-      playProgress.textContent =
-        "You: step " + c.position + " of " + gameSteps + " · Dinosaur: step " + d.position + " — reach the finish before it catches you!";
-      return;
-    }
-    const parts = players.map(function (p) {
-      return p.label.split(" ")[0] + " " + p.position + "/" + gameSteps;
-    });
-    playProgress.textContent = parts.join(" · ");
+    playProgress.textContent =
+      "You: step " + c.position + " of " + gameSteps + " · Dinosaur: step " + d.position + " — reach the finish before it catches you!";
   }
 
   function updateTurnLabel() {
     if (!playTurn) {
       return;
     }
-    if (playMode === "solo") {
-      playTurn.textContent = "";
-      return;
+    if (dinoQuestionTurn) {
+      playTurn.textContent = "Dinosaur's turn — watch the pop-up!";
+    } else {
+      playTurn.textContent = "Your turn — answer in the pop-up to move!";
     }
-    if (playMode === "computer") {
-      if (dinoQuestionTurn) {
-        playTurn.textContent = "Dinosaur's turn — watch the pop-up!";
-      } else {
-        playTurn.textContent = "Your turn — answer in the pop-up to move!";
-      }
-      return;
-    }
-    const p = players[currentPlayerIndex];
-    playTurn.textContent = p ? p.label + "'s turn — answer to move forward!" : "";
   }
 
   function updateQuestionModalHeading() {
@@ -467,18 +356,11 @@
       return;
     }
     questionTurnTitle.classList.remove("question-modal__turn--dino");
-    if (playMode === "solo") {
-      questionTurnTitle.textContent = "Your turn";
-    } else if (playMode === "computer") {
-      if (dinoQuestionTurn) {
-        questionTurnTitle.textContent = "Dinosaur's turn";
-        questionTurnTitle.classList.add("question-modal__turn--dino");
-      } else {
-        questionTurnTitle.textContent = "Your turn";
-      }
+    if (dinoQuestionTurn) {
+      questionTurnTitle.textContent = "Dinosaur's turn";
+      questionTurnTitle.classList.add("question-modal__turn--dino");
     } else {
-      const p = players[currentPlayerIndex];
-      questionTurnTitle.textContent = p ? p.label + "'s turn" : "Your turn";
+      questionTurnTitle.textContent = "Your turn";
     }
   }
 
@@ -547,59 +429,6 @@
     setTimeout(function () {
       p.el.classList.remove("race-runner--hop");
     }, 580);
-  }
-
-  function advanceTurn() {
-    if (playMode === "solo" || playMode === "computer") {
-      return;
-    }
-    const n = players.length;
-    currentPlayerIndex = (currentPlayerIndex + 1) % n;
-  }
-
-  function checkWinMultiplayer(mover) {
-    if (mover.position < gameSteps) {
-      return false;
-    }
-    winTitle.textContent = mover.label + " wins!";
-    winMessage.textContent =
-      mover.label + " got to the finish first with " + gameSteps + " right answers in a row on their turns. Amazing race!";
-    if (typeof KidsCore !== "undefined") {
-      KidsCore.recordGame("math");
-      KidsCore.confetti(document.getElementById("screenWin") || document.body);
-      KidsCore.playSound("win");
-      KidsCore.haptic("success");
-    }
-    let streak = 1;
-    try {
-      streak = Number(sessionStorage.getItem("mathWinStreak") || 0) + 1;
-      sessionStorage.setItem("mathWinStreak", String(streak));
-    } catch (e) {}
-    winMessage.textContent += " Win streak this visit: " + streak + ".";
-    showScreen("win");
-    return true;
-  }
-
-  function checkWinSolo(mover) {
-    if (mover.position < gameSteps) {
-      return false;
-    }
-    winTitle.textContent = "You made it!";
-    let streak = 1;
-    try {
-      streak = Number(sessionStorage.getItem("mathWinStreak") || 0) + 1;
-      sessionStorage.setItem("mathWinStreak", String(streak));
-    } catch (e) {}
-    winMessage.textContent =
-      "You got " + gameSteps + " questions right and made it to the end. What a star! Win streak this visit: " + streak + ".";
-    if (typeof KidsCore !== "undefined") {
-      KidsCore.recordGame("math");
-      KidsCore.confetti(document.getElementById("screenWin") || document.body);
-      KidsCore.playSound("win");
-      KidsCore.haptic("success");
-    }
-    showScreen("win");
-    return true;
   }
 
   function checkWinVersusDino(mover) {
@@ -860,11 +689,6 @@
     const ph = document.getElementById("pictureHelp");
     pictureHelp = !!(ph && ph.checked);
     players = buildPlayers();
-    if (playMode === "two" || playMode === "three") {
-      currentPlayerIndex = 0;
-    } else {
-      currentPlayerIndex = 0;
-    }
     playLevelLabel.textContent = LEVEL_LABELS[level] || LEVEL_LABELS[0];
     layoutStageClasses();
     showScreen("play");
@@ -876,10 +700,7 @@
   }
 
   function activeMover() {
-    if (playMode === "solo" || playMode === "computer") {
-      return childPlayer() || players[0];
-    }
-    return players[currentPlayerIndex];
+    return childPlayer() || players[0];
   }
 
   function submitChoice(num) {
@@ -903,30 +724,13 @@
       mover.position += 1;
       playRunnerHopByPlayerId(mover.id);
 
-      if (playMode === "solo") {
-        if (checkWinSolo(mover)) {
-          return;
-        }
-      } else if (playMode === "computer") {
-        if (checkWinVersusDino(mover)) {
-          return;
-        }
-        dinoQuestionTurn = true;
-        updateRaceVisual();
-        nextQuestion();
-        return;
-      } else {
-        if (checkWinMultiplayer(mover)) {
-          return;
-        }
-        advanceTurn();
-        updateRaceVisual();
-        nextQuestion();
+      if (checkWinVersusDino(mover)) {
         return;
       }
-
+      dinoQuestionTurn = true;
       updateRaceVisual();
       nextQuestion();
+      return;
     } else {
       wrongAttempts += 1;
       if (typeof KidsCore !== "undefined") {
@@ -946,12 +750,10 @@
         }, 400);
       }
 
-      if (playMode === "computer") {
-        dinoQuestionTurn = true;
-        updateTurnLabel();
-        nextQuestion();
-        return;
-      }
+      dinoQuestionTurn = true;
+      updateTurnLabel();
+      nextQuestion();
+      return;
     }
   }
 
