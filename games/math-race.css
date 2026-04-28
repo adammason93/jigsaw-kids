@@ -25,9 +25,8 @@
   --sky-mid: #d8f1e8;
   --park-shade: rgba(25, 80, 50, 0.45);
   /* In-game park + track — shared by .race-stage and .race-ribbon */
-  --race-section-min-height: clamp(195px, 28dvh, 300px);
-  /* Stop the stage stretching to fill the viewport */
-  --race-section-max-height: min(42dvh, 320px);
+  /* ~80% viewport; leave room for nav + play strip; floor so tiny screens still work */
+  --race-section-height: max(260px, min(80dvh, calc(100dvh - 7.5rem)));
   --radius: 16px;
   --shadow: 0 4px 0 var(--ink), 0 8px 24px rgba(20, 50, 40, 0.12);
   --shadow-card: 0 3px 0 rgba(0, 0, 0, 0.08), 0 4px 18px rgba(27, 58, 50, 0.08);
@@ -840,8 +839,8 @@ body.page-math:has(#screenSetup:not(.is-hidden)) #screenSetup .btn-primary {
   position: relative;
   flex: 0 0 auto;
   width: 100%;
-  min-height: var(--race-section-min-height);
-  max-height: var(--race-section-max-height);
+  height: var(--race-section-height);
+  max-height: var(--race-section-height);
   border-radius: 20px;
   overflow: hidden;
   margin: 0 -0.25rem 0;
@@ -855,8 +854,6 @@ body.page-math:has(#screenSetup:not(.is-hidden)) #screenSetup .btn-primary {
 
 .race-stage.has-multi-lane {
   --race-path-band: clamp(171px, 21vh, 248px);
-  min-height: clamp(235px, 36dvh, 360px);
-  max-height: min(56dvh, 440px);
 }
 
 /* Park art — full frame; path strip paints on top so track overlaps the picture */
