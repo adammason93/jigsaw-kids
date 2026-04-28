@@ -376,7 +376,8 @@ h2,
 .page-math .app--setup {
   padding: 0.35rem max(0.5rem, env(safe-area-inset-left, 0)) 0.5rem
     max(0.5rem, env(safe-area-inset-right, 0));
-  max-width: min(940px, 100%);
+  max-width: min(1100px, 96vw);
+  width: 100%;
 }
 
 #screenSetup {
@@ -448,6 +449,7 @@ h2,
   padding: 0.4rem 0.55rem 0.45rem;
   margin-bottom: 0;
   border-radius: 14px;
+  min-width: 0;
 }
 
 #screenSetup .card h2 {
@@ -461,16 +463,18 @@ h2,
 
 #screenSetup .choice-row:not(.choice-row--mode) {
   flex-direction: row;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
 }
 
 #screenSetup .choice-row--mode {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.28rem;
 }
 
 #screenSetup .radio-tile {
+  flex: 1 1 min(108px, 31%);
+  min-width: 0;
   padding: 0.32rem 0.28rem 0.36rem;
   border-radius: 10px;
 }
@@ -553,7 +557,7 @@ h2,
 }
 
 /* Desktop-wide: tricky | path | play mode — one row */
-@media (min-width: 820px) {
+@media (min-width: 720px) {
   #screenSetup {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
@@ -828,48 +832,47 @@ body.page-math:has(#screenSetup:not(.is-hidden)) #screenSetup .btn-primary {
     0 4px 0 rgba(0, 0, 0, 0.14),
     0 14px 32px rgba(20, 60, 48, 0.22);
   transition: filter 0.2s ease;
-  background-color: #7daf92;
+  background-color: #93c29e;
 }
 
-/* Slow drift + breathe on the playground art (clips inside overflow:hidden) */
+/* Full park in frame — contain + tinted stage so edges blend (avoid cover zoom crop) */
 .race-stage::before {
   content: "";
   position: absolute;
-  inset: -6%;
+  inset: 0;
   z-index: 0;
-  background:
-    linear-gradient(
-      165deg,
-      rgba(232, 250, 240, 0.15) 0%,
-      transparent 42%,
-      rgba(25, 80, 50, 0.12) 100%
-    ),
-    url("images/math-race-park-wide.png") center bottom / cover no-repeat;
-  animation: race-park-drift 60s ease-in-out infinite alternate;
+  background-color: transparent;
+  background-image: url("images/math-race-park-bg.png");
+  background-repeat: no-repeat;
+  background-position: center 36%;
+  background-size: contain;
+  animation: race-park-drift 72s ease-in-out infinite alternate;
   will-change: transform;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .race-stage::before {
     animation: none;
-    inset: -2%;
-    transform: scale(1.02);
-    background-position: center 40%;
+    transform: none;
+    inset: 0;
+    background-position: center 36%;
+    background-size: contain;
   }
 }
 
 html.kids-reduce-motion .race-stage::before {
   animation: none;
-  inset: -2%;
-  transform: scale(1.02);
+  transform: none;
+  background-position: center 36%;
+  background-size: contain;
 }
 
 @keyframes race-park-drift {
   0% {
-    transform: scale(1.06) translate(-1%, -0.4%);
+    transform: scale(1.01) translate(-0.3%, -0.2%);
   }
   100% {
-    transform: scale(1.14) translate(1.2%, 0.6%);
+    transform: scale(1.03) translate(0.3%, 0.15%);
   }
 }
 
@@ -891,13 +894,13 @@ html.kids-reduce-motion .race-stage::before {
   left: 0;
   right: 0;
   bottom: 0;
-  top: 42%;
+  top: 48%;
   z-index: 1;
   background: linear-gradient(
     180deg,
     rgba(40, 100, 60, 0) 0%,
-    rgba(35, 95, 60, 0.08) 62%,
-    rgba(28, 75, 45, 0.2) 100%
+    rgba(35, 95, 60, 0.04) 55%,
+    rgba(28, 75, 45, 0.12) 100%
   );
   box-shadow: none;
   pointer-events: none;
@@ -1316,8 +1319,8 @@ html.kids-reduce-motion .race-stage::before {
   left: var(--runner-left, 2%);
   bottom: var(--runner-bottom, 0.2rem);
   z-index: 4;
-  width: clamp(5rem, 22vmin, 8rem);
-  height: clamp(6.75rem, 34vmin, 10rem);
+  width: clamp(4.25rem, 18vmin, 7rem);
+  height: clamp(5.5rem, 28vmin, 8.75rem);
   margin-left: 0;
   display: flex;
   align-items: flex-end;
@@ -1348,17 +1351,17 @@ html.kids-reduce-motion .race-stage::before {
 }
 
 .race-runner--dino .race-runner__emoji {
-  font-size: clamp(3rem, 12vmin, 4.85rem);
+  font-size: clamp(2.65rem, 10vmin, 4.25rem);
 }
 
 .race-runner__emoji {
-  font-size: clamp(3.4rem, 11vmin, 5.25rem);
+  font-size: clamp(2.95rem, 9.5vmin, 4.75rem);
   line-height: 1;
   display: block;
   transform-origin: 50% 85%;
   position: relative;
   z-index: 2;
-  filter: drop-shadow(0 4px 5px rgba(0, 0, 0, 0.25));
+  filter: drop-shadow(0 3px 4px rgba(35, 75, 45, 0.3));
 }
 
 .race-runner__emoji--pic {
@@ -1369,12 +1372,14 @@ html.kids-reduce-motion .race-stage::before {
 
 .race-runner__emoji--pic .race-runner__pic {
   display: block;
-  width: clamp(4rem, 16vmin, 6.8rem);
+  width: clamp(3.35rem, 13vmin, 5.5rem);
   height: auto;
-  max-height: clamp(7rem, 28vmin, 10rem);
+  max-height: clamp(5.5rem, 20vmin, 7.5rem);
   object-fit: contain;
   transform-origin: 50% 85%;
-  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.28));
+  filter:
+    drop-shadow(0 2px 2px rgba(255, 255, 255, 0.45))
+    drop-shadow(0 4px 6px rgba(35, 75, 45, 0.35));
 }
 
 /* Extra bounce for the long-neck dino */

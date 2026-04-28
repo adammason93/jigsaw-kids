@@ -228,7 +228,13 @@ body.page-snakes {
 
 /* ——— Number path ——— */
 @media (min-width: 768px) {
-  .page-math .app {
+  /* Setup menu uses wider layout from math-race.css — do not cap at 560px */
+  .page-math #app.app--setup {
+    max-width: min(1100px, 96vw);
+  }
+
+  /* Legacy narrow column only if neither setup nor playing (should not occur) */
+  .page-math #app:not(.app--setup):not(.app--playing) {
     max-width: 560px;
   }
 
