@@ -832,7 +832,8 @@ body.page-math:has(#screenSetup:not(.is-hidden)) #screenSetup .btn-primary {
   --race-progress: 0;
   /* Bottom band for track; park pane ends higher so path overlaps up into the image */
   --race-path-band: clamp(200px, 28vh, 316px);
-  --race-park-overlap: min(52px, 15vmin);
+  /* Bottom band height + extra lift so track reads as one layer with the park */
+  --race-park-overlap: min(56px, 18vmin);
   position: relative;
   flex: 1 1 auto;
   min-height: var(--race-section-min-height);
@@ -851,13 +852,10 @@ body.page-math:has(#screenSetup:not(.is-hidden)) #screenSetup .btn-primary {
   --race-path-band: clamp(284px, 40vh, 404px);
 }
 
-/* Park image only in upper ~75–80%; bottom stops short so path can overlap */
+/* Park art — full frame; path strip paints on top so track overlaps the picture */
 .race-park-pane {
   position: absolute;
-  left: 0;
-  right: 0;
-  top: 0;
-  bottom: calc(var(--race-path-band) - var(--race-park-overlap));
+  inset: 0;
   z-index: 0;
   background-color: transparent;
   background-image: url("images/math-race-park-bg.png");
@@ -940,7 +938,7 @@ html.kids-reduce-motion .race-canopy {
   left: 0;
   right: 0;
   top: 44%;
-  bottom: calc(var(--race-path-band) - var(--race-park-overlap));
+  bottom: 0;
   z-index: 1;
   background: linear-gradient(
     180deg,
@@ -1219,13 +1217,13 @@ html.kids-reduce-motion .race-canopy {
   }
 }
 
-/* Bottom path strip (sketch): above park in z-order, overlaps into park image */
+/* Bottom strip: anchored to floor but pulled up over the park artwork */
 .race-path-shell {
   position: absolute;
   left: 0;
   right: 0;
   bottom: 0;
-  height: var(--race-path-band);
+  height: calc(var(--race-path-band) + var(--race-park-overlap));
   z-index: 6;
   display: flex;
   flex-direction: column;
@@ -1258,8 +1256,11 @@ html.kids-reduce-motion .race-canopy {
   padding: 0 0.1rem;
 }
 
+.race-path-shell .race-flag {
+  align-self: end;
+}
 
-
+.race-flag {
   flex: 0 0 auto;
   display: flex;
   flex-direction: column;
