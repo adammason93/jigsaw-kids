@@ -84,10 +84,11 @@
   cursor: pointer;
 }
 
-.kids-settings__row input {
+.kids-settings__row input[type="checkbox"] {
   width: 1.2rem;
   height: 1.2rem;
   margin-top: 0.15rem;
+  flex-shrink: 0;
 }
 
 .kids-settings__stat {
@@ -143,7 +144,29 @@
   border: 2px solid #cbd5e1;
   font: inherit;
   font-weight: 600;
+  font-size: 1rem;
+  color: #1e1b4b;
+  background: #fff;
   box-sizing: border-box;
+  min-height: 2.5rem;
+}
+
+.kids-settings__show-pass {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin: 0.35rem 0 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #475569;
+  cursor: pointer;
+}
+
+.kids-settings__show-pass input[type="checkbox"] {
+  width: 1.1rem;
+  height: 1.1rem;
+  margin: 0;
+  flex-shrink: 0;
 }
 
 .kids-settings__sync-btn {

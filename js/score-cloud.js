@@ -190,11 +190,16 @@
               if (SCORE_KEYS.indexOf(key) === -1) {
                 continue;
               }
+              var nextJson = JSON.stringify(row.payload[key]);
+              var prevJson = null;
               try {
-                global.localStorage.setItem(
-                  key,
-                  JSON.stringify(row.payload[key])
-                );
+                prevJson = global.localStorage.getItem(key);
+              } catch (ePrev) {}
+              if (prevJson === nextJson) {
+                continue;
+              }
+              try {
+                global.localStorage.setItem(key, nextJson);
                 changed = true;
               } catch (e) {}
             }
@@ -370,7 +375,8 @@
         '<h3 class="kids-settings__sync-title">Sync (optional)</h3>' +
         '<p class="kids-settings__sync-lead">A grown-up sets this up once in Supabase (one login email + password that match your site config). Here you only type the <strong>family password</strong>—no email.</p>' +
         '<p class="kids-settings__sync-status" id="kidsSyncStatus" role="status"></p>' +
-        '<label class="kids-settings__row kids-settings__row--email"><span class="kids-settings__sync-label">Family password</span><input type="password" id="kidsSyncPassword" class="kids-settings__sync-input" autocomplete="current-password" placeholder="••••••••" /></label>' +
+        '<label class="kids-settings__row kids-settings__row--email"><span class="kids-settings__sync-label">Family password</span><input type="password" id="kidsSyncPassword" class="kids-settings__sync-input" autocomplete="current-password" placeholder="Family password" /></label>' +
+        '<label class="kids-settings__show-pass"><input type="checkbox" id="kidsSyncShowPass" /> Show password while typing</label>' +
         '<button type="button" class="kids-settings__sync-btn" id="kidsSyncSignIn">Sign in for cloud sync</button>' +
         '<button type="button" class="kids-settings__sync-btn kids-settings__sync-btn--ghost" id="kidsSyncPull">Pull scores from cloud now</button>' +
         '<button type="button" class="kids-settings__sync-btn kids-settings__sync-btn--ghost" id="kidsSyncOut">Sign out</button>';
@@ -412,6 +418,12 @@
       }
 
       refreshAuthUi();
+
+      if (showPassEl && passEl) {
+        showPassEl.addEventListener("change", function () {
+          passEl.type = showPassEl.checked ? "text" : "password";
+        });
+      }
 
       if (btnSignIn) {
         btnSignIn.addEventListener("click", function () {
