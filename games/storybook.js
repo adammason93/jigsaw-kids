@@ -49,7 +49,7 @@
   var layerUnder = document.getElementById("sbLayerUnder");
   var btnPrev = document.getElementById("sbPrev");
   var btnNext = document.getElementById("sbNext");
-  var pagerHint = document.getElementById("sbPagerHint");
+  var pagerLive = document.getElementById("sbPagerLive");
   var btnNew = document.getElementById("sbNew");
   var btnDownload = document.getElementById("sbDownloadBook");
   var btnShelf = document.getElementById("sbShelfBook");
@@ -309,15 +309,23 @@
     pageLeaf.classList.remove("no-transition");
   }
 
-  function fillPageFace(faceRoot, page) {
+  function fillPageFace(faceRoot, page, displayPageNum) {
     if (!faceRoot) return;
     var art = faceRoot.querySelector(".sb-page__art");
     var img = art ? art.querySelector("img") : null;
     var textEl = faceRoot.querySelector(".sb-page__text");
+    var numInArt = art ? art.querySelector(".sb-page__num") : null;
+    var foot = faceRoot.querySelector(".sb-page-foot");
+    var total = story && story.pages ? story.pages.length : 0;
     if (!page) {
       if (textEl) textEl.textContent = "";
       if (art) art.hidden = true;
       if (img) img.removeAttribute("src");
+      if (numInArt) numInArt.textContent = "";
+      if (foot) {
+        foot.textContent = "";
+        foot.hidden = true;
+      }
       faceRoot.classList.add("sb-page-face--text-only");
       return;
     }
@@ -328,25 +336,45 @@
         img.alt = "";
         art.hidden = false;
         faceRoot.classList.remove("sb-page-face--text-only");
+        if (numInArt && displayPageNum && total) {
+          numInArt.textContent = "Page " + displayPageNum + " of " + total;
+        } else if (numInArt) numInArt.textContent = "";
+        if (foot) {
+          foot.textContent = "";
+          foot.hidden = true;
+        }
       } else {
         art.hidden = true;
         img.removeAttribute("src");
         faceRoot.classList.add("sb-page-face--text-only");
+        if (numInArt) numInArt.textContent = "";
+        if (foot && displayPageNum && total) {
+          foot.textContent = "Page " + displayPageNum + " of " + total;
+          foot.hidden = false;
+        } else if (foot) {
+          foot.textContent = "";
+          foot.hidden = true;
+        }
       }
     }
   }
 
   function renderBookSpread() {
     if (!story) return;
-    fillPageFace(getOverPageFace(), story.pages[pageIndex]);
+    fillPageFace(getOverPageFace(), story.pages[pageIndex], pageIndex + 1);
     var next = story.pages[pageIndex + 1];
-    fillPageFace(getUnderPageFace(), next !== undefined ? next : null);
+    fillPageFace(
+      getUnderPageFace(),
+      next !== undefined ? next : null,
+      next !== undefined ? pageIndex + 2 : 0
+    );
   }
 
   function updatePagerHints() {
     if (!story) return;
-    if (pagerHint) {
-      pagerHint.textContent = "Page " + (pageIndex + 1) + " of " + story.pages.length;
+    var line = "Page " + (pageIndex + 1) + " of " + story.pages.length;
+    if (pagerLive) {
+      pagerLive.textContent = line;
     }
     if (btnPrev) btnPrev.disabled = pageIndex === 0 || flipLock;
     if (btnNext) btnNext.disabled = pageIndex >= story.pages.length - 1 || flipLock;
@@ -386,7 +414,7 @@
     }
     flipLock = true;
     updatePagerHints();
-    fillPageFace(getUnderPageFace(), story.pages[pageIndex + 1]);
+    fillPageFace(getUnderPageFace(), story.pages[pageIndex + 1], pageIndex + 2);
     if (!pageLeaf) {
       pageIndex++;
       renderBookSpread();
@@ -420,7 +448,7 @@
     }
     flipLock = true;
     updatePagerHints();
-    fillPageFace(getUnderPageFace(), story.pages[pageIndex - 1]);
+    fillPageFace(getUnderPageFace(), story.pages[pageIndex - 1], pageIndex);
     if (!pageLeaf) {
       pageIndex--;
       renderBookSpread();

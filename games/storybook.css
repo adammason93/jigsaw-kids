@@ -690,8 +690,8 @@ body.page-storybook.sb-modal-open {
 }
 
 .sb-book--themed .sb-book-title,
+.sb-book--themed .sb-book-spread,
 .sb-book--themed .sb-hardback,
-.sb-book--themed .sb-pager,
 .sb-book--themed .sb-book__actions {
   position: relative;
   z-index: 1;
@@ -711,16 +711,64 @@ body.page-storybook.sb-modal-open {
   color: #9d174d;
 }
 
+/* Screen-reader-only live region for page */
+.sb-sr-live {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Spread: prev | book | next (matches polished reference layout) */
+.sb-book-spread {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin: 0 0 1rem;
+  min-height: 0;
+}
+
+.sb-read-stage {
+  flex: 1;
+  min-width: 0;
+  filter: drop-shadow(0 12px 28px rgba(50, 12, 40, 0.12));
+}
+
+.sb-read-arrow {
+  flex: 0 0 auto;
+  align-self: center;
+  width: 2.85rem !important;
+  height: 2.85rem !important;
+  min-width: 2.85rem !important;
+  max-width: none !important;
+  padding: 0 !important;
+  border-radius: 50% !important;
+  font-size: 1rem !important;
+  line-height: 1 !important;
+  box-shadow:
+    0 2px 0 rgba(219, 39, 119, 0.12),
+    0 8px 20px rgba(80, 20, 55, 0.12);
+  background: #fff !important;
+}
+
+.sb-read-arrow:disabled {
+  opacity: 0.35;
+}
+
 /* 3D hardback + page turn */
 .sb-hardback {
-  margin: 0 0 1.25rem;
+  margin: 0;
 }
 
 .sb-hardback__scene {
   position: relative;
-  perspective: 1500px;
-  perspective-origin: 50% 40%;
-  padding: 0.25rem 0 2rem;
+  perspective: none;
+  padding: 0.15rem 0 0.75rem;
 }
 
 .sb-hardback__shadow {
@@ -749,8 +797,8 @@ body.page-storybook.sb-modal-open {
   align-items: stretch;
   max-width: 100%;
   margin: 0 auto;
-  transform-style: preserve-3d;
-  transform: rotateX(9deg) rotateY(-11deg) translateZ(0);
+  transform: none;
+  transform-style: flat;
 }
 
 .sb-hardback__board--left {
@@ -782,14 +830,12 @@ body.page-storybook.sb-modal-open {
   flex: 1;
   min-width: 0;
   position: relative;
-  padding: 6px 7px 7px 5px;
-  border-radius: 0 11px 11px 0;
-  background: linear-gradient(145deg, #fbf8f3 0%, #fff 38%, #faf6f0 100%);
+  padding: 8px 9px 10px 6px;
+  border-radius: 0 16px 16px 0;
+  background: linear-gradient(180deg, #fff 0%, #fffdfb 100%);
   box-shadow:
-    3px 3px 0 #e9ddee,
-    6px 6px 0 #decfe4,
-    9px 9px 0 rgba(180, 130, 170, 0.25),
-    12px 14px 28px rgba(45, 15, 40, 0.18);
+    inset 0 0 0 1px rgba(255, 255, 255, 0.9),
+    0 10px 36px rgba(45, 15, 40, 0.08);
 }
 
 .sb-hardback__endpaper {
@@ -817,8 +863,8 @@ body.page-storybook.sb-modal-open {
 .sb-flip-root {
   position: relative;
   z-index: 1;
-  min-height: 13.5rem;
-  border-radius: 0 9px 9px 0;
+  min-height: clamp(14.5rem, 52vw, 18rem);
+  border-radius: 0 12px 12px 0;
   overflow: visible;
 }
 
@@ -826,20 +872,20 @@ body.page-storybook.sb-modal-open {
   position: absolute;
   inset: 0;
   z-index: 1;
-  border-radius: 0 9px 9px 0;
+  border-radius: 0 12px 12px 0;
 }
 
 .sb-flip-layer--over {
   position: absolute;
   inset: 0;
   z-index: 2;
-  border-radius: 0 9px 9px 0;
+  border-radius: 0 12px 12px 0;
   transform-style: preserve-3d;
 }
 
 .sb-page-leaf {
   width: 100%;
-  min-height: 13.5rem;
+  min-height: clamp(14.5rem, 52vw, 18rem);
   position: relative;
   transform-style: preserve-3d;
   transform-origin: right center;
@@ -862,7 +908,7 @@ body.page-storybook.sb-modal-open {
 .sb-page-leaf__sheet {
   position: absolute;
   inset: 0;
-  border-radius: 0 9px 9px 0;
+  border-radius: 0 12px 12px 0;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
 }
@@ -888,12 +934,12 @@ body.page-storybook.sb-modal-open {
   display: flex;
   flex-direction: column;
   height: 100%;
-  min-height: 13.5rem;
-  padding: 0.75rem 0.65rem 0.35rem;
-  border-radius: 0 9px 9px 0;
-  border: 1px solid rgba(219, 39, 119, 0.12);
-  box-shadow: inset 1px 0 0 rgba(255, 255, 255, 0.6);
-  background: linear-gradient(180deg, #fffefb 0%, #fff 40%, #fcfaf6 100%);
+  min-height: clamp(14.5rem, 52vw, 18rem);
+  padding: 0.65rem 0.55rem 0.45rem;
+  border-radius: 0 12px 12px 0;
+  border: 1px solid rgba(219, 39, 119, 0.1);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
+  background: #fffefb;
 }
 
 .sb-flip-layer--under .sb-page-face {
@@ -903,21 +949,20 @@ body.page-storybook.sb-modal-open {
 .sb-page__text {
   position: relative;
   z-index: 1;
-  margin: 0;
-  padding: 0.65rem 0.75rem 1.1rem;
-  font-size: clamp(1.02rem, 3.4vw, 1.22rem);
+  margin: 0 0 0.55rem;
+  padding: 0.65rem 0.75rem;
+  font-size: clamp(0.98rem, 3.2vw, 1.12rem);
   font-weight: 700;
-  line-height: 1.55;
-  color: #500724;
-  background: rgba(255, 255, 255, 0.97);
-  border-radius: 14px 14px 10px 10px;
-  border: 1px solid rgba(219, 39, 119, 0.1);
-  box-shadow: 0 2px 12px rgba(80, 7, 36, 0.06);
+  line-height: 1.52;
+  color: #701a45;
+  background: #fff;
+  border-radius: 12px;
+  border: 2px solid rgba(180, 160, 170, 0.45);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.9) inset;
 }
 
 .sb-page-face--text-only .sb-page__text {
-  border-radius: 14px;
-  padding-bottom: 0.85rem;
+  border-radius: 12px;
   margin-bottom: 0.35rem;
   flex: 1 1 auto;
 }
@@ -925,15 +970,47 @@ body.page-storybook.sb-modal-open {
 .sb-page__art {
   position: relative;
   z-index: 2;
-  margin: -0.65rem 0.2rem 0.35rem;
-  border-radius: 18px;
+  margin: 0;
+  border-radius: 14px;
   overflow: hidden;
   background: linear-gradient(180deg, #fdf2f8 0%, #fce7f3 100%);
   box-shadow:
-    0 6px 0 rgba(219, 39, 119, 0.06),
-    0 18px 32px rgba(80, 20, 55, 0.2);
-  border: 3px solid rgba(255, 255, 255, 0.9);
+    0 2px 0 rgba(219, 39, 119, 0.08),
+    0 12px 28px rgba(80, 20, 55, 0.14);
+  border: 3px solid rgba(255, 255, 255, 0.95);
   flex-shrink: 0;
+}
+
+.sb-page__num {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+  margin: 0;
+  padding: 0.2rem 0.65rem;
+  font-size: 0.8rem;
+  font-weight: 800;
+  font-family: "Nunito", "Segoe UI", system-ui, sans-serif;
+  color: #db2777;
+  text-shadow:
+    0 0 10px rgba(255, 255, 255, 1),
+    0 0 6px rgba(255, 255, 255, 0.95),
+    0 1px 2px rgba(255, 255, 255, 0.8);
+  pointer-events: none;
+}
+
+.sb-page-foot {
+  margin: 0.4rem 0 0;
+  text-align: center;
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: #db2777;
+}
+
+.sb-page-face--text-only .sb-page-foot:not([hidden]) {
+  margin-top: auto;
+  padding-bottom: 0.15rem;
 }
 
 .sb-page__art img {

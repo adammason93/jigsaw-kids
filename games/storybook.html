@@ -145,47 +145,67 @@
     </div>
 
     <section class="sb-book is-hidden" id="sbBook" aria-labelledby="sbBookTitle" hidden>
+      <span class="sb-sr-live" id="sbPagerLive" aria-live="polite"></span>
       <h2 class="sb-book-title" id="sbBookTitle"></h2>
-      <div class="sb-hardback">
-        <div class="sb-hardback__scene" id="sbBookScene" aria-live="polite">
-          <div class="sb-hardback__shadow" aria-hidden="true"></div>
-          <div class="sb-hardback__volume">
-            <div class="sb-hardback__board sb-hardback__board--left" aria-hidden="true"></div>
-            <div class="sb-hardback__spine" aria-hidden="true"></div>
-            <div class="sb-hardback__block">
-              <div class="sb-hardback__endpaper" aria-hidden="true"></div>
-              <div class="sb-flip-root" id="sbFlipRoot">
-                <div class="sb-flip-layer sb-flip-layer--under" id="sbLayerUnder">
-                  <div class="sb-page-face">
-                    <p class="sb-page__text"></p>
-                    <div class="sb-page__art" hidden>
-                      <img alt="" decoding="async" />
-                    </div>
-                  </div>
-                </div>
-                <div class="sb-flip-layer sb-flip-layer--over" id="sbLayerOver">
-                  <div class="sb-page-leaf" id="sbPageLeaf">
-                    <div class="sb-page-leaf__sheet sb-page-leaf__sheet--front">
+      <div class="sb-book-spread" id="sbBookSpread">
+        <button
+          type="button"
+          class="sb-btn sb-btn--ghost sb-read-arrow"
+          id="sbPrev"
+          aria-label="Turn back one page"
+        >
+          ◀
+        </button>
+        <div class="sb-read-stage">
+          <div class="sb-hardback">
+            <div class="sb-hardback__scene" id="sbBookScene" aria-live="polite">
+              <div class="sb-hardback__shadow" aria-hidden="true"></div>
+              <div class="sb-hardback__volume">
+                <div class="sb-hardback__board sb-hardback__board--left" aria-hidden="true"></div>
+                <div class="sb-hardback__spine" aria-hidden="true"></div>
+                <div class="sb-hardback__block">
+                  <div class="sb-hardback__endpaper" aria-hidden="true"></div>
+                  <div class="sb-flip-root" id="sbFlipRoot">
+                    <div class="sb-flip-layer sb-flip-layer--under" id="sbLayerUnder">
                       <div class="sb-page-face">
                         <p class="sb-page__text"></p>
                         <div class="sb-page__art" hidden>
+                          <span class="sb-page__num" aria-hidden="true"></span>
                           <img alt="" decoding="async" />
                         </div>
+                        <p class="sb-page-foot" hidden aria-hidden="true"></p>
                       </div>
                     </div>
-                    <div class="sb-page-leaf__sheet sb-page-leaf__sheet--back" aria-hidden="true"></div>
+                    <div class="sb-flip-layer sb-flip-layer--over" id="sbLayerOver">
+                      <div class="sb-page-leaf" id="sbPageLeaf">
+                        <div class="sb-page-leaf__sheet sb-page-leaf__sheet--front">
+                          <div class="sb-page-face">
+                            <p class="sb-page__text"></p>
+                            <div class="sb-page__art" hidden>
+                              <span class="sb-page__num" aria-hidden="true"></span>
+                              <img alt="" decoding="async" />
+                            </div>
+                            <p class="sb-page-foot" hidden aria-hidden="true"></p>
+                          </div>
+                        </div>
+                        <div class="sb-page-leaf__sheet sb-page-leaf__sheet--back" aria-hidden="true"></div>
+                      </div>
+                    </div>
                   </div>
                 </div>
+                <div class="sb-hardback__foreedge" aria-hidden="true"></div>
               </div>
             </div>
-            <div class="sb-hardback__foreedge" aria-hidden="true"></div>
           </div>
         </div>
-      </div>
-      <div class="sb-pager">
-        <button type="button" class="sb-btn sb-btn--ghost" id="sbPrev" aria-label="Turn back one page">◀</button>
-        <span class="sb-pager__hint" id="sbPagerHint"></span>
-        <button type="button" class="sb-btn sb-btn--ghost" id="sbNext" aria-label="Turn the page">▶</button>
+        <button
+          type="button"
+          class="sb-btn sb-btn--ghost sb-read-arrow"
+          id="sbNext"
+          aria-label="Turn the page"
+        >
+          ▶
+        </button>
       </div>
       <div class="sb-book__actions">
         <button type="button" class="sb-btn sb-btn--primary" id="sbDownloadBook">
