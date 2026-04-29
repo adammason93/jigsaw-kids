@@ -58,6 +58,7 @@
   var readerStack = document.getElementById("sbReaderStack");
   var readerPages = document.getElementById("sbReaderPages");
   var btnOpenCover = document.getElementById("sbOpenCover");
+  var coverPivot = document.getElementById("sbCoverPivot");
   var btnCloseBook = document.getElementById("sbCloseBook");
   var coverTitle = document.getElementById("sbCoverTitle");
   var btnPrev = document.getElementById("sbPrev");
@@ -279,7 +280,8 @@
   var spreadIndex = 0;
   /** @type {boolean} */
   var spreadAnimLock = false;
-  /** Incremented to invalidate in-flight open-cover callbacks */
+  /** Incremented to invalidate in-flight open-cover animation */
+  var coverOpenGeneration = 0;
 
   function prefersReducedSpreadMotion() {
     return (
@@ -459,13 +461,23 @@
   function closeBookCover() {
     if (!book || !readerStack) return;
     if (book.classList.contains("sb-book--cover-visible")) return;
-    if (!readerStack.classList.contains("sb-reader-stack--open")) return;
+    if (
+      !readerStack.classList.contains("sb-reader-stack--open") &&
+      !readerStack.classList.contains("sb-reader-stack--opening")
+    ) {
+      return;
+    }
+
+    coverOpenGeneration += 1;
 
     spreadAnimLock = false;
     clearSpreadTurnClasses();
     setSpreadNavBusy(false);
 
-    readerStack.classList.remove("sb-reader-stack--open");
+    readerStack.classList.remove(
+      "sb-reader-stack--open",
+      "sb-reader-stack--opening"
+    );
     book.classList.add("sb-book--cover-visible");
     if (readerPages) readerPages.setAttribute("aria-hidden", "true");
     if (btnOpenCover) {
@@ -479,20 +491,58 @@
   function openBookCover() {
     if (!book || !book.classList.contains("sb-book--cover-visible")) return;
     if (!readerStack) return;
-    readerStack.classList.add("sb-reader-stack--open");
-    book.classList.remove("sb-book--cover-visible");
-    if (readerPages) readerPages.removeAttribute("aria-hidden");
-    if (btnOpenCover) {
-      btnOpenCover.setAttribute("aria-hidden", "true");
-      btnOpenCover.tabIndex = -1;
+
+    function finishOpen() {
+      readerStack.classList.add("sb-reader-stack--open");
+      readerStack.classList.remove("sb-reader-stack--opening");
+      book.classList.remove("sb-book--cover-visible");
+      if (readerPages) readerPages.removeAttribute("aria-hidden");
+      if (btnOpenCover) {
+        btnOpenCover.setAttribute("aria-hidden", "true");
+        btnOpenCover.tabIndex = -1;
+      }
+      syncCloseBookButton();
+      updatePagerHints();
     }
-    syncCloseBookButton();
-    updatePagerHints();
+
+    if (prefersReducedSpreadMotion()) {
+      finishOpen();
+      return;
+    }
+
+    coverOpenGeneration += 1;
+    var myGen = coverOpenGeneration;
+    var finished = false;
+
+    function done() {
+      if (myGen !== coverOpenGeneration || finished) return;
+      finished = true;
+      if (coverPivot) {
+        coverPivot.removeEventListener("transitionend", onPivotEnd);
+      }
+      finishOpen();
+    }
+
+    function onPivotEnd(ev) {
+      if (!coverPivot || ev.target !== coverPivot) return;
+      if (ev.propertyName !== "transform") return;
+      done();
+    }
+
+    readerStack.classList.add("sb-reader-stack--opening");
+    if (coverPivot) {
+      coverPivot.addEventListener("transitionend", onPivotEnd);
+    }
+    window.setTimeout(done, 1700);
   }
 
   function resetBookCoverForWizard() {
+    coverOpenGeneration += 1;
     if (readerStack) {
-      readerStack.classList.remove("sb-reader-stack--open");
+      readerStack.classList.remove(
+        "sb-reader-stack--open",
+        "sb-reader-stack--opening"
+      );
     }
     if (book) book.classList.remove("sb-book--cover-visible");
     if (readerPages) readerPages.setAttribute("aria-hidden", "true");
@@ -1283,6 +1333,7 @@
 
   function showBook() {
     if (!story || !story.pages.length) return;
+    coverOpenGeneration += 1;
     closeJourney();
     if (landing) {
       landing.classList.add("is-hidden");
@@ -1301,7 +1352,10 @@
       );
     }
     if (readerStack) {
-      readerStack.classList.remove("sb-reader-stack--open");
+      readerStack.classList.remove(
+        "sb-reader-stack--open",
+        "sb-reader-stack--opening"
+      );
     }
     if (readerPages) readerPages.setAttribute("aria-hidden", "true");
     if (btnOpenCover) {
