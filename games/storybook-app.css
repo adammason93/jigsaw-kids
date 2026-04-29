@@ -1292,6 +1292,25 @@ body.page-storybook.sb-modal-open {
   transform-style: flat;
 }
 
+.sb-flip-spread__inner.sb-flip-spread__inner--fade-out {
+  opacity: 0;
+  transition: opacity 0.17s ease;
+}
+
+.sb-flip-spread__inner.sb-flip-spread__inner--fade-in {
+  animation: sb-spread-fade-in 0.26s ease forwards;
+}
+
+@keyframes sb-spread-fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
 /* Binding edge: thin “spine” strip like a closed book block (inside the red frame) */
 .sb-flip-spread__inner::before {
   content: "";
