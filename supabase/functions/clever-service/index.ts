@@ -485,8 +485,15 @@ Deno.serve(async (req) => {
     const urlStr = new URL(req.url).searchParams.get("url");
     if (!urlStr) return jsonResponse({ error: "missing_url" }, 400);
     try {
-      const res = await fetch(urlStr);
-      if (!res.ok) throw new Error("proxy_upstream_error");
+      // Decode the URL if it was encoded twice, or just use it as is
+      const decodedUrl = decodeURIComponent(urlStr);
+      const finalUrl = decodedUrl.startsWith("http") ? decodedUrl : urlStr;
+      
+      const res = await fetch(finalUrl);
+      if (!res.ok) {
+        console.error("[proxy error] upstream returned", res.status, res.statusText, "for URL:", finalUrl);
+        throw new Error(`proxy_upstream_error_${res.status}`);
+      }
       return new Response(res.body, {
         headers: {
           ...corsHeaders,
@@ -496,7 +503,7 @@ Deno.serve(async (req) => {
       });
     } catch (e) {
       console.error("[proxy error]", e);
-      return jsonResponse({ error: "proxy_failed" }, 502);
+      return jsonResponse({ error: "proxy_failed", detail: String(e) }, 502);
     }
   }
 
