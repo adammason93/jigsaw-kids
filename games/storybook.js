@@ -853,7 +853,15 @@
     } else {
       spreadText.innerHTML = "";
     }
-    if (spreadTextActions) spreadTextActions.hidden = !leftP || !leftP.text;
+    if (spreadTextActions) {
+      if (!leftP || !leftP.text) {
+        spreadTextActions.hidden = true;
+        spreadTextActions.style.display = "none";
+      } else {
+        spreadTextActions.hidden = false;
+        spreadTextActions.style.display = "flex";
+      }
+    }
   }
 
   function syncSpreadIllustrationFromStory() {
