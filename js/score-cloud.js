@@ -603,18 +603,17 @@
                   }
                   return;
                 }
-                if (passEl) {
-                  passEl.value = "";
+              if (passEl) {
+                passEl.value = "";
+              }
+              setStatus(statusEl, "Signed in — syncing…");
+              refreshAuthUi();
+              pullAndApply(function (changed) {
+                refreshOpenScoreUis(); // Always trigger refresh to sync storage buckets
+                if (!changed) {
+                  pushBundle();
                 }
-                setStatus(statusEl, "Signed in — syncing…");
-                refreshAuthUi();
-                pullAndApply(function (changed) {
-                  if (changed) {
-                    refreshOpenScoreUis();
-                  } else {
-                    pushBundle();
-                  }
-                });
+              });
               });
           });
         });
@@ -624,9 +623,9 @@
         btnPull.addEventListener("click", function () {
           setStatus(statusEl, "Fetching…");
           pullAndApply(function (changed) {
+            refreshOpenScoreUis(); // Always trigger refresh to sync storage buckets
             if (changed) {
               setStatus(statusEl, "Merged scores from cloud.");
-              refreshOpenScoreUis();
             } else {
               setStatus(
                 statusEl,
@@ -662,9 +661,8 @@
         // do not reload here — listener can repeat
         if (session && session.user && event === "SIGNED_IN") {
           pullAndApply(function (changed) {
-            if (changed) {
-              refreshOpenScoreUis();
-            } else {
+            refreshOpenScoreUis(); // Always trigger refresh to sync storage buckets
+            if (!changed) {
               pushBundle();
             }
           });
@@ -674,9 +672,7 @@
         var sess = res.data && res.data.session;
         if (sess && sess.user) {
           pullAndApply(function (changed) {
-            if (changed) {
-              refreshOpenScoreUis();
-            }
+            refreshOpenScoreUis(); // Always trigger refresh to sync storage buckets (storybook/colouring) even if score_bundles didn't change
           });
         }
       });

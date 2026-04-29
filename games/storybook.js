@@ -1821,28 +1821,36 @@
   renderShelf();
 
   if (window.KidsScoreCloud && window.KidsScoreCloud.downloadStorybookLibrary) {
-    window.KidsScoreCloud.downloadStorybookLibrary(function (err, data) {
-      if (!err && Array.isArray(data) && data.length > 0) {
-        var local = loadShelf();
-        var map = {};
-        local.forEach(function (b) {
-          map[b.id] = b;
-        });
-        var changed = false;
-        data.forEach(function (b) {
-          if (!map[b.id]) {
-            local.push(b);
-            changed = true;
+    var syncLibrary = function() {
+      window.KidsScoreCloud.downloadStorybookLibrary(function (err, data) {
+        if (!err && Array.isArray(data) && data.length > 0) {
+          var local = loadShelf();
+          var map = {};
+          local.forEach(function (b) {
+            map[b.id] = b;
+          });
+          var changed = false;
+          data.forEach(function (b) {
+            if (!map[b.id]) {
+              local.push(b);
+              changed = true;
+            }
+          });
+          if (changed) {
+            // bypass scheduleStorybookUpload on initial merge down so we don't re-upload what we just got
+            var raw = JSON.stringify(local);
+            localStorage.setItem(SHELF_STORAGE_KEY, raw);
+            renderShelf();
           }
-        });
-        if (changed) {
-          // bypass scheduleStorybookUpload on initial merge down so we don't re-upload what we just got
-          var raw = JSON.stringify(local);
-          localStorage.setItem(SHELF_STORAGE_KEY, raw);
-          renderShelf();
         }
-      }
-    });
+      });
+    };
+    
+    // Sync on initial load
+    syncLibrary();
+    
+    // Also sync when the user signs in or clicks "Pull scores" in settings
+    window.addEventListener("kids-scorecard-refresh", syncLibrary);
   }
 
   if (immersiveReaderMq.addEventListener) {
