@@ -751,6 +751,15 @@
     }
   }
 
+  function storybookSlug(c) {
+    var def = "storybook-generate";
+    if (!c || !c.storybookEdgeSlug) return def;
+    var s = String(c.storybookEdgeSlug).trim().replace(/^\/+|\/+$/g, "");
+    if (!s) return def;
+    var safe = s.replace(/[^a-zA-Z0-9\-_]/g, "");
+    return safe || def;
+  }
+
   function functionUrl() {
     var c =
       typeof window.SCORE_CONFIG !== "undefined"
@@ -760,7 +769,7 @@
           : null;
     var base = c && c.supabaseUrl ? String(c.supabaseUrl).replace(/\/$/, "") : "";
     if (!base) return "";
-    return base + "/functions/v1/storybook-generate";
+    return base + "/functions/v1/" + storybookSlug(c);
   }
 
   function anonKey() {
@@ -1033,8 +1042,13 @@
           showBook();
         })
         .catch(function () {
+          var u = functionUrl();
           setError(
-            "Network problem — is the story function deployed? See supabase/functions/storybook-generate/README.md."
+            u
+              ? "Can’t reach the story server (" +
+                u +
+                "). Check connection, Supabase function + OPENAI_API_KEY, and storybookEdgeSlug in score-config if the URL slug changed."
+              : "Story server isn’t configured. Check score-config (Supabase URL + anon key)."
           );
         })
         .finally(function () {
