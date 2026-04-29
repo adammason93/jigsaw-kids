@@ -805,7 +805,7 @@ body.page-storybook.sb-modal-open {
   min-height: clamp(260px, min(56vw, 58vh), 500px);
 }
 
-/* Book plate: shadow on plate; perspective for cover flip */
+/* Book plate: no 3D on open (flip caused stacking/ghost issues in browser); fade spread only */
 .sb-reader-book {
   position: relative;
   width: 100%;
@@ -814,20 +814,15 @@ body.page-storybook.sb-modal-open {
   margin-right: auto;
   border-radius: 14px;
   box-shadow: 0 18px 42px rgba(25, 25, 25, 0.18);
-  perspective: min(2000px, 120vw);
-  perspective-origin: center center;
-  isolation: isolate;
 }
 
-/* Cover lines up with the left page of .sb-flip-spread__inner (hinge = gutter); not center-floated */
+/* Centered closed cover (matches the “one card” expectation) */
 .sb-cover {
   position: absolute;
   z-index: 3;
   top: 0.45rem;
-  left: calc(
-    0.45rem + ((100% - 0.9rem) - min(920px, calc(100% - 0.9rem))) / 2
-  );
-  width: calc((min(920px, calc(100% - 0.9rem)) - 26px) / 2);
+  left: 50%;
+  width: min(300px, calc(100% - 2rem));
   height: var(--sb-book-inner-h);
   padding: 0;
   margin: 0;
@@ -835,7 +830,7 @@ body.page-storybook.sb-modal-open {
   background: transparent;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  transform: none;
+  transform: translateX(-50%);
   transform-style: flat;
 }
 
@@ -844,14 +839,8 @@ body.page-storybook.sb-modal-open {
   width: 100%;
   height: 100%;
   position: relative;
-  transform-origin: left center;
+  transform: none;
   transform-style: flat;
-  transition: transform 1.25s cubic-bezier(0.645, 0.045, 0.355, 1);
-  will-change: transform;
-}
-
-.sb-reader-stack--opening .sb-cover__pivot {
-  transform: rotateY(-178deg);
 }
 
 .sb-cover__outside,
@@ -909,10 +898,6 @@ body.page-storybook.sb-modal-open {
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
 }
 
-.sb-reader-stack--opening .sb-cover__deco {
-  filter: none;
-}
-
 .sb-cover__title {
   font-family: "Sniglet", "Nunito", sans-serif;
   font-size: clamp(1rem, 4.2vw, 1.35rem);
@@ -953,14 +938,6 @@ body.page-storybook.sb-modal-open {
     transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.sb-reader-stack--opening .sb-reader-pages {
-  position: relative;
-  z-index: 1;
-  opacity: 1;
-  transform: translateY(0);
-  pointer-events: none;
-}
-
 .sb-reader-stack--open .sb-reader-pages {
   position: relative;
   z-index: 4;
@@ -974,22 +951,9 @@ body.page-storybook.sb-modal-open {
   display: none;
 }
 
-.sb-reader-stack--opening .sb-cover {
-  z-index: 8;
-  pointer-events: none;
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .sb-cover__pivot {
-    transition: none;
-  }
-
   .sb-reader-pages {
     transition: none;
-  }
-
-  .sb-reader-stack--opening .sb-cover__pivot {
-    transform: none;
   }
 }
 
