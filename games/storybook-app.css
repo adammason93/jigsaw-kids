@@ -547,18 +547,21 @@ body.page-storybook.sb-modal-open {
   max-height: min(92dvh, 36rem);
   overflow-y: auto;
   margin: 0 auto;
-  padding: 1.25rem 1.15rem 1.4rem;
-  background: #fff;
-  border-radius: 24px 24px 0 0;
-  box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.18);
-  border: 2px solid rgba(244, 114, 182, 0.35);
+  padding: 1.5rem 1.25rem 1.65rem;
+  background: #fffafb;
+  background-image: radial-gradient(#fce7f3 20%, transparent 20%);
+  background-size: 16px 16px;
+  background-position: 0 0;
+  border-radius: 28px 28px 0 0;
+  box-shadow: 0 -12px 48px rgba(131, 24, 67, 0.18), 0 0 0 1px rgba(244, 114, 182, 0.2);
+  border: 4px solid #fbcfe8;
   border-bottom: none;
 }
 
 @media (min-height: 520px) {
   .sb-modal__sheet {
-    border-radius: 24px;
-    border: 2px solid rgba(244, 114, 182, 0.35);
+    border-radius: 28px;
+    border: 4px solid #fbcfe8;
     margin: 1rem;
   }
 }
@@ -599,11 +602,12 @@ body.page-storybook.sb-modal-open {
 
 .sb-modal__heading {
   font-family: "Sniglet", "Nunito", sans-serif;
-  font-size: clamp(1.35rem, 4.5vw, 1.6rem);
+  font-size: clamp(1.45rem, 4.5vw, 1.7rem);
   font-weight: 800;
   margin: 0 0 1rem;
   color: #9d174d;
   text-align: center;
+  text-shadow: 0 2px 0 rgba(251, 207, 232, 0.8);
 }
 
 .sb-panel__text {
@@ -661,15 +665,23 @@ body.page-storybook.sb-modal-open {
 
 .sb-textarea {
   width: 100%;
-  padding: 0.65rem 0.85rem;
-  border-radius: 14px;
-  border: 2px solid rgba(219, 39, 119, 0.35);
+  padding: 0.75rem 0.85rem;
+  border-radius: 16px;
+  border: 3px solid rgba(219, 39, 119, 0.25);
   font: inherit;
   font-weight: 700;
   background: #fff;
   resize: vertical;
   min-height: 6.5rem;
   line-height: 1.45;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.sb-textarea:focus {
+  outline: none;
+  border-color: #f472b6;
+  box-shadow: 0 0 0 4px rgba(244, 114, 182, 0.25), inset 0 2px 4px rgba(0,0,0,0.02);
 }
 
 .sb-label {
@@ -688,12 +700,20 @@ body.page-storybook.sb-modal-open {
 
 .sb-input {
   width: 100%;
-  padding: 0.65rem 0.85rem;
-  border-radius: 14px;
-  border: 2px solid rgba(219, 39, 119, 0.35);
+  padding: 0.75rem 0.85rem;
+  border-radius: 16px;
+  border: 3px solid rgba(219, 39, 119, 0.25);
   font: inherit;
   font-weight: 700;
   background: #fff;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.sb-input:focus {
+  outline: none;
+  border-color: #f472b6;
+  box-shadow: 0 0 0 4px rgba(244, 114, 182, 0.25), inset 0 2px 4px rgba(0,0,0,0.02);
 }
 
 .sb-voice-row {
@@ -820,22 +840,31 @@ body.page-storybook.sb-modal-open {
 }
 
 .sb-chip {
-  padding: 0.45rem 0.75rem;
+  padding: 0.45rem 0.85rem;
   border-radius: 999px;
-  border: 2px solid rgba(219, 39, 119, 0.35);
+  border: 3px solid rgba(219, 39, 119, 0.2);
   background: #fff;
   font: inherit;
-  font-size: 0.88rem;
+  font-size: 0.9rem;
   font-weight: 800;
   color: #9d174d;
   cursor: pointer;
   touch-action: manipulation;
+  transition: all 0.15s ease;
+  box-shadow: 0 2px 0 rgba(219, 39, 119, 0.1);
+}
+
+.sb-chip:active {
+  transform: translateY(2px);
+  box-shadow: 0 0 0 rgba(219, 39, 119, 0.1);
 }
 
 .sb-chip.is-selected {
   border-color: #db2777;
   background: #fce7f3;
   color: #831843;
+  transform: translateY(1px);
+  box-shadow: 0 1px 0 rgba(219, 39, 119, 0.15);
 }
 
 .sb-note {
@@ -851,33 +880,41 @@ body.page-storybook.sb-modal-open {
   justify-content: center;
   gap: 0.35rem;
   width: 100%;
-  padding: 0.75rem 1rem;
-  border-radius: 16px;
+  padding: 0.85rem 1rem;
+  border-radius: 20px;
   font: inherit;
   font-weight: 800;
   cursor: pointer;
   touch-action: manipulation;
   border: none;
+  transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.15s ease;
 }
 
 .sb-btn--primary {
   font-family: "Sniglet", "Nunito", sans-serif;
-  font-size: 1.1rem;
+  font-size: 1.15rem;
   color: #fff;
   background: linear-gradient(180deg, #f472b6 0%, #db2777 100%);
-  box-shadow: 0 4px 0 #9d174d, 0 10px 24px rgba(219, 39, 119, 0.25);
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.25), 0 4px 0 #9d174d, 0 8px 24px rgba(219, 39, 119, 0.25);
+  border: 2px solid #be185d;
 }
 
 .sb-btn--primary:active {
-  transform: translateY(2px);
-  box-shadow: 0 2px 0 #9d174d;
+  transform: translateY(4px);
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.25), 0 0 0 #9d174d;
 }
 
 .sb-btn--secondary {
   margin-top: 0.75rem;
   background: #fdf2f8;
   color: #9d174d;
-  border: 2px solid rgba(219, 39, 119, 0.35);
+  border: 3px solid rgba(219, 39, 119, 0.35);
+  box-shadow: 0 4px 0 rgba(219, 39, 119, 0.2);
+}
+
+.sb-btn--secondary:active {
+  transform: translateY(4px);
+  box-shadow: 0 0 0 rgba(219, 39, 119, 0.2);
 }
 
 .sb-btn--ghost {
@@ -886,7 +923,13 @@ body.page-storybook.sb-modal-open {
   max-width: 9rem;
   background: #fff;
   color: #db2777;
-  border: 2px solid rgba(219, 39, 119, 0.4);
+  border: 3px solid rgba(219, 39, 119, 0.3);
+  box-shadow: 0 4px 0 rgba(219, 39, 119, 0.15);
+}
+
+.sb-btn--ghost:active {
+  transform: translateY(4px);
+  box-shadow: 0 0 0 rgba(219, 39, 119, 0.15);
 }
 
 .sb-book {
@@ -938,10 +981,11 @@ body.page-storybook.sb-modal-open {
 .sb-book-title {
   font-family: "Fredoka", "Sniglet", "Nunito", sans-serif;
   text-align: center;
-  font-size: clamp(1.25rem, 4vw, 1.55rem);
-  font-weight: 600;
+  font-size: clamp(1.35rem, 4vw, 1.7rem);
+  font-weight: 700;
   margin: 0 0 0.5rem;
-  color: #9d174d;
+  color: #831843;
+  text-shadow: 0 2px 0 rgba(251, 207, 232, 0.5);
 }
 
 .sb-book-close-tool {
@@ -1281,13 +1325,13 @@ body.page-storybook.sb-modal-open {
   max-width: 920px;
   margin: 0 auto;
   height: var(--sb-book-inner-h);
-  border: 5px solid rgba(219, 39, 119, 0.35);
-  border-radius: 8px;
+  border: 6px solid rgba(219, 39, 119, 0.45);
+  border-radius: 12px;
   background: var(--sb-flip-paper);
   box-sizing: border-box;
   box-shadow:
-    0 2px 0 rgba(0, 0, 0, 0.06) inset,
-    inset 6px 0 14px rgba(0, 0, 0, 0.04);
+    0 4px 0 rgba(190, 24, 93, 0.45) inset,
+    inset 8px 0 16px rgba(0, 0, 0, 0.05);
   overflow: visible;
   /* Required for gutter 3D page turns; `flat` flattens descendants and breaks rotateY peels on Safari/WebKit */
   transform-style: preserve-3d;
@@ -1894,18 +1938,32 @@ body.page-storybook.sb-modal-open {
 }
 
 .sb-busy__card {
-  max-width: 22rem;
-  padding: 1.35rem 1.2rem;
-  background: #fff;
-  border-radius: 20px;
+  max-width: 24rem;
+  padding: 2.25rem 1.65rem;
+  background: radial-gradient(ellipse at center top, #ffffff 0%, #fffdf8 100%);
+  border-radius: 32px;
   text-align: center;
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 20px 60px rgba(131, 24, 67, 0.25), inset 0 0 0 4px #fbcfe8;
+  position: relative;
+}
+
+.sb-busy__card::before {
+  content: "📖";
+  display: block;
+  font-size: 3.25rem;
+  margin-bottom: 0.85rem;
+  animation: sb-float 2.5s ease-in-out infinite;
+}
+
+@keyframes sb-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
 }
 
 .sb-busy__title {
-  margin: 0 0 0.35rem;
+  margin: 0 0 0.5rem;
   font-family: "Sniglet", "Nunito", sans-serif;
-  font-size: 1.35rem;
+  font-size: 1.55rem;
   color: #9d174d;
 }
 
