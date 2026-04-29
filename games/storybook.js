@@ -947,6 +947,67 @@
     return "";
   }
 
+  var SHELF_COVERS_PER_TIER = 4;
+
+  function createCoverCardWrap(item) {
+    var meta = spineMeta(item.id, item.title);
+    var coverSrc = firstShelfCoverSrc(item);
+    var wrap = document.createElement("div");
+    wrap.className = "sb-cover-card-wrap";
+    var openBtn = document.createElement("button");
+    openBtn.type = "button";
+    openBtn.className =
+      "sb-cover-card sb-cover-card--pat" +
+      meta.pat +
+      (coverSrc ? "" : " sb-cover-card--placeholder");
+    openBtn.style.setProperty("--sb-h", String(meta.hue));
+    openBtn.setAttribute("role", "listitem");
+    openBtn.setAttribute("aria-label", "Open book: " + item.title);
+    var face = document.createElement("span");
+    face.className = "sb-cover-card__face";
+    if (coverSrc) {
+      var img = document.createElement("img");
+      img.src = coverSrc;
+      img.alt = "";
+      img.decoding = "async";
+      img.loading = "lazy";
+      img.className = "sb-cover-card__img";
+      face.appendChild(img);
+    } else {
+      var ph = document.createElement("span");
+      ph.className = "sb-cover-card__placeholder-text";
+      ph.textContent = spineLabel(item.title);
+      face.appendChild(ph);
+    }
+    var rail = document.createElement("span");
+    rail.className = "sb-cover-card__rail";
+    rail.setAttribute("aria-hidden", "true");
+    face.appendChild(rail);
+    if (coverSrc) {
+      var cap = document.createElement("span");
+      cap.className = "sb-cover-card__caption";
+      cap.textContent = spineLabel(item.title);
+      face.appendChild(cap);
+    }
+    openBtn.appendChild(face);
+    openBtn.addEventListener("click", function () {
+      openShelfBook(item.id);
+    });
+    var rm = document.createElement("button");
+    rm.type = "button";
+    rm.className = "sb-shelf-remove";
+    rm.setAttribute("aria-label", "Remove from shelf: " + item.title);
+    rm.textContent = "×";
+    rm.addEventListener("click", function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      removeShelfBook(item.id);
+    });
+    wrap.appendChild(openBtn);
+    wrap.appendChild(rm);
+    return wrap;
+  }
+
   function renderShelf() {
     if (!shelfEl) return;
     shelfEl.textContent = "";
@@ -959,65 +1020,22 @@
       shelfEl.appendChild(empty);
       return;
     }
-    for (var j = 0; j < list.length; j++) {
-      (function (item) {
-        var meta = spineMeta(item.id, item.title);
-        var coverSrc = firstShelfCoverSrc(item);
-        var wrap = document.createElement("div");
-        wrap.className = "sb-cover-card-wrap";
-        var openBtn = document.createElement("button");
-        openBtn.type = "button";
-        openBtn.className =
-          "sb-cover-card sb-cover-card--pat" +
-          meta.pat +
-          (coverSrc ? "" : " sb-cover-card--placeholder");
-        openBtn.style.setProperty("--sb-h", String(meta.hue));
-        openBtn.setAttribute("role", "listitem");
-        openBtn.setAttribute("aria-label", "Open book: " + item.title);
-        var face = document.createElement("span");
-        face.className = "sb-cover-card__face";
-        if (coverSrc) {
-          var img = document.createElement("img");
-          img.src = coverSrc;
-          img.alt = "";
-          img.decoding = "async";
-          img.loading = "lazy";
-          img.className = "sb-cover-card__img";
-          face.appendChild(img);
-        } else {
-          var ph = document.createElement("span");
-          ph.className = "sb-cover-card__placeholder-text";
-          ph.textContent = spineLabel(item.title);
-          face.appendChild(ph);
-        }
-        var rail = document.createElement("span");
-        rail.className = "sb-cover-card__rail";
-        rail.setAttribute("aria-hidden", "true");
-        face.appendChild(rail);
-        if (coverSrc) {
-          var cap = document.createElement("span");
-          cap.className = "sb-cover-card__caption";
-          cap.textContent = spineLabel(item.title);
-          face.appendChild(cap);
-        }
-        openBtn.appendChild(face);
-        openBtn.addEventListener("click", function () {
-          openShelfBook(item.id);
-        });
-        var rm = document.createElement("button");
-        rm.type = "button";
-        rm.className = "sb-shelf-remove";
-        rm.setAttribute("aria-label", "Remove from shelf: " + item.title);
-        rm.textContent = "×";
-        rm.addEventListener("click", function (e) {
-          e.preventDefault();
-          e.stopPropagation();
-          removeShelfBook(item.id);
-        });
-        wrap.appendChild(openBtn);
-        wrap.appendChild(rm);
-        shelfEl.appendChild(wrap);
-      })(list[j]);
+    var step = SHELF_COVERS_PER_TIER;
+    for (var i = 0; i < list.length; i += step) {
+      var tier = document.createElement("div");
+      tier.className = "sb-shelf-tier";
+      var books = document.createElement("div");
+      books.className = "sb-shelf-tier__books";
+      books.setAttribute("role", "list");
+      for (var k = i; k < list.length && k < i + step; k++) {
+        books.appendChild(createCoverCardWrap(list[k]));
+      }
+      var lip = document.createElement("div");
+      lip.className = "sb-shelf-tier__lip";
+      lip.setAttribute("aria-hidden", "true");
+      tier.appendChild(books);
+      tier.appendChild(lip);
+      shelfEl.appendChild(tier);
     }
   }
 
