@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#002129" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>Zuma — Sofia's Game Room</title>
+  <link rel="manifest" href="../manifest.json" />
+  <link rel="stylesheet" href="../js/kids-core.css" />
+  <link rel="stylesheet" href="zuma.css" />
+  <link rel="stylesheet" href="../tablet-ipad.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+</head>
+<body class="page-zuma">
+  <div class="zuma-app" id="app">
+    <nav class="zuma-nav" aria-label="Breadcrumb">
+      <a class="zuma-back back-btn" href="../index.html" aria-label="Back to all games">
+        <span class="back-btn__icon" aria-hidden="true">&#8592;</span><span class="back-btn__text">Back</span>
+      </a>
+    </nav>
+
+    <div class="zuma-stage">
+      <div id="zumaMount" class="zuma-mount"></div>
+      <div class="shadow" aria-hidden="true"></div>
+      <div class="github">
+        <a href="https://github.com/lin-ting-yu/Zuma" target="_blank" rel="noopener noreferrer" aria-label="Original Zuma project on GitHub">&lt;&gt;</a>
+      </div>
+      <div class="score">
+        <div class="title">SCORE</div>
+        <div id="score" class="num">0</div>
+      </div>
+      <div class="mobile-control mobile-show">
+        <div id="stop-btn" class="stop" role="button" tabindex="0" aria-label="Pause"></div>
+        <div class="left">
+          <div id="switch-btn" class="btn switch" role="button" tabindex="0" aria-label="Switch marble colour">½</div>
+          <div id="shoot-btn" class="btn shoot" role="button" tabindex="0" aria-label="Shoot marble">♂</div>
+        </div>
+        <div class="right">
+          <div id="move-btn" class="btn move" aria-label="Aim">
+            <div class="btn move-control" aria-hidden="true"></div>
+          </div>
+        </div>
+      </div>
+      <div class="popup-container">
+        <div id="start-popup" class="popup active">
+          <div class="title">HELLO !</div>
+          <div class="info">
+            <ul class="mobile-hode">
+              <li>LEFT CLICK TO SHOOT MARBLE</li>
+              <li>PRESS “SPACE” TO SWITCH THE MARBLE COLOUR</li>
+              <li>PRESS “ESC” TO PAUSE</li>
+              <li>CLICK &lt;&gt; FOR THE ORIGINAL PROJECT</li>
+            </ul>
+            <ul class="mobile-show">
+              <li>TAP ♂ TO SHOOT</li>
+              <li>TAP ½ TO SWITCH COLOUR</li>
+              <li>TAP || TO PAUSE</li>
+              <li>TAP &lt;&gt; FOR THE ORIGINAL PROJECT</li>
+            </ul>
+          </div>
+          <div class="button-container">
+            <div id="init-btn" class="button" role="button" tabindex="0">START</div>
+          </div>
+        </div>
+        <div id="stop-popup" class="popup">
+          <div class="title">PAUSED</div>
+          <div class="button-container">
+            <div id="start-btn" class="button" role="button" tabindex="0">START</div>
+            <div id="reset-btn" class="button button-2" role="button" tabindex="0">RESTART</div>
+          </div>
+        </div>
+        <div id="final-popup" class="popup">
+          <div class="title">HELLO !</div>
+          <div class="info">
+            YOU GOT <span id="final-score" class="num"></span> SCORES !
+          </div>
+          <div class="button-container">
+            <div id="restart-btn" class="button" role="button" tabindex="0">RESTART</div>
+          </div>
+        </div>
+        <div class="mask"></div>
+      </div>
+    </div>
+  </div>
+  <script src="../js/kids-core.js"></script>
+  <script src="zuma.js" defer></script>
+  <script>
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("../sw.js").catch(function () {});
+    }
+  </script>
+</body>
+</html>

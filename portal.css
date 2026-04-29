@@ -37,6 +37,12 @@
   --theme-snap-soft: #ecfdf5;
   --theme-memory: #6b9e2a;
   --theme-memory-soft: #f0fadb;
+  --theme-rps: #7c3aed;
+  --theme-rps-soft: #f3e8ff;
+  --theme-snake-arcade: #0891b2;
+  --theme-snake-arcade-soft: #cffafe;
+  --theme-zuma: #047857;
+  --theme-zuma-soft: #d1fae5;
 }
 
 html {
@@ -639,6 +645,21 @@ h2,
   --card-soft: var(--theme-memory-soft);
 }
 
+.game-card--rps {
+  --card-accent: var(--theme-rps);
+  --card-soft: var(--theme-rps-soft);
+}
+
+.game-card--snake-arcade {
+  --card-accent: var(--theme-snake-arcade);
+  --card-soft: var(--theme-snake-arcade-soft);
+}
+
+.game-card--zuma {
+  --card-accent: var(--theme-zuma);
+  --card-soft: var(--theme-zuma-soft);
+}
+
 a.game-card:hover {
   transform: translateY(-6px) scale(1.02);
   box-shadow: var(--shadow-card-hover);
@@ -682,6 +703,11 @@ a.game-card:active {
   object-fit: cover;
   object-position: center;
   transition: transform 0.45s ease;
+}
+
+.game-card__img--svg {
+  object-fit: contain;
+  padding: 0.35rem;
 }
 
 a.game-card:hover .game-card__img {

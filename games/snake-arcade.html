@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f172a" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>Snake — Sofia's Game Room</title>
+  <link rel="manifest" href="../manifest.json" />
+  <link rel="stylesheet" href="../js/kids-core.css" />
+  <link rel="stylesheet" href="snake-arcade.css" />
+  <link rel="stylesheet" href="../tablet-ipad.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Sniglet:wght@400;800&display=swap" rel="stylesheet" />
+</head>
+<body class="page-snake-game">
+  <div class="snake-app" id="app">
+    <nav class="snake-nav" aria-label="Breadcrumb">
+      <a class="snake-back back-btn" href="../index.html" aria-label="Back to all games"><span class="back-btn__icon" aria-hidden="true">&#8592;</span><span class="back-btn__text">Back</span></a>
+    </nav>
+
+    <header class="snake-hud" aria-label="Game status">
+      <div class="snake-hud__stat">
+        <span class="snake-hud__k">Score</span>
+        <strong class="snake-hud__v" id="snakeScore">0</strong>
+      </div>
+      <div class="snake-hud__center">
+        <span class="snake-hud__k">Difficulty</span>
+        <div class="snake-diff" id="snakeDiff" role="group" aria-label="Speed">
+          <button type="button" class="snake-diff__btn is-active" data-diff="easy" aria-pressed="true">Easy</button>
+          <button type="button" class="snake-diff__btn" data-diff="normal" aria-pressed="false">Normal</button>
+          <button type="button" class="snake-diff__btn" data-diff="hard" aria-pressed="false">Hard</button>
+        </div>
+      </div>
+      <div class="snake-hud__stat snake-hud__stat--high">
+        <span class="snake-hud__k">Best</span>
+        <strong class="snake-hud__v" id="snakeHigh">0</strong>
+      </div>
+    </header>
+
+    <div class="snake-board-wrap">
+      <canvas id="snakeCanvas" width="400" height="400" aria-label="Snake play area"></canvas>
+      <div class="snake-overlay is-hidden" id="snakeOverlay" hidden>
+        <p class="snake-overlay__title" id="snakeOverTitle">Game over</p>
+        <p class="snake-overlay__msg" id="snakeOverMsg">Tap Play again or an arrow to restart.</p>
+        <button type="button" class="snake-overlay__btn" id="snakeRestart">Play again</button>
+      </div>
+    </div>
+
+    <div class="snake-controls" role="group" aria-label="Direction">
+      <button type="button" class="snake-ctrl" data-dir="left" aria-label="Turn left">
+        <span aria-hidden="true">&#8592;</span>
+      </button>
+      <button type="button" class="snake-ctrl" data-dir="up" aria-label="Turn up">
+        <span aria-hidden="true">&#8593;</span>
+      </button>
+      <button type="button" class="snake-ctrl" data-dir="down" aria-label="Turn down">
+        <span aria-hidden="true">&#8595;</span>
+      </button>
+      <button type="button" class="snake-ctrl" data-dir="right" aria-label="Turn right">
+        <span aria-hidden="true">&#8594;</span>
+      </button>
+    </div>
+    <p class="snake-hint" id="snakeHint">Tap an arrow to start. Eat the red snacks!</p>
+  </div>
+  <script src="../js/kids-core.js" defer></script>
+  <script src="snake-arcade.js" defer></script>
+  <script>
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("../sw.js").catch(function () {});
+    }
+  </script>
+</body>
+</html>
