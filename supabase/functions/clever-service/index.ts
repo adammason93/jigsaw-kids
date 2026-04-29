@@ -615,7 +615,8 @@ Return JSON shape: { "title": string, "characterDesign": string, "pages": [ { "t
   const imagePromptPrefix =
     "A completely textless illustration. DO NOT include any writing, letters, words, typography, labels, or speech bubbles anywhere in the image. " +
     "Same soft 3D clay and matte toy render as a fancy kids' app, rounded shapes, gentle pastel lighting, " +
-    "beautiful cinematic wide-angle scene filling the picture entirely edge-to-edge; " +
+    "beautiful cinematic scene filling the picture edge-to-edge. " +
+    "CRITICAL LAYOUT RULE: Keep all characters, creatures, and important action perfectly centered in the middle third of the image. Leave the top and bottom thirds of the image as empty background scenery (sky, ground, etc.) so it can be safely cropped to a wide landscape format later. " +
     "draw the actual story environment flowing seamlessly without any frames or margins; " +
     "wholesome and safe for toddlers. " +
     `MASTER CHARACTER DESIGNS (You MUST use these exact outfits, genders, ages, body shapes, facial features, skin tones, hair styles, hair textures, and accessory colors in every image to maintain perfect consistency. Do NOT change any colors or accessories between images, do NOT change textures from smooth clay to realistic textures): ${finalCharacterDesc}. ` +
@@ -645,9 +646,9 @@ Return JSON shape: { "title": string, "characterDesign": string, "pages": [ { "t
         const beatClause = beatSafe
           ? ` Illustrate this story moment (same characters, action, place): ${beatSafe}. `
           : " ";
-        const fullPrompt = imagePromptPrefix + beatClause + b.brief;
-        return await openaiSpreadImageUrl(apiKey, fullPrompt);
-      }),
+          const fullPrompt = imagePromptPrefix + beatClause + b.brief;
+          return await openaiImageUrl(apiKey, fullPrompt, "1024x1024");
+        }),
     );
     
     // Reuse the first spread's image as the cover art to save 1 image generation cost
