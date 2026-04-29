@@ -807,7 +807,16 @@ body.page-storybook.sb-modal-open {
   min-height: clamp(260px, min(56vw, 58vh), 500px);
 }
 
-/* Sized & placed like the left page: hinge at binding, same height as spread inner */
+/* Centered plate: open spread + cover share width; fixes “book stuck left” on wide viewports */
+.sb-reader-book {
+  position: relative;
+  width: 100%;
+  max-width: calc(920px + 0.9rem);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Closed: one centered “card”; opening/open: align with left page for hinge */
 .sb-cover {
   position: absolute;
   z-index: 3;
@@ -828,6 +837,18 @@ body.page-storybook.sb-modal-open {
   perspective-origin: left center;
   transform: none;
   transform-style: preserve-3d;
+  transition:
+    left 0.42s cubic-bezier(0.33, 0.82, 0.32, 1),
+    width 0.42s cubic-bezier(0.33, 0.82, 0.32, 1),
+    transform 0.42s cubic-bezier(0.33, 0.82, 0.32, 1);
+}
+
+.sb-book--cover-visible
+  .sb-reader-stack:not(.sb-reader-stack--opening):not(.sb-reader-stack--open)
+  .sb-cover {
+  left: 50%;
+  width: min(300px, calc(100% - 2rem));
+  transform: translateX(-50%);
 }
 
 .sb-cover__pivot {
@@ -952,6 +973,12 @@ body.page-storybook.sb-modal-open {
     transform 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.18s;
 }
 
+.sb-reader-stack--opening .sb-reader-pages,
+.sb-reader-stack--open .sb-reader-pages {
+  position: relative;
+  z-index: 4;
+}
+
 .sb-reader-stack--opening .sb-reader-pages {
   opacity: 1;
   transform: translateY(0);
@@ -967,7 +994,8 @@ body.page-storybook.sb-modal-open {
 .sb-reader-stack--open .sb-cover {
   pointer-events: none;
   visibility: hidden;
-  transition: visibility 0s linear 0.35s;
+  opacity: 0;
+  transition: none;
 }
 
 .sb-reader-stack--opening .sb-cover {
