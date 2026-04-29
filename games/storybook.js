@@ -59,9 +59,6 @@
   var readerPages = document.getElementById("sbReaderPages");
   var btnOpenCover = document.getElementById("sbOpenCover");
   var coverPivot = document.getElementById("sbCoverPivot");
-  var readerBookEl = book
-    ? book.querySelector(".sb-reader-book")
-    : null;
   var btnCloseBook = document.getElementById("sbCloseBook");
   var coverTitle = document.getElementById("sbCoverTitle");
   var btnPrev = document.getElementById("sbPrev");
@@ -443,6 +440,11 @@
 
   function syncCloseBookButton() {
     if (!btnCloseBook) return;
+    var opening =
+      readerStack &&
+      readerStack.classList.contains("sb-reader-stack--opening");
+    var coverShowing =
+      book && book.classList.contains("sb-book--cover-visible");
     var readerOpen =
       readerStack &&
       readerStack.classList.contains("sb-reader-stack--open");
@@ -450,8 +452,8 @@
       book &&
       story &&
       readerOpen &&
-      book.classList &&
-      !book.classList.contains("sb-book--cover-visible");
+      !coverShowing &&
+      !opening;
     if (show) {
       btnCloseBook.hidden = false;
       btnCloseBook.removeAttribute("aria-hidden");
@@ -472,9 +474,6 @@
     }
 
     coverOpenGeneration += 1;
-    if (readerBookEl) {
-      readerBookEl.style.removeProperty("--sb-cover-open-shift");
-    }
 
     spreadAnimLock = false;
     clearSpreadTurnClasses();
@@ -499,9 +498,6 @@
     if (!readerStack) return;
 
     function finishOpen() {
-      if (readerBookEl) {
-        readerBookEl.style.removeProperty("--sb-cover-open-shift");
-      }
       readerStack.classList.add("sb-reader-stack--open");
       readerStack.classList.remove("sb-reader-stack--opening");
       book.classList.remove("sb-book--cover-visible");
@@ -522,11 +518,6 @@
     coverOpenGeneration += 1;
     var myGen = coverOpenGeneration;
     var finished = false;
-
-    if (readerBookEl && btnOpenCover) {
-      var half = Math.round(btnOpenCover.offsetWidth / 2);
-      readerBookEl.style.setProperty("--sb-cover-open-shift", half + "px");
-    }
 
     function done() {
       if (myGen !== coverOpenGeneration || finished) return;
@@ -552,9 +543,6 @@
 
   function resetBookCoverForWizard() {
     coverOpenGeneration += 1;
-    if (readerBookEl) {
-      readerBookEl.style.removeProperty("--sb-cover-open-shift");
-    }
     if (readerStack) {
       readerStack.classList.remove(
         "sb-reader-stack--open",
@@ -1351,9 +1339,6 @@
   function showBook() {
     if (!story || !story.pages.length) return;
     coverOpenGeneration += 1;
-    if (readerBookEl) {
-      readerBookEl.style.removeProperty("--sb-cover-open-shift");
-    }
     closeJourney();
     if (landing) {
       landing.classList.add("is-hidden");
