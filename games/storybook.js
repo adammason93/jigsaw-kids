@@ -846,31 +846,94 @@
     if (!url) return Promise.resolve(null);
     if (url.indexOf("data:") === 0) return Promise.resolve(url);
     
-    return fetch(url, {
-      mode: "cors",
-      credentials: "omit",
-      cache: "default", // Changed from no-store to default, sometimes no-store breaks CORS preflights on strict CDNs
-    })
-      .then(function (r) {
-        if (!r.ok) throw new Error("bad " + r.status);
-        return r.blob();
-      })
-      .then(function (blob) {
-        return new Promise(function (resolve, reject) {
-          var fr = new FileReader();
-          fr.onload = function () {
-            resolve(fr.result);
-          };
-          fr.onerror = function () {
-            reject(new Error("read"));
-          };
-          fr.readAsDataURL(blob);
-        });
-      })
-      .catch(function (err) {
-        console.warn("Could not fetch data URL for", url, err);
-        return null;
-      });
+    return new Promise(function (resolve) {
+      var img = new Image();
+      img.crossOrigin = "anonymous";
+      img.onload = function () {
+        var canvas = document.createElement("canvas");
+        var maxDim = 840; // Compress so we don't blow up localStorage or the downloaded file
+        var w = img.width;
+        var h = img.height;
+        if (w > maxDim || h > maxDim) {
+          var ratio = w / h;
+          if (w > h) {
+            w = maxDim;
+            h = Math.round(maxDim / ratio);
+          } else {
+            h = maxDim;
+            w = Math.round(maxDim * ratio);
+          }
+        }
+        canvas.width = w;
+        canvas.height = h;
+        var ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, w, h);
+        try {
+          // 0.65 JPEG quality drastically reduces file size
+          resolve(canvas.toDataURL("image/jpeg", 0.65));
+        } catch (e) {
+          resolve(null);
+        }
+      };
+      img.onerror = function () {
+        // Fallback: if Image() CORS fails, try fetch()
+        var fetchUrl = url + (url.indexOf("?") > -1 ? "&" : "?") + "_cb=" + Date.now();
+        fetch(fetchUrl, {
+          mode: "cors",
+          credentials: "omit",
+          cache: "no-store",
+        })
+          .then(function (r) {
+            if (!r.ok) throw new Error("bad " + r.status);
+            return r.blob();
+          })
+          .then(function (blob) {
+            var fr = new FileReader();
+            fr.onload = function () {
+              var i2 = new Image();
+              i2.onload = function () {
+                var canvas2 = document.createElement("canvas");
+                var maxDim = 840;
+                var w = i2.width;
+                var h = i2.height;
+                if (w > maxDim || h > maxDim) {
+                  var ratio = w / h;
+                  if (w > h) {
+                    w = maxDim;
+                    h = Math.round(maxDim / ratio);
+                  } else {
+                    h = maxDim;
+                    w = Math.round(maxDim * ratio);
+                  }
+                }
+                canvas2.width = w;
+                canvas2.height = h;
+                var ctx2 = canvas2.getContext("2d");
+                ctx2.drawImage(i2, 0, 0, w, h);
+                try {
+                  resolve(canvas2.toDataURL("image/jpeg", 0.65));
+                } catch (e) {
+                  resolve(null);
+                }
+              };
+              i2.onerror = function () {
+                resolve(fr.result); // Final fallback: raw base64 from blob
+              };
+              i2.src = fr.result;
+            };
+            fr.onerror = function () {
+              resolve(null);
+            };
+            fr.readAsDataURL(blob);
+          })
+          .catch(function (err) {
+            console.warn("Could not fetch data URL for", url, err);
+            resolve(null);
+          });
+      };
+      // Appending a cache buster ensures we don't accidentally pull an opaque non-CORS cached image from the DOM
+      img.src = url + (url.indexOf("?") > -1 ? "&" : "?") + "_cb=" + Date.now();
+    });
   }
 
   function fetchAllPageDataUrls() {
