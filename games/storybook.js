@@ -918,20 +918,20 @@
                 // 0.55 JPEG quality drastically reduces file size
                 resolve(canvas.toDataURL("image/jpeg", 0.55));
               } catch (e) {
-                console.warn("Canvas compression failed, falling back to raw", e);
-                resolve(rawBase64); // Fallback to raw base64 if compression fails
+                console.warn("Canvas compression failed, falling back to original URL", e);
+                resolve(url); // Fallback to original URL if compression fails
               }
             };
             img.onerror = function (e) {
               console.warn("Image element failed to load raw base64", e);
-              resolve(rawBase64); // Fallback to raw base64 if image load fails
+              resolve(url); // Fallback to original URL if image load fails
             };
             img.src = rawBase64;
           });
         });
     }).catch(function (err) {
       console.warn("Could not fetch data URL for", url, err);
-      return null;
+      return url; // CRITICAL FIX: Always return the original URL if the proxy/fetch fails, never null!
     });
   }
 
