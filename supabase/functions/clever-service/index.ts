@@ -584,7 +584,7 @@ Rules:
 - Each page: { "text": string, "illustrationBrief": string | null }.
 - DOUBLE-PAGE SPREADS: pair pages as (1,2), (3,4), (5,6), (7,8), (9,10), (11,12).
   Odd-numbered pages (1,3,5,7,9,11) are TEXT-FIRST pages only — use "illustrationBrief": null.
-  Even-numbered pages (2,4,6,8,10,12) are PICTURE pages — each MUST have a non-null "illustrationBrief": a short visual scene description for an illustrator (no text to draw, no words on signs). Each brief MUST be different. The brief MUST spell out the same specific moment as the text on the previous page: same characters, action, setting details, and props — not a generic scene for that chapter. CRITICAL: In every single brief, explicitly restate the exact age, body shape, facial features, skin tone, hair style, and clothing colors for every character present in the scene to force the illustrator to draw them consistently.
+  Even-numbered pages (2,4,6,8,10,12) are PICTURE pages — each MUST have a non-null "illustrationBrief": a short visual scene description for an illustrator (no text to draw, no words on signs). Each brief MUST be different. The brief MUST spell out the same specific moment as the text on the previous page: same characters, action, setting details, and props — not a generic scene for that chapter. CRITICAL: In every single brief, explicitly restate the exact age, body shape, facial features, skin tone, hair style, and clothing colors for every character present in the scene to force the illustrator to draw them consistently. Also, explicitly restate the exact visual style of the environment (e.g. "pastel pink sky, tall rounded green trees, smooth beige sand") in every brief to keep the background consistent.
   When game people with portrait notes appear on a picture page, the brief should mention them looking like those notes (hair, outfit colours, age vibe).
 - If a "plot idea" is given, you MUST make it the central theme of the story and feature it heavily in EVERY illustration brief. If it is empty, invent a short happy outing that fits the setting.
 - JSON only, no markdown.`;
@@ -616,7 +616,8 @@ Return JSON shape: { "title": string, "characterDesign": string, "pages": [ { "t
     "beautiful cinematic wide-angle scene filling the picture entirely edge-to-edge; " +
     "draw the actual story environment flowing seamlessly without any frames or margins; " +
     "wholesome and safe for toddlers. " +
-    `MASTER CHARACTER DESIGNS (You MUST use these exact outfits, ages, body shapes, facial features, skin tones, and hair styles in every image to maintain perfect consistency): ${finalCharacterDesc}. Setting mood: ${placeDesc}. ` +
+    `MASTER CHARACTER DESIGNS (You MUST use these exact outfits, ages, body shapes, facial features, skin tones, and hair styles in every image to maintain perfect consistency): ${finalCharacterDesc}. ` +
+    `Setting mood and environment style (keep background colors, trees, buildings, and landscape details EXACTLY consistent in every image): ${placeDesc}. ` +
     (plotHint.length > 0 ? `CRITICAL VISUAL THEME to include: ${plotHint}. ` : "") +
     `Scene: `;
 
