@@ -44,9 +44,11 @@
   var btnStart = document.getElementById("sbStartJourney");
   var btnGen = document.getElementById("sbGenerate");
   var bookTitle = document.getElementById("sbBookTitle");
-  var pageLeaf = document.getElementById("sbPageLeaf");
-  var layerOver = document.getElementById("sbLayerOver");
-  var layerUnder = document.getElementById("sbLayerUnder");
+  var spreadText = document.getElementById("sbSpreadText");
+  var spreadMeta = document.getElementById("sbSpreadMeta");
+  var spreadArt = document.getElementById("sbSpreadArt");
+  var spreadArtImg = document.getElementById("sbSpreadArtImg");
+  var spreadArtNum = document.getElementById("sbSpreadArtNum");
   var btnPrev = document.getElementById("sbPrev");
   var btnNext = document.getElementById("sbNext");
   var pagerLive = document.getElementById("sbPagerLive");
@@ -263,8 +265,7 @@
   var selectedPlace = "beach";
   /** @type {{ title: string, sceneImageUrl?: string|null, pages: { text: string, imageUrl: string|null }[] } | null} */
   var story = null;
-  var pageIndex = 0;
-  var flipLock = false;
+  var spreadIndex = 0;
 
   function applyBookThemingFromStory() {
     if (!book || !story) return;
@@ -285,191 +286,103 @@
     book.style.backgroundImage = "";
   }
 
-  function prefersReducedMotion() {
-    return (
-      typeof window.matchMedia !== "undefined" &&
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches
-    );
+  function numSpreads() {
+    return story && story.pages ? Math.floor(story.pages.length / 2) : 0;
   }
 
-  function getOverPageFace() {
-    return layerOver ? layerOver.querySelector(".sb-page-leaf__sheet--front .sb-page-face") : null;
-  }
-
-  function getUnderPageFace() {
-    return layerUnder ? layerUnder.querySelector(".sb-page-face") : null;
-  }
-
-  function resetPageLeafTransforms() {
-    if (!pageLeaf) return;
-    pageLeaf.classList.add("no-transition");
-    pageLeaf.classList.remove("is-flipping-forward");
-    pageLeaf.classList.remove("is-flipping-back");
-    void pageLeaf.offsetWidth;
-    pageLeaf.classList.remove("no-transition");
-  }
-
-  function fillPageFace(faceRoot, page, displayPageNum) {
-    if (!faceRoot) return;
-    var art = faceRoot.querySelector(".sb-page__art");
-    var img = art ? art.querySelector("img") : null;
-    var textEl = faceRoot.querySelector(".sb-page__text");
-    var numInArt = art ? art.querySelector(".sb-page__num") : null;
-    var foot = faceRoot.querySelector(".sb-page-foot");
-    var total = story && story.pages ? story.pages.length : 0;
-    if (!page) {
-      if (textEl) textEl.textContent = "";
-      if (art) art.hidden = true;
-      if (img) img.removeAttribute("src");
-      if (numInArt) numInArt.textContent = "";
-      if (foot) {
-        foot.textContent = "";
-        foot.hidden = true;
-      }
-      faceRoot.classList.add("sb-page-face--text-only");
-      return;
+  /** Local preview only — same shape as OpenAI output (pairs: text, then picture). */
+  function buildSampleStory() {
+    var imgs = [
+      "images/colouring/template-winged-unicorn.png",
+      "images/colouring/template-dino-hill.png",
+      "images/character-freya.png",
+      "images/math-race-dino.png",
+      "images/colouring/template-mermaid.png",
+      "images/character-sofia-running.png",
+    ];
+    var texts = [
+      "Once upon a time, a small fox named Mira found a silver star glinting in the tall grass near the edge of the woods.",
+      "The star whispered that it had tumbled from the sky and needed to be home before sunrise. Mira promised to help.",
+      "She rolled the star gently in a leaf-boat down the brook, past sleepy ducks and sparkling stones.",
+      "At the hill of three oaks, a wise crow pointed to the clearest patch of night where the sky looked soft as velvet.",
+      "Mira tossed the star as high as she could. It caught a breeze and rose — tiny at first, then bright again.",
+      "By morning the sky was ordinary blue, but Mira knew the star was safe. She curled up in her den, proud and cosy.",
+    ];
+    var pages = [];
+    for (var s = 0; s < 6; s++) {
+      pages.push({ text: texts[s], imageUrl: null });
+      pages.push({ text: "", imageUrl: imgs[s] });
     }
-    if (textEl) textEl.textContent = page.text;
-    if (art && img) {
-      if (page.imageUrl) {
-        img.src = page.imageUrl;
-        img.alt = "";
-        art.hidden = false;
-        faceRoot.classList.remove("sb-page-face--text-only");
-        if (numInArt && displayPageNum && total) {
-          numInArt.textContent = "Page " + displayPageNum + " of " + total;
-        } else if (numInArt) numInArt.textContent = "";
-        if (foot) {
-          foot.textContent = "";
-          foot.hidden = true;
-        }
-      } else {
-        art.hidden = true;
-        img.removeAttribute("src");
-        faceRoot.classList.add("sb-page-face--text-only");
-        if (numInArt) numInArt.textContent = "";
-        if (foot && displayPageNum && total) {
-          foot.textContent = "Page " + displayPageNum + " of " + total;
-          foot.hidden = false;
-        } else if (foot) {
-          foot.textContent = "";
-          foot.hidden = true;
-        }
+    return {
+      title: "Mira and the fallen star (sample)",
+      sceneImageUrl: null,
+      pages: pages,
+    };
+  }
+
+  function openSampleBook() {
+    story = buildSampleStory();
+    spreadIndex = 0;
+    showBook();
+  }
+
+  function renderSpread() {
+    if (!story || !spreadText || !spreadArt || !spreadArtImg) return;
+    var n = numSpreads();
+    if (n < 1) return;
+    spreadIndex = Math.max(0, Math.min(spreadIndex, n - 1));
+    var i = spreadIndex * 2;
+    var leftP = story.pages[i];
+    var rightP = story.pages[i + 1];
+    spreadText.textContent = leftP ? leftP.text : "";
+    var pLo = i + 1;
+    var pHi = i + 2;
+    if (spreadMeta) {
+      spreadMeta.textContent =
+        "Spread " + (spreadIndex + 1) + " of " + n + " · pages " + pLo + "–" + pHi;
+    }
+    if (rightP && rightP.imageUrl) {
+      spreadArtImg.src = rightP.imageUrl;
+      spreadArtImg.alt = "Illustration for pages " + pLo + "–" + pHi;
+      spreadArt.classList.remove("is-empty");
+      if (spreadArtNum) {
+        spreadArtNum.textContent =
+          "Pages " + pLo + "–" + pHi + " of " + story.pages.length;
+      }
+    } else {
+      spreadArtImg.removeAttribute("src");
+      spreadArt.classList.add("is-empty");
+      if (spreadArtNum) {
+        spreadArtNum.textContent = rightP ? "Drawing missing" : "";
       }
     }
-  }
-
-  function renderBookSpread() {
-    if (!story) return;
-    fillPageFace(getOverPageFace(), story.pages[pageIndex], pageIndex + 1);
-    var next = story.pages[pageIndex + 1];
-    fillPageFace(
-      getUnderPageFace(),
-      next !== undefined ? next : null,
-      next !== undefined ? pageIndex + 2 : 0
-    );
+    updatePagerHints();
   }
 
   function updatePagerHints() {
     if (!story) return;
-    var line = "Page " + (pageIndex + 1) + " of " + story.pages.length;
+    var n = numSpreads();
+    var si = spreadIndex;
+    var pLo = si * 2 + 1;
+    var pHi = si * 2 + 2;
     if (pagerLive) {
-      pagerLive.textContent = line;
+      pagerLive.textContent =
+        "Spread " + (si + 1) + " of " + n + " — pages " + pLo + "–" + pHi + " of " + story.pages.length;
     }
-    if (btnPrev) btnPrev.disabled = pageIndex === 0 || flipLock;
-    if (btnNext) btnNext.disabled = pageIndex >= story.pages.length - 1 || flipLock;
-  }
-
-  function completeFlipForward() {
-    if (!story || !pageLeaf) return;
-    pageIndex++;
-    pageLeaf.classList.add("no-transition");
-    pageLeaf.classList.remove("is-flipping-forward");
-    void pageLeaf.offsetWidth;
-    pageLeaf.classList.remove("no-transition");
-    renderBookSpread();
-    flipLock = false;
-    updatePagerHints();
-  }
-
-  function completeFlipBack() {
-    if (!story || !pageLeaf) return;
-    pageIndex--;
-    pageLeaf.classList.add("no-transition");
-    pageLeaf.classList.remove("is-flipping-back");
-    void pageLeaf.offsetWidth;
-    pageLeaf.classList.remove("no-transition");
-    renderBookSpread();
-    flipLock = false;
-    updatePagerHints();
+    if (btnPrev) btnPrev.disabled = si <= 0;
+    if (btnNext) btnNext.disabled = si >= n - 1;
   }
 
   function goNextPage() {
-    if (!story || flipLock || pageIndex >= story.pages.length - 1) return;
-    if (prefersReducedMotion()) {
-      pageIndex++;
-      renderBookSpread();
-      updatePagerHints();
-      return;
-    }
-    flipLock = true;
-    updatePagerHints();
-    fillPageFace(getUnderPageFace(), story.pages[pageIndex + 1], pageIndex + 2);
-    if (!pageLeaf) {
-      pageIndex++;
-      renderBookSpread();
-      flipLock = false;
-      updatePagerHints();
-      return;
-    }
-    pageLeaf.classList.remove("is-flipping-back");
-    pageLeaf.classList.remove("no-transition");
-    pageLeaf.classList.add("is-flipping-forward");
-    var t = window.setTimeout(function () {
-      pageLeaf.removeEventListener("transitionend", onEnd);
-      completeFlipForward();
-    }, 950);
-    function onEnd(e) {
-      if (e.target !== pageLeaf || e.propertyName !== "transform") return;
-      window.clearTimeout(t);
-      pageLeaf.removeEventListener("transitionend", onEnd);
-      completeFlipForward();
-    }
-    pageLeaf.addEventListener("transitionend", onEnd);
+    if (!story || spreadIndex >= numSpreads() - 1) return;
+    spreadIndex++;
+    renderSpread();
   }
 
   function goPrevPage() {
-    if (!story || flipLock || pageIndex <= 0) return;
-    if (prefersReducedMotion()) {
-      pageIndex--;
-      renderBookSpread();
-      updatePagerHints();
-      return;
-    }
-    flipLock = true;
-    updatePagerHints();
-    fillPageFace(getUnderPageFace(), story.pages[pageIndex - 1], pageIndex);
-    if (!pageLeaf) {
-      pageIndex--;
-      renderBookSpread();
-      flipLock = false;
-      updatePagerHints();
-      return;
-    }
-    pageLeaf.classList.remove("is-flipping-forward");
-    pageLeaf.classList.remove("no-transition");
-    pageLeaf.classList.add("is-flipping-back");
-    var t = window.setTimeout(function () {
-      pageLeaf.removeEventListener("transitionend", onEnd);
-      completeFlipBack();
-    }, 950);
-    function onEnd(e) {
-      if (e.target !== pageLeaf || e.propertyName !== "transform") return;
-      window.clearTimeout(t);
-      pageLeaf.removeEventListener("transitionend", onEnd);
-      completeFlipBack();
-    }
-    pageLeaf.addEventListener("transitionend", onEnd);
+    if (!story || spreadIndex <= 0) return;
+    spreadIndex--;
+    renderSpread();
   }
 
   function escapeHtml(s) {
@@ -631,7 +544,7 @@
         };
       }),
     };
-    pageIndex = 0;
+    spreadIndex = 0;
     showBook();
   }
 
@@ -986,9 +899,7 @@
 
   function showWizard() {
     story = null;
-    pageIndex = 0;
-    flipLock = false;
-    resetPageLeafTransforms();
+    spreadIndex = 0;
     closeJourney();
     if (landing) {
       landing.classList.remove("is-hidden");
@@ -1019,9 +930,7 @@
     }
     if (bookTitle) bookTitle.textContent = story.title;
     applyBookThemingFromStory();
-    resetPageLeafTransforms();
-    renderBookSpread();
-    updatePagerHints();
+    renderSpread();
   }
 
   function setBusy(on) {
@@ -1039,6 +948,8 @@
   initVoiceUi();
   renderShelf();
 
+  var btnPreviewSample = document.getElementById("sbPreviewSample");
+
   if (appEl) {
     appEl.addEventListener(
       "click",
@@ -1048,6 +959,10 @@
           e.preventDefault();
           openJourney();
         }
+        if (e.target.closest("#sbPreviewSample")) {
+          e.preventDefault();
+          openSampleBook();
+        }
       },
       false
     );
@@ -1055,6 +970,13 @@
     btnStart.addEventListener("click", function (e) {
       e.preventDefault();
       openJourney();
+    });
+  }
+
+  if (btnPreviewSample && !appEl) {
+    btnPreviewSample.addEventListener("click", function (e) {
+      e.preventDefault();
+      openSampleBook();
     });
   }
 
@@ -1123,7 +1045,7 @@
             pages: out.body.pages || [],
             sceneImageUrl: out.body.sceneImageUrl || null,
           };
-          pageIndex = 0;
+          spreadIndex = 0;
           showBook();
         })
         .catch(function () {
@@ -1167,6 +1089,13 @@
       saveBookToShelf();
     });
   }
+
+  try {
+    var params = new URLSearchParams(window.location.search);
+    if (params.get("sample") === "1" || params.get("demo") === "1") {
+      openSampleBook();
+    }
+  } catch (err) {}
 
   if (typeof KidsCore !== "undefined") {
     KidsCore.init();

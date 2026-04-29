@@ -54,6 +54,14 @@
       <button type="button" class="sb-btn sb-btn--primary" id="sbStartJourney">
         Start your story journey
       </button>
+      <div class="sb-landing__demo">
+        <button type="button" class="sb-btn sb-btn--ghost" id="sbPreviewSample">
+          Preview sample book (no OpenAI)
+        </button>
+        <p class="sb-landing__demo-hint">
+          Uses the same two-page layout as a real story. Arrows move one spread at a time.
+        </p>
+      </div>
     </section>
 
     <!-- Modal: one step at a time -->
@@ -152,48 +160,27 @@
           type="button"
           class="sb-btn sb-btn--ghost sb-read-arrow"
           id="sbPrev"
-          aria-label="Turn back one page"
+          aria-label="Previous pages"
         >
           ◀
         </button>
         <div class="sb-read-stage">
-          <div class="sb-hardback">
-            <div class="sb-hardback__scene" id="sbBookScene" aria-live="polite">
-              <div class="sb-hardback__shadow" aria-hidden="true"></div>
-              <div class="sb-hardback__volume">
-                <div class="sb-hardback__board sb-hardback__board--left" aria-hidden="true"></div>
-                <div class="sb-hardback__spine" aria-hidden="true"></div>
-                <div class="sb-hardback__block">
-                  <div class="sb-hardback__endpaper" aria-hidden="true"></div>
-                  <div class="sb-flip-root" id="sbFlipRoot">
-                    <div class="sb-flip-layer sb-flip-layer--under" id="sbLayerUnder">
-                      <div class="sb-page-face">
-                        <p class="sb-page__text"></p>
-                        <div class="sb-page__art" hidden>
-                          <span class="sb-page__num" aria-hidden="true"></span>
-                          <img alt="" decoding="async" />
-                        </div>
-                        <p class="sb-page-foot" hidden aria-hidden="true"></p>
-                      </div>
-                    </div>
-                    <div class="sb-flip-layer sb-flip-layer--over" id="sbLayerOver">
-                      <div class="sb-page-leaf" id="sbPageLeaf">
-                        <div class="sb-page-leaf__sheet sb-page-leaf__sheet--front">
-                          <div class="sb-page-face">
-                            <p class="sb-page__text"></p>
-                            <div class="sb-page__art" hidden>
-                              <span class="sb-page__num" aria-hidden="true"></span>
-                              <img alt="" decoding="async" />
-                            </div>
-                            <p class="sb-page-foot" hidden aria-hidden="true"></p>
-                          </div>
-                        </div>
-                        <div class="sb-page-leaf__sheet sb-page-leaf__sheet--back" aria-hidden="true"></div>
-                      </div>
-                    </div>
+          <div class="sb-flip-spread" id="sbFlipSpread" aria-live="polite">
+            <div class="sb-flip-spread__inner">
+              <div class="sb-flip-page sb-flip-page--text">
+                <div class="sb-flip-page__sheet">
+                  <p class="sb-flip-text" id="sbSpreadText"></p>
+                  <p class="sb-flip-spread-meta" id="sbSpreadMeta"></p>
+                </div>
+              </div>
+              <div class="sb-flip-gutter" aria-hidden="true"></div>
+              <div class="sb-flip-page sb-flip-page--art">
+                <div class="sb-flip-page__sheet">
+                  <div class="sb-flip-art" id="sbSpreadArt">
+                    <span class="sb-flip-art__num" id="sbSpreadArtNum" aria-hidden="true"></span>
+                    <img id="sbSpreadArtImg" alt="" decoding="async" />
                   </div>
                 </div>
-                <div class="sb-hardback__foreedge" aria-hidden="true"></div>
               </div>
             </div>
           </div>
@@ -202,7 +189,7 @@
           type="button"
           class="sb-btn sb-btn--ghost sb-read-arrow"
           id="sbNext"
-          aria-label="Turn the page"
+          aria-label="Next pages"
         >
           ▶
         </button>
