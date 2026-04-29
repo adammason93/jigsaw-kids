@@ -36,7 +36,7 @@ const FAMILY_PORTRAIT_PATHS: Record<string, string> = {
 type FamilyPerson = { id: string; label: string };
 
 type StoryPage = { text: string; illustrationBrief: string | null };
-type StoryJson = { title: string; pages: StoryPage[] };
+type StoryJson = { title: string; characterDesign?: string; pages: StoryPage[] };
 
 function sanitizeFamilyNames(raw: unknown): string[] {
   if (!Array.isArray(raw)) return [];
@@ -530,7 +530,7 @@ Rules:
       ? " If appearance lines are given for those people, stay consistent with those visual details when you naturally describe them."
       : ""
   }
-- Include fields title (string) and pages (array of 12 objects).
+- Include fields title (string), characterDesign (string, very detailed visual description of the main characters to keep them identical across all illustrations), and pages (array of 12 objects).
 - Each page: { "text": string, "illustrationBrief": string | null }.
 - DOUBLE-PAGE SPREADS: pair pages as (1,2), (3,4), (5,6), (7,8), (9,10), (11,12).
   Odd-numbered pages (1,3,5,7,9,11) are TEXT-FIRST pages only — use "illustrationBrief": null.
@@ -549,7 +549,7 @@ Plot idea from the child (use as inspiration; keep gentle and age-appropriate): 
     plotHint.length ? plotHint : "(none — invent a cosy little adventure that fits the setting)"
   }
 
-Return JSON shape: { "title": string, "pages": [ { "text": string, "illustrationBrief": string | null }, ... 12 items ] }`;
+Return JSON shape: { "title": string, "characterDesign": string, "pages": [ { "text": string, "illustrationBrief": string | null }, ... 12 items ] }`;
 
   let story: StoryJson;
   try {
@@ -560,12 +560,13 @@ Return JSON shape: { "title": string, "pages": [ { "text": string, "illustration
   }
 
   const portraitForImage = portraitAppearance.replace(/\s+/gu, " ").trim().slice(0, 900);
+  const finalCharacterDesc = story.characterDesign || characterDesc;
   const imagePromptPrefix =
     "Same soft 3D clay and matte toy render as a fancy kids' app, rounded shapes, gentle pastel lighting, " +
     "one wide horizontal illustration as if viewing an open picture book spread (two pages side by side); " +
     "the scene flows across the full width as a single continuous environment; " +
     "no letters no words no text in the image, wholesome and safe for toddlers. " +
-    `Main character to show: ${characterDesc}. Setting mood: ${placeDesc}.` +
+    `Main character to show (keep this character EXACTLY consistent): ${finalCharacterDesc}. Setting mood: ${placeDesc}.` +
     (familyNames.length > 0
       ? ` When groups of friends appear, include these as friendly toy-like characters in the scene (not labelled): ${familyNames.join(", ")}. `
       : " ") +

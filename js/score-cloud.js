@@ -223,9 +223,127 @@
   }
 
   var COLOURING_BUCKET = "colouring_room";
+  var STORYBOOK_BUCKET = "storybook_room";
 
   function colouringObjectPath(uid) {
     return uid + "/colouring/session.json";
+  }
+
+  function storybookObjectPath(uid) {
+    return uid + "/storybook/shelf.json";
+  }
+
+  /**
+   * Latest storybook shelf JSON (parsed), or null if missing / offline / anon.
+   * @param {(err: Error|null, data: object|null) => void} cb
+   */
+  function downloadStorybookLibrary(cb) {
+    if (!isConfigured()) {
+      cb(null, null);
+      return;
+    }
+    ensureClient(function (sb) {
+      if (!sb) {
+        cb(null, null);
+        return;
+      }
+      sb.auth.getSession().then(function (res) {
+        var sess = res.data && res.data.session;
+        if (!sess || !sess.user) {
+          cb(null, null);
+          return;
+        }
+        var path = storybookObjectPath(sess.user.id);
+        sb.storage
+          .from(STORYBOOK_BUCKET)
+          .download(path)
+          .then(function (result) {
+            if (result.error || !result.data) {
+              cb(null, null);
+              return;
+            }
+            var blob = result.data;
+            function parseText(t) {
+              try {
+                cb(null, JSON.parse(t));
+              } catch (e) {
+                cb(e, null);
+              }
+            }
+            if (blob.text && typeof blob.text === "function") {
+              blob.text().then(parseText).catch(function () {
+                cb(null, null);
+              });
+            } else {
+              var fr = new global.FileReader();
+              fr.onload = function () {
+                parseText(String(fr.result));
+              };
+              fr.onerror = function () {
+                cb(null, null);
+              };
+              fr.readAsText(blob);
+            }
+          })
+          .catch(function () {
+            cb(null, null);
+          });
+      });
+    });
+  }
+
+  var storybookUploadTimer = null;
+
+  /** Debounced upload of raw shelf JSON string (same as localStorage value). */
+  function scheduleStorybookUpload(rawJsonString) {
+    if (!isConfigured() || !rawJsonString) {
+      return;
+    }
+    if (storybookUploadTimer) {
+      global.clearTimeout(storybookUploadTimer);
+    }
+    storybookUploadTimer = global.setTimeout(function () {
+      storybookUploadTimer = null;
+      uploadStorybookLibrary(rawJsonString, function () {});
+    }, 3500);
+  }
+
+  /** @param {string} rawJsonString - full serialized shelf */
+  function uploadStorybookLibrary(rawJsonString, cb) {
+    cb = cb || function () {};
+    if (!isConfigured() || !rawJsonString) {
+      cb(null);
+      return;
+    }
+    ensureClient(function (sb) {
+      if (!sb) {
+        cb(new Error("sync"));
+        return;
+      }
+      sb.auth.getSession().then(function (res) {
+        var sess = res.data && res.data.session;
+        if (!sess || !sess.user) {
+          cb(null);
+          return;
+        }
+        var path = storybookObjectPath(sess.user.id);
+        var blob = new global.Blob([rawJsonString], {
+          type: "application/json",
+        });
+        sb.storage
+          .from(STORYBOOK_BUCKET)
+          .upload(path, blob, {
+            upsert: true,
+            contentType: "application/json",
+          })
+          .then(function (up) {
+            cb(up.error || null);
+          })
+          .catch(function (e) {
+            cb(e);
+          });
+      });
+    });
   }
 
   /**
@@ -549,6 +667,9 @@
     downloadColouringSession: downloadColouringSession,
     uploadColouringSession: uploadColouringSession,
     scheduleColouringUpload: scheduleColouringUpload,
+    downloadStorybookLibrary: downloadStorybookLibrary,
+    uploadStorybookLibrary: uploadStorybookLibrary,
+    scheduleStorybookUpload: scheduleStorybookUpload,
   };
 
   global.addEventListener("DOMContentLoaded", function () {
