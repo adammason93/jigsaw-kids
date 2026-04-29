@@ -264,10 +264,10 @@
                     </div>
                     <div class="sb-flip-gutter" aria-hidden="true"></div>
                     <div class="sb-flip-right-shell sb-flip-right-shell--flip">
-                      <div class="sb-flipbook-perspective" id="sbFlipbookPerspective">
-                        <!-- Stacked sheets (reference: rotated .right + figure.front/back); built in JS -->
-                        <div class="sb-flipbook-stack" id="sbFlipbookStack" aria-hidden="true"></div>
-                      </div>
+                      <!-- CodePen-style bound book: paired .page imgs + .flipped; built in JS -->
+                      <section class="book sb-reader-codepen-book bound" id="sbCpBookShell" aria-hidden="true">
+                        <article class="pages sb-cp-pages" id="sbCpPages"></article>
+                      </section>
                       <!-- Kept hidden for compat; illustration shown on flip sheets -->
                       <div class="sb-flip-book-legacy-art" aria-hidden="true" hidden>
                         <div class="sb-flip-art" id="sbSpreadArt">
@@ -314,7 +314,7 @@
   <script src="../js/kids-game-characters.js"></script>
   <script src="../js/score-config.js"></script>
   <script src="../js/kids-core.js"></script>
-  <script src="storybook.js?v=210" defer></script>
+  <script src="storybook.js?v=211" defer></script>
   <script>
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("../sw.js").catch(function () {});

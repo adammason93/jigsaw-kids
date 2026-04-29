@@ -55,10 +55,9 @@
   var spreadInnerEl = document.getElementById("sbFlipSpreadInner");
   var spreadArtBg = document.getElementById("sbSpreadArtBg");
   var spreadArtCover = document.getElementById("sbSpreadArtCover");
-  var flipbookStack = document.getElementById("sbFlipbookStack");
-  /** @type {HTMLDivElement[]} */
-  var flipbookSheets = [];
-  var flipbookZMax = 1;
+  var cpPagesRoot = document.getElementById("sbCpPages");
+  /** recto/verso pairs flattened: indices 2*s , 2*s+1 (CodePen .page odd/even pairing) */
+  var cpFlatPages = [];
   var readerStack = document.getElementById("sbReaderStack");
   var readerPages = document.getElementById("sbReaderPages");
   var btnOpenCover = document.getElementById("sbOpenCover");
@@ -333,55 +332,98 @@
     }
     el.addEventListener("transitionend", onTe);
     el.addEventListener("webkitTransitionEnd", onTe);
-    window.setTimeout(unlock, 950);
+    window.setTimeout(unlock, 1560);
+  }
+
+  function applyCpPageZIndexes() {
+    if (!cpPagesRoot) return;
+    var pages = cpPagesRoot.querySelectorAll("img.page");
+    var len = pages.length;
+    for (var i = 0; i < len; i++) {
+      if (i % 2 === 0) {
+        pages[i].style.zIndex = String(len - i);
+      } else {
+        pages[i].style.zIndex = "";
+      }
+    }
   }
 
   /**
-   * Stacked sheets (Nidhanshu Sharma–style flip): each sheet = figure.back + figure.front,
-   * hinge at gutter; DOM order appended spread (n-1)…0 so sheet 0 is on top initially.
+   * CodePen “bound book”: paired img.page (odd=recto, even=verso), .flipped toggles visibility.
    */
-  function rebuildFlipbookSheets() {
-    flipbookSheets = [];
-    flipbookZMax = 1;
-    if (!flipbookStack || !story || !story.pages.length) return;
-    var n = numSpreads();
-    flipbookStack.innerHTML = "";
+  function rebuildCodepenCpPages() {
+    cpFlatPages = [];
+    if (!cpPagesRoot || !story || !story.pages.length) return;
+    cpPagesRoot.innerHTML = "";
     if (spreadInnerEl) {
       spreadInnerEl.classList.add("sb-flip-spread__inner--ref-flipbook");
     }
+
+    var n = numSpreads();
     if (n < 1) return;
 
-    for (var s = n - 1; s >= 0; s--) {
-      var sheet = document.createElement("div");
-      sheet.className = "sb-flipbook-sheet";
-      sheet.setAttribute("role", "presentation");
+    var placeholderSvg =
+      "data:image/svg+xml," +
+      encodeURIComponent(
+        '<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512"><defs><linearGradient id="g" x1="0" x2="1" y1="0" y2="1">' +
+          '<stop offset="0%" stop-color="#faf6f1"/><stop offset="100%" stop-color="#e8e2da"/></linearGradient></defs>' +
+          '<rect width="512" height="512" rx="24" fill="url(#g)"/></svg>'
+      );
 
-      var backFig = document.createElement("figure");
-      backFig.className = "sb-flipbook-figure sb-flipbook-figure--back";
-      var frontFig = document.createElement("figure");
-      frontFig.className = "sb-flipbook-figure sb-flipbook-figure--front";
-
+    for (var s = 0; s < n; s++) {
       var rightP = story.pages[s * 2 + 1];
       var url = rightP && rightP.imageUrl ? String(rightP.imageUrl) : "";
-      if (url) {
-        var bi =
-          'url("' + url.replace(/\\/g, "\\\\").replace(/"/g, '\\"') + '")';
-        frontFig.style.backgroundImage = bi;
-        backFig.style.backgroundImage = bi;
-      } else {
-        sheet.classList.add("sb-flipbook-sheet--paper");
-      }
+      var src = url || placeholderSvg;
 
-      sheet.appendChild(backFig);
-      sheet.appendChild(frontFig);
-      flipbookStack.appendChild(sheet);
-      flipbookSheets[s] = sheet;
+      var recto = document.createElement("img");
+      recto.className = "page sb-cp-img";
+      recto.alt = "";
+      recto.decoding = "async";
+      recto.loading = "lazy";
+      recto.referrerPolicy = "no-referrer";
+      recto.src = src;
+
+      var verso = document.createElement("img");
+      verso.className = "page sb-cp-img";
+      verso.alt = "";
+      verso.decoding = "async";
+      verso.loading = "lazy";
+      verso.referrerPolicy = "no-referrer";
+      verso.src = src;
+
+      cpPagesRoot.appendChild(recto);
+      cpPagesRoot.appendChild(verso);
+      cpFlatPages.push(recto, verso);
     }
+
+    applyCpPageZIndexes();
+  }
+
+  function rebuildFlipbookSheets() {
+    rebuildCodepenCpPages();
   }
 
   function navigateSpreadInstant(delta) {
-    spreadIndex += delta;
     spreadAnimLock = false;
+    spreadIndex += delta;
+    var nSpr = numSpreads();
+    spreadIndex = Math.max(0, Math.min(spreadIndex, nSpr - 1));
+
+    if (cpFlatPages.length && nSpr > 0) {
+      var pairs = cpFlatPages.length / 2;
+      for (var p = 0; p < pairs; p++) {
+        var a = cpFlatPages[p * 2];
+        var b = cpFlatPages[p * 2 + 1];
+        if (p < spreadIndex) {
+          a.classList.add("flipped");
+          b.classList.add("flipped");
+        } else {
+          a.classList.remove("flipped");
+          b.classList.remove("flipped");
+        }
+      }
+      applyCpPageZIndexes();
+    }
     applySpreadContent();
   }
 
@@ -397,7 +439,7 @@
     }
     if (spreadAnimLock) return;
 
-    if (!flipbookSheets.length) {
+    if (!cpFlatPages.length) {
       navigateSpreadInstant(delta);
       return;
     }
@@ -409,33 +451,47 @@
     flipbookTurnPrev();
   }
 
-  /** Next spread: flip current top sheet away (matches reference turnRight stacking). */
+  /** Next spread — flip paired recto+verso currently on top */
   function flipbookTurnNext() {
-    if (spreadIndex >= flipbookSheets.length - 1) return;
+    var nSpr = numSpreads();
+    if (spreadIndex >= nSpr - 1) return;
     spreadAnimLock = true;
     setSpreadNavBusy(true);
-    var el = flipbookSheets[spreadIndex];
-    flipbookZMax++;
-    el.style.zIndex = String(flipbookZMax);
-    el.classList.add("sb-flipbook-sheet--flip");
+    var a = cpFlatPages[spreadIndex * 2];
+    var b = cpFlatPages[spreadIndex * 2 + 1];
+    if (a) a.classList.add("flipped");
+    if (b) b.classList.add("flipped");
     spreadIndex++;
     applySpreadContent();
-    unlockFlipbookSheet(el);
+    if (a) {
+      unlockFlipbookSheet(a);
+    } else {
+      spreadAnimLock = false;
+      setSpreadNavBusy(false);
+    }
   }
 
   function flipbookTurnPrev() {
     if (spreadIndex <= 0) return;
     spreadAnimLock = true;
     setSpreadNavBusy(true);
-    var el = flipbookSheets[spreadIndex - 1];
-    el.classList.remove("sb-flipbook-sheet--flip");
+    var pairIdx = spreadIndex - 1;
+    var a = cpFlatPages[pairIdx * 2];
+    var b = cpFlatPages[pairIdx * 2 + 1];
+    if (a) a.classList.remove("flipped");
+    if (b) b.classList.remove("flipped");
     spreadIndex--;
+    applyCpPageZIndexes();
     applySpreadContent();
-    window.setTimeout(function () {
-      el.style.zIndex = "";
-    }, 400);
-    unlockFlipbookSheet(el);
+    if (a) {
+      unlockFlipbookSheet(a);
+    } else {
+      spreadAnimLock = false;
+      setSpreadNavBusy(false);
+    }
   }
+
+  function setSpreadNavBusy(locked) {
     if (!btnPrev || !btnNext) return;
     if (locked) {
       btnPrev.disabled = true;
@@ -1451,9 +1507,9 @@
     story = null;
     spreadIndex = 0;
     spreadAnimLock = false;
-    flipbookSheets.length = 0;
-    if (flipbookStack) {
-      flipbookStack.innerHTML = "";
+    cpFlatPages.length = 0;
+    if (cpPagesRoot) {
+      cpPagesRoot.innerHTML = "";
     }
     if (spreadInnerEl) {
       spreadInnerEl.classList.remove("sb-flip-spread__inner--ref-flipbook");

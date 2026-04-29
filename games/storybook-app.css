@@ -1225,7 +1225,7 @@ body.page-storybook.sb-modal-open {
     transition-duration: 0.01ms;
   }
 
-  .sb-flipbook-sheet {
+  .sb-reader-codepen-book.bound .page {
     transition-duration: 0.01ms !important;
   }
 
@@ -1397,7 +1397,7 @@ body.page-storybook.sb-modal-open {
   display: none;
 }
 
-/* ——— Stacked flip sheets (reference: .right + figure.front / figure.back, hinge at gutter) ——— */
+/* ——— CodePen bound book (.book.bound + .pages + alternating .page imgs + .flipped) ——— */
 .sb-flip-spread__inner--ref-flipbook .sb-flip-spread__art-bg {
   display: none !important;
 }
@@ -1410,92 +1410,173 @@ body.page-storybook.sb-modal-open {
   overflow: visible;
 }
 
-.sb-flipbook-perspective {
+.sb-reader-codepen-book {
+  transition: opacity 0.4s 0.2s;
+}
+
+.sb-flip-right-shell .sb-reader-codepen-book.bound {
   position: absolute;
   inset: 0;
-  -webkit-perspective: 1200px;
-  perspective: 1200px;
-  -webkit-perspective-origin: left center;
-  perspective-origin: left center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-perspective: min(250vw, 3600px);
+  perspective: min(250vw, 3600px);
+  pointer-events: auto;
 }
 
-.sb-flipbook-stack {
+.sb-flip-right-shell .sb-reader-codepen-book.bound .sb-cp-pages {
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  aspect-ratio: 2 / 1;
+  max-height: min(100%, 560px);
   position: relative;
-  width: 100%;
-  height: 100%;
-}
-
-.sb-flipbook-sheet {
-  position: absolute;
-  right: 0;
-  top: 0;
-  height: 100%;
-  width: 100%;
-  transition:
-    transform 0.7s ease-in-out,
-    -webkit-transform 0.7s ease-in-out;
   transform-style: preserve-3d;
   -webkit-transform-style: preserve-3d;
-  transform-origin: left center;
-  -webkit-transform: rotateY(0deg);
-  transform: rotateY(0deg);
-  border-radius: 0 10px 10px 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border-radius: 4px;
+  transform: rotateX(12deg);
+  -webkit-transform: rotateX(12deg);
+  transform-origin: center center;
 }
 
-.sb-flipbook-sheet.sb-flipbook-sheet--flip {
+.sb-flip-right-shell .sb-reader-codepen-book.bound .page.sb-cp-img {
+  float: none;
+  clear: none;
+  margin: 0;
+  padding: 0;
+  border: none;
+  position: absolute;
+  top: 0;
+  width: 50%;
+  height: 100%;
+  transform-origin: 0 0;
+  -webkit-transition: transform 1.4s ease;
+  transition: transform 1.4s ease;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
+  user-select: none;
+  object-fit: cover;
+}
+
+.sb-flip-right-shell .sb-reader-codepen-book.bound .page:before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0);
+  -webkit-transition: background 0.7s ease;
+  transition: background 0.7s ease;
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* Odd child = recto (right-hand page face) — 1-based: 1,3,5… */
+.sb-flip-right-shell .sb-reader-codepen-book.bound .page:nth-child(odd) {
+  pointer-events: all;
+  -webkit-transform: rotateY(0deg);
+  transform: rotateY(0deg);
+  right: 0;
+  border-radius: 0 4px 4px 0;
+}
+
+.sb-flip-right-shell .sb-reader-codepen-book.bound .page:nth-child(odd):hover {
+  transform: rotateY(-10deg);
+}
+
+.sb-flip-right-shell .sb-reader-codepen-book.bound .page:nth-child(odd):hover:before {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+/* Even = verso */
+.sb-flip-right-shell .sb-reader-codepen-book.bound .page:nth-child(even) {
+  pointer-events: none;
+  -webkit-transform: rotateY(180deg);
+  transform: rotateY(180deg);
+  transform-origin: 100% 0;
+  -webkit-transform-origin: 100% 0;
+  left: 0;
+  border-radius: 4px 0 0 4px;
+}
+
+.sb-flip-right-shell .sb-reader-codepen-book.bound .page:nth-child(even):before {
+  background: rgba(0, 0, 0, 0.01);
+}
+
+.sb-flip-right-shell .sb-reader-codepen-book.bound .page.grabbing {
+  transition: none;
+}
+
+/* Flipped spreads */
+.sb-flip-right-shell .sb-reader-codepen-book.bound .page.flipped:nth-child(odd) {
+  pointer-events: none;
   -webkit-transform: rotateY(-180deg);
   transform: rotateY(-180deg);
 }
 
-.sb-flipbook-sheet.sb-flipbook-sheet--flip::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: 10;
-  width: 100%;
-  height: 100%;
-  border-radius: 0 10px 10px 0;
-  background-color: rgba(0, 0, 0, 0.08);
+.sb-flip-right-shell .sb-reader-codepen-book.bound .page.flipped:nth-child(odd):before {
+  background: rgba(0, 0, 0, 0.01);
 }
 
-.sb-flipbook-figure {
-  margin: 0;
-  height: 100%;
-  width: 100%;
-  position: absolute;
-  left: 0;
-  top: 0;
-  background-size: 200%;
-  background-repeat: no-repeat;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-  background-color: #fffefc;
-  overflow: hidden;
+.sb-flip-right-shell .sb-reader-codepen-book.bound .page.flipped:nth-child(even) {
+  pointer-events: all;
+  -webkit-transform: rotateY(0deg);
+  transform: rotateY(0deg);
 }
 
-.sb-flipbook-figure--front {
-  background-position: right;
-  border-radius: 0 10px 10px 0;
-  box-shadow: 2px 2px 15px -2px rgba(0, 0, 0, 0.2);
+.sb-flip-right-shell .sb-reader-codepen-book.bound .page.flipped:nth-child(even):hover {
+  transform: rotateY(10deg);
 }
 
-.sb-flipbook-figure--back {
-  background-position: left;
-  border-radius: 10px 0 0 10px;
-  box-shadow: -2px 2px 15px -2px rgba(0, 0, 0, 0.2);
-  -webkit-transform: rotateY(180deg);
-  transform: rotateY(180deg);
+.sb-flip-right-shell .sb-reader-codepen-book.bound .page.flipped:nth-child(even):hover:before {
+  background: rgba(0, 0, 0, 0.01);
 }
 
-.sb-flipbook-sheet--paper .sb-flipbook-figure--front,
-.sb-flipbook-sheet--paper .sb-flipbook-figure--back {
-  background-image: linear-gradient(
-    145deg,
-    #faf6f1 0%,
-    #f0eae2 52%,
-    #e8e2da 100%
-  ) !important;
+@media screen and (max-width: 768px) {
+  .sb-flip-right-shell .sb-reader-codepen-book.bound .sb-cp-pages {
+    width: 100%;
+    max-height: none;
+    aspect-ratio: 1 / 1;
+    transform: none;
+  }
+
+  .sb-flip-right-shell .sb-reader-codepen-book.bound .page.sb-cp-img {
+    width: 100%;
+    height: auto;
+    min-height: 12rem;
+    position: relative;
+    left: auto;
+    right: auto;
+    transform: none !important;
+    margin-bottom: 0.85rem;
+    border-radius: 8px !important;
+    pointer-events: auto !important;
+  }
+
+  .sb-flip-right-shell .sb-reader-codepen-book.bound .page:before {
+    display: none;
+  }
+
+  .sb-flip-right-shell .sb-reader-codepen-book.bound .page:first-child {
+    cursor: auto;
+    float: none;
+  }
+
+  .sb-flip-right-shell .sb-reader-codepen-book.bound .page:nth-child(even),
+  .sb-flip-right-shell .sb-reader-codepen-book.bound .page:nth-child(odd) {
+    cursor: default;
+    clear: none;
+  }
+
+  .sb-flip-right-shell .sb-reader-codepen-book.bound .page:hover {
+    transform: none !important;
+  }
 }
 
 /* Keep <img> for page-turn animation & preload; not shown when full-bleed background is active */
