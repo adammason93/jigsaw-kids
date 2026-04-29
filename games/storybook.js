@@ -55,9 +55,7 @@
   var spreadInnerEl = document.getElementById("sbFlipSpreadInner");
   var spreadArtBg = document.getElementById("sbSpreadArtBg");
   var spreadArtCover = document.getElementById("sbSpreadArtCover");
-  var cpPagesRoot = document.getElementById("sbCpPages");
-  /** recto/verso pairs flattened: indices 2*s , 2*s+1 (CodePen .page odd/even pairing) */
-  var cpFlatPages = [];
+  var spreadRightArtImg = document.getElementById("sbSpreadRightArt");
   var readerStack = document.getElementById("sbReaderStack");
   var readerPages = document.getElementById("sbReaderPages");
   var btnOpenCover = document.getElementById("sbOpenCover");
@@ -314,93 +312,11 @@
     }
   }
 
-  function unlockFlipbookSheet(el) {
-    var finished = false;
-    function unlock() {
-      if (finished) return;
-      finished = true;
-      el.removeEventListener("transitionend", onTe);
-      el.removeEventListener("webkitTransitionEnd", onTe);
-      spreadAnimLock = false;
-      setSpreadNavBusy(false);
-    }
-    function onTe(ev) {
-      if (!ev || ev.target !== el) return;
-      var pn = ev.propertyName || "";
-      if (pn !== "" && !isTransformTransitionProperty(pn)) return;
-      unlock();
-    }
-    el.addEventListener("transitionend", onTe);
-    el.addEventListener("webkitTransitionEnd", onTe);
-    window.setTimeout(unlock, 1560);
-  }
-
-  function applyCpPageZIndexes() {
-    if (!cpPagesRoot) return;
-    var pages = cpPagesRoot.querySelectorAll("img.page");
-    var len = pages.length;
-    for (var i = 0; i < len; i++) {
-      if (i % 2 === 0) {
-        pages[i].style.zIndex = String(len - i);
-      } else {
-        pages[i].style.zIndex = "";
-      }
-    }
-  }
-
-  /**
-   * CodePen “bound book”: paired img.page (odd=recto, even=verso), .flipped toggles visibility.
-   */
-  function rebuildCodepenCpPages() {
-    cpFlatPages = [];
-    if (!cpPagesRoot || !story || !story.pages.length) return;
-    cpPagesRoot.innerHTML = "";
+  function rebuildFlipbookSheets() {
+    if (!story || !story.pages.length) return;
     if (spreadInnerEl) {
       spreadInnerEl.classList.add("sb-flip-spread__inner--ref-flipbook");
     }
-
-    var n = numSpreads();
-    if (n < 1) return;
-
-    var placeholderSvg =
-      "data:image/svg+xml," +
-      encodeURIComponent(
-        '<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512"><defs><linearGradient id="g" x1="0" x2="1" y1="0" y2="1">' +
-          '<stop offset="0%" stop-color="#faf6f1"/><stop offset="100%" stop-color="#e8e2da"/></linearGradient></defs>' +
-          '<rect width="512" height="512" rx="24" fill="url(#g)"/></svg>'
-      );
-
-    for (var s = 0; s < n; s++) {
-      var rightP = story.pages[s * 2 + 1];
-      var url = rightP && rightP.imageUrl ? String(rightP.imageUrl) : "";
-      var src = url || placeholderSvg;
-
-      var recto = document.createElement("img");
-      recto.className = "page sb-cp-img";
-      recto.alt = "";
-      recto.decoding = "async";
-      recto.loading = "lazy";
-      recto.referrerPolicy = "no-referrer";
-      recto.src = src;
-
-      var verso = document.createElement("img");
-      verso.className = "page sb-cp-img";
-      verso.alt = "";
-      verso.decoding = "async";
-      verso.loading = "lazy";
-      verso.referrerPolicy = "no-referrer";
-      verso.src = src;
-
-      cpPagesRoot.appendChild(recto);
-      cpPagesRoot.appendChild(verso);
-      cpFlatPages.push(recto, verso);
-    }
-
-    applyCpPageZIndexes();
-  }
-
-  function rebuildFlipbookSheets() {
-    rebuildCodepenCpPages();
   }
 
   function navigateSpreadInstant(delta) {
@@ -408,22 +324,6 @@
     spreadIndex += delta;
     var nSpr = numSpreads();
     spreadIndex = Math.max(0, Math.min(spreadIndex, nSpr - 1));
-
-    if (cpFlatPages.length && nSpr > 0) {
-      var pairs = cpFlatPages.length / 2;
-      for (var p = 0; p < pairs; p++) {
-        var a = cpFlatPages[p * 2];
-        var b = cpFlatPages[p * 2 + 1];
-        if (p < spreadIndex) {
-          a.classList.add("flipped");
-          b.classList.add("flipped");
-        } else {
-          a.classList.remove("flipped");
-          b.classList.remove("flipped");
-        }
-      }
-      applyCpPageZIndexes();
-    }
     applySpreadContent();
   }
 
@@ -432,63 +332,7 @@
     if (book && book.classList.contains("sb-book--cover-visible")) return;
     if (delta > 0 && spreadIndex >= numSpreads() - 1) return;
     if (delta < 0 && spreadIndex <= 0) return;
-
-    if (prefersReducedSpreadMotion()) {
-      navigateSpreadInstant(delta);
-      return;
-    }
-    if (spreadAnimLock) return;
-
-    if (!cpFlatPages.length) {
-      navigateSpreadInstant(delta);
-      return;
-    }
-
-    if (delta > 0) {
-      flipbookTurnNext();
-      return;
-    }
-    flipbookTurnPrev();
-  }
-
-  /** Next spread — flip paired recto+verso currently on top */
-  function flipbookTurnNext() {
-    var nSpr = numSpreads();
-    if (spreadIndex >= nSpr - 1) return;
-    spreadAnimLock = true;
-    setSpreadNavBusy(true);
-    var a = cpFlatPages[spreadIndex * 2];
-    var b = cpFlatPages[spreadIndex * 2 + 1];
-    if (a) a.classList.add("flipped");
-    if (b) b.classList.add("flipped");
-    spreadIndex++;
-    applySpreadContent();
-    if (a) {
-      unlockFlipbookSheet(a);
-    } else {
-      spreadAnimLock = false;
-      setSpreadNavBusy(false);
-    }
-  }
-
-  function flipbookTurnPrev() {
-    if (spreadIndex <= 0) return;
-    spreadAnimLock = true;
-    setSpreadNavBusy(true);
-    var pairIdx = spreadIndex - 1;
-    var a = cpFlatPages[pairIdx * 2];
-    var b = cpFlatPages[pairIdx * 2 + 1];
-    if (a) a.classList.remove("flipped");
-    if (b) b.classList.remove("flipped");
-    spreadIndex--;
-    applyCpPageZIndexes();
-    applySpreadContent();
-    if (a) {
-      unlockFlipbookSheet(a);
-    } else {
-      spreadAnimLock = false;
-      setSpreadNavBusy(false);
-    }
+    navigateSpreadInstant(delta);
   }
 
   function setSpreadNavBusy(locked) {
@@ -707,7 +551,7 @@
     var rightP = story.pages[i + 1];
     var pLo = i + 1;
     var pHi = i + 2;
-    /* Illustration is on stacked flip sheets; keep hidden legacy nodes in sync when present */
+    /* Illustration fills right column (#sbSpreadRightArt); legacy hidden nodes kept in sync if present */
     if (rightP && rightP.imageUrl) {
       var u = String(rightP.imageUrl);
       if (spreadArtImg) {
@@ -723,6 +567,13 @@
         spreadArtCover.src = u;
         spreadArtCover.alt = "";
         spreadArtCover.referrerPolicy = "no-referrer";
+      }
+      if (spreadRightArtImg) {
+        spreadRightArtImg.hidden = false;
+        spreadRightArtImg.removeAttribute("hidden");
+        spreadRightArtImg.src = u;
+        spreadRightArtImg.alt = "Illustration for pages " + pLo + "–" + pHi;
+        spreadRightArtImg.referrerPolicy = "no-referrer";
       }
       if (spreadInnerEl && spreadInnerEl.dataset) {
         spreadInnerEl.dataset.sbArtUrl = u;
@@ -741,6 +592,11 @@
       if (spreadArtCover) {
         spreadArtCover.removeAttribute("src");
         spreadArtCover.alt = "";
+      }
+      if (spreadRightArtImg) {
+        spreadRightArtImg.removeAttribute("src");
+        spreadRightArtImg.alt = "";
+        spreadRightArtImg.hidden = true;
       }
       if (spreadInnerEl && spreadInnerEl.dataset && spreadInnerEl.dataset.sbArtUrl) {
         delete spreadInnerEl.dataset.sbArtUrl;
@@ -1507,9 +1363,10 @@
     story = null;
     spreadIndex = 0;
     spreadAnimLock = false;
-    cpFlatPages.length = 0;
-    if (cpPagesRoot) {
-      cpPagesRoot.innerHTML = "";
+    if (spreadRightArtImg) {
+      spreadRightArtImg.removeAttribute("src");
+      spreadRightArtImg.alt = "";
+      spreadRightArtImg.hidden = true;
     }
     if (spreadInnerEl) {
       spreadInnerEl.classList.remove("sb-flip-spread__inner--ref-flipbook");

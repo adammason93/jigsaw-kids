@@ -1225,7 +1225,7 @@ body.page-storybook.sb-modal-open {
     transition-duration: 0.01ms;
   }
 
-  .sb-story-pageflip .page {
+  .sb-story-pageflip .sb-spread-right-art {
     transition-duration: 0.01ms !important;
   }
 
@@ -1285,7 +1285,7 @@ body.page-storybook.sb-modal-open {
   max-width: 920px;
   margin: 0 auto;
   height: var(--sb-book-inner-h);
-  border: 10px solid var(--sb-flip-red);
+  border: 5px solid rgba(219, 39, 119, 0.35);
   border-radius: 8px;
   background: var(--sb-flip-paper);
   box-sizing: border-box;
@@ -1373,7 +1373,7 @@ body.page-storybook.sb-modal-open {
   background: transparent;
   box-shadow: none;
   margin: 0;
-  padding: clamp(10px, 2.5vw, 20px);
+  padding: clamp(10px, 2.5vw, 22px) clamp(14px, 4vw, 28px);
   align-self: stretch;
   width: 100%;
   max-width: none;
@@ -1397,7 +1397,7 @@ body.page-storybook.sb-modal-open {
   display: none;
 }
 
-/* ——— Spread illustrations: 3D paired .page imgs + .flipped (right column only) ——— */
+/* ——— Right column: one full-bleed illustration per spread (no stacked imgs) ——— */
 .sb-flip-spread__inner--ref-flipbook .sb-flip-spread__art-bg {
   display: none !important;
 }
@@ -1410,172 +1410,25 @@ body.page-storybook.sb-modal-open {
   overflow: visible;
 }
 
-.sb-story-pageflip {
-  transition: opacity 0.4s 0.2s;
-}
-
 .sb-flip-right-shell .sb-story-pageflip {
   position: absolute;
   inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  -webkit-perspective: min(250vw, 3600px);
-  perspective: min(250vw, 3600px);
+  display: block;
   pointer-events: auto;
 }
 
-.sb-flip-right-shell .sb-story-pageflip .sb-cp-pages {
+.sb-spread-right-art {
+  display: block;
   width: 100%;
-  max-width: 100%;
-  height: auto;
-  aspect-ratio: 2 / 1;
-  max-height: min(100%, 560px);
-  position: relative;
-  transform-style: preserve-3d;
-  -webkit-transform-style: preserve-3d;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-  border-radius: 4px;
-  transform: rotateX(12deg);
-  -webkit-transform: rotateX(12deg);
-  transform-origin: center center;
-}
-
-.sb-flip-right-shell .sb-story-pageflip .page.sb-cp-img {
-  float: none;
-  clear: none;
-  margin: 0;
-  padding: 0;
-  border: none;
-  position: absolute;
-  top: 0;
-  width: 50%;
   height: 100%;
-  transform-origin: 0 0;
-  -webkit-transition: transform 1.4s ease;
-  transition: transform 1.4s ease;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-  transform-style: preserve-3d;
-  -webkit-transform-style: preserve-3d;
-  user-select: none;
   object-fit: cover;
-}
-
-.sb-flip-right-shell .sb-story-pageflip .page:before {
-  content: "";
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: rgba(0, 0, 0, 0);
-  -webkit-transition: background 0.7s ease;
-  transition: background 0.7s ease;
-  z-index: 2;
-  pointer-events: none;
-}
-
-/* Odd child = recto (right-hand page face) — 1-based: 1,3,5… */
-.sb-flip-right-shell .sb-story-pageflip .page:nth-child(odd) {
-  pointer-events: all;
-  -webkit-transform: rotateY(0deg);
-  transform: rotateY(0deg);
-  right: 0;
-  border-radius: 0 4px 4px 0;
-}
-
-.sb-flip-right-shell .sb-story-pageflip .page:nth-child(odd):hover {
-  transform: rotateY(-10deg);
-}
-
-.sb-flip-right-shell .sb-story-pageflip .page:nth-child(odd):hover:before {
-  background: rgba(0, 0, 0, 0.03);
-}
-
-/* Even = verso */
-.sb-flip-right-shell .sb-story-pageflip .page:nth-child(even) {
-  pointer-events: none;
-  -webkit-transform: rotateY(180deg);
-  transform: rotateY(180deg);
-  transform-origin: 100% 0;
-  -webkit-transform-origin: 100% 0;
-  left: 0;
-  border-radius: 4px 0 0 4px;
-}
-
-.sb-flip-right-shell .sb-story-pageflip .page:nth-child(even):before {
-  background: rgba(0, 0, 0, 0.01);
-}
-
-.sb-flip-right-shell .sb-story-pageflip .page.grabbing {
-  transition: none;
-}
-
-/* Flipped spreads */
-.sb-flip-right-shell .sb-story-pageflip .page.flipped:nth-child(odd) {
-  pointer-events: none;
-  -webkit-transform: rotateY(-180deg);
-  transform: rotateY(-180deg);
-}
-
-.sb-flip-right-shell .sb-story-pageflip .page.flipped:nth-child(odd):before {
-  background: rgba(0, 0, 0, 0.01);
-}
-
-.sb-flip-right-shell .sb-story-pageflip .page.flipped:nth-child(even) {
-  pointer-events: all;
-  -webkit-transform: rotateY(0deg);
-  transform: rotateY(0deg);
-}
-
-.sb-flip-right-shell .sb-story-pageflip .page.flipped:nth-child(even):hover {
-  transform: rotateY(10deg);
-}
-
-.sb-flip-right-shell .sb-story-pageflip .page.flipped:nth-child(even):hover:before {
-  background: rgba(0, 0, 0, 0.01);
+  object-position: center;
+  border-radius: 0 clamp(5px, 0.8vw, 8px) clamp(5px, 0.8vw, 8px) 0;
 }
 
 @media screen and (max-width: 768px) {
-  .sb-flip-right-shell .sb-story-pageflip .sb-cp-pages {
-    width: 100%;
-    max-height: none;
-    aspect-ratio: 1 / 1;
-    transform: none;
-  }
-
-  .sb-flip-right-shell .sb-story-pageflip .page.sb-cp-img {
-    width: 100%;
-    height: auto;
-    min-height: 12rem;
-    position: relative;
-    left: auto;
-    right: auto;
-    transform: none !important;
-    margin-bottom: 0.85rem;
-    border-radius: 8px !important;
-    pointer-events: auto !important;
-  }
-
-  .sb-flip-right-shell .sb-story-pageflip .page:before {
-    display: none;
-  }
-
-  .sb-flip-right-shell .sb-story-pageflip .page:first-child {
-    cursor: auto;
-    float: none;
-  }
-
-  .sb-flip-right-shell .sb-story-pageflip .page:nth-child(even),
-  .sb-flip-right-shell .sb-story-pageflip .page:nth-child(odd) {
-    cursor: default;
-    clear: none;
-  }
-
-  .sb-flip-right-shell .sb-story-pageflip .page:hover {
-    transform: none !important;
+  .sb-spread-right-art {
+    border-radius: 0;
   }
 }
 
@@ -1750,7 +1603,7 @@ body.page-storybook.sb-modal-open {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  padding: clamp(10px, 2.5vw, 20px);
+  padding: clamp(10px, 2.5vw, 22px) clamp(14px, 4vw, 28px);
   box-sizing: border-box;
   overflow: auto;
 }
