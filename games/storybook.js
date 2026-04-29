@@ -31,6 +31,7 @@
   var modal = document.getElementById("sbModal");
   var book = document.getElementById("sbBook");
   var busy = document.getElementById("sbBusy");
+  var appEl = document.getElementById("app");
   var nameInput = document.getElementById("sbName");
   var plotInput = document.getElementById("sbPlot");
   var charRow = document.getElementById("sbCharacters");
@@ -51,12 +52,12 @@
   var pagerHint = document.getElementById("sbPagerHint");
   var btnNew = document.getElementById("sbNew");
   var btnDownload = document.getElementById("sbDownloadBook");
+  var btnShelf = document.getElementById("sbShelfBook");
+  var shelfEl = document.getElementById("sbShelf");
   var btnVoiceName = document.getElementById("sbVoiceName");
   var btnVoicePlot = document.getElementById("sbVoicePlot");
   var voiceHintName = document.getElementById("sbVoiceNameHint");
   var voiceHintPlot = document.getElementById("sbVoicePlotHint");
-
-  var panels = document.querySelectorAll(".sb-panel");
 
   var SpeechRec =
     typeof window !== "undefined"
@@ -469,6 +470,184 @@
       });
   }
 
+  function fetchAllPageDataUrls() {
+    if (!story || !story.pages.length) return Promise.resolve([]);
+    return Promise.all(
+      story.pages.map(function (p) {
+        return tryFetchImageDataUrl(p.imageUrl || "");
+      })
+    );
+  }
+
+  var SHELF_STORAGE_KEY = "jigsawKids_storybookShelf_v1";
+  var SHELF_MAX_BOOKS = 14;
+
+  function loadShelf() {
+    try {
+      var raw = localStorage.getItem(SHELF_STORAGE_KEY);
+      if (!raw) return [];
+      var data = JSON.parse(raw);
+      return Array.isArray(data) ? data : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function saveShelf(list) {
+    localStorage.setItem(SHELF_STORAGE_KEY, JSON.stringify(list));
+  }
+
+  function hashFromString(str) {
+    var h = 2166136261;
+    var s = String(str || "");
+    for (var i = 0; i < s.length; i++) {
+      h ^= s.charCodeAt(i);
+      h = Math.imul(h, 16777619);
+    }
+    return h >>> 0;
+  }
+
+  function spineMeta(bookId, title) {
+    var h = hashFromString(bookId + ":" + title);
+    return {
+      hue: h % 360,
+      pat: h % 4,
+      hPx: 112 + (h % 40),
+      wPx: 21 + (h % 16),
+    };
+  }
+
+  function spineLabel(title) {
+    var t = String(title || "Story").trim();
+    if (t.length > 22) return t.slice(0, 21) + "…";
+    return t;
+  }
+
+  function addStoryToShelfFromData(title, pages, dataUrls) {
+    var list = loadShelf();
+    var id = "b" + Date.now() + "-" + ((Math.random() * 1e6) | 0);
+    var storedPages = pages.map(function (p, i) {
+      return {
+        text: p.text,
+        imageDataUrl: dataUrls[i] || null,
+        imageUrlFallback: p.imageUrl || null,
+      };
+    });
+    list.unshift({
+      id: id,
+      title: title,
+      savedAt: new Date().toISOString(),
+      pages: storedPages,
+    });
+    while (list.length > SHELF_MAX_BOOKS) {
+      list.pop();
+    }
+    saveShelf(list);
+  }
+
+  function removeShelfBook(bookId) {
+    var list = loadShelf().filter(function (b) {
+      return b.id !== bookId;
+    });
+    saveShelf(list);
+    renderShelf();
+  }
+
+  function openShelfBook(bookId) {
+    var list = loadShelf();
+    var item = null;
+    for (var i = 0; i < list.length; i++) {
+      if (list[i].id === bookId) {
+        item = list[i];
+        break;
+      }
+    }
+    if (!item || !item.pages || !item.pages.length) return;
+    story = {
+      title: item.title,
+      pages: item.pages.map(function (p) {
+        return {
+          text: p.text,
+          imageUrl: p.imageDataUrl || p.imageUrlFallback || null,
+        };
+      }),
+    };
+    pageIndex = 0;
+    showBook();
+  }
+
+  function renderShelf() {
+    if (!shelfEl) return;
+    shelfEl.textContent = "";
+    var list = loadShelf();
+    if (!list.length) {
+      var empty = document.createElement("p");
+      empty.className = "sb-library__empty";
+      empty.textContent =
+        "No books on the shelf yet. When you finish a story, tap “Put on my shelf”.";
+      shelfEl.appendChild(empty);
+      return;
+    }
+    for (var j = 0; j < list.length; j++) {
+      (function (item) {
+        var meta = spineMeta(item.id, item.title);
+        var wrap = document.createElement("div");
+        wrap.className = "sb-spine-wrap";
+        var spine = document.createElement("button");
+        spine.type = "button";
+        spine.className = "sb-spine sb-spine--pat" + meta.pat;
+        spine.style.setProperty("--sb-h", String(meta.hue));
+        spine.style.height = meta.hPx / 16 + "rem";
+        spine.style.width = meta.wPx / 16 + "rem";
+        spine.setAttribute("role", "listitem");
+        spine.setAttribute("aria-label", "Open book: " + item.title);
+        var span = document.createElement("span");
+        span.className = "sb-spine__title";
+        span.textContent = spineLabel(item.title);
+        spine.appendChild(span);
+        spine.addEventListener("click", function () {
+          openShelfBook(item.id);
+        });
+        var rm = document.createElement("button");
+        rm.type = "button";
+        rm.className = "sb-spine__remove";
+        rm.setAttribute("aria-label", "Remove from shelf: " + item.title);
+        rm.textContent = "×";
+        rm.addEventListener("click", function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          removeShelfBook(item.id);
+        });
+        wrap.appendChild(spine);
+        wrap.appendChild(rm);
+        shelfEl.appendChild(wrap);
+      })(list[j]);
+    }
+  }
+
+  function saveBookToShelf() {
+    if (!story || !story.pages.length || !btnShelf) return;
+    var label = btnShelf.textContent;
+    btnShelf.disabled = true;
+    btnShelf.textContent = "Saving…";
+    fetchAllPageDataUrls()
+      .then(function (dataUrls) {
+        try {
+          addStoryToShelfFromData(story.title, story.pages, dataUrls);
+          renderShelf();
+        } catch (e) {
+          window.alert("Couldn’t save — storage might be full. Try downloading instead.");
+        }
+      })
+      .catch(function () {
+        window.alert("Couldn’t prepare pictures for the shelf. Try again.");
+      })
+      .finally(function () {
+        btnShelf.disabled = false;
+        btnShelf.textContent = label;
+      });
+  }
+
   function buildStandaloneBookHtml(title, pages, dataUrls) {
     var escTitle = escapeHtml(title);
     var articles = [];
@@ -525,11 +704,7 @@
     var origLabel = btnDownload.textContent;
     btnDownload.disabled = true;
     btnDownload.textContent = "Preparing…";
-    Promise.all(
-      story.pages.map(function (p) {
-        return tryFetchImageDataUrl(p.imageUrl || "");
-      })
-    )
+    fetchAllPageDataUrls()
       .then(function (dataUrls) {
         var html = buildStandaloneBookHtml(story.title, story.pages, dataUrls);
         var blob = new Blob([html], { type: "text/html;charset=utf-8" });
@@ -577,14 +752,24 @@
   }
 
   function functionUrl() {
-    var c = typeof window.SCORE_CONFIG !== "undefined" ? window.SCORE_CONFIG : null;
+    var c =
+      typeof window.SCORE_CONFIG !== "undefined"
+        ? window.SCORE_CONFIG
+        : typeof window.SCORE_SYNC !== "undefined"
+          ? window.SCORE_SYNC
+          : null;
     var base = c && c.supabaseUrl ? String(c.supabaseUrl).replace(/\/$/, "") : "";
     if (!base) return "";
     return base + "/functions/v1/storybook-generate";
   }
 
   function anonKey() {
-    var c = typeof window.SCORE_CONFIG !== "undefined" ? window.SCORE_CONFIG : null;
+    var c =
+      typeof window.SCORE_CONFIG !== "undefined"
+        ? window.SCORE_CONFIG
+        : typeof window.SCORE_SYNC !== "undefined"
+          ? window.SCORE_SYNC
+          : null;
     return c && c.supabaseAnonKey ? String(c.supabaseAnonKey) : "";
   }
 
@@ -659,7 +844,8 @@
     if (stepKicker) stepKicker.textContent = "Step " + (journeyStep + 1) + " of 5";
     if (stepHeading) stepHeading.textContent = STEP_HEADINGS[journeyStep] || "";
     renderProgress();
-    Array.prototype.forEach.call(panels, function (p) {
+    var panelEls = document.querySelectorAll("#sbModal .sb-panel");
+    Array.prototype.forEach.call(panelEls, function (p) {
       var idx = parseInt(p.getAttribute("data-panel") || "0", 10);
       var on = idx === journeyStep;
       p.hidden = !on;
@@ -678,20 +864,33 @@
   }
 
   function openJourney() {
-    if (modal) {
-      modal.classList.remove("is-hidden");
-      modal.hidden = false;
+    var m = modal || document.getElementById("sbModal");
+    if (m) {
+      m.classList.remove("is-hidden");
+      m.removeAttribute("hidden");
+      m.hidden = false;
+      m.setAttribute("aria-hidden", "false");
     }
+    document.body.classList.add("sb-modal-open");
     setError("");
     goToStep(0);
+    if (stepHeading) {
+      try {
+        stepHeading.focus();
+      } catch (e1) {}
+    }
   }
 
   function closeJourney() {
     stopSpeech();
-    if (modal) {
-      modal.classList.add("is-hidden");
-      modal.hidden = true;
+    var m = modal || document.getElementById("sbModal");
+    if (m) {
+      m.classList.add("is-hidden");
+      m.hidden = true;
+      m.setAttribute("hidden", "");
+      m.setAttribute("aria-hidden", "true");
     }
+    document.body.classList.remove("sb-modal-open");
   }
 
   function showWizard() {
@@ -712,6 +911,7 @@
     if (plotInput) plotInput.value = "";
     goToStep(0);
     setError("");
+    renderShelf();
   }
 
   function showBook() {
@@ -744,9 +944,23 @@
 
   buildChipRows();
   initVoiceUi();
+  renderShelf();
 
-  if (btnStart) {
-    btnStart.addEventListener("click", function () {
+  if (appEl) {
+    appEl.addEventListener(
+      "click",
+      function (e) {
+        if (!e.target || !e.target.closest) return;
+        if (e.target.closest("#sbStartJourney")) {
+          e.preventDefault();
+          openJourney();
+        }
+      },
+      false
+    );
+  } else if (btnStart) {
+    btnStart.addEventListener("click", function (e) {
+      e.preventDefault();
       openJourney();
     });
   }
@@ -849,6 +1063,13 @@
       downloadStoryBook();
     });
   }
+  if (btnShelf) {
+    btnShelf.addEventListener("click", function () {
+      saveBookToShelf();
+    });
+  }
+
+  if (typeof KidsCore !== "undefined") {
     KidsCore.init();
     KidsCore.bindTapSound(document.getElementById("app"));
   }

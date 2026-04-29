@@ -13,6 +13,10 @@
   -webkit-font-smoothing: antialiased;
 }
 
+body.page-storybook.sb-modal-open {
+  overflow: hidden;
+}
+
 .sb-app {
   max-width: 28rem;
   margin: 0 auto;
@@ -90,6 +94,204 @@
 .sb-note--landing {
   text-align: left;
   margin-bottom: 1rem;
+}
+
+/* My library — shelf + spines */
+.sb-library {
+  text-align: left;
+  margin-bottom: 1.35rem;
+}
+
+.sb-library__h {
+  font-family: "Sniglet", "Nunito", sans-serif;
+  font-size: 1.15rem;
+  font-weight: 800;
+  margin: 0 0 0.35rem;
+  color: #9d174d;
+  text-align: center;
+}
+
+.sb-library__hint {
+  margin: 0 0 0.65rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #9f1239;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.sb-shelf-wrap {
+  margin-top: 0.25rem;
+}
+
+.sb-shelf-board {
+  position: relative;
+  background: linear-gradient(180deg, #9c6949 0%, #7a4e32 35%, #5c3a26 100%);
+  border-radius: 10px;
+  padding: 0.55rem 0.5rem 0;
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.18),
+    inset 0 -2px 6px rgba(0, 0, 0, 0.25),
+    0 10px 22px rgba(45, 20, 30, 0.2);
+}
+
+.sb-shelf-plank {
+  height: 12px;
+  margin: 0 -0.15rem -4px;
+  border-radius: 0 0 8px 8px;
+  background: linear-gradient(180deg, #4a2f20 0%, #3d2618 100%);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.sb-shelf-row {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: nowrap;
+  gap: 0.32rem;
+  overflow-x: auto;
+  overflow-y: visible;
+  padding: 0.2rem 0.15rem 0.45rem;
+  min-height: 10.5rem;
+  -webkit-overflow-scrolling: touch;
+}
+
+.sb-shelf-row::-webkit-scrollbar {
+  height: 6px;
+}
+
+.sb-shelf-row::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 3px;
+}
+
+.sb-library__empty {
+  margin: 0;
+  padding: 1rem 0.5rem;
+  text-align: center;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.85);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+  min-height: 6rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sb-spine {
+  position: relative;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0.35rem 0.15rem 0.45rem;
+  border: none;
+  border-radius: 3px 5px 5px 3px;
+  cursor: pointer;
+  touch-action: manipulation;
+  font-family: "Nunito", "Segoe UI", system-ui, sans-serif;
+  font-weight: 800;
+  font-size: 0.68rem;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  box-shadow:
+    inset 3px 0 6px rgba(255, 255, 255, 0.22),
+    inset -4px 0 10px rgba(0, 0, 0, 0.35),
+    2px 4px 10px rgba(20, 10, 15, 0.35);
+  transition: transform 0.15s ease, filter 0.15s ease;
+}
+
+.sb-spine:active {
+  transform: translateY(1px) scale(0.98);
+}
+
+.sb-spine:focus-visible {
+  outline: 3px solid #f9a8d4;
+  outline-offset: 2px;
+}
+
+.sb-spine__title {
+  max-height: 8.5rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-word;
+  padding: 0.15rem 0;
+}
+
+/* Pattern + hue variants (title hash sets --sb-h and class pat) */
+.sb-spine--pat0 {
+  background: linear-gradient(
+    90deg,
+    hsl(var(--sb-h, 320), 55%, 32%) 0%,
+    hsl(var(--sb-h, 320), 60%, 42%) 40%,
+    hsl(var(--sb-h, 320), 50%, 36%) 100%
+  );
+}
+
+.sb-spine--pat1 {
+  background: linear-gradient(
+    90deg,
+    hsl(var(--sb-h, 280), 45%, 52%) 0%,
+    hsl(calc(var(--sb-h, 280) + 12), 55%, 40%) 100%
+  );
+}
+
+.sb-spine--pat2 {
+  background: linear-gradient(
+    90deg,
+    hsl(var(--sb-h, 200), 50%, 38%) 0%,
+    hsl(calc(var(--sb-h, 200) - 20), 45%, 28%) 100%
+  );
+}
+
+.sb-spine--pat3 {
+  background: linear-gradient(
+    90deg,
+    hsl(var(--sb-h, 340), 35%, 30%) 0%,
+    hsl(var(--sb-h, 340), 45%, 45%) 50%,
+    hsl(calc(var(--sb-h, 340) + 15), 40%, 32%) 100%
+  );
+}
+
+.sb-spine__remove {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 1.1rem;
+  height: 1.1rem;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  font-size: 0.75rem;
+  line-height: 1;
+  font-weight: 800;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+  z-index: 2;
+  opacity: 0.5;
+  transition: opacity 0.15s ease;
+}
+
+.sb-spine-wrap:focus-within .sb-spine__remove,
+.sb-spine-wrap:hover .sb-spine__remove {
+  opacity: 1;
+}
+
+.sb-spine__remove:active {
+  background: rgba(185, 28, 28, 0.85);
+}
+
+.sb-spine-wrap {
+  position: relative;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: flex-end;
 }
 
 .sb-note--modal {
