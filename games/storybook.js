@@ -363,9 +363,16 @@
       return;
     }
 
+    spreadIndex += delta;
+    var nSpr = numSpreads();
+    spreadIndex = Math.max(0, Math.min(spreadIndex, nSpr - 1));
+
     spreadAnimLock = true;
     setSpreadNavBusy(true);
     clearCpBookShellTurnClasses();
+
+    /* Destination prose + pager now; duplex image updates mid-turn while edge-on */
+    applySpreadContent({ skipArt: true });
 
     var isNext = delta > 0;
     var cls1 = isNext
@@ -381,7 +388,7 @@
     shell.classList.add(cls1);
 
     bindCpShellTurnEnd(shell, function phase1Done() {
-      bumpSpreadIndex(delta);
+      applySpreadContent({ skipText: true });
       shell.classList.remove(cls1);
       shell.classList.add(snap);
       window.requestAnimationFrame(function () {
@@ -622,17 +629,16 @@
     }
   }
 
-  function applySpreadContent() {
-    if (!story || !spreadText) return;
+  function syncSpreadIllustrationFromStory() {
+    if (!story) return;
     var n = numSpreads();
     if (n < 1) return;
-    spreadIndex = Math.max(0, Math.min(spreadIndex, n - 1));
-    var i = spreadIndex * 2;
-    writeSpreadTextMetaFromStory();
+    var si = spreadIndex;
+    si = Math.max(0, Math.min(si, n - 1));
+    var i = si * 2;
     var rightP = story.pages[i + 1];
     var pLo = i + 1;
     var pHi = i + 2;
-    /* One illustration per spread (pages i+1–i+2): full duplex behind text + optional right column */
     if (rightP && rightP.imageUrl) {
       var u = String(rightP.imageUrl);
       if (spreadArtImg) {
@@ -678,6 +684,25 @@
         spreadArtNum.textContent = rightP ? "Drawing missing" : "";
       }
     }
+  }
+
+  /**
+   * @param {{ skipText?: boolean, skipArt?: boolean }} opt
+   *   skipArt at turn start → new prose visible while OLD illustration rotates away;
+   *   skipText mid-turn → swap duplexer art edge-on without re-writing text.
+   */
+  function applySpreadContent(opt) {
+    opt = opt || {};
+    if (!story || !spreadText) return;
+    var n = numSpreads();
+    if (n < 1) return;
+    spreadIndex = Math.max(0, Math.min(spreadIndex, n - 1));
+    if (!opt.skipText) {
+      writeSpreadTextMetaFromStory();
+    }
+    if (!opt.skipArt) {
+      syncSpreadIllustrationFromStory();
+    }
     updatePagerHints();
   }
 
@@ -687,6 +712,24 @@
 
   function updatePagerHints() {
     if (!story) return;
+    var n = numSpreads();
+    var si = spreadIndex;
+    si = Math.max(0, Math.min(si, Math.max(0, n - 1)));
+    var pLo = si * 2 + 1;
+    var pHi = si * 2 + 2;
+    if (pagerLive) {
+      pagerLive.textContent =
+        "Spread " +
+        (si + 1) +
+        " of " +
+        n +
+        " — pages " +
+        pLo +
+        "–" +
+        pHi +
+        " of " +
+        story.pages.length;
+    }
     if (spreadAnimLock) {
       if (btnPrev) btnPrev.disabled = true;
       if (btnNext) btnNext.disabled = true;
@@ -696,14 +739,6 @@
       if (btnPrev) btnPrev.disabled = true;
       if (btnNext) btnNext.disabled = true;
       return;
-    }
-    var n = numSpreads();
-    var si = spreadIndex;
-    var pLo = si * 2 + 1;
-    var pHi = si * 2 + 2;
-    if (pagerLive) {
-      pagerLive.textContent =
-        "Spread " + (si + 1) + " of " + n + " — pages " + pLo + "–" + pHi + " of " + story.pages.length;
     }
     if (btnPrev) btnPrev.disabled = si <= 0;
     if (btnNext) btnNext.disabled = si >= n - 1;
