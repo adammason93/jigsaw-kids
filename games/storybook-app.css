@@ -295,7 +295,7 @@ body.page-storybook.sb-modal-open {
   justify-content: center;
 }
 
-/* Front-facing book on shelf (cover art + rail, slight overlap) */
+/* Front-facing shelf book: hardback case + cloth + gilt + title on cover */
 .sb-cover-card-wrap {
   position: relative;
   flex: 0 0 auto;
@@ -320,24 +320,24 @@ body.page-storybook.sb-modal-open {
 .sb-cover-card {
   position: relative;
   display: block;
-  width: clamp(4.75rem, 24vw, 6.35rem);
+  width: clamp(5rem, 26vw, 6.85rem);
   aspect-ratio: 3 / 4;
   padding: 0;
   margin: 0;
   border: none;
-  border-radius: 4px 10px 10px 4px;
+  border-radius: 3px 12px 12px 3px;
   cursor: pointer;
   touch-action: manipulation;
-  overflow: hidden;
+  overflow: visible;
+  background: linear-gradient(90deg, #2d2a2e 0%, #454045 55%, #2d292d 100%);
   box-shadow:
-    0 1px 0 rgba(0, 0, 0, 0.04),
-    0 10px 22px rgba(35, 28, 42, 0.18),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.55);
-  background: #fff;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+    0 2px 0 rgba(255, 255, 255, 0.1),
+    0 12px 28px rgba(25, 15, 32, 0.28),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.32);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
 }
 
-.sb-cover-card:active {
+.sb-cover-card--hardback:active {
   transform: scale(0.98);
 }
 
@@ -350,109 +350,135 @@ body.page-storybook.sb-modal-open {
   position: absolute;
   inset: 0;
   display: block;
-  background: #f8f4ef;
+  border-radius: inherit;
 }
 
-.sb-cover-card__img {
+.sb-cover-card__hardback {
   position: absolute;
-  left: 0;
-  top: 0;
+  inset: 0;
+  border-radius: inherit;
+}
+
+/* Cloth casing sits inside “boards” — left spine strip reads as case binding */
+.sb-cover-card__cloth {
+  position: absolute;
+  inset: 4px;
+  border-radius: 2px 10px 10px 2px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  padding: 9% 0.32rem 0.45rem;
+  border-left: 4px solid rgba(15, 10, 12, 0.55);
+  box-shadow:
+    inset 3px 0 12px rgba(255, 255, 245, 0.1),
+    inset 0 -2px 6px rgba(0, 0, 0, 0.12);
+}
+
+.sb-cover-card__cloth--pat0 {
+  background: linear-gradient(
+    145deg,
+    hsl(var(--sb-h, 320), 58%, 44%) 0%,
+    hsl(var(--sb-h, 320), 50%, 30%) 100%
+  );
+}
+
+.sb-cover-card__cloth--pat1 {
+  background: linear-gradient(
+    145deg,
+    hsl(calc(var(--sb-h, 280) + 18), 55%, 48%) 0%,
+    hsl(var(--sb-h, 280), 48%, 30%) 100%
+  );
+}
+
+.sb-cover-card__cloth--pat2 {
+  background: linear-gradient(
+    145deg,
+    hsl(var(--sb-h, 200), 52%, 42%) 0%,
+    hsl(calc(var(--sb-h, 200) - 16), 45%, 28%) 100%
+  );
+}
+
+.sb-cover-card__cloth--pat3 {
+  background: linear-gradient(
+    145deg,
+    hsl(calc(var(--sb-h, 340) + 8), 53%, 46%) 0%,
+    hsl(var(--sb-h, 340), 46%, 29%) 100%
+  );
+}
+
+.sb-cover-card__thumb-bg {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
   object-position: center;
+  opacity: 0.42;
+  filter: saturate(1.08) contrast(1.05);
+  z-index: 0;
+  pointer-events: none;
 }
 
-.sb-cover-card__rail {
-  position: absolute;
-  left: 7%;
-  right: 7%;
-  top: 38%;
-  height: 3px;
+.sb-cover-card__gilt {
+  flex-shrink: 0;
+  height: 2px;
+  margin: 0 7%;
   border-radius: 2px;
   background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.7) 0%,
-    rgba(235, 235, 240, 0.95) 50%,
-    rgba(200, 200, 210, 0.5) 100%
+    90deg,
+    transparent 0%,
+    rgba(255, 242, 200, 0.25) 15%,
+    #e8c56a 50%,
+    rgba(255, 242, 200, 0.25) 85%,
+    transparent 100%
   );
-  box-shadow:
-    0 1px 2px rgba(0, 0, 0, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.75);
-  pointer-events: none;
-  z-index: 2;
-}
-
-.sb-cover-card__caption {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 4;
-  padding: 1.85rem 0.42rem 0.55rem;
-  font-family: "Fredoka", "Nunito", "Segoe UI", system-ui, sans-serif;
-  font-size: clamp(0.54rem, 2.35vw, 0.62rem);
-  font-weight: 600;
-  line-height: 1.28;
-  color: #fff;
-  text-align: center;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.65);
-  background: linear-gradient(180deg, transparent 0%, rgba(35, 20, 30, 0.75) 38%, rgba(25, 15, 22, 0.94) 100%);
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  pointer-events: none;
-}
-
-.sb-cover-card__placeholder-text {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.45rem;
-  font-family: "Sniglet", "Nunito", sans-serif;
-  font-size: clamp(0.58rem, 2.6vw, 0.72rem);
-  font-weight: 800;
-  line-height: 1.25;
-  text-align: center;
-  color: rgba(255, 255, 255, 0.96);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
   z-index: 1;
 }
 
-.sb-cover-card--placeholder.sb-cover-card--pat0 .sb-cover-card__face {
-  background: linear-gradient(
-    145deg,
-    hsl(var(--sb-h, 320), 62%, 48%) 0%,
-    hsl(var(--sb-h, 320), 55%, 36%) 100%
-  );
+.sb-cover-card__gilt--top {
+  margin-bottom: 0.4rem;
 }
 
-.sb-cover-card--placeholder.sb-cover-card--pat1 .sb-cover-card__face {
-  background: linear-gradient(
-    145deg,
-    hsl(calc(var(--sb-h, 280) + 18), 58%, 52%) 0%,
-    hsl(var(--sb-h, 280), 50%, 34%) 100%
-  );
+.sb-cover-card__gilt--bot {
+  margin-top: auto;
+  margin-bottom: 0.28rem;
 }
 
-.sb-cover-card--placeholder.sb-cover-card--pat2 .sb-cover-card__face {
-  background: linear-gradient(
-    145deg,
-    hsl(var(--sb-h, 200), 55%, 46%) 0%,
-    hsl(calc(var(--sb-h, 200) - 16), 48%, 30%) 100%
-  );
+.sb-cover-card__cover-title-wrap {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  padding: 0 0.2rem 0.15rem;
+  z-index: 2;
+  position: relative;
 }
 
-.sb-cover-card--placeholder.sb-cover-card--pat3 .sb-cover-card__face {
-  background: linear-gradient(
-    145deg,
-    hsl(calc(var(--sb-h, 340) + 8), 56%, 50%) 0%,
-    hsl(var(--sb-h, 340), 48%, 32%) 100%
-  );
+.sb-cover-card__cover-title {
+  font-family: "Fredoka", "Sniglet", "Nunito", serif;
+  font-size: clamp(0.55rem, 2.85vw, 0.76rem);
+  font-weight: 700;
+  line-height: 1.22;
+  text-align: center;
+  letter-spacing: 0.01em;
+  color: #fffdf7;
+  text-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.55),
+    0 0 10px rgba(0, 0, 0, 0.2);
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+
+.sb-cover-card--placeholder .sb-cover-card__thumb-bg {
+  display: none;
 }
 
 .sb-shelf-remove {
@@ -1086,12 +1112,27 @@ body.page-storybook.sb-modal-open {
   padding: 1rem 0.85rem 1.15rem;
   background: linear-gradient(145deg, #fce7f3 0%, var(--sb-flip-red) 45%, #9d174d 100%);
   transition: filter 0.2s ease;
+  position: relative;
+}
+
+.sb-cover__panel::before {
+  content: "";
+  position: absolute;
+  inset: 10px 12px 12px 12px;
+  border-radius: 8px;
+  border: 2px solid rgba(255, 230, 190, 0.45);
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 0, 0, 0.12),
+    0 0 0 1px rgba(0, 0, 0, 0.06);
+  pointer-events: none;
 }
 
 .sb-cover__deco {
   font-size: 1.75rem;
   line-height: 1;
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+  position: relative;
+  z-index: 1;
 }
 
 .sb-cover__title {
@@ -1104,6 +1145,9 @@ body.page-storybook.sb-modal-open {
   text-shadow: 0 1px 0 rgba(0, 0, 0, 0.18);
   max-width: 100%;
   overflow-wrap: anywhere;
+  position: relative;
+  z-index: 1;
+  padding: 0 0.25rem;
 }
 
 .sb-cover__hint {
@@ -1112,6 +1156,8 @@ body.page-storybook.sb-modal-open {
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: rgba(255, 255, 255, 0.88);
+  position: relative;
+  z-index: 1;
 }
 
 .sb-cover:hover .sb-cover__panel,
@@ -1142,14 +1188,6 @@ body.page-storybook.sb-modal-open {
   transform: translateY(0);
   pointer-events: none;
   transition: none;
-}
-
-.sb-reader-stack--opening .sb-reader-pages {
-  position: relative;
-  z-index: 1;
-  opacity: 1;
-  transform: translateY(0);
-  pointer-events: none;
 }
 
 .sb-reader-stack--open .sb-reader-pages {
