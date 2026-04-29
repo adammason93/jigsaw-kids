@@ -878,7 +878,7 @@
           var img = new Image();
           img.onload = function () {
             var canvas = document.createElement("canvas");
-            var maxDim = 840; // Compress to prevent localStorage quota exceeded
+            var maxDim = 720; // Compress heavily to fit more books into localStorage
             var w = img.width;
             var h = img.height;
             if (w > maxDim || h > maxDim) {
@@ -896,8 +896,8 @@
             var ctx = canvas.getContext("2d");
             ctx.drawImage(img, 0, 0, w, h);
             try {
-              // 0.65 JPEG quality drastically reduces file size
-              resolve(canvas.toDataURL("image/jpeg", 0.65));
+              // 0.55 JPEG quality drastically reduces file size
+              resolve(canvas.toDataURL("image/jpeg", 0.55));
             } catch (e) {
               resolve(rawBase64); // Fallback to raw base64 if compression fails
             }
@@ -938,10 +938,23 @@
   }
 
   function saveShelf(list) {
-    var raw = JSON.stringify(list);
-    localStorage.setItem(SHELF_STORAGE_KEY, raw);
-    if (window.KidsScoreCloud && window.KidsScoreCloud.scheduleStorybookUpload) {
-      window.KidsScoreCloud.scheduleStorybookUpload(raw);
+    while (list.length > 0) {
+      try {
+        var raw = JSON.stringify(list);
+        localStorage.setItem(SHELF_STORAGE_KEY, raw);
+        if (window.KidsScoreCloud && window.KidsScoreCloud.scheduleStorybookUpload) {
+          window.KidsScoreCloud.scheduleStorybookUpload(raw);
+        }
+        return; // Success!
+      } catch (e) {
+        // If localStorage quota is exceeded, remove the oldest book to make space and try again
+        if (list.length > 1) {
+          console.warn("localStorage quota exceeded, removing oldest book to make space.");
+          list.pop();
+        } else {
+          throw e; // Even 1 book doesn't fit
+        }
+      }
     }
   }
 
