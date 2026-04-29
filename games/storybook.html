@@ -7,14 +7,30 @@
   <title>Your story — Sofia's Game Room</title>
   <link rel="manifest" href="../manifest.json" />
   <link rel="stylesheet" href="../js/kids-core.css" />
-  <!-- v= bumps when storybook CSS/JS semantics change — avoids stale caches on same pathname -->
-  <link rel="stylesheet" href="storybook.css?v=201" />
+  <!-- storybook-app.css = renamed file so CDN/browser cache cannot keep old storybook.css -->
+  <link rel="stylesheet" href="storybook-app.css?v=1" />
   <link rel="stylesheet" href="../tablet-ipad.css" />
+  <!-- Last wins: guarantees new background even if a proxy cached an ancient stylesheet elsewhere -->
+  <style>
+    body.page-storybook.sb-route-story {
+      background:
+        radial-gradient(ellipse 100% 80% at 50% -10%, rgba(255, 251, 235, 0.9) 0%, transparent 55%),
+        linear-gradient(168deg, #f5f3ff 0%, #fbcfe8 42%, #a78bfa 95%) !important;
+    }
+    body.page-storybook.sb-route-story .sb-shelf-unit {
+      border: 3px solid rgba(168, 85, 247, 0.55) !important;
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.95),
+        0 0 0 1px rgba(255, 255, 255, 0.35),
+        0 8px 32px rgba(88, 28, 135, 0.22),
+        0 0 40px rgba(168, 85, 247, 0.2) !important;
+    }
+  </style>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@600;700;800&family=Sniglet:wght@400;800&display=swap" rel="stylesheet" />
 </head>
-<body class="page-storybook">
+<body class="page-storybook sb-route-story">
   <div class="sb-app" id="app">
     <nav class="sb-nav">
       <a class="sb-back back-btn" href="../index.html" aria-label="Back to all games">
@@ -304,7 +320,7 @@
   <script src="../js/kids-game-characters.js"></script>
   <script src="../js/score-config.js"></script>
   <script src="../js/kids-core.js"></script>
-  <script src="storybook.js?v=201" defer></script>
+  <script src="storybook.js?v=203" defer></script>
   <script>
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("../sw.js").catch(function () {});

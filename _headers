@@ -6,7 +6,7 @@
 /games/storybook.html
   Cache-Control: no-cache
 
-/games/storybook.css
+/games/storybook-app.css
   Cache-Control: no-cache
 
 /games/storybook.js
