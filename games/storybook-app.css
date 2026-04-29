@@ -1312,19 +1312,36 @@ body.page-storybook.sb-modal-open {
 }
 
 .sb-flip-spread__inner--has-art {
-  background: transparent;
+  /* Soft paper tint so transparency never reveals two-tone “desk” bands under the shells */
+  background: radial-gradient(
+    ellipse 130% 88% at 50% 42%,
+    rgba(255, 251, 245, 0.98) 0%,
+    rgba(237, 230, 255, 0.97) 100%
+  );
 }
 
-/** Full-spread illustration (both pages); JS sets background-image when a spread has art. */
+/** Full-spread illustration (both pages); JS sets cover img + fallback background-image. */
 .sb-flip-spread__art-bg {
   position: absolute;
   inset: 0;
-  z-index: 0;
+  z-index: 2;
   border-radius: 6px;
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
   pointer-events: none;
+}
+
+.sb-flip-spread__art-cover {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  pointer-events: none;
+  z-index: 1;
 }
 
 /* Text sits over the full-bleed art; readability comes from line-by-line pills on .sb-flip-text__highlight */
@@ -1374,7 +1391,7 @@ body.page-storybook.sb-modal-open {
 .sb-flip-left-shell,
 .sb-flip-right-shell {
   position: relative;
-  z-index: 2;
+  z-index: 4;
   flex: 1;
   min-width: 0;
   display: flex;
@@ -1471,6 +1488,9 @@ body.page-storybook.sb-modal-open {
   align-items: center;
   padding: clamp(10px, 2.5vw, 20px);
   box-sizing: border-box;
+  writing-mode: horizontal-tb;
+  direction: ltr;
+  transform: rotateY(0deg) translateZ(2px);
 }
 
 .sb-turn-leaf__face--front > img {
@@ -1605,7 +1625,7 @@ body.page-storybook.sb-modal-open {
 
 .sb-flip-gutter {
   position: relative;
-  z-index: 3;
+  z-index: 5;
   width: 7px;
   flex-shrink: 0;
   background: linear-gradient(180deg, #7a7a7a 0%, #dadada 38%, #f2f2f2 50%, #c8c8c8 100%);

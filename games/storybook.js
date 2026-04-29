@@ -54,6 +54,7 @@
   var spreadArtNum = document.getElementById("sbSpreadArtNum");
   var spreadInnerEl = document.getElementById("sbFlipSpreadInner");
   var spreadArtBg = document.getElementById("sbSpreadArtBg");
+  var spreadArtCover = document.getElementById("sbSpreadArtCover");
   var pageTurnLeft = document.getElementById("sbPageTurnLeft");
   var pageTurnRight = document.getElementById("sbPageTurnRight");
   var readerStack = document.getElementById("sbReaderStack");
@@ -415,7 +416,10 @@
   }
 
   /** Left-hand page peels back (previous spread). */
-  function runLeftPageTurn(oldText, oldMeta) {
+  /** @param {{ onBeforeAnimate?: () => void }} [opts] */
+  function runLeftPageTurn(oldText, oldMeta, opts) {
+    opts = opts || {};
+    var onBeforeAnimate = opts.onBeforeAnimate;
     var overlay = pageTurnLeft;
     if (!overlay) {
       finishPageTurnAnim();
@@ -450,6 +454,10 @@
     overlay.hidden = false;
     overlay.setAttribute("aria-hidden", "false");
     overlay.classList.add("is-visible");
+
+    if (typeof onBeforeAnimate === "function") {
+      onBeforeAnimate();
+    }
 
     var done = false;
     function cleanup() {
@@ -694,9 +702,15 @@
       var u = String(rightP.imageUrl);
       spreadArtImg.src = u;
       spreadArtImg.alt = "Illustration for pages " + pLo + "–" + pHi;
+      spreadArtImg.referrerPolicy = "no-referrer";
       spreadArt.classList.remove("is-empty");
       if (spreadArtBg) {
         spreadArtBg.style.backgroundImage = "url(" + JSON.stringify(u) + ")";
+      }
+      if (spreadArtCover) {
+        spreadArtCover.src = u;
+        spreadArtCover.alt = "";
+        spreadArtCover.referrerPolicy = "no-referrer";
       }
       if (spreadInnerEl && spreadInnerEl.dataset) {
         spreadInnerEl.dataset.sbArtUrl = u;
@@ -713,6 +727,10 @@
       spreadArt.classList.add("is-empty");
       if (spreadArtBg) {
         spreadArtBg.style.backgroundImage = "";
+      }
+      if (spreadArtCover) {
+        spreadArtCover.removeAttribute("src");
+        spreadArtCover.alt = "";
       }
       if (spreadInnerEl && spreadInnerEl.dataset && spreadInnerEl.dataset.sbArtUrl) {
         delete spreadInnerEl.dataset.sbArtUrl;
@@ -762,13 +780,17 @@
       var oldText = spreadText ? spreadText.textContent : "";
       var oldMeta = spreadMeta ? spreadMeta.textContent : "";
       spreadIndex += delta;
-      applySpreadContent();
       if (!pageTurnLeft || (!oldText && !oldMeta)) {
+        applySpreadContent();
         return;
       }
       spreadAnimLock = true;
       setSpreadNavBusy(true);
-      runLeftPageTurn(oldText, oldMeta);
+      runLeftPageTurn(oldText, oldMeta, {
+        onBeforeAnimate: function () {
+          applySpreadContent();
+        },
+      });
     }
   }
 
