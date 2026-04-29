@@ -1145,6 +1145,29 @@ body.page-storybook.sb-modal-open {
   background: linear-gradient(145deg, #fce7f3 0%, var(--sb-flip-red) 45%, #9d174d 100%);
   transition: filter 0.2s ease;
   position: relative;
+  background-size: cover;
+  background-position: center;
+}
+
+.sb-cover__panel--themed {
+  /* When a cover image is applied, we dim it slightly for text readability */
+}
+
+.sb-cover__panel--themed::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4); /* Dark overlay to make text pop */
+  pointer-events: none;
+  z-index: 0;
+  border-radius: 0 10px 10px 0; /* Matches parent border radius roughly if needed */
+}
+
+.sb-cover__panel--themed .sb-cover__title,
+.sb-cover__panel--themed .sb-cover__hint,
+.sb-cover__panel--themed .sb-cover__deco {
+  position: relative;
+  z-index: 1;
 }
 
 .sb-cover__panel::before {

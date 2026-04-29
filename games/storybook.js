@@ -65,6 +65,7 @@
   var btnOpenCover = document.getElementById("sbOpenCover");
   var btnCloseBook = document.getElementById("sbCloseBook");
   var coverTitle = document.getElementById("sbCoverTitle");
+  var coverPanel = document.getElementById("sbCoverPanel");
   var btnPrev = document.getElementById("sbPrev");
   var btnNext = document.getElementById("sbNext");
   /** Wide screens (tablets / large landscape): edge-to-edge reader + fixed overlays. */
@@ -598,9 +599,18 @@
       book.classList.add("sb-book--themed");
       book.style.backgroundImage =
         'url("' + String(u).replace(/\\/g, "\\\\").replace(/"/g, '\\"') + '")';
+      if (coverPanel) {
+        coverPanel.classList.add("sb-cover__panel--themed");
+        coverPanel.style.backgroundImage =
+          'url("' + String(u).replace(/\\/g, "\\\\").replace(/"/g, '\\"') + '")';
+      }
     } else {
       book.classList.remove("sb-book--themed");
       book.style.backgroundImage = "";
+      if (coverPanel) {
+        coverPanel.classList.remove("sb-cover__panel--themed");
+        coverPanel.style.backgroundImage = "";
+      }
     }
   }
 
@@ -608,6 +618,10 @@
     if (!book) return;
     book.classList.remove("sb-book--themed");
     book.style.backgroundImage = "";
+    if (coverPanel) {
+      coverPanel.classList.remove("sb-cover__panel--themed");
+      coverPanel.style.backgroundImage = "";
+    }
   }
 
   function numSpreads() {
@@ -937,6 +951,9 @@
    * @returns {{ src: string, pageIndex: number }}
    */
   function firstShelfCoverMeta(item) {
+    if (item.sceneDataUrl || item.sceneUrlFallback) {
+      return { src: item.sceneDataUrl || item.sceneUrlFallback, pageIndex: -1 };
+    }
     if (!item.pages || !item.pages.length) return { src: "", pageIndex: -1 };
     for (var i = 0; i < item.pages.length; i++) {
       var p = item.pages[i];

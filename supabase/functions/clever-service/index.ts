@@ -575,6 +575,7 @@ Return JSON shape: { "title": string, "pages": [ { "text": string, "illustration
     `Scene: `;
 
   const pagesOut: { text: string; imageUrl: string | null }[] = [];
+  let sceneImageUrl: string | null = null;
 
   try {
     const briefs: { index: number; brief: string }[] = [];
@@ -586,18 +587,28 @@ Return JSON shape: { "title": string, "pages": [ { "text": string, "illustration
     }
 
     const staggerMs = 450;
-    const urls: string[] = await Promise.all(
-      briefs.map(async (b, k) => {
-        if (k > 0) await delay(k * staggerMs);
-        const beat = spreadTextForPicturePage(b.index, story.pages).slice(0, 320);
-        const beatSafe = beat.replace(/"/gu, "'");
-        const beatClause = beatSafe
-          ? ` Illustrate this story moment from the text page before this picture (same characters, action, place): ${beatSafe}. `
-          : " ";
-        const fullPrompt = imagePromptPrefix + beatClause + b.brief;
-        return await openaiSpreadImageUrl(apiKey, fullPrompt);
-      }),
-    );
+    
+    // Add cover image to the list of parallel generations
+    const coverPrompt = imagePromptPrefix + ` Beautiful cover illustration for the book titled "${story.title}". Centered, well-composed, no text.`;
+    
+    const [urls, coverUrl] = await Promise.all([
+      Promise.all(
+        briefs.map(async (b, k) => {
+          if (k > 0) await delay(k * staggerMs);
+          const beat = spreadTextForPicturePage(b.index, story.pages).slice(0, 320);
+          const beatSafe = beat.replace(/"/gu, "'");
+          const beatClause = beatSafe
+            ? ` Illustrate this story moment from the text page before this picture (same characters, action, place): ${beatSafe}. `
+            : " ";
+          const fullPrompt = imagePromptPrefix + beatClause + b.brief;
+          return await openaiSpreadImageUrl(apiKey, fullPrompt);
+        }),
+      ),
+      // Generate cover image simultaneously (square 1024x1024)
+      delay(briefs.length * staggerMs).then(() => openaiImageUrl(apiKey, coverPrompt, "1024x1024"))
+    ]);
+    
+    sceneImageUrl = coverUrl;
 
     const urlByIndex = new Map<number, string>();
     briefs.forEach((b, k) => urlByIndex.set(b.index, urls[k]));
@@ -624,6 +635,7 @@ Return JSON shape: { "title": string, "pages": [ { "text": string, "illustration
 
   return jsonResponse({
     title: story.title,
+    sceneImageUrl,
     pages: pagesOut,
     meta: {
       childName,
