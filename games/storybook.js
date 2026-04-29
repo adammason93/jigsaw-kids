@@ -56,6 +56,50 @@
 
   var currentAudio = null;
 
+  function readWordOutLoud(word, element) {
+    if (currentAudio) {
+      stopReading();
+    }
+    
+    var fUrl = functionUrl();
+    if (!fUrl) return;
+    
+    // Highlight the word being read
+    if (element) {
+      element.style.backgroundColor = "rgba(255, 200, 0, 0.5)";
+      element.style.borderRadius = "4px";
+      element.style.padding = "0 2px";
+      element.style.transition = "background-color 0.2s";
+    }
+    
+    var audioUrl = fUrl + "?ttsText=" + encodeURIComponent(word);
+    currentAudio = new Audio(audioUrl);
+    
+    var playPromise = currentAudio.play();
+    if (playPromise !== undefined) {
+      playPromise.catch(function(e) {
+        console.error("Word audio playback failed:", e);
+        if (element) {
+          element.style.backgroundColor = "transparent";
+        }
+        stopReading();
+      });
+    }
+    
+    currentAudio.onended = function() {
+      if (element) {
+        element.style.backgroundColor = "transparent";
+      }
+      stopReading();
+    };
+    currentAudio.onerror = function() {
+      if (element) {
+        element.style.backgroundColor = "transparent";
+      }
+      stopReading();
+    };
+  }
+
   function stopReading() {
     if (currentAudio) {
       currentAudio.pause();
@@ -776,7 +820,39 @@
     }
     var i = spreadIndex * 2;
     var leftP = story.pages[i];
-    spreadText.innerHTML = leftP ? escapeHtml(leftP.text).replace(/\n/g, "<br/>") : "";
+    if (leftP && leftP.text) {
+      // Split text into words and wrap each in a span for individual word reading
+      var words = escapeHtml(leftP.text).split(/\s+/);
+      var html = words.map(function(word) {
+        // Handle newlines by splitting on them, wrapping words, and rejoining with <br/>
+        var parts = word.split('\n');
+        return parts.map(function(part) {
+          if (!part) return '';
+          // Strip punctuation for the data attribute so the TTS speaks the word cleanly
+          var cleanWord = part.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "");
+          return '<span class="sb-readable-word" data-word="' + escapeAttr(cleanWord) + '" style="cursor: pointer; display: inline-block;">' + part + '</span>';
+        }).join('<br/>');
+      }).join(' ');
+      
+      // Replace literal \n with <br/> as well just in case
+      html = html.replace(/\\n/g, "<br/>");
+      spreadText.innerHTML = html;
+      
+      // Add click listeners to all the words
+      var wordSpans = spreadText.querySelectorAll('.sb-readable-word');
+      for (var w = 0; w < wordSpans.length; w++) {
+        wordSpans[w].addEventListener('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          var wordToRead = this.getAttribute('data-word');
+          if (wordToRead) {
+            readWordOutLoud(wordToRead, this);
+          }
+        });
+      }
+    } else {
+      spreadText.innerHTML = "";
+    }
     if (spreadTextActions) spreadTextActions.hidden = !leftP || !leftP.text;
   }
 
