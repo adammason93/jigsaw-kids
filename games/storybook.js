@@ -329,6 +329,199 @@
     return name === "transform" || name === "-webkit-transform";
   }
 
+  /** Current spread art URL for the right-hand peel (before index changes). */
+  function getCurrentSpreadArtUrl() {
+    if (spreadInnerEl && spreadInnerEl.dataset && spreadInnerEl.dataset.sbArtUrl) {
+      return spreadInnerEl.dataset.sbArtUrl;
+    }
+    if (
+      spreadInnerEl &&
+      spreadInnerEl.classList.contains("sb-flip-spread__inner--has-art") &&
+      spreadArtBg
+    ) {
+      var bg = (spreadArtBg.style && spreadArtBg.style.backgroundImage) || "";
+      var m = bg.match(/url\(["']?([^"')]+)/);
+      if (m && m[1]) {
+        return m[1].replace(/\\(.)/g, "$1");
+      }
+    }
+    if (spreadArtImg && spreadArtImg.getAttribute("src")) {
+      return spreadArtImg.currentSrc || spreadArtImg.src || "";
+    }
+    return "";
+  }
+
+  function finishPageTurnAnim() {
+    spreadAnimLock = false;
+    setSpreadNavBusy(false);
+  }
+
+  /**
+   * Right page peels from the gutter (next). If there is no illustration, the leaf uses a paper fill.
+   * onBeforeAnimate runs after the overlay is visible so the *new* spread is painted underneath.
+   */
+  function runRightPageTurn(oldImgSrc, opts) {
+    opts = opts || {};
+    var onBeforeAnimate = opts.onBeforeAnimate;
+    var overlay = pageTurnRight;
+    if (!overlay) {
+      finishPageTurnAnim();
+      return;
+    }
+    overlay.innerHTML = "";
+    var leaf = document.createElement("div");
+    leaf.className = "sb-turn-leaf";
+    var front = document.createElement("div");
+    front.className = "sb-turn-leaf__face sb-turn-leaf__face--front";
+    if (oldImgSrc) {
+      var im = document.createElement("img");
+      im.src = oldImgSrc;
+      im.alt = "";
+      im.decoding = "async";
+      im.referrerPolicy = "no-referrer";
+      front.appendChild(im);
+    } else {
+      front.classList.add("sb-turn-leaf__face--placeholder");
+      front.setAttribute("aria-hidden", "true");
+    }
+    var back = document.createElement("div");
+    back.className = "sb-turn-leaf__face sb-turn-leaf__face--back";
+    back.setAttribute("aria-hidden", "true");
+    leaf.appendChild(front);
+    leaf.appendChild(back);
+    overlay.appendChild(leaf);
+    overlay.hidden = false;
+    overlay.setAttribute("aria-hidden", "false");
+    overlay.classList.add("is-visible");
+
+    if (typeof onBeforeAnimate === "function") {
+      onBeforeAnimate();
+    }
+
+    var done = false;
+    function cleanup() {
+      if (done) return;
+      done = true;
+      clearPageTurnOverlays();
+      finishPageTurnAnim();
+    }
+
+    function onTe(ev) {
+      if (ev.target !== leaf) return;
+      if (!isTransformTransitionProperty(ev.propertyName || "")) return;
+      leaf.removeEventListener("transitionend", onTe);
+      cleanup();
+    }
+    leaf.addEventListener("transitionend", onTe);
+    window.setTimeout(cleanup, 1500);
+    window.requestAnimationFrame(function () {
+      window.requestAnimationFrame(function () {
+        leaf.classList.add("sb-turn-leaf--next");
+      });
+    });
+  }
+
+  /** Left page peels back (previous). Text/meta can be empty; shows a minimal paper leaf. */
+  function runLeftPageTurn(oldText, oldMeta, opts) {
+    opts = opts || {};
+    var onBeforeAnimate = opts.onBeforeAnimate;
+    var overlay = pageTurnLeft;
+    if (!overlay) {
+      finishPageTurnAnim();
+      return;
+    }
+    overlay.innerHTML = "";
+    var leaf = document.createElement("div");
+    leaf.className = "sb-turn-leaf";
+    var front = document.createElement("div");
+    front.className =
+      "sb-turn-leaf__face sb-turn-leaf__face--front sb-turn-leaf__face--text";
+    if (oldText || oldMeta) {
+      var p = document.createElement("p");
+      p.className = "sb-flip-text";
+      var span = document.createElement("span");
+      span.className = "sb-flip-text__highlight";
+      span.textContent = oldText || "";
+      p.appendChild(span);
+      front.appendChild(p);
+      var meta = document.createElement("p");
+      meta.className = "sb-flip-spread-meta";
+      var metaPill = document.createElement("span");
+      metaPill.className = "sb-flip-meta__pill";
+      metaPill.textContent = oldMeta || "";
+      meta.appendChild(metaPill);
+      front.appendChild(meta);
+    } else {
+      front.classList.add("sb-turn-leaf__face--placeholder");
+      front.setAttribute("aria-hidden", "true");
+    }
+    var back = document.createElement("div");
+    back.className = "sb-turn-leaf__face sb-turn-leaf__face--back";
+    back.setAttribute("aria-hidden", "true");
+    leaf.appendChild(front);
+    leaf.appendChild(back);
+    overlay.appendChild(leaf);
+    overlay.hidden = false;
+    overlay.setAttribute("aria-hidden", "false");
+    overlay.classList.add("is-visible");
+
+    if (typeof onBeforeAnimate === "function") {
+      onBeforeAnimate();
+    }
+
+    var done = false;
+    function cleanup() {
+      if (done) return;
+      done = true;
+      clearPageTurnOverlays();
+      finishPageTurnAnim();
+    }
+
+    function onTe(ev) {
+      if (ev.target !== leaf) return;
+      if (!isTransformTransitionProperty(ev.propertyName || "")) return;
+      leaf.removeEventListener("transitionend", onTe);
+      cleanup();
+    }
+    leaf.addEventListener("transitionend", onTe);
+    window.setTimeout(cleanup, 1500);
+    window.requestAnimationFrame(function () {
+      window.requestAnimationFrame(function () {
+        leaf.classList.add("sb-turn-leaf--prev");
+      });
+    });
+  }
+
+  /** Fallback when peels are unavailable. */
+  function navigateSpreadCrossFade(delta) {
+    var inner = spreadInnerEl;
+    if (!inner) {
+      spreadIndex += delta;
+      applySpreadContent();
+      return;
+    }
+
+    spreadAnimLock = true;
+    setSpreadNavBusy(true);
+    clearPageTurnOverlays();
+
+    inner.classList.remove("sb-flip-spread__inner--fade-in");
+    inner.classList.add("sb-flip-spread__inner--fade-out");
+
+    window.setTimeout(function () {
+      spreadIndex += delta;
+      applySpreadContent();
+      inner.classList.remove("sb-flip-spread__inner--fade-out");
+      inner.classList.add("sb-flip-spread__inner--fade-in");
+      window.setTimeout(function () {
+        inner.classList.remove("sb-flip-spread__inner--fade-in");
+        spreadAnimLock = false;
+        setSpreadNavBusy(false);
+        updatePagerHints();
+      }, 280);
+    }, 175);
+  }
+
   function setSpreadNavBusy(locked) {
     if (!btnPrev || !btnNext) return;
     if (locked) {
@@ -596,7 +789,7 @@
     applySpreadContent();
   }
 
-  /** Cross-fade between spreads — reliable across iOS/tablets; no peel overlays (which broke when art URL was missing or CORS flaky). */
+  /** Gutter 3D peel + cross-fade fallback if overlay nodes are missing (should not happen). */
   function navigateSpread(delta) {
     if (!story) return;
     if (book && book.classList.contains("sb-book--cover-visible")) return;
@@ -610,32 +803,39 @@
     }
     if (spreadAnimLock) return;
 
-    var inner = spreadInnerEl;
-    if (!inner) {
-      spreadIndex += delta;
-      applySpreadContent();
+    if (delta > 0) {
+      var oldSrc = getCurrentSpreadArtUrl();
+      if (!pageTurnRight) {
+        navigateSpreadCrossFade(delta);
+        return;
+      }
+      spreadAnimLock = true;
+      setSpreadNavBusy(true);
+      clearPageTurnOverlays();
+      spreadIndex += 1;
+      runRightPageTurn(oldSrc, {
+        onBeforeAnimate: function () {
+          applySpreadContent();
+        },
+      });
       return;
     }
 
+    var oldText = spreadText ? spreadText.textContent : "";
+    var oldMeta = spreadMeta ? spreadMeta.textContent : "";
+    if (!pageTurnLeft) {
+      navigateSpreadCrossFade(delta);
+      return;
+    }
     spreadAnimLock = true;
     setSpreadNavBusy(true);
     clearPageTurnOverlays();
-
-    inner.classList.remove("sb-flip-spread__inner--fade-in");
-    inner.classList.add("sb-flip-spread__inner--fade-out");
-
-    window.setTimeout(function () {
-      spreadIndex += delta;
-      applySpreadContent();
-      inner.classList.remove("sb-flip-spread__inner--fade-out");
-      inner.classList.add("sb-flip-spread__inner--fade-in");
-      window.setTimeout(function () {
-        inner.classList.remove("sb-flip-spread__inner--fade-in");
-        spreadAnimLock = false;
-        setSpreadNavBusy(false);
-        updatePagerHints();
-      }, 280);
-    }, 175);
+    spreadIndex -= 1;
+    runLeftPageTurn(oldText, oldMeta, {
+      onBeforeAnimate: function () {
+        applySpreadContent();
+      },
+    });
   }
 
   function updatePagerHints() {

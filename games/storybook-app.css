@@ -1520,6 +1520,21 @@ body.page-storybook.sb-modal-open {
   object-position: center;
 }
 
+/* Turning leaf when the previous spread had no illustration URL (still get a convincing page turn). */
+.sb-turn-leaf__face--placeholder {
+  background: linear-gradient(
+    133deg,
+    #faf6f1 0%,
+    #f0eae2 42%,
+    #e8e2da 72%,
+    #ddd7cf 100%
+  );
+}
+
+.sb-page-turn-overlay--left .sb-turn-leaf__face--placeholder.sb-turn-leaf__face--text {
+  justify-content: center;
+}
+
 .sb-flip-page {
   flex: 1;
   min-width: 0;
