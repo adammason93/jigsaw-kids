@@ -1218,6 +1218,13 @@ body.page-storybook.sb-modal-open {
     -webkit-transform: none !important;
   }
 
+  .sb-flip-text__clip.sb-flip-text__clip--reveal-turn,
+  .sb-flip-spread__art-base.sb-flip-spread__art-base--reveal-turn {
+    animation: none !important;
+    clip-path: none !important;
+    -webkit-clip-path: none !important;
+  }
+
   .sb-flip-spread {
     transform: none;
     box-shadow: 0 12px 28px rgba(20, 12, 28, 0.16);
@@ -1448,6 +1455,33 @@ body.page-storybook.sb-modal-open {
   box-shadow:
     inset 0 0 0 1px rgba(157, 23, 77, 0.06),
     -4px 0 28px rgba(45, 20, 40, 0.12);
+}
+
+.sb-flip-spread__art-base.sb-flip-spread__art-base--reveal-turn {
+  border-radius: 6px;
+  animation: sb-turn-reveal-leftcol 0.62s cubic-bezier(0.45, 0, 0.32, 1) both;
+}
+
+/* Left page copy: story text uncovers gutter → spine together with duplex art underneath */
+@keyframes sb-turn-reveal-leftcol {
+  from {
+    clip-path: inset(0 0 0 50%);
+    -webkit-clip-path: inset(0 0 0 50%);
+  }
+
+  to {
+    clip-path: inset(0 0 0 0);
+    -webkit-clip-path: inset(0 0 0 0);
+  }
+}
+
+.sb-flip-text__clip {
+  display: block;
+  width: 100%;
+}
+
+.sb-flip-text__clip.sb-flip-text__clip--reveal-turn {
+  animation: sb-turn-reveal-leftcol 0.62s cubic-bezier(0.45, 0, 0.32, 1) both;
 }
 
 .sb-flip-spread__art-peel.sb-story-pageflip--turn-next-1 {

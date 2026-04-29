@@ -8,7 +8,7 @@
   <link rel="manifest" href="../manifest.json" />
   <link rel="stylesheet" href="../js/kids-core.css" />
   <!-- storybook-app.css = renamed file so CDN/browser cache cannot keep old storybook.css -->
-  <link rel="stylesheet" href="storybook-app.css?v=20" />
+  <link rel="stylesheet" href="storybook-app.css?v=22" />
   <link rel="stylesheet" href="../tablet-ipad.css" />
   <!-- Last wins: guarantees new background even if a proxy cached an ancient stylesheet elsewhere -->
   <style>
@@ -243,7 +243,7 @@
                   <div class="sb-flip-spread__inner" id="sbFlipSpreadInner">
                     <!-- Duplex panorama: one picture per spread, full width behind text + gutter (illus = pages pair) -->
                     <div id="sbSpreadArtBg" class="sb-flip-spread__art-bg" aria-hidden="true">
-                      <div class="sb-flip-spread__art-base">
+                      <div class="sb-flip-spread__art-base" id="sbSpreadArtBase">
                         <img
                           class="sb-flip-spread__art-cover"
                           id="sbSpreadArtCover"
@@ -270,7 +270,9 @@
                       <div class="sb-flip-page sb-flip-page--text">
                         <div class="sb-flip-page__sheet">
                           <p class="sb-flip-text">
-                            <span class="sb-flip-text__highlight" id="sbSpreadText"></span>
+                            <span class="sb-flip-text__clip" id="sbSpreadTextClip">
+                              <span class="sb-flip-text__highlight" id="sbSpreadText"></span>
+                            </span>
                           </p>
                         </div>
                       </div>
@@ -321,7 +323,7 @@
   <script src="../js/kids-game-characters.js"></script>
   <script src="../js/score-config.js"></script>
   <script src="../js/kids-core.js"></script>
-  <script src="storybook.js?v=225" defer></script>
+  <script src="storybook.js?v=227" defer></script>
   <script>
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("../sw.js").catch(function () {});

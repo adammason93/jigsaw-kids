@@ -48,11 +48,13 @@
   var btnGen = document.getElementById("sbGenerate");
   var readerHeading = document.getElementById("sbBookHeading");
   var spreadText = document.getElementById("sbSpreadText");
+  var spreadTextClip = document.getElementById("sbSpreadTextClip");
   var spreadArt = document.getElementById("sbSpreadArt");
   var spreadArtImg = document.getElementById("sbSpreadArtImg");
   var spreadArtNum = document.getElementById("sbSpreadArtNum");
   var spreadInnerEl = document.getElementById("sbFlipSpreadInner");
   var spreadArtBg = document.getElementById("sbSpreadArtBg");
+  var spreadArtBase = document.getElementById("sbSpreadArtBase");
   var spreadArtCover = document.getElementById("sbSpreadArtCover");
   /** Incoming spread: full duplex under the peel (#sbSpreadArtCover inside .sb-flip-spread__art-base). */
   /** Outgoing duplex on #sbSpreadArtPeel rotates away above it. */
@@ -309,6 +311,15 @@
     return rightP && rightP.imageUrl ? String(rightP.imageUrl) : "";
   }
 
+  function clearSpreadTurnRevealFx() {
+    if (spreadTextClip) {
+      spreadTextClip.classList.remove("sb-flip-text__clip--reveal-turn");
+    }
+    if (spreadArtBase) {
+      spreadArtBase.classList.remove("sb-flip-spread__art-base--reveal-turn");
+    }
+  }
+
   function clearSpreadPeelTurnClasses() {
     var shell =
       spreadArtPeelShell || document.getElementById("sbSpreadArtPeel");
@@ -335,6 +346,7 @@
       );
     }
     clearSpreadPeelTurnClasses();
+    clearSpreadTurnRevealFx();
   }
 
   function bindCpShellTurnEnd(shell, cb) {
@@ -382,6 +394,7 @@
     spreadAnimLock = true;
     setSpreadNavBusy(true);
     clearSpreadPeelTurnClasses();
+    clearSpreadTurnRevealFx();
 
     /* Destination prose + incoming duplex on base (#sbSpreadArtCover); peel rotates away over it */
     applySpreadContent({ skipArt: true });
@@ -409,9 +422,16 @@
 
     window.requestAnimationFrame(function () {
       peelShell.classList.add(cls1);
+      if (spreadTextClip) {
+        spreadTextClip.classList.add("sb-flip-text__clip--reveal-turn");
+      }
+      if (spreadArtBase) {
+        spreadArtBase.classList.add("sb-flip-spread__art-base--reveal-turn");
+      }
 
       bindCpShellTurnEnd(peelShell, function peelTurnDone() {
         clearSpreadPeelTurnClasses();
+        clearSpreadTurnRevealFx();
         if (peelImg) {
           peelImg.removeAttribute("src");
         }
