@@ -322,10 +322,25 @@ async function openaiChatJson(
 
 type DalleSize = "1024x1024" | "1792x1024" | "1024x1792";
 
-async function openaiImageUrl(
+function openaiImageErrorDetail(status: number, bodyText: string): string {
+  let d = `HTTP ${status}`;
+  try {
+    const j = JSON.parse(bodyText) as { error?: { message?: string } };
+    if (j.error?.message) d += ": " + j.error.message.slice(0, 300);
+  } catch {
+    const s = bodyText.trim();
+    if (s) d += ": " + s.slice(0, 200);
+  }
+  return d;
+}
+
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function openaiImageGenerations(
   apiKey: string,
-  prompt: string,
-  size: DalleSize = "1024x1024",
+  payload: Record<string, unknown>,
 ): Promise<string> {
   const r = await fetch("https://api.openai.com/v1/images/generations", {
     method: "POST",
@@ -333,26 +348,95 @@ async function openaiImageUrl(
       Authorization: `Bearer ${apiKey}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({
+    body: JSON.stringify(payload),
+  });
+
+  const raw = await r.text();
+  if (!r.ok) {
+    console.error("openai image error", r.status, raw.slice(0, 900));
+    throw new Error(openaiImageErrorDetail(r.status, raw));
+  }
+
+  let data: { data?: { url?: string }[] };
+  try {
+    data = JSON.parse(raw);
+  } catch {
+    throw new Error("image_response_not_json");
+  }
+  const url = data.data?.[0]?.url;
+  if (!url) throw new Error("image_empty");
+  return url as string;
+}
+
+/**
+ * Retry on HTTP 400 with simpler payloads — some accounts reject `style` / `quality` combos.
+ */
+async function openaiImageUrl(
+  apiKey: string,
+  prompt: string,
+  size: DalleSize = "1024x1024",
+): Promise<string> {
+  const trimmed = prompt.slice(0, 4000);
+  const attempts: Record<string, unknown>[] = [
+    {
       model: "dall-e-3",
-      prompt: prompt.slice(0, 3900),
+      prompt: trimmed,
       n: 1,
       size,
       quality: "standard",
       style: "vivid",
-    }),
-  });
+    },
+    {
+      model: "dall-e-3",
+      prompt: trimmed,
+      n: 1,
+      size,
+      quality: "standard",
+      style: "natural",
+    },
+    {
+      model: "dall-e-3",
+      prompt: trimmed,
+      n: 1,
+      size,
+      quality: "standard",
+    },
+    {
+      model: "dall-e-3",
+      prompt: trimmed,
+      n: 1,
+      size,
+    },
+  ];
 
-  if (!r.ok) {
-    const t = await r.text();
-    console.error("openai image error", r.status, t);
-    throw new Error(`image_model_error:${r.status}`);
+  let lastErr: Error | null = null;
+  for (let i = 0; i < attempts.length; i++) {
+    try {
+      return await openaiImageGenerations(apiKey, attempts[i]);
+    } catch (e) {
+      const err = e instanceof Error ? e : new Error(String(e));
+      lastErr = err;
+      const is400 = err.message.includes("HTTP 400");
+      if (!is400) throw err;
+      if (i < attempts.length - 1) {
+        console.warn(
+          `[clever-service] DALL·E 400 — retry simpler payload (${i + 2}/${attempts.length})`,
+          err.message.slice(0, 180),
+        );
+      }
+    }
   }
+  throw lastErr ?? new Error("image_failed");
+}
 
-  const data = await r.json();
-  const url = data.data?.[0]?.url;
-  if (!url) throw new Error("image_empty");
-  return url as string;
+/** Landscape spread first; some keys/billing paths fail on 1792×1024 — fall back to square. */
+async function openaiSpreadImageUrl(apiKey: string, prompt: string): Promise<string> {
+  try {
+    return await openaiImageUrl(apiKey, prompt, "1792x1024");
+  } catch (e) {
+    console.warn("[clever-service] DALL·E landscape failed, retry 1024×1024", e);
+    return await openaiImageUrl(apiKey, prompt, "1024x1024");
+  }
 }
 
 Deno.serve(async (req) => {
@@ -489,16 +573,20 @@ Return JSON shape: { "title": string, "pages": [ { "text": string, "illustration
       }
     }
 
-    const urls = await Promise.all(
-      briefs.map((b) => {
-        const beat = spreadTextForPicturePage(b.index, story.pages).slice(0, 320);
-        const beatSafe = beat.replace(/"/gu, "'");
-        const beatClause = beatSafe
-          ? ` CRITICAL: Illustrate this exact story moment from the text page before this picture (same characters, action, place, and objects; do not invent a different event): ${beatSafe}. `
-          : " ";
-        return openaiImageUrl(apiKey, imagePromptPrefix + beatClause + b.brief, "1792x1024");
-      }),
-    );
+    const urls: string[] = [];
+    const staggerMs = 450;
+    for (let k = 0; k < briefs.length; k++) {
+      if (k > 0) await delay(staggerMs);
+      const b = briefs[k];
+      const beat = spreadTextForPicturePage(b.index, story.pages).slice(0, 320);
+      const beatSafe = beat.replace(/"/gu, "'");
+      const beatClause = beatSafe
+        ? ` Illustrate this story moment from the text page before this picture (same characters, action, place): ${beatSafe}. `
+        : " ";
+      const fullPrompt = imagePromptPrefix + beatClause + b.brief;
+      const u = await openaiSpreadImageUrl(apiKey, fullPrompt);
+      urls.push(u);
+    }
 
     const urlByIndex = new Map<number, string>();
     briefs.forEach((b, k) => urlByIndex.set(b.index, urls[k]));
@@ -511,13 +599,15 @@ Return JSON shape: { "title": string, "pages": [ { "text": string, "illustration
     });
   } catch (e) {
     console.error(e);
+    const detail = e instanceof Error ? e.message : String(e);
     return jsonResponse(
       {
         error: "images_failed",
+        detail,
         title: story.title,
         pages: story.pages.map((p) => ({ text: p.text.trim(), imageUrl: null })),
       },
-      502
+      502,
     );
   }
 

@@ -1574,6 +1574,8 @@
             var msg =
               out.body && out.body.error === "server_missing_openai"
                 ? "OpenAI isn’t connected yet. A grown-up needs to set OPENAI_API_KEY on the story function."
+                : out.body && out.body.error === "images_failed" && out.body.detail
+                  ? "Couldn’t make the book (pictures). " + String(out.body.detail)
                 : out.body && out.body.error
                   ? "Couldn’t make the book (" + out.body.error + ")."
                   : "Couldn’t make the book (error " + out.status + ").";

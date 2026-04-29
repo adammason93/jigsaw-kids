@@ -26,3 +26,8 @@ The browser calls `…/functions/v1/clever-service` — set **`storybookEdgeSlug
 Rough order: **6 × DALL·E 3** square page art **+** one chat completion **+** optional **one GPT‑4o‑mini vision** call (when game people are selected and `BOOK_ASSETS_BASE_URL` is set) — check [OpenAI pricing](https://openai.com/pricing) for current rates.
 
 Portrait images are **not** sent to DALL·E (it only accepts text). The function downloads PNGs from your deployed site, summarises looks with vision, and injects that text into story + image prompts.
+
+## Troubleshooting
+
+- **`images_failed` / DALL·E HTTP 400**: Redeploy so you have the latest function (sequential images + retries). The API response body is returned as `detail` in the JSON and logged. Common causes: deprecated parameter combos (the function retries with minimal payload), invalid image size for the account, or prompt **content policy** (read the `detail` message from OpenAI).
+- **Logs still show `Promise.all`**: That stack trace is from an **older deployment** — run `supabase functions deploy clever-service` again.
