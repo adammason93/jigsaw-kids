@@ -55,8 +55,10 @@
   var spreadInnerEl = document.getElementById("sbFlipSpreadInner");
   var spreadArtBg = document.getElementById("sbSpreadArtBg");
   var spreadArtCover = document.getElementById("sbSpreadArtCover");
-  var pageTurnLeft = document.getElementById("sbPageTurnLeft");
-  var pageTurnRight = document.getElementById("sbPageTurnRight");
+  var flipbookStack = document.getElementById("sbFlipbookStack");
+  /** @type {HTMLDivElement[]} */
+  var flipbookSheets = [];
+  var flipbookZMax = 1;
   var readerStack = document.getElementById("sbReaderStack");
   var readerPages = document.getElementById("sbReaderPages");
   var btnOpenCover = document.getElementById("sbOpenCover");
@@ -296,6 +298,10 @@
     );
   }
 
+  function isTransformTransitionProperty(name) {
+    return name === "transform" || name === "-webkit-transform";
+  }
+
   function clearSpreadTurnClasses() {
     if (spreadInnerEl) {
       spreadInnerEl.classList.remove(
@@ -307,219 +313,129 @@
         "sb-flip-spread__inner--fade-in"
       );
     }
-    clearPageTurnOverlays();
   }
 
-  function clearPageTurnOverlays() {
-    if (pageTurnLeft) {
-      pageTurnLeft.innerHTML = "";
-      pageTurnLeft.classList.remove("is-visible");
-      pageTurnLeft.hidden = true;
-      pageTurnLeft.setAttribute("aria-hidden", "true");
+  function unlockFlipbookSheet(el) {
+    var finished = false;
+    function unlock() {
+      if (finished) return;
+      finished = true;
+      el.removeEventListener("transitionend", onTe);
+      el.removeEventListener("webkitTransitionEnd", onTe);
+      spreadAnimLock = false;
+      setSpreadNavBusy(false);
     }
-    if (pageTurnRight) {
-      pageTurnRight.innerHTML = "";
-      pageTurnRight.classList.remove("is-visible");
-      pageTurnRight.hidden = true;
-      pageTurnRight.setAttribute("aria-hidden", "true");
-    }
-  }
-
-  function isTransformTransitionProperty(name) {
-    return name === "transform" || name === "-webkit-transform";
-  }
-
-  /** Current spread art URL for the right-hand peel (before index changes). */
-  function getCurrentSpreadArtUrl() {
-    if (spreadInnerEl && spreadInnerEl.dataset && spreadInnerEl.dataset.sbArtUrl) {
-      return spreadInnerEl.dataset.sbArtUrl;
-    }
-    if (
-      spreadInnerEl &&
-      spreadInnerEl.classList.contains("sb-flip-spread__inner--has-art") &&
-      spreadArtBg
-    ) {
-      var bg = (spreadArtBg.style && spreadArtBg.style.backgroundImage) || "";
-      var m = bg.match(/url\(["']?([^"')]+)/);
-      if (m && m[1]) {
-        return m[1].replace(/\\(.)/g, "$1");
-      }
-    }
-    if (spreadArtImg && spreadArtImg.getAttribute("src")) {
-      return spreadArtImg.currentSrc || spreadArtImg.src || "";
-    }
-    return "";
-  }
-
-  function finishPageTurnAnim() {
-    spreadAnimLock = false;
-    setSpreadNavBusy(false);
-  }
-
-  /**
-   * Same frame order as reference flipbooks: insert leaf → paint → swap spread under → next frame start rotation.
-   * Avoids WebKit flashing the new art before the peel layer exists.
-   */
-  function schedulePeelThenFlip(onBeforeAnimate, leaf, turnClass) {
-    window.requestAnimationFrame(function () {
-      if (typeof onBeforeAnimate === "function") {
-        onBeforeAnimate();
-      }
-      window.requestAnimationFrame(function () {
-        window.requestAnimationFrame(function () {
-          leaf.classList.add(turnClass);
-        });
-      });
-    });
-  }
-
-  function bindLeafTransitionEnd(leaf, cleanup) {
-    var done = false;
-    function once() {
-      if (done) return;
-      done = true;
-      leaf.removeEventListener("transitionend", onEnd);
-      leaf.removeEventListener("webkitTransitionEnd", onEnd);
-      cleanup();
-    }
-    function onEnd(ev) {
-      if (!ev || ev.target !== leaf) return;
+    function onTe(ev) {
+      if (!ev || ev.target !== el) return;
       var pn = ev.propertyName || "";
       if (pn !== "" && !isTransformTransitionProperty(pn)) return;
-      once();
+      unlock();
     }
-    leaf.addEventListener("transitionend", onEnd);
-    leaf.addEventListener("webkitTransitionEnd", onEnd);
-    window.setTimeout(once, 2200);
+    el.addEventListener("transitionend", onTe);
+    el.addEventListener("webkitTransitionEnd", onTe);
+    window.setTimeout(unlock, 950);
   }
 
   /**
-   * Right page peels from the gutter (next). If there is no illustration, the leaf uses a paper fill.
-   * onBeforeAnimate runs after the overlay is visible so the *new* spread is painted underneath.
+   * Stacked sheets (Nidhanshu Sharma–style flip): each sheet = figure.back + figure.front,
+   * hinge at gutter; DOM order appended spread (n-1)…0 so sheet 0 is on top initially.
    */
-  function runRightPageTurn(oldImgSrc, opts) {
-    opts = opts || {};
-    var overlay = pageTurnRight;
-    if (!overlay) {
-      finishPageTurnAnim();
-      return;
+  function rebuildFlipbookSheets() {
+    flipbookSheets = [];
+    flipbookZMax = 1;
+    if (!flipbookStack || !story || !story.pages.length) return;
+    var n = numSpreads();
+    flipbookStack.innerHTML = "";
+    if (spreadInnerEl) {
+      spreadInnerEl.classList.add("sb-flip-spread__inner--ref-flipbook");
     }
-    overlay.innerHTML = "";
-    var leaf = document.createElement("div");
-    leaf.className = "sb-turn-leaf";
-    var front = document.createElement("div");
-    front.className = "sb-turn-leaf__face sb-turn-leaf__face--front";
-    if (oldImgSrc) {
-      var im = document.createElement("img");
-      im.src = oldImgSrc;
-      im.alt = "";
-      im.decoding = "async";
-      im.referrerPolicy = "no-referrer";
-      front.appendChild(im);
-    } else {
-      front.classList.add("sb-turn-leaf__face--placeholder");
-      front.setAttribute("aria-hidden", "true");
+    if (n < 1) return;
+
+    for (var s = n - 1; s >= 0; s--) {
+      var sheet = document.createElement("div");
+      sheet.className = "sb-flipbook-sheet";
+      sheet.setAttribute("role", "presentation");
+
+      var backFig = document.createElement("figure");
+      backFig.className = "sb-flipbook-figure sb-flipbook-figure--back";
+      var frontFig = document.createElement("figure");
+      frontFig.className = "sb-flipbook-figure sb-flipbook-figure--front";
+
+      var rightP = story.pages[s * 2 + 1];
+      var url = rightP && rightP.imageUrl ? String(rightP.imageUrl) : "";
+      if (url) {
+        var bi =
+          'url("' + url.replace(/\\/g, "\\\\").replace(/"/g, '\\"') + '")';
+        frontFig.style.backgroundImage = bi;
+        backFig.style.backgroundImage = bi;
+      } else {
+        sheet.classList.add("sb-flipbook-sheet--paper");
+      }
+
+      sheet.appendChild(backFig);
+      sheet.appendChild(frontFig);
+      flipbookStack.appendChild(sheet);
+      flipbookSheets[s] = sheet;
     }
-    var back = document.createElement("div");
-    back.className = "sb-turn-leaf__face sb-turn-leaf__face--back";
-    back.setAttribute("aria-hidden", "true");
-    leaf.appendChild(front);
-    leaf.appendChild(back);
-    overlay.appendChild(leaf);
-    overlay.hidden = false;
-    overlay.setAttribute("aria-hidden", "false");
-    overlay.classList.add("is-visible");
-
-    bindLeafTransitionEnd(leaf, function () {
-      clearPageTurnOverlays();
-      finishPageTurnAnim();
-    });
-
-    schedulePeelThenFlip(opts.onBeforeAnimate, leaf, "sb-turn-leaf--next");
   }
 
-  /** Left page peels back (previous). Text/meta can be empty; shows a minimal paper leaf. */
-  function runLeftPageTurn(oldText, oldMeta, opts) {
-    opts = opts || {};
-    var overlay = pageTurnLeft;
-    if (!overlay) {
-      finishPageTurnAnim();
-      return;
-    }
-    overlay.innerHTML = "";
-    var leaf = document.createElement("div");
-    leaf.className = "sb-turn-leaf";
-    var front = document.createElement("div");
-    front.className =
-      "sb-turn-leaf__face sb-turn-leaf__face--front sb-turn-leaf__face--text";
-    if (oldText || oldMeta) {
-      var p = document.createElement("p");
-      p.className = "sb-flip-text";
-      var span = document.createElement("span");
-      span.className = "sb-flip-text__highlight";
-      span.textContent = oldText || "";
-      p.appendChild(span);
-      front.appendChild(p);
-      var meta = document.createElement("p");
-      meta.className = "sb-flip-spread-meta";
-      var metaPill = document.createElement("span");
-      metaPill.className = "sb-flip-meta__pill";
-      metaPill.textContent = oldMeta || "";
-      meta.appendChild(metaPill);
-      front.appendChild(meta);
-    } else {
-      front.classList.add("sb-turn-leaf__face--placeholder");
-      front.setAttribute("aria-hidden", "true");
-    }
-    var back = document.createElement("div");
-    back.className = "sb-turn-leaf__face sb-turn-leaf__face--back";
-    back.setAttribute("aria-hidden", "true");
-    leaf.appendChild(front);
-    leaf.appendChild(back);
-    overlay.appendChild(leaf);
-    overlay.hidden = false;
-    overlay.setAttribute("aria-hidden", "false");
-    overlay.classList.add("is-visible");
-
-    bindLeafTransitionEnd(leaf, function () {
-      clearPageTurnOverlays();
-      finishPageTurnAnim();
-    });
-
-    schedulePeelThenFlip(opts.onBeforeAnimate, leaf, "sb-turn-leaf--prev");
+  function navigateSpreadInstant(delta) {
+    spreadIndex += delta;
+    spreadAnimLock = false;
+    applySpreadContent();
   }
 
-  /** Fallback when peels are unavailable. */
-  function navigateSpreadCrossFade(delta) {
-    var inner = spreadInnerEl;
-    if (!inner) {
-      spreadIndex += delta;
-      applySpreadContent();
+  function navigateSpread(delta) {
+    if (!story) return;
+    if (book && book.classList.contains("sb-book--cover-visible")) return;
+    if (delta > 0 && spreadIndex >= numSpreads() - 1) return;
+    if (delta < 0 && spreadIndex <= 0) return;
+
+    if (prefersReducedSpreadMotion()) {
+      navigateSpreadInstant(delta);
+      return;
+    }
+    if (spreadAnimLock) return;
+
+    if (!flipbookSheets.length) {
+      navigateSpreadInstant(delta);
       return;
     }
 
+    if (delta > 0) {
+      flipbookTurnNext();
+      return;
+    }
+    flipbookTurnPrev();
+  }
+
+  /** Next spread: flip current top sheet away (matches reference turnRight stacking). */
+  function flipbookTurnNext() {
+    if (spreadIndex >= flipbookSheets.length - 1) return;
     spreadAnimLock = true;
     setSpreadNavBusy(true);
-    clearPageTurnOverlays();
-
-    inner.classList.remove("sb-flip-spread__inner--fade-in");
-    inner.classList.add("sb-flip-spread__inner--fade-out");
-
-    window.setTimeout(function () {
-      spreadIndex += delta;
-      applySpreadContent();
-      inner.classList.remove("sb-flip-spread__inner--fade-out");
-      inner.classList.add("sb-flip-spread__inner--fade-in");
-      window.setTimeout(function () {
-        inner.classList.remove("sb-flip-spread__inner--fade-in");
-        spreadAnimLock = false;
-        setSpreadNavBusy(false);
-        updatePagerHints();
-      }, 280);
-    }, 175);
+    var el = flipbookSheets[spreadIndex];
+    flipbookZMax++;
+    el.style.zIndex = String(flipbookZMax);
+    el.classList.add("sb-flipbook-sheet--flip");
+    spreadIndex++;
+    applySpreadContent();
+    unlockFlipbookSheet(el);
   }
 
-  function setSpreadNavBusy(locked) {
+  function flipbookTurnPrev() {
+    if (spreadIndex <= 0) return;
+    spreadAnimLock = true;
+    setSpreadNavBusy(true);
+    var el = flipbookSheets[spreadIndex - 1];
+    el.classList.remove("sb-flipbook-sheet--flip");
+    spreadIndex--;
+    applySpreadContent();
+    window.setTimeout(function () {
+      el.style.zIndex = "";
+    }, 400);
+    unlockFlipbookSheet(el);
+  }
     if (!btnPrev || !btnNext) return;
     if (locked) {
       btnPrev.disabled = true;
@@ -726,7 +642,7 @@
   }
 
   function applySpreadContent() {
-    if (!story || !spreadText || !spreadArt || !spreadArtImg) return;
+    if (!story || !spreadText) return;
     var n = numSpreads();
     if (n < 1) return;
     spreadIndex = Math.max(0, Math.min(spreadIndex, n - 1));
@@ -735,12 +651,15 @@
     var rightP = story.pages[i + 1];
     var pLo = i + 1;
     var pHi = i + 2;
+    /* Illustration is on stacked flip sheets; keep hidden legacy nodes in sync when present */
     if (rightP && rightP.imageUrl) {
       var u = String(rightP.imageUrl);
-      spreadArtImg.src = u;
-      spreadArtImg.alt = "Illustration for pages " + pLo + "–" + pHi;
-      spreadArtImg.referrerPolicy = "no-referrer";
-      spreadArt.classList.remove("is-empty");
+      if (spreadArtImg) {
+        spreadArtImg.src = u;
+        spreadArtImg.alt = "Illustration for pages " + pLo + "–" + pHi;
+        spreadArtImg.referrerPolicy = "no-referrer";
+      }
+      if (spreadArt) spreadArt.classList.remove("is-empty");
       if (spreadArtBg) {
         spreadArtBg.style.backgroundImage = "url(" + JSON.stringify(u) + ")";
       }
@@ -760,11 +679,9 @@
           "Pages " + pLo + "–" + pHi + " of " + story.pages.length;
       }
     } else {
-      spreadArtImg.removeAttribute("src");
-      spreadArt.classList.add("is-empty");
-      if (spreadArtBg) {
-        spreadArtBg.style.backgroundImage = "";
-      }
+      if (spreadArtImg) spreadArtImg.removeAttribute("src");
+      if (spreadArt) spreadArt.classList.add("is-empty");
+      if (spreadArtBg) spreadArtBg.style.backgroundImage = "";
       if (spreadArtCover) {
         spreadArtCover.removeAttribute("src");
         spreadArtCover.alt = "";
@@ -783,56 +700,8 @@
   }
 
   function renderSpread() {
+    rebuildFlipbookSheets();
     applySpreadContent();
-  }
-
-  /** Gutter 3D peel + cross-fade fallback if overlay nodes are missing (should not happen). */
-  function navigateSpread(delta) {
-    if (!story) return;
-    if (book && book.classList.contains("sb-book--cover-visible")) return;
-    if (delta > 0 && spreadIndex >= numSpreads() - 1) return;
-    if (delta < 0 && spreadIndex <= 0) return;
-
-    if (prefersReducedSpreadMotion()) {
-      spreadIndex += delta;
-      applySpreadContent();
-      return;
-    }
-    if (spreadAnimLock) return;
-
-    if (delta > 0) {
-      var oldSrc = getCurrentSpreadArtUrl();
-      if (!pageTurnRight) {
-        navigateSpreadCrossFade(delta);
-        return;
-      }
-      spreadAnimLock = true;
-      setSpreadNavBusy(true);
-      clearPageTurnOverlays();
-      spreadIndex += 1;
-      runRightPageTurn(oldSrc, {
-        onBeforeAnimate: function () {
-          applySpreadContent();
-        },
-      });
-      return;
-    }
-
-    var oldText = spreadText ? spreadText.textContent : "";
-    var oldMeta = spreadMeta ? spreadMeta.textContent : "";
-    if (!pageTurnLeft) {
-      navigateSpreadCrossFade(delta);
-      return;
-    }
-    spreadAnimLock = true;
-    setSpreadNavBusy(true);
-    clearPageTurnOverlays();
-    spreadIndex -= 1;
-    runLeftPageTurn(oldText, oldMeta, {
-      onBeforeAnimate: function () {
-        applySpreadContent();
-      },
-    });
   }
 
   function updatePagerHints() {
@@ -1582,6 +1451,13 @@
     story = null;
     spreadIndex = 0;
     spreadAnimLock = false;
+    flipbookSheets.length = 0;
+    if (flipbookStack) {
+      flipbookStack.innerHTML = "";
+    }
+    if (spreadInnerEl) {
+      spreadInnerEl.classList.remove("sb-flip-spread__inner--ref-flipbook");
+    }
     clearSpreadTurnClasses();
     resetBookCoverForWizard();
     closeJourney();
@@ -1609,6 +1485,7 @@
 
   function showBook() {
     if (!story || !story.pages.length) return;
+    spreadIndex = 0;
     coverOpenGeneration += 1;
     closeJourney();
     if (landing) {

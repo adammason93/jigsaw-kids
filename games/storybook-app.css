@@ -1225,6 +1225,10 @@ body.page-storybook.sb-modal-open {
     transition-duration: 0.01ms;
   }
 
+  .sb-flipbook-sheet {
+    transition-duration: 0.01ms !important;
+  }
+
   .sb-flip-spread {
     transform: none;
     box-shadow: 0 12px 28px rgba(20, 12, 28, 0.16);
@@ -1391,6 +1395,107 @@ body.page-storybook.sb-modal-open {
 
 .sb-flip-spread__inner--has-art .sb-flip-page--art .sb-flip-art__num {
   display: none;
+}
+
+/* ——— Stacked flip sheets (reference: .right + figure.front / figure.back, hinge at gutter) ——— */
+.sb-flip-spread__inner--ref-flipbook .sb-flip-spread__art-bg {
+  display: none !important;
+}
+
+.sb-flip-book-legacy-art {
+  display: none !important;
+}
+
+.sb-flip-right-shell.sb-flip-right-shell--flip {
+  overflow: visible;
+}
+
+.sb-flipbook-perspective {
+  position: absolute;
+  inset: 0;
+  -webkit-perspective: 1200px;
+  perspective: 1200px;
+  -webkit-perspective-origin: left center;
+  perspective-origin: left center;
+}
+
+.sb-flipbook-stack {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.sb-flipbook-sheet {
+  position: absolute;
+  right: 0;
+  top: 0;
+  height: 100%;
+  width: 100%;
+  transition:
+    transform 0.7s ease-in-out,
+    -webkit-transform 0.7s ease-in-out;
+  transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
+  transform-origin: left center;
+  -webkit-transform: rotateY(0deg);
+  transform: rotateY(0deg);
+  border-radius: 0 10px 10px 0;
+}
+
+.sb-flipbook-sheet.sb-flipbook-sheet--flip {
+  -webkit-transform: rotateY(-180deg);
+  transform: rotateY(-180deg);
+}
+
+.sb-flipbook-sheet.sb-flipbook-sheet--flip::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 10;
+  width: 100%;
+  height: 100%;
+  border-radius: 0 10px 10px 0;
+  background-color: rgba(0, 0, 0, 0.08);
+}
+
+.sb-flipbook-figure {
+  margin: 0;
+  height: 100%;
+  width: 100%;
+  position: absolute;
+  left: 0;
+  top: 0;
+  background-size: 200%;
+  background-repeat: no-repeat;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  background-color: #fffefc;
+  overflow: hidden;
+}
+
+.sb-flipbook-figure--front {
+  background-position: right;
+  border-radius: 0 10px 10px 0;
+  box-shadow: 2px 2px 15px -2px rgba(0, 0, 0, 0.2);
+}
+
+.sb-flipbook-figure--back {
+  background-position: left;
+  border-radius: 10px 0 0 10px;
+  box-shadow: -2px 2px 15px -2px rgba(0, 0, 0, 0.2);
+  -webkit-transform: rotateY(180deg);
+  transform: rotateY(180deg);
+}
+
+.sb-flipbook-sheet--paper .sb-flipbook-figure--front,
+.sb-flipbook-sheet--paper .sb-flipbook-figure--back {
+  background-image: linear-gradient(
+    145deg,
+    #faf6f1 0%,
+    #f0eae2 52%,
+    #e8e2da 100%
+  ) !important;
 }
 
 /* Keep <img> for page-turn animation & preload; not shown when full-bleed background is active */

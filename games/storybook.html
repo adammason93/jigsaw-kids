@@ -8,7 +8,7 @@
   <link rel="manifest" href="../manifest.json" />
   <link rel="stylesheet" href="../js/kids-core.css" />
   <!-- storybook-app.css = renamed file so CDN/browser cache cannot keep old storybook.css -->
-  <link rel="stylesheet" href="storybook-app.css?v=7" />
+  <link rel="stylesheet" href="storybook-app.css?v=8" />
   <link rel="stylesheet" href="../tablet-ipad.css" />
   <!-- Last wins: guarantees new background even if a proxy cached an ancient stylesheet elsewhere -->
   <style>
@@ -242,11 +242,7 @@
               <div class="sb-reader-pages" id="sbReaderPages" aria-hidden="true">
                 <div class="sb-flip-spread" id="sbFlipSpread" aria-live="polite">
                   <div class="sb-flip-spread__inner" id="sbFlipSpreadInner">
-                    <div
-                      class="sb-flip-spread__art-bg"
-                      id="sbSpreadArtBg"
-                      aria-hidden="true"
-                    >
+                    <div class="sb-flip-spread__art-bg" id="sbSpreadArtBg" aria-hidden="true">
                       <img
                         class="sb-flip-spread__art-cover"
                         id="sbSpreadArtCover"
@@ -255,12 +251,6 @@
                       />
                     </div>
                     <div class="sb-flip-left-shell">
-                      <div
-                        class="sb-page-turn-overlay sb-page-turn-overlay--left"
-                        id="sbPageTurnLeft"
-                        aria-hidden="true"
-                        hidden
-                      ></div>
                       <div class="sb-flip-page sb-flip-page--text">
                         <div class="sb-flip-page__sheet">
                           <p class="sb-flip-text">
@@ -273,19 +263,16 @@
                       </div>
                     </div>
                     <div class="sb-flip-gutter" aria-hidden="true"></div>
-                    <div class="sb-flip-right-shell">
-                      <div
-                        class="sb-page-turn-overlay sb-page-turn-overlay--right"
-                        id="sbPageTurnRight"
-                        aria-hidden="true"
-                        hidden
-                      ></div>
-                      <div class="sb-flip-page sb-flip-page--art">
-                        <div class="sb-flip-page__sheet">
-                          <div class="sb-flip-art" id="sbSpreadArt">
-                            <span class="sb-flip-art__num" id="sbSpreadArtNum" aria-hidden="true"></span>
-                            <img id="sbSpreadArtImg" alt="" decoding="async" />
-                          </div>
+                    <div class="sb-flip-right-shell sb-flip-right-shell--flip">
+                      <div class="sb-flipbook-perspective" id="sbFlipbookPerspective">
+                        <!-- Stacked sheets (reference: rotated .right + figure.front/back); built in JS -->
+                        <div class="sb-flipbook-stack" id="sbFlipbookStack" aria-hidden="true"></div>
+                      </div>
+                      <!-- Kept hidden for compat; illustration shown on flip sheets -->
+                      <div class="sb-flip-book-legacy-art" aria-hidden="true" hidden>
+                        <div class="sb-flip-art" id="sbSpreadArt">
+                          <span class="sb-flip-art__num" id="sbSpreadArtNum"></span>
+                          <img id="sbSpreadArtImg" alt="" decoding="async" />
                         </div>
                       </div>
                     </div>
@@ -327,7 +314,7 @@
   <script src="../js/kids-game-characters.js"></script>
   <script src="../js/score-config.js"></script>
   <script src="../js/kids-core.js"></script>
-  <script src="storybook.js?v=209" defer></script>
+  <script src="storybook.js?v=210" defer></script>
   <script>
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("../sw.js").catch(function () {});
