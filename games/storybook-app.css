@@ -255,15 +255,15 @@ body.page-storybook.sb-modal-open {
   border-radius: 3px;
 }
 
-/* Front retaining lip: covers lower part of covers like a real ledge */
+/* Front retaining lip: subtle ledge — keep short so cover titles stay readable */
 .sb-shelf-tier__lip {
   position: absolute;
   left: 0;
   right: 0;
   bottom: 0;
-  height: 38%;
-  min-height: 2.75rem;
-  max-height: 5.2rem;
+  height: 24%;
+  min-height: 2rem;
+  max-height: 3.8rem;
   pointer-events: none;
   z-index: 6;
   border-radius: 4px 4px 0 0;
@@ -388,21 +388,22 @@ body.page-storybook.sb-modal-open {
   left: 0;
   right: 0;
   bottom: 0;
-  z-index: 3;
-  padding: 1.35rem 0.35rem 0.4rem;
+  z-index: 4;
+  padding: 1.85rem 0.42rem 0.55rem;
   font-family: "Fredoka", "Nunito", "Segoe UI", system-ui, sans-serif;
-  font-size: 0.6rem;
+  font-size: clamp(0.54rem, 2.35vw, 0.62rem);
   font-weight: 600;
-  line-height: 1.2;
+  line-height: 1.28;
   color: #fff;
   text-align: center;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.65);
-  background: linear-gradient(180deg, transparent 0%, rgba(35, 20, 30, 0.75) 42%, rgba(25, 15, 22, 0.92) 100%);
+  background: linear-gradient(180deg, transparent 0%, rgba(35, 20, 30, 0.75) 38%, rgba(25, 15, 22, 0.94) 100%);
   display: -webkit-box;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  pointer-events: none;
 }
 
 .sb-cover-card__placeholder-text {

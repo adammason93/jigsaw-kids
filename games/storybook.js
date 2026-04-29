@@ -816,7 +816,12 @@
 
   function tryFetchImageDataUrl(url) {
     if (!url) return Promise.resolve(null);
-    return fetch(url, { mode: "cors", credentials: "omit" })
+    return fetch(url, {
+      mode: "cors",
+      credentials: "omit",
+      cache: "no-store",
+      referrerPolicy: "no-referrer",
+    })
       .then(function (r) {
         if (!r.ok) throw new Error("bad");
         return r.blob();
@@ -953,22 +958,41 @@
     showBook();
   }
 
-  /** First page in the book that has stored or remote illustration (typ. first spread art). */
-  function firstShelfCoverSrc(item) {
-    if (!item.pages || !item.pages.length) return "";
+  /**
+   * First illustration on the shelf cover (persisted base64 wins over remote CDN URL).
+   * @returns {{ src: string, pageIndex: number }}
+   */
+  function firstShelfCoverMeta(item) {
+    if (!item.pages || !item.pages.length) return { src: "", pageIndex: -1 };
     for (var i = 0; i < item.pages.length; i++) {
       var p = item.pages[i];
-      var src = (p.imageDataUrl || p.imageUrlFallback || "").trim();
-      if (src) return src;
+      var du = String(p.imageDataUrl || "").trim();
+      var hu = String(p.imageUrlFallback || "").trim();
+      var src = du || hu;
+      if (src) return { src: src, pageIndex: i };
     }
-    return "";
+    return { src: "", pageIndex: -1 };
+  }
+
+  function persistShelfPageDataUrl(bookId, pageIdx, dataUrl) {
+    var list = loadShelf();
+    for (var bi = 0; bi < list.length; bi++) {
+      if (list[bi].id !== bookId) continue;
+      var pages = list[bi].pages;
+      if (!pages || !pages[pageIdx]) continue;
+      pages[pageIdx].imageDataUrl = dataUrl;
+      saveShelf(list);
+      break;
+    }
   }
 
   var SHELF_COVERS_PER_TIER = 4;
 
   function createCoverCardWrap(item) {
     var meta = spineMeta(item.id, item.title);
-    var coverSrc = firstShelfCoverSrc(item);
+    var cover = firstShelfCoverMeta(item);
+    var coverSrc = cover.src;
+    var pageIdxCover = cover.pageIndex;
     var wrap = document.createElement("div");
     wrap.className = "sb-cover-card-wrap";
     var openBtn = document.createElement("button");
@@ -982,6 +1006,17 @@
     openBtn.setAttribute("aria-label", "Open book: " + item.title);
     var face = document.createElement("span");
     face.className = "sb-cover-card__face";
+    var rail = document.createElement("span");
+    rail.className = "sb-cover-card__rail";
+    rail.setAttribute("aria-hidden", "true");
+
+    function mountCaption() {
+      var cap = document.createElement("span");
+      cap.className = "sb-cover-card__caption";
+      cap.textContent = spineLabel(item.title);
+      face.appendChild(cap);
+    }
+
     if (coverSrc) {
       var img = document.createElement("img");
       img.src = coverSrc;
@@ -989,23 +1024,59 @@
       img.decoding = "async";
       img.loading = "lazy";
       img.className = "sb-cover-card__img";
+      img.referrerPolicy = "no-referrer";
+      var retriedCover = false;
+      img.onerror = function () {
+        var pg = pageIdxCover >= 0 && item.pages ? item.pages[pageIdxCover] : null;
+        var remoteFallback = pg && String(pg.imageUrlFallback || "").trim();
+
+        if (!retriedCover && pg && remoteFallback && /^https?:\/\//i.test(remoteFallback)) {
+          retriedCover = true;
+          tryFetchImageDataUrl(remoteFallback)
+            .then(function (dataUrl) {
+              if (dataUrl && String(dataUrl).indexOf("data:") === 0) {
+                persistShelfPageDataUrl(item.id, pageIdxCover, dataUrl);
+                img.src = dataUrl;
+                return;
+              }
+              finishCoverFallback();
+            })
+            .catch(function () {
+              finishCoverFallback();
+            });
+          return;
+        }
+        finishCoverFallback();
+      };
+
+      function finishCoverFallback() {
+        var railClone = document.createElement("span");
+        railClone.className = "sb-cover-card__rail";
+        railClone.setAttribute("aria-hidden", "true");
+        if (img.parentNode) img.parentNode.removeChild(img);
+        face.textContent = "";
+        openBtn.className =
+          "sb-cover-card sb-cover-card--pat" +
+          meta.pat +
+          " sb-cover-card--placeholder";
+        var phEl = document.createElement("span");
+        phEl.className = "sb-cover-card__placeholder-text";
+        phEl.textContent = spineLabel(item.title);
+        face.appendChild(phEl);
+        face.appendChild(railClone);
+      }
+
       face.appendChild(img);
+      face.appendChild(rail);
+      mountCaption();
     } else {
-      var ph = document.createElement("span");
-      ph.className = "sb-cover-card__placeholder-text";
-      ph.textContent = spineLabel(item.title);
-      face.appendChild(ph);
+      var phEmpty = document.createElement("span");
+      phEmpty.className = "sb-cover-card__placeholder-text";
+      phEmpty.textContent = spineLabel(item.title);
+      face.appendChild(phEmpty);
+      face.appendChild(rail);
     }
-    var rail = document.createElement("span");
-    rail.className = "sb-cover-card__rail";
-    rail.setAttribute("aria-hidden", "true");
-    face.appendChild(rail);
-    if (coverSrc) {
-      var cap = document.createElement("span");
-      cap.className = "sb-cover-card__caption";
-      cap.textContent = spineLabel(item.title);
-      face.appendChild(cap);
-    }
+
     openBtn.appendChild(face);
     openBtn.addEventListener("click", function () {
       openShelfBook(item.id);
