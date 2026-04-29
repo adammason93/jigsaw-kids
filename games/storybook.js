@@ -712,7 +712,7 @@
     }
     var i = spreadIndex * 2;
     var leftP = story.pages[i];
-    spreadText.textContent = leftP ? leftP.text : "";
+    spreadText.innerHTML = leftP ? escapeHtml(leftP.text).replace(/\n/g, "<br/>") : "";
   }
 
   function syncSpreadIllustrationFromStory() {

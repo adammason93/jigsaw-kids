@@ -235,7 +235,7 @@ function normalizeStoryJson(raw: unknown): StoryJson {
   const src = Array.isArray(obj.pages) ? obj.pages : [];
   const pages: StoryPage[] = src.map((p) => ({
     text: String((p as StoryPage)?.text ?? "")
-      .replace(/\s+/g, " ")
+      .replace(/[ \t]+/g, " ")
       .trim(),
     illustrationBrief:
       (p as StoryPage)?.illustrationBrief != null &&
@@ -574,7 +574,7 @@ Deno.serve(async (req) => {
 Rules:
 - Warm, gentle, silly — never scary, violent, or mean.
 - No romance, no weapons, no villains that frighten.
-- Exactly 12 pages (six double-page spreads). The text on every page MUST be exactly 4 sentences long, written as a fun, rhythmic poem that rhymes perfectly (e.g., AABB or ABCB). Use simple words.
+- Exactly 12 pages (six double-page spreads). The text on every page MUST be exactly 4 lines long, written as a fun, rhythmic poem that rhymes perfectly (e.g., AABB or ABCB). Format the text with actual line breaks (\n) after each line so the rhyming words are at the end of each line. Use simple words.
 - The hero's name is given — use it often.
 - If "People from the child's games" are listed, include them in the story by name as extra friends or family. They should feel like the same friendly faces the child picks in other games (e.g. Tilly, Baby). They are separate from the one imaginary "main friend character" (unicorn, dragon, etc.) — both can appear.${
     portraitAppearance
@@ -582,7 +582,7 @@ Rules:
       : ""
   }
 - Include fields title (string), characterDesign (string), and pages (array of 12 objects).
-  For "characterDesign": write an EXTREMELY detailed visual description of EVERY character, creature, and important object in the story. For each, you MUST define their EXACT gender (e.g. boy/girl), age, height, body shape, skin/surface tone, eye color, facial features, hair color, hair style, AND exact texture/material (e.g. "smooth sculpted clay hair", "fuzzy felt fur", "shiny plastic"), plus ONE specific, unchanging outfit or set of accessories with exact colors, patterns, and materials (e.g., "Sofia: a 5-year-old girl, short and chubby, round face, small button nose, wide happy smile, light peach skin, big round green eyes, blonde wavy shoulder-length hair made of smooth sculpted clay, wearing a cream hoodie with a brown bunny graphic, olive green cargo pants, and white sneakers. The Buddy: a small chubby creature with smooth white clay skin, a shiny metallic gold accessory, and a mane made of smooth pastel-rainbow sculpted clay. The Ship: a smooth brown clay pirate ship with bright red sails"). DO NOT give them multiple outfits or changing colors. This will be used as the master reference to keep them identical across all illustrations.
+  For "characterDesign": write an EXTREMELY detailed visual description of EVERY character, creature, and important object in the story. For each, you MUST define their EXACT gender (e.g. boy/girl), age, height, body shape, skin/surface tone, eye color, facial features, hair color, hair style, AND exact texture/material (e.g. "smooth sculpted clay hair", "fuzzy felt fur", "shiny plastic"). For creatures, explicitly define their anatomy (e.g. "has small wings", "no wings", "long tail"). Plus ONE specific, unchanging outfit or set of accessories with exact colors and materials. CRITICAL: Keep clothing solid-colored and simple. DO NOT put logos, graphics, patterns, or text on clothing (DALL-E hallucinates these). (e.g., "Sofia: a 5-year-old girl, short and chubby, round face, small button nose, wide happy smile, light peach skin, big round green eyes, blonde wavy shoulder-length hair made of smooth sculpted clay, wearing a plain solid cream hoodie, plain solid olive green cargo pants, and white sneakers. The Buddy: a small chubby wingless dragon with smooth solid teal clay skin, yellow spikes down its back, and no collar"). DO NOT give them multiple outfits or changing colors. This will be used as the master reference to keep them identical across all illustrations.
 - Each page: { "text": string, "illustrationBrief": string | null }.
 - DOUBLE-PAGE SPREADS: pair pages as (1,2), (3,4), (5,6), (7,8), (9,10), (11,12).
   Odd-numbered pages (1,3,5,7,9,11) are TEXT-FIRST pages only — use "illustrationBrief": null.
@@ -619,7 +619,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "pages": [ { "t
     "CRITICAL LAYOUT RULE: Keep all characters, creatures, and important action perfectly centered in the middle third of the image. Leave the top and bottom thirds of the image as empty background scenery (sky, ground, etc.) so it can be safely cropped to a wide landscape format later. " +
     "draw the actual story environment flowing seamlessly without any frames or margins; " +
     "wholesome and safe for toddlers. " +
-    `MASTER CHARACTER DESIGNS (You MUST use these exact outfits, genders, ages, body shapes, facial features, skin tones, hair styles, hair textures, and accessory colors in every image to maintain perfect consistency. Do NOT change any colors or accessories between images, do NOT change textures from smooth clay to realistic textures): ${finalCharacterDesc}. ` +
+    `MASTER CHARACTER DESIGNS (You MUST use these exact outfits, genders, ages, body shapes, facial features, skin tones, hair styles, hair textures, anatomy, and accessory colors in every image to maintain perfect consistency. Do NOT change any colors or accessories between images, do NOT change textures from smooth clay to realistic textures, do NOT add or remove wings/horns/collars/logos): ${finalCharacterDesc}. ` +
     `Setting mood and environment style (keep background colors, trees, buildings, and landscape details EXACTLY consistent in every image): ${placeDesc}. ` +
     (plotHint.length > 0 ? `CRITICAL VISUAL THEME to include: ${plotHint}. ` : "") +
     `Scene: `;
@@ -642,7 +642,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "pages": [ { "t
       briefs.map(async (b, k) => {
         if (k > 0) await delay(k * staggerMs);
         const beat = spreadTextForPicturePage(b.index, story.pages).slice(0, 320);
-        const beatSafe = beat.replace(/"/gu, "'");
+          const beatSafe = beat.replace(/"/gu, "'").replace(/\n/g, " ");
         const beatClause = beatSafe
           ? ` Illustrate this story moment (same characters, action, place): ${beatSafe}. `
           : " ";
