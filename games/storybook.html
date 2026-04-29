@@ -316,11 +316,11 @@
                               <span class="sb-flip-text__highlight" id="sbSpreadText"></span>
                             </span>
                           </p>
-                          <div class="sb-flip-text-actions" id="sbSpreadTextActions" hidden style="margin-top: 1.5rem; text-align: center; display: none; flex-direction: column; align-items: center; gap: 0.5rem;">
-                            <button type="button" class="sb-btn sb-btn--ghost sb-read-to-me" id="sbReadToMe" aria-label="Read page to me" style="font-size: 1.1rem; padding: 0.5rem 1rem; background: rgba(255,255,255,0.5); border-radius: 2rem;">
+                          <div class="sb-flip-text-actions" id="sbSpreadTextActions" hidden style="position: absolute; bottom: 1.5rem; left: 1.5rem; display: none; flex-direction: column; align-items: flex-start; gap: 0.5rem; z-index: 10;">
+                            <button type="button" class="sb-btn sb-btn--ghost sb-read-to-me" id="sbReadToMe" aria-label="Read page to me" style="font-size: 1rem; padding: 0.4rem 0.8rem; background: rgba(255,255,255,0.7); border-radius: 2rem; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
                               <span aria-hidden="true">🔊</span> Read to me
                             </button>
-                            <p class="sb-tap-hint" style="font-size: 0.9rem; color: #9d174d; margin: 0; opacity: 0.8; display: flex; align-items: center; gap: 0.25rem;">
+                            <p class="sb-tap-hint" style="font-size: 0.8rem; color: #9d174d; margin: 0; opacity: 0.7; display: flex; align-items: center; gap: 0.25rem; padding-left: 0.5rem;">
                               <span aria-hidden="true">👆</span> Tap any word to hear it
                             </p>
                           </div>
@@ -373,7 +373,7 @@
   <script src="../js/kids-game-characters.js"></script>
   <script src="../js/score-config.js"></script>
   <script src="../js/kids-core.js"></script>
-  <script src="storybook.js?v=247" defer></script>
+  <script src="storybook.js?v=248" defer></script>
   <script>
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("../sw.js").catch(function () {});
