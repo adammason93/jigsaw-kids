@@ -140,6 +140,15 @@
             placeholder="e.g. The star and the brave fox"
           />
           <p class="sb-panel__micro">This is the name on the front cover. Leave it blank and we’ll use a title from your story.</p>
+          <label class="sb-label sb-label--secondary" for="sbAuthor" style="margin-top:1rem;">Author / Illustrator (optional)</label>
+          <input
+            class="sb-input"
+            id="sbAuthor"
+            type="text"
+            maxlength="48"
+            autocomplete="off"
+            placeholder="e.g. Written by Sofia"
+          />
           <div class="sb-game-people-block" id="sbGamePeopleBlock" hidden>
           <p class="sb-label sb-label--secondary">Friends from your games (optional)</p>
           <p class="sb-panel__hint sb-panel__hint--tight">
@@ -241,6 +250,7 @@
                       <span class="sb-cover__panel" id="sbCoverPanel">
                         <span class="sb-cover__deco" aria-hidden="true">✨</span>
                         <span class="sb-cover__title" id="sbCoverTitle"></span>
+                        <span class="sb-cover__author" id="sbCoverAuthor"></span>
                         <span class="sb-cover__hint">Tap to open</span>
                       </span>
                     </span>

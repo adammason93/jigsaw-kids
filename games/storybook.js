@@ -34,6 +34,7 @@
   var appEl = document.getElementById("app");
   var nameInput = document.getElementById("sbName");
   var bookTitleInput = document.getElementById("sbBookTitle");
+  var authorInput = document.getElementById("sbAuthor");
   var plotInput = document.getElementById("sbPlot");
   var charRow = document.getElementById("sbCharacters");
   var gamePeopleRow = document.getElementById("sbGamePeople");
@@ -65,6 +66,7 @@
   var btnOpenCover = document.getElementById("sbOpenCover");
   var btnCloseBook = document.getElementById("sbCloseBook");
   var coverTitle = document.getElementById("sbCoverTitle");
+  var coverAuthor = document.getElementById("sbCoverAuthor");
   var coverPanel = document.getElementById("sbCoverPanel");
   var btnPrev = document.getElementById("sbPrev");
   var btnNext = document.getElementById("sbNext");
@@ -284,7 +286,7 @@
   var selectedChar = "unicorn";
   /** @type {string} */
   var selectedPlace = "beach";
-  /** @type {{ title: string, sceneImageUrl?: string|null, pages: { text: string, imageUrl: string|null }[] } | null} */
+  /** @type {{ title: string, author?: string, sceneImageUrl?: string|null, pages: { text: string, imageUrl: string|null }[] } | null} */
   var story = null;
   var spreadIndex = 0;
   /** @type {boolean} */
@@ -707,7 +709,7 @@
     if (n < 1) return;
     spreadIndex = Math.max(0, Math.min(spreadIndex, n - 1));
     if (spreadIndex * 2 >= story.pages.length) {
-      spreadText.innerHTML = '<div style="text-align:center;margin-top:2rem;"><h2 style="font-size:2rem;margin-bottom:1rem;color:#9d174d;">The End</h2><p style="font-size:1.2rem;opacity:0.8;">We hope you enjoyed the story!</p></div>';
+      spreadText.innerHTML = '<div style="text-align:center;margin-top:2rem;background:rgba(255,255,255,0.85);padding:2rem;border-radius:1.5rem;box-shadow:0 8px 32px rgba(157,23,77,0.15);display:inline-block;backdrop-filter:blur(4px);"><h2 style="font-size:2.5rem;margin-bottom:1rem;color:#9d174d;text-shadow:1px 1px 0 #fff;">The End</h2><p style="font-size:1.3rem;color:#500724;font-weight:700;margin:0;">We hope you enjoyed the story!</p></div>';
       return;
     }
     var i = spreadIndex * 2;
@@ -1007,6 +1009,7 @@
 
   function addStoryToShelfFromData(
     title,
+    author,
     pages,
     dataUrls,
     sceneDataUrl,
@@ -1024,6 +1027,7 @@
     list.unshift({
       id: id,
       title: title,
+      author: author || "",
       savedAt: new Date().toISOString(),
       pages: storedPages,
       sceneDataUrl: sceneDataUrl || null,
@@ -1055,6 +1059,7 @@
     if (!item || !item.pages || !item.pages.length) return;
     story = {
       title: item.title,
+      author: item.author || "",
       sceneImageUrl: item.sceneDataUrl || item.sceneUrlFallback || null,
       pages: item.pages.map(function (p) {
         return {
@@ -1267,6 +1272,7 @@
         try {
           addStoryToShelfFromData(
             story.title,
+            story.author,
             story.pages,
             o.dataUrls,
             o.sceneData,
@@ -1286,8 +1292,10 @@
       });
   }
 
-  function buildStandaloneBookHtml(title, pages, dataUrls, sceneDataUrl) {
+  function buildStandaloneBookHtml(title, author, pages, dataUrls, sceneDataUrl) {
     var escTitle = escapeHtml(title);
+    var escAuthor = author ? escapeHtml(author) : "";
+    var authorHtml = escAuthor ? '<p class="sbdl-cover-author">' + escAuthor + '</p>' : '';
     var bodyRule = "body{font-family:system-ui,-apple-system,'Segoe UI',sans-serif;margin:0;background:linear-gradient(165deg,#fce7f3,#fdf2f8 45%,#e9d5ff);color:#500724}";
     var articles = [];
     
@@ -1295,11 +1303,11 @@
       articles.push(
         '<div class="sbdl-spread sbdl-spread--cover">' +
           '<img class="sbdl-cover-img" src="' + sceneDataUrl + '" alt="Cover" />' +
-          '<div class="sbdl-cover-title-wrap"><h1 class="sbdl-cover-title">' + escTitle + '</h1></div>' +
+          '<div class="sbdl-cover-title-wrap"><h1 class="sbdl-cover-title">' + escTitle + '</h1>' + authorHtml + '</div>' +
         '</div>'
       );
     } else {
-      articles.push('<h1>' + escTitle + '</h1>');
+      articles.push('<h1>' + escTitle + '</h1>' + authorHtml);
     }
 
     for (var i = 0; i < pages.length; i += 2) {
@@ -1344,8 +1352,9 @@
       ".sbdl-spread--cover{position:relative;padding:0;overflow:hidden;border:none;box-shadow:0 12px 40px rgba(157,23,77,.2);}" +
       "@media(min-width:768px){.sbdl-spread--cover{padding:0;}}" +
       ".sbdl-cover-img{display:block;width:100%;height:auto;aspect-ratio:1/1;object-fit:cover;transform:scale(1.02);}" +
-      ".sbdl-cover-title-wrap{position:absolute;inset:0;background:rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;padding:2rem;}" +
+      ".sbdl-cover-title-wrap{position:absolute;inset:0;background:rgba(0,0,0,0.35);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem;}" +
       ".sbdl-cover-title{font-size:clamp(2.5rem,8vw,4rem);color:#fff;text-shadow:0 4px 24px rgba(0,0,0,0.6);margin:0;text-align:center;}" +
+      ".sbdl-cover-author{font-size:clamp(1.2rem,4vw,1.8rem);color:#fff;text-shadow:0 2px 12px rgba(0,0,0,0.6);margin:1rem 0 0;text-align:center;font-weight:600;}" +
       ".sbdl-foot{margin-top:2.5rem;font-size:.85rem;font-weight:700;color:#9f1239;text-align:center;line-height:1.5;opacity:0.8;}" +
       "@media print{.sbdl-spread{break-inside:avoid;flex-direction:row;padding:2rem;gap:2rem;}}";
 
@@ -1370,7 +1379,7 @@
       tryFetchImageDataUrl(story.sceneImageUrl || ""),
     ])
       .then(function (arr) {
-        var html = buildStandaloneBookHtml(story.title, story.pages, arr[0], arr[1]);
+        var html = buildStandaloneBookHtml(story.title, story.author, story.pages, arr[0], arr[1]);
         var blob = new Blob([html], { type: "text/html;charset=utf-8" });
         var u = URL.createObjectURL(blob);
         var a = document.createElement("a");
