@@ -9,11 +9,13 @@
   min-height: 100dvh;
   font-family: "Nunito", "Segoe UI", system-ui, sans-serif;
   color: #831843;
-  background: linear-gradient(165deg, #fce7f3 0%, #fdf2f8 40%, #e9d5ff 100%);
+  /* Purple story-world wash — aligns with portal “Sofia’s Stories” tile */
+  background: linear-gradient(165deg, #f5efff 0%, #fde7f3 42%, #ddd6fe 92%);
   -webkit-font-smoothing: antialiased;
-  --sb-flip-red: #e61b41;
+  /* Book binding + accents (pink/magenta, same family as portal --theme-storybook) */
+  --sb-flip-red: #db2777;
   --sb-flip-paper: #ffffff;
-  --sb-flip-desk: #cfcfcf;
+  --sb-flip-desk: #cbc0e6;
   /* Matches .sb-flip-spread__inner height so cover and first spread line up */
   --sb-book-inner-h: clamp(240px, min(52vw, 54vh), 460px);
 }
@@ -160,8 +162,8 @@ body.page-storybook.sb-modal-open {
   border-radius: 18px;
   background: radial-gradient(
     ellipse 115% 90% at 50% 110%,
-    rgba(251, 207, 232, 0.55) 0%,
-    rgba(252, 231, 243, 0.32) 42%,
+    rgba(221, 214, 254, 0.65) 0%,
+    rgba(251, 207, 232, 0.45) 48%,
     transparent 72%
   );
 }
@@ -171,13 +173,13 @@ body.page-storybook.sb-modal-open {
   position: relative;
   margin-top: 0.75rem;
   padding: 1rem 0.45rem 0.55rem;
-  background: linear-gradient(180deg, #fefefe 0%, #f4f4f7 55%, #ebebef 100%);
+  background: linear-gradient(180deg, #faf7ff 0%, #ede9fe 52%, #e4dcfa 100%);
   border-radius: 6px 6px 18px 18px;
-  border: 1px solid rgba(20, 15, 30, 0.07);
+  border: 1px solid rgba(109, 40, 130, 0.12);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.95),
-    inset 0 -2px 8px rgba(0, 0, 0, 0.04),
-    0 16px 36px rgba(40, 32, 48, 0.12);
+    inset 0 1px 0 rgba(255, 255, 255, 0.92),
+    inset 0 -2px 10px rgba(88, 28, 135, 0.06),
+    0 16px 38px rgba(49, 20, 80, 0.14);
 }
 
 .sb-shelf-unit__crown {
@@ -186,7 +188,7 @@ body.page-storybook.sb-modal-open {
   right: 10%;
   top: -16px;
   height: 20px;
-  background: linear-gradient(180deg, #e6e6ea 0%, #dcdce2 100%);
+  background: linear-gradient(180deg, #eae4f7 0%, #dbd4f2 100%);
   border-radius: 50% 50% 0 0 / 100% 100% 0 0;
   box-shadow:
     inset 0 2px 3px rgba(255, 255, 255, 0.85),
@@ -268,13 +270,13 @@ body.page-storybook.sb-modal-open {
   background: linear-gradient(
     180deg,
     rgba(255, 255, 255, 0) 0%,
-    rgba(252, 252, 253, 0.88) 22%,
-    #f5f5f7 45%,
-    #ececf0 100%
+    rgba(250, 246, 255, 0.92) 24%,
+    #edebf8 52%,
+    #e5e1f7 100%
   );
   box-shadow:
-    0 -4px 14px rgba(0, 0, 0, 0.06),
-    inset 0 1px 0 rgba(255, 255, 255, 0.85);
+    0 -4px 16px rgba(67, 20, 90, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.88);
 }
 
 .sb-library__empty {
@@ -1000,7 +1002,7 @@ body.page-storybook.sb-modal-open {
   position: relative;
   transform-style: preserve-3d;
   transform-origin: left center;
-  transition: transform 1.05s cubic-bezier(0.4, 0.02, 0.2, 1);
+  transition: transform 1.12s cubic-bezier(0.28, 0.85, 0.32, 1);
   will-change: transform;
 }
 
@@ -1065,8 +1067,8 @@ body.page-storybook.sb-modal-open {
   flex-shrink: 0;
   background: linear-gradient(
     90deg,
-    #9a1028 0%,
-    #c41435 45%,
+    #831843 0%,
+    #be185d 45%,
     var(--sb-flip-red) 100%
   );
   box-shadow: inset -3px 0 8px rgba(0, 0, 0, 0.2);
@@ -1081,7 +1083,7 @@ body.page-storybook.sb-modal-open {
   justify-content: center;
   gap: 0.65rem;
   padding: 1rem 0.85rem 1.15rem;
-  background: linear-gradient(145deg, #ff3d5c 0%, var(--sb-flip-red) 38%, #b01030 100%);
+  background: linear-gradient(145deg, #fce7f3 0%, var(--sb-flip-red) 45%, #9d174d 100%);
   transition: filter 0.2s ease;
 }
 
@@ -1180,6 +1182,10 @@ body.page-storybook.sb-modal-open {
     transform: none;
   }
 
+  .sb-turn-leaf {
+    transition-duration: 0.01ms;
+  }
+
   .sb-flip-spread {
     transform: none;
     box-shadow: 0 12px 28px rgba(20, 12, 28, 0.16);
@@ -1220,7 +1226,7 @@ body.page-storybook.sb-modal-open {
   border-radius: 12px;
   box-sizing: border-box;
   overflow: visible;
-  transform: perspective(3200px) rotateX(2.5deg);
+  transform: perspective(3200px) rotateX(3.25deg);
   transform-origin: center bottom;
   box-shadow:
     0 4px 0 rgba(255, 255, 255, 0.35),
@@ -1259,8 +1265,8 @@ body.page-storybook.sb-modal-open {
   border-radius: 4px 0 0 4px;
   background: linear-gradient(
     90deg,
-    rgba(60, 8, 18, 0.88) 0%,
-    rgba(130, 18, 36, 0.45) 55%,
+    rgba(88, 20, 60, 0.9) 0%,
+    rgba(190, 24, 93, 0.5) 55%,
     transparent 100%
   );
   pointer-events: none;
@@ -1378,18 +1384,20 @@ body.page-storybook.sb-modal-open {
   transform-style: preserve-3d;
   transform-origin: left;
   transform: rotateY(0deg);
-  transition: transform 1s cubic-bezier(0.645, 0.045, 0.355, 1);
+  transition: transform 1.12s cubic-bezier(0.25, 0.82, 0.32, 1);
   box-shadow:
-    inset 0 0 0 1px rgba(0, 0, 0, 0.06),
-    2px 0 12px rgba(0, 0, 0, 0.07);
+    inset 0 0 0 1px rgba(157, 23, 77, 0.08),
+    3px 0 18px rgba(65, 20, 50, 0.12),
+    1px 0 6px rgba(0, 0, 0, 0.06);
   border-radius: 0 3px 3px 0;
 }
 
 .sb-page-turn-overlay--left .sb-turn-leaf {
   border-radius: 3px 0 0 3px;
   box-shadow:
-    inset 0 0 0 1px rgba(0, 0, 0, 0.06),
-    -2px 0 12px rgba(0, 0, 0, 0.07);
+    inset 0 0 0 1px rgba(157, 23, 77, 0.08),
+    -3px 0 18px rgba(65, 20, 50, 0.12),
+    -1px 0 6px rgba(0, 0, 0, 0.06);
 }
 
 .sb-turn-leaf--next {
