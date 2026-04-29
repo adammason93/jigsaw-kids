@@ -159,48 +159,35 @@ body.page-storybook.sb-modal-open {
 }
 
 .sb-shelf-wrap {
-  margin-top: 1rem;
+  margin-top: 1.5rem;
   padding: 0;
   border-radius: 0;
   background: transparent;
+  /* Make the shelf area wide and scrollable horizontally without vertical scrolling */
+  width: 100vw;
+  position: relative;
+  left: 50%;
+  right: 50%;
+  margin-left: -50vw;
+  margin-right: -50vw;
 }
 
-/* Sling Bookcase body */
+/* The majestic single-tier wooden library shelf */
 .sb-shelf-unit {
   position: relative;
-  padding: 1rem 0 1.5rem;
+  padding: 0;
   background: transparent;
-  max-width: 900px;
-  margin: 0 auto;
+  width: 100%;
 }
 
-/* White wooden side panels */
+/* Remove old side panels */
 .sb-shelf-unit::before,
 .sb-shelf-unit::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 20px;
-  background: #fcfcfc;
-  border-radius: 12px 12px 4px 4px;
-  z-index: 10;
-  pointer-events: none;
-}
-.sb-shelf-unit::before {
-  left: 0;
-  box-shadow: inset -3px 0 8px rgba(0, 0, 0, 0.04), 4px 4px 16px rgba(0, 0, 0, 0.08);
-  /* Angled A-frame look using clip-path */
-  clip-path: polygon(30% 0, 100% 0, 100% 100%, 0 100%);
-}
-.sb-shelf-unit::after {
-  right: 0;
-  box-shadow: inset 3px 0 8px rgba(0, 0, 0, 0.04), -4px 4px 16px rgba(0, 0, 0, 0.08);
-  clip-path: polygon(0 0, 70% 0, 100% 100%, 0 100%);
+  display: none;
 }
 
 .sb-shelf-unit__crown {
-  display: none; /* Removed for sling bookcase style */
+  display: none;
 }
 
 .sb-shelf-tiers {
@@ -208,99 +195,105 @@ body.page-storybook.sb-modal-open {
   z-index: 1;
   display: flex;
   flex-direction: column;
-  gap: 0;
 }
 
 .sb-shelf-tier {
   position: relative;
   width: 100%;
-  padding: 0 20px; /* Space for the wooden side panels */
-  margin-top: -1.5rem; /* Overlap tiers to mimic hanging slings */
+  padding: 0;
+  margin: 0;
 }
 
-/* Canvas back panel for each tier (behind books) */
+/* The beautiful wooden back panel behind the books */
 .sb-shelf-tier::before {
   content: "";
   position: absolute;
-  left: 20px;
-  right: 20px;
-  top: 25%;
-  bottom: 10%;
-  background: #d8cfc0; /* Darker inside canvas */
-  border-radius: 4px;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 30px;
+  background: linear-gradient(to bottom, #4a2c1b 0%, #3a1c0d 100%);
   z-index: 0;
+  box-shadow: inset 0 20px 40px rgba(0, 0, 0, 0.4);
+  /* Subtle wood grain texture trick using repeating gradients */
+  background-image: 
+    repeating-linear-gradient(90deg, rgba(255,255,255,0.02) 0px, rgba(255,255,255,0.02) 1px, transparent 1px, transparent 4px),
+    linear-gradient(to bottom, #4a2c1b 0%, #3a1c0d 100%);
 }
-
-.sb-shelf-tier:first-child {
-  margin-top: 0;
-}
-
-/* Tiers stagger slightly backwards naturally because of the A-frame, but we can keep widths full between panels */
-.sb-shelf-tier:nth-child(2) { width: 100%; }
-.sb-shelf-tier:nth-child(3) { width: 100%; }
-.sb-shelf-tier:nth-child(4) { width: 100%; }
 
 .sb-shelf-tier__books {
   display: flex;
   align-items: flex-end;
-  justify-content: center;
+  justify-content: flex-start;
   flex-wrap: nowrap;
-  gap: 0.5rem;
+  gap: 1.5rem;
   overflow-x: auto;
   overflow-y: visible;
-  min-height: 12rem;
-  padding: 0.5rem 1rem 1.5rem;
+  min-height: 18rem;
+  padding: 1.5rem 5vw 35px; /* Bottom padding gives room for the wooden shelf base */
   position: relative;
-  z-index: 2; /* Above back canvas, behind front lip */
+  z-index: 2;
   -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x mandatory;
 }
 
+.sb-shelf-tier__books > * {
+  scroll-snap-align: center;
+}
+
+/* Elegant custom scrollbar for the library */
 .sb-shelf-tier__books::-webkit-scrollbar {
-  display: none; /* Hide scrollbar for a cleaner canvas look */
+  height: 8px;
 }
 
-/* Front retaining lip: The canvas pocket and wooden dowel */
+.sb-shelf-tier__books::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+  margin: 0 5vw;
+}
+
+.sb-shelf-tier__books::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+}
+
+.sb-shelf-tier__books::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+/* The solid wooden base the books sit on */
 .sb-shelf-tier__lip {
   position: absolute;
-  left: 20px;
-  right: 20px;
+  left: 0;
+  right: 0;
   bottom: 0;
-  height: 35%; /* Covers bottom of books */
-  min-height: 3.5rem;
+  height: 35px;
   pointer-events: none;
   z-index: 6;
   
-  /* Canvas fabric pocket */
-  background: #ede6d8;
-  border-radius: 2px 2px 16px 16px;
+  /* Rich 3D wood shelf base */
+  background: linear-gradient(to bottom, #7d4e2d 0%, #5c351b 40%, #3e1e0b 100%);
+  border-top: 1px solid #9e6d4a;
   box-shadow: 
-    inset 0 12px 16px -8px rgba(0, 0, 0, 0.08), /* Shadow from books casting onto front inside */
-    0 8px 12px -2px rgba(0, 0, 0, 0.12); /* Shadow casting down to the next tier */
+    0 -5px 15px rgba(0, 0, 0, 0.5), /* Shadow casting upwards onto books */
+    0 15px 25px rgba(0, 0, 0, 0.4); /* Shadow casting down below the shelf */
 }
 
-/* The wooden dowel holding the front canvas */
+/* Highlight edge of the wood */
 .sb-shelf-tier__lip::before {
   content: "";
   position: absolute;
-  top: -6px;
-  left: -6px;
-  right: -6px;
-  height: 14px;
-  background: linear-gradient(180deg, #f0cfad 0%, #d4a978 45%, #b5854f 100%);
-  border-radius: 7px;
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(to bottom, rgba(255,255,255,0.2) 0%, transparent 100%);
   z-index: 7;
 }
 
-/* Add a stitch line detail to the canvas */
+/* Remove the old canvas lip styling entirely */
 .sb-shelf-tier__lip::after {
-  content: "";
-  position: absolute;
-  top: 14px;
-  left: 0;
-  right: 0;
-  height: 2px;
-  border-top: 2px dashed rgba(180, 160, 130, 0.5);
+  display: none;
 }
 
 .sb-library__empty {
@@ -325,31 +318,33 @@ body.page-storybook.sb-modal-open {
   flex: 0 0 auto;
   display: flex;
   align-items: flex-end;
-  margin-right: -0.45rem;
+  /* Books stand side-by-side, no negative overlap */
+  margin-right: 0.5rem;
   z-index: 2;
-  padding-bottom: 0.2rem;
-  transition: transform 0.2s ease, z-index 0s linear;
+  padding-bottom: 0.5rem;
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), z-index 0s linear;
 }
 
 .sb-cover-card-wrap:last-child {
-  margin-right: 0;
+  margin-right: 5vw; /* Padding at end of scroll */
 }
 
 .sb-cover-card-wrap:hover,
 .sb-cover-card-wrap:focus-within {
   z-index: 8;
-  transform: translateY(-5px);
+  transform: translateY(-12px) scale(1.05);
 }
 
 .sb-cover-card {
   position: relative;
   display: block;
-  width: clamp(5rem, 26vw, 6.85rem);
-  aspect-ratio: 3 / 4;
+  /* Slightly larger beautiful books */
+  width: clamp(7.5rem, 32vw, 12rem);
+  aspect-ratio: 1 / 1; /* Match the new square DALL-E covers */
   padding: 0;
   margin: 0;
   border: none;
-  border-radius: 3px 12px 12px 3px;
+  border-radius: 4px 14px 14px 4px;
   cursor: pointer;
   touch-action: manipulation;
   overflow: visible;
@@ -439,10 +434,12 @@ body.page-storybook.sb-modal-open {
   height: 100%;
   object-fit: cover;
   object-position: center;
-  opacity: 0.42;
-  filter: saturate(1.08) contrast(1.05);
-  z-index: 0;
+  /* Make the cover image fully opaque, vibrant, and proud like a real picture book */
+  opacity: 1;
+  filter: none;
+  z-index: 5; /* Sit over the top of the fallback cloth and title so it looks like a real picture book */
   pointer-events: none;
+  border-radius: 4px 14px 14px 4px;
 }
 
 .sb-cover-card__gilt {
@@ -453,13 +450,13 @@ body.page-storybook.sb-modal-open {
   background: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(255, 242, 200, 0.25) 15%,
+    rgba(255, 242, 200, 0.45) 15%,
     #e8c56a 50%,
-    rgba(255, 242, 200, 0.25) 85%,
+    rgba(255, 242, 200, 0.45) 85%,
     transparent 100%
   );
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
-  z-index: 1;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+  z-index: 10;
 }
 
 .sb-cover-card__gilt--top {
@@ -477,22 +474,28 @@ body.page-storybook.sb-modal-open {
   align-items: center;
   justify-content: center;
   min-height: 0;
-  padding: 0 0.2rem 0.15rem;
-  z-index: 2;
+  padding: 0.5rem 0.4rem;
+  z-index: 10;
   position: relative;
+  background: rgba(0, 0, 0, 0.45);
+  margin: 0 4%;
+  border-radius: 6px;
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
 }
 
 .sb-cover-card__cover-title {
   font-family: "Fredoka", "Sniglet", "Nunito", serif;
-  font-size: clamp(0.55rem, 2.85vw, 0.76rem);
+  font-size: clamp(0.7rem, 3.5vw, 1.1rem);
   font-weight: 700;
   line-height: 1.22;
   text-align: center;
   letter-spacing: 0.01em;
   color: #fffdf7;
   text-shadow:
-    0 1px 2px rgba(0, 0, 0, 0.55),
-    0 0 10px rgba(0, 0, 0, 0.2);
+    0 1px 2px rgba(0, 0, 0, 0.8),
+    0 0 10px rgba(0, 0, 0, 0.6);
   display: -webkit-box;
   -webkit-line-clamp: 4;
   line-clamp: 4;

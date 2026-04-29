@@ -1191,23 +1191,22 @@
       shelfEl.appendChild(empty);
       return;
     }
-    var step = SHELF_COVERS_PER_TIER;
-    for (var i = 0; i < list.length; i += step) {
-      var tier = document.createElement("div");
-      tier.className = "sb-shelf-tier";
-      var books = document.createElement("div");
-      books.className = "sb-shelf-tier__books";
-      books.setAttribute("role", "list");
-      for (var k = i; k < list.length && k < i + step; k++) {
-        books.appendChild(createCoverCardWrap(list[k]));
-      }
-      var lip = document.createElement("div");
-      lip.className = "sb-shelf-tier__lip";
-      lip.setAttribute("aria-hidden", "true");
-      tier.appendChild(books);
-      tier.appendChild(lip);
-      shelfEl.appendChild(tier);
+    
+    // Create a single tier for all books so it scrolls horizontally
+    var tier = document.createElement("div");
+    tier.className = "sb-shelf-tier";
+    var books = document.createElement("div");
+    books.className = "sb-shelf-tier__books";
+    books.setAttribute("role", "list");
+    for (var i = 0; i < list.length; i++) {
+      books.appendChild(createCoverCardWrap(list[i]));
     }
+    var lip = document.createElement("div");
+    lip.className = "sb-shelf-tier__lip";
+    lip.setAttribute("aria-hidden", "true");
+    tier.appendChild(books);
+    tier.appendChild(lip);
+    shelfEl.appendChild(tier);
   }
 
   function saveBookToShelf() {
