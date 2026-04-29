@@ -592,6 +592,7 @@ Zuma.DefaultColorList = ["#0C3406", "#077187", "#74A57F", "#ABD8CE", "#E4C5AF"];
         if (isFinal && finalPopup && finalNum) {
           finalPopup.classList.add("active");
           finalNum.textContent = String(zumaGame.score);
+          syncPopupBlocking();
           if (typeof KidsCore !== "undefined") {
             KidsCore.recordGame("zuma");
             KidsCore.playSound("win");
@@ -620,6 +621,7 @@ Zuma.DefaultColorList = ["#0C3406", "#077187", "#74A57F", "#ABD8CE", "#E4C5AF"];
       zumaGame.stop();
       if (stopPopup) stopPopup.classList.add("active");
       if (stopBtn) stopBtn.classList.add("active");
+      syncPopupBlocking();
     }
 
     document.addEventListener("keydown", function (e) {
@@ -637,7 +639,18 @@ Zuma.DefaultColorList = ["#0C3406", "#077187", "#74A57F", "#ABD8CE", "#E4C5AF"];
       if (document.hidden) pauseZumaIfPlaying();
     });
 
+    var popupContainer = document.querySelector(".popup-container");
+    function syncPopupBlocking() {
+      if (!popupContainer) return;
+      if (popupContainer.querySelector(".popup.active")) {
+        popupContainer.classList.add("popup-container--blocking");
+      } else {
+        popupContainer.classList.remove("popup-container--blocking");
+      }
+    }
+
     if (!isMobile) {
+      if (typeof PointerEvent !== "undefined") {
         window.addEventListener("pointermove", function (e) {
           aimFromClient(e.clientX, e.clientY);
         });
@@ -701,6 +714,7 @@ Zuma.DefaultColorList = ["#0C3406", "#077187", "#74A57F", "#ABD8CE", "#E4C5AF"];
         zumaGame.stop();
         stopBtn.classList.add("active");
         stopPopup.classList.add("active");
+        syncPopupBlocking();
       });
       moveBtn.addEventListener(
         "touchstart",
@@ -718,11 +732,13 @@ Zuma.DefaultColorList = ["#0C3406", "#077187", "#74A57F", "#ABD8CE", "#E4C5AF"];
 
     startPopup.querySelector("#init-btn").addEventListener("click", function () {
       startPopup.classList.remove("active");
+      syncPopupBlocking();
       zumaGame.start();
     });
     stopPopup.querySelector("#start-btn").addEventListener("click", function () {
       stopPopup.classList.remove("active");
       if (stopBtn) stopBtn.classList.remove("active");
+      syncPopupBlocking();
       setTimeout(function () {
         zumaGame.start();
       }, 100);
@@ -731,15 +747,19 @@ Zuma.DefaultColorList = ["#0C3406", "#077187", "#74A57F", "#ABD8CE", "#E4C5AF"];
       stopPopup.classList.remove("active");
       if (stopBtn) stopBtn.classList.remove("active");
       finalPopup.classList.remove("active");
+      syncPopupBlocking();
       zumaGame.reset().start();
     });
     finalPopup.querySelector("#restart-btn").addEventListener("click", function () {
       finalPopup.classList.remove("active");
+      syncPopupBlocking();
       zumaGame.reset().start();
     });
 
     window.addEventListener("resize", resize);
     resize();
+
+    syncPopupBlocking();
 
     if (typeof KidsCore !== "undefined") {
       KidsCore.init();

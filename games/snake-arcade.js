@@ -41,7 +41,7 @@
 
   var cellPx = 20;
   var logicalSize = 400;
-  /** Max playfield edge in CSS pixels; wrapper CSS also caps size on small viewports. */
+  /** Max playfield edge in CSS px (ultra-wide desktops); tablet size comes from flex + ResizeObserver. */
   var BOARD_MAX_PX = 720;
 
   function loadHigh() {
@@ -71,7 +71,10 @@
     var wrap = canvas.parentElement;
     if (!wrap) return;
     var w = wrap.clientWidth;
-    logicalSize = Math.max(260, Math.min(Math.floor(w), BOARD_MAX_PX));
+    var h = wrap.clientHeight;
+    var side = Math.min(w, h);
+    if (side < 48) return;
+    logicalSize = Math.max(200, Math.min(Math.floor(side), BOARD_MAX_PX));
     var dpr = window.devicePixelRatio || 1;
     canvas.style.width = logicalSize + "px";
     canvas.style.height = logicalSize + "px";
@@ -448,6 +451,13 @@
   });
 
   window.addEventListener("resize", resizeCanvas);
+
+  var boardWrap = canvas.parentElement;
+  if (boardWrap && typeof ResizeObserver !== "undefined") {
+    new ResizeObserver(function () {
+      resizeCanvas();
+    }).observe(boardWrap);
+  }
 
   if (typeof CanvasRenderingContext2D !== "undefined" && !ctx.roundRect) {
     CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
