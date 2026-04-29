@@ -355,7 +355,7 @@
     }
     shell.addEventListener("transitionend", onTe);
     shell.addEventListener("webkitTransitionEnd", onTe);
-    var tid = window.setTimeout(finish, 980);
+    var tid = window.setTimeout(finish, 1400);
   }
 
   function bumpSpreadIndex(delta) {

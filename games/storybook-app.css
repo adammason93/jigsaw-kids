@@ -1361,30 +1361,7 @@ body.page-storybook.sb-modal-open {
   overflow: hidden;
 }
 
-/* One leaf turns: right-hand page only, hinged at the gutter (normative book forward turn) */
-.sb-flip-spread__art-peel {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 50%;
-  width: 50%;
-  right: auto;
-  z-index: 3;
-  border-radius: 0 6px 6px 0;
-  overflow: hidden;
-  pointer-events: none;
-  background-color: var(--sb-flip-paper);
-  transform-style: preserve-3d;
-  -webkit-transform-style: preserve-3d;
-  transform-origin: left center;
-  -webkit-transform-origin: left center;
-  transform: rotateY(0deg);
-  transition: transform 0.54s cubic-bezier(0.4, 0, 0.2, 1);
-  -webkit-transition: -webkit-transform 0.54s cubic-bezier(0.4, 0, 0.2, 1);
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-}
-
+/* Base duplex under the peeling leaf (#sbSpreadArtCover) */
 .sb-flip-spread__art-cover {
   position: absolute;
   inset: 0;
@@ -1397,7 +1374,30 @@ body.page-storybook.sb-modal-open {
   z-index: 1;
 }
 
-/* Match full duplex framing on base: same bitmap, cropped to the verso/right column */
+/* One leaf turns: right-hand page only, hinged at the gutter (normative book forward turn) */
+.sb-flip-spread__art-peel {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 50%;
+  right: auto;
+  z-index: 3;
+  border-radius: 0 6px 6px 0;
+  /* No overflow:hidden — it clips the 3D fold over the gutter. Clip the recto to the verso column instead: */
+  overflow: visible;
+  pointer-events: none;
+  background-color: var(--sb-flip-paper);
+  transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
+  transform-origin: left center;
+  -webkit-transform-origin: left center;
+  transform: rotateY(0deg);
+  transition: transform 0.62s cubic-bezier(0.45, 0, 0.32, 1);
+  -webkit-transition: -webkit-transform 0.62s cubic-bezier(0.45, 0, 0.32, 1);
+}
+
+/* Recto illustration + verso blank so a full hinge fold reads like a physical leaf */
 .sb-flip-spread__art-peel__img.sb-flip-spread__art-cover {
   inset: auto;
   left: -100%;
@@ -1406,6 +1406,34 @@ body.page-storybook.sb-modal-open {
   max-width: none;
   height: 100%;
   border-radius: 0 6px 6px 0;
+  transform: translateZ(1px);
+  -webkit-transform: translateZ(1px);
+  /* Right-hand column of duplex only (coords are % of img box; img is wide enough to mirror base crop) */
+  clip-path: polygon(50% 0, 100% 0, 100% 100%, 50% 100%);
+  -webkit-clip-path: polygon(50% 0, 100% 0, 100% 100%, 50% 100%);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  z-index: 2;
+}
+
+.sb-flip-spread__art-peel::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 0 6px 6px 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    linear-gradient(115deg, rgba(255, 253, 248, 0.98) 0%, rgba(244, 238, 232, 1) 48%, rgba(230, 222, 214, 1) 100%);
+  box-shadow:
+    inset 1px 0 0 rgba(0, 0, 0, 0.04),
+    inset 0 0 0 1px rgba(157, 23, 77, 0.04);
+  transform: rotateY(180deg) translateZ(0);
+  -webkit-transform: rotateY(180deg) translateZ(0);
+  transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
 .sb-flip-spread__art-peel.sb-story-pageflip--turn-next-1 .sb-flip-spread__art-peel__img,
@@ -1423,13 +1451,13 @@ body.page-storybook.sb-modal-open {
 }
 
 .sb-flip-spread__art-peel.sb-story-pageflip--turn-next-1 {
-  transform: rotateY(-92deg);
-  -webkit-transform: rotateY(-92deg);
+  transform: rotateY(-180deg);
+  -webkit-transform: rotateY(-180deg);
 }
 
 .sb-flip-spread__art-peel.sb-story-pageflip--turn-prev-1 {
-  transform: rotateY(92deg);
-  -webkit-transform: rotateY(92deg);
+  transform: rotateY(180deg);
+  -webkit-transform: rotateY(180deg);
 }
 
 /* Text sits over the full-bleed art; readability comes from line-by-line pills on .sb-flip-text__highlight */
