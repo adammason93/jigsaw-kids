@@ -178,7 +178,7 @@
             var row = rowRes.data;
             if (!row || !row.payload || typeof row.payload !== "object") {
               if (onDone) {
-                onDone(false);
+                onDone(true); // Return true even if no score bundles, to ensure storage buckets still sync
               }
               return;
             }
