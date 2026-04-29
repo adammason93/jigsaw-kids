@@ -804,14 +804,15 @@
 
   function tryFetchImageDataUrl(url) {
     if (!url) return Promise.resolve(null);
+    if (url.indexOf("data:") === 0) return Promise.resolve(url);
+    
     return fetch(url, {
       mode: "cors",
       credentials: "omit",
-      cache: "no-store",
-      referrerPolicy: "no-referrer",
+      cache: "default", // Changed from no-store to default, sometimes no-store breaks CORS preflights on strict CDNs
     })
       .then(function (r) {
-        if (!r.ok) throw new Error("bad");
+        if (!r.ok) throw new Error("bad " + r.status);
         return r.blob();
       })
       .then(function (blob) {
@@ -826,7 +827,8 @@
           fr.readAsDataURL(blob);
         });
       })
-      .catch(function () {
+      .catch(function (err) {
+        console.warn("Could not fetch data URL for", url, err);
         return null;
       });
   }
@@ -1163,61 +1165,75 @@
 
   function buildStandaloneBookHtml(title, pages, dataUrls, sceneDataUrl) {
     var escTitle = escapeHtml(title);
-    var bodyRule = sceneDataUrl
-      ? "body{font-family:system-ui,-apple-system,'Segoe UI',sans-serif;margin:0;color:#500724;background-image:url(" +
-        JSON.stringify(sceneDataUrl) +
-        ");background-size:cover;background-position:center top;background-attachment:fixed;background-color:#fce7f3}" +
-        "body::before{content:'';position:fixed;inset:0;background:linear-gradient(180deg,rgba(253,242,248,.55)0%,rgba(253,242,248,.08)45%,rgba(252,231,243,.48)100%);pointer-events:none;z-index:0}"
-      : "body{font-family:system-ui,-apple-system,'Segoe UI',sans-serif;margin:0;background:linear-gradient(165deg,#fce7f3,#fdf2f8 45%,#e9d5ff);color:#500724}";
-    var wrapExtra = sceneDataUrl ? ";position:relative;z-index:1" : "";
+    var bodyRule = "body{font-family:system-ui,-apple-system,'Segoe UI',sans-serif;margin:0;background:linear-gradient(165deg,#fce7f3,#fdf2f8 45%,#e9d5ff);color:#500724}";
     var articles = [];
-    for (var i = 0; i < pages.length; i++) {
-      var p = pages[i];
-      var art = "";
-      if (p.imageUrl) {
-        var src = dataUrls[i] || escapeAttr(p.imageUrl);
-        art =
-          '<div class="sbdl-art"><img src="' +
-          src +
-          '" alt="Illustration for page ' +
-          (i + 1) +
-          '" /></div>';
-      }
+    
+    if (sceneDataUrl) {
       articles.push(
-        '<article class="sbdl-page" id="p-' +
-          (i + 1) +
-          '"><p class="sbdl-k">Page ' +
-          (i + 1) +
-          "</p>" +
-          art +
-          '<p class="sbdl-t">' +
-          escapeHtml(p.text).replace(/\n/g, "<br/>") +
-          "</p></article>"
+        '<div class="sbdl-spread sbdl-spread--cover">' +
+          '<img class="sbdl-cover-img" src="' + sceneDataUrl + '" alt="Cover" />' +
+          '<div class="sbdl-cover-title-wrap"><h1 class="sbdl-cover-title">' + escTitle + '</h1></div>' +
+        '</div>'
+      );
+    } else {
+      articles.push('<h1>' + escTitle + '</h1>');
+    }
+
+    for (var i = 0; i < pages.length; i += 2) {
+      var leftPage = pages[i];
+      var rightPage = pages[i + 1] || null;
+      
+      var leftContent = '<div class="sbdl-side sbdl-side--left">' +
+        '<p class="sbdl-t">' + escapeHtml(leftPage.text).replace(/\n/g, "<br/>") + '</p>' +
+        '<p class="sbdl-k">Page ' + (i + 1) + '</p>' +
+      '</div>';
+      
+      var rightContent = '<div class="sbdl-side sbdl-side--right">';
+      if (rightPage) {
+         if (rightPage.imageUrl) {
+            var src = dataUrls[i + 1] || escapeAttr(rightPage.imageUrl);
+            rightContent += '<div class="sbdl-art"><img src="' + src + '" alt="Illustration for page ' + (i + 2) + '" /></div>';
+         }
+         rightContent += '<p class="sbdl-t">' + escapeHtml(rightPage.text).replace(/\n/g, "<br/>") + '</p>';
+         rightContent += '<p class="sbdl-k">Page ' + (i + 2) + '</p>';
+      }
+      rightContent += '</div>';
+
+      articles.push(
+        '<div class="sbdl-spread">' +
+          leftContent +
+          rightContent +
+        '</div>'
       );
     }
+
     var css =
       bodyRule +
-      ".sbdl-wrap{max-width:28rem;margin:0 auto;padding:1.25rem 1rem 2.5rem" +
-      wrapExtra +
-      "}" +
+      ".sbdl-wrap{max-width:54rem;margin:0 auto;padding:1.5rem 1rem 3rem}" +
       "h1{font-size:clamp(1.35rem,4vw,1.65rem);text-align:center;color:#9d174d;margin:0 0 1.25rem;font-weight:800;}" +
-      ".sbdl-page{background:#fff;border-radius:18px;padding:1rem 1rem 1.15rem;margin:0 0 1rem;box-shadow:0 6px 22px rgba(157,23,77,.12);border:2px solid rgba(244,114,182,.35);}" +
-      ".sbdl-k{font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#be185d;margin:0 0 .5rem;}" +
-      ".sbdl-art{border-radius:14px;overflow:hidden;margin:0 0 .85rem;background:#fdf2f8;}" +
-      ".sbdl-art img{display:block;width:100%;height:auto}" +
-      ".sbdl-t{font-size:1.05rem;font-weight:700;line-height:1.55;margin:0}" +
-      ".sbdl-foot{margin-top:1.75rem;font-size:.78rem;font-weight:700;color:#9f1239;text-align:center;line-height:1.45;}" +
-      "@media print{.sbdl-page{break-inside:avoid}}";
+      ".sbdl-spread{display:flex;flex-direction:column;gap:1.5rem;background:#fff;border-radius:24px;padding:1.5rem;margin:0 0 2rem;box-shadow:0 8px 32px rgba(157,23,77,.08);border:2px solid rgba(244,114,182,.3);}" +
+      "@media(min-width:768px){.sbdl-spread{flex-direction:row;padding:2.5rem;gap:3rem;}}" +
+      ".sbdl-side{flex:1;display:flex;flex-direction:column;}" +
+      ".sbdl-k{font-size:.75rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#be185d;margin-top:auto;padding-top:1.5rem;text-align:center;opacity:0.6;}" +
+      ".sbdl-art{border-radius:16px;overflow:hidden;margin:0 0 1.25rem;background:#fdf2f8;box-shadow:0 4px 16px rgba(0,0,0,0.06);}" +
+      ".sbdl-art img{display:block;width:100%;height:auto;aspect-ratio:16/9;object-fit:cover;}" +
+      ".sbdl-t{font-size:1.25rem;font-weight:600;line-height:1.65;margin:0;color:#500724;}" +
+      ".sbdl-spread--cover{position:relative;padding:0;overflow:hidden;border:none;box-shadow:0 12px 40px rgba(157,23,77,.2);}" +
+      "@media(min-width:768px){.sbdl-spread--cover{padding:0;}}" +
+      ".sbdl-cover-img{display:block;width:100%;height:auto;aspect-ratio:1/1;object-fit:cover;}" +
+      ".sbdl-cover-title-wrap{position:absolute;inset:0;background:rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;padding:2rem;}" +
+      ".sbdl-cover-title{font-size:clamp(2.5rem,8vw,4rem);color:#fff;text-shadow:0 4px 24px rgba(0,0,0,0.6);margin:0;text-align:center;}" +
+      ".sbdl-foot{margin-top:2.5rem;font-size:.85rem;font-weight:700;color:#9f1239;text-align:center;line-height:1.5;opacity:0.8;}" +
+      "@media print{.sbdl-spread{break-inside:avoid;flex-direction:row;padding:2rem;gap:2rem;}}";
+
     return (
       '<!DOCTYPE html><html lang="en-GB"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><title>' +
       escTitle +
       "</title><style>" +
       css +
-      '</style></head><body><div class="sbdl-wrap"><h1>' +
-      escTitle +
-      "</h1>" +
+      '</style></head><body><div class="sbdl-wrap">' +
       articles.join("") +
-      '<p class="sbdl-foot">Saved from your Sofia&rsquo;s Game Room storybook. Keep this file to read your story any time (works offline when pictures are embedded).</p></div></body></html>'
+      '<p class="sbdl-foot">Saved from your Sofia&rsquo;s Game Room storybook. Keep this file to read your story any time!</p></div></body></html>'
     );
   }
 
