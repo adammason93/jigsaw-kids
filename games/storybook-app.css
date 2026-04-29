@@ -1452,6 +1452,7 @@ body.page-storybook.sb-modal-open {
   background-position: center;
   background-repeat: no-repeat;
   pointer-events: none;
+  transform: scale(1.02); /* Slight crop to hide any DALL-E generated borders */
 }
 
 .sb-flip-spread__art-base {
@@ -1473,6 +1474,7 @@ body.page-storybook.sb-modal-open {
   object-position: center;
   pointer-events: none;
   z-index: 1;
+  transform: scale(1.02); /* Slight crop to hide any DALL-E generated borders */
 }
 
 /* One leaf turns: right-hand page only, hinged at the gutter (normative book forward turn) */

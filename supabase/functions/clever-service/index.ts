@@ -563,9 +563,8 @@ Return JSON shape: { "title": string, "characterDesign": string, "pages": [ { "t
   const finalCharacterDesc = story.characterDesign || characterDesc;
   const imagePromptPrefix =
     "Same soft 3D clay and matte toy render as a fancy kids' app, rounded shapes, gentle pastel lighting, " +
-    "one wide horizontal full-bleed illustration filling the entire frame; " +
-    "CRITICAL: DO NOT draw a literal book, pages, or borders. Draw the actual scene taking place; " +
-    "the scene flows across the full width as a single continuous environment; " +
+    "beautiful cinematic wide-angle scene filling the picture entirely edge-to-edge; " +
+    "draw the actual story environment flowing seamlessly without any frames or margins; " +
     "no letters no words no text in the image, wholesome and safe for toddlers. " +
     `Main character to show (keep this character EXACTLY consistent): ${finalCharacterDesc}. Setting mood: ${placeDesc}.` +
     (familyNames.length > 0
@@ -591,7 +590,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "pages": [ { "t
     const staggerMs = 450;
     
     // Add cover image to the list of parallel generations
-    const coverPrompt = imagePromptPrefix + ` Beautiful cover illustration for the book titled "${story.title}". Centered, well-composed, no text.`;
+    const coverPrompt = imagePromptPrefix + ` Beautiful illustration to be used as a cover art for "${story.title}". Centered, well-composed, full-bleed artwork.`;
     
     const [urls, coverUrl] = await Promise.all([
       Promise.all(
