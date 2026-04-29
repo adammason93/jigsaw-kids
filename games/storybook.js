@@ -56,6 +56,8 @@
   var spreadArtBg = document.getElementById("sbSpreadArtBg");
   var spreadArtCover = document.getElementById("sbSpreadArtCover");
   var spreadRightArtImg = document.getElementById("sbSpreadRightArt");
+  /** Wraps `#sbSpreadRightArt`; hinged 3D “page turn” rotates this element. */
+  var cpBookShell = document.getElementById("sbCpBookShell");
   var readerStack = document.getElementById("sbReaderStack");
   var readerPages = document.getElementById("sbReaderPages");
   var btnOpenCover = document.getElementById("sbOpenCover");
@@ -299,6 +301,19 @@
     return name === "transform" || name === "-webkit-transform";
   }
 
+  function clearCpBookShellTurnClasses() {
+    var shell = cpBookShell || document.getElementById("sbCpBookShell");
+    if (!shell) return;
+    shell.classList.remove(
+      "sb-story-pageflip--turn-next-1",
+      "sb-story-pageflip--snap-next",
+      "sb-story-pageflip--turn-next-2",
+      "sb-story-pageflip--turn-prev-1",
+      "sb-story-pageflip--snap-prev",
+      "sb-story-pageflip--turn-prev-2"
+    );
+  }
+
   function clearSpreadTurnClasses() {
     if (spreadInnerEl) {
       spreadInnerEl.classList.remove(
@@ -310,6 +325,78 @@
         "sb-flip-spread__inner--fade-in"
       );
     }
+    clearCpBookShellTurnClasses();
+  }
+
+  function bindCpShellTurnEnd(shell, cb) {
+    var done = false;
+    function finish() {
+      if (done) return;
+      done = true;
+      shell.removeEventListener("transitionend", onTe);
+      shell.removeEventListener("webkitTransitionEnd", onTe);
+      window.clearTimeout(tid);
+      cb();
+    }
+    function onTe(ev) {
+      if (!ev || ev.target !== shell) return;
+      var pn = ev.propertyName || "";
+      if (pn !== "" && !isTransformTransitionProperty(pn)) return;
+      finish();
+    }
+    shell.addEventListener("transitionend", onTe);
+    shell.addEventListener("webkitTransitionEnd", onTe);
+    var tid = window.setTimeout(finish, 980);
+  }
+
+  function bumpSpreadIndex(delta) {
+    spreadIndex += delta;
+    var nSpr = numSpreads();
+    spreadIndex = Math.max(0, Math.min(spreadIndex, nSpr - 1));
+    applySpreadContent();
+  }
+
+  function navigateSpreadWithRightPageTurn(delta) {
+    var shell = cpBookShell || document.getElementById("sbCpBookShell");
+    if (spreadAnimLock) return;
+    if (!shell) {
+      navigateSpreadInstant(delta);
+      return;
+    }
+
+    spreadAnimLock = true;
+    setSpreadNavBusy(true);
+    clearCpBookShellTurnClasses();
+
+    var isNext = delta > 0;
+    var cls1 = isNext
+      ? "sb-story-pageflip--turn-next-1"
+      : "sb-story-pageflip--turn-prev-1";
+    var snap = isNext
+      ? "sb-story-pageflip--snap-next"
+      : "sb-story-pageflip--snap-prev";
+    var cls2 = isNext
+      ? "sb-story-pageflip--turn-next-2"
+      : "sb-story-pageflip--turn-prev-2";
+
+    shell.classList.add(cls1);
+
+    bindCpShellTurnEnd(shell, function phase1Done() {
+      bumpSpreadIndex(delta);
+      shell.classList.remove(cls1);
+      shell.classList.add(snap);
+      window.requestAnimationFrame(function () {
+        window.requestAnimationFrame(function () {
+          shell.classList.add(cls2);
+
+          bindCpShellTurnEnd(shell, function phase2Done() {
+            shell.classList.remove(snap, cls2);
+            spreadAnimLock = false;
+            setSpreadNavBusy(false);
+          });
+        });
+      });
+    });
   }
 
   function rebuildFlipbookSheets() {
@@ -321,10 +408,7 @@
 
   function navigateSpreadInstant(delta) {
     spreadAnimLock = false;
-    spreadIndex += delta;
-    var nSpr = numSpreads();
-    spreadIndex = Math.max(0, Math.min(spreadIndex, nSpr - 1));
-    applySpreadContent();
+    bumpSpreadIndex(delta);
   }
 
   function navigateSpread(delta) {
@@ -332,7 +416,12 @@
     if (book && book.classList.contains("sb-book--cover-visible")) return;
     if (delta > 0 && spreadIndex >= numSpreads() - 1) return;
     if (delta < 0 && spreadIndex <= 0) return;
-    navigateSpreadInstant(delta);
+    if (prefersReducedSpreadMotion()) {
+      navigateSpreadInstant(delta);
+      return;
+    }
+    if (spreadAnimLock) return;
+    navigateSpreadWithRightPageTurn(delta);
   }
 
   function setSpreadNavBusy(locked) {
