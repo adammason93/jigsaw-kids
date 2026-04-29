@@ -299,6 +299,7 @@
       if (textEl) textEl.textContent = "";
       if (art) art.hidden = true;
       if (img) img.removeAttribute("src");
+      faceRoot.classList.add("sb-page-face--text-only");
       return;
     }
     if (textEl) textEl.textContent = page.text;
@@ -307,9 +308,11 @@
         img.src = page.imageUrl;
         img.alt = "";
         art.hidden = false;
+        faceRoot.classList.remove("sb-page-face--text-only");
       } else {
         art.hidden = true;
         img.removeAttribute("src");
+        faceRoot.classList.add("sb-page-face--text-only");
       }
     }
   }

@@ -256,7 +256,8 @@ Return JSON shape: { "title": string, "pages": [ { "text": string, "illustration
   }
 
   const imagePromptPrefix =
-    "Children's picture book illustration, rounded friendly shapes, bright pastels, " +
+    "Children's picture book illustration in clean vector art style with soft shading, rounded friendly shapes, bright pastels, " +
+    "like a printed storybook spread, single cohesive scene, " +
     "no letters no words no text in the image, wholesome and safe for toddlers. " +
     `Main character to show: ${characterDesc}. Setting mood: ${placeDesc}. Scene: `;
 
