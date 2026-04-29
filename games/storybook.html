@@ -40,46 +40,53 @@
 
     <!-- Landing: start the journey -->
     <section class="sb-landing" id="sbLanding" aria-labelledby="sbLandingTitle">
-      <p class="sb-landing__emoji" aria-hidden="true">📖✨</p>
-      <h1 class="sb-landing__title" id="sbLandingTitle">Build your book</h1>
-      <figure class="sb-landing__vision">
-        <img
-          class="sb-landing__vision-img"
-          src="images/storybook-design-goal-reference.png"
-          width="640"
-          height="360"
-          alt="Stylised 3D open storybook with friendly dragon, castle, trees and rainbow, like a pop-up toy world."
-          decoding="async"
-        />
-        <figcaption class="sb-landing__vision-cap">The feel we’re aiming for — your story popping out around the pages.</figcaption>
-      </figure>
-      <p class="sb-landing__lead">
-        A little journey — a few pop-up questions. Then we draw the pictures and write the story
-        (OpenAI + Supabase).
-      </p>
-      <p class="sb-note sb-note--landing" id="sbError" role="alert" hidden></p>
-      <div class="sb-library" id="sbLibrary">
-        <h2 class="sb-library__h" id="sbLibraryHeading">My library</h2>
-        <p class="sb-library__hint" id="sbLibraryHint">
-          Put a book on the shelf after you read it — tap a cover to open it again.
-        </p>
-        <div class="sb-shelf-wrap" id="sbShelfWrap" aria-label="Saved books shelf">
-          <div class="sb-shelf-unit">
-            <div class="sb-shelf-unit__crown" aria-hidden="true"></div>
-            <div class="sb-shelf-tiers" id="sbShelf" role="region" aria-label="Books on your shelf"></div>
+      <div class="sb-landing__split">
+        <div class="sb-landing__left">
+          <p class="sb-landing__emoji" aria-hidden="true">📖✨</p>
+          <h1 class="sb-landing__title" id="sbLandingTitle">Build your book</h1>
+          <figure class="sb-landing__vision">
+            <img
+              class="sb-landing__vision-img"
+              src="images/storybook-design-goal-reference.png"
+              width="640"
+              height="360"
+              alt="Stylised 3D open storybook with friendly dragon, castle, trees and rainbow, like a pop-up toy world."
+              decoding="async"
+            />
+            <figcaption class="sb-landing__vision-cap">The feel we’re aiming for — your story popping out around the pages.</figcaption>
+          </figure>
+          <p class="sb-landing__lead">
+            A little journey — a few pop-up questions. Then we draw the pictures and write the story
+            (OpenAI + Supabase).
+          </p>
+          <p class="sb-note sb-note--landing" id="sbError" role="alert" hidden></p>
+          <button type="button" class="sb-btn sb-btn--primary" id="sbStartJourney">
+            Start your story journey
+          </button>
+          <div class="sb-landing__demo">
+            <button type="button" class="sb-btn sb-btn--ghost" id="sbPreviewSample">
+              Preview sample book (no OpenAI)
+            </button>
+            <p class="sb-landing__demo-hint">
+              Uses the same two-page layout as a real story. Arrows move one spread at a time.
+            </p>
           </div>
         </div>
-      </div>
-      <button type="button" class="sb-btn sb-btn--primary" id="sbStartJourney">
-        Start your story journey
-      </button>
-      <div class="sb-landing__demo">
-        <button type="button" class="sb-btn sb-btn--ghost" id="sbPreviewSample">
-          Preview sample book (no OpenAI)
-        </button>
-        <p class="sb-landing__demo-hint">
-          Uses the same two-page layout as a real story. Arrows move one spread at a time.
-        </p>
+
+        <div class="sb-landing__right">
+          <div class="sb-library" id="sbLibrary">
+            <h2 class="sb-library__h" id="sbLibraryHeading">My library</h2>
+            <p class="sb-library__hint" id="sbLibraryHint">
+              Put a book on the shelf after you read it — tap a cover to open it again.
+            </p>
+            <div class="sb-shelf-wrap" id="sbShelfWrap" aria-label="Saved books shelf">
+              <div class="sb-shelf-unit">
+                <div class="sb-shelf-unit__crown" aria-hidden="true"></div>
+                <div class="sb-shelf-tiers" id="sbShelf" role="region" aria-label="Books on your shelf"></div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
 

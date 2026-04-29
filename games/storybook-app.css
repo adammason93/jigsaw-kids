@@ -127,6 +127,49 @@ body.page-storybook.sb-modal-open {
   opacity: 0.92;
 }
 
+.sb-landing__split {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  text-align: center;
+}
+
+@media (min-width: 900px) {
+  .sb-landing__split {
+    flex-direction: row;
+    align-items: center;
+    gap: 4rem;
+    text-align: left;
+  }
+
+  .sb-landing__left {
+    flex: 1;
+    min-width: 0;
+    max-width: 50%;
+  }
+
+  .sb-landing__left .sb-landing__vision {
+    margin: 0 0 1.5rem;
+    text-align: left;
+  }
+
+  .sb-landing__left .sb-landing__title,
+  .sb-landing__left .sb-landing__lead,
+  .sb-landing__left .sb-landing__demo-hint,
+  .sb-landing__left .sb-landing__emoji {
+    text-align: left;
+  }
+
+  .sb-landing__right {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .sb-landing__right .sb-library {
+    margin-bottom: 0;
+  }
+}
+
 .sb-note--landing {
   text-align: left;
   margin-bottom: 1rem;
