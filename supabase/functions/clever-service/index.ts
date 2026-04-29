@@ -438,7 +438,7 @@ Rules:
 - Each page: { "text": string, "illustrationBrief": string | null }.
 - DOUBLE-PAGE SPREADS: pair pages as (1,2), (3,4), (5,6), (7,8), (9,10), (11,12).
   Odd-numbered pages (1,3,5,7,9,11) are TEXT-FIRST pages only — use "illustrationBrief": null.
-  Even-numbered pages (2,4,6,8,10,12) are PICTURE pages — each MUST have a non-null "illustrationBrief": a short visual scene description for an illustrator (no text to draw, no words on signs). Each brief MUST be different and describe ONLY that spread's moment (the scene after the text on the previous page). Never reuse the same description on multiple picture pages.
+  Even-numbered pages (2,4,6,8,10,12) are PICTURE pages — each MUST have a non-null "illustrationBrief": a short visual scene description for an illustrator (no text to draw, no words on signs). Each brief MUST be different. The brief MUST spell out the same specific moment as the text on the previous page: same characters, action, setting details, and props — not a generic scene for that chapter.
   When game people with portrait notes appear on a picture page, the brief should mention them looking like those notes (hair, outfit colours, age vibe).
 - If a "plot idea" is given, weave it in gently. If it is empty, invent a short happy outing that fits the setting.
 - JSON only, no markdown.`;
@@ -466,8 +466,8 @@ Return JSON shape: { "title": string, "pages": [ { "text": string, "illustration
   const portraitForImage = portraitAppearance.replace(/\s+/gu, " ").trim().slice(0, 900);
   const imagePromptPrefix =
     "Same soft 3D clay and matte toy render as a fancy kids' app, rounded shapes, gentle pastel lighting, " +
-    "single full scene, cohesive with a magical tableau, " +
-    "vertical portrait composition (roughly 3:4 page like a book leaf), main subject centered with comfortable margin away from edges (will sit in a tall picture page), " +
+    "one wide horizontal illustration as if viewing an open picture book spread (two pages side by side); " +
+    "the scene flows across the full width as a single continuous environment; " +
     "no letters no words no text in the image, wholesome and safe for toddlers. " +
     `Main character to show: ${characterDesc}. Setting mood: ${placeDesc}.` +
     (familyNames.length > 0
@@ -491,11 +491,12 @@ Return JSON shape: { "title": string, "pages": [ { "text": string, "illustration
 
     const urls = await Promise.all(
       briefs.map((b) => {
-        const beat = spreadTextForPicturePage(b.index, story.pages).slice(0, 280);
-        const beatClause = beat
-          ? ` Illustrate this specific story beat (left page of the spread): ${beat}. `
+        const beat = spreadTextForPicturePage(b.index, story.pages).slice(0, 320);
+        const beatSafe = beat.replace(/"/gu, "'");
+        const beatClause = beatSafe
+          ? ` CRITICAL: Illustrate this exact story moment from the text page before this picture (same characters, action, place, and objects; do not invent a different event): ${beatSafe}. `
           : " ";
-        return openaiImageUrl(apiKey, imagePromptPrefix + beatClause + b.brief);
+        return openaiImageUrl(apiKey, imagePromptPrefix + beatClause + b.brief, "1792x1024");
       }),
     );
 

@@ -1,6 +1,6 @@
 # clever-service (storybook)
 
-Generates a **12-page** story (6 double-page spreads) with GPT-4o-mini JSON and **6** DALL·E 3 illustrations (`1024×1024`, standard): **one picture page per spread**, the paired page is text-only.
+Generates a **12-page** story (6 double-page spreads) with GPT-4o-mini JSON and **6** DALL·E 3 illustrations (**1792×1024** landscape, standard): **one picture page per spread**, shown in the reader as **full-bleed art across both pages** with text on a white panel.
 
 ## Secrets
 

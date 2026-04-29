@@ -43,7 +43,9 @@
       <p class="sb-note sb-note--landing" id="sbError" role="alert" hidden></p>
       <div class="sb-library" id="sbLibrary">
         <h2 class="sb-library__h" id="sbLibraryHeading">My library</h2>
-        <p class="sb-library__hint" id="sbLibraryHint">Put a book on the shelf after you read it — tap a spine to open it again.</p>
+        <p class="sb-library__hint" id="sbLibraryHint">
+          Put a book on the shelf after you read it — tap a cover to open it again.
+        </p>
         <div class="sb-shelf-wrap" id="sbShelfWrap" aria-label="Saved books shelf">
           <div class="sb-shelf-board">
             <div class="sb-shelf-row" id="sbShelf" role="list"></div>
@@ -223,6 +225,11 @@
               <div class="sb-reader-pages" id="sbReaderPages" aria-hidden="true">
                 <div class="sb-flip-spread" id="sbFlipSpread" aria-live="polite">
                   <div class="sb-flip-spread__inner" id="sbFlipSpreadInner">
+                    <div
+                      class="sb-flip-spread__art-bg"
+                      id="sbSpreadArtBg"
+                      aria-hidden="true"
+                    ></div>
                     <div class="sb-flip-left-shell">
                       <div
                         class="sb-page-turn-overlay sb-page-turn-overlay--left"
