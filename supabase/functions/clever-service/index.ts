@@ -155,7 +155,13 @@ async function openaiChatJson(
   return normalizeStoryJson(parsed);
 }
 
-async function openaiImageUrl(apiKey: string, prompt: string): Promise<string> {
+type DalleSize = "1024x1024" | "1792x1024" | "1024x1792";
+
+async function openaiImageUrl(
+  apiKey: string,
+  prompt: string,
+  size: DalleSize = "1024x1024",
+): Promise<string> {
   const r = await fetch("https://api.openai.com/v1/images/generations", {
     method: "POST",
     headers: {
@@ -166,7 +172,7 @@ async function openaiImageUrl(apiKey: string, prompt: string): Promise<string> {
       model: "dall-e-3",
       prompt: prompt.slice(0, 3900),
       n: 1,
-      size: "1024x1024",
+      size,
       quality: "standard",
       style: "vivid",
     }),
@@ -182,6 +188,44 @@ async function openaiImageUrl(apiKey: string, prompt: string): Promise<string> {
   const url = data.data?.[0]?.url;
   if (!url) throw new Error("image_empty");
   return url as string;
+}
+
+/** Wide tableau behind the UI book: themed world, no book or paper in frame (text stays real HTML). */
+function buildBookScenePrompt(
+  title: string,
+  childName: string,
+  characterDesc: string,
+  placeDesc: string,
+  plotHint: string,
+): string {
+  const themeLine = plotHint.length
+    ? `Story mood and props (invent gentle visuals only): ${plotHint.slice(0, 180)}.`
+    : "Invent a few small magical props that fit the setting — toys, flowers, stars, shells, etc.";
+  return (
+    "Wide landscape illustration, ultra soft 3D clay and matte toy render, rounded shapes, " +
+    "dreamy pastel lighting, high-quality children's app aesthetic, gentle pink-lavender sky gradient. " +
+    `Adventure title as pure visual mood (do not paint these words): "${title.slice(0, 80)}". ` +
+    `Hero name for mood only (do not paint text): ${childName}. ` +
+    `Setting: ${placeDesc}. Featured buddy: ${characterDesc}, small stylized charming figure. ` +
+    themeLine +
+    " Composition: interesting environment on left and right thirds; " +
+    "keep the CENTER THIRD calm, soft, slightly brighter and less busy — empty space for a UI overlay, " +
+    "no objects cutting through the middle. " +
+    "Absolutely no book, diary, notebook, scroll, or pages; no letters, words, numbers, or typography. " +
+    "Wholesome and safe for toddlers."
+  ).slice(0, 3900);
+}
+
+async function tryBookSceneUrl(
+  apiKey: string,
+  prompt: string,
+): Promise<string | null> {
+  try {
+    return await openaiImageUrl(apiKey, prompt, "1792x1024");
+  } catch (e) {
+    console.error("book_scene_failed", e);
+    return null;
+  }
 }
 
 Deno.serve(async (req) => {
@@ -255,13 +299,22 @@ Return JSON shape: { "title": string, "pages": [ { "text": string, "illustration
     return jsonResponse({ error: "story_failed" }, 502);
   }
 
+  const scenePrompt = buildBookScenePrompt(
+    story.title,
+    childName,
+    characterDesc,
+    placeDesc,
+    plotHint,
+  );
+
   const imagePromptPrefix =
-    "Children's picture book illustration in clean vector art style with soft shading, rounded friendly shapes, bright pastels, " +
-    "like a printed storybook spread, single cohesive scene, " +
+    "Same soft 3D clay and matte toy render as a fancy kids' app, rounded shapes, gentle pastel lighting, " +
+    "single full scene, cohesive with a magical tableau, " +
     "no letters no words no text in the image, wholesome and safe for toddlers. " +
     `Main character to show: ${characterDesc}. Setting mood: ${placeDesc}. Scene: `;
 
   const pagesOut: { text: string; imageUrl: string | null }[] = [];
+  let sceneImageUrl: string | null = null;
 
   try {
     const briefs: { index: number; brief: string }[] = [];
@@ -271,11 +324,12 @@ Return JSON shape: { "title": string, "pages": [ { "text": string, "illustration
       }
     });
 
-    const urls = await Promise.all(
-      briefs.map((b) =>
-        openaiImageUrl(apiKey, imagePromptPrefix + b.brief)
-      )
+    const sceneP = tryBookSceneUrl(apiKey, scenePrompt);
+    const urlsP = Promise.all(
+      briefs.map((b) => openaiImageUrl(apiKey, imagePromptPrefix + b.brief)),
     );
+    const [sceneResult, urls] = await Promise.all([sceneP, urlsP]);
+    sceneImageUrl = sceneResult;
 
     const urlByIndex = new Map<number, string>();
     briefs.forEach((b, k) => urlByIndex.set(b.index, urls[k]));
@@ -301,12 +355,14 @@ Return JSON shape: { "title": string, "pages": [ { "text": string, "illustration
   return jsonResponse({
     title: story.title,
     pages: pagesOut,
+    sceneImageUrl: sceneImageUrl ?? undefined,
     meta: {
       childName,
       characterKey,
       placeKey,
       plotHintLen: plotHint.length,
       imageCount: pagesOut.filter((p) => p.imageUrl).length,
+      sceneImage: Boolean(sceneImageUrl),
     },
   });
 });

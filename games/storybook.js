@@ -261,10 +261,29 @@
   var selectedChar = "unicorn";
   /** @type {string} */
   var selectedPlace = "beach";
-  /** @type {{ title: string, pages: { text: string, imageUrl: string|null }[] } | null} */
+  /** @type {{ title: string, sceneImageUrl?: string|null, pages: { text: string, imageUrl: string|null }[] } | null} */
   var story = null;
   var pageIndex = 0;
   var flipLock = false;
+
+  function applyBookThemingFromStory() {
+    if (!book || !story) return;
+    var u = story.sceneImageUrl;
+    if (u) {
+      book.classList.add("sb-book--themed");
+      book.style.backgroundImage =
+        'url("' + String(u).replace(/\\/g, "\\\\").replace(/"/g, '\\"') + '")';
+    } else {
+      book.classList.remove("sb-book--themed");
+      book.style.backgroundImage = "";
+    }
+  }
+
+  function clearBookTheming() {
+    if (!book) return;
+    book.classList.remove("sb-book--themed");
+    book.style.backgroundImage = "";
+  }
 
   function prefersReducedMotion() {
     return (
@@ -526,7 +545,13 @@
     return t;
   }
 
-  function addStoryToShelfFromData(title, pages, dataUrls) {
+  function addStoryToShelfFromData(
+    title,
+    pages,
+    dataUrls,
+    sceneDataUrl,
+    sceneUrlFallback
+  ) {
     var list = loadShelf();
     var id = "b" + Date.now() + "-" + ((Math.random() * 1e6) | 0);
     var storedPages = pages.map(function (p, i) {
@@ -541,6 +566,8 @@
       title: title,
       savedAt: new Date().toISOString(),
       pages: storedPages,
+      sceneDataUrl: sceneDataUrl || null,
+      sceneUrlFallback: sceneUrlFallback || null,
     });
     while (list.length > SHELF_MAX_BOOKS) {
       list.pop();
@@ -568,6 +595,7 @@
     if (!item || !item.pages || !item.pages.length) return;
     story = {
       title: item.title,
+      sceneImageUrl: item.sceneDataUrl || item.sceneUrlFallback || null,
       pages: item.pages.map(function (p) {
         return {
           text: p.text,
@@ -635,8 +663,19 @@
     btnShelf.textContent = "Saving…";
     fetchAllPageDataUrls()
       .then(function (dataUrls) {
+        return tryFetchImageDataUrl(story.sceneImageUrl || "").then(function (sceneData) {
+          return { dataUrls: dataUrls, sceneData: sceneData };
+        });
+      })
+      .then(function (o) {
         try {
-          addStoryToShelfFromData(story.title, story.pages, dataUrls);
+          addStoryToShelfFromData(
+            story.title,
+            story.pages,
+            o.dataUrls,
+            o.sceneData,
+            story.sceneImageUrl || null
+          );
           renderShelf();
         } catch (e) {
           window.alert("Couldn’t save — storage might be full. Try downloading instead.");
@@ -651,8 +690,15 @@
       });
   }
 
-  function buildStandaloneBookHtml(title, pages, dataUrls) {
+  function buildStandaloneBookHtml(title, pages, dataUrls, sceneDataUrl) {
     var escTitle = escapeHtml(title);
+    var bodyRule = sceneDataUrl
+      ? "body{font-family:system-ui,-apple-system,'Segoe UI',sans-serif;margin:0;color:#500724;background-image:url(" +
+        JSON.stringify(sceneDataUrl) +
+        ");background-size:cover;background-position:center top;background-attachment:fixed;background-color:#fce7f3}" +
+        "body::before{content:'';position:fixed;inset:0;background:linear-gradient(180deg,rgba(253,242,248,.55)0%,rgba(253,242,248,.08)45%,rgba(252,231,243,.48)100%);pointer-events:none;z-index:0}"
+      : "body{font-family:system-ui,-apple-system,'Segoe UI',sans-serif;margin:0;background:linear-gradient(165deg,#fce7f3,#fdf2f8 45%,#e9d5ff);color:#500724}";
+    var wrapExtra = sceneDataUrl ? ";position:relative;z-index:1" : "";
     var articles = [];
     for (var i = 0; i < pages.length; i++) {
       var p = pages[i];
@@ -679,8 +725,10 @@
       );
     }
     var css =
-      "body{font-family:system-ui,-apple-system,'Segoe UI',sans-serif;margin:0;background:linear-gradient(165deg,#fce7f3,#fdf2f8 45%,#e9d5ff);color:#500724;}" +
-      ".sbdl-wrap{max-width:28rem;margin:0 auto;padding:1.25rem 1rem 2.5rem;}" +
+      bodyRule +
+      ".sbdl-wrap{max-width:28rem;margin:0 auto;padding:1.25rem 1rem 2.5rem" +
+      wrapExtra +
+      "}" +
       "h1{font-size:clamp(1.35rem,4vw,1.65rem);text-align:center;color:#9d174d;margin:0 0 1.25rem;font-weight:800;}" +
       ".sbdl-page{background:#fff;border-radius:18px;padding:1rem 1rem 1.15rem;margin:0 0 1rem;box-shadow:0 6px 22px rgba(157,23,77,.12);border:2px solid rgba(244,114,182,.35);}" +
       ".sbdl-k{font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#be185d;margin:0 0 .5rem;}" +
@@ -707,9 +755,12 @@
     var origLabel = btnDownload.textContent;
     btnDownload.disabled = true;
     btnDownload.textContent = "Preparing…";
-    fetchAllPageDataUrls()
-      .then(function (dataUrls) {
-        var html = buildStandaloneBookHtml(story.title, story.pages, dataUrls);
+    Promise.all([
+      fetchAllPageDataUrls(),
+      tryFetchImageDataUrl(story.sceneImageUrl || ""),
+    ])
+      .then(function (arr) {
+        var html = buildStandaloneBookHtml(story.title, story.pages, arr[0], arr[1]);
         var blob = new Blob([html], { type: "text/html;charset=utf-8" });
         var u = URL.createObjectURL(blob);
         var a = document.createElement("a");
@@ -919,6 +970,7 @@
       book.classList.add("is-hidden");
       book.hidden = true;
     }
+    clearBookTheming();
     if (nameInput) nameInput.value = "";
     if (plotInput) plotInput.value = "";
     goToStep(0);
@@ -938,6 +990,7 @@
       book.hidden = false;
     }
     if (bookTitle) bookTitle.textContent = story.title;
+    applyBookThemingFromStory();
     resetPageLeafTransforms();
     renderBookSpread();
     updatePagerHints();
@@ -1040,6 +1093,7 @@
           story = {
             title: out.body.title,
             pages: out.body.pages || [],
+            sceneImageUrl: out.body.sceneImageUrl || null,
           };
           pageIndex = 0;
           showBook();

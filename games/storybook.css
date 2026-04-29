@@ -657,6 +657,52 @@ body.page-storybook.sb-modal-open {
   border: 2px solid rgba(219, 39, 119, 0.4);
 }
 
+.sb-book {
+  position: relative;
+  border-radius: 22px;
+  padding: 0.35rem 0.15rem 0.15rem;
+}
+
+.sb-book--themed {
+  background-color: #fce7f3;
+  background-size: cover;
+  background-position: center top;
+  background-repeat: no-repeat;
+  border: 2px solid rgba(255, 255, 255, 0.55);
+  box-shadow:
+    0 4px 24px rgba(131, 24, 67, 0.12),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+}
+
+.sb-book--themed::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 20px;
+  background: linear-gradient(
+    180deg,
+    rgba(253, 242, 248, 0.55) 0%,
+    rgba(253, 242, 248, 0.08) 40%,
+    rgba(252, 231, 243, 0.5) 100%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+.sb-book--themed .sb-book-title,
+.sb-book--themed .sb-hardback,
+.sb-book--themed .sb-pager,
+.sb-book--themed .sb-book__actions {
+  position: relative;
+  z-index: 1;
+}
+
+.sb-book--themed .sb-book-title {
+  text-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.95),
+    0 0 14px rgba(253, 242, 248, 1);
+}
+
 .sb-book-title {
   font-family: "Sniglet", "Nunito", sans-serif;
   text-align: center;

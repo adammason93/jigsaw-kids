@@ -20,4 +20,4 @@ The browser calls `…/functions/v1/clever-service` — set **`storybookEdgeSlug
 
 ## Cost (indicative)
 
-Rough order: **4 × DALL·E 3 standard** (~USD 0.04 each at common list prices) **+** one small chat completion — check [OpenAI pricing](https://openai.com/pricing) for current rates.
+Rough order: **1 × wide landscape (1792×1024) + 4 × square page art**, DALL·E 3 standard (~similar per-image list pricing) **+** one small chat completion — check [OpenAI pricing](https://openai.com/pricing) for current rates.
