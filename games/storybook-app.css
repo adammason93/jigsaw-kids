@@ -39,7 +39,7 @@ body.page-storybook.sb-modal-open {
 
 /* Storybook reader: wider stage so the two-page spread can breathe */
 .page-storybook .sb-app {
-  max-width: min(42rem, 100%);
+  max-width: min(80rem, 100%);
 }
 
 .sb-nav {
