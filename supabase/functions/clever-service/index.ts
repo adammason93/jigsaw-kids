@@ -501,7 +501,7 @@ Deno.serve(async (req) => {
           },
           body: JSON.stringify({
             model: "tts-1",
-            voice: "nova", // Soft, energetic female voice
+            voice: "shimmer", // Soft, upbeat, warm female voice
             input: ttsText,
           }),
         });
