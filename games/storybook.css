@@ -816,15 +816,13 @@ body.page-storybook.sb-modal-open {
   box-shadow: 0 18px 42px rgba(25, 25, 25, 0.18);
 }
 
-/* Closed: one centered “card”; opening/open: align with left page for hinge */
+/* Closed cover: flat centered card (no 3D — avoids ghost planes beside spread) */
 .sb-cover {
   position: absolute;
   z-index: 3;
   top: 0.45rem;
-  left: calc(
-    0.45rem + ((100% - 0.9rem) - min(920px, calc(100% - 0.9rem))) / 2
-  );
-  width: calc((min(920px, calc(100% - 0.9rem)) - 26px) / 2);
+  left: 50%;
+  width: min(300px, calc(100% - 2rem));
   height: var(--sb-book-inner-h);
   padding: 0;
   margin: 0;
@@ -832,22 +830,8 @@ body.page-storybook.sb-modal-open {
   background: transparent;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  perspective: min(250rem, 4200px);
-  perspective-origin: left center;
-  transform: none;
-  transform-style: preserve-3d;
-  transition:
-    left 0.42s cubic-bezier(0.33, 0.82, 0.32, 1),
-    width 0.42s cubic-bezier(0.33, 0.82, 0.32, 1),
-    transform 0.42s cubic-bezier(0.33, 0.82, 0.32, 1);
-}
-
-.sb-book--cover-visible
-  .sb-reader-stack:not(.sb-reader-stack--opening):not(.sb-reader-stack--open)
-  .sb-cover {
-  left: 50%;
-  width: min(300px, calc(100% - 2rem));
   transform: translateX(-50%);
+  transform-style: flat;
 }
 
 .sb-cover__pivot {
@@ -855,14 +839,8 @@ body.page-storybook.sb-modal-open {
   width: 100%;
   height: 100%;
   position: relative;
-  transform-style: preserve-3d;
-  transform-origin: left center;
-  transition: transform 1s cubic-bezier(0.645, 0.045, 0.355, 1);
-  will-change: transform;
-}
-
-.sb-reader-stack--opening .sb-cover__pivot {
-  transform: rotateY(-178deg);
+  transform: none;
+  transform-style: flat;
 }
 
 .sb-cover__outside,
@@ -870,25 +848,14 @@ body.page-storybook.sb-modal-open {
   position: absolute;
   inset: 0;
   border-radius: 4px 14px 14px 4px;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
 }
 
 .sb-cover__outside {
-  transform: translateZ(0.5px);
+  transform: none;
 }
 
 .sb-cover__inside {
-  transform: rotateY(180deg) translateZ(0.5px);
-  background: linear-gradient(
-    155deg,
-    #fffdf8 0%,
-    #f5f0e8 48%,
-    #ebe4d8 100%
-  );
-  box-shadow:
-    inset 0 0 0 1px rgba(0, 0, 0, 0.06),
-    inset 6px 0 14px rgba(0, 0, 0, 0.04);
+  display: none;
 }
 
 .sb-cover__face {
@@ -967,48 +934,26 @@ body.page-storybook.sb-modal-open {
   transform: translateY(6px);
   pointer-events: none;
   transition:
-    opacity 0.5s ease 0.2s,
-    transform 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.18s;
+    opacity 0.45s ease,
+    transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.sb-reader-stack--opening .sb-reader-pages,
 .sb-reader-stack--open .sb-reader-pages {
   position: relative;
   z-index: 4;
-}
-
-.sb-reader-stack--opening .sb-reader-pages {
-  opacity: 1;
-  transform: translateY(0);
-  pointer-events: none;
-}
-
-.sb-reader-stack--open .sb-reader-pages {
   opacity: 1;
   transform: translateY(0);
   pointer-events: auto;
 }
 
-/* Once open, remove cover from paint/layout — visibility/opacity still leaves 3D + filter ghosts in Chrome/Safari */
+/* Once open, remove cover from paint/layout */
 .sb-reader-stack--open .sb-cover {
   display: none;
 }
 
-.sb-reader-stack--opening .sb-cover {
-  pointer-events: none;
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .sb-cover__pivot {
-    transition: none;
-  }
-
   .sb-reader-pages {
     transition: none;
-  }
-
-  .sb-reader-stack--opening .sb-cover__pivot {
-    transform: none;
   }
 }
 

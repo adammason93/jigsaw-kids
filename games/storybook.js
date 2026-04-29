@@ -59,7 +59,6 @@
   var readerPages = document.getElementById("sbReaderPages");
   var btnOpenCover = document.getElementById("sbOpenCover");
   var btnCloseBook = document.getElementById("sbCloseBook");
-  var coverPivot = document.getElementById("sbCoverPivot");
   var coverTitle = document.getElementById("sbCoverTitle");
   var btnPrev = document.getElementById("sbPrev");
   var btnNext = document.getElementById("sbNext");
@@ -281,7 +280,6 @@
   /** @type {boolean} */
   var spreadAnimLock = false;
   /** Incremented to invalidate in-flight open-cover callbacks */
-  var coverOpenGeneration = 0;
 
   function prefersReducedSpreadMotion() {
     return (
@@ -461,37 +459,13 @@
   function closeBookCover() {
     if (!book || !readerStack) return;
     if (book.classList.contains("sb-book--cover-visible")) return;
-    var readerBusy =
-      readerStack.classList.contains("sb-reader-stack--opening") ||
-      readerStack.classList.contains("sb-reader-stack--open");
-    if (!readerBusy) return;
-
-    coverOpenGeneration += 1;
+    if (!readerStack.classList.contains("sb-reader-stack--open")) return;
 
     spreadAnimLock = false;
     clearSpreadTurnClasses();
     setSpreadNavBusy(false);
 
-    if (prefersReducedSpreadMotion()) {
-      readerStack.classList.remove(
-        "sb-reader-stack--open",
-        "sb-reader-stack--opening"
-      );
-      book.classList.add("sb-book--cover-visible");
-      if (readerPages) readerPages.setAttribute("aria-hidden", "true");
-      if (btnOpenCover) {
-        btnOpenCover.removeAttribute("aria-hidden");
-        btnOpenCover.removeAttribute("tabindex");
-      }
-      syncCloseBookButton();
-      updatePagerHints();
-      return;
-    }
-
-    readerStack.classList.remove(
-      "sb-reader-stack--opening",
-      "sb-reader-stack--open"
-    );
+    readerStack.classList.remove("sb-reader-stack--open");
     book.classList.add("sb-book--cover-visible");
     if (readerPages) readerPages.setAttribute("aria-hidden", "true");
     if (btnOpenCover) {
@@ -505,64 +479,20 @@
   function openBookCover() {
     if (!book || !book.classList.contains("sb-book--cover-visible")) return;
     if (!readerStack) return;
-    if (prefersReducedSpreadMotion()) {
-      readerStack.classList.add("sb-reader-stack--open");
-      readerStack.classList.remove("sb-reader-stack--opening");
-      book.classList.remove("sb-book--cover-visible");
-      if (readerPages) readerPages.removeAttribute("aria-hidden");
-      if (btnOpenCover) {
-        btnOpenCover.setAttribute("aria-hidden", "true");
-        btnOpenCover.tabIndex = -1;
-      }
-      syncCloseBookButton();
-      updatePagerHints();
-      return;
-    }
-
-    var myGen = coverOpenGeneration;
-    var openFinished = false;
-    function finishOpen() {
-      if (myGen !== coverOpenGeneration) return;
-      if (openFinished) return;
-      openFinished = true;
-      readerStack.classList.add("sb-reader-stack--open");
-      readerStack.classList.remove("sb-reader-stack--opening");
-      book.classList.remove("sb-book--cover-visible");
-      if (readerPages) readerPages.removeAttribute("aria-hidden");
-      if (btnOpenCover) {
-        btnOpenCover.setAttribute("aria-hidden", "true");
-        btnOpenCover.tabIndex = -1;
-      }
-      if (coverPivot) {
-        coverPivot.removeEventListener("transitionend", onPivotEnd);
-      }
-      syncCloseBookButton();
-      updatePagerHints();
-    }
-
-    function onPivotEnd(ev) {
-      if (!coverPivot || ev.target !== coverPivot) return;
-      if (ev.propertyName !== "transform") return;
-      finishOpen();
-    }
-
+    readerStack.classList.add("sb-reader-stack--open");
+    book.classList.remove("sb-book--cover-visible");
     if (readerPages) readerPages.removeAttribute("aria-hidden");
-    readerStack.classList.add("sb-reader-stack--opening");
-    if (coverPivot) {
-      coverPivot.addEventListener("transitionend", onPivotEnd);
+    if (btnOpenCover) {
+      btnOpenCover.setAttribute("aria-hidden", "true");
+      btnOpenCover.tabIndex = -1;
     }
-    window.setTimeout(function () {
-      finishOpen();
-    }, 1250);
+    syncCloseBookButton();
+    updatePagerHints();
   }
 
   function resetBookCoverForWizard() {
-    coverOpenGeneration += 1;
     if (readerStack) {
-      readerStack.classList.remove(
-        "sb-reader-stack--open",
-        "sb-reader-stack--opening"
-      );
+      readerStack.classList.remove("sb-reader-stack--open");
     }
     if (book) book.classList.remove("sb-book--cover-visible");
     if (readerPages) readerPages.setAttribute("aria-hidden", "true");
@@ -1353,7 +1283,6 @@
 
   function showBook() {
     if (!story || !story.pages.length) return;
-    coverOpenGeneration += 1;
     closeJourney();
     if (landing) {
       landing.classList.add("is-hidden");
@@ -1372,10 +1301,7 @@
       );
     }
     if (readerStack) {
-      readerStack.classList.remove(
-        "sb-reader-stack--open",
-        "sb-reader-stack--opening"
-      );
+      readerStack.classList.remove("sb-reader-stack--open");
     }
     if (readerPages) readerPages.setAttribute("aria-hidden", "true");
     if (btnOpenCover) {
