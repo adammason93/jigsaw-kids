@@ -889,6 +889,10 @@
         // Because it's a data: URL, there are zero CORS restrictions and canvas won't be tainted.
         return new Promise(function (resolve) {
           var img = new Image();
+          // We set crossOrigin just in case the URL was NOT proxied and is a direct CDN link
+          if (rawBase64.indexOf("data:") !== 0) {
+            img.crossOrigin = "anonymous";
+          }
           img.onload = function () {
             var canvas = document.createElement("canvas");
             var maxDim = 720; // Compress heavily to fit more books into localStorage
@@ -912,10 +916,12 @@
               // 0.55 JPEG quality drastically reduces file size
               resolve(canvas.toDataURL("image/jpeg", 0.55));
             } catch (e) {
+              console.warn("Canvas compression failed, falling back to raw", e);
               resolve(rawBase64); // Fallback to raw base64 if compression fails
             }
           };
-          img.onerror = function () {
+          img.onerror = function (e) {
+            console.warn("Image element failed to load raw base64", e);
             resolve(rawBase64); // Fallback to raw base64 if image load fails
           };
           img.src = rawBase64;
