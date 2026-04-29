@@ -556,7 +556,7 @@ Rules:
   Odd-numbered pages (1,3,5,7,9,11) are TEXT-FIRST pages only — use "illustrationBrief": null.
   Even-numbered pages (2,4,6,8,10,12) are PICTURE pages — each MUST have a non-null "illustrationBrief": a short visual scene description for an illustrator (no text to draw, no words on signs). Each brief MUST be different. The brief MUST spell out the same specific moment as the text on the previous page: same characters, action, setting details, and props — not a generic scene for that chapter.
   When game people with portrait notes appear on a picture page, the brief should mention them looking like those notes (hair, outfit colours, age vibe).
-- If a "plot idea" is given, weave it in gently. If it is empty, invent a short happy outing that fits the setting.
+- If a "plot idea" is given, you MUST make it the central theme of the story and feature it heavily in EVERY illustration brief. If it is empty, invent a short happy outing that fits the setting.
 - JSON only, no markdown.`;
 
   const user = `Child name: ${childName}
@@ -565,7 +565,7 @@ Setting to feature: ${placeDesc}
 People from the child's games to include by name (friends/family — use them warmly and often; if none listed, skip): ${
     familyNames.length > 0 ? familyNames.join(", ") : "(none)"
   }${portraitBlockForText}
-Plot idea from the child (use as inspiration; keep gentle and age-appropriate): ${
+Plot idea from the child (CRITICAL: make this the core focus of the story and pictures): ${
     plotHint.length ? plotHint : "(none — invent a cosy little adventure that fits the setting)"
   }
 
@@ -586,7 +586,8 @@ Return JSON shape: { "title": string, "characterDesign": string, "pages": [ { "t
     "beautiful cinematic wide-angle scene filling the picture entirely edge-to-edge; " +
     "draw the actual story environment flowing seamlessly without any frames or margins; " +
     "no letters no words no text in the image, wholesome and safe for toddlers. " +
-    `Main character to show (keep this character EXACTLY consistent): ${finalCharacterDesc}. Setting mood: ${placeDesc}.` +
+    `Main character to show (keep this character EXACTLY consistent): ${finalCharacterDesc}. Setting mood: ${placeDesc}. ` +
+    (plotHint.length > 0 ? `CRITICAL VISUAL THEME to include: ${plotHint}. ` : "") +
     (familyNames.length > 0
       ? ` When groups of friends appear, include these as friendly toy-like characters in the scene (not labelled): ${familyNames.join(", ")}. `
       : " ") +
