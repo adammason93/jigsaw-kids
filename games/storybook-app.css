@@ -1289,7 +1289,8 @@ body.page-storybook.sb-modal-open {
     0 2px 0 rgba(0, 0, 0, 0.06) inset,
     inset 6px 0 14px rgba(0, 0, 0, 0.04);
   overflow: visible;
-  transform-style: flat;
+  /* Required for gutter 3D page turns; `flat` flattens descendants and breaks rotateY peels on Safari/WebKit */
+  transform-style: preserve-3d;
 }
 
 .sb-flip-spread__inner.sb-flip-spread__inner--fade-out {
@@ -1416,10 +1417,13 @@ body.page-storybook.sb-modal-open {
   display: flex;
   flex-direction: column;
   align-self: stretch;
+  transform-style: preserve-3d;
 }
 
 .sb-flip-left-shell > .sb-flip-page,
 .sb-flip-right-shell > .sb-flip-page {
+  position: relative;
+  z-index: 1;
   flex: 1;
   min-height: 0;
   min-width: 0;
@@ -1436,19 +1440,23 @@ body.page-storybook.sb-modal-open {
 }
 
 .sb-page-turn-overlay.is-visible {
-  z-index: 8;
+  z-index: 20;
   visibility: visible;
   opacity: 1;
 }
 
 /* Match classic “CSS 3D book” feel (e.g. subhamgiri16/3D-Flipbook): huge perspective + left-hinge -180deg */
 .sb-page-turn-overlay--right {
+  -webkit-perspective: min(250rem, 4200px);
   perspective: min(250rem, 4200px);
+  -webkit-perspective-origin: left center;
   perspective-origin: left center;
 }
 
 .sb-page-turn-overlay--left {
+  -webkit-perspective: min(250rem, 4200px);
   perspective: min(250rem, 4200px);
+  -webkit-perspective-origin: right center;
   perspective-origin: right center;
 }
 
@@ -1456,9 +1464,12 @@ body.page-storybook.sb-modal-open {
   width: 100%;
   height: 100%;
   position: relative;
+  -webkit-transform-style: preserve-3d;
   transform-style: preserve-3d;
   transform-origin: left;
+  -webkit-transform: rotateY(0deg);
   transform: rotateY(0deg);
+  -webkit-transition: -webkit-transform 1.12s cubic-bezier(0.25, 0.82, 0.32, 1);
   transition: transform 1.12s cubic-bezier(0.25, 0.82, 0.32, 1);
   box-shadow:
     inset 0 0 0 1px rgba(157, 23, 77, 0.08),
@@ -1476,11 +1487,13 @@ body.page-storybook.sb-modal-open {
 }
 
 .sb-turn-leaf--next {
+  -webkit-transform: rotateY(-180deg);
   transform: rotateY(-180deg);
 }
 
 .sb-turn-leaf--prev {
   transform-origin: right;
+  -webkit-transform: rotateY(180deg);
   transform: rotateY(180deg);
 }
 
@@ -1491,10 +1504,12 @@ body.page-storybook.sb-modal-open {
   -webkit-backface-visibility: hidden;
   background: var(--sb-flip-paper);
   overflow: hidden;
+  -webkit-transform: rotateY(0deg) translateZ(1px);
   transform: rotateY(0deg) translateZ(1px);
 }
 
 .sb-turn-leaf__face--back {
+  -webkit-transform: rotateY(180deg) translateZ(1px);
   transform: rotateY(180deg) translateZ(1px);
   background: linear-gradient(105deg, #ebe6df 0%, #faf8f4 45%, #f3eee8 100%);
   box-shadow: inset 4px 0 14px rgba(0, 0, 0, 0.07);
@@ -1509,6 +1524,7 @@ body.page-storybook.sb-modal-open {
   box-sizing: border-box;
   writing-mode: horizontal-tb;
   direction: ltr;
+  -webkit-transform: rotateY(0deg) translateZ(2px);
   transform: rotateY(0deg) translateZ(2px);
 }
 

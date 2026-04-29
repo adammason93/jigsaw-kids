@@ -357,12 +357,48 @@
   }
 
   /**
+   * Same frame order as reference flipbooks: insert leaf → paint → swap spread under → next frame start rotation.
+   * Avoids WebKit flashing the new art before the peel layer exists.
+   */
+  function schedulePeelThenFlip(onBeforeAnimate, leaf, turnClass) {
+    window.requestAnimationFrame(function () {
+      if (typeof onBeforeAnimate === "function") {
+        onBeforeAnimate();
+      }
+      window.requestAnimationFrame(function () {
+        window.requestAnimationFrame(function () {
+          leaf.classList.add(turnClass);
+        });
+      });
+    });
+  }
+
+  function bindLeafTransitionEnd(leaf, cleanup) {
+    var done = false;
+    function once() {
+      if (done) return;
+      done = true;
+      leaf.removeEventListener("transitionend", onEnd);
+      leaf.removeEventListener("webkitTransitionEnd", onEnd);
+      cleanup();
+    }
+    function onEnd(ev) {
+      if (!ev || ev.target !== leaf) return;
+      var pn = ev.propertyName || "";
+      if (pn !== "" && !isTransformTransitionProperty(pn)) return;
+      once();
+    }
+    leaf.addEventListener("transitionend", onEnd);
+    leaf.addEventListener("webkitTransitionEnd", onEnd);
+    window.setTimeout(once, 2200);
+  }
+
+  /**
    * Right page peels from the gutter (next). If there is no illustration, the leaf uses a paper fill.
    * onBeforeAnimate runs after the overlay is visible so the *new* spread is painted underneath.
    */
   function runRightPageTurn(oldImgSrc, opts) {
     opts = opts || {};
-    var onBeforeAnimate = opts.onBeforeAnimate;
     var overlay = pageTurnRight;
     if (!overlay) {
       finishPageTurnAnim();
@@ -394,37 +430,17 @@
     overlay.setAttribute("aria-hidden", "false");
     overlay.classList.add("is-visible");
 
-    if (typeof onBeforeAnimate === "function") {
-      onBeforeAnimate();
-    }
-
-    var done = false;
-    function cleanup() {
-      if (done) return;
-      done = true;
+    bindLeafTransitionEnd(leaf, function () {
       clearPageTurnOverlays();
       finishPageTurnAnim();
-    }
-
-    function onTe(ev) {
-      if (ev.target !== leaf) return;
-      if (!isTransformTransitionProperty(ev.propertyName || "")) return;
-      leaf.removeEventListener("transitionend", onTe);
-      cleanup();
-    }
-    leaf.addEventListener("transitionend", onTe);
-    window.setTimeout(cleanup, 1500);
-    window.requestAnimationFrame(function () {
-      window.requestAnimationFrame(function () {
-        leaf.classList.add("sb-turn-leaf--next");
-      });
     });
+
+    schedulePeelThenFlip(opts.onBeforeAnimate, leaf, "sb-turn-leaf--next");
   }
 
   /** Left page peels back (previous). Text/meta can be empty; shows a minimal paper leaf. */
   function runLeftPageTurn(oldText, oldMeta, opts) {
     opts = opts || {};
-    var onBeforeAnimate = opts.onBeforeAnimate;
     var overlay = pageTurnLeft;
     if (!overlay) {
       finishPageTurnAnim();
@@ -465,31 +481,12 @@
     overlay.setAttribute("aria-hidden", "false");
     overlay.classList.add("is-visible");
 
-    if (typeof onBeforeAnimate === "function") {
-      onBeforeAnimate();
-    }
-
-    var done = false;
-    function cleanup() {
-      if (done) return;
-      done = true;
+    bindLeafTransitionEnd(leaf, function () {
       clearPageTurnOverlays();
       finishPageTurnAnim();
-    }
-
-    function onTe(ev) {
-      if (ev.target !== leaf) return;
-      if (!isTransformTransitionProperty(ev.propertyName || "")) return;
-      leaf.removeEventListener("transitionend", onTe);
-      cleanup();
-    }
-    leaf.addEventListener("transitionend", onTe);
-    window.setTimeout(cleanup, 1500);
-    window.requestAnimationFrame(function () {
-      window.requestAnimationFrame(function () {
-        leaf.classList.add("sb-turn-leaf--prev");
-      });
     });
+
+    schedulePeelThenFlip(opts.onBeforeAnimate, leaf, "sb-turn-leaf--prev");
   }
 
   /** Fallback when peels are unavailable. */
