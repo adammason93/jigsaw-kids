@@ -579,20 +579,19 @@ Return JSON shape: { "title": string, "pages": [ { "text": string, "illustration
       }
     }
 
-    const urls: string[] = [];
     const staggerMs = 450;
-    for (let k = 0; k < briefs.length; k++) {
-      if (k > 0) await delay(staggerMs);
-      const b = briefs[k];
-      const beat = spreadTextForPicturePage(b.index, story.pages).slice(0, 320);
-      const beatSafe = beat.replace(/"/gu, "'");
-      const beatClause = beatSafe
-        ? ` Illustrate this story moment from the text page before this picture (same characters, action, place): ${beatSafe}. `
-        : " ";
-      const fullPrompt = imagePromptPrefix + beatClause + b.brief;
-      const u = await openaiSpreadImageUrl(apiKey, fullPrompt);
-      urls.push(u);
-    }
+    const urls: string[] = await Promise.all(
+      briefs.map(async (b, k) => {
+        if (k > 0) await delay(k * staggerMs);
+        const beat = spreadTextForPicturePage(b.index, story.pages).slice(0, 320);
+        const beatSafe = beat.replace(/"/gu, "'");
+        const beatClause = beatSafe
+          ? ` Illustrate this story moment from the text page before this picture (same characters, action, place): ${beatSafe}. `
+          : " ";
+        const fullPrompt = imagePromptPrefix + beatClause + b.brief;
+        return await openaiSpreadImageUrl(apiKey, fullPrompt);
+      }),
+    );
 
     const urlByIndex = new Map<number, string>();
     briefs.forEach((b, k) => urlByIndex.set(b.index, urls[k]));

@@ -1698,13 +1698,16 @@
           if (!out.ok) {
             var b =
               out.body && typeof out.body === "object" ? out.body : {};
-            /** Supabase WORKER_LIMIT — story + six images often exceeds Edge budget */
-            var is546 =
-              out.status === 546 || Number(b.code) === 546;
+            /** Supabase WORKER_LIMIT or Gateway Timeout — story + six images often exceeds Edge budget */
+            var isTimeout =
+              out.status === 546 ||
+              out.status === 504 ||
+              Number(b.code) === 546 ||
+              Number(b.code) === 504;
             var msg;
-            if (is546) {
+            if (isTimeout) {
               msg =
-                "The story maker hit a server time limit (546). Making the book asks for a story plus six pictures in one run; try again, or ask a grown-up to check clever-service logs/duration.";
+                "The story maker hit a server time limit (" + out.status + "). Making the book asks for a story plus six pictures in one run; try again, or ask a grown-up to check clever-service logs/duration.";
             } else if (b.error === "server_missing_openai") {
               msg =
                 "OpenAI isn’t connected yet. A grown-up needs to set OPENAI_API_KEY on the story function.";
