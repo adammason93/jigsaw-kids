@@ -238,40 +238,51 @@
    * @param {(err: Error|null, data: object|null) => void} cb
    */
   function downloadStorybookLibrary(cb) {
+    console.log("[score-cloud] downloadStorybookLibrary starting...");
     if (!isConfigured()) {
+      console.warn("[score-cloud] Not configured");
       cb(null, null);
       return;
     }
     ensureClient(function (sb) {
       if (!sb) {
+        console.error("[score-cloud] No supabase client");
         cb(null, null);
         return;
       }
       sb.auth.getSession().then(function (res) {
         var sess = res.data && res.data.session;
         if (!sess || !sess.user) {
+          console.warn("[score-cloud] No active session or user");
           cb(null, null);
           return;
         }
         var path = storybookObjectPath(sess.user.id);
+        console.log("[score-cloud] Downloading from path:", path);
         sb.storage
           .from(STORYBOOK_BUCKET)
           .download(path)
           .then(function (result) {
             if (result.error || !result.data) {
+              console.warn("[score-cloud] Download result error or no data:", result.error);
               cb(null, null);
               return;
             }
+            console.log("[score-cloud] Download success, parsing blob...");
             var blob = result.data;
             function parseText(t) {
               try {
-                cb(null, JSON.parse(t));
+                var json = JSON.parse(t);
+                console.log("[score-cloud] Successfully parsed downloaded library, items:", Array.isArray(json) ? json.length : 0);
+                cb(null, json);
               } catch (e) {
+                console.error("[score-cloud] JSON parse error:", e);
                 cb(e, null);
               }
             }
             if (blob.text && typeof blob.text === "function") {
-              blob.text().then(parseText).catch(function () {
+              blob.text().then(parseText).catch(function (err) {
+                console.error("[score-cloud] Blob text error:", err);
                 cb(null, null);
               });
             } else {
@@ -279,13 +290,15 @@
               fr.onload = function () {
                 parseText(String(fr.result));
               };
-              fr.onerror = function () {
+              fr.onerror = function (err) {
+                console.error("[score-cloud] FileReader error:", err);
                 cb(null, null);
               };
               fr.readAsText(blob);
             }
           })
-          .catch(function () {
+          .catch(function (err) {
+            console.error("[score-cloud] Download catch error:", err);
             cb(null, null);
           });
       });
@@ -296,6 +309,7 @@
 
   /** Debounced upload of raw shelf JSON string (same as localStorage value). */
   function scheduleStorybookUpload(rawJsonString) {
+    console.log("[score-cloud] scheduleStorybookUpload called, isConfigured:", isConfigured(), "raw length:", rawJsonString ? rawJsonString.length : 0);
     if (!isConfigured() || !rawJsonString) {
       return;
     }
@@ -304,29 +318,38 @@
     }
     storybookUploadTimer = global.setTimeout(function () {
       storybookUploadTimer = null;
-      uploadStorybookLibrary(rawJsonString, function () {});
+      console.log("[score-cloud] Executing debounced storybook upload...");
+      uploadStorybookLibrary(rawJsonString, function (err) {
+        if (err) console.error("[score-cloud] uploadStorybookLibrary error:", err);
+        else console.log("[score-cloud] uploadStorybookLibrary success!");
+      });
     }, 3500);
   }
 
   /** @param {string} rawJsonString - full serialized shelf */
   function uploadStorybookLibrary(rawJsonString, cb) {
     cb = cb || function () {};
+    console.log("[score-cloud] uploadStorybookLibrary starting...");
     if (!isConfigured() || !rawJsonString) {
+      console.warn("[score-cloud] Not configured or no data");
       cb(null);
       return;
     }
     ensureClient(function (sb) {
       if (!sb) {
+        console.error("[score-cloud] No supabase client");
         cb(new Error("sync"));
         return;
       }
       sb.auth.getSession().then(function (res) {
         var sess = res.data && res.data.session;
         if (!sess || !sess.user) {
+          console.warn("[score-cloud] No active session or user");
           cb(null);
           return;
         }
         var path = storybookObjectPath(sess.user.id);
+        console.log("[score-cloud] Uploading to path:", path);
         var blob = new global.Blob([rawJsonString], {
           type: "application/json",
         });
@@ -337,6 +360,7 @@
             contentType: "application/json",
           })
           .then(function (up) {
+            if (up.error) console.error("[score-cloud] Upload error:", up.error);
             cb(up.error || null);
           })
           .catch(function (e) {
