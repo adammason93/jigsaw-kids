@@ -1361,19 +1361,23 @@ body.page-storybook.sb-modal-open {
   overflow: hidden;
 }
 
-/* Full duplex “sheet” turns like a closed book leaf; incoming art sits on `#sbSpreadArtCover` underneath */
+/* One leaf turns: right-hand page only, hinged at the gutter (normative book forward turn) */
 .sb-flip-spread__art-peel {
   position: absolute;
-  inset: 0;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 50%;
+  right: auto;
   z-index: 3;
-  border-radius: 6px;
+  border-radius: 0 6px 6px 0;
   overflow: hidden;
   pointer-events: none;
   background-color: var(--sb-flip-paper);
   transform-style: preserve-3d;
   -webkit-transform-style: preserve-3d;
-  transform-origin: center center;
-  -webkit-transform-origin: center center;
+  transform-origin: left center;
+  -webkit-transform-origin: left center;
   transform: rotateY(0deg);
   transition: transform 0.54s cubic-bezier(0.4, 0, 0.2, 1);
   -webkit-transition: -webkit-transform 0.54s cubic-bezier(0.4, 0, 0.2, 1);
@@ -1391,6 +1395,17 @@ body.page-storybook.sb-modal-open {
   object-position: center;
   pointer-events: none;
   z-index: 1;
+}
+
+/* Match full duplex framing on base: same bitmap, cropped to the verso/right column */
+.sb-flip-spread__art-peel__img.sb-flip-spread__art-cover {
+  inset: auto;
+  left: -100%;
+  top: 0;
+  width: 200%;
+  max-width: none;
+  height: 100%;
+  border-radius: 0 6px 6px 0;
 }
 
 .sb-flip-spread__art-peel.sb-story-pageflip--turn-next-1 .sb-flip-spread__art-peel__img,
