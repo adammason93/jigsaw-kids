@@ -572,11 +572,11 @@ Rules:
       ? " If appearance lines are given for those people, stay consistent with those visual details when you naturally describe them."
       : ""
   }
-- Include fields title (string), characterDesign (string, very detailed visual description of the main characters to keep them identical across all illustrations), and pages (array of 12 objects).
+- Include fields title (string), characterDesign (string, extremely detailed visual description of EVERY character in the story including the hero, buddy, and any other creatures/people, specifying their exact colours, clothing, and physical features to keep them identical across all illustrations), and pages (array of 12 objects).
 - Each page: { "text": string, "illustrationBrief": string | null }.
 - DOUBLE-PAGE SPREADS: pair pages as (1,2), (3,4), (5,6), (7,8), (9,10), (11,12).
   Odd-numbered pages (1,3,5,7,9,11) are TEXT-FIRST pages only — use "illustrationBrief": null.
-  Even-numbered pages (2,4,6,8,10,12) are PICTURE pages — each MUST have a non-null "illustrationBrief": a short visual scene description for an illustrator (no text to draw, no words on signs). Each brief MUST be different. The brief MUST spell out the same specific moment as the text on the previous page: same characters, action, setting details, and props — not a generic scene for that chapter.
+  Even-numbered pages (2,4,6,8,10,12) are PICTURE pages — each MUST have a non-null "illustrationBrief": a short visual scene description for an illustrator (no text to draw, no words on signs). Each brief MUST be different. The brief MUST spell out the same specific moment as the text on the previous page: same characters, action, setting details, and props — not a generic scene for that chapter. Always mention which specific characters are present in the scene so they match the characterDesign.
   When game people with portrait notes appear on a picture page, the brief should mention them looking like those notes (hair, outfit colours, age vibe).
 - If a "plot idea" is given, you MUST make it the central theme of the story and feature it heavily in EVERY illustration brief. If it is empty, invent a short happy outing that fits the setting.
 - JSON only, no markdown.`;
@@ -609,7 +609,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "pages": [ { "t
     "beautiful cinematic wide-angle scene filling the picture entirely edge-to-edge; " +
     "draw the actual story environment flowing seamlessly without any frames or margins; " +
     "wholesome and safe for toddlers. " +
-    `Main character to show (keep this character EXACTLY consistent): ${finalCharacterDesc}. Setting mood: ${placeDesc}. ` +
+    `Characters to show (keep these EXACTLY consistent in every image): ${finalCharacterDesc}. Setting mood: ${placeDesc}. ` +
     (plotHint.length > 0 ? `CRITICAL VISUAL THEME to include: ${plotHint}. ` : "") +
     (familyNames.length > 0
       ? ` When groups of friends appear, include these as friendly toy-like characters in the scene (not labelled): ${familyNames.join(", ")}. `
