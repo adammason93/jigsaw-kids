@@ -8,7 +8,7 @@
   <link rel="manifest" href="../manifest.json" />
   <link rel="stylesheet" href="../js/kids-core.css" />
   <!-- storybook-app.css = renamed file so CDN/browser cache cannot keep old storybook.css -->
-  <link rel="stylesheet" href="storybook-app.css?v=28" />
+  <link rel="stylesheet" href="storybook-app.css?v=29" />
   <link rel="stylesheet" href="../tablet-ipad.css" />
   <!-- Last wins: guarantees new background even if a proxy cached an ancient stylesheet elsewhere -->
   <style>
@@ -79,11 +79,14 @@
             <p class="sb-library__hint" id="sbLibraryHint">
               Put a book on the shelf after you read it — tap a cover to open it again.
             </p>
-            <div class="sb-shelf-wrap" id="sbShelfWrap" aria-label="Saved books shelf">
-              <div class="sb-shelf-unit">
-                <div class="sb-shelf-unit__crown" aria-hidden="true"></div>
-                <div class="sb-shelf-tiers" id="sbShelf" role="region" aria-label="Books on your shelf"></div>
-              </div>
+            <div class="sb-carousel" aria-label="Saved books library">
+              <button type="button" class="sb-carousel__btn sb-carousel__btn--prev" id="sbCarouselPrev" aria-label="Scroll left">
+                <span aria-hidden="true">&lsaquo;</span>
+              </button>
+              <div class="sb-carousel__track" id="sbShelf" role="region" aria-label="Books in your library"></div>
+              <button type="button" class="sb-carousel__btn sb-carousel__btn--next" id="sbCarouselNext" aria-label="Scroll right">
+                <span aria-hidden="true">&rsaquo;</span>
+              </button>
             </div>
           </div>
         </div>
@@ -352,7 +355,7 @@
   <script src="../js/kids-game-characters.js"></script>
   <script src="../js/score-config.js"></script>
   <script src="../js/kids-core.js"></script>
-  <script src="storybook.js?v=236" defer></script>
+  <script src="storybook.js?v=237" defer></script>
   <script>
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("../sw.js").catch(function () {});

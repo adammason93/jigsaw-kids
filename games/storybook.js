@@ -1189,24 +1189,33 @@
       empty.textContent =
         "No books on the shelf yet. When you finish a story, tap “Put on my shelf”.";
       shelfEl.appendChild(empty);
+      updateCarouselButtons();
       return;
     }
     
-    // Create a single tier for all books so it scrolls horizontally
-    var tier = document.createElement("div");
-    tier.className = "sb-shelf-tier";
-    var books = document.createElement("div");
-    books.className = "sb-shelf-tier__books";
-    books.setAttribute("role", "list");
     for (var i = 0; i < list.length; i++) {
-      books.appendChild(createCoverCardWrap(list[i]));
+      shelfEl.appendChild(createCoverCardWrap(list[i]));
     }
-    var lip = document.createElement("div");
-    lip.className = "sb-shelf-tier__lip";
-    lip.setAttribute("aria-hidden", "true");
-    tier.appendChild(books);
-    tier.appendChild(lip);
-    shelfEl.appendChild(tier);
+    updateCarouselButtons();
+  }
+
+  function updateCarouselButtons() {
+    var prevBtn = document.getElementById("sbCarouselPrev");
+    var nextBtn = document.getElementById("sbCarouselNext");
+    if (!prevBtn || !nextBtn || !shelfEl) return;
+    
+    var scrollLeft = shelfEl.scrollLeft;
+    var maxScroll = shelfEl.scrollWidth - shelfEl.clientWidth;
+    
+    prevBtn.disabled = scrollLeft <= 0;
+    nextBtn.disabled = scrollLeft >= maxScroll - 1; // -1 for rounding
+  }
+
+  function scrollCarousel(dir) {
+    if (!shelfEl) return;
+    // Scroll by roughly 2 cards
+    var amount = 300 * dir;
+    shelfEl.scrollBy({ left: amount, behavior: "smooth" });
   }
 
   function saveBookToShelf() {
@@ -1921,6 +1930,26 @@
   if (btnShelf) {
     btnShelf.addEventListener("click", function () {
       saveBookToShelf();
+    });
+  }
+
+  var prevCarouselBtn = document.getElementById("sbCarouselPrev");
+  if (prevCarouselBtn) {
+    prevCarouselBtn.addEventListener("click", function () {
+      scrollCarousel(-1);
+    });
+  }
+  
+  var nextCarouselBtn = document.getElementById("sbCarouselNext");
+  if (nextCarouselBtn) {
+    nextCarouselBtn.addEventListener("click", function () {
+      scrollCarousel(1);
+    });
+  }
+  
+  if (shelfEl) {
+    shelfEl.addEventListener("scroll", function () {
+      updateCarouselButtons();
     });
   }
 

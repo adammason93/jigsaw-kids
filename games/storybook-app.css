@@ -201,142 +201,72 @@ body.page-storybook.sb-modal-open {
   text-align: center;
 }
 
-.sb-shelf-wrap {
+.sb-carousel {
   margin-top: 1.5rem;
-  padding: 0;
-  border-radius: 0;
-  background: transparent;
-  /* Make the shelf area wide and scrollable horizontally without vertical scrolling */
-  width: 100vw;
   position: relative;
-  left: 50%;
-  right: 50%;
-  margin-left: -50vw;
-  margin-right: -50vw;
-}
-
-/* The majestic single-tier wooden library shelf */
-.sb-shelf-unit {
-  position: relative;
-  padding: 0;
-  background: transparent;
-  width: 100%;
-}
-
-/* Remove old side panels */
-.sb-shelf-unit::before,
-.sb-shelf-unit::after {
-  display: none;
-}
-
-.sb-shelf-unit__crown {
-  display: none;
-}
-
-.sb-shelf-tiers {
-  position: relative;
-  z-index: 1;
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
 }
 
-.sb-shelf-tier {
-  position: relative;
-  width: 100%;
-  padding: 0;
-  margin: 0;
-}
-
-/* The beautiful wooden back panel behind the books */
-.sb-shelf-tier::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 0;
-  bottom: 30px;
-  background: linear-gradient(to bottom, #4a2c1b 0%, #3a1c0d 100%);
-  z-index: 0;
-  box-shadow: inset 0 20px 40px rgba(0, 0, 0, 0.4);
-  /* Subtle wood grain texture trick using repeating gradients */
-  background-image: 
-    repeating-linear-gradient(90deg, rgba(255,255,255,0.02) 0px, rgba(255,255,255,0.02) 1px, transparent 1px, transparent 4px),
-    linear-gradient(to bottom, #4a2c1b 0%, #3a1c0d 100%);
-}
-
-.sb-shelf-tier__books {
+.sb-carousel__btn {
+  flex: 0 0 2rem;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  border: none;
+  background: var(--sb-flip-red);
+  color: white;
+  font-size: 1.5rem;
+  line-height: 1;
   display: flex;
-  align-items: flex-end;
-  justify-content: flex-start;
-  flex-wrap: nowrap;
-  gap: 1.5rem;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(157, 23, 77, 0.25);
+  transition: transform 0.15s ease, opacity 0.2s ease, background 0.15s;
+  padding-bottom: 2px;
+}
+
+.sb-carousel__btn:hover:not(:disabled) {
+  background: #be185d;
+  transform: scale(1.1);
+}
+
+.sb-carousel__btn:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+.sb-carousel__btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.sb-carousel__track {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
   overflow-x: auto;
-  overflow-y: visible;
-  min-height: 18rem;
-  padding: 1.5rem 5vw 35px; /* Bottom padding gives room for the wooden shelf base */
-  position: relative;
-  z-index: 2;
+  scroll-behavior: smooth;
+  padding: 1rem 0.5rem;
   -webkit-overflow-scrolling: touch;
   scroll-snap-type: x mandatory;
 }
 
-.sb-shelf-tier__books > * {
-  scroll-snap-align: center;
-}
-
-/* Elegant custom scrollbar for the library */
-.sb-shelf-tier__books::-webkit-scrollbar {
-  height: 8px;
-}
-
-.sb-shelf-tier__books::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.1);
-  border-radius: 4px;
-  margin: 0 5vw;
-}
-
-.sb-shelf-tier__books::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.3);
-  border-radius: 4px;
-}
-
-.sb-shelf-tier__books::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.5);
-}
-
-/* The solid wooden base the books sit on */
-.sb-shelf-tier__lip {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 35px;
-  pointer-events: none;
-  z-index: 6;
-  
-  /* Rich 3D wood shelf base */
-  background: linear-gradient(to bottom, #7d4e2d 0%, #5c351b 40%, #3e1e0b 100%);
-  border-top: 1px solid #9e6d4a;
-  box-shadow: 
-    0 -5px 15px rgba(0, 0, 0, 0.5), /* Shadow casting upwards onto books */
-    0 15px 25px rgba(0, 0, 0, 0.4); /* Shadow casting down below the shelf */
-}
-
-/* Highlight edge of the wood */
-.sb-shelf-tier__lip::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: linear-gradient(to bottom, rgba(255,255,255,0.2) 0%, transparent 100%);
-  z-index: 7;
-}
-
-/* Remove the old canvas lip styling entirely */
-.sb-shelf-tier__lip::after {
+.sb-carousel__track::-webkit-scrollbar {
   display: none;
+}
+
+.sb-carousel__track {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.sb-carousel__track > * {
+  scroll-snap-align: center;
 }
 
 .sb-library__empty {
@@ -362,20 +292,14 @@ body.page-storybook.sb-modal-open {
   display: flex;
   align-items: flex-end;
   /* Books stand side-by-side, no negative overlap */
-  margin-right: 0.5rem;
   z-index: 2;
-  padding-bottom: 0.5rem;
   transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), z-index 0s linear;
-}
-
-.sb-cover-card-wrap:last-child {
-  margin-right: 5vw; /* Padding at end of scroll */
 }
 
 .sb-cover-card-wrap:hover,
 .sb-cover-card-wrap:focus-within {
   z-index: 8;
-  transform: translateY(-12px) scale(1.05);
+  transform: translateY(-8px) scale(1.05);
 }
 
 .sb-cover-card {
