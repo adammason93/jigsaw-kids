@@ -441,13 +441,13 @@ async function openaiImageUrl(
 
 /** Landscape spread first; some keys/billing paths fail on 1792×1024 — fall back to square. */
 async function openaiSpreadImageUrl(apiKey: string, prompt: string): Promise<string> {
-  // Try DALL-E 3 at 1024x1024 to maintain detail and style instruction. DALL-E 2 often fails the style prompts.
+  // Try DALL-E 3 at 1792x1024 (landscape) to perfectly fit a double-page spread.
   // The parallel Promise.all generation makes this fast enough to bypass the 504/546 timeout.
   try {
-    return await openaiImageUrl(apiKey, prompt, "1024x1024");
+    return await openaiImageUrl(apiKey, prompt, "1792x1024");
   } catch (e) {
-    console.warn("[clever-service] DALL-E 3 1024x1024 failed, retrying with DALL-E 2 512x512", e);
-    return await openaiImageUrl(apiKey, prompt, "512x512");
+    console.warn("[clever-service] DALL-E 3 1792x1024 failed, retrying with 1024x1024", e);
+    return await openaiImageUrl(apiKey, prompt, "1024x1024");
   }
 }
 
