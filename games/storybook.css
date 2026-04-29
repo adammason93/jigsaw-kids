@@ -967,15 +967,15 @@ body.page-storybook.sb-modal-open {
   flex: 1 1 auto;
 }
 
-/* Picture slot ~288×400 (flip-book style inner page); AI square art letterboxed inside */
+/* Picture slot: 3∶4 like flip-book inner page (e.g. 375×500 @1x, 768×1024 @2x); page-size-reference.png in /images/flip-book/ */
 .sb-page__art {
   position: relative;
   z-index: 2;
   width: 100%;
-  max-width: 288px;
+  max-width: 375px;
   margin: 0 auto;
-  aspect-ratio: 288 / 400;
-  max-height: min(52vh, 420px);
+  aspect-ratio: 3 / 4;
+  max-height: min(64vh, 500px);
   box-sizing: border-box;
   padding: 0;
   border-radius: 0 10px 10px 0;
@@ -988,6 +988,18 @@ body.page-storybook.sb-modal-open {
     0 12px 28px rgba(80, 20, 55, 0.12);
   border: 2px solid rgba(255, 255, 255, 0.98);
   flex-shrink: 0;
+}
+
+/* Gutter / edge shading (assets from flip-book reference project) */
+.sb-page__art::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  border-radius: inherit;
+  background: url("../images/flip-book/page-front-edge.png") center / 100% 100% no-repeat;
+  opacity: 0.88;
 }
 
 .sb-page__num {
@@ -1024,10 +1036,10 @@ body.page-storybook.sb-modal-open {
 
 .sb-page__art img {
   position: absolute;
-  left: 12px;
-  top: 10px;
-  width: calc(100% - 24px);
-  height: calc(100% - 24px);
+  left: 14px;
+  top: 12px;
+  width: calc(100% - 28px);
+  height: calc(100% - 26px);
   object-fit: contain;
   object-position: center;
   border-radius: 0 6px 6px 0;
