@@ -48,7 +48,6 @@
   var btnGen = document.getElementById("sbGenerate");
   var readerHeading = document.getElementById("sbBookHeading");
   var spreadText = document.getElementById("sbSpreadText");
-  var spreadMeta = document.getElementById("sbSpreadMeta");
   var spreadArt = document.getElementById("sbSpreadArt");
   var spreadArtImg = document.getElementById("sbSpreadArtImg");
   var spreadArtNum = document.getElementById("sbSpreadArtNum");
@@ -621,12 +620,6 @@
     var i = spreadIndex * 2;
     var leftP = story.pages[i];
     spreadText.textContent = leftP ? leftP.text : "";
-    var pLo = i + 1;
-    var pHi = i + 2;
-    if (spreadMeta) {
-      spreadMeta.textContent =
-        "Spread " + (spreadIndex + 1) + " of " + n + " · pages " + pLo + "–" + pHi;
-    }
   }
 
   function syncSpreadIllustrationFromStory() {

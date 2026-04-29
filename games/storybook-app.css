@@ -1663,25 +1663,6 @@ body.page-storybook.sb-modal-open {
   box-shadow: 0 1px 3px rgba(42, 10, 31, 0.08);
 }
 
-.sb-flip-spread-meta {
-  margin: 0.55rem 0 0;
-  font-size: 0.72rem;
-  text-align: center;
-  line-height: 1.45;
-}
-
-.sb-flip-meta__pill {
-  display: inline-block;
-  font-family: "Fredoka", "Sniglet", "Nunito", sans-serif;
-  font-weight: 600;
-  font-size: 0.72rem;
-  color: #9d174d;
-  padding: 0.28em 0.55em;
-  background: rgba(255, 255, 255, 0.94);
-  border-radius: 0.45em;
-  box-shadow: 0 1px 2px rgba(42, 10, 31, 0.07);
-}
-
 .sb-flip-page--art .sb-flip-page__sheet {
   padding: 0;
   justify-content: stretch;
