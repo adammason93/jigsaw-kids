@@ -1358,7 +1358,9 @@
     rm.addEventListener("click", function (e) {
       e.preventDefault();
       e.stopPropagation();
-      removeShelfBook(item.id);
+      if (window.confirm('Remove "' + item.title + '" from your shelf?')) {
+        removeShelfBook(item.id);
+      }
     });
     wrap.appendChild(openBtn);
     wrap.appendChild(rm);
