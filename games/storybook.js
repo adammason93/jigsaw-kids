@@ -1232,8 +1232,14 @@
       return;
     }
     
-    for (var i = 0; i < list.length; i++) {
-      shelfEl.appendChild(createCoverCardWrap(list[i]));
+    var itemsPerPage = 9;
+    for (var i = 0; i < list.length; i += itemsPerPage) {
+      var pageDiv = document.createElement("div");
+      pageDiv.className = "sb-library-page";
+      for (var j = i; j < i + itemsPerPage && j < list.length; j++) {
+        pageDiv.appendChild(createCoverCardWrap(list[j]));
+      }
+      shelfEl.appendChild(pageDiv);
     }
     updateCarouselButtons();
   }
@@ -1252,8 +1258,10 @@
 
   function scrollCarousel(dir) {
     if (!shelfEl) return;
-    // Scroll by roughly 2 cards
-    var amount = 300 * dir;
+    // Scroll by one full page
+    // Add 20px for the gap between pages to ensure it crosses the snap threshold
+    var gap = 20;
+    var amount = (shelfEl.clientWidth + gap) * dir;
     shelfEl.scrollBy({ left: amount, behavior: "smooth" });
   }
 

@@ -247,7 +247,7 @@ body.page-storybook.sb-modal-open {
   flex: 1;
   min-width: 0;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 1.25rem;
   overflow-x: auto;
   scroll-behavior: smooth;
@@ -267,6 +267,19 @@ body.page-storybook.sb-modal-open {
 
 .sb-carousel__track > * {
   scroll-snap-align: center;
+}
+
+.sb-library-page {
+  flex: 0 0 100%;
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 12rem));
+  justify-content: center;
+  grid-auto-rows: max-content;
+  gap: 1.25rem 1rem;
+  justify-items: center;
+  align-items: end;
+  scroll-snap-align: start;
 }
 
 .sb-library__empty {
@@ -291,9 +304,10 @@ body.page-storybook.sb-modal-open {
   flex: 0 0 auto;
   display: flex;
   align-items: flex-end;
-  /* Books stand side-by-side, no negative overlap */
+  justify-content: center;
   z-index: 2;
   transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), z-index 0s linear;
+  width: 100%;
 }
 
 .sb-cover-card-wrap:hover,
@@ -306,7 +320,8 @@ body.page-storybook.sb-modal-open {
   position: relative;
   display: block;
   /* Slightly larger beautiful books */
-  width: clamp(7.5rem, 32vw, 12rem);
+  width: 100%;
+  max-width: 12rem;
   aspect-ratio: 1 / 1; /* Match the new square DALL-E covers */
   padding: 0;
   margin: 0;
