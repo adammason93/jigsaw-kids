@@ -341,6 +341,7 @@ function delay(ms: number): Promise<void> {
 async function openaiImageGenerations(
   apiKey: string,
   payload: Record<string, unknown>,
+  retryCount = 0,
 ): Promise<string> {
   const r = await fetch("https://api.openai.com/v1/images/generations", {
     method: "POST",
@@ -353,6 +354,27 @@ async function openaiImageGenerations(
 
   const raw = await r.text();
   if (!r.ok) {
+    if (r.status === 429 && retryCount < 3) {
+      // Try to parse reset time from headers, fallback to 22s
+      const resetHeader = r.headers.get("x-ratelimit-reset-requests") || r.headers.get("x-ratelimit-reset");
+      let waitMs = 22000;
+      
+      if (resetHeader) {
+        // e.g. "12s" or "1m2s"
+        const matchS = resetHeader.match(/(\d+)s/);
+        const matchM = resetHeader.match(/(\d+)m/);
+        let seconds = 0;
+        if (matchM) seconds += parseInt(matchM[1], 10) * 60;
+        if (matchS) seconds += parseInt(matchS[1], 10);
+        if (seconds > 0) waitMs = seconds * 1000;
+      }
+      
+      waitMs += Math.random() * 3000; // Add jitter
+      
+      console.warn(`[clever-service] 429 Rate limit, waiting ${Math.round(waitMs/1000)}s before retry ${retryCount + 1}...`);
+      await delay(waitMs);
+      return openaiImageGenerations(apiKey, payload, retryCount + 1);
+    }
     console.error("openai image error", r.status, raw.slice(0, 900));
     throw new Error(openaiImageErrorDetail(r.status, raw));
   }
