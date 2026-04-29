@@ -354,6 +354,7 @@
     function cleanup() {
       if (done) return;
       done = true;
+      writeSpreadTextMetaFromStory();
       clearPageTurnOverlays();
       finishPageTurnAnim();
     }
@@ -505,8 +506,8 @@
     if (!book || !book.classList.contains("sb-book--cover-visible")) return;
     if (!readerStack) return;
     if (prefersReducedSpreadMotion()) {
-      readerStack.classList.remove("sb-reader-stack--opening");
       readerStack.classList.add("sb-reader-stack--open");
+      readerStack.classList.remove("sb-reader-stack--opening");
       book.classList.remove("sb-book--cover-visible");
       if (readerPages) readerPages.removeAttribute("aria-hidden");
       if (btnOpenCover) {
@@ -524,8 +525,8 @@
       if (myGen !== coverOpenGeneration) return;
       if (openFinished) return;
       openFinished = true;
-      readerStack.classList.remove("sb-reader-stack--opening");
       readerStack.classList.add("sb-reader-stack--open");
+      readerStack.classList.remove("sb-reader-stack--opening");
       book.classList.remove("sb-book--cover-visible");
       if (readerPages) readerPages.removeAttribute("aria-hidden");
       if (btnOpenCover) {
@@ -631,14 +632,13 @@
     showBook();
   }
 
-  function applySpreadContent() {
-    if (!story || !spreadText || !spreadArt || !spreadArtImg) return;
+  function writeSpreadTextMetaFromStory() {
+    if (!story || !spreadText) return;
     var n = numSpreads();
     if (n < 1) return;
     spreadIndex = Math.max(0, Math.min(spreadIndex, n - 1));
     var i = spreadIndex * 2;
     var leftP = story.pages[i];
-    var rightP = story.pages[i + 1];
     spreadText.textContent = leftP ? leftP.text : "";
     var pLo = i + 1;
     var pHi = i + 2;
@@ -646,6 +646,25 @@
       spreadMeta.textContent =
         "Spread " + (spreadIndex + 1) + " of " + n + " · pages " + pLo + "–" + pHi;
     }
+  }
+
+  /**
+   * @param {{ deferTextMeta?: boolean }} [opts] If deferTextMeta, skip left text + footer until page-turn end (next-page realism).
+   */
+  function applySpreadContent(opts) {
+    opts = opts || {};
+    var deferTextMeta = opts.deferTextMeta === true;
+    if (!story || !spreadText || !spreadArt || !spreadArtImg) return;
+    var n = numSpreads();
+    if (n < 1) return;
+    spreadIndex = Math.max(0, Math.min(spreadIndex, n - 1));
+    var i = spreadIndex * 2;
+    var rightP = story.pages[i + 1];
+    if (!deferTextMeta) {
+      writeSpreadTextMetaFromStory();
+    }
+    var pLo = i + 1;
+    var pHi = i + 2;
     if (rightP && rightP.imageUrl) {
       spreadArtImg.src = rightP.imageUrl;
       spreadArtImg.alt = "Illustration for pages " + pLo + "–" + pHi;
@@ -687,12 +706,13 @@
         oldSrc = spreadArtImg.currentSrc || spreadArtImg.src || "";
       }
       spreadIndex += delta;
-      applySpreadContent();
       if (!pageTurnRight || !oldSrc) {
+        applySpreadContent();
         return;
       }
       spreadAnimLock = true;
       setSpreadNavBusy(true);
+      applySpreadContent({ deferTextMeta: true });
       runRightPageTurn(oldSrc);
     } else {
       var oldText = spreadText ? spreadText.textContent : "";

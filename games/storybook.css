@@ -794,10 +794,8 @@ body.page-storybook.sb-modal-open {
 .sb-read-stage {
   flex: 1;
   min-width: 0;
-  filter: drop-shadow(0 18px 42px rgba(25, 25, 25, 0.18));
 }
 
-/* Closed cover → 3D hinge open (spine left), then spread */
 .sb-reader-stack {
   position: relative;
   width: 100%;
@@ -807,13 +805,15 @@ body.page-storybook.sb-modal-open {
   min-height: clamp(260px, min(56vw, 58vh), 500px);
 }
 
-/* Centered plate: open spread + cover share width; fixes “book stuck left” on wide viewports */
+/* filter + preserve-3d children causes ghost/painted planes in some browsers; use shadow on the book plate */
 .sb-reader-book {
   position: relative;
   width: 100%;
   max-width: calc(920px + 0.9rem);
   margin-left: auto;
   margin-right: auto;
+  border-radius: 14px;
+  box-shadow: 0 18px 42px rgba(25, 25, 25, 0.18);
 }
 
 /* Closed: one centered “card”; opening/open: align with left page for hinge */
@@ -832,7 +832,6 @@ body.page-storybook.sb-modal-open {
   background: transparent;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  filter: drop-shadow(0 12px 28px rgba(25, 25, 25, 0.26));
   perspective: min(250rem, 4200px);
   perspective-origin: left center;
   transform: none;
@@ -862,8 +861,7 @@ body.page-storybook.sb-modal-open {
   will-change: transform;
 }
 
-.sb-reader-stack--opening .sb-cover__pivot,
-.sb-reader-stack--open .sb-cover__pivot {
+.sb-reader-stack--opening .sb-cover__pivot {
   transform: rotateY(-178deg);
 }
 
@@ -991,11 +989,9 @@ body.page-storybook.sb-modal-open {
   pointer-events: auto;
 }
 
+/* Once open, remove cover from paint/layout — visibility/opacity still leaves 3D + filter ghosts in Chrome/Safari */
 .sb-reader-stack--open .sb-cover {
-  pointer-events: none;
-  visibility: hidden;
-  opacity: 0;
-  transition: none;
+  display: none;
 }
 
 .sb-reader-stack--opening .sb-cover {
@@ -1011,12 +1007,7 @@ body.page-storybook.sb-modal-open {
     transition: none;
   }
 
-  .sb-reader-stack--open .sb-cover {
-    transition: none;
-  }
-
-  .sb-reader-stack--opening .sb-cover__pivot,
-  .sb-reader-stack--open .sb-cover__pivot {
+  .sb-reader-stack--opening .sb-cover__pivot {
     transform: none;
   }
 }
