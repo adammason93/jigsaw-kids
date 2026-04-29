@@ -441,8 +441,14 @@ async function openaiImageUrl(
 
 /** Landscape spread first; some keys/billing paths fail on 1792×1024 — fall back to square. */
 async function openaiSpreadImageUrl(apiKey: string, prompt: string): Promise<string> {
-  // Use 512x512 with DALL-E 2 to speed up generation, prevent 546 timeouts, and reduce costs.
-  return await openaiImageUrl(apiKey, prompt, "512x512");
+  // Try DALL-E 3 at 1024x1024 to maintain detail and style instruction. DALL-E 2 often fails the style prompts.
+  // The parallel Promise.all generation makes this fast enough to bypass the 504/546 timeout.
+  try {
+    return await openaiImageUrl(apiKey, prompt, "1024x1024");
+  } catch (e) {
+    console.warn("[clever-service] DALL-E 3 1024x1024 failed, retrying with DALL-E 2 512x512", e);
+    return await openaiImageUrl(apiKey, prompt, "512x512");
+  }
 }
 
 Deno.serve(async (req) => {
