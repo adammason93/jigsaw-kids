@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#db2777" />
+  <title>Your story — Sofia's Game Room</title>
+  <link rel="manifest" href="../manifest.json" />
+  <link rel="stylesheet" href="../js/kids-core.css" />
+  <link rel="stylesheet" href="storybook.css" />
+  <link rel="stylesheet" href="../tablet-ipad.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800&family=Sniglet:wght@400;800&display=swap" rel="stylesheet" />
+</head>
+<body class="page-storybook">
+  <div class="sb-app" id="app">
+    <nav class="sb-nav">
+      <a class="sb-back back-btn" href="../index.html" aria-label="Back to all games">
+        <span class="back-btn__icon" aria-hidden="true">&#8592;</span><span class="back-btn__text">Back</span>
+      </a>
+    </nav>
+
+    <section class="sb-wizard" id="sbWizard" aria-labelledby="sbWizardTitle">
+      <h1 class="sb-title" id="sbWizardTitle">Make your story</h1>
+      <p class="sb-lead">Pick a name and friends — a grown-up needs the story magic switched on (OpenAI + Supabase).</p>
+
+      <label class="sb-label" for="sbName">Your name in the story</label>
+      <input class="sb-input" id="sbName" type="text" maxlength="24" autocomplete="given-name" placeholder="Sofia" />
+
+      <fieldset class="sb-fieldset">
+        <legend class="sb-legend">Who is your buddy?</legend>
+        <div class="sb-chip-row" id="sbCharacters" role="radiogroup" aria-label="Character"></div>
+      </fieldset>
+
+      <fieldset class="sb-fieldset">
+        <legend class="sb-legend">Where does it happen?</legend>
+        <div class="sb-chip-row" id="sbPlaces" role="radiogroup" aria-label="Place"></div>
+      </fieldset>
+
+      <p class="sb-note" id="sbError" role="alert" hidden></p>
+
+      <button type="button" class="sb-btn sb-btn--primary" id="sbGenerate">
+        Make my book ✨
+      </button>
+    </section>
+
+    <section class="sb-book is-hidden" id="sbBook" aria-labelledby="sbBookTitle" hidden>
+      <h2 class="sb-book-title" id="sbBookTitle"></h2>
+      <div class="sb-page" id="sbPage">
+        <div class="sb-page__art" id="sbPageArt" hidden>
+          <img id="sbPageImg" alt="" decoding="async" />
+        </div>
+        <p class="sb-page__text" id="sbPageText"></p>
+      </div>
+      <div class="sb-pager">
+        <button type="button" class="sb-btn sb-btn--ghost" id="sbPrev" aria-label="Previous page">Back</button>
+        <span class="sb-pager__hint" id="sbPagerHint" aria-live="polite"></span>
+        <button type="button" class="sb-btn sb-btn--ghost" id="sbNext" aria-label="Next page">Next</button>
+      </div>
+      <button type="button" class="sb-btn sb-btn--secondary" id="sbNew">Make another story</button>
+    </section>
+
+    <div class="sb-busy is-hidden" id="sbBusy" aria-live="polite" aria-busy="true" hidden>
+      <div class="sb-busy__card">
+        <p class="sb-busy__title">Creating your book…</p>
+        <p class="sb-busy__msg">This can take a little while (four pictures + the story).</p>
+        <div class="sb-busy__dots" aria-hidden="true"><span></span><span></span><span></span></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/score-config.js"></script>
+  <script src="../js/kids-core.js"></script>
+  <script src="storybook.js" defer></script>
+  <script>
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("../sw.js").catch(function () {});
+    }
+  </script>
+</body>
+</html>

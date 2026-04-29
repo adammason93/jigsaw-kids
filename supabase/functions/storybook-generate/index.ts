@@ -1,0 +1,239 @@
+import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+
+const corsHeaders: Record<string, string> = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
+
+const CHARACTERS: Record<string, string> = {
+  unicorn: "a friendly unicorn with a sparkly mane",
+  dragon: "a small cute dragon with soft round wings",
+  robot: "a round friendly robot with big eyes",
+  bunny: "a fluffy bunny with long ears",
+  teddy: "a cuddly teddy bear",
+};
+
+const PLACES: Record<string, string> = {
+  beach: "a sunny beach with gentle waves and sand castles",
+  woods: "a magical forest with tall trees and dappled light",
+  castle: "a fairy-tale castle with colourful flags",
+  garden: "a flower garden with butterflies",
+  space: "a friendly cartoon planet with stars and a pastel rocket",
+};
+
+type StoryPage = { text: string; illustrationBrief: string | null };
+type StoryJson = { title: string; pages: StoryPage[] };
+
+function sanitizeName(raw: string): string {
+  const s = (raw ?? "").trim().slice(0, 24);
+  const cleaned = s.replace(/[^\p{L}\p{N}'\-\s]/gu, "").trim();
+  return cleaned.length ? cleaned : "My friend";
+}
+
+function jsonResponse(body: unknown, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
+
+async function openaiChatJson(
+  apiKey: string,
+  system: string,
+  user: string
+): Promise<StoryJson> {
+  const r = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: "gpt-4o-mini",
+      temperature: 0.75,
+      max_tokens: 1400,
+      response_format: { type: "json_object" },
+      messages: [
+        { role: "system", content: system },
+        { role: "user", content: user },
+      ],
+    }),
+  });
+
+  if (!r.ok) {
+    const t = await r.text();
+    console.error("openai chat error", r.status, t);
+    throw new Error(`story_model_error:${r.status}`);
+  }
+
+  const data = await r.json();
+  const content = data.choices?.[0]?.message?.content;
+  if (!content) throw new Error("story_empty");
+  const parsed = JSON.parse(content) as StoryJson;
+
+  if (
+    !parsed.title ||
+    !Array.isArray(parsed.pages) ||
+    parsed.pages.length !== 8
+  ) {
+    throw new Error("story_shape");
+  }
+
+  const artCount = parsed.pages.filter(
+    (p) => p.illustrationBrief && String(p.illustrationBrief).trim()
+  ).length;
+  if (artCount !== 4) throw new Error("story_art_count");
+
+  for (const p of parsed.pages) {
+    if (!p.text || String(p.text).length > 320) throw new Error("story_page_len");
+  }
+
+  return parsed;
+}
+
+async function openaiImageUrl(apiKey: string, prompt: string): Promise<string> {
+  const r = await fetch("https://api.openai.com/v1/images/generations", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: "dall-e-3",
+      prompt: prompt.slice(0, 3900),
+      n: 1,
+      size: "1024x1024",
+      quality: "standard",
+      style: "vivid",
+    }),
+  });
+
+  if (!r.ok) {
+    const t = await r.text();
+    console.error("openai image error", r.status, t);
+    throw new Error(`image_model_error:${r.status}`);
+  }
+
+  const data = await r.json();
+  const url = data.data?.[0]?.url;
+  if (!url) throw new Error("image_empty");
+  return url as string;
+}
+
+Deno.serve(async (req) => {
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
+  }
+
+  if (req.method !== "POST") {
+    return jsonResponse({ error: "method_not_allowed" }, 405);
+  }
+
+  const apiKey = Deno.env.get("OPENAI_API_KEY");
+  if (!apiKey) {
+    return jsonResponse({ error: "server_missing_openai" }, 500);
+  }
+
+  let body: {
+    childName?: string;
+    character?: string;
+    place?: string;
+  };
+  try {
+    body = await req.json();
+  } catch {
+    return jsonResponse({ error: "bad_json" }, 400);
+  }
+
+  const childName = sanitizeName(String(body.childName ?? ""));
+  const characterKey = String(body.character ?? "");
+  const placeKey = String(body.place ?? "");
+
+  const characterDesc = CHARACTERS[characterKey];
+  const placeDesc = PLACES[placeKey];
+  if (!characterDesc || !placeDesc) {
+    return jsonResponse({ error: "invalid_choices" }, 400);
+  }
+
+  const system = `You write very short picture-book stories for UK English-speaking children about age 5.
+Rules:
+- Warm, gentle, silly — never scary, violent, or mean.
+- No romance, no weapons, no villains that frighten.
+- Exactly 8 pages. Each page field "text" is at most 2 short sentences. Use simple words.
+- The hero's name is given — use it often.
+- Include fields title (string) and pages (array of 8 objects).
+- Each page: { "text": string, "illustrationBrief": string | null }.
+- Exactly FOUR pages must have a non-null "illustrationBrief": a short visual scene description in English for an illustrator (no text to draw, no words on signs).
+- The other four pages must use "illustrationBrief": null.
+- Order: spread illustrations across the story (e.g. pages 1,3,5,8 — vary which pages).
+- JSON only, no markdown.`;
+
+  const user = `Child name: ${childName}
+Main friend character: ${characterDesc}
+Setting to feature: ${placeDesc}
+
+Return JSON shape: { "title": string, "pages": [ { "text": string, "illustrationBrief": string | null }, ... 8 items ] }`;
+
+  let story: StoryJson;
+  try {
+    story = await openaiChatJson(apiKey, system, user);
+  } catch (e) {
+    console.error(e);
+    return jsonResponse({ error: "story_failed" }, 502);
+  }
+
+  const imagePromptPrefix =
+    "Children's picture book illustration, rounded friendly shapes, bright pastels, " +
+    "no letters no words no text in the image, wholesome and safe for toddlers. " +
+    `Main character to show: ${characterDesc}. Setting mood: ${placeDesc}. Scene: `;
+
+  const pagesOut: { text: string; imageUrl: string | null }[] = [];
+
+  try {
+    const briefs: { index: number; brief: string }[] = [];
+    story.pages.forEach((p, i) => {
+      if (p.illustrationBrief && String(p.illustrationBrief).trim()) {
+        briefs.push({ index: i, brief: String(p.illustrationBrief).trim() });
+      }
+    });
+
+    const urls = await Promise.all(
+      briefs.map((b) =>
+        openaiImageUrl(apiKey, imagePromptPrefix + b.brief)
+      )
+    );
+
+    const urlByIndex = new Map<number, string>();
+    briefs.forEach((b, k) => urlByIndex.set(b.index, urls[k]));
+
+    story.pages.forEach((p, i) => {
+      pagesOut.push({
+        text: p.text.trim(),
+        imageUrl: urlByIndex.get(i) ?? null,
+      });
+    });
+  } catch (e) {
+    console.error(e);
+    return jsonResponse(
+      {
+        error: "images_failed",
+        title: story.title,
+        pages: story.pages.map((p) => ({ text: p.text.trim(), imageUrl: null })),
+      },
+      502
+    );
+  }
+
+  return jsonResponse({
+    title: story.title,
+    pages: pagesOut,
+    meta: {
+      childName,
+      characterKey,
+      placeKey,
+      imageCount: pagesOut.filter((p) => p.imageUrl).length,
+    },
+  });
+});

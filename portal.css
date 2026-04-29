@@ -45,6 +45,8 @@
   --theme-zuma-soft: #d1fae5;
   --theme-marble-tilt: #7d82b8;
   --theme-marble-tilt-soft: #ede6e3;
+  --theme-storybook: #db2777;
+  --theme-storybook-soft: #fce7f3;
 }
 
 html {
@@ -665,6 +667,11 @@ h2,
 .game-card--marble-tilt {
   --card-accent: var(--theme-marble-tilt);
   --card-soft: var(--theme-marble-tilt-soft);
+}
+
+.game-card--storybook {
+  --card-accent: var(--theme-storybook);
+  --card-soft: var(--theme-storybook-soft);
 }
 
 a.game-card:hover {
