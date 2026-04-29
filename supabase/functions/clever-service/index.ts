@@ -26,6 +26,25 @@ const PLACES: Record<string, string> = {
 type StoryPage = { text: string; illustrationBrief: string | null };
 type StoryJson = { title: string; pages: StoryPage[] };
 
+function sanitizeFamilyNames(raw: unknown): string[] {
+  if (!Array.isArray(raw)) return [];
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const x of raw.slice(0, 8)) {
+    const cleaned = String(x ?? "")
+      .trim()
+      .replace(/[^\p{L}\p{N}'\-\s]/gu, "")
+      .trim()
+      .slice(0, 24);
+    if (!cleaned) continue;
+    const key = cleaned.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(cleaned);
+  }
+  return out;
+}
+
 function sanitizeName(raw: string): string {
   const s = (raw ?? "").trim().slice(0, 24);
   const cleaned = s.replace(/[^\p{L}\p{N}'\-\s]/gu, "").trim();
@@ -206,6 +225,7 @@ Deno.serve(async (req) => {
     character?: string;
     place?: string;
     plotHint?: string;
+    familyNames?: string[];
   };
   try {
     body = await req.json();
@@ -224,6 +244,7 @@ Deno.serve(async (req) => {
   }
 
   const plotHint = sanitizePlotHint(String(body.plotHint ?? ""));
+  const familyNames = sanitizeFamilyNames(body.familyNames);
 
   const system = `You write very short picture-book stories for UK English-speaking children about age 5.
 Rules:
@@ -231,6 +252,7 @@ Rules:
 - No romance, no weapons, no villains that frighten.
 - Exactly 12 pages (six double-page spreads). Each page "text" is at most 2 short sentences. Use simple words.
 - The hero's name is given — use it often.
+- If "People from the child's games" are listed, include them in the story by name as extra friends or family. They should feel like the same friendly faces the child picks in other games (e.g. Tilly, Baby). They are separate from the one imaginary "main friend character" (unicorn, dragon, etc.) — both can appear.
 - Include fields title (string) and pages (array of 12 objects).
 - Each page: { "text": string, "illustrationBrief": string | null }.
 - DOUBLE-PAGE SPREADS: pair pages as (1,2), (3,4), (5,6), (7,8), (9,10), (11,12).
@@ -240,8 +262,11 @@ Rules:
 - JSON only, no markdown.`;
 
   const user = `Child name: ${childName}
-Main friend character: ${characterDesc}
+Main friend character (imaginary buddy): ${characterDesc}
 Setting to feature: ${placeDesc}
+People from the child's games to include by name (friends/family — use them warmly and often; if none listed, skip): ${
+    familyNames.length > 0 ? familyNames.join(", ") : "(none)"
+  }
 Plot idea from the child (use as inspiration; keep gentle and age-appropriate): ${
     plotHint.length ? plotHint : "(none — invent a cosy little adventure that fits the setting)"
   }
@@ -261,7 +286,11 @@ Return JSON shape: { "title": string, "pages": [ { "text": string, "illustration
     "single full scene, cohesive with a magical tableau, " +
     "vertical portrait composition (roughly 3:4 page like a book leaf), main subject centered with comfortable margin away from edges (will sit in a tall picture page), " +
     "no letters no words no text in the image, wholesome and safe for toddlers. " +
-    `Main character to show: ${characterDesc}. Setting mood: ${placeDesc}. Scene: `;
+    `Main character to show: ${characterDesc}. Setting mood: ${placeDesc}.` +
+    (familyNames.length > 0
+      ? ` When groups of friends appear, include these as friendly toy-like characters in the scene (not labelled): ${familyNames.join(", ")}. `
+      : " ") +
+    `Scene: `;
 
   const pagesOut: { text: string; imageUrl: string | null }[] = [];
 
@@ -307,6 +336,7 @@ Return JSON shape: { "title": string, "pages": [ { "text": string, "illustration
       characterKey,
       placeKey,
       plotHintLen: plotHint.length,
+      familyNames,
       imageCount: pagesOut.filter((p) => p.imageUrl).length,
       spreads: 6,
     },

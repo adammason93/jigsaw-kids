@@ -83,7 +83,7 @@
 
         <div class="sb-panel is-active" data-panel="0" id="sbPanel0">
           <p class="sb-panel__text">
-            We’ll ask who you are, who your buddy is, where you go, and what kind of adventure you’d like.
+            We’ll ask who you are, who might join from your games, who your buddy is, where you go, and what happens.
             Grown-ups: the story magic uses your Supabase function + OpenAI key.
           </p>
           <div class="sb-modal__actions">
@@ -111,6 +111,18 @@
             placeholder="e.g. The star and the brave fox"
           />
           <p class="sb-panel__micro">This is the name on the front cover. Leave it blank and we’ll use a title from your story.</p>
+          <div class="sb-game-people-block" id="sbGamePeopleBlock" hidden>
+          <p class="sb-label sb-label--secondary">Friends from your games (optional)</p>
+          <p class="sb-panel__hint sb-panel__hint--tight">
+            Tap anyone you play as in other games — they can show up in the story too.
+          </p>
+          <div
+            class="sb-chip-row sb-chip-row--family"
+            id="sbGamePeople"
+            role="group"
+            aria-label="People from your games to include in the story"
+          ></div>
+          </div>
           <div class="sb-modal__actions sb-modal__actions--split">
             <button type="button" class="sb-btn sb-btn--ghost sb-btn--modal" id="sbBack1">Back</button>
             <button type="button" class="sb-btn sb-btn--primary sb-btn--modal" id="sbNext1">Next</button>
@@ -162,9 +174,9 @@
       </div>
     </div>
 
-    <section class="sb-book is-hidden" id="sbBook" aria-labelledby="sbBookTitle" hidden>
+    <section class="sb-book is-hidden" id="sbBook" aria-labelledby="sbBookHeading" hidden>
       <span class="sb-sr-live" id="sbPagerLive" aria-live="polite"></span>
-      <h2 class="sb-book-title" id="sbBookTitle"></h2>
+      <h2 class="sb-book-title" id="sbBookHeading"></h2>
       <div class="sb-book-spread" id="sbBookSpread">
         <button
           type="button"
@@ -182,13 +194,18 @@
               id="sbOpenCover"
               aria-label="Open the book"
             >
-              <span class="sb-cover__face">
-                <span class="sb-cover__spine" aria-hidden="true"></span>
-                <span class="sb-cover__panel">
-                  <span class="sb-cover__deco" aria-hidden="true">✨</span>
-                  <span class="sb-cover__title" id="sbCoverTitle"></span>
-                  <span class="sb-cover__hint">Tap to open</span>
+              <span class="sb-cover__pivot" id="sbCoverPivot">
+                <span class="sb-cover__outside">
+                  <span class="sb-cover__face">
+                    <span class="sb-cover__spine" aria-hidden="true"></span>
+                    <span class="sb-cover__panel">
+                      <span class="sb-cover__deco" aria-hidden="true">✨</span>
+                      <span class="sb-cover__title" id="sbCoverTitle"></span>
+                      <span class="sb-cover__hint">Tap to open</span>
+                    </span>
+                  </span>
                 </span>
+                <span class="sb-cover__inside" aria-hidden="true"></span>
               </span>
             </button>
             <div class="sb-reader-pages" id="sbReaderPages" aria-hidden="true">
@@ -243,6 +260,7 @@
     </div>
   </div>
 
+  <script src="../js/kids-game-characters.js"></script>
   <script src="../js/score-config.js"></script>
   <script src="../js/kids-core.js"></script>
   <script src="storybook.js" defer></script>

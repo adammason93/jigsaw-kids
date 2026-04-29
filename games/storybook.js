@@ -36,6 +36,8 @@
   var bookTitleInput = document.getElementById("sbBookTitle");
   var plotInput = document.getElementById("sbPlot");
   var charRow = document.getElementById("sbCharacters");
+  var gamePeopleRow = document.getElementById("sbGamePeople");
+  var gamePeopleBlock = document.getElementById("sbGamePeopleBlock");
   var placeRow = document.getElementById("sbPlaces");
   var errEl = document.getElementById("sbError");
   var modalErr = document.getElementById("sbModalError");
@@ -44,7 +46,7 @@
   var stepHeading = document.getElementById("sbStepHeading");
   var btnStart = document.getElementById("sbStartJourney");
   var btnGen = document.getElementById("sbGenerate");
-  var bookTitle = document.getElementById("sbBookTitle");
+  var readerHeading = document.getElementById("sbBookHeading");
   var spreadText = document.getElementById("sbSpreadText");
   var spreadMeta = document.getElementById("sbSpreadMeta");
   var spreadArt = document.getElementById("sbSpreadArt");
@@ -54,6 +56,7 @@
   var readerStack = document.getElementById("sbReaderStack");
   var readerPages = document.getElementById("sbReaderPages");
   var btnOpenCover = document.getElementById("sbOpenCover");
+  var coverPivot = document.getElementById("sbCoverPivot");
   var coverTitle = document.getElementById("sbCoverTitle");
   var btnPrev = document.getElementById("sbPrev");
   var btnNext = document.getElementById("sbNext");
@@ -307,18 +310,61 @@
 
   function openBookCover() {
     if (!book || !book.classList.contains("sb-book--cover-visible")) return;
-    if (readerStack) readerStack.classList.add("sb-reader-stack--open");
-    book.classList.remove("sb-book--cover-visible");
-    if (readerPages) readerPages.removeAttribute("aria-hidden");
-    if (btnOpenCover) {
-      btnOpenCover.setAttribute("aria-hidden", "true");
-      btnOpenCover.tabIndex = -1;
+    if (!readerStack) return;
+    if (prefersReducedSpreadMotion()) {
+      readerStack.classList.remove("sb-reader-stack--opening");
+      readerStack.classList.add("sb-reader-stack--open");
+      book.classList.remove("sb-book--cover-visible");
+      if (readerPages) readerPages.removeAttribute("aria-hidden");
+      if (btnOpenCover) {
+        btnOpenCover.setAttribute("aria-hidden", "true");
+        btnOpenCover.tabIndex = -1;
+      }
+      updatePagerHints();
+      return;
     }
-    updatePagerHints();
+
+    var openFinished = false;
+    function finishOpen() {
+      if (openFinished) return;
+      openFinished = true;
+      readerStack.classList.remove("sb-reader-stack--opening");
+      readerStack.classList.add("sb-reader-stack--open");
+      book.classList.remove("sb-book--cover-visible");
+      if (readerPages) readerPages.removeAttribute("aria-hidden");
+      if (btnOpenCover) {
+        btnOpenCover.setAttribute("aria-hidden", "true");
+        btnOpenCover.tabIndex = -1;
+      }
+      if (coverPivot) {
+        coverPivot.removeEventListener("transitionend", onPivotEnd);
+      }
+      updatePagerHints();
+    }
+
+    function onPivotEnd(ev) {
+      if (!coverPivot || ev.target !== coverPivot) return;
+      if (ev.propertyName !== "transform") return;
+      finishOpen();
+    }
+
+    if (readerPages) readerPages.removeAttribute("aria-hidden");
+    readerStack.classList.add("sb-reader-stack--opening");
+    if (coverPivot) {
+      coverPivot.addEventListener("transitionend", onPivotEnd);
+    }
+    window.setTimeout(function () {
+      finishOpen();
+    }, 1100);
   }
 
   function resetBookCoverForWizard() {
-    if (readerStack) readerStack.classList.remove("sb-reader-stack--open");
+    if (readerStack) {
+      readerStack.classList.remove(
+        "sb-reader-stack--open",
+        "sb-reader-stack--opening"
+      );
+    }
     if (book) book.classList.remove("sb-book--cover-visible");
     if (readerPages) readerPages.setAttribute("aria-hidden", "true");
     if (btnOpenCover) {
@@ -496,7 +542,7 @@
         spreadNavFallbackT = null;
         spreadInnerEl.removeEventListener("animationend", onInEnd);
         completeIn();
-      }, 480);
+      }, 560);
     }
 
     function onOutEnd(ev) {
@@ -524,7 +570,7 @@
       if (outDone) return;
       outDone = true;
       startIn();
-    }, 280);
+    }, 400);
   }
 
   function updatePagerHints() {
@@ -951,6 +997,59 @@
     return c && c.supabaseAnonKey ? String(c.supabaseAnonKey) : "";
   }
 
+  function getSelectedFamilyNames() {
+    var out = [];
+    if (!gamePeopleRow) return out;
+    Array.prototype.forEach.call(
+      gamePeopleRow.querySelectorAll(".sb-chip.is-selected"),
+      function (el) {
+        var lab = el.getAttribute("data-person-label");
+        if (lab) out.push(lab);
+      }
+    );
+    return out;
+  }
+
+  function clearGamePeopleChips() {
+    if (!gamePeopleRow) return;
+    Array.prototype.forEach.call(gamePeopleRow.querySelectorAll(".sb-chip"), function (el) {
+      el.classList.remove("is-selected");
+      el.setAttribute("aria-checked", "false");
+    });
+  }
+
+  function buildGamePeopleChips() {
+    if (!gamePeopleRow) return;
+    var list =
+      typeof window.KidsGameCharacters !== "undefined" &&
+      Array.isArray(window.KidsGameCharacters)
+        ? window.KidsGameCharacters
+        : [];
+    gamePeopleRow.textContent = "";
+    if (gamePeopleBlock) {
+      if (!list.length) {
+        gamePeopleBlock.hidden = true;
+        return;
+      }
+      gamePeopleBlock.hidden = false;
+    }
+    list.forEach(function (item) {
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "sb-chip";
+      b.textContent = item.label;
+      b.setAttribute("role", "checkbox");
+      b.setAttribute("aria-checked", "false");
+      b.setAttribute("data-person-label", item.label);
+      b.addEventListener("click", function () {
+        var on = !b.classList.contains("is-selected");
+        b.classList.toggle("is-selected", on);
+        b.setAttribute("aria-checked", on ? "true" : "false");
+      });
+      gamePeopleRow.appendChild(b);
+    });
+  }
+
   function refreshCharacterChips() {
     if (!charRow) return;
     Array.prototype.forEach.call(charRow.querySelectorAll(".sb-chip"), function (el, i) {
@@ -1002,6 +1101,7 @@
       });
       refreshPlaceChips();
     }
+    buildGamePeopleChips();
   }
 
   function renderProgress() {
@@ -1094,6 +1194,7 @@
     if (nameInput) nameInput.value = "";
     if (bookTitleInput) bookTitleInput.value = "";
     if (plotInput) plotInput.value = "";
+    clearGamePeopleChips();
     goToStep(0);
     setError("");
     renderShelf();
@@ -1110,7 +1211,7 @@
       book.classList.remove("is-hidden");
       book.hidden = false;
     }
-    if (bookTitle) bookTitle.textContent = story.title;
+    if (readerHeading) readerHeading.textContent = story.title;
     if (coverTitle && story) coverTitle.textContent = story.title;
     if (btnOpenCover && story) {
       btnOpenCover.setAttribute(
@@ -1118,7 +1219,12 @@
         "Open the book: " + String(story.title || "your story")
       );
     }
-    if (readerStack) readerStack.classList.remove("sb-reader-stack--open");
+    if (readerStack) {
+      readerStack.classList.remove(
+        "sb-reader-stack--open",
+        "sb-reader-stack--opening"
+      );
+    }
     if (readerPages) readerPages.setAttribute("aria-hidden", "true");
     if (btnOpenCover) {
       btnOpenCover.removeAttribute("aria-hidden");
@@ -1229,6 +1335,7 @@
           character: selectedChar,
           place: selectedPlace,
           plotHint: plotHint,
+          familyNames: getSelectedFamilyNames(),
         }),
       })
         .then(function (r) {
