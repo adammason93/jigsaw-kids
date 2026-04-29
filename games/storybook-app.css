@@ -1211,7 +1211,7 @@ body.page-storybook.sb-modal-open {
     transition-duration: 0.01ms;
   }
 
-  .sb-flip-spread__art-bg.sb-story-pageflip {
+  .sb-flip-spread__art-peel.sb-story-pageflip {
     transition-duration: 0.01ms !important;
     -webkit-transition-duration: 0.01ms !important;
     transform: none !important;
@@ -1341,7 +1341,7 @@ body.page-storybook.sb-modal-open {
   background: transparent;
 }
 
-/** Duplex panorama: inset 0 … full width behind both halves + gutter layer on top — one img per spread (pages pair). */
+/** Duplex stack: `#sbSpreadArtCover` shows the current spread; `#sbSpreadArtPeel` is only the outgoing sheet during animation. */
 .sb-flip-spread__art-bg {
   position: absolute;
   inset: 0;
@@ -1351,6 +1351,24 @@ body.page-storybook.sb-modal-open {
   background-position: center;
   background-repeat: no-repeat;
   pointer-events: none;
+}
+
+.sb-flip-spread__art-base {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.sb-flip-spread__art-peel {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  border-radius: 6px;
+  overflow: hidden;
+  pointer-events: none;
+  background-color: var(--sb-flip-paper);
   transform-style: preserve-3d;
   -webkit-transform-style: preserve-3d;
   transform-origin: center center;
@@ -1358,6 +1376,8 @@ body.page-storybook.sb-modal-open {
   transform: rotateY(0deg);
   transition: transform 0.54s cubic-bezier(0.4, 0, 0.2, 1);
   -webkit-transition: -webkit-transform 0.54s cubic-bezier(0.4, 0, 0.2, 1);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
 .sb-flip-spread__art-cover {
@@ -1370,6 +1390,30 @@ body.page-storybook.sb-modal-open {
   object-position: center;
   pointer-events: none;
   z-index: 1;
+}
+
+.sb-flip-spread__art-peel.sb-story-pageflip--turn-next-1 .sb-flip-spread__art-peel__img,
+.sb-flip-spread__art-peel.sb-story-pageflip--turn-next-1 .sb-flip-spread__art-cover {
+  box-shadow:
+    inset 0 0 0 1px rgba(157, 23, 77, 0.06),
+    4px 0 28px rgba(45, 20, 40, 0.12);
+}
+
+.sb-flip-spread__art-peel.sb-story-pageflip--turn-prev-1 .sb-flip-spread__art-peel__img,
+.sb-flip-spread__art-peel.sb-story-pageflip--turn-prev-1 .sb-flip-spread__art-cover {
+  box-shadow:
+    inset 0 0 0 1px rgba(157, 23, 77, 0.06),
+    -4px 0 28px rgba(45, 20, 40, 0.12);
+}
+
+.sb-flip-spread__art-peel.sb-story-pageflip--turn-next-1 {
+  transform: rotateY(-92deg);
+  -webkit-transform: rotateY(-92deg);
+}
+
+.sb-flip-spread__art-peel.sb-story-pageflip--turn-prev-1 {
+  transform: rotateY(92deg);
+  -webkit-transform: rotateY(92deg);
 }
 
 /* Text sits over the full-bleed art; readability comes from line-by-line pills on .sb-flip-text__highlight */
@@ -1405,49 +1449,6 @@ body.page-storybook.sb-modal-open {
   display: none !important;
 }
 
-.sb-flip-spread__art-bg.sb-story-pageflip--turn-next-1 .sb-flip-spread__art-cover {
-  box-shadow:
-    inset 0 0 0 1px rgba(157, 23, 77, 0.06),
-    4px 0 28px rgba(45, 20, 40, 0.12);
-}
-
-.sb-flip-spread__art-bg.sb-story-pageflip--turn-prev-1 .sb-flip-spread__art-cover {
-  box-shadow:
-    inset 0 0 0 1px rgba(157, 23, 77, 0.06),
-    -4px 0 28px rgba(45, 20, 40, 0.12);
-}
-
-.sb-flip-spread__art-bg.sb-story-pageflip--turn-next-1 {
-  transform: rotateY(-92deg);
-  -webkit-transform: rotateY(-92deg);
-}
-
-.sb-flip-spread__art-bg.sb-story-pageflip--turn-prev-1 {
-  transform: rotateY(92deg);
-  -webkit-transform: rotateY(92deg);
-}
-
-.sb-flip-spread__art-bg.sb-story-pageflip--snap-next {
-  transition: none !important;
-  -webkit-transition: none !important;
-  transform: rotateY(92deg);
-  -webkit-transform: rotateY(92deg);
-}
-
-.sb-flip-spread__art-bg.sb-story-pageflip--snap-prev {
-  transition: none !important;
-  -webkit-transition: none !important;
-  transform: rotateY(-92deg);
-  -webkit-transform: rotateY(-92deg);
-}
-
-.sb-flip-spread__art-bg.sb-story-pageflip--snap-next.sb-story-pageflip--turn-next-2,
-.sb-flip-spread__art-bg.sb-story-pageflip--snap-prev.sb-story-pageflip--turn-prev-2 {
-  transition: transform 0.54s cubic-bezier(0.4, 0, 0.2, 1) !important;
-  -webkit-transition: -webkit-transform 0.54s cubic-bezier(0.4, 0, 0.2, 1) !important;
-  transform: rotateY(0deg);
-  -webkit-transform: rotateY(0deg);
-}
 /* Keep <img> for page-turn animation & preload; not shown when full-bleed background is active */
 .sb-flip-spread__inner--has-art .sb-flip-page--art .sb-flip-art img {
   opacity: 0;

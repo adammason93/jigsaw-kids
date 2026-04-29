@@ -54,8 +54,10 @@
   var spreadInnerEl = document.getElementById("sbFlipSpreadInner");
   var spreadArtBg = document.getElementById("sbSpreadArtBg");
   var spreadArtCover = document.getElementById("sbSpreadArtCover");
-  /** Full-spread duplex (#sbSpreadArtBg); 3D hinge is at the gutter (centre line). */
-  var spreadArtFlipEl = spreadArtBg;
+  /** Incoming spread: full duplex under the peel (#sbSpreadArtCover inside .sb-flip-spread__art-base). */
+  /** Outgoing duplex on #sbSpreadArtPeel rotates away above it. */
+  var spreadArtPeelShell = document.getElementById("sbSpreadArtPeel");
+  var spreadArtPeelImg = document.getElementById("sbSpreadArtPeelImg");
   var readerStack = document.getElementById("sbReaderStack");
   var readerPages = document.getElementById("sbReaderPages");
   var btnOpenCover = document.getElementById("sbOpenCover");
@@ -298,8 +300,18 @@
     return name === "transform" || name === "-webkit-transform";
   }
 
-  function clearCpBookShellTurnClasses() {
-    var shell = spreadArtFlipEl || document.getElementById("sbSpreadArtBg");
+  function illustrationUrlAtSpreadIndex(si) {
+    if (!story || !story.pages || !story.pages.length) return "";
+    var nSpr = numSpreads();
+    if (nSpr < 1) return "";
+    si = Math.max(0, Math.min(si, nSpr - 1));
+    var rightP = story.pages[si * 2 + 1];
+    return rightP && rightP.imageUrl ? String(rightP.imageUrl) : "";
+  }
+
+  function clearSpreadPeelTurnClasses() {
+    var shell =
+      spreadArtPeelShell || document.getElementById("sbSpreadArtPeel");
     if (!shell) return;
     shell.classList.remove(
       "sb-story-pageflip--turn-next-1",
@@ -322,7 +334,7 @@
         "sb-flip-spread__inner--fade-in"
       );
     }
-    clearCpBookShellTurnClasses();
+    clearSpreadPeelTurnClasses();
   }
 
   function bindCpShellTurnEnd(shell, cb) {
@@ -354,51 +366,58 @@
   }
 
   function navigateSpreadWithRightPageTurn(delta) {
-    var shell = spreadArtFlipEl || document.getElementById("sbSpreadArtBg");
+    var peelShell =
+      spreadArtPeelShell || document.getElementById("sbSpreadArtPeel");
     if (spreadAnimLock) return;
-    if (!shell) {
+    if (!peelShell) {
       navigateSpreadInstant(delta);
       return;
     }
 
+    var fromSi = spreadIndex;
     spreadIndex += delta;
     var nSpr = numSpreads();
     spreadIndex = Math.max(0, Math.min(spreadIndex, nSpr - 1));
 
     spreadAnimLock = true;
     setSpreadNavBusy(true);
-    clearCpBookShellTurnClasses();
+    clearSpreadPeelTurnClasses();
 
-    /* Destination prose + pager now; duplex image updates mid-turn while edge-on */
+    /* Destination prose + incoming duplex on base (#sbSpreadArtCover); peel rotates away over it */
     applySpreadContent({ skipArt: true });
+    syncSpreadIllustrationFromStory();
+
+    var peelImg =
+      spreadArtPeelImg || document.getElementById("sbSpreadArtPeelImg");
+    var outgoingUrl = illustrationUrlAtSpreadIndex(fromSi);
+    if (peelImg) {
+      peelImg.alt = "";
+      if (outgoingUrl) {
+        peelImg.referrerPolicy = "no-referrer";
+        peelImg.src = outgoingUrl;
+      } else {
+        peelImg.removeAttribute("src");
+      }
+    }
+    peelShell.hidden = false;
+    peelShell.removeAttribute("hidden");
 
     var isNext = delta > 0;
     var cls1 = isNext
       ? "sb-story-pageflip--turn-next-1"
       : "sb-story-pageflip--turn-prev-1";
-    var snap = isNext
-      ? "sb-story-pageflip--snap-next"
-      : "sb-story-pageflip--snap-prev";
-    var cls2 = isNext
-      ? "sb-story-pageflip--turn-next-2"
-      : "sb-story-pageflip--turn-prev-2";
 
-    shell.classList.add(cls1);
+    window.requestAnimationFrame(function () {
+      peelShell.classList.add(cls1);
 
-    bindCpShellTurnEnd(shell, function phase1Done() {
-      applySpreadContent({ skipText: true });
-      shell.classList.remove(cls1);
-      shell.classList.add(snap);
-      window.requestAnimationFrame(function () {
-        window.requestAnimationFrame(function () {
-          shell.classList.add(cls2);
-
-          bindCpShellTurnEnd(shell, function phase2Done() {
-            shell.classList.remove(snap, cls2);
-            spreadAnimLock = false;
-            setSpreadNavBusy(false);
-          });
-        });
+      bindCpShellTurnEnd(peelShell, function peelTurnDone() {
+        clearSpreadPeelTurnClasses();
+        if (peelImg) {
+          peelImg.removeAttribute("src");
+        }
+        peelShell.hidden = true;
+        spreadAnimLock = false;
+        setSpreadNavBusy(false);
       });
     });
   }
@@ -679,9 +698,7 @@
   }
 
   /**
-   * @param {{ skipText?: boolean, skipArt?: boolean }} opt
-   *   skipArt at turn start → new prose visible while OLD illustration rotates away;
-   *   skipText mid-turn → swap duplexer art edge-on without re-writing text.
+   * @param {{ skipArt?: boolean }} opt  — skipArt while anim: text updated, base art set via `syncSpreadIllustrationFromStory` in navigator
    */
   function applySpreadContent(opt) {
     opt = opt || {};
@@ -689,9 +706,7 @@
     var n = numSpreads();
     if (n < 1) return;
     spreadIndex = Math.max(0, Math.min(spreadIndex, n - 1));
-    if (!opt.skipText) {
-      writeSpreadTextMetaFromStory();
-    }
+    writeSpreadTextMetaFromStory();
     if (!opt.skipArt) {
       syncSpreadIllustrationFromStory();
     }
@@ -1450,6 +1465,13 @@
     }
     if (spreadArtBg) {
       spreadArtBg.style.backgroundImage = "";
+    }
+    clearSpreadPeelTurnClasses();
+    if (spreadArtPeelImg) {
+      spreadArtPeelImg.removeAttribute("src");
+    }
+    if (spreadArtPeelShell) {
+      spreadArtPeelShell.hidden = true;
     }
     if (spreadInnerEl) {
       spreadInnerEl.classList.remove(

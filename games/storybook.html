@@ -8,7 +8,7 @@
   <link rel="manifest" href="../manifest.json" />
   <link rel="stylesheet" href="../js/kids-core.css" />
   <!-- storybook-app.css = renamed file so CDN/browser cache cannot keep old storybook.css -->
-  <link rel="stylesheet" href="storybook-app.css?v=15" />
+  <link rel="stylesheet" href="storybook-app.css?v=16" />
   <link rel="stylesheet" href="../tablet-ipad.css" />
   <!-- Last wins: guarantees new background even if a proxy cached an ancient stylesheet elsewhere -->
   <style>
@@ -242,17 +242,29 @@
                 <div class="sb-flip-spread" id="sbFlipSpread" aria-live="polite">
                   <div class="sb-flip-spread__inner" id="sbFlipSpreadInner">
                     <!-- Duplex panorama: one picture per spread, full width behind text + gutter (illus = pages pair) -->
-                    <div
-                      class="sb-flip-spread__art-bg sb-story-pageflip"
-                      id="sbSpreadArtBg"
-                      aria-hidden="true"
-                    >
-                      <img
-                        class="sb-flip-spread__art-cover"
-                        id="sbSpreadArtCover"
-                        alt=""
-                        decoding="async"
-                      />
+                    <div id="sbSpreadArtBg" class="sb-flip-spread__art-bg" aria-hidden="true">
+                      <div class="sb-flip-spread__art-base">
+                        <img
+                          class="sb-flip-spread__art-cover"
+                          id="sbSpreadArtCover"
+                          alt=""
+                          decoding="async"
+                        />
+                      </div>
+                      <div
+                        id="sbSpreadArtPeel"
+                        class="sb-flip-spread__art-peel sb-story-pageflip"
+                        aria-hidden="true"
+                        hidden
+                      >
+                        <img
+                          class="sb-flip-spread__art-cover sb-flip-spread__art-peel__img"
+                          id="sbSpreadArtPeelImg"
+                          alt=""
+                          decoding="async"
+                          referrerpolicy="no-referrer"
+                        />
+                      </div>
                     </div>
                     <div class="sb-flip-left-shell">
                       <div class="sb-flip-page sb-flip-page--text">
@@ -309,7 +321,7 @@
   <script src="../js/kids-game-characters.js"></script>
   <script src="../js/score-config.js"></script>
   <script src="../js/kids-core.js"></script>
-  <script src="storybook.js?v=219" defer></script>
+  <script src="storybook.js?v=220" defer></script>
   <script>
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("../sw.js").catch(function () {});
