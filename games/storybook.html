@@ -226,6 +226,15 @@
         </button>
       </p>
       <div class="sb-book-spread" id="sbBookSpread">
+        <div class="sb-book-side-actions" id="sbSpreadTextActions" hidden style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); display: none; flex-direction: column; align-items: center; gap: 0.5rem; z-index: 10;">
+          <button type="button" class="sb-btn sb-btn--ghost sb-read-to-me" id="sbReadToMe" aria-label="Read page to me" style="font-size: 1.1rem; padding: 0.75rem; background: rgba(255,255,255,0.8); border-radius: 50%; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 3rem; height: 3rem; display: flex; align-items: center; justify-content: center;">
+            <span aria-hidden="true" style="margin: 0;">🔊</span>
+          </button>
+          <div class="sb-tap-hint" style="background: rgba(255,255,255,0.9); padding: 0.5rem 0.75rem; border-radius: 1rem; font-size: 0.85rem; color: #9d174d; font-weight: 600; box-shadow: 0 2px 8px rgba(0,0,0,0.05); text-align: center; max-width: 120px;">
+            <span aria-hidden="true" style="display: block; margin-bottom: 0.25rem;">👆</span>
+            Tap any word to hear it
+          </div>
+        </div>
         <button
           type="button"
           class="sb-btn sb-btn--ghost sb-read-arrow"
@@ -316,14 +325,6 @@
                               <span class="sb-flip-text__highlight" id="sbSpreadText"></span>
                             </span>
                           </p>
-                          <div class="sb-flip-text-actions" id="sbSpreadTextActions" hidden style="position: absolute; bottom: 1.5rem; left: 1.5rem; display: none; flex-direction: column; align-items: flex-start; gap: 0.5rem; z-index: 10;">
-                            <button type="button" class="sb-btn sb-btn--ghost sb-read-to-me" id="sbReadToMe" aria-label="Read page to me" style="font-size: 1rem; padding: 0.4rem 0.8rem; background: rgba(255,255,255,0.7); border-radius: 2rem; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
-                              <span aria-hidden="true">🔊</span> Read to me
-                            </button>
-                            <p class="sb-tap-hint" style="font-size: 0.8rem; color: #9d174d; margin: 0; opacity: 0.7; display: flex; align-items: center; gap: 0.25rem; padding-left: 0.5rem;">
-                              <span aria-hidden="true">👆</span> Tap any word to hear it
-                            </p>
-                          </div>
                         </div>
                       </div>
                     </div>
@@ -373,7 +374,7 @@
   <script src="../js/kids-game-characters.js"></script>
   <script src="../js/score-config.js"></script>
   <script src="../js/kids-core.js"></script>
-  <script src="storybook.js?v=249" defer></script>
+  <script src="storybook.js?v=250" defer></script>
   <script>
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("../sw.js").catch(function () {});

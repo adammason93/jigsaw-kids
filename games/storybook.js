@@ -107,7 +107,7 @@
       currentAudio = null;
     }
     if (btnReadToMe) {
-      btnReadToMe.innerHTML = '<span aria-hidden="true">🔊</span> Read to me';
+      btnReadToMe.innerHTML = '<span aria-hidden="true" style="margin: 0;">🔊</span>';
       btnReadToMe.disabled = false;
     }
   }
@@ -126,7 +126,7 @@
       var fUrl = functionUrl();
       if (!fUrl) return;
       
-      btnReadToMe.textContent = "Loading...";
+      btnReadToMe.innerHTML = '<span aria-hidden="true" style="margin: 0;">⏳</span>';
       btnReadToMe.disabled = true;
       
       var audioUrl = fUrl + "?ttsText=" + encodeURIComponent(leftP.text);
@@ -137,14 +137,14 @@
       if (playPromise !== undefined) {
         playPromise.then(function() {
           if (!currentAudio) return;
-          btnReadToMe.innerHTML = '<span aria-hidden="true">🔊</span> Stop reading';
+          btnReadToMe.innerHTML = '<span aria-hidden="true" style="margin: 0;">⏹️</span>';
           btnReadToMe.disabled = false;
         }).catch(function(e) {
           console.error("Audio playback failed:", e);
           stopReading();
         });
       } else {
-        btnReadToMe.innerHTML = '<span aria-hidden="true">🔊</span> Stop reading';
+        btnReadToMe.innerHTML = '<span aria-hidden="true" style="margin: 0;">⏹️</span>';
         btnReadToMe.disabled = false;
       }
       
