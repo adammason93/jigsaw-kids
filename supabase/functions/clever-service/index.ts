@@ -185,7 +185,7 @@ async function openaiImageUrl(apiKey: string, prompt: string): Promise<string> {
 }
 
 Deno.serve(async (req) => {
-  console.info("[storybook-generate]", req.method);
+  console.info("[clever-service]", req.method);
 
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });

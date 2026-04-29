@@ -4,7 +4,7 @@
 [api]
 enabled = true
 
-[functions.storybook-generate]
+[functions.clever-service]
 # Kids’ hub uses anon key without login for games; this keeps the function callable from the static site.
 # Lock down with Dashboard rate limits + budgets; consider JWT or a shared header secret for production.
 verify_jwt = false

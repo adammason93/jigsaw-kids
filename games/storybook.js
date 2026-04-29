@@ -1,6 +1,6 @@
 /**
- * AI storybook — journey modal + Supabase Edge Function `storybook-generate`.
- * Requires: deploy function + OPENAI_API_KEY secret (see supabase/functions/storybook-generate/README.md).
+ * AI storybook — journey modal + Supabase Edge Function `clever-service`.
+ * Requires: deploy function + OPENAI_API_KEY secret (see supabase/functions/clever-service/README.md).
  */
 (function () {
   var CHARACTERS = [
@@ -752,7 +752,7 @@
   }
 
   function storybookSlug(c) {
-    var def = "storybook-generate";
+    var def = "clever-service";
     if (!c || !c.storybookEdgeSlug) return def;
     var s = String(c.storybookEdgeSlug).trim().replace(/^\/+|\/+$/g, "");
     if (!s) return def;
