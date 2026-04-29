@@ -852,6 +852,7 @@
     var fUrl = functionUrl();
     var aKey = anonKey();
     var reqOpts = {
+      method: "GET",
       mode: "cors",
       credentials: "omit",
       cache: "default",
