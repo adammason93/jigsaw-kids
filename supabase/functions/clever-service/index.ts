@@ -579,11 +579,12 @@ Rules:
       ? " If appearance lines are given for those people, stay consistent with those visual details when you naturally describe them."
       : ""
   }
-- Include fields title (string), characterDesign (string, extremely detailed visual description of EVERY character in the story including the hero, buddy, and any other creatures/people, specifying their exact colours, clothing, and physical features to keep them identical across all illustrations), and pages (array of 12 objects).
+- Include fields title (string), characterDesign (string), and pages (array of 12 objects).
+  For "characterDesign": write an EXTREMELY detailed visual description of EVERY character in the story (hero, buddy, family, friends, creatures). For each character, define ONE specific, unchanging outfit with exact colors and clothing items (e.g., "Sofia has blonde wavy hair, wearing a cream hoodie with a bunny and olive green cargo pants. Freya has dark brown hair in a top bun, wearing a purple and green color-block jacket with green shorts"). DO NOT give them multiple outfits. This will be used as the master reference to keep them identical across all illustrations.
 - Each page: { "text": string, "illustrationBrief": string | null }.
 - DOUBLE-PAGE SPREADS: pair pages as (1,2), (3,4), (5,6), (7,8), (9,10), (11,12).
   Odd-numbered pages (1,3,5,7,9,11) are TEXT-FIRST pages only — use "illustrationBrief": null.
-  Even-numbered pages (2,4,6,8,10,12) are PICTURE pages — each MUST have a non-null "illustrationBrief": a short visual scene description for an illustrator (no text to draw, no words on signs). Each brief MUST be different. The brief MUST spell out the same specific moment as the text on the previous page: same characters, action, setting details, and props — not a generic scene for that chapter. Always mention which specific characters are present in the scene so they match the characterDesign.
+  Even-numbered pages (2,4,6,8,10,12) are PICTURE pages — each MUST have a non-null "illustrationBrief": a short visual scene description for an illustrator (no text to draw, no words on signs). Each brief MUST be different. The brief MUST spell out the same specific moment as the text on the previous page: same characters, action, setting details, and props — not a generic scene for that chapter. CRITICAL: In every single brief, explicitly restate the exact clothing and hair colors for every character present in the scene to force the illustrator to draw them consistently.
   When game people with portrait notes appear on a picture page, the brief should mention them looking like those notes (hair, outfit colours, age vibe).
 - If a "plot idea" is given, you MUST make it the central theme of the story and feature it heavily in EVERY illustration brief. If it is empty, invent a short happy outing that fits the setting.
 - JSON only, no markdown.`;
@@ -608,7 +609,6 @@ Return JSON shape: { "title": string, "characterDesign": string, "pages": [ { "t
     return jsonResponse({ error: "story_failed" }, 502);
   }
 
-  const portraitForImage = portraitAppearance.replace(/\s+/gu, " ").trim().slice(0, 900);
   const finalCharacterDesc = story.characterDesign || characterDesc;
   const imagePromptPrefix =
     "A completely textless illustration. DO NOT include any writing, letters, words, typography, labels, or speech bubbles anywhere in the image. " +
@@ -616,14 +616,8 @@ Return JSON shape: { "title": string, "characterDesign": string, "pages": [ { "t
     "beautiful cinematic wide-angle scene filling the picture entirely edge-to-edge; " +
     "draw the actual story environment flowing seamlessly without any frames or margins; " +
     "wholesome and safe for toddlers. " +
-    `Characters to show (keep these EXACTLY consistent in every image): ${finalCharacterDesc}. Setting mood: ${placeDesc}. ` +
+    `MASTER CHARACTER DESIGNS (You MUST use these exact outfits and hair styles in every image to maintain perfect consistency): ${finalCharacterDesc}. Setting mood: ${placeDesc}. ` +
     (plotHint.length > 0 ? `CRITICAL VISUAL THEME to include: ${plotHint}. ` : "") +
-    (familyNames.length > 0
-      ? ` When groups of friends appear, include these as friendly toy-like characters in the scene (not labelled): ${familyNames.join(", ")}. `
-      : " ") +
-    (portraitForImage
-      ? `When a named game person appears, match these looks from official references (same hair, clothing colours, skin tone, age vibe — keep toy/clay style): ${portraitForImage} `
-      : "") +
     `Scene: `;
 
   const pagesOut: { text: string; imageUrl: string | null }[] = [];
