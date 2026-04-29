@@ -50,7 +50,64 @@
   var readerHeading = document.getElementById("sbBookHeading");
   var spreadText = document.getElementById("sbSpreadText");
   var spreadTextClip = document.getElementById("sbSpreadTextClip");
+  var spreadTextActions = document.getElementById("sbSpreadTextActions");
+  var btnReadToMe = document.getElementById("sbReadToMe");
   var spreadArt = document.getElementById("sbSpreadArt");
+
+  var currentAudio = null;
+
+  function stopReading() {
+    if (currentAudio) {
+      currentAudio.pause();
+      currentAudio.src = "";
+      currentAudio = null;
+    }
+    if (btnReadToMe) {
+      btnReadToMe.innerHTML = '<span aria-hidden="true">🔊</span> Read to me';
+      btnReadToMe.disabled = false;
+    }
+  }
+
+  if (btnReadToMe) {
+    btnReadToMe.addEventListener("click", function() {
+      if (currentAudio) {
+        stopReading();
+        return;
+      }
+      var n = numSpreads();
+      if (n < 1 || spreadIndex * 2 >= story.pages.length) return;
+      var leftP = story.pages[spreadIndex * 2];
+      if (!leftP || !leftP.text) return;
+      
+      var fUrl = functionUrl();
+      if (!fUrl) return;
+      
+      btnReadToMe.textContent = "Loading...";
+      btnReadToMe.disabled = true;
+      
+      var audioUrl = fUrl + "?ttsText=" + encodeURIComponent(leftP.text);
+      currentAudio = new Audio(audioUrl);
+      
+      // On iOS, play() must be called synchronously in the click handler
+      var playPromise = currentAudio.play();
+      if (playPromise !== undefined) {
+        playPromise.then(function() {
+          if (!currentAudio) return;
+          btnReadToMe.innerHTML = '<span aria-hidden="true">🔊</span> Stop reading';
+          btnReadToMe.disabled = false;
+        }).catch(function(e) {
+          console.error("Audio playback failed:", e);
+          stopReading();
+        });
+      } else {
+        btnReadToMe.innerHTML = '<span aria-hidden="true">🔊</span> Stop reading';
+        btnReadToMe.disabled = false;
+      }
+      
+      currentAudio.onended = stopReading;
+      currentAudio.onerror = stopReading;
+    });
+  }
   var spreadArtImg = document.getElementById("sbSpreadArtImg");
   var spreadArtNum = document.getElementById("sbSpreadArtNum");
   var spreadInnerEl = document.getElementById("sbFlipSpreadInner");
@@ -536,6 +593,7 @@
   }
 
   function closeBookCover() {
+    stopReading();
     if (!book || !readerStack) return;
     if (book.classList.contains("sb-book--cover-visible")) return;
     if (
@@ -708,13 +766,18 @@
     var n = numSpreads();
     if (n < 1) return;
     spreadIndex = Math.max(0, Math.min(spreadIndex, n - 1));
+    
+    stopReading(); // Stop any playing audio when page turns
+    
     if (spreadIndex * 2 >= story.pages.length) {
       spreadText.innerHTML = '<div style="text-align:center;margin-top:2rem;background:rgba(255,255,255,0.85);padding:2rem;border-radius:1.5rem;box-shadow:0 8px 32px rgba(157,23,77,0.15);display:inline-block;backdrop-filter:blur(4px);"><h2 style="font-size:2.5rem;margin-bottom:1rem;color:#9d174d;text-shadow:1px 1px 0 #fff;">The End</h2><p style="font-size:1.3rem;color:#500724;font-weight:700;margin:0;">We hope you enjoyed the story!</p></div>';
+      if (spreadTextActions) spreadTextActions.hidden = true;
       return;
     }
     var i = spreadIndex * 2;
     var leftP = story.pages[i];
     spreadText.innerHTML = leftP ? escapeHtml(leftP.text).replace(/\n/g, "<br/>") : "";
+    if (spreadTextActions) spreadTextActions.hidden = !leftP || !leftP.text;
   }
 
   function syncSpreadIllustrationFromStory() {

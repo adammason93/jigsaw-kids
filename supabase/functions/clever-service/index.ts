@@ -484,7 +484,48 @@ Deno.serve(async (req) => {
 
   // Optional simple proxy for downloading OpenAI images to avoid strict CORS
   if (req.method === "GET") {
-    const urlStr = new URL(req.url).searchParams.get("url");
+    const searchParams = new URL(req.url).searchParams;
+    
+    // 1. Text-to-Speech (TTS) Proxy
+    const ttsText = searchParams.get("ttsText");
+    if (ttsText) {
+      const apiKey = Deno.env.get("OPENAI_API_KEY");
+      if (!apiKey) return jsonResponse({ error: "server_missing_openai" }, 500);
+      
+      try {
+        const r = await fetch("https://api.openai.com/v1/audio/speech", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "tts-1",
+            voice: "nova", // Soft, energetic female voice
+            input: ttsText,
+          }),
+        });
+        
+        if (!r.ok) {
+          console.error("[tts error]", r.status, await r.text());
+          return jsonResponse({ error: "tts_failed" }, 502);
+        }
+        
+        return new Response(r.body, {
+          headers: {
+            ...corsHeaders,
+            "Content-Type": "audio/mpeg",
+            "Cache-Control": "public, max-age=31536000",
+          },
+        });
+      } catch (e) {
+        console.error("[tts error]", e);
+        return jsonResponse({ error: "tts_failed", detail: String(e) }, 502);
+      }
+    }
+
+    // 2. Image Proxy
+    const urlStr = searchParams.get("url");
     if (!urlStr) return jsonResponse({ error: "missing_url" }, 400);
     try {
       // Decode the URL if it was encoded twice, or just use it as is

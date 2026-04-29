@@ -316,6 +316,11 @@
                               <span class="sb-flip-text__highlight" id="sbSpreadText"></span>
                             </span>
                           </p>
+                          <div class="sb-flip-text-actions" id="sbSpreadTextActions" hidden style="margin-top: 1.5rem; text-align: center;">
+                            <button type="button" class="sb-btn sb-btn--ghost sb-read-to-me" id="sbReadToMe" aria-label="Read page to me" style="font-size: 1.1rem; padding: 0.5rem 1rem; background: rgba(255,255,255,0.5); border-radius: 2rem;">
+                              <span aria-hidden="true">🔊</span> Read to me
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -365,7 +370,7 @@
   <script src="../js/kids-game-characters.js"></script>
   <script src="../js/score-config.js"></script>
   <script src="../js/kids-core.js"></script>
-  <script src="storybook.js?v=241" defer></script>
+  <script src="storybook.js?v=245" defer></script>
   <script>
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("../sw.js").catch(function () {});
