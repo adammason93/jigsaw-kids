@@ -1909,25 +1909,45 @@
   if (window.KidsScoreCloud && window.KidsScoreCloud.downloadStorybookLibrary) {
     var syncLibrary = function() {
       window.KidsScoreCloud.downloadStorybookLibrary(function (err, data) {
-        if (!err && Array.isArray(data) && data.length > 0) {
-          var local = loadShelf();
-          var map = {};
-          local.forEach(function (b) {
-            map[b.id] = b;
-          });
-          var changed = false;
-          data.forEach(function (b) {
-            if (!map[b.id]) {
-              local.push(b);
-              changed = true;
-            }
-          });
-          if (changed) {
-            // bypass scheduleStorybookUpload on initial merge down so we don't re-upload what we just got
-            var raw = JSON.stringify(local);
-            localStorage.setItem(SHELF_STORAGE_KEY, raw);
-            renderShelf();
+        var local = loadShelf();
+        var cloudBooks = (Array.isArray(data)) ? data : [];
+        var changedLocal = false;
+        var needsUpload = false;
+
+        var mapLocal = {};
+        local.forEach(function (b) { mapLocal[b.id] = b; });
+
+        var mapCloud = {};
+        cloudBooks.forEach(function (b) { mapCloud[b.id] = b; });
+
+        // 1. Add any cloud books we don't have locally
+        cloudBooks.forEach(function (b) {
+          if (!mapLocal[b.id]) {
+            local.push(b);
+            changedLocal = true;
           }
+        });
+
+        // 2. Check if local has books the cloud doesn't have
+        local.forEach(function (b) {
+          if (!mapCloud[b.id]) {
+            needsUpload = true;
+          }
+        });
+
+        if (changedLocal) {
+          // Sort descending by id (timestamp) so newest is first
+          local.sort(function(a, b) {
+            return b.id - a.id;
+          });
+          var raw = JSON.stringify(local);
+          localStorage.setItem(SHELF_STORAGE_KEY, raw);
+          renderShelf();
+        }
+
+        // 3. If local had books the cloud didn't, upload the merged list
+        if (needsUpload && window.KidsScoreCloud.scheduleStorybookUpload) {
+          window.KidsScoreCloud.scheduleStorybookUpload(JSON.stringify(local));
         }
       });
     };
