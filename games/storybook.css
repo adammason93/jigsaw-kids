@@ -967,17 +967,26 @@ body.page-storybook.sb-modal-open {
   flex: 1 1 auto;
 }
 
+/* Picture slot ~288×400 (flip-book style inner page); AI square art letterboxed inside */
 .sb-page__art {
   position: relative;
   z-index: 2;
-  margin: 0;
-  border-radius: 14px;
+  width: 100%;
+  max-width: 288px;
+  margin: 0 auto;
+  aspect-ratio: 288 / 400;
+  max-height: min(52vh, 420px);
+  box-sizing: border-box;
+  padding: 0;
+  border-radius: 0 10px 10px 0;
   overflow: hidden;
-  background: linear-gradient(180deg, #fdf2f8 0%, #fce7f3 100%);
+  background:
+    linear-gradient(165deg, #faf7f2 0%, #fff 35%, #fdf8f4 100%);
   box-shadow:
-    0 2px 0 rgba(219, 39, 119, 0.08),
-    0 12px 28px rgba(80, 20, 55, 0.14);
-  border: 3px solid rgba(255, 255, 255, 0.95);
+    inset 0 0 0 1px rgba(45, 25, 40, 0.07),
+    0 2px 0 rgba(219, 39, 119, 0.06),
+    0 12px 28px rgba(80, 20, 55, 0.12);
+  border: 2px solid rgba(255, 255, 255, 0.98);
   flex-shrink: 0;
 }
 
@@ -986,7 +995,7 @@ body.page-storybook.sb-modal-open {
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
-  z-index: 2;
+  z-index: 4;
   margin: 0;
   padding: 0.2rem 0.65rem;
   font-size: 0.8rem;
@@ -1014,10 +1023,15 @@ body.page-storybook.sb-modal-open {
 }
 
 .sb-page__art img {
-  display: block;
-  width: 100%;
-  height: auto;
-  vertical-align: middle;
+  position: absolute;
+  left: 12px;
+  top: 10px;
+  width: calc(100% - 24px);
+  height: calc(100% - 24px);
+  object-fit: contain;
+  object-position: center;
+  border-radius: 0 6px 6px 0;
+  z-index: 1;
 }
 
 .sb-pager {

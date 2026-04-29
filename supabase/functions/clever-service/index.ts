@@ -259,6 +259,7 @@ Return JSON shape: { "title": string, "pages": [ { "text": string, "illustration
   const imagePromptPrefix =
     "Same soft 3D clay and matte toy render as a fancy kids' app, rounded shapes, gentle pastel lighting, " +
     "single full scene, cohesive with a magical tableau, " +
+    "vertical portrait composition, main subject centered with comfortable margin away from edges (will sit in a tall picture page), " +
     "no letters no words no text in the image, wholesome and safe for toddlers. " +
     `Main character to show: ${characterDesc}. Setting mood: ${placeDesc}. Scene: `;
 
