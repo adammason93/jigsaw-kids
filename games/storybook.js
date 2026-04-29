@@ -597,8 +597,8 @@
     var u = story.sceneImageUrl;
     if (u) {
       book.classList.add("sb-book--themed");
-      book.style.backgroundImage =
-        'url("' + String(u).replace(/\\/g, "\\\\").replace(/"/g, '\\"') + '")';
+      // Remove setting the background image on the entire book container
+      book.style.backgroundImage = "";
       if (coverPanel) {
         coverPanel.classList.add("sb-cover__panel--themed");
         coverPanel.style.backgroundImage =

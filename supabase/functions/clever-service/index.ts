@@ -563,7 +563,8 @@ Return JSON shape: { "title": string, "characterDesign": string, "pages": [ { "t
   const finalCharacterDesc = story.characterDesign || characterDesc;
   const imagePromptPrefix =
     "Same soft 3D clay and matte toy render as a fancy kids' app, rounded shapes, gentle pastel lighting, " +
-    "one wide horizontal illustration as if viewing an open picture book spread (two pages side by side); " +
+    "one wide horizontal full-bleed illustration filling the entire frame; " +
+    "CRITICAL: DO NOT draw a literal book, pages, or borders. Draw the actual scene taking place; " +
     "the scene flows across the full width as a single continuous environment; " +
     "no letters no words no text in the image, wholesome and safe for toddlers. " +
     `Main character to show (keep this character EXACTLY consistent): ${finalCharacterDesc}. Setting mood: ${placeDesc}.` +
