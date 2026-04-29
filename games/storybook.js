@@ -327,8 +327,33 @@
     setSpreadNavBusy(false);
   }
 
-  /** Right-hand page peels from the gutter (Western “next”). */
-  function runRightPageTurn(oldImgSrc) {
+  /** URL for the current spread’s illustration (full-bleed bg or img element). */
+  function getCurrentSpreadArtUrl() {
+    if (
+      spreadInnerEl &&
+      spreadInnerEl.classList.contains("sb-flip-spread__inner--has-art") &&
+      spreadArtBg
+    ) {
+      var bg = (spreadArtBg.style && spreadArtBg.style.backgroundImage) || "";
+      var m = bg.match(/url\(["']?([^"')]+)/);
+      if (m && m[1]) {
+        return m[1].replace(/\\(.)/g, "$1");
+      }
+    }
+    if (spreadArtImg && spreadArtImg.getAttribute("src")) {
+      return spreadArtImg.currentSrc || spreadArtImg.src || "";
+    }
+    return "";
+  }
+
+  /**
+   * Right-hand page peels from the gutter (Western “next”).
+   * @param {string} oldImgSrc
+   * @param {{ onBeforeAnimate?: () => void }} [opts] Called after the peel layer is visible but before rotateY — use to paint the *next* spread underneath.
+   */
+  function runRightPageTurn(oldImgSrc, opts) {
+    opts = opts || {};
+    var onBeforeAnimate = opts.onBeforeAnimate;
     var overlay = pageTurnRight;
     if (!overlay || !oldImgSrc) {
       finishPageTurnAnim();
@@ -354,12 +379,15 @@
     overlay.setAttribute("aria-hidden", "false");
     overlay.classList.add("is-visible");
 
+    if (typeof onBeforeAnimate === "function") {
+      onBeforeAnimate();
+    }
+
     var done = false;
     function cleanup() {
       if (done) return;
       done = true;
       clearPageTurnOverlays();
-      applySpreadContent();
       finishPageTurnAnim();
     }
 
@@ -644,53 +672,42 @@
     }
   }
 
-  /**
-   * @param {{ deferTextMeta?: boolean, deferImage?: boolean }} [opts]
-   * When turning forward, defer text + full-bleed image until the peel finishes so the whole spread stays on the previous illustration.
-   */
-  function applySpreadContent(opts) {
-    opts = opts || {};
-    var deferTextMeta = opts.deferTextMeta === true;
-    var deferImage = opts.deferImage === true;
+  function applySpreadContent() {
     if (!story || !spreadText || !spreadArt || !spreadArtImg) return;
     var n = numSpreads();
     if (n < 1) return;
     spreadIndex = Math.max(0, Math.min(spreadIndex, n - 1));
     var i = spreadIndex * 2;
-    if (!deferTextMeta) {
-      writeSpreadTextMetaFromStory();
-    }
+    writeSpreadTextMetaFromStory();
     var rightP = story.pages[i + 1];
     var pLo = i + 1;
     var pHi = i + 2;
-    if (!deferImage) {
-      if (rightP && rightP.imageUrl) {
-        var u = String(rightP.imageUrl);
-        spreadArtImg.src = u;
-        spreadArtImg.alt = "Illustration for pages " + pLo + "–" + pHi;
-        spreadArt.classList.remove("is-empty");
-        if (spreadArtBg) {
-          spreadArtBg.style.backgroundImage = "url(" + JSON.stringify(u) + ")";
-        }
-        if (spreadInnerEl) {
-          spreadInnerEl.classList.add("sb-flip-spread__inner--has-art");
-        }
-        if (spreadArtNum) {
-          spreadArtNum.textContent =
-            "Pages " + pLo + "–" + pHi + " of " + story.pages.length;
-        }
-      } else {
-        spreadArtImg.removeAttribute("src");
-        spreadArt.classList.add("is-empty");
-        if (spreadArtBg) {
-          spreadArtBg.style.backgroundImage = "";
-        }
-        if (spreadInnerEl) {
-          spreadInnerEl.classList.remove("sb-flip-spread__inner--has-art");
-        }
-        if (spreadArtNum) {
-          spreadArtNum.textContent = rightP ? "Drawing missing" : "";
-        }
+    if (rightP && rightP.imageUrl) {
+      var u = String(rightP.imageUrl);
+      spreadArtImg.src = u;
+      spreadArtImg.alt = "Illustration for pages " + pLo + "–" + pHi;
+      spreadArt.classList.remove("is-empty");
+      if (spreadArtBg) {
+        spreadArtBg.style.backgroundImage = "url(" + JSON.stringify(u) + ")";
+      }
+      if (spreadInnerEl) {
+        spreadInnerEl.classList.add("sb-flip-spread__inner--has-art");
+      }
+      if (spreadArtNum) {
+        spreadArtNum.textContent =
+          "Pages " + pLo + "–" + pHi + " of " + story.pages.length;
+      }
+    } else {
+      spreadArtImg.removeAttribute("src");
+      spreadArt.classList.add("is-empty");
+      if (spreadArtBg) {
+        spreadArtBg.style.backgroundImage = "";
+      }
+      if (spreadInnerEl) {
+        spreadInnerEl.classList.remove("sb-flip-spread__inner--has-art");
+      }
+      if (spreadArtNum) {
+        spreadArtNum.textContent = rightP ? "Drawing missing" : "";
       }
     }
     updatePagerHints();
@@ -714,10 +731,7 @@
     if (spreadAnimLock) return;
 
     if (delta > 0) {
-      var oldSrc = "";
-      if (spreadArtImg && spreadArtImg.getAttribute("src")) {
-        oldSrc = spreadArtImg.currentSrc || spreadArtImg.src || "";
-      }
+      var oldSrc = getCurrentSpreadArtUrl();
       spreadIndex += delta;
       if (!pageTurnRight || !oldSrc) {
         applySpreadContent();
@@ -725,8 +739,11 @@
       }
       spreadAnimLock = true;
       setSpreadNavBusy(true);
-      applySpreadContent({ deferTextMeta: true, deferImage: true });
-      runRightPageTurn(oldSrc);
+      runRightPageTurn(oldSrc, {
+        onBeforeAnimate: function () {
+          applySpreadContent();
+        },
+      });
     } else {
       var oldText = spreadText ? spreadText.textContent : "";
       var oldMeta = spreadMeta ? spreadMeta.textContent : "";
