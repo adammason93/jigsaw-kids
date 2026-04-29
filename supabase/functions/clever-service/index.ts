@@ -270,7 +270,9 @@ function normalizeStoryJson(raw: unknown): StoryJson {
     }
   }
 
-  return { title, pages };
+  const characterDesign = obj.characterDesign ? String(obj.characterDesign).trim() : undefined;
+
+  return { title, characterDesign, pages };
 }
 
 async function openaiChatJson(
