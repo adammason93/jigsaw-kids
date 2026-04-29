@@ -55,9 +55,8 @@
   var spreadInnerEl = document.getElementById("sbFlipSpreadInner");
   var spreadArtBg = document.getElementById("sbSpreadArtBg");
   var spreadArtCover = document.getElementById("sbSpreadArtCover");
-  var spreadRightArtImg = document.getElementById("sbSpreadRightArt");
-  /** Wraps `#sbSpreadRightArt`; hinged 3D “page turn” rotates this element. */
-  var cpBookShell = document.getElementById("sbCpBookShell");
+  /** Full-spread duplex (#sbSpreadArtBg); 3D hinge is at the gutter (centre line). */
+  var spreadArtFlipEl = spreadArtBg;
   var readerStack = document.getElementById("sbReaderStack");
   var readerPages = document.getElementById("sbReaderPages");
   var btnOpenCover = document.getElementById("sbOpenCover");
@@ -302,7 +301,7 @@
   }
 
   function clearCpBookShellTurnClasses() {
-    var shell = cpBookShell || document.getElementById("sbCpBookShell");
+    var shell = spreadArtFlipEl || document.getElementById("sbSpreadArtBg");
     if (!shell) return;
     shell.classList.remove(
       "sb-story-pageflip--turn-next-1",
@@ -357,7 +356,7 @@
   }
 
   function navigateSpreadWithRightPageTurn(delta) {
-    var shell = cpBookShell || document.getElementById("sbCpBookShell");
+    var shell = spreadArtFlipEl || document.getElementById("sbSpreadArtBg");
     if (spreadAnimLock) return;
     if (!shell) {
       navigateSpreadInstant(delta);
@@ -397,13 +396,6 @@
         });
       });
     });
-  }
-
-  function rebuildFlipbookSheets() {
-    if (!story || !story.pages.length) return;
-    if (spreadInnerEl) {
-      spreadInnerEl.classList.add("sb-flip-spread__inner--ref-flipbook");
-    }
   }
 
   function navigateSpreadInstant(delta) {
@@ -640,7 +632,7 @@
     var rightP = story.pages[i + 1];
     var pLo = i + 1;
     var pHi = i + 2;
-    /* Illustration fills right column (#sbSpreadRightArt); legacy hidden nodes kept in sync if present */
+    /* One illustration per spread (pages i+1–i+2): full duplex behind text + optional right column */
     if (rightP && rightP.imageUrl) {
       var u = String(rightP.imageUrl);
       if (spreadArtImg) {
@@ -654,15 +646,9 @@
       }
       if (spreadArtCover) {
         spreadArtCover.src = u;
-        spreadArtCover.alt = "";
+        spreadArtCover.alt =
+          "Illustration for pages " + pLo + "–" + pHi + " of " + story.pages.length;
         spreadArtCover.referrerPolicy = "no-referrer";
-      }
-      if (spreadRightArtImg) {
-        spreadRightArtImg.hidden = false;
-        spreadRightArtImg.removeAttribute("hidden");
-        spreadRightArtImg.src = u;
-        spreadRightArtImg.alt = "Illustration for pages " + pLo + "–" + pHi;
-        spreadRightArtImg.referrerPolicy = "no-referrer";
       }
       if (spreadInnerEl && spreadInnerEl.dataset) {
         spreadInnerEl.dataset.sbArtUrl = u;
@@ -682,11 +668,6 @@
         spreadArtCover.removeAttribute("src");
         spreadArtCover.alt = "";
       }
-      if (spreadRightArtImg) {
-        spreadRightArtImg.removeAttribute("src");
-        spreadRightArtImg.alt = "";
-        spreadRightArtImg.hidden = true;
-      }
       if (spreadInnerEl && spreadInnerEl.dataset && spreadInnerEl.dataset.sbArtUrl) {
         delete spreadInnerEl.dataset.sbArtUrl;
       }
@@ -701,7 +682,6 @@
   }
 
   function renderSpread() {
-    rebuildFlipbookSheets();
     applySpreadContent();
   }
 
@@ -1452,13 +1432,20 @@
     story = null;
     spreadIndex = 0;
     spreadAnimLock = false;
-    if (spreadRightArtImg) {
-      spreadRightArtImg.removeAttribute("src");
-      spreadRightArtImg.alt = "";
-      spreadRightArtImg.hidden = true;
+    if (spreadArtCover) {
+      spreadArtCover.removeAttribute("src");
+      spreadArtCover.alt = "";
+    }
+    if (spreadArtBg) {
+      spreadArtBg.style.backgroundImage = "";
     }
     if (spreadInnerEl) {
-      spreadInnerEl.classList.remove("sb-flip-spread__inner--ref-flipbook");
+      spreadInnerEl.classList.remove(
+        "sb-flip-spread__inner--has-art"
+      );
+      if (spreadInnerEl.dataset && spreadInnerEl.dataset.sbArtUrl) {
+        delete spreadInnerEl.dataset.sbArtUrl;
+      }
     }
     clearSpreadTurnClasses();
     resetBookCoverForWizard();

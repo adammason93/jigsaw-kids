@@ -8,7 +8,7 @@
   <link rel="manifest" href="../manifest.json" />
   <link rel="stylesheet" href="../js/kids-core.css" />
   <!-- storybook-app.css = renamed file so CDN/browser cache cannot keep old storybook.css -->
-  <link rel="stylesheet" href="storybook-app.css?v=12" />
+  <link rel="stylesheet" href="storybook-app.css?v=13" />
   <link rel="stylesheet" href="../tablet-ipad.css" />
   <!-- Last wins: guarantees new background even if a proxy cached an ancient stylesheet elsewhere -->
   <style>
@@ -242,7 +242,12 @@
               <div class="sb-reader-pages" id="sbReaderPages" aria-hidden="true">
                 <div class="sb-flip-spread" id="sbFlipSpread" aria-live="polite">
                   <div class="sb-flip-spread__inner" id="sbFlipSpreadInner">
-                    <div class="sb-flip-spread__art-bg" id="sbSpreadArtBg" aria-hidden="true">
+                    <!-- Duplex panorama: one picture per spread, full width behind text + gutter (illus = pages pair) -->
+                    <div
+                      class="sb-flip-spread__art-bg sb-story-pageflip"
+                      id="sbSpreadArtBg"
+                      aria-hidden="true"
+                    >
                       <img
                         class="sb-flip-spread__art-cover"
                         id="sbSpreadArtCover"
@@ -263,24 +268,11 @@
                       </div>
                     </div>
                     <div class="sb-flip-gutter" aria-hidden="true"></div>
-                    <div class="sb-flip-right-shell sb-flip-right-shell--flip">
-                      <!-- Single full-bleed illustration per spread (no stacked imgs / nested “page” slab) -->
-                      <div class="sb-story-pageflip" id="sbCpBookShell" aria-hidden="true">
-                        <img
-                          id="sbSpreadRightArt"
-                          class="sb-spread-right-art"
-                          alt=""
-                          decoding="async"
-                          referrerpolicy="no-referrer"
-                          hidden
-                        />
-                      </div>
-                      <!-- Kept hidden for compat; main art is #sbSpreadRightArt above -->
-                      <div class="sb-flip-book-legacy-art" aria-hidden="true" hidden>
-                        <div class="sb-flip-art" id="sbSpreadArt">
-                          <span class="sb-flip-art__num" id="sbSpreadArtNum"></span>
-                          <img id="sbSpreadArtImg" alt="" decoding="async" />
-                        </div>
+                    <div class="sb-flip-right-shell sb-flip-right-shell--flip" aria-hidden="true"></div>
+                    <div class="sb-flip-book-legacy-art" aria-hidden="true" hidden>
+                      <div class="sb-flip-art" id="sbSpreadArt">
+                        <span class="sb-flip-art__num" id="sbSpreadArtNum"></span>
+                        <img id="sbSpreadArtImg" alt="" decoding="async" />
                       </div>
                     </div>
                   </div>
@@ -321,7 +313,7 @@
   <script src="../js/kids-game-characters.js"></script>
   <script src="../js/score-config.js"></script>
   <script src="../js/kids-core.js"></script>
-  <script src="storybook.js?v=214" defer></script>
+  <script src="storybook.js?v=216" defer></script>
   <script>
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("../sw.js").catch(function () {});

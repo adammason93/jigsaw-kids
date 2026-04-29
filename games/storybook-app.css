@@ -1225,15 +1225,11 @@ body.page-storybook.sb-modal-open {
     transition-duration: 0.01ms;
   }
 
-  .sb-flip-right-shell .sb-story-pageflip {
+  .sb-flip-spread__art-bg.sb-story-pageflip {
     transition-duration: 0.01ms !important;
     -webkit-transition-duration: 0.01ms !important;
     transform: none !important;
     -webkit-transform: none !important;
-  }
-
-  .sb-story-pageflip .sb-spread-right-art {
-    transition-duration: 0.01ms !important;
   }
 
   .sb-flip-spread {
@@ -1302,6 +1298,10 @@ body.page-storybook.sb-modal-open {
   overflow: visible;
   /* Required for gutter 3D page turns; `flat` flattens descendants and breaks rotateY peels on Safari/WebKit */
   transform-style: preserve-3d;
+  perspective: min(135vw, 2400px);
+  -webkit-perspective: min(135vw, 2400px);
+  perspective-origin: center center;
+  -webkit-perspective-origin: center center;
 }
 
 .sb-flip-spread__inner.sb-flip-spread__inner--fade-out {
@@ -1351,7 +1351,11 @@ body.page-storybook.sb-modal-open {
   );
 }
 
-/** Full-spread illustration (both pages); JS sets cover img + fallback background-image. */
+.sb-flip-spread__inner--has-art .sb-flip-right-shell.sb-flip-right-shell--flip {
+  background: transparent;
+}
+
+/** Duplex panorama: inset 0 … full width behind both halves + gutter layer on top — one img per spread (pages pair). */
 .sb-flip-spread__art-bg {
   position: absolute;
   inset: 0;
@@ -1361,6 +1365,13 @@ body.page-storybook.sb-modal-open {
   background-position: center;
   background-repeat: no-repeat;
   pointer-events: none;
+  transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
+  transform-origin: center center;
+  -webkit-transform-origin: center center;
+  transform: rotateY(0deg);
+  transition: transform 0.54s cubic-bezier(0.4, 0, 0.2, 1);
+  -webkit-transition: -webkit-transform 0.54s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .sb-flip-spread__art-cover {
@@ -1404,87 +1415,53 @@ body.page-storybook.sb-modal-open {
   display: none;
 }
 
-/* ——— Right column: one full-bleed illustration per spread (no stacked imgs) ——— */
-.sb-flip-spread__inner--ref-flipbook .sb-flip-spread__art-bg {
-  display: none !important;
-}
-
 .sb-flip-book-legacy-art {
   display: none !important;
 }
 
-.sb-flip-right-shell.sb-flip-right-shell--flip {
-  overflow: hidden;
-  perspective: min(130vw, 2000px);
-  -webkit-perspective: min(130vw, 2000px);
-  perspective-origin: left center;
-  -webkit-perspective-origin: left center;
+.sb-flip-spread__art-bg.sb-story-pageflip--turn-next-1 .sb-flip-spread__art-cover {
+  box-shadow:
+    inset 0 0 0 1px rgba(157, 23, 77, 0.06),
+    4px 0 28px rgba(45, 20, 40, 0.12);
 }
 
-.sb-flip-right-shell .sb-story-pageflip {
-  position: absolute;
-  inset: 0;
-  display: block;
-  pointer-events: auto;
-  transform-style: preserve-3d;
-  -webkit-transform-style: preserve-3d;
-  transform-origin: left center;
-  -webkit-transform-origin: left center;
-  transform: rotateY(0deg);
-  transition: transform 0.54s cubic-bezier(0.4, 0, 0.2, 1);
-  -webkit-transition: -webkit-transform 0.54s cubic-bezier(0.4, 0, 0.2, 1);
+.sb-flip-spread__art-bg.sb-story-pageflip--turn-prev-1 .sb-flip-spread__art-cover {
+  box-shadow:
+    inset 0 0 0 1px rgba(157, 23, 77, 0.06),
+    -4px 0 28px rgba(45, 20, 40, 0.12);
 }
 
-/* Phase 1: swing current page toward spine */
-.sb-story-pageflip.sb-story-pageflip--turn-next-1 {
+.sb-flip-spread__art-bg.sb-story-pageflip--turn-next-1 {
   transform: rotateY(-92deg);
   -webkit-transform: rotateY(-92deg);
 }
 
-.sb-story-pageflip.sb-story-pageflip--turn-prev-1 {
+.sb-flip-spread__art-bg.sb-story-pageflip--turn-prev-1 {
   transform: rotateY(92deg);
   -webkit-transform: rotateY(92deg);
 }
 
-/* Snapshot at “edge-on” opposite side — img swapped mid-turn */
-.sb-story-pageflip.sb-story-pageflip--snap-next {
+.sb-flip-spread__art-bg.sb-story-pageflip--snap-next {
   transition: none !important;
   -webkit-transition: none !important;
   transform: rotateY(92deg);
   -webkit-transform: rotateY(92deg);
 }
 
-.sb-story-pageflip.sb-story-pageflip--snap-prev {
+.sb-flip-spread__art-bg.sb-story-pageflip--snap-prev {
   transition: none !important;
   -webkit-transition: none !important;
   transform: rotateY(-92deg);
   -webkit-transform: rotateY(-92deg);
 }
 
-/* Phase 2: unfold new page flat (paired with snap for transition) */
-.sb-story-pageflip.sb-story-pageflip--snap-next.sb-story-pageflip--turn-next-2,
-.sb-story-pageflip.sb-story-pageflip--snap-prev.sb-story-pageflip--turn-prev-2 {
+.sb-flip-spread__art-bg.sb-story-pageflip--snap-next.sb-story-pageflip--turn-next-2,
+.sb-flip-spread__art-bg.sb-story-pageflip--snap-prev.sb-story-pageflip--turn-prev-2 {
   transition: transform 0.54s cubic-bezier(0.4, 0, 0.2, 1) !important;
   -webkit-transition: -webkit-transform 0.54s cubic-bezier(0.4, 0, 0.2, 1) !important;
   transform: rotateY(0deg);
   -webkit-transform: rotateY(0deg);
 }
-
-.sb-spread-right-art {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center;
-  border-radius: 0 clamp(5px, 0.8vw, 8px) clamp(5px, 0.8vw, 8px) 0;
-}
-
-@media screen and (max-width: 768px) {
-  .sb-spread-right-art {
-    border-radius: 0;
-  }
-}
-
 /* Keep <img> for page-turn animation & preload; not shown when full-bleed background is active */
 .sb-flip-spread__inner--has-art .sb-flip-page--art .sb-flip-art img {
   opacity: 0;
