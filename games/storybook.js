@@ -358,8 +358,8 @@
     function cleanup() {
       if (done) return;
       done = true;
-      writeSpreadTextMetaFromStory();
       clearPageTurnOverlays();
+      applySpreadContent();
       finishPageTurnAnim();
     }
 
@@ -393,10 +393,16 @@
       "sb-turn-leaf__face sb-turn-leaf__face--front sb-turn-leaf__face--text";
     var p = document.createElement("p");
     p.className = "sb-flip-text";
-    p.textContent = oldText || "";
+    var span = document.createElement("span");
+    span.className = "sb-flip-text__highlight";
+    span.textContent = oldText || "";
+    p.appendChild(span);
     var meta = document.createElement("p");
     meta.className = "sb-flip-spread-meta";
-    meta.textContent = oldMeta || "";
+    var metaPill = document.createElement("span");
+    metaPill.className = "sb-flip-meta__pill";
+    metaPill.textContent = oldMeta || "";
+    meta.appendChild(metaPill);
     front.appendChild(p);
     front.appendChild(meta);
     var back = document.createElement("div");
@@ -638,42 +644,53 @@
     }
   }
 
-  function applySpreadContent() {
+  /**
+   * @param {{ deferTextMeta?: boolean, deferImage?: boolean }} [opts]
+   * When turning forward, defer text + full-bleed image until the peel finishes so the whole spread stays on the previous illustration.
+   */
+  function applySpreadContent(opts) {
+    opts = opts || {};
+    var deferTextMeta = opts.deferTextMeta === true;
+    var deferImage = opts.deferImage === true;
     if (!story || !spreadText || !spreadArt || !spreadArtImg) return;
     var n = numSpreads();
     if (n < 1) return;
     spreadIndex = Math.max(0, Math.min(spreadIndex, n - 1));
     var i = spreadIndex * 2;
-    writeSpreadTextMetaFromStory();
+    if (!deferTextMeta) {
+      writeSpreadTextMetaFromStory();
+    }
     var rightP = story.pages[i + 1];
     var pLo = i + 1;
     var pHi = i + 2;
-    if (rightP && rightP.imageUrl) {
-      var u = String(rightP.imageUrl);
-      spreadArtImg.src = u;
-      spreadArtImg.alt = "Illustration for pages " + pLo + "–" + pHi;
-      spreadArt.classList.remove("is-empty");
-      if (spreadArtBg) {
-        spreadArtBg.style.backgroundImage = "url(" + JSON.stringify(u) + ")";
-      }
-      if (spreadInnerEl) {
-        spreadInnerEl.classList.add("sb-flip-spread__inner--has-art");
-      }
-      if (spreadArtNum) {
-        spreadArtNum.textContent =
-          "Pages " + pLo + "–" + pHi + " of " + story.pages.length;
-      }
-    } else {
-      spreadArtImg.removeAttribute("src");
-      spreadArt.classList.add("is-empty");
-      if (spreadArtBg) {
-        spreadArtBg.style.backgroundImage = "";
-      }
-      if (spreadInnerEl) {
-        spreadInnerEl.classList.remove("sb-flip-spread__inner--has-art");
-      }
-      if (spreadArtNum) {
-        spreadArtNum.textContent = rightP ? "Drawing missing" : "";
+    if (!deferImage) {
+      if (rightP && rightP.imageUrl) {
+        var u = String(rightP.imageUrl);
+        spreadArtImg.src = u;
+        spreadArtImg.alt = "Illustration for pages " + pLo + "–" + pHi;
+        spreadArt.classList.remove("is-empty");
+        if (spreadArtBg) {
+          spreadArtBg.style.backgroundImage = "url(" + JSON.stringify(u) + ")";
+        }
+        if (spreadInnerEl) {
+          spreadInnerEl.classList.add("sb-flip-spread__inner--has-art");
+        }
+        if (spreadArtNum) {
+          spreadArtNum.textContent =
+            "Pages " + pLo + "–" + pHi + " of " + story.pages.length;
+        }
+      } else {
+        spreadArtImg.removeAttribute("src");
+        spreadArt.classList.add("is-empty");
+        if (spreadArtBg) {
+          spreadArtBg.style.backgroundImage = "";
+        }
+        if (spreadInnerEl) {
+          spreadInnerEl.classList.remove("sb-flip-spread__inner--has-art");
+        }
+        if (spreadArtNum) {
+          spreadArtNum.textContent = rightP ? "Drawing missing" : "";
+        }
       }
     }
     updatePagerHints();
@@ -708,7 +725,7 @@
       }
       spreadAnimLock = true;
       setSpreadNavBusy(true);
-      applySpreadContent();
+      applySpreadContent({ deferTextMeta: true, deferImage: true });
       runRightPageTurn(oldSrc);
     } else {
       var oldText = spreadText ? spreadText.textContent : "";

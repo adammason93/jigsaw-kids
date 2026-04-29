@@ -831,9 +831,10 @@ body.page-storybook.sb-modal-open {
 }
 
 .sb-book-title {
-  font-family: "Sniglet", "Nunito", sans-serif;
+  font-family: "Fredoka", "Sniglet", "Nunito", sans-serif;
   text-align: center;
   font-size: clamp(1.25rem, 4vw, 1.55rem);
+  font-weight: 600;
   margin: 0 0 0.5rem;
   color: #9d174d;
 }
@@ -1015,9 +1016,9 @@ body.page-storybook.sb-modal-open {
 }
 
 .sb-cover__title {
-  font-family: "Sniglet", "Nunito", sans-serif;
+  font-family: "Fredoka", "Sniglet", "Nunito", sans-serif;
   font-size: clamp(1rem, 4.2vw, 1.35rem);
-  font-weight: 800;
+  font-weight: 600;
   color: #fff8fa;
   text-align: center;
   line-height: 1.25;
@@ -1149,6 +1150,10 @@ body.page-storybook.sb-modal-open {
   transform-style: flat;
 }
 
+.sb-flip-spread__inner--has-art {
+  background: transparent;
+}
+
 /** Full-spread illustration (both pages); JS sets background-image when a spread has art. */
 .sb-flip-spread__art-bg {
   position: absolute;
@@ -1161,18 +1166,16 @@ body.page-storybook.sb-modal-open {
   pointer-events: none;
 }
 
+/* Text sits over the full-bleed art; readability comes from line-by-line pills on .sb-flip-text__highlight */
 .sb-flip-spread__inner--has-art .sb-flip-page--text .sb-flip-page__sheet {
-  background: #fff;
-  border-radius: 12px;
-  box-shadow:
-    0 2px 0 rgba(0, 0, 0, 0.04),
-    0 8px 28px rgba(42, 10, 31, 0.14);
-  margin: clamp(8px, 2.2vw, 14px);
-  padding: clamp(12px, 3vw, 22px);
-  align-self: center;
-  width: calc(100% - clamp(16px, 4vw, 28px));
-  max-width: min(100%, 26rem);
-  box-sizing: border-box;
+  background: transparent;
+  box-shadow: none;
+  margin: 0;
+  padding: clamp(10px, 2.5vw, 20px);
+  align-self: stretch;
+  width: 100%;
+  max-width: none;
+  justify-content: center;
 }
 
 .sb-flip-spread__inner--has-art .sb-flip-page--art .sb-flip-page__sheet {
@@ -1337,19 +1340,44 @@ body.page-storybook.sb-modal-open {
   margin: 0;
   width: 100%;
   max-width: 26rem;
-  font-size: clamp(0.86rem, 2.4vw, 1.06rem);
-  font-weight: 700;
-  line-height: 1.52;
+  text-align: center;
+  line-height: 1.65;
+}
+
+/* Child-friendly type + per-line white “tape” so story reads over busy art */
+.sb-flip-text__highlight {
+  display: inline;
+  font-family: "Fredoka", "Sniglet", "Nunito", sans-serif;
+  font-size: clamp(0.92rem, 2.6vw, 1.12rem);
+  font-weight: 500;
+  line-height: 1.65;
   color: #2a0a1f;
   text-align: center;
+  padding: 0.12em 0.42em;
+  background: rgba(255, 255, 255, 0.94);
+  border-radius: 0.38em;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  box-shadow: 0 1px 3px rgba(42, 10, 31, 0.08);
 }
 
 .sb-flip-spread-meta {
   margin: 0.55rem 0 0;
   font-size: 0.72rem;
-  font-weight: 800;
-  color: #9d174d;
   text-align: center;
+  line-height: 1.45;
+}
+
+.sb-flip-meta__pill {
+  display: inline-block;
+  font-family: "Fredoka", "Sniglet", "Nunito", sans-serif;
+  font-weight: 600;
+  font-size: 0.72rem;
+  color: #9d174d;
+  padding: 0.28em 0.55em;
+  background: rgba(255, 255, 255, 0.94);
+  border-radius: 0.45em;
+  box-shadow: 0 1px 2px rgba(42, 10, 31, 0.07);
 }
 
 .sb-flip-page--art .sb-flip-page__sheet {
