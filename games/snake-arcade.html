@@ -19,6 +19,7 @@
   <div class="snake-app" id="app">
     <nav class="snake-nav" aria-label="Breadcrumb">
       <a class="snake-back back-btn" href="../index.html" aria-label="Back to all games"><span class="back-btn__icon" aria-hidden="true">&#8592;</span><span class="back-btn__text">Back</span></a>
+      <button type="button" class="snake-pause" id="snakePause" disabled aria-label="Pause game">Pause</button>
     </nav>
 
     <header class="snake-hud" aria-label="Game status">
@@ -45,6 +46,7 @@
       <div class="snake-overlay is-hidden" id="snakeOverlay" hidden>
         <p class="snake-overlay__title" id="snakeOverTitle">Game over</p>
         <p class="snake-overlay__msg" id="snakeOverMsg">Tap Play again or an arrow to restart.</p>
+        <button type="button" class="snake-overlay__btn is-hidden" id="snakeResume">Resume</button>
         <button type="button" class="snake-overlay__btn" id="snakeRestart">Play again</button>
       </div>
     </div>
@@ -63,7 +65,7 @@
         <span aria-hidden="true">&#8594;</span>
       </button>
     </div>
-    <p class="snake-hint" id="snakeHint">Tap an arrow to start. Eat the red snacks!</p>
+    <p class="snake-hint" id="snakeHint">Tap an arrow to start. Use Pause or P when you need a break.</p>
   </div>
   <script src="../js/kids-core.js" defer></script>
   <script src="snake-arcade.js" defer></script>

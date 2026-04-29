@@ -22,6 +22,15 @@ function mobileCheck() {
   if (window.matchMedia && window.matchMedia("(pointer: coarse)").matches) {
     return true;
   }
+  // iPadOS (incl. “desktop” Safari UA: Mac + touch points)
+  var ua = navigator.userAgent || "";
+  var touchPts = typeof navigator.maxTouchPoints === "number" ? navigator.maxTouchPoints : 0;
+  if (touchPts > 0 && (/iPad/i.test(ua) || (ua.indexOf("Macintosh") !== -1 && touchPts > 1))) {
+    return true;
+  }
+  if (touchPts > 0 && window.matchMedia && window.matchMedia("(hover: none)").matches) {
+    return true;
+  }
   var userAgent = navigator.userAgent || navigator.vendor || window.opera;
   if (
     /(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows ce|xda|xiino/i.test(
@@ -602,20 +611,50 @@ Zuma.DefaultColorList = ["#0C3406", "#077187", "#74A57F", "#ABD8CE", "#E4C5AF"];
       zumaGame.setScale(scale);
     }
 
-    if (!isMobile) {
-      document.addEventListener("keydown", function (e) {
-        if (e.code === "Escape" && zumaGame.isInit) {
-          zumaGame.stop();
-          if (stopPopup) stopPopup.classList.add("active");
-        }
-      });
-      document.addEventListener("keydown", function (e) {
-        if (e.code !== "Space") return;
+    function aimFromClient(clientX, clientY) {
+      zumaGame.lookAt(clientX, clientY);
+    }
+
+    function pauseZumaIfPlaying() {
+      if (!zumaGame.isInit || !zumaGame.isStart || zumaGame.isFinal) return;
+      zumaGame.stop();
+      if (stopPopup) stopPopup.classList.add("active");
+      if (stopBtn) stopBtn.classList.add("active");
+    }
+
+    document.addEventListener("keydown", function (e) {
+      if (e.code === "Escape") {
+        pauseZumaIfPlaying();
+        return;
+      }
+      if (e.code === "Space" && zumaGame.isInit && zumaGame.isStart && !zumaGame.isFinal) {
         e.preventDefault();
         zumaGame.switchMarble();
-      });
-      document.addEventListener("mousemove", function (e) {
-        zumaGame.lookAt(e.pageX, e.pageY);
+      }
+    });
+
+    document.addEventListener("visibilitychange", function () {
+      if (document.hidden) pauseZumaIfPlaying();
+    });
+
+    if (!isMobile) {
+        window.addEventListener("pointermove", function (e) {
+          aimFromClient(e.clientX, e.clientY);
+        });
+      } else {
+        document.addEventListener("mousemove", function (e) {
+          aimFromClient(e.clientX, e.clientY);
+        });
+      }
+      zumaMount.addEventListener("pointerdown", function (e) {
+        if (e.pointerType !== "touch" && e.pointerType !== "pen") return;
+        e.preventDefault();
+        if (!zumaGame.isInit || zumaGame.isFinal || !zumaGame.isStart) return;
+        zumaGame.attack();
+        if (typeof KidsCore !== "undefined") {
+          KidsCore.playSound("tap");
+          KidsCore.haptic("light");
+        }
       });
       zumaMount.addEventListener("click", function () {
         zumaGame.attack();
@@ -642,7 +681,7 @@ Zuma.DefaultColorList = ["#0C3406", "#077187", "#74A57F", "#ABD8CE", "#E4C5AF"];
         var rect = moveBtn.getBoundingClientRect();
         var innerX = rect.x + rect.width / 2;
         var innerY = rect.y + rect.height / 2;
-        zumaGame.lookAtVector(moveTouch.pageX - innerX, moveTouch.pageY - innerY);
+        zumaGame.lookAtVector(moveTouch.clientX - innerX, moveTouch.clientY - innerY);
         if (moveBtnControl) {
           moveBtnControl.style.transform =
             "translate(-50%, -150%) rotate(" + zumaGame.getPlayerRotate() + "deg)";

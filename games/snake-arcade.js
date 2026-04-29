@@ -14,6 +14,8 @@
   var overTitle = document.getElementById("snakeOverTitle");
   var overMsg = document.getElementById("snakeOverMsg");
   var btnRestart = document.getElementById("snakeRestart");
+  var btnResume = document.getElementById("snakeResume");
+  var btnPause = document.getElementById("snakePause");
   var hintEl = document.getElementById("snakeHint");
 
   if (!canvas) return;
@@ -33,11 +35,14 @@
   /** @type {number|null} */
   var tickId = null;
   var gameOn = false;
+  var paused = false;
   /** @type {{easy:number,normal:number,hard:number}} */
   var high = { easy: 0, normal: 0, hard: 0 };
 
   var cellPx = 20;
   var logicalSize = 400;
+  /** Max playfield edge in CSS pixels; wrapper CSS also caps size on small viewports. */
+  var BOARD_MAX_PX = 720;
 
   function loadHigh() {
     try {
@@ -66,7 +71,7 @@
     var wrap = canvas.parentElement;
     if (!wrap) return;
     var w = wrap.clientWidth;
-    logicalSize = Math.min(w, 400);
+    logicalSize = Math.max(260, Math.min(Math.floor(w), BOARD_MAX_PX));
     var dpr = window.devicePixelRatio || 1;
     canvas.style.width = logicalSize + "px";
     canvas.style.height = logicalSize + "px";
@@ -104,15 +109,69 @@
     dir = { x: 1, y: 0 };
   }
 
+  function syncPauseButton() {
+    if (!btnPause) return;
+    if (!gameOn) {
+      btnPause.disabled = true;
+      btnPause.textContent = "Pause";
+      btnPause.setAttribute("aria-label", "Pause game");
+      return;
+    }
+    btnPause.disabled = false;
+    if (paused) {
+      btnPause.textContent = "Resume";
+      btnPause.setAttribute("aria-label", "Resume game");
+    } else {
+      btnPause.textContent = "Pause";
+      btnPause.setAttribute("aria-label", "Pause game");
+    }
+  }
+
   function stopLoop() {
     if (tickId !== null) {
       clearInterval(tickId);
       tickId = null;
     }
     gameOn = false;
+    paused = false;
     if (typeof KidsCore !== "undefined" && typeof KidsCore.setPlayMode === "function") {
       KidsCore.setPlayMode(false);
     }
+    syncPauseButton();
+  }
+
+  function pauseGame() {
+    if (!gameOn || paused) return;
+    paused = true;
+    if (tickId !== null) {
+      clearInterval(tickId);
+      tickId = null;
+    }
+    if (overTitle) overTitle.textContent = "Paused";
+    if (overMsg) overMsg.textContent = "Tap Resume or Pause when you’re ready to continue.";
+    if (btnRestart) btnRestart.classList.add("is-hidden");
+    if (btnResume) btnResume.classList.remove("is-hidden");
+    overlay.classList.remove("is-hidden");
+    overlay.hidden = false;
+    if (typeof KidsCore !== "undefined" && typeof KidsCore.setPlayMode === "function") {
+      KidsCore.setPlayMode(false);
+    }
+    syncPauseButton();
+  }
+
+  function resumeGame() {
+    if (!gameOn || !paused) return;
+    paused = false;
+    overlay.classList.add("is-hidden");
+    overlay.hidden = true;
+    if (btnRestart) btnRestart.classList.remove("is-hidden");
+    if (btnResume) btnResume.classList.add("is-hidden");
+    tickId = window.setInterval(tick, TICK[difficulty]);
+    if (typeof KidsCore !== "undefined" && typeof KidsCore.setPlayMode === "function") {
+      KidsCore.setPlayMode(true);
+    }
+    draw();
+    syncPauseButton();
   }
 
   function setDiffButtonsDisabled(dis) {
@@ -124,6 +183,7 @@
 
   function startGame() {
     stopLoop();
+    paused = false;
     score = 0;
     if (scoreEl) scoreEl.textContent = "0";
     var bootDir = pending;
@@ -136,12 +196,15 @@
     gameOn = true;
     overlay.classList.add("is-hidden");
     overlay.hidden = true;
-    if (hintEl) hintEl.textContent = "Use the arrows — eat the red snacks!";
+    if (hintEl) hintEl.textContent = "Arrows to turn — Pause or P to take a break. Eat the red snacks!";
     setDiffButtonsDisabled(true);
     tickId = window.setInterval(tick, TICK[difficulty]);
     if (typeof KidsCore !== "undefined" && typeof KidsCore.setPlayMode === "function") {
       KidsCore.setPlayMode(true);
     }
+    if (btnResume) btnResume.classList.add("is-hidden");
+    if (btnRestart) btnRestart.classList.remove("is-hidden");
+    syncPauseButton();
     draw();
   }
 
@@ -158,7 +221,10 @@
     if (overMsg) {
       overMsg.textContent = "Score " + score + ". Tap Play again or an arrow to try again.";
     }
+    if (btnResume) btnResume.classList.add("is-hidden");
+    if (btnRestart) btnRestart.classList.remove("is-hidden");
     setDiffButtonsDisabled(false);
+    syncPauseButton();
     if (typeof KidsCore !== "undefined") {
       KidsCore.playSound("no");
       KidsCore.haptic("light");
@@ -323,6 +389,20 @@
     });
   }
 
+  if (btnResume) {
+    btnResume.addEventListener("click", function () {
+      resumeGame();
+    });
+  }
+
+  if (btnPause) {
+    btnPause.addEventListener("click", function () {
+      if (!gameOn) return;
+      if (paused) resumeGame();
+      else pauseGame();
+    });
+  }
+
   if (diffWrap) {
     diffWrap.querySelectorAll(".snake-diff__btn").forEach(function (btn) {
       btn.addEventListener("click", function () {
@@ -341,6 +421,13 @@
   }
 
   document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" || e.key === "p" || e.key === "P") {
+      if (!gameOn) return;
+      e.preventDefault();
+      if (paused) resumeGame();
+      else pauseGame();
+      return;
+    }
     var m =
       e.key === "ArrowLeft"
         ? "left"
@@ -354,6 +441,10 @@
     if (!m) return;
     e.preventDefault();
     queueDir(m);
+  });
+
+  document.addEventListener("visibilitychange", function () {
+    if (document.hidden && gameOn && !paused) pauseGame();
   });
 
   window.addEventListener("resize", resizeCanvas);

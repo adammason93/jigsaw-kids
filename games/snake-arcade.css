@@ -33,14 +33,42 @@ body.page-snake-game {
 }
 
 .snake-app {
-  max-width: 28rem;
+  max-width: min(28rem, 100%);
+  width: 100%;
   margin: 0 auto;
   padding: max(0.35rem, env(safe-area-inset-top, 0px)) max(0.65rem, env(safe-area-inset-right, 0px))
     max(1rem, env(safe-area-inset-bottom, 0px)) max(0.65rem, env(safe-area-inset-left, 0px));
 }
 
 .snake-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
   margin-bottom: 0.5rem;
+}
+
+.snake-pause {
+  flex-shrink: 0;
+  padding: 0.4rem 0.85rem;
+  border: 2px solid rgba(124, 58, 237, 0.4);
+  border-radius: 12px;
+  background: #f5f3ff;
+  color: var(--snk-accent);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 800;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.snake-pause:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.snake-pause:not(:disabled):active {
+  transform: scale(0.98);
 }
 
 .snake-back {
@@ -137,7 +165,7 @@ body.page-snake-game {
 .snake-board-wrap {
   position: relative;
   width: 100%;
-  max-width: min(100vw - 1.5rem, 400px);
+  max-width: min(92vw - 0.5rem, 720px, calc(100dvh - 13.5rem));
   margin: 0 auto 0.65rem;
   border-radius: calc(var(--snk-radius) + 2px);
   overflow: hidden;
@@ -251,5 +279,91 @@ body.page-snake-game {
   .snake-diff__btn {
     font-size: 0.68rem;
     padding: 0.28rem 0.5rem;
+  }
+}
+
+/* Tablets — use horizontal space; board cap matches JS BOARD_MAX_PX */
+@media (min-width: 600px) {
+  .snake-app {
+    max-width: min(40rem, 96vw);
+    padding-left: max(0.85rem, env(safe-area-inset-left, 0px));
+    padding-right: max(0.85rem, env(safe-area-inset-right, 0px));
+  }
+
+  .snake-hud {
+    padding: 0.75rem 0.85rem 0.8rem;
+    gap: 0.5rem 0.65rem;
+    margin-bottom: 0.85rem;
+  }
+
+  .snake-hud__k {
+    font-size: 0.72rem;
+  }
+
+  .snake-hud__v {
+    font-size: 1.45rem;
+  }
+
+  .snake-diff__btn {
+    font-size: 0.78rem;
+    padding: 0.35rem 0.6rem;
+    border-radius: 12px;
+  }
+
+  .snake-board-wrap {
+    max-width: min(94vw - 1rem, 720px, calc(100dvh - 14rem));
+    margin-bottom: 0.85rem;
+    border-width: 5px;
+  }
+
+  .snake-controls {
+    gap: 0.6rem;
+    margin-bottom: 0.65rem;
+  }
+
+  .snake-ctrl {
+    max-width: 6rem;
+    min-height: 4rem;
+    font-size: 1.65rem;
+    border-radius: 16px;
+  }
+
+  .snake-hint {
+    font-size: 0.95rem;
+  }
+
+  .snake-pause {
+    font-size: 0.88rem;
+    padding: 0.45rem 1rem;
+  }
+
+  .snake-overlay__title {
+    font-size: 1.85rem;
+  }
+
+  .snake-overlay__msg {
+    font-size: 1rem;
+    max-width: 26ch;
+  }
+}
+
+@media (min-width: 900px) {
+  .snake-app {
+    max-width: min(48rem, 96vw);
+  }
+
+  .snake-hud__v {
+    font-size: 1.6rem;
+  }
+
+  .snake-diff__btn {
+    font-size: 0.85rem;
+    padding: 0.4rem 0.7rem;
+  }
+
+  .snake-ctrl {
+    max-width: 6.75rem;
+    min-height: 4.25rem;
+    font-size: 1.85rem;
   }
 }
