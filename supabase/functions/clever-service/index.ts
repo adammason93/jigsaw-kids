@@ -637,27 +637,21 @@ Return JSON shape: { "title": string, "characterDesign": string, "pages": [ { "t
 
     const staggerMs = 450;
     
-    // Add cover image to the list of parallel generations
-    const coverPrompt = imagePromptPrefix + ` Beautiful illustration to be used as background art for the cover of the story. Centered, well-composed, full-bleed artwork. DO NOT write the title or any text in the image.`;
+    const urls = await Promise.all(
+      briefs.map(async (b, k) => {
+        if (k > 0) await delay(k * staggerMs);
+        const beat = spreadTextForPicturePage(b.index, story.pages).slice(0, 320);
+        const beatSafe = beat.replace(/"/gu, "'");
+        const beatClause = beatSafe
+          ? ` Illustrate this story moment (same characters, action, place): ${beatSafe}. `
+          : " ";
+        const fullPrompt = imagePromptPrefix + beatClause + b.brief;
+        return await openaiSpreadImageUrl(apiKey, fullPrompt);
+      }),
+    );
     
-    const [urls, coverUrl] = await Promise.all([
-      Promise.all(
-        briefs.map(async (b, k) => {
-          if (k > 0) await delay(k * staggerMs);
-          const beat = spreadTextForPicturePage(b.index, story.pages).slice(0, 320);
-          const beatSafe = beat.replace(/"/gu, "'");
-          const beatClause = beatSafe
-            ? ` Illustrate this story moment (same characters, action, place): ${beatSafe}. `
-            : " ";
-          const fullPrompt = imagePromptPrefix + beatClause + b.brief;
-          return await openaiSpreadImageUrl(apiKey, fullPrompt);
-        }),
-      ),
-      // Generate cover image simultaneously (square 1024x1024)
-      delay(briefs.length * staggerMs).then(() => openaiImageUrl(apiKey, coverPrompt, "1024x1024"))
-    ]);
-    
-    sceneImageUrl = coverUrl;
+    // Reuse the first spread's image as the cover art to save 1 image generation cost
+    sceneImageUrl = urls[0] || null;
 
     const urlByIndex = new Map<number, string>();
     briefs.forEach((b, k) => urlByIndex.set(b.index, urls[k]));
