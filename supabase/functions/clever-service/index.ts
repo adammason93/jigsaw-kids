@@ -251,7 +251,7 @@ function normalizeStoryJson(raw: unknown): StoryJson {
 
   for (const p of pages) {
     if (!p.text) p.text = "They smiled and looked around.";
-    if (p.text.length > 320) p.text = p.text.slice(0, 317) + "…";
+    if (p.text.length > 600) p.text = p.text.slice(0, 597) + "…";
   }
 
   for (let i = 0; i < pages.length; i++) {
@@ -574,7 +574,7 @@ Deno.serve(async (req) => {
 Rules:
 - Warm, gentle, silly — never scary, violent, or mean.
 - No romance, no weapons, no villains that frighten.
-- Exactly 12 pages (six double-page spreads). Each page "text" is at most 2 short sentences. Use simple words.
+- Exactly 12 pages (six double-page spreads). The text on every page MUST be exactly 4 sentences long, written as a fun, rhythmic poem that rhymes perfectly (e.g., AABB or ABCB). Use simple words.
 - The hero's name is given — use it often.
 - If "People from the child's games" are listed, include them in the story by name as extra friends or family. They should feel like the same friendly faces the child picks in other games (e.g. Tilly, Baby). They are separate from the one imaginary "main friend character" (unicorn, dragon, etc.) — both can appear.${
     portraitAppearance
