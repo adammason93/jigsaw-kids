@@ -1,6 +1,6 @@
 # clever-service (storybook)
 
-Generates an 8-page story (GPT-4o-mini JSON) and **4** illustrations (DALL·E 3, `1024×1024`, standard quality).
+Generates a **12-page** story (6 double-page spreads) with GPT-4o-mini JSON and **6** DALL·E 3 illustrations (`1024×1024`, standard): **one picture page per spread**, the paired page is text-only.
 
 ## Secrets
 
@@ -20,4 +20,4 @@ The browser calls `…/functions/v1/clever-service` — set **`storybookEdgeSlug
 
 ## Cost (indicative)
 
-Rough order: **1 × wide landscape (1792×1024) + 4 × square page art**, DALL·E 3 standard (~similar per-image list pricing) **+** one small chat completion — check [OpenAI pricing](https://openai.com/pricing) for current rates.
+Rough order: **6 × DALL·E 3** square page art **+** one chat completion — check [OpenAI pricing](https://openai.com/pricing) for current rates.

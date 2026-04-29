@@ -55,7 +55,11 @@ function unwrapJsonContent(raw: string): string {
   return s;
 }
 
-/** Normalise model output so we still get 8 pages + 4 images if the model is slightly off. */
+/** 12 pages = 6 spreads; illustration only on the second page of each spread (indices 1,3,…,11). */
+const ILLUSTRATED_PAGE_INDICES = [1, 3, 5, 7, 9, 11] as const;
+const PAGE_COUNT = 12;
+
+/** Normalise model output: 12 pages, exactly 6 illustration briefs on spread "picture" pages only. */
 function normalizeStoryJson(raw: unknown): StoryJson {
   const obj = raw as Partial<StoryJson>;
   const title = String(obj.title ?? "A little adventure")
@@ -73,35 +77,26 @@ function normalizeStoryJson(raw: unknown): StoryJson {
         : null,
   }));
 
-  while (pages.length < 8) {
+  while (pages.length < PAGE_COUNT) {
     pages.push({ text: "And that was a lovely day.", illustrationBrief: null });
   }
-  pages.length = 8;
+  pages.length = PAGE_COUNT;
 
   for (const p of pages) {
     if (!p.text) p.text = "They smiled and looked around.";
     if (p.text.length > 320) p.text = p.text.slice(0, 317) + "…";
   }
 
-  const briefIndices = pages
-    .map((p, i) => ({ i, b: p.illustrationBrief }))
-    .filter((x) => x.b)
-    .map((x) => x.i);
-  if (briefIndices.length > 4) {
-    for (const i of briefIndices.slice(4)) pages[i].illustrationBrief = null;
-  } else if (briefIndices.length < 4) {
-    const need = 4 - briefIndices.length;
-    const spread = [0, 3, 6, 2, 5, 1, 4, 7];
-    let added = 0;
-    for (const i of spread) {
-      if (added >= need) break;
-      if (!pages[i].illustrationBrief) {
-        const basis = pages[i].text.replace(/[.!?…]+$/u, "").slice(0, 140);
-        pages[i].illustrationBrief =
-          (basis.length ? basis : "The heroes") +
-          ", bright friendly picture-book scene, simple shapes";
-        added++;
-      }
+  for (let i = 0; i < pages.length; i++) {
+    if (i % 2 === 0) pages[i].illustrationBrief = null;
+  }
+
+  for (const i of ILLUSTRATED_PAGE_INDICES) {
+    if (!pages[i].illustrationBrief || !String(pages[i].illustrationBrief).trim()) {
+      const basis = pages[i].text.replace(/[.!?…]+$/u, "").slice(0, 140);
+      pages[i].illustrationBrief =
+        (basis.length ? basis : "The heroes") +
+        ", bright friendly picture-book scene, simple shapes";
     }
   }
 
@@ -122,7 +117,7 @@ async function openaiChatJson(
     body: JSON.stringify({
       model: "gpt-4o-mini",
       temperature: 0.75,
-      max_tokens: 3200,
+      max_tokens: 4000,
       response_format: { type: "json_object" },
       messages: [
         { role: "system", content: system },
@@ -190,44 +185,6 @@ async function openaiImageUrl(
   return url as string;
 }
 
-/** Wide tableau behind the UI book: themed world, no book or paper in frame (text stays real HTML). */
-function buildBookScenePrompt(
-  title: string,
-  childName: string,
-  characterDesc: string,
-  placeDesc: string,
-  plotHint: string,
-): string {
-  const themeLine = plotHint.length
-    ? `Story mood and props (invent gentle visuals only): ${plotHint.slice(0, 180)}.`
-    : "Invent a few small magical props that fit the setting — toys, flowers, stars, shells, etc.";
-  return (
-    "Wide landscape illustration, ultra soft 3D clay and matte toy render, rounded shapes, " +
-    "dreamy pastel lighting, high-quality children's app aesthetic, gentle pink-lavender sky gradient. " +
-    `Adventure title as pure visual mood (do not paint these words): "${title.slice(0, 80)}". ` +
-    `Hero name for mood only (do not paint text): ${childName}. ` +
-    `Setting: ${placeDesc}. Featured buddy: ${characterDesc}, small stylized charming figure. ` +
-    themeLine +
-    " Composition: interesting environment on left and right thirds; " +
-    "keep the CENTER THIRD calm, soft, slightly brighter and less busy — empty space for a UI overlay, " +
-    "no objects cutting through the middle. " +
-    "Absolutely no book, diary, notebook, scroll, or pages; no letters, words, numbers, or typography. " +
-    "Wholesome and safe for toddlers."
-  ).slice(0, 3900);
-}
-
-async function tryBookSceneUrl(
-  apiKey: string,
-  prompt: string,
-): Promise<string | null> {
-  try {
-    return await openaiImageUrl(apiKey, prompt, "1792x1024");
-  } catch (e) {
-    console.error("book_scene_failed", e);
-    return null;
-  }
-}
-
 Deno.serve(async (req) => {
   console.info("[clever-service]", req.method);
 
@@ -272,14 +229,14 @@ Deno.serve(async (req) => {
 Rules:
 - Warm, gentle, silly — never scary, violent, or mean.
 - No romance, no weapons, no villains that frighten.
-- Exactly 8 pages. Each page field "text" is at most 2 short sentences. Use simple words.
+- Exactly 12 pages (six double-page spreads). Each page "text" is at most 2 short sentences. Use simple words.
 - The hero's name is given — use it often.
-- Include fields title (string) and pages (array of 8 objects).
+- Include fields title (string) and pages (array of 12 objects).
 - Each page: { "text": string, "illustrationBrief": string | null }.
-- Exactly FOUR pages must have a non-null "illustrationBrief": a short visual scene description in English for an illustrator (no text to draw, no words on signs).
-- The other four pages must use "illustrationBrief": null.
-- Order: spread illustrations across the story (e.g. pages 1,3,5,8 — vary which pages).
-- If a "plot idea" is given, weave it in gently as the heart of the adventure. If it is empty, invent a short happy outing that fits the setting.
+- DOUBLE-PAGE SPREADS: pair pages as (1,2), (3,4), (5,6), (7,8), (9,10), (11,12).
+  Odd-numbered pages (1,3,5,7,9,11) are TEXT-FIRST pages only — use "illustrationBrief": null.
+  Even-numbered pages (2,4,6,8,10,12) are PICTURE pages — each MUST have a non-null "illustrationBrief": a short visual scene description for an illustrator (no text to draw, no words on signs). One new picture per spread; the brief should match that spread's moment.
+- If a "plot idea" is given, weave it in gently. If it is empty, invent a short happy outing that fits the setting.
 - JSON only, no markdown.`;
 
   const user = `Child name: ${childName}
@@ -289,7 +246,7 @@ Plot idea from the child (use as inspiration; keep gentle and age-appropriate): 
     plotHint.length ? plotHint : "(none — invent a cosy little adventure that fits the setting)"
   }
 
-Return JSON shape: { "title": string, "pages": [ { "text": string, "illustrationBrief": string | null }, ... 8 items ] }`;
+Return JSON shape: { "title": string, "pages": [ { "text": string, "illustrationBrief": string | null }, ... 12 items ] }`;
 
   let story: StoryJson;
   try {
@@ -299,14 +256,6 @@ Return JSON shape: { "title": string, "pages": [ { "text": string, "illustration
     return jsonResponse({ error: "story_failed" }, 502);
   }
 
-  const scenePrompt = buildBookScenePrompt(
-    story.title,
-    childName,
-    characterDesc,
-    placeDesc,
-    plotHint,
-  );
-
   const imagePromptPrefix =
     "Same soft 3D clay and matte toy render as a fancy kids' app, rounded shapes, gentle pastel lighting, " +
     "single full scene, cohesive with a magical tableau, " +
@@ -314,22 +263,19 @@ Return JSON shape: { "title": string, "pages": [ { "text": string, "illustration
     `Main character to show: ${characterDesc}. Setting mood: ${placeDesc}. Scene: `;
 
   const pagesOut: { text: string; imageUrl: string | null }[] = [];
-  let sceneImageUrl: string | null = null;
 
   try {
     const briefs: { index: number; brief: string }[] = [];
-    story.pages.forEach((p, i) => {
-      if (p.illustrationBrief && String(p.illustrationBrief).trim()) {
+    for (const i of ILLUSTRATED_PAGE_INDICES) {
+      const p = story.pages[i];
+      if (p?.illustrationBrief && String(p.illustrationBrief).trim()) {
         briefs.push({ index: i, brief: String(p.illustrationBrief).trim() });
       }
-    });
+    }
 
-    const sceneP = tryBookSceneUrl(apiKey, scenePrompt);
-    const urlsP = Promise.all(
+    const urls = await Promise.all(
       briefs.map((b) => openaiImageUrl(apiKey, imagePromptPrefix + b.brief)),
     );
-    const [sceneResult, urls] = await Promise.all([sceneP, urlsP]);
-    sceneImageUrl = sceneResult;
 
     const urlByIndex = new Map<number, string>();
     briefs.forEach((b, k) => urlByIndex.set(b.index, urls[k]));
@@ -355,14 +301,13 @@ Return JSON shape: { "title": string, "pages": [ { "text": string, "illustration
   return jsonResponse({
     title: story.title,
     pages: pagesOut,
-    sceneImageUrl: sceneImageUrl ?? undefined,
     meta: {
       childName,
       characterKey,
       placeKey,
       plotHintLen: plotHint.length,
       imageCount: pagesOut.filter((p) => p.imageUrl).length,
-      sceneImage: Boolean(sceneImageUrl),
+      spreads: 6,
     },
   });
 });
