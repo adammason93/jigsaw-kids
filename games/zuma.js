@@ -567,9 +567,6 @@ Zuma.DefaultColorList = ["#0C3406", "#077187", "#74A57F", "#ABD8CE", "#E4C5AF"];
     var zumaStage = document.querySelector(".zuma-stage");
     var stopBtn = document.getElementById("stop-btn");
     var switchBtn = document.getElementById("switch-btn");
-    var shootBtn = document.getElementById("shoot-btn");
-    var moveBtn = document.getElementById("move-btn");
-    var moveBtnControl = moveBtn ? moveBtn.querySelector(".move-control") : null;
 
     if (!zumaMount || !startPopup || !stopPopup || !finalPopup || !zumaStage) {
       return;
@@ -616,6 +613,16 @@ Zuma.DefaultColorList = ["#0C3406", "#077187", "#74A57F", "#ABD8CE", "#E4C5AF"];
       zumaGame.lookAt(clientX, clientY);
     }
 
+    function fireAtScreen(clientX, clientY) {
+      if (!zumaGame.isInit || zumaGame.isFinal || !zumaGame.isStart) return;
+      aimFromClient(clientX, clientY);
+      zumaGame.attack();
+      if (typeof KidsCore !== "undefined") {
+        KidsCore.playSound("tap");
+        KidsCore.haptic("light");
+      }
+    }
+
     function pauseZumaIfPlaying() {
       if (!zumaGame.isInit || !zumaGame.isStart || zumaGame.isFinal) return;
       zumaGame.stop();
@@ -649,85 +656,31 @@ Zuma.DefaultColorList = ["#0C3406", "#077187", "#74A57F", "#ABD8CE", "#E4C5AF"];
       }
     }
 
-    if (!isMobile) {
-      if (typeof PointerEvent !== "undefined") {
-        window.addEventListener("pointermove", function (e) {
-          aimFromClient(e.clientX, e.clientY);
-        });
-      } else {
-        document.addEventListener("mousemove", function (e) {
-          aimFromClient(e.clientX, e.clientY);
-        });
-      }
-      zumaMount.addEventListener("pointerdown", function (e) {
-        if (e.pointerType !== "touch" && e.pointerType !== "pen") return;
-        e.preventDefault();
-        if (!zumaGame.isInit || zumaGame.isFinal || !zumaGame.isStart) return;
-        zumaGame.attack();
-        if (typeof KidsCore !== "undefined") {
-          KidsCore.playSound("tap");
-          KidsCore.haptic("light");
-        }
-      });
-      zumaMount.addEventListener("click", function () {
-        zumaGame.attack();
-        if (typeof KidsCore !== "undefined") {
-          KidsCore.playSound("tap");
-          KidsCore.haptic("light");
-        }
+    /** Tap / click on the board: aim at that screen point and shoot (all devices). */
+    if (typeof PointerEvent !== "undefined") {
+      zumaMount.addEventListener("pointerup", function (e) {
+        if (!e.isPrimary) return;
+        if (e.pointerType === "mouse" && e.button !== 0) return;
+        fireAtScreen(e.clientX, e.clientY);
       });
     } else {
-      var isTouchstart = false;
-      function rotate(e) {
-        var moveTouch = null;
-        var i;
-        for (i = 0; i < e.touches.length; i++) {
-          var t = e.touches[i];
-          if (moveBtn && (t.target === moveBtn || moveBtn.contains(t.target))) {
-            moveTouch = t;
-            break;
-          }
-        }
-        if (!zumaGame.isInit || zumaGame.isFinal || !zumaGame.isStart) return;
-        if (!moveTouch && !isTouchstart) return;
-        if (!moveTouch) return;
-        var rect = moveBtn.getBoundingClientRect();
-        var innerX = rect.x + rect.width / 2;
-        var innerY = rect.y + rect.height / 2;
-        zumaGame.lookAtVector(moveTouch.clientX - innerX, moveTouch.clientY - innerY);
-        if (moveBtnControl) {
-          moveBtnControl.style.transform =
-            "translate(-50%, -150%) rotate(" + zumaGame.getPlayerRotate() + "deg)";
-        }
-      }
+      zumaMount.addEventListener("click", function (e) {
+        fireAtScreen(e.clientX, e.clientY);
+      });
+    }
+
+    if (isMobile && switchBtn) {
       switchBtn.addEventListener("click", function () {
         zumaGame.switchMarble();
       });
-      shootBtn.addEventListener("click", function () {
-        zumaGame.attack();
-        if (typeof KidsCore !== "undefined") {
-          KidsCore.playSound("tap");
-          KidsCore.haptic("light");
-        }
-      });
+    }
+    if (isMobile && stopBtn) {
       stopBtn.addEventListener("click", function () {
         zumaGame.stop();
         stopBtn.classList.add("active");
         stopPopup.classList.add("active");
         syncPopupBlocking();
       });
-      moveBtn.addEventListener(
-        "touchstart",
-        function (e) {
-          isTouchstart = true;
-          rotate(e);
-        },
-        { passive: false }
-      );
-      window.addEventListener("touchend", function () {
-        isTouchstart = false;
-      });
-      window.addEventListener("touchmove", rotate, { passive: false });
     }
 
     startPopup.querySelector("#init-btn").addEventListener("click", function () {

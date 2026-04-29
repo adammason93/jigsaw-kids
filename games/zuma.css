@@ -46,6 +46,7 @@
   justify-content: center;
   z-index: 1;
   pointer-events: auto;
+  touch-action: manipulation;
 }
 .container {
   -ms-flex-negative: 0;
@@ -576,6 +577,11 @@
   -webkit-transition: 0.5s;
   transition: 0.5s;
   pointer-events: auto;
+}
+
+.page-zuma.is-mobile .mobile-control .right,
+.page-zuma.is-mobile .mobile-control .btn.shoot {
+  display: none !important;
 }
 
 .page-zuma:not(.is-mobile) .mobile-show {
