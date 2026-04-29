@@ -21,44 +21,167 @@
       </a>
     </nav>
 
-    <section class="sb-wizard" id="sbWizard" aria-labelledby="sbWizardTitle">
-      <h1 class="sb-title" id="sbWizardTitle">Make your story</h1>
-      <p class="sb-lead">Pick a name and friends — a grown-up needs the story magic switched on (OpenAI + Supabase).</p>
-
-      <label class="sb-label" for="sbName">Your name in the story</label>
-      <input class="sb-input" id="sbName" type="text" maxlength="24" autocomplete="given-name" placeholder="Sofia" />
-
-      <fieldset class="sb-fieldset">
-        <legend class="sb-legend">Who is your buddy?</legend>
-        <div class="sb-chip-row" id="sbCharacters" role="radiogroup" aria-label="Character"></div>
-      </fieldset>
-
-      <fieldset class="sb-fieldset">
-        <legend class="sb-legend">Where does it happen?</legend>
-        <div class="sb-chip-row" id="sbPlaces" role="radiogroup" aria-label="Place"></div>
-      </fieldset>
-
-      <p class="sb-note" id="sbError" role="alert" hidden></p>
-
-      <button type="button" class="sb-btn sb-btn--primary" id="sbGenerate">
-        Make my book ✨
+    <!-- Landing: start the journey -->
+    <section class="sb-landing" id="sbLanding" aria-labelledby="sbLandingTitle">
+      <p class="sb-landing__emoji" aria-hidden="true">📖✨</p>
+      <h1 class="sb-landing__title" id="sbLandingTitle">Build your book</h1>
+      <figure class="sb-landing__vision">
+        <img
+          class="sb-landing__vision-img"
+          src="images/storybook-design-goal-reference.png"
+          width="640"
+          height="360"
+          alt="Stylised 3D open storybook with friendly dragon, castle, trees and rainbow, like a pop-up toy world."
+          decoding="async"
+        />
+        <figcaption class="sb-landing__vision-cap">The feel we’re aiming for — your story popping out around the pages.</figcaption>
+      </figure>
+      <p class="sb-landing__lead">
+        A little journey — a few pop-up questions. Then we draw the pictures and write the story
+        (OpenAI + Supabase).
+      </p>
+      <p class="sb-note sb-note--landing" id="sbError" role="alert" hidden></p>
+      <button type="button" class="sb-btn sb-btn--primary" id="sbStartJourney">
+        Start your story journey
       </button>
     </section>
 
+    <!-- Modal: one step at a time -->
+    <div
+      class="sb-modal is-hidden"
+      id="sbModal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="sbStepHeading"
+      hidden
+    >
+      <div class="sb-modal__backdrop" aria-hidden="true"></div>
+      <div class="sb-modal__sheet">
+        <div class="sb-modal__progress" id="sbProgress" aria-hidden="true"></div>
+        <p class="sb-note sb-note--modal" id="sbModalError" role="alert" hidden></p>
+        <p class="sb-modal__kicker" id="sbStepKicker">Step 1 of 5</p>
+        <h2 class="sb-modal__heading" id="sbStepHeading">Hello!</h2>
+
+        <div class="sb-panel is-active" data-panel="0" id="sbPanel0">
+          <p class="sb-panel__text">
+            We’ll ask who you are, who your buddy is, where you go, and what kind of adventure you’d like.
+            Grown-ups: the story magic uses your Supabase function + OpenAI key.
+          </p>
+          <div class="sb-modal__actions">
+            <button type="button" class="sb-btn sb-btn--primary sb-btn--modal" id="sbNext0">Let’s go</button>
+          </div>
+        </div>
+
+        <div class="sb-panel" data-panel="1" id="sbPanel1" hidden>
+          <label class="sb-label" for="sbName">What’s your name in the story?</label>
+          <div class="sb-voice-row">
+            <input class="sb-input sb-input--flex" id="sbName" type="text" maxlength="24" autocomplete="given-name" placeholder="Your name or tap Speak" />
+            <button type="button" class="sb-voice-btn" id="sbVoiceName" aria-pressed="false" aria-label="Speak your name">
+              <span class="sb-voice-btn__ic" aria-hidden="true">🎤</span>
+              <span class="sb-voice-btn__txt">Speak</span>
+            </button>
+          </div>
+          <p class="sb-voice-hint" id="sbVoiceNameHint" aria-live="polite"></p>
+          <div class="sb-modal__actions sb-modal__actions--split">
+            <button type="button" class="sb-btn sb-btn--ghost sb-btn--modal" id="sbBack1">Back</button>
+            <button type="button" class="sb-btn sb-btn--primary sb-btn--modal" id="sbNext1">Next</button>
+          </div>
+        </div>
+
+        <div class="sb-panel" data-panel="2" id="sbPanel2" hidden>
+          <p class="sb-panel__hint">Pick one buddy for the adventure.</p>
+          <div class="sb-chip-row" id="sbCharacters" role="radiogroup" aria-label="Character"></div>
+          <div class="sb-modal__actions sb-modal__actions--split">
+            <button type="button" class="sb-btn sb-btn--ghost sb-btn--modal" id="sbBack2">Back</button>
+            <button type="button" class="sb-btn sb-btn--primary sb-btn--modal" id="sbNext2">Next</button>
+          </div>
+        </div>
+
+        <div class="sb-panel" data-panel="3" id="sbPanel3" hidden>
+          <p class="sb-panel__hint">Where should it happen?</p>
+          <div class="sb-chip-row" id="sbPlaces" role="radiogroup" aria-label="Place"></div>
+          <div class="sb-modal__actions sb-modal__actions--split">
+            <button type="button" class="sb-btn sb-btn--ghost sb-btn--modal" id="sbBack3">Back</button>
+            <button type="button" class="sb-btn sb-btn--primary sb-btn--modal" id="sbNext3">Next</button>
+          </div>
+        </div>
+
+        <div class="sb-panel" data-panel="4" id="sbPanel4" hidden>
+          <label class="sb-label" for="sbPlot">What happens? (a little idea is enough)</label>
+          <textarea
+            class="sb-textarea"
+            id="sbPlot"
+            rows="4"
+            maxlength="220"
+            placeholder="Type or tap Speak — tell us what happens."
+          ></textarea>
+          <div class="sb-voice-plot-actions">
+            <button type="button" class="sb-voice-btn sb-voice-btn--block" id="sbVoicePlot" aria-pressed="false" aria-label="Speak your story idea">
+              <span class="sb-voice-btn__ic" aria-hidden="true">🎤</span>
+              <span class="sb-voice-btn__txt">Speak your idea</span>
+            </button>
+          </div>
+          <p class="sb-voice-hint" id="sbVoicePlotHint" aria-live="polite"></p>
+          <p class="sb-panel__micro">We’ll keep it gentle and happy for little readers.</p>
+          <div class="sb-modal__actions sb-modal__actions--split">
+            <button type="button" class="sb-btn sb-btn--ghost sb-btn--modal" id="sbBack4">Back</button>
+            <button type="button" class="sb-btn sb-btn--primary sb-btn--modal" id="sbGenerate">
+              Make my book ✨
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <section class="sb-book is-hidden" id="sbBook" aria-labelledby="sbBookTitle" hidden>
       <h2 class="sb-book-title" id="sbBookTitle"></h2>
-      <div class="sb-page" id="sbPage">
-        <div class="sb-page__art" id="sbPageArt" hidden>
-          <img id="sbPageImg" alt="" decoding="async" />
+      <div class="sb-hardback">
+        <div class="sb-hardback__scene" id="sbBookScene" aria-live="polite">
+          <div class="sb-hardback__shadow" aria-hidden="true"></div>
+          <div class="sb-hardback__volume">
+            <div class="sb-hardback__board sb-hardback__board--left" aria-hidden="true"></div>
+            <div class="sb-hardback__spine" aria-hidden="true"></div>
+            <div class="sb-hardback__block">
+              <div class="sb-hardback__endpaper" aria-hidden="true"></div>
+              <div class="sb-flip-root" id="sbFlipRoot">
+                <div class="sb-flip-layer sb-flip-layer--under" id="sbLayerUnder">
+                  <div class="sb-page-face">
+                    <div class="sb-page__art" hidden>
+                      <img alt="" decoding="async" />
+                    </div>
+                    <p class="sb-page__text"></p>
+                  </div>
+                </div>
+                <div class="sb-flip-layer sb-flip-layer--over" id="sbLayerOver">
+                  <div class="sb-page-leaf" id="sbPageLeaf">
+                    <div class="sb-page-leaf__sheet sb-page-leaf__sheet--front">
+                      <div class="sb-page-face">
+                        <div class="sb-page__art" hidden>
+                          <img alt="" decoding="async" />
+                        </div>
+                        <p class="sb-page__text"></p>
+                      </div>
+                    </div>
+                    <div class="sb-page-leaf__sheet sb-page-leaf__sheet--back" aria-hidden="true"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="sb-hardback__foreedge" aria-hidden="true"></div>
+          </div>
         </div>
-        <p class="sb-page__text" id="sbPageText"></p>
       </div>
       <div class="sb-pager">
-        <button type="button" class="sb-btn sb-btn--ghost" id="sbPrev" aria-label="Previous page">Back</button>
-        <span class="sb-pager__hint" id="sbPagerHint" aria-live="polite"></span>
-        <button type="button" class="sb-btn sb-btn--ghost" id="sbNext" aria-label="Next page">Next</button>
+        <button type="button" class="sb-btn sb-btn--ghost" id="sbPrev" aria-label="Turn back one page">◀</button>
+        <span class="sb-pager__hint" id="sbPagerHint"></span>
+        <button type="button" class="sb-btn sb-btn--ghost" id="sbNext" aria-label="Turn the page">▶</button>
       </div>
-      <button type="button" class="sb-btn sb-btn--secondary" id="sbNew">Make another story</button>
+      <div class="sb-book__actions">
+        <button type="button" class="sb-btn sb-btn--primary" id="sbDownloadBook">
+          Download my book
+        </button>
+        <button type="button" class="sb-btn sb-btn--secondary" id="sbNew">Build another book</button>
+      </div>
     </section>
 
     <div class="sb-busy is-hidden" id="sbBusy" aria-live="polite" aria-busy="true" hidden>

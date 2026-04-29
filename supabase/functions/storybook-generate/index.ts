@@ -32,6 +32,15 @@ function sanitizeName(raw: string): string {
   return cleaned.length ? cleaned : "My friend";
 }
 
+function sanitizePlotHint(raw: string): string {
+  const oneLine = (raw ?? "")
+    .replace(/\s+/gu, " ")
+    .trim()
+    .slice(0, 220);
+  const cleaned = oneLine.replace(/[^\p{L}\p{N}'\-\s\.,!?—–]/gu, "").trim();
+  return cleaned.slice(0, 220);
+}
+
 function jsonResponse(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
@@ -140,6 +149,7 @@ Deno.serve(async (req) => {
     childName?: string;
     character?: string;
     place?: string;
+    plotHint?: string;
   };
   try {
     body = await req.json();
@@ -157,6 +167,8 @@ Deno.serve(async (req) => {
     return jsonResponse({ error: "invalid_choices" }, 400);
   }
 
+  const plotHint = sanitizePlotHint(String(body.plotHint ?? ""));
+
   const system = `You write very short picture-book stories for UK English-speaking children about age 5.
 Rules:
 - Warm, gentle, silly — never scary, violent, or mean.
@@ -168,11 +180,15 @@ Rules:
 - Exactly FOUR pages must have a non-null "illustrationBrief": a short visual scene description in English for an illustrator (no text to draw, no words on signs).
 - The other four pages must use "illustrationBrief": null.
 - Order: spread illustrations across the story (e.g. pages 1,3,5,8 — vary which pages).
+- If a "plot idea" is given, weave it in gently as the heart of the adventure. If it is empty, invent a short happy outing that fits the setting.
 - JSON only, no markdown.`;
 
   const user = `Child name: ${childName}
 Main friend character: ${characterDesc}
 Setting to feature: ${placeDesc}
+Plot idea from the child (use as inspiration; keep gentle and age-appropriate): ${
+    plotHint.length ? plotHint : "(none — invent a cosy little adventure that fits the setting)"
+  }
 
 Return JSON shape: { "title": string, "pages": [ { "text": string, "illustrationBrief": string | null }, ... 8 items ] }`;
 
@@ -233,6 +249,7 @@ Return JSON shape: { "title": string, "pages": [ { "text": string, "illustration
       childName,
       characterKey,
       placeKey,
+      plotHintLen: plotHint.length,
       imageCount: pagesOut.filter((p) => p.imageUrl).length,
     },
   });

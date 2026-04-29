@@ -1,5 +1,5 @@
 /**
- * AI storybook — calls Supabase Edge Function `storybook-generate`.
+ * AI storybook — journey modal + Supabase Edge Function `storybook-generate`.
  * Requires: deploy function + OPENAI_API_KEY secret (see supabase/functions/storybook-generate/README.md).
  */
 (function () {
@@ -19,23 +19,243 @@
     { id: "space", label: "Space" },
   ];
 
-  var wizard = document.getElementById("sbWizard");
+  var STEP_HEADINGS = [
+    "Let’s make your book",
+    "Who’s the hero?",
+    "Pick a buddy",
+    "Where are we?",
+    "What happens?",
+  ];
+
+  var landing = document.getElementById("sbLanding");
+  var modal = document.getElementById("sbModal");
   var book = document.getElementById("sbBook");
   var busy = document.getElementById("sbBusy");
   var nameInput = document.getElementById("sbName");
+  var plotInput = document.getElementById("sbPlot");
   var charRow = document.getElementById("sbCharacters");
   var placeRow = document.getElementById("sbPlaces");
   var errEl = document.getElementById("sbError");
+  var modalErr = document.getElementById("sbModalError");
+  var progressEl = document.getElementById("sbProgress");
+  var stepKicker = document.getElementById("sbStepKicker");
+  var stepHeading = document.getElementById("sbStepHeading");
+  var btnStart = document.getElementById("sbStartJourney");
   var btnGen = document.getElementById("sbGenerate");
   var bookTitle = document.getElementById("sbBookTitle");
-  var pageText = document.getElementById("sbPageText");
-  var pageArt = document.getElementById("sbPageArt");
-  var pageImg = document.getElementById("sbPageImg");
+  var pageLeaf = document.getElementById("sbPageLeaf");
+  var layerOver = document.getElementById("sbLayerOver");
+  var layerUnder = document.getElementById("sbLayerUnder");
   var btnPrev = document.getElementById("sbPrev");
   var btnNext = document.getElementById("sbNext");
   var pagerHint = document.getElementById("sbPagerHint");
   var btnNew = document.getElementById("sbNew");
+  var btnDownload = document.getElementById("sbDownloadBook");
+  var btnVoiceName = document.getElementById("sbVoiceName");
+  var btnVoicePlot = document.getElementById("sbVoicePlot");
+  var voiceHintName = document.getElementById("sbVoiceNameHint");
+  var voiceHintPlot = document.getElementById("sbVoicePlotHint");
 
+  var panels = document.querySelectorAll(".sb-panel");
+
+  var SpeechRec =
+    typeof window !== "undefined"
+      ? window.SpeechRecognition || window.webkitSpeechRecognition || null
+      : null;
+
+  var activeSpeech = null;
+  /** @type {'name' | 'plot' | null} */
+  var speechTarget = null;
+  var plotSpeechPrefix = "";
+  var plotSpeechAccum = "";
+
+  function getSpeechRecognition() {
+    return SpeechRec;
+  }
+
+  function setVoiceHint(nameMsg, plotMsg) {
+    if (voiceHintName) {
+      voiceHintName.textContent = nameMsg || "";
+      voiceHintName.hidden = !nameMsg;
+    }
+    if (voiceHintPlot) {
+      voiceHintPlot.textContent = plotMsg || "";
+      voiceHintPlot.hidden = !plotMsg;
+    }
+  }
+
+  function syncVoiceButtons() {
+    var onName = speechTarget === "name";
+    var onPlot = speechTarget === "plot";
+    if (btnVoiceName) {
+      btnVoiceName.classList.toggle("is-listening", onName);
+      btnVoiceName.setAttribute("aria-pressed", onName ? "true" : "false");
+      var nameLbl = btnVoiceName.querySelector(".sb-voice-btn__txt");
+      if (nameLbl) nameLbl.textContent = onName ? "Stop" : "Speak";
+    }
+    if (btnVoicePlot) {
+      btnVoicePlot.classList.toggle("is-listening", onPlot);
+      btnVoicePlot.setAttribute("aria-pressed", onPlot ? "true" : "false");
+      var plotLbl = btnVoicePlot.querySelector(".sb-voice-btn__txt");
+      if (plotLbl) plotLbl.textContent = onPlot ? "Stop listening" : "Speak your idea";
+    }
+  }
+
+  /**
+   * @param {{ preserveVoiceHints?: boolean }} [opts]
+   */
+  function stopSpeech(opts) {
+    var preserveHints = opts && opts.preserveVoiceHints;
+    var rec = activeSpeech;
+    activeSpeech = null;
+    speechTarget = null;
+    plotSpeechPrefix = "";
+    plotSpeechAccum = "";
+    if (rec) {
+      rec.onresult = null;
+      rec.onerror = null;
+      rec.onend = null;
+      try {
+        rec.stop();
+      } catch (e) {}
+    }
+    syncVoiceButtons();
+    if (!preserveHints) setVoiceHint("", "");
+  }
+
+  function startNameSpeech() {
+    var Rec = getSpeechRecognition();
+    if (!Rec || !nameInput) return;
+    if (speechTarget === "name") {
+      stopSpeech();
+      return;
+    }
+    stopSpeech();
+    speechTarget = "name";
+    var rec = new Rec();
+    rec.lang = "en-GB";
+    rec.continuous = false;
+    rec.interimResults = false;
+    rec.maxAlternatives = 1;
+    rec.onresult = function (e) {
+      if (!e.results || !e.results.length) return;
+      var t = e.results[0][0].transcript.trim();
+      nameInput.value = t.slice(0, 24);
+    };
+    rec.onerror = function (e) {
+      if (e.error === "aborted") return;
+      var friendly =
+        e.error === "not-allowed"
+          ? "Microphone blocked — check browser settings or type instead."
+          : e.error === "no-speech"
+            ? "Didn’t hear anything. Tap Speak and try again."
+            : "Speaking hit a snag. You can type instead.";
+      stopSpeech({ preserveVoiceHints: true });
+      setVoiceHint(friendly, "");
+    };
+    rec.onend = function () {
+      if (activeSpeech !== rec) return;
+      activeSpeech = null;
+      speechTarget = null;
+      plotSpeechPrefix = "";
+      plotSpeechAccum = "";
+      syncVoiceButtons();
+      setVoiceHint("", "");
+    };
+    activeSpeech = rec;
+    syncVoiceButtons();
+    setVoiceHint("Listening… say your name", "");
+    try {
+      rec.start();
+    } catch (err) {
+      stopSpeech({ preserveVoiceHints: true });
+      setVoiceHint("Couldn’t start the microphone. Try typing.", "");
+    }
+  }
+
+  function startPlotSpeech() {
+    var Rec = getSpeechRecognition();
+    if (!Rec || !plotInput) return;
+    if (speechTarget === "plot") {
+      stopSpeech();
+      return;
+    }
+    stopSpeech();
+    speechTarget = "plot";
+    plotSpeechPrefix = plotInput.value;
+    plotSpeechAccum = "";
+    var rec = new Rec();
+    rec.lang = "en-GB";
+    rec.continuous = true;
+    rec.interimResults = true;
+    rec.maxAlternatives = 1;
+    rec.onresult = function (e) {
+      var interim = "";
+      for (var i = e.resultIndex; i < e.results.length; i++) {
+        var piece = e.results[i][0].transcript;
+        if (e.results[i].isFinal) plotSpeechAccum += piece;
+        else interim += piece;
+      }
+      var tail = (plotSpeechAccum + interim).trim();
+      var base = plotSpeechPrefix.replace(/\s+$/,"");
+      var merged = (base && tail ? base + " " + tail : base + tail)
+        .replace(/\s+/g, " ")
+        .trim();
+      plotInput.value = merged.slice(0, 220);
+    };
+    rec.onerror = function (e) {
+      if (e.error === "aborted") return;
+      var friendly =
+        e.error === "not-allowed"
+          ? "Microphone blocked — check settings or type your idea."
+          : e.error === "no-speech"
+            ? "Didn’t catch that — tap Speak and try again."
+            : "Speaking had a problem. Typing still works.";
+      stopSpeech({ preserveVoiceHints: true });
+      setVoiceHint("", friendly);
+    };
+    rec.onend = function () {
+      if (activeSpeech !== rec) return;
+      activeSpeech = null;
+      speechTarget = null;
+      plotSpeechPrefix = "";
+      plotSpeechAccum = "";
+      syncVoiceButtons();
+      setVoiceHint("", "");
+    };
+    activeSpeech = rec;
+    syncVoiceButtons();
+    setVoiceHint("", "Listening… talk about your story. Tap Stop when you’re done.");
+    try {
+      rec.start();
+    } catch (err) {
+      stopSpeech({ preserveVoiceHints: true });
+      setVoiceHint("", "Couldn’t start the microphone. Try typing.");
+    }
+  }
+
+  function initVoiceUi() {
+    if (!getSpeechRecognition()) {
+      if (btnVoiceName) {
+        btnVoiceName.hidden = true;
+        btnVoiceName.classList.add("is-unavailable");
+      }
+      if (btnVoicePlot) {
+        btnVoicePlot.hidden = true;
+        btnVoicePlot.classList.add("is-unavailable");
+      }
+      return;
+    }
+    if (btnVoiceName) {
+      btnVoiceName.addEventListener("click", function () { startNameSpeech(); });
+    }
+    if (btnVoicePlot) {
+      btnVoicePlot.addEventListener("click", function () { startPlotSpeech(); });
+    }
+  }
+
+  /** @type {number} */
+  var journeyStep = 0;
   /** @type {string} */
   var selectedChar = "unicorn";
   /** @type {string} */
@@ -43,16 +263,317 @@
   /** @type {{ title: string, pages: { text: string, imageUrl: string|null }[] } | null} */
   var story = null;
   var pageIndex = 0;
+  var flipLock = false;
 
-  function setError(msg) {
-    if (!errEl) return;
-    if (!msg) {
-      errEl.hidden = true;
-      errEl.textContent = "";
+  function prefersReducedMotion() {
+    return (
+      typeof window.matchMedia !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    );
+  }
+
+  function getOverPageFace() {
+    return layerOver ? layerOver.querySelector(".sb-page-leaf__sheet--front .sb-page-face") : null;
+  }
+
+  function getUnderPageFace() {
+    return layerUnder ? layerUnder.querySelector(".sb-page-face") : null;
+  }
+
+  function resetPageLeafTransforms() {
+    if (!pageLeaf) return;
+    pageLeaf.classList.add("no-transition");
+    pageLeaf.classList.remove("is-flipping-forward");
+    pageLeaf.classList.remove("is-flipping-back");
+    void pageLeaf.offsetWidth;
+    pageLeaf.classList.remove("no-transition");
+  }
+
+  function fillPageFace(faceRoot, page) {
+    if (!faceRoot) return;
+    var art = faceRoot.querySelector(".sb-page__art");
+    var img = art ? art.querySelector("img") : null;
+    var textEl = faceRoot.querySelector(".sb-page__text");
+    if (!page) {
+      if (textEl) textEl.textContent = "";
+      if (art) art.hidden = true;
+      if (img) img.removeAttribute("src");
       return;
     }
-    errEl.hidden = false;
-    errEl.textContent = msg;
+    if (textEl) textEl.textContent = page.text;
+    if (art && img) {
+      if (page.imageUrl) {
+        img.src = page.imageUrl;
+        img.alt = "";
+        art.hidden = false;
+      } else {
+        art.hidden = true;
+        img.removeAttribute("src");
+      }
+    }
+  }
+
+  function renderBookSpread() {
+    if (!story) return;
+    fillPageFace(getOverPageFace(), story.pages[pageIndex]);
+    var next = story.pages[pageIndex + 1];
+    fillPageFace(getUnderPageFace(), next !== undefined ? next : null);
+  }
+
+  function updatePagerHints() {
+    if (!story) return;
+    if (pagerHint) {
+      pagerHint.textContent = "Page " + (pageIndex + 1) + " of " + story.pages.length;
+    }
+    if (btnPrev) btnPrev.disabled = pageIndex === 0 || flipLock;
+    if (btnNext) btnNext.disabled = pageIndex >= story.pages.length - 1 || flipLock;
+  }
+
+  function completeFlipForward() {
+    if (!story || !pageLeaf) return;
+    pageIndex++;
+    pageLeaf.classList.add("no-transition");
+    pageLeaf.classList.remove("is-flipping-forward");
+    void pageLeaf.offsetWidth;
+    pageLeaf.classList.remove("no-transition");
+    renderBookSpread();
+    flipLock = false;
+    updatePagerHints();
+  }
+
+  function completeFlipBack() {
+    if (!story || !pageLeaf) return;
+    pageIndex--;
+    pageLeaf.classList.add("no-transition");
+    pageLeaf.classList.remove("is-flipping-back");
+    void pageLeaf.offsetWidth;
+    pageLeaf.classList.remove("no-transition");
+    renderBookSpread();
+    flipLock = false;
+    updatePagerHints();
+  }
+
+  function goNextPage() {
+    if (!story || flipLock || pageIndex >= story.pages.length - 1) return;
+    if (prefersReducedMotion()) {
+      pageIndex++;
+      renderBookSpread();
+      updatePagerHints();
+      return;
+    }
+    flipLock = true;
+    updatePagerHints();
+    fillPageFace(getUnderPageFace(), story.pages[pageIndex + 1]);
+    if (!pageLeaf) {
+      pageIndex++;
+      renderBookSpread();
+      flipLock = false;
+      updatePagerHints();
+      return;
+    }
+    pageLeaf.classList.remove("is-flipping-back");
+    pageLeaf.classList.remove("no-transition");
+    pageLeaf.classList.add("is-flipping-forward");
+    var t = window.setTimeout(function () {
+      pageLeaf.removeEventListener("transitionend", onEnd);
+      completeFlipForward();
+    }, 950);
+    function onEnd(e) {
+      if (e.target !== pageLeaf || e.propertyName !== "transform") return;
+      window.clearTimeout(t);
+      pageLeaf.removeEventListener("transitionend", onEnd);
+      completeFlipForward();
+    }
+    pageLeaf.addEventListener("transitionend", onEnd);
+  }
+
+  function goPrevPage() {
+    if (!story || flipLock || pageIndex <= 0) return;
+    if (prefersReducedMotion()) {
+      pageIndex--;
+      renderBookSpread();
+      updatePagerHints();
+      return;
+    }
+    flipLock = true;
+    updatePagerHints();
+    fillPageFace(getUnderPageFace(), story.pages[pageIndex - 1]);
+    if (!pageLeaf) {
+      pageIndex--;
+      renderBookSpread();
+      flipLock = false;
+      updatePagerHints();
+      return;
+    }
+    pageLeaf.classList.remove("is-flipping-forward");
+    pageLeaf.classList.remove("no-transition");
+    pageLeaf.classList.add("is-flipping-back");
+    var t = window.setTimeout(function () {
+      pageLeaf.removeEventListener("transitionend", onEnd);
+      completeFlipBack();
+    }, 950);
+    function onEnd(e) {
+      if (e.target !== pageLeaf || e.propertyName !== "transform") return;
+      window.clearTimeout(t);
+      pageLeaf.removeEventListener("transitionend", onEnd);
+      completeFlipBack();
+    }
+    pageLeaf.addEventListener("transitionend", onEnd);
+  }
+
+  function escapeHtml(s) {
+    return String(s)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  function escapeAttr(s) {
+    return String(s).replace(/&/g, "&amp;").replace(/"/g, "&quot;");
+  }
+
+  function sanitizeFilename(raw) {
+    var s = String(raw || "my-story-book")
+      .trim()
+      .replace(/[^\w\s\-']/g, "")
+      .replace(/\s+/g, "-")
+      .replace(/-+/g, "-")
+      .replace(/^-|-$/g, "")
+      .slice(0, 64)
+      .toLowerCase();
+    return s || "my-story-book";
+  }
+
+  function tryFetchImageDataUrl(url) {
+    if (!url) return Promise.resolve(null);
+    return fetch(url, { mode: "cors", credentials: "omit" })
+      .then(function (r) {
+        if (!r.ok) throw new Error("bad");
+        return r.blob();
+      })
+      .then(function (blob) {
+        return new Promise(function (resolve, reject) {
+          var fr = new FileReader();
+          fr.onload = function () {
+            resolve(fr.result);
+          };
+          fr.onerror = function () {
+            reject(new Error("read"));
+          };
+          fr.readAsDataURL(blob);
+        });
+      })
+      .catch(function () {
+        return null;
+      });
+  }
+
+  function buildStandaloneBookHtml(title, pages, dataUrls) {
+    var escTitle = escapeHtml(title);
+    var articles = [];
+    for (var i = 0; i < pages.length; i++) {
+      var p = pages[i];
+      var art = "";
+      if (p.imageUrl) {
+        var src = dataUrls[i] || escapeAttr(p.imageUrl);
+        art =
+          '<div class="sbdl-art"><img src="' +
+          src +
+          '" alt="Illustration for page ' +
+          (i + 1) +
+          '" /></div>';
+      }
+      articles.push(
+        '<article class="sbdl-page" id="p-' +
+          (i + 1) +
+          '"><p class="sbdl-k">Page ' +
+          (i + 1) +
+          "</p>" +
+          art +
+          '<p class="sbdl-t">' +
+          escapeHtml(p.text).replace(/\n/g, "<br/>") +
+          "</p></article>"
+      );
+    }
+    var css =
+      "body{font-family:system-ui,-apple-system,'Segoe UI',sans-serif;margin:0;background:linear-gradient(165deg,#fce7f3,#fdf2f8 45%,#e9d5ff);color:#500724;}" +
+      ".sbdl-wrap{max-width:28rem;margin:0 auto;padding:1.25rem 1rem 2.5rem;}" +
+      "h1{font-size:clamp(1.35rem,4vw,1.65rem);text-align:center;color:#9d174d;margin:0 0 1.25rem;font-weight:800;}" +
+      ".sbdl-page{background:#fff;border-radius:18px;padding:1rem 1rem 1.15rem;margin:0 0 1rem;box-shadow:0 6px 22px rgba(157,23,77,.12);border:2px solid rgba(244,114,182,.35);}" +
+      ".sbdl-k{font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#be185d;margin:0 0 .5rem;}" +
+      ".sbdl-art{border-radius:14px;overflow:hidden;margin:0 0 .85rem;background:#fdf2f8;}" +
+      ".sbdl-art img{display:block;width:100%;height:auto}" +
+      ".sbdl-t{font-size:1.05rem;font-weight:700;line-height:1.55;margin:0}" +
+      ".sbdl-foot{margin-top:1.75rem;font-size:.78rem;font-weight:700;color:#9f1239;text-align:center;line-height:1.45;}" +
+      "@media print{.sbdl-page{break-inside:avoid}}";
+    return (
+      '<!DOCTYPE html><html lang="en-GB"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><title>' +
+      escTitle +
+      "</title><style>" +
+      css +
+      '</style></head><body><div class="sbdl-wrap"><h1>' +
+      escTitle +
+      "</h1>" +
+      articles.join("") +
+      '<p class="sbdl-foot">Saved from your Sofia&rsquo;s Game Room storybook. Keep this file to read your story any time (works offline when pictures are embedded).</p></div></body></html>'
+    );
+  }
+
+  function downloadStoryBook() {
+    if (!story || !story.pages.length || !btnDownload) return;
+    var origLabel = btnDownload.textContent;
+    btnDownload.disabled = true;
+    btnDownload.textContent = "Preparing…";
+    Promise.all(
+      story.pages.map(function (p) {
+        return tryFetchImageDataUrl(p.imageUrl || "");
+      })
+    )
+      .then(function (dataUrls) {
+        var html = buildStandaloneBookHtml(story.title, story.pages, dataUrls);
+        var blob = new Blob([html], { type: "text/html;charset=utf-8" });
+        var u = URL.createObjectURL(blob);
+        var a = document.createElement("a");
+        a.href = u;
+        a.download = sanitizeFilename(story.title) + ".html";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(u);
+      })
+      .catch(function () {
+        window.alert("Couldn’t build the file. Try again in a moment.");
+      })
+      .finally(function () {
+        btnDownload.disabled = false;
+        btnDownload.textContent = origLabel;
+      });
+  }
+
+  function setError(msg) {
+    if (!msg) {
+      if (errEl) {
+        errEl.hidden = true;
+        errEl.textContent = "";
+      }
+      if (modalErr) {
+        modalErr.hidden = true;
+        modalErr.textContent = "";
+      }
+      return;
+    }
+    var onModal = modal && !modal.hidden;
+    if (errEl) {
+      errEl.hidden = onModal;
+      if (!onModal) errEl.textContent = msg;
+      else errEl.textContent = "";
+    }
+    if (modalErr) {
+      modalErr.hidden = !onModal;
+      if (onModal) modalErr.textContent = msg;
+      else modalErr.textContent = "";
+    }
   }
 
   function functionUrl() {
@@ -120,51 +641,94 @@
     }
   }
 
+  function renderProgress() {
+    if (!progressEl) return;
+    progressEl.textContent = "";
+    for (var i = 0; i < 5; i++) {
+      var d = document.createElement("span");
+      d.className = "sb-dot";
+      if (i < journeyStep) d.classList.add("is-done");
+      if (i === journeyStep) d.classList.add("is-current");
+      progressEl.appendChild(d);
+    }
+  }
+
+  function goToStep(n) {
+    if (n !== journeyStep) stopSpeech();
+    journeyStep = Math.max(0, Math.min(4, n));
+    if (stepKicker) stepKicker.textContent = "Step " + (journeyStep + 1) + " of 5";
+    if (stepHeading) stepHeading.textContent = STEP_HEADINGS[journeyStep] || "";
+    renderProgress();
+    Array.prototype.forEach.call(panels, function (p) {
+      var idx = parseInt(p.getAttribute("data-panel") || "0", 10);
+      var on = idx === journeyStep;
+      p.hidden = !on;
+      p.classList.toggle("is-active", on);
+    });
+    if (journeyStep === 1 && nameInput) {
+      window.requestAnimationFrame(function () {
+        nameInput.focus();
+      });
+    }
+    if (journeyStep === 4 && plotInput) {
+      window.requestAnimationFrame(function () {
+        plotInput.focus();
+      });
+    }
+  }
+
+  function openJourney() {
+    if (modal) {
+      modal.classList.remove("is-hidden");
+      modal.hidden = false;
+    }
+    setError("");
+    goToStep(0);
+  }
+
+  function closeJourney() {
+    stopSpeech();
+    if (modal) {
+      modal.classList.add("is-hidden");
+      modal.hidden = true;
+    }
+  }
+
   function showWizard() {
     story = null;
     pageIndex = 0;
-    if (wizard) {
-      wizard.classList.remove("is-hidden");
-      wizard.hidden = false;
+    flipLock = false;
+    resetPageLeafTransforms();
+    closeJourney();
+    if (landing) {
+      landing.classList.remove("is-hidden");
+      landing.hidden = false;
     }
     if (book) {
       book.classList.add("is-hidden");
       book.hidden = true;
     }
+    if (nameInput) nameInput.value = "";
+    if (plotInput) plotInput.value = "";
+    goToStep(0);
+    setError("");
   }
 
   function showBook() {
     if (!story || !story.pages.length) return;
-    if (wizard) {
-      wizard.classList.add("is-hidden");
-      wizard.hidden = true;
+    closeJourney();
+    if (landing) {
+      landing.classList.add("is-hidden");
+      landing.hidden = true;
     }
     if (book) {
       book.classList.remove("is-hidden");
       book.hidden = false;
     }
     if (bookTitle) bookTitle.textContent = story.title;
-    renderPage();
-  }
-
-  function renderPage() {
-    if (!story) return;
-    var p = story.pages[pageIndex];
-    if (!p) return;
-    if (pageText) pageText.textContent = p.text;
-    if (p.imageUrl && pageImg && pageArt) {
-      pageImg.src = p.imageUrl;
-      pageImg.alt = "";
-      pageArt.hidden = false;
-    } else if (pageArt) {
-      pageArt.hidden = true;
-      if (pageImg) pageImg.removeAttribute("src");
-    }
-    if (pagerHint) {
-      pagerHint.textContent = "Page " + (pageIndex + 1) + " of " + story.pages.length;
-    }
-    if (btnPrev) btnPrev.disabled = pageIndex === 0;
-    if (btnNext) btnNext.disabled = pageIndex >= story.pages.length - 1;
+    resetPageLeafTransforms();
+    renderBookSpread();
+    updatePagerHints();
   }
 
   function setBusy(on) {
@@ -179,6 +743,31 @@
   }
 
   buildChipRows();
+  initVoiceUi();
+
+  if (btnStart) {
+    btnStart.addEventListener("click", function () {
+      openJourney();
+    });
+  }
+
+  var btnNext0 = document.getElementById("sbNext0");
+  var btnBack1 = document.getElementById("sbBack1");
+  var btnNext1 = document.getElementById("sbNext1");
+  var btnBack2 = document.getElementById("sbBack2");
+  var btnNext2 = document.getElementById("sbNext2");
+  var btnBack3 = document.getElementById("sbBack3");
+  var btnNext3 = document.getElementById("sbNext3");
+  var btnBack4 = document.getElementById("sbBack4");
+
+  if (btnNext0) btnNext0.addEventListener("click", function () { goToStep(1); });
+  if (btnBack1) btnBack1.addEventListener("click", function () { goToStep(0); });
+  if (btnNext1) btnNext1.addEventListener("click", function () { goToStep(2); });
+  if (btnBack2) btnBack2.addEventListener("click", function () { goToStep(1); });
+  if (btnNext2) btnNext2.addEventListener("click", function () { goToStep(3); });
+  if (btnBack3) btnBack3.addEventListener("click", function () { goToStep(2); });
+  if (btnNext3) btnNext3.addEventListener("click", function () { goToStep(4); });
+  if (btnBack4) btnBack4.addEventListener("click", function () { goToStep(3); });
 
   if (btnGen) {
     btnGen.addEventListener("click", function () {
@@ -190,6 +779,7 @@
         return;
       }
       var childName = nameInput ? nameInput.value.trim() : "";
+      var plotHint = plotInput ? plotInput.value.trim() : "";
       setBusy(true);
       fetch(url, {
         method: "POST",
@@ -202,6 +792,7 @@
           childName: childName || "Friend",
           character: selectedChar,
           place: selectedPlace,
+          plotHint: plotHint,
         }),
       })
         .then(function (r) {
@@ -240,18 +831,12 @@
 
   if (btnPrev) {
     btnPrev.addEventListener("click", function () {
-      if (pageIndex > 0) {
-        pageIndex--;
-        renderPage();
-      }
+      goPrevPage();
     });
   }
   if (btnNext) {
     btnNext.addEventListener("click", function () {
-      if (story && pageIndex < story.pages.length - 1) {
-        pageIndex++;
-        renderPage();
-      }
+      goNextPage();
     });
   }
   if (btnNew) {
@@ -259,8 +844,11 @@
       showWizard();
     });
   }
-
-  if (typeof KidsCore !== "undefined") {
+  if (btnDownload) {
+    btnDownload.addEventListener("click", function () {
+      downloadStoryBook();
+    });
+  }
     KidsCore.init();
     KidsCore.bindTapSound(document.getElementById("app"));
   }
