@@ -1696,14 +1696,33 @@
         })
         .then(function (out) {
           if (!out.ok) {
-            var msg =
-              out.body && out.body.error === "server_missing_openai"
-                ? "OpenAI isn’t connected yet. A grown-up needs to set OPENAI_API_KEY on the story function."
-                : out.body && out.body.error === "images_failed" && out.body.detail
-                  ? "Couldn’t make the book (pictures). " + String(out.body.detail)
-                : out.body && out.body.error
-                  ? "Couldn’t make the book (" + out.body.error + ")."
-                  : "Couldn’t make the book (error " + out.status + ").";
+            var b =
+              out.body && typeof out.body === "object" ? out.body : {};
+            /** Supabase WORKER_LIMIT — story + six images often exceeds Edge budget */
+            var is546 =
+              out.status === 546 || Number(b.code) === 546;
+            var msg;
+            if (is546) {
+              msg =
+                "The story maker hit a server time limit (546). Making the book asks for a story plus six pictures in one run; try again, or ask a grown-up to check clever-service logs/duration.";
+            } else if (b.error === "server_missing_openai") {
+              msg =
+                "OpenAI isn’t connected yet. A grown-up needs to set OPENAI_API_KEY on the story function.";
+            } else if (b.error === "images_failed" && b.detail) {
+              msg =
+                "Couldn’t make the book (pictures). " + String(b.detail);
+            } else if (b.error === "story_failed") {
+              msg =
+                "Couldn’t generate the story (OpenAI). Try again — if this repeats, check the function logs and API key.";
+            } else if (b.error && typeof b.error === "string") {
+              msg = "Couldn’t make the book (" + b.error + ").";
+            } else {
+              msg =
+                "Couldn’t make the book (HTTP " +
+                out.status +
+                (b.msg ? ": " + String(b.msg).slice(0, 240) : "") +
+                ").";
+            }
             setError(msg);
             return;
           }
