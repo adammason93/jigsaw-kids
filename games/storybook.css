@@ -805,7 +805,7 @@ body.page-storybook.sb-modal-open {
   min-height: clamp(260px, min(56vw, 58vh), 500px);
 }
 
-/* Book plate: shadow (not filter on parent); perspective like reference #flip_book — avoids compositor ghosts vs nested preserve-3d */
+/* Book plate: shadow on plate (not filter); perspective like a physical flip book */
 .sb-reader-book {
   position: relative;
   width: 100%;
@@ -816,15 +816,26 @@ body.page-storybook.sb-modal-open {
   box-shadow: 0 18px 42px rgba(25, 25, 25, 0.18);
   perspective: min(2000px, 120vw);
   perspective-origin: center center;
+  transition: transform 1s cubic-bezier(0.33, 0.82, 0.32, 1);
 }
 
-/* Closed cover: centered card; opens with rotateY like reference .front_cover (no translateZ / inner face — avoids ghosts) */
+.sb-reader-stack--opening .sb-reader-book {
+  transform: translateX(var(--sb-cover-open-shift, 0px));
+}
+
+.sb-reader-stack--open .sb-reader-book {
+  transform: none;
+}
+
+/* Cover lines up with the left page of .sb-flip-spread__inner (hinge = gutter); not center-floated */
 .sb-cover {
   position: absolute;
   z-index: 3;
   top: 0.45rem;
-  left: 50%;
-  width: min(300px, calc(100% - 2rem));
+  left: calc(
+    0.45rem + ((100% - 0.9rem) - min(920px, calc(100% - 0.9rem))) / 2
+  );
+  width: calc((min(920px, calc(100% - 0.9rem)) - 26px) / 2);
   height: var(--sb-book-inner-h);
   padding: 0;
   margin: 0;
@@ -832,7 +843,7 @@ body.page-storybook.sb-modal-open {
   background: transparent;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  transform: translateX(-50%);
+  transform: none;
   transform-style: flat;
 }
 
@@ -843,7 +854,7 @@ body.page-storybook.sb-modal-open {
   position: relative;
   transform-origin: left center;
   transform-style: flat;
-  transition: transform 1.35s cubic-bezier(0.645, 0.045, 0.355, 1);
+  transition: transform 1.25s cubic-bezier(0.645, 0.045, 0.355, 1);
   will-change: transform;
 }
 
@@ -862,7 +873,6 @@ body.page-storybook.sb-modal-open {
   transform: none;
 }
 
-/* Single-sided cover; omit back face to reduce compositor glitches */
 .sb-cover__inside {
   display: none;
 }
@@ -979,6 +989,10 @@ body.page-storybook.sb-modal-open {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .sb-reader-book {
+    transition: none;
+  }
+
   .sb-cover__pivot {
     transition: none;
   }
@@ -988,6 +1002,10 @@ body.page-storybook.sb-modal-open {
   }
 
   .sb-reader-stack--opening .sb-cover__pivot {
+    transform: none;
+  }
+
+  .sb-reader-stack--opening .sb-reader-book {
     transform: none;
   }
 }
