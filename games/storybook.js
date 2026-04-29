@@ -279,7 +279,7 @@
   var spreadIndex = 0;
   /** @type {boolean} */
   var spreadAnimLock = false;
-  /** Incremented to invalidate in-flight open-cover callbacks */
+  var coverOpenGeneration = 0;
 
   function prefersReducedSpreadMotion() {
     return (
@@ -438,15 +438,20 @@
 
   function syncCloseBookButton() {
     if (!btnCloseBook) return;
+    var opening =
+      readerStack &&
+      readerStack.classList.contains("sb-reader-stack--opening");
     var readerOpen =
       readerStack &&
       readerStack.classList.contains("sb-reader-stack--open");
+    var coverShowing =
+      book && book.classList.contains("sb-book--cover-visible");
     var show =
       book &&
       story &&
       readerOpen &&
-      book.classList &&
-      !book.classList.contains("sb-book--cover-visible");
+      !coverShowing &&
+      !opening;
     if (show) {
       btnCloseBook.hidden = false;
       btnCloseBook.removeAttribute("aria-hidden");
@@ -459,13 +464,23 @@
   function closeBookCover() {
     if (!book || !readerStack) return;
     if (book.classList.contains("sb-book--cover-visible")) return;
-    if (!readerStack.classList.contains("sb-reader-stack--open")) return;
+    if (
+      !readerStack.classList.contains("sb-reader-stack--open") &&
+      !readerStack.classList.contains("sb-reader-stack--opening")
+    ) {
+      return;
+    }
+
+    coverOpenGeneration += 1;
 
     spreadAnimLock = false;
     clearSpreadTurnClasses();
     setSpreadNavBusy(false);
 
-    readerStack.classList.remove("sb-reader-stack--open");
+    readerStack.classList.remove(
+      "sb-reader-stack--open",
+      "sb-reader-stack--opening"
+    );
     book.classList.add("sb-book--cover-visible");
     if (readerPages) readerPages.setAttribute("aria-hidden", "true");
     if (btnOpenCover) {
@@ -479,20 +494,59 @@
   function openBookCover() {
     if (!book || !book.classList.contains("sb-book--cover-visible")) return;
     if (!readerStack) return;
-    readerStack.classList.add("sb-reader-stack--open");
-    book.classList.remove("sb-book--cover-visible");
-    if (readerPages) readerPages.removeAttribute("aria-hidden");
-    if (btnOpenCover) {
-      btnOpenCover.setAttribute("aria-hidden", "true");
-      btnOpenCover.tabIndex = -1;
+
+    function finishOpen() {
+      readerStack.classList.add("sb-reader-stack--open");
+      readerStack.classList.remove("sb-reader-stack--opening");
+      book.classList.remove("sb-book--cover-visible");
+      if (readerPages) readerPages.removeAttribute("aria-hidden");
+      if (btnOpenCover) {
+        btnOpenCover.setAttribute("aria-hidden", "true");
+        btnOpenCover.tabIndex = -1;
+      }
+      syncCloseBookButton();
+      updatePagerHints();
     }
-    syncCloseBookButton();
-    updatePagerHints();
+
+    if (prefersReducedSpreadMotion()) {
+      finishOpen();
+      return;
+    }
+
+    coverOpenGeneration += 1;
+    var myGen = coverOpenGeneration;
+    var pivotEl = document.getElementById("sbCoverPivot");
+    var finished = false;
+
+    function done() {
+      if (myGen !== coverOpenGeneration || finished) return;
+      finished = true;
+      if (pivotEl) {
+        pivotEl.removeEventListener("transitionend", onPivotEnd);
+      }
+      finishOpen();
+    }
+
+    function onPivotEnd(ev) {
+      if (!pivotEl || ev.target !== pivotEl) return;
+      if (ev.propertyName !== "transform") return;
+      done();
+    }
+
+    readerStack.classList.add("sb-reader-stack--opening");
+    if (pivotEl) {
+      pivotEl.addEventListener("transitionend", onPivotEnd);
+    }
+    window.setTimeout(done, 1600);
   }
 
   function resetBookCoverForWizard() {
+    coverOpenGeneration += 1;
     if (readerStack) {
-      readerStack.classList.remove("sb-reader-stack--open");
+      readerStack.classList.remove(
+        "sb-reader-stack--open",
+        "sb-reader-stack--opening"
+      );
     }
     if (book) book.classList.remove("sb-book--cover-visible");
     if (readerPages) readerPages.setAttribute("aria-hidden", "true");
@@ -1082,14 +1136,15 @@
     return c && c.supabaseAnonKey ? String(c.supabaseAnonKey) : "";
   }
 
-  function getSelectedFamilyNames() {
+  function getSelectedFamilyPeople() {
     var out = [];
     if (!gamePeopleRow) return out;
     Array.prototype.forEach.call(
       gamePeopleRow.querySelectorAll(".sb-chip.is-selected"),
       function (el) {
+        var id = el.getAttribute("data-person-id");
         var lab = el.getAttribute("data-person-label");
-        if (lab) out.push(lab);
+        if (id && lab) out.push({ id: id, label: lab });
       }
     );
     return out;
@@ -1126,6 +1181,7 @@
       b.setAttribute("role", "checkbox");
       b.setAttribute("aria-checked", "false");
       b.setAttribute("data-person-label", item.label);
+      b.setAttribute("data-person-id", item.id);
       b.addEventListener("click", function () {
         var on = !b.classList.contains("is-selected");
         b.classList.toggle("is-selected", on);
@@ -1283,6 +1339,7 @@
 
   function showBook() {
     if (!story || !story.pages.length) return;
+    coverOpenGeneration += 1;
     closeJourney();
     if (landing) {
       landing.classList.add("is-hidden");
@@ -1301,7 +1358,10 @@
       );
     }
     if (readerStack) {
-      readerStack.classList.remove("sb-reader-stack--open");
+      readerStack.classList.remove(
+        "sb-reader-stack--open",
+        "sb-reader-stack--opening"
+      );
     }
     if (readerPages) readerPages.setAttribute("aria-hidden", "true");
     if (btnOpenCover) {
@@ -1413,6 +1473,7 @@
       var childName = nameInput ? nameInput.value.trim() : "";
       var plotHint = plotInput ? plotInput.value.trim() : "";
       setBusy(true);
+      var familyPeople = getSelectedFamilyPeople();
       fetch(url, {
         method: "POST",
         headers: {
@@ -1425,7 +1486,10 @@
           character: selectedChar,
           place: selectedPlace,
           plotHint: plotHint,
-          familyNames: getSelectedFamilyNames(),
+          familyNames: familyPeople.map(function (p) {
+            return p.label;
+          }),
+          familyPeople: familyPeople,
         }),
       })
         .then(function (r) {

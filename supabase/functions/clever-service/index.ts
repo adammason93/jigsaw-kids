@@ -23,6 +23,18 @@ const PLACES: Record<string, string> = {
   space: "a friendly cartoon planet with stars and a pastel rocket",
 };
 
+/** Paths relative to site root; must match static deploy + `kids-game-characters.js` portrait fields. */
+const FAMILY_PORTRAIT_PATHS: Record<string, string> = {
+  babyca: "games/images/character-babyca.png",
+  tilly: "games/images/tilly-mascot.png",
+  isaac: "games/images/character-baby-coolegg.png",
+  sofia: "games/images/character-girl-blonde.png",
+  kelly: "games/images/character-kelly.png",
+  freya: "games/images/character-freya.png",
+};
+
+type FamilyPerson = { id: string; label: string };
+
 type StoryPage = { text: string; illustrationBrief: string | null };
 type StoryJson = { title: string; pages: StoryPage[] };
 
@@ -43,6 +55,134 @@ function sanitizeFamilyNames(raw: unknown): string[] {
     out.push(cleaned);
   }
   return out;
+}
+
+/** Selected game people with ids (for portrait lookup). Ignores unknown ids. */
+function sanitizeFamilyPeople(raw: unknown): FamilyPerson[] {
+  if (!Array.isArray(raw)) return [];
+  const seen = new Set<string>();
+  const out: FamilyPerson[] = [];
+  for (const x of raw.slice(0, 8)) {
+    const o = x as Record<string, unknown>;
+    const id = String(o?.id ?? "")
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, "");
+    if (!id || !FAMILY_PORTRAIT_PATHS[id]) continue;
+    const label = String(o?.label ?? "")
+      .trim()
+      .replace(/[^\p{L}\p{N}'\-\s]/gu, "")
+      .trim()
+      .slice(0, 24);
+    if (!label) continue;
+    if (seen.has(id)) continue;
+    seen.add(id);
+    out.push({ id, label });
+  }
+  return out;
+}
+
+function bytesToBase64(bytes: Uint8Array): string {
+  const chunk = 0x8000;
+  let bin = "";
+  for (let i = 0; i < bytes.length; i += chunk) {
+    bin += String.fromCharCode(...bytes.subarray(i, i + chunk));
+  }
+  return btoa(bin);
+}
+
+async function fetchPortraitDataUrl(
+  assetsBase: string,
+  path: string,
+): Promise<string | null> {
+  const base = assetsBase.replace(/\/$/u, "");
+  const rel = path.replace(/^\//u, "");
+  const url = `${base}/${rel}`;
+  const ac = new AbortController();
+  const timer = setTimeout(() => ac.abort(), 12_000);
+  try {
+    const r = await fetch(url, { signal: ac.signal });
+    if (!r.ok) return null;
+    const mime =
+      r.headers.get("content-type")?.split(";")[0]?.trim() || "image/png";
+    if (!mime.startsWith("image/")) return null;
+    const buf = new Uint8Array(await r.arrayBuffer());
+    if (buf.length > 1_500_000) return null;
+    return `data:${mime};base64,${bytesToBase64(buf)}`;
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/**
+ * Turn reference portraits into short appearance lines for DALL·E (text-only).
+ * DALL·E 3 cannot take images; vision summarises them first.
+ */
+async function openaiVisionDescribePortraits(
+  apiKey: string,
+  items: { label: string; dataUrl: string }[],
+): Promise<string> {
+  if (items.length === 0) return "";
+  const ordered = items.map((i) => i.label).join(", ");
+  const content: Record<string, unknown>[] = [
+    {
+      type: "text",
+      text:
+        `These ${items.length} images are official reference portraits for named characters in a kids' picture book, in order: ${ordered}.\n` +
+        `Reply with exactly ${items.length} lines, one per character, format:\n` +
+        `NAME: neutral appearance for an illustrator only — hair, skin tone, clothing colours and cut, approximate age; max 28 words; no art-style words; match the reference.\n` +
+        `Use each NAME exactly as spelled above. No other text.`,
+    },
+  ];
+  for (const it of items) {
+    content.push({
+      type: "image_url",
+      image_url: { url: it.dataUrl },
+    });
+  }
+
+  const r = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: "gpt-4o-mini",
+      temperature: 0.15,
+      max_tokens: 450,
+      messages: [{ role: "user", content }],
+    }),
+  });
+
+  if (!r.ok) {
+    const t = await r.text();
+    console.error("openai vision error", r.status, t.slice(0, 400));
+    throw new Error(`vision_error:${r.status}`);
+  }
+
+  const data = await r.json();
+  const text = String(data.choices?.[0]?.message?.content ?? "").trim();
+  return text.slice(0, 1200);
+}
+
+async function appearanceNotesFromFamilyPortraits(
+  apiKey: string,
+  assetsBase: string,
+  people: FamilyPerson[],
+): Promise<string> {
+  if (!people.length || !assetsBase) return "";
+  const withUrls: { label: string; dataUrl: string }[] = [];
+  for (const p of people) {
+    const path = FAMILY_PORTRAIT_PATHS[p.id];
+    if (!path) continue;
+    const dataUrl = await fetchPortraitDataUrl(assetsBase, path);
+    if (dataUrl) withUrls.push({ label: p.label, dataUrl });
+  }
+  if (withUrls.length === 0) return "";
+  return openaiVisionDescribePortraits(apiKey, withUrls);
 }
 
 function sanitizeName(raw: string): string {
@@ -78,6 +218,14 @@ function unwrapJsonContent(raw: string): string {
 const ILLUSTRATED_PAGE_INDICES = [1, 3, 5, 7, 9, 11] as const;
 const PAGE_COUNT = 12;
 
+/** Picture page index (1,3,…); story beat is usually on the previous (text) page. */
+function spreadTextForPicturePage(pictureIndex: number, pages: StoryPage[]): string {
+  const left = pages[pictureIndex - 1]?.text?.trim() ?? "";
+  const same = pages[pictureIndex]?.text?.trim() ?? "";
+  const merged = (left.length >= same.length ? left : same) || left || same;
+  return merged.replace(/[.!?…]+$/u, "").trim();
+}
+
 /** Normalise model output: 12 pages, exactly 6 illustration briefs on spread "picture" pages only. */
 function normalizeStoryJson(raw: unknown): StoryJson {
   const obj = raw as Partial<StoryJson>;
@@ -111,11 +259,14 @@ function normalizeStoryJson(raw: unknown): StoryJson {
   }
 
   for (const i of ILLUSTRATED_PAGE_INDICES) {
-    if (!pages[i].illustrationBrief || !String(pages[i].illustrationBrief).trim()) {
-      const basis = pages[i].text.replace(/[.!?…]+$/u, "").slice(0, 140);
+    let brief = pages[i].illustrationBrief ? String(pages[i].illustrationBrief).trim() : "";
+    if (!brief) {
+      const basis = spreadTextForPicturePage(i, pages).slice(0, 220);
       pages[i].illustrationBrief =
-        (basis.length ? basis : "The heroes") +
-        ", bright friendly picture-book scene, simple shapes";
+        (basis.length ? basis : `Spread ${i / 2 + 1} adventure moment`) +
+        ", bright friendly picture-book scene, simple shapes, this spread only";
+    } else {
+      pages[i].illustrationBrief = brief;
     }
   }
 
@@ -226,6 +377,7 @@ Deno.serve(async (req) => {
     place?: string;
     plotHint?: string;
     familyNames?: string[];
+    familyPeople?: unknown;
   };
   try {
     body = await req.json();
@@ -244,7 +396,32 @@ Deno.serve(async (req) => {
   }
 
   const plotHint = sanitizePlotHint(String(body.plotHint ?? ""));
-  const familyNames = sanitizeFamilyNames(body.familyNames);
+  const familyPeople = sanitizeFamilyPeople(body.familyPeople);
+  const familyNames =
+    familyPeople.length > 0
+      ? familyPeople.map((p) => p.label)
+      : sanitizeFamilyNames(body.familyNames);
+
+  const bookAssetsBase = (Deno.env.get("BOOK_ASSETS_BASE_URL") ?? "").trim();
+
+  let portraitAppearance = "";
+  const portraitVisionAttempted = Boolean(bookAssetsBase && familyPeople.length > 0);
+  if (portraitVisionAttempted) {
+    try {
+      portraitAppearance = await appearanceNotesFromFamilyPortraits(
+        apiKey,
+        bookAssetsBase,
+        familyPeople,
+      );
+    } catch (e) {
+      console.warn("[clever-service] portrait vision failed", e);
+    }
+  }
+
+  const portraitBlockForText =
+    portraitAppearance.length > 0
+      ? `\n\nAppearance from reference portraits (match when describing these game people):\n${portraitAppearance}\n`
+      : "";
 
   const system = `You write very short picture-book stories for UK English-speaking children about age 5.
 Rules:
@@ -252,12 +429,17 @@ Rules:
 - No romance, no weapons, no villains that frighten.
 - Exactly 12 pages (six double-page spreads). Each page "text" is at most 2 short sentences. Use simple words.
 - The hero's name is given — use it often.
-- If "People from the child's games" are listed, include them in the story by name as extra friends or family. They should feel like the same friendly faces the child picks in other games (e.g. Tilly, Baby). They are separate from the one imaginary "main friend character" (unicorn, dragon, etc.) — both can appear.
+- If "People from the child's games" are listed, include them in the story by name as extra friends or family. They should feel like the same friendly faces the child picks in other games (e.g. Tilly, Baby). They are separate from the one imaginary "main friend character" (unicorn, dragon, etc.) — both can appear.${
+    portraitAppearance
+      ? " If appearance lines are given for those people, stay consistent with those visual details when you naturally describe them."
+      : ""
+  }
 - Include fields title (string) and pages (array of 12 objects).
 - Each page: { "text": string, "illustrationBrief": string | null }.
 - DOUBLE-PAGE SPREADS: pair pages as (1,2), (3,4), (5,6), (7,8), (9,10), (11,12).
   Odd-numbered pages (1,3,5,7,9,11) are TEXT-FIRST pages only — use "illustrationBrief": null.
-  Even-numbered pages (2,4,6,8,10,12) are PICTURE pages — each MUST have a non-null "illustrationBrief": a short visual scene description for an illustrator (no text to draw, no words on signs). One new picture per spread; the brief should match that spread's moment.
+  Even-numbered pages (2,4,6,8,10,12) are PICTURE pages — each MUST have a non-null "illustrationBrief": a short visual scene description for an illustrator (no text to draw, no words on signs). Each brief MUST be different and describe ONLY that spread's moment (the scene after the text on the previous page). Never reuse the same description on multiple picture pages.
+  When game people with portrait notes appear on a picture page, the brief should mention them looking like those notes (hair, outfit colours, age vibe).
 - If a "plot idea" is given, weave it in gently. If it is empty, invent a short happy outing that fits the setting.
 - JSON only, no markdown.`;
 
@@ -266,7 +448,7 @@ Main friend character (imaginary buddy): ${characterDesc}
 Setting to feature: ${placeDesc}
 People from the child's games to include by name (friends/family — use them warmly and often; if none listed, skip): ${
     familyNames.length > 0 ? familyNames.join(", ") : "(none)"
-  }
+  }${portraitBlockForText}
 Plot idea from the child (use as inspiration; keep gentle and age-appropriate): ${
     plotHint.length ? plotHint : "(none — invent a cosy little adventure that fits the setting)"
   }
@@ -281,6 +463,7 @@ Return JSON shape: { "title": string, "pages": [ { "text": string, "illustration
     return jsonResponse({ error: "story_failed" }, 502);
   }
 
+  const portraitForImage = portraitAppearance.replace(/\s+/gu, " ").trim().slice(0, 900);
   const imagePromptPrefix =
     "Same soft 3D clay and matte toy render as a fancy kids' app, rounded shapes, gentle pastel lighting, " +
     "single full scene, cohesive with a magical tableau, " +
@@ -290,6 +473,9 @@ Return JSON shape: { "title": string, "pages": [ { "text": string, "illustration
     (familyNames.length > 0
       ? ` When groups of friends appear, include these as friendly toy-like characters in the scene (not labelled): ${familyNames.join(", ")}. `
       : " ") +
+    (portraitForImage
+      ? `When a named game person appears, match these looks from official references (same hair, clothing colours, skin tone, age vibe — keep toy/clay style): ${portraitForImage} `
+      : "") +
     `Scene: `;
 
   const pagesOut: { text: string; imageUrl: string | null }[] = [];
@@ -304,7 +490,13 @@ Return JSON shape: { "title": string, "pages": [ { "text": string, "illustration
     }
 
     const urls = await Promise.all(
-      briefs.map((b) => openaiImageUrl(apiKey, imagePromptPrefix + b.brief)),
+      briefs.map((b) => {
+        const beat = spreadTextForPicturePage(b.index, story.pages).slice(0, 280);
+        const beatClause = beat
+          ? ` Illustrate this specific story beat (left page of the spread): ${beat}. `
+          : " ";
+        return openaiImageUrl(apiKey, imagePromptPrefix + beatClause + b.brief);
+      }),
     );
 
     const urlByIndex = new Map<number, string>();
@@ -337,6 +529,9 @@ Return JSON shape: { "title": string, "pages": [ { "text": string, "illustration
       placeKey,
       plotHintLen: plotHint.length,
       familyNames,
+      familyPeopleIds: familyPeople.map((p) => p.id),
+      portraitVisionAttempted,
+      portraitAppearanceUsed: portraitAppearance.length > 0,
       imageCount: pagesOut.filter((p) => p.imageUrl).length,
       spreads: 6,
     },
