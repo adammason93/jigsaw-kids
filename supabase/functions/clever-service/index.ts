@@ -320,7 +320,7 @@ async function openaiChatJson(
   return normalizeStoryJson(parsed);
 }
 
-type DalleSize = "1024x1024" | "1792x1024" | "1024x1792";
+type DalleSize = "1024x1024" | "1792x1024" | "1024x1792" | "512x512" | "256x256";
 
 function openaiImageErrorDetail(status: number, bodyText: string): string {
   let d = `HTTP ${status}`;
@@ -377,37 +377,47 @@ async function openaiImageUrl(
   size: DalleSize = "1024x1024",
 ): Promise<string> {
   const trimmed = prompt.slice(0, 4000);
-  const attempts: Record<string, unknown>[] = [
-    {
-      model: "dall-e-3",
-      prompt: trimmed,
-      n: 1,
-      size,
-      quality: "standard",
-      style: "vivid",
-    },
-    {
-      model: "dall-e-3",
-      prompt: trimmed,
-      n: 1,
-      size,
-      quality: "standard",
-      style: "natural",
-    },
-    {
-      model: "dall-e-3",
-      prompt: trimmed,
-      n: 1,
-      size,
-      quality: "standard",
-    },
-    {
-      model: "dall-e-3",
-      prompt: trimmed,
-      n: 1,
-      size,
-    },
-  ];
+  const attempts: Record<string, unknown>[] =
+    size === "512x512" || size === "256x256"
+      ? [
+          {
+            model: "dall-e-2",
+            prompt: trimmed.slice(0, 1000), // dall-e-2 has a 1000 character prompt limit
+            n: 1,
+            size,
+          },
+        ]
+      : [
+          {
+            model: "dall-e-3",
+            prompt: trimmed,
+            n: 1,
+            size,
+            quality: "standard",
+            style: "vivid",
+          },
+          {
+            model: "dall-e-3",
+            prompt: trimmed,
+            n: 1,
+            size,
+            quality: "standard",
+            style: "natural",
+          },
+          {
+            model: "dall-e-3",
+            prompt: trimmed,
+            n: 1,
+            size,
+            quality: "standard",
+          },
+          {
+            model: "dall-e-3",
+            prompt: trimmed,
+            n: 1,
+            size,
+          },
+        ];
 
   let lastErr: Error | null = null;
   for (let i = 0; i < attempts.length; i++) {
@@ -431,8 +441,8 @@ async function openaiImageUrl(
 
 /** Landscape spread first; some keys/billing paths fail on 1792×1024 — fall back to square. */
 async function openaiSpreadImageUrl(apiKey: string, prompt: string): Promise<string> {
-  // Use 1024x1024 instead of 1792x1024 to speed up generation and reduce memory/cost.
-  return await openaiImageUrl(apiKey, prompt, "1024x1024");
+  // Use 512x512 with DALL-E 2 to speed up generation, prevent 546 timeouts, and reduce costs.
+  return await openaiImageUrl(apiKey, prompt, "512x512");
 }
 
 Deno.serve(async (req) => {
