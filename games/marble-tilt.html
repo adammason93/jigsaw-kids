@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#ede6e3" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <title>Marble maze — Sofia's Game Room</title>
+  <link rel="manifest" href="../manifest.json" />
+  <link rel="stylesheet" href="../js/kids-core.css" />
+  <link rel="stylesheet" href="marble-tilt.css" />
+  <link rel="stylesheet" href="../tablet-ipad.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+</head>
+<body class="page-marble-tilt">
+  <div class="marble-tilt-app" id="app">
+    <nav class="marble-tilt-nav" aria-label="Breadcrumb">
+      <a class="marble-tilt-back back-btn" href="../index.html" aria-label="Back to all games">
+        <span class="back-btn__icon" aria-hidden="true">&#8592;</span><span class="back-btn__text">Back</span>
+      </a>
+    </nav>
+
+    <div id="tiltCenter">
+      <div id="tiltGame">
+        <div id="tiltMaze">
+          <div id="tiltEnd"></div>
+        </div>
+        <div id="tiltJoystick" aria-label="Tilt control">
+          <div class="joystick-arrow" aria-hidden="true"></div>
+          <div class="joystick-arrow" aria-hidden="true"></div>
+          <div class="joystick-arrow" aria-hidden="true"></div>
+          <div class="joystick-arrow" aria-hidden="true"></div>
+          <div id="tiltJoystickHead" role="button" tabindex="0" aria-label="Press or drag to tilt the maze"></div>
+        </div>
+        <div id="tiltNote">
+          Click or drag the red knob to start!
+          <p>Roll every marble into the purple circle. Hard mode (black holes): press H. Easy: press E. Space resets.</p>
+        </div>
+      </div>
+    </div>
+    <p class="marble-tilt-credit">
+      Marble physics maze adapted from
+      <a href="https://youtu.be/bTk6dcAckuI" target="_blank" rel="noopener noreferrer">Hunor Borbely’s tutorial</a>.
+    </p>
+  </div>
+  <script src="../js/kids-core.js"></script>
+  <script src="marble-tilt.js" defer></script>
+  <script>
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("../sw.js").catch(function () {});
+    }
+  </script>
+</body>
+</html>

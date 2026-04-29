@@ -1,0 +1,261 @@
+/* Marble tilt maze — adapted from Hunor Borbely’s maze demo (video: youtu.be/bTk6dcAckuI) */
+.page-marble-tilt {
+  /* https://coolors.co/f06449-ede6e3-7d82b8-36382e-613f75 */
+  --background-color: #ede6e3;
+  --wall-color: #36382e;
+  --joystick-color: #210124;
+  --joystick-head-color: #f06449;
+  --ball-color: #f06449;
+  --end-color: #7d82b8;
+  --text-color: #210124;
+
+  margin: 0;
+  min-height: 100dvh;
+  font-family: "Nunito", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background-color: var(--background-color);
+  color: var(--text-color);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.marble-tilt-app {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: max(0.5rem, env(safe-area-inset-bottom, 0px));
+}
+
+.marble-tilt-nav {
+  flex-shrink: 0;
+  padding: max(0.35rem, env(safe-area-inset-top, 0px)) max(0.65rem, env(safe-area-inset-right, 0px)) 0.35rem
+    max(0.65rem, env(safe-area-inset-left, 0px));
+}
+
+.marble-tilt-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: #613f75;
+  font-weight: 800;
+  text-decoration: none;
+  font-size: 0.92rem;
+}
+
+.marble-tilt-back:hover {
+  text-decoration: underline;
+}
+
+#tiltCenter {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  padding: 0.5rem 0.75rem;
+}
+
+#tiltGame {
+  display: grid;
+  grid-template-columns: auto 150px;
+  grid-template-rows: 1fr auto 1fr;
+  gap: clamp(16px, 3vw, 30px);
+  perspective: 600px;
+}
+
+#tiltMaze {
+  position: relative;
+  grid-row: 1 / -1;
+  grid-column: 1;
+  width: 350px;
+  height: 315px;
+  max-width: min(350px, 92vw);
+  max-height: min(315px, 72vh);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#tiltEnd {
+  width: 65px;
+  height: 65px;
+  border: 5px dashed var(--end-color);
+  border-radius: 50%;
+}
+
+#tiltJoystick {
+  position: relative;
+  background-color: var(--joystick-color);
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 10px 50px;
+  grid-row: 2;
+  touch-action: none;
+}
+
+#tiltJoystickHead {
+  position: relative;
+  background-color: var(--joystick-head-color);
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  cursor: grab;
+  touch-action: none;
+  animation-name: marble-tilt-glow;
+  animation-duration: 0.6s;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+  animation-timing-function: ease-in-out;
+  animation-delay: 4s;
+}
+
+@keyframes marble-tilt-glow {
+  0% {
+    transform: scale(1);
+  }
+  100% {
+    transform: scale(1.2);
+  }
+}
+
+#tiltJoystick .joystick-arrow:nth-of-type(1) {
+  position: absolute;
+  bottom: 55px;
+  width: 0;
+  height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-bottom: 10px solid var(--joystick-color);
+}
+
+#tiltJoystick .joystick-arrow:nth-of-type(2) {
+  position: absolute;
+  top: 55px;
+  width: 0;
+  height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-top: 10px solid var(--joystick-color);
+}
+
+#tiltJoystick .joystick-arrow:nth-of-type(3) {
+  position: absolute;
+  left: 55px;
+  width: 0;
+  height: 0;
+  border-top: 10px solid transparent;
+  border-bottom: 10px solid transparent;
+  border-left: 10px solid var(--joystick-color);
+}
+
+#tiltJoystick .joystick-arrow:nth-of-type(4) {
+  position: absolute;
+  right: 55px;
+  width: 0;
+  height: 0;
+  border-top: 10px solid transparent;
+  border-bottom: 10px solid transparent;
+  border-right: 10px solid var(--joystick-color);
+}
+
+#tiltNote {
+  grid-row: 3;
+  grid-column: 2;
+  text-align: center;
+  font-size: 0.8em;
+  color: var(--text-color);
+  transition: opacity 2s;
+  max-width: 160px;
+  justify-self: center;
+}
+
+.page-marble-tilt a:visited {
+  color: inherit;
+}
+
+.ball {
+  position: absolute;
+  margin-top: -5px;
+  margin-left: -5px;
+  border-radius: 50%;
+  background-color: var(--ball-color);
+  width: 10px;
+  height: 10px;
+}
+
+.wall {
+  position: absolute;
+  background-color: var(--wall-color);
+  transform-origin: top center;
+  margin-left: -5px;
+}
+
+.wall::before,
+.wall::after {
+  display: block;
+  content: "";
+  width: 10px;
+  height: 10px;
+  background-color: inherit;
+  border-radius: 50%;
+  position: absolute;
+}
+
+.wall::before {
+  top: -5px;
+}
+
+.wall::after {
+  bottom: -5px;
+}
+
+.black-hole {
+  position: absolute;
+  margin-top: -9px;
+  margin-left: -9px;
+  border-radius: 50%;
+  background-color: black;
+  width: 18px;
+  height: 18px;
+}
+
+.marble-tilt-credit {
+  margin: 0;
+  padding: 0.35rem 1rem 0.75rem;
+  font-size: 0.72rem;
+  text-align: center;
+  color: #5c5268;
+  line-height: 1.4;
+}
+
+.marble-tilt-credit a {
+  color: #613f75;
+  font-weight: 700;
+}
+
+@media (max-width: 520px) {
+  #tiltGame {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto;
+    justify-items: center;
+  }
+
+  #tiltMaze {
+    grid-row: 1;
+    grid-column: 1;
+  }
+
+  #tiltJoystick {
+    grid-row: 2;
+    grid-column: 1;
+    margin: 6px 0;
+  }
+
+  #tiltNote {
+    grid-row: 3;
+    grid-column: 1;
+    max-width: min(320px, 92vw);
+  }
+}

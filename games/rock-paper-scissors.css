@@ -46,6 +46,8 @@ body.page-rps {
 
 .rps-nav {
   margin-bottom: 0.65rem;
+  position: relative;
+  z-index: 60;
 }
 
 .rps-back {
@@ -268,7 +270,144 @@ body.page-rps {
   display: none !important;
 }
 
+/* Multi-step flow: pick → countdown → reveal */
+.rps-flow-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: max(0.75rem, env(safe-area-inset-top, 0px)) 1rem max(1rem, env(safe-area-inset-bottom, 0px));
+  background: rgba(76, 29, 149, 0.28);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+
+.rps-flow-sheet {
+  width: min(22rem, 100%);
+  max-height: min(90dvh, 36rem);
+  overflow: auto;
+  background: var(--rps-card);
+  border-radius: var(--rps-radius);
+  box-shadow: 0 20px 50px rgba(76, 29, 149, 0.22), var(--rps-shadow);
+  border: 1px solid rgba(124, 58, 237, 0.12);
+  padding: 1.25rem 1.1rem 1.4rem;
+}
+
+.rps-flow-step.is-hidden {
+  display: none !important;
+}
+
+.rps-flow-score--sheet {
+  text-align: center;
+  margin: 0 0 0.65rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #64748b;
+  font-variant-numeric: tabular-nums;
+}
+
+.rps-flow-title {
+  margin: 0 0 0.35rem;
+  text-align: center;
+  font-family: "Sniglet", "Nunito", system-ui, sans-serif;
+  font-size: clamp(1.25rem, 4.5vw, 1.55rem);
+  font-weight: 800;
+  color: var(--rps-purple);
+  letter-spacing: 0.02em;
+}
+
+.rps-flow-title--small {
+  font-size: clamp(1.05rem, 3.8vw, 1.25rem);
+  margin-bottom: 0.75rem;
+}
+
+.rps-flow-hint {
+  margin: 0 0 0.85rem;
+  text-align: center;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--rps-purple-muted);
+}
+
+.rps-flow-step .rps-picks {
+  margin-top: 0.25rem;
+}
+
+.rps-countdown {
+  margin: 0.5rem 0 0;
+  text-align: center;
+  font-family: "Sniglet", "Nunito", system-ui, sans-serif;
+  font-size: clamp(3.5rem, 18vw, 5rem);
+  font-weight: 800;
+  line-height: 1;
+  color: var(--rps-purple);
+  text-shadow: 0 2px 0 rgba(124, 58, 237, 0.15);
+}
+
+.rps-duel--modal {
+  margin: 0;
+  min-height: 5.5rem;
+}
+
+.rps-win-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+  background: rgba(30, 27, 75, 0.55);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.rps-win-panel {
+  width: min(20rem, 100%);
+  text-align: center;
+  padding: 1.5rem 1.25rem 1.35rem;
+  background: var(--rps-card);
+  border-radius: var(--rps-radius);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.2);
+  border: 2px solid rgba(167, 139, 250, 0.35);
+}
+
+.rps-win-heading {
+  margin: 0 0 0.5rem;
+  font-family: "Sniglet", "Nunito", sans-serif;
+  font-size: clamp(1.35rem, 5vw, 1.65rem);
+  font-weight: 800;
+  color: var(--rps-purple);
+  line-height: 1.2;
+}
+
+.rps-win-detail {
+  margin: 0 0 0.65rem;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--rps-ink);
+  line-height: 1.45;
+}
+
+.rps-win-score {
+  margin: 0 0 1rem;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #64748b;
+  font-variant-numeric: tabular-nums;
+}
+
+.rps-win-panel .rps-again {
+  margin-top: 0;
+}
+
 @media (min-width: 480px) {
+  .rps-flow-sheet {
+    padding: 1.5rem 1.35rem 1.55rem;
+  }
+
   .rps-card {
     padding: 1.6rem 1.5rem 1.65rem;
   }

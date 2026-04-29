@@ -43,6 +43,8 @@
   --theme-snake-arcade-soft: #cffafe;
   --theme-zuma: #047857;
   --theme-zuma-soft: #d1fae5;
+  --theme-marble-tilt: #7d82b8;
+  --theme-marble-tilt-soft: #ede6e3;
 }
 
 html {
@@ -658,6 +660,11 @@ h2,
 .game-card--zuma {
   --card-accent: var(--theme-zuma);
   --card-soft: var(--theme-zuma-soft);
+}
+
+.game-card--marble-tilt {
+  --card-accent: var(--theme-marble-tilt);
+  --card-soft: var(--theme-marble-tilt-soft);
 }
 
 a.game-card:hover {
