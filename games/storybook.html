@@ -7,7 +7,8 @@
   <title>Your story — Sofia's Game Room</title>
   <link rel="manifest" href="../manifest.json" />
   <link rel="stylesheet" href="../js/kids-core.css" />
-  <link rel="stylesheet" href="storybook.css" />
+  <!-- v= bumps when storybook CSS/JS semantics change — avoids stale caches on same pathname -->
+  <link rel="stylesheet" href="storybook.css?v=201" />
   <link rel="stylesheet" href="../tablet-ipad.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -303,7 +304,7 @@
   <script src="../js/kids-game-characters.js"></script>
   <script src="../js/score-config.js"></script>
   <script src="../js/kids-core.js"></script>
-  <script src="storybook.js" defer></script>
+  <script src="storybook.js?v=201" defer></script>
   <script>
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("../sw.js").catch(function () {});
