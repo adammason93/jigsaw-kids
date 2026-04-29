@@ -33,6 +33,7 @@
   var busy = document.getElementById("sbBusy");
   var appEl = document.getElementById("app");
   var nameInput = document.getElementById("sbName");
+  var bookTitleInput = document.getElementById("sbBookTitle");
   var plotInput = document.getElementById("sbPlot");
   var charRow = document.getElementById("sbCharacters");
   var placeRow = document.getElementById("sbPlaces");
@@ -49,6 +50,11 @@
   var spreadArt = document.getElementById("sbSpreadArt");
   var spreadArtImg = document.getElementById("sbSpreadArtImg");
   var spreadArtNum = document.getElementById("sbSpreadArtNum");
+  var spreadInnerEl = document.getElementById("sbFlipSpreadInner");
+  var readerStack = document.getElementById("sbReaderStack");
+  var readerPages = document.getElementById("sbReaderPages");
+  var btnOpenCover = document.getElementById("sbOpenCover");
+  var coverTitle = document.getElementById("sbCoverTitle");
   var btnPrev = document.getElementById("sbPrev");
   var btnNext = document.getElementById("sbNext");
   var pagerLive = document.getElementById("sbPagerLive");
@@ -266,6 +272,60 @@
   /** @type {{ title: string, sceneImageUrl?: string|null, pages: { text: string, imageUrl: string|null }[] } | null} */
   var story = null;
   var spreadIndex = 0;
+  /** @type {boolean} */
+  var spreadAnimLock = false;
+  /** @type {ReturnType<typeof setTimeout>|null} */
+  var spreadNavFallbackT = null;
+
+  function prefersReducedSpreadMotion() {
+    return (
+      typeof window !== "undefined" &&
+      window.matchMedia &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    );
+  }
+
+  function clearSpreadTurnClasses() {
+    if (!spreadInnerEl) return;
+    spreadInnerEl.classList.remove(
+      "sb-flip-spread__inner--turn-out-next",
+      "sb-flip-spread__inner--turn-out-prev",
+      "sb-flip-spread__inner--turn-in-next",
+      "sb-flip-spread__inner--turn-in-prev"
+    );
+  }
+
+  function setSpreadNavBusy(locked) {
+    if (!btnPrev || !btnNext) return;
+    if (locked) {
+      btnPrev.disabled = true;
+      btnNext.disabled = true;
+    } else {
+      updatePagerHints();
+    }
+  }
+
+  function openBookCover() {
+    if (!book || !book.classList.contains("sb-book--cover-visible")) return;
+    if (readerStack) readerStack.classList.add("sb-reader-stack--open");
+    book.classList.remove("sb-book--cover-visible");
+    if (readerPages) readerPages.removeAttribute("aria-hidden");
+    if (btnOpenCover) {
+      btnOpenCover.setAttribute("aria-hidden", "true");
+      btnOpenCover.tabIndex = -1;
+    }
+    updatePagerHints();
+  }
+
+  function resetBookCoverForWizard() {
+    if (readerStack) readerStack.classList.remove("sb-reader-stack--open");
+    if (book) book.classList.remove("sb-book--cover-visible");
+    if (readerPages) readerPages.setAttribute("aria-hidden", "true");
+    if (btnOpenCover) {
+      btnOpenCover.removeAttribute("aria-hidden");
+      btnOpenCover.removeAttribute("tabindex");
+    }
+  }
 
   function applyBookThemingFromStory() {
     if (!book || !story) return;
@@ -326,7 +386,7 @@
     showBook();
   }
 
-  function renderSpread() {
+  function applySpreadContent() {
     if (!story || !spreadText || !spreadArt || !spreadArtImg) return;
     var n = numSpreads();
     if (n < 1) return;
@@ -359,8 +419,126 @@
     updatePagerHints();
   }
 
+  function renderSpread() {
+    applySpreadContent();
+  }
+
+  function navigateSpread(delta) {
+    if (!story) return;
+    if (book && book.classList.contains("sb-book--cover-visible")) return;
+    if (delta > 0 && spreadIndex >= numSpreads() - 1) return;
+    if (delta < 0 && spreadIndex <= 0) return;
+
+    if (prefersReducedSpreadMotion() || !spreadInnerEl) {
+      spreadIndex += delta;
+      applySpreadContent();
+      return;
+    }
+    if (spreadAnimLock) return;
+    spreadAnimLock = true;
+    setSpreadNavBusy(true);
+
+    if (spreadNavFallbackT) {
+      clearTimeout(spreadNavFallbackT);
+      spreadNavFallbackT = null;
+    }
+
+    var outC =
+      delta > 0
+        ? "sb-flip-spread__inner--turn-out-next"
+        : "sb-flip-spread__inner--turn-out-prev";
+    var inC =
+      delta > 0
+        ? "sb-flip-spread__inner--turn-in-next"
+        : "sb-flip-spread__inner--turn-in-prev";
+
+    clearSpreadTurnClasses();
+    spreadInnerEl.classList.add(outC);
+
+    var outDone = false;
+    var inDone = false;
+    var inStarted = false;
+    function completeIn() {
+      if (inDone) return;
+      inDone = true;
+      if (spreadNavFallbackT) {
+        clearTimeout(spreadNavFallbackT);
+        spreadNavFallbackT = null;
+      }
+      spreadInnerEl.classList.remove(inC);
+      spreadAnimLock = false;
+      setSpreadNavBusy(false);
+    }
+
+    function startIn() {
+      if (inStarted) return;
+      inStarted = true;
+      spreadIndex += delta;
+      applySpreadContent();
+      spreadInnerEl.classList.remove(outC);
+      void spreadInnerEl.offsetWidth;
+      spreadInnerEl.classList.add(inC);
+
+      function onInEnd(ev) {
+        if (ev && ev.target !== spreadInnerEl) return;
+        if (
+          ev &&
+          ev.animationName &&
+          ev.animationName.indexOf("sb-turn-in") !== 0
+        ) {
+          return;
+        }
+        spreadInnerEl.removeEventListener("animationend", onInEnd);
+        completeIn();
+      }
+      spreadInnerEl.addEventListener("animationend", onInEnd);
+      spreadNavFallbackT = setTimeout(function () {
+        spreadNavFallbackT = null;
+        spreadInnerEl.removeEventListener("animationend", onInEnd);
+        completeIn();
+      }, 480);
+    }
+
+    function onOutEnd(ev) {
+      if (outDone) return;
+      if (ev && ev.target !== spreadInnerEl) return;
+      if (
+        ev &&
+        ev.animationName &&
+        ev.animationName.indexOf("sb-turn-out") !== 0
+      ) {
+        return;
+      }
+      outDone = true;
+      spreadInnerEl.removeEventListener("animationend", onOutEnd);
+      if (spreadNavFallbackT) {
+        clearTimeout(spreadNavFallbackT);
+        spreadNavFallbackT = null;
+      }
+      startIn();
+    }
+    spreadInnerEl.addEventListener("animationend", onOutEnd);
+    spreadNavFallbackT = setTimeout(function () {
+      spreadNavFallbackT = null;
+      spreadInnerEl.removeEventListener("animationend", onOutEnd);
+      if (outDone) return;
+      outDone = true;
+      startIn();
+    }, 280);
+  }
+
   function updatePagerHints() {
     if (!story) return;
+    if (spreadAnimLock) {
+      if (btnPrev) btnPrev.disabled = true;
+      if (btnNext) btnNext.disabled = true;
+      return;
+    }
+    if (book && book.classList.contains("sb-book--cover-visible")) {
+      if (btnPrev) btnPrev.disabled = true;
+      if (btnNext) btnNext.disabled = true;
+      return;
+    }
     var n = numSpreads();
     var si = spreadIndex;
     var pLo = si * 2 + 1;
@@ -374,15 +552,11 @@
   }
 
   function goNextPage() {
-    if (!story || spreadIndex >= numSpreads() - 1) return;
-    spreadIndex++;
-    renderSpread();
+    navigateSpread(1);
   }
 
   function goPrevPage() {
-    if (!story || spreadIndex <= 0) return;
-    spreadIndex--;
-    renderSpread();
+    navigateSpread(-1);
   }
 
   function escapeHtml(s) {
@@ -900,6 +1074,13 @@
   function showWizard() {
     story = null;
     spreadIndex = 0;
+    spreadAnimLock = false;
+    if (spreadNavFallbackT) {
+      clearTimeout(spreadNavFallbackT);
+      spreadNavFallbackT = null;
+    }
+    clearSpreadTurnClasses();
+    resetBookCoverForWizard();
     closeJourney();
     if (landing) {
       landing.classList.remove("is-hidden");
@@ -911,6 +1092,7 @@
     }
     clearBookTheming();
     if (nameInput) nameInput.value = "";
+    if (bookTitleInput) bookTitleInput.value = "";
     if (plotInput) plotInput.value = "";
     goToStep(0);
     setError("");
@@ -929,6 +1111,20 @@
       book.hidden = false;
     }
     if (bookTitle) bookTitle.textContent = story.title;
+    if (coverTitle && story) coverTitle.textContent = story.title;
+    if (btnOpenCover && story) {
+      btnOpenCover.setAttribute(
+        "aria-label",
+        "Open the book: " + String(story.title || "your story")
+      );
+    }
+    if (readerStack) readerStack.classList.remove("sb-reader-stack--open");
+    if (readerPages) readerPages.setAttribute("aria-hidden", "true");
+    if (btnOpenCover) {
+      btnOpenCover.removeAttribute("aria-hidden");
+      btnOpenCover.removeAttribute("tabindex");
+    }
+    if (book) book.classList.add("sb-book--cover-visible");
     applyBookThemingFromStory();
     renderSpread();
   }
@@ -963,6 +1159,10 @@
           e.preventDefault();
           openSampleBook();
         }
+        if (e.target.closest("#sbOpenCover")) {
+          e.preventDefault();
+          openBookCover();
+        }
       },
       false
     );
@@ -977,6 +1177,13 @@
     btnPreviewSample.addEventListener("click", function (e) {
       e.preventDefault();
       openSampleBook();
+    });
+  }
+
+  if (btnOpenCover && !appEl) {
+    btnOpenCover.addEventListener("click", function (e) {
+      e.preventDefault();
+      openBookCover();
     });
   }
 
@@ -1040,8 +1247,11 @@
             setError(msg);
             return;
           }
+          var apiTitle =
+            out.body && out.body.title ? String(out.body.title).trim() : "";
+          var customTitle = bookTitleInput ? bookTitleInput.value.trim() : "";
           story = {
-            title: out.body.title,
+            title: customTitle || apiTitle || "Your story",
             pages: out.body.pages || [],
             sceneImageUrl: out.body.sceneImageUrl || null,
           };

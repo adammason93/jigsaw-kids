@@ -27,6 +27,11 @@ body.page-storybook.sb-modal-open {
     max(1.25rem, env(safe-area-inset-bottom, 0px));
 }
 
+/* Storybook reader: wider stage so the two-page spread can breathe */
+.page-storybook .sb-app {
+  max-width: min(42rem, 100%);
+}
+
 .sb-nav {
   margin-bottom: 0.75rem;
 }
@@ -478,6 +483,10 @@ body.page-storybook.sb-modal-open {
   margin-bottom: 0.35rem;
 }
 
+.sb-label--secondary {
+  margin-top: 1rem;
+}
+
 .sb-input {
   width: 100%;
   padding: 0.65rem 0.85rem;
@@ -758,6 +767,146 @@ body.page-storybook.sb-modal-open {
   filter: drop-shadow(0 18px 42px rgba(25, 25, 25, 0.18));
 }
 
+/* Closed cover → opens to reveal spread */
+.sb-reader-stack {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: clamp(260px, min(56vw, 58vh), 500px);
+}
+
+.sb-cover {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 3;
+  width: min(78%, 300px);
+  aspect-ratio: 3 / 4;
+  max-height: min(100%, 460px);
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  filter: drop-shadow(0 14px 28px rgba(25, 25, 25, 0.28));
+  transition:
+    opacity 0.48s ease,
+    transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+  transform: translate(-50%, -50%);
+  transform-origin: 30% 50%;
+}
+
+.sb-cover__face {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  border-radius: 4px 14px 14px 4px;
+  overflow: hidden;
+  box-shadow: inset 0 0 0 3px rgba(0, 0, 0, 0.04);
+}
+
+.sb-cover__spine {
+  width: 14px;
+  flex-shrink: 0;
+  background: linear-gradient(
+    90deg,
+    #9a1028 0%,
+    #c41435 45%,
+    var(--sb-flip-red) 100%
+  );
+  box-shadow: inset -3px 0 8px rgba(0, 0, 0, 0.2);
+}
+
+.sb-cover__panel {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+  padding: 1rem 0.85rem 1.15rem;
+  background: linear-gradient(145deg, #ff3d5c 0%, var(--sb-flip-red) 38%, #b01030 100%);
+  transition: filter 0.2s ease;
+}
+
+.sb-cover__deco {
+  font-size: 1.75rem;
+  line-height: 1;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+}
+
+.sb-cover__title {
+  font-family: "Sniglet", "Nunito", sans-serif;
+  font-size: clamp(1rem, 4.2vw, 1.35rem);
+  font-weight: 800;
+  color: #fff8fa;
+  text-align: center;
+  line-height: 1.25;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.18);
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.sb-cover__hint {
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.sb-cover:hover .sb-cover__panel,
+.sb-cover:focus-visible .sb-cover__panel {
+  filter: brightness(1.05);
+}
+
+.sb-cover:focus-visible {
+  outline: 3px solid #fbcfe8;
+  outline-offset: 4px;
+}
+
+.sb-reader-pages {
+  width: 100%;
+  opacity: 0;
+  transform: scale(0.96);
+  pointer-events: none;
+  transition:
+    opacity 0.42s ease 0.07s,
+    transform 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.05s;
+}
+
+.sb-reader-stack--open .sb-cover {
+  opacity: 0;
+  transform: translate(-50%, calc(-50% - 22px)) scale(0.82) rotate(-2deg);
+  pointer-events: none;
+}
+
+.sb-reader-stack--open .sb-reader-pages {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sb-cover,
+  .sb-reader-pages {
+    transition: none;
+  }
+
+  .sb-reader-stack--open .sb-cover {
+    transform: translate(-50%, -50%);
+  }
+}
+
+.sb-book--cover-visible .sb-read-arrow {
+  visibility: hidden;
+  pointer-events: none;
+}
+
 .sb-read-arrow {
   flex: 0 0 auto;
   align-self: center;
@@ -793,15 +942,75 @@ body.page-storybook.sb-modal-open {
   display: flex;
   align-items: stretch;
   width: 100%;
-  max-width: 700px;
+  max-width: 920px;
   margin: 0 auto;
-  height: clamp(248px, min(54vh, 420px), 420px);
+  height: clamp(240px, min(52vw, 54vh), 460px);
   border: 10px solid var(--sb-flip-red);
   border-radius: 8px;
   background: var(--sb-flip-paper);
   overflow: hidden;
   box-sizing: border-box;
   box-shadow: 0 2px 0 rgba(0, 0, 0, 0.06) inset;
+  transform-origin: center center;
+  will-change: auto;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .sb-flip-spread__inner.sb-flip-spread__inner--turn-out-next {
+    animation: sb-turn-out-next 0.22s ease-in forwards;
+    will-change: transform, opacity;
+  }
+
+  .sb-flip-spread__inner.sb-flip-spread__inner--turn-out-prev {
+    animation: sb-turn-out-prev 0.22s ease-in forwards;
+    will-change: transform, opacity;
+  }
+
+  .sb-flip-spread__inner.sb-flip-spread__inner--turn-in-next {
+    animation: sb-turn-in-next 0.38s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    will-change: transform, opacity;
+  }
+
+  .sb-flip-spread__inner.sb-flip-spread__inner--turn-in-prev {
+    animation: sb-turn-in-prev 0.38s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    will-change: transform, opacity;
+  }
+}
+
+@keyframes sb-turn-out-next {
+  to {
+    opacity: 0;
+    transform: translate3d(-10%, 0, 0) scale(0.97);
+  }
+}
+
+@keyframes sb-turn-out-prev {
+  to {
+    opacity: 0;
+    transform: translate3d(10%, 0, 0) scale(0.97);
+  }
+}
+
+@keyframes sb-turn-in-next {
+  from {
+    opacity: 0;
+    transform: translate3d(8%, 0, 0) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes sb-turn-in-prev {
+  from {
+    opacity: 0;
+    transform: translate3d(-8%, 0, 0) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
 }
 
 .sb-flip-page {
@@ -825,8 +1034,8 @@ body.page-storybook.sb-modal-open {
 .sb-flip-text {
   margin: 0;
   width: 100%;
-  max-width: 22rem;
-  font-size: clamp(0.86rem, 2.75vw, 1.04rem);
+  max-width: 26rem;
+  font-size: clamp(0.86rem, 2.4vw, 1.06rem);
   font-weight: 700;
   line-height: 1.52;
   color: #2a0a1f;
@@ -841,6 +1050,66 @@ body.page-storybook.sb-modal-open {
   text-align: center;
 }
 
+.sb-flip-page--art .sb-flip-page__sheet {
+  padding: 0;
+  justify-content: stretch;
+  align-items: stretch;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.sb-flip-page--art .sb-flip-art {
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 0;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  aspect-ratio: auto;
+  margin: 0;
+  align-self: stretch;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.sb-flip-page--art .sb-flip-art:not(.is-empty)::before {
+  display: none;
+}
+
+.sb-flip-page--art .sb-flip-art.is-empty {
+  margin: clamp(8px, 2vw, 14px);
+  border-radius: 6px;
+  box-shadow: inset 0 0 0 2px rgba(230, 27, 65, 0.22);
+  flex: 1 1 auto;
+  min-height: 8rem;
+}
+
+.sb-flip-page--art .sb-flip-art.is-empty::before {
+  display: block;
+}
+
+.sb-flip-page--art .sb-flip-art:not(.is-empty) .sb-flip-art__num {
+  left: auto;
+  top: auto;
+  right: 0.5rem;
+  bottom: 0.45rem;
+  transform: none;
+  margin: 0;
+  background: rgba(255, 255, 255, 0.88);
+  border-radius: 999px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+.sb-flip-page--art .sb-flip-art img {
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  border-radius: 0;
+}
+
 .sb-flip-gutter {
   width: 6px;
   flex-shrink: 0;
@@ -852,9 +1121,9 @@ body.page-storybook.sb-modal-open {
 .sb-flip-art {
   position: relative;
   width: 100%;
-  max-width: min(100%, 300px);
+  max-width: min(100%, 400px);
   aspect-ratio: 3 / 4;
-  max-height: min(100%, 400px);
+  max-height: min(100%, 440px);
   margin: 0 auto;
   border-radius: 6px;
   overflow: hidden;
@@ -918,7 +1187,7 @@ body.page-storybook.sb-modal-open {
 
 @media (min-width: 640px) {
   .sb-flip-spread__inner {
-    height: clamp(280px, min(50vh, 440px), 440px);
+    height: clamp(268px, min(48vw, 52vh), 480px);
   }
 }
 
