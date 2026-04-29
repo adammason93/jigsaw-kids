@@ -53,6 +53,8 @@
   var spreadArtImg = document.getElementById("sbSpreadArtImg");
   var spreadArtNum = document.getElementById("sbSpreadArtNum");
   var spreadInnerEl = document.getElementById("sbFlipSpreadInner");
+  var pageTurnLeft = document.getElementById("sbPageTurnLeft");
+  var pageTurnRight = document.getElementById("sbPageTurnRight");
   var readerStack = document.getElementById("sbReaderStack");
   var readerPages = document.getElementById("sbReaderPages");
   var btnOpenCover = document.getElementById("sbOpenCover");
@@ -277,8 +279,6 @@
   var spreadIndex = 0;
   /** @type {boolean} */
   var spreadAnimLock = false;
-  /** @type {ReturnType<typeof setTimeout>|null} */
-  var spreadNavFallbackT = null;
 
   function prefersReducedSpreadMotion() {
     return (
@@ -289,13 +289,139 @@
   }
 
   function clearSpreadTurnClasses() {
-    if (!spreadInnerEl) return;
-    spreadInnerEl.classList.remove(
-      "sb-flip-spread__inner--turn-out-next",
-      "sb-flip-spread__inner--turn-out-prev",
-      "sb-flip-spread__inner--turn-in-next",
-      "sb-flip-spread__inner--turn-in-prev"
-    );
+    if (spreadInnerEl) {
+      spreadInnerEl.classList.remove(
+        "sb-flip-spread__inner--turn-out-next",
+        "sb-flip-spread__inner--turn-out-prev",
+        "sb-flip-spread__inner--turn-in-next",
+        "sb-flip-spread__inner--turn-in-prev"
+      );
+    }
+    clearPageTurnOverlays();
+  }
+
+  function clearPageTurnOverlays() {
+    if (pageTurnLeft) {
+      pageTurnLeft.innerHTML = "";
+      pageTurnLeft.classList.remove("is-visible");
+      pageTurnLeft.hidden = true;
+      pageTurnLeft.setAttribute("aria-hidden", "true");
+    }
+    if (pageTurnRight) {
+      pageTurnRight.innerHTML = "";
+      pageTurnRight.classList.remove("is-visible");
+      pageTurnRight.hidden = true;
+      pageTurnRight.setAttribute("aria-hidden", "true");
+    }
+  }
+
+  function finishPageTurnAnim() {
+    spreadAnimLock = false;
+    setSpreadNavBusy(false);
+  }
+
+  /** Right-hand page peels from the gutter (Western “next”). */
+  function runRightPageTurn(oldImgSrc) {
+    var overlay = pageTurnRight;
+    if (!overlay || !oldImgSrc) {
+      finishPageTurnAnim();
+      return;
+    }
+    overlay.innerHTML = "";
+    var leaf = document.createElement("div");
+    leaf.className = "sb-turn-leaf";
+    var front = document.createElement("div");
+    front.className = "sb-turn-leaf__face sb-turn-leaf__face--front";
+    var im = document.createElement("img");
+    im.src = oldImgSrc;
+    im.alt = "";
+    im.decoding = "async";
+    front.appendChild(im);
+    var back = document.createElement("div");
+    back.className = "sb-turn-leaf__face sb-turn-leaf__face--back";
+    back.setAttribute("aria-hidden", "true");
+    leaf.appendChild(front);
+    leaf.appendChild(back);
+    overlay.appendChild(leaf);
+    overlay.hidden = false;
+    overlay.setAttribute("aria-hidden", "false");
+    overlay.classList.add("is-visible");
+
+    var done = false;
+    function cleanup() {
+      if (done) return;
+      done = true;
+      clearPageTurnOverlays();
+      finishPageTurnAnim();
+    }
+
+    function onTe(ev) {
+      if (ev.target !== leaf) return;
+      if (ev.propertyName !== "transform") return;
+      leaf.removeEventListener("transitionend", onTe);
+      cleanup();
+    }
+    leaf.addEventListener("transitionend", onTe);
+    window.setTimeout(cleanup, 1200);
+    window.requestAnimationFrame(function () {
+      window.requestAnimationFrame(function () {
+        leaf.classList.add("sb-turn-leaf--next");
+      });
+    });
+  }
+
+  /** Left-hand page peels back (previous spread). */
+  function runLeftPageTurn(oldText, oldMeta) {
+    var overlay = pageTurnLeft;
+    if (!overlay) {
+      finishPageTurnAnim();
+      return;
+    }
+    overlay.innerHTML = "";
+    var leaf = document.createElement("div");
+    leaf.className = "sb-turn-leaf";
+    var front = document.createElement("div");
+    front.className =
+      "sb-turn-leaf__face sb-turn-leaf__face--front sb-turn-leaf__face--text";
+    var p = document.createElement("p");
+    p.className = "sb-flip-text";
+    p.textContent = oldText || "";
+    var meta = document.createElement("p");
+    meta.className = "sb-flip-spread-meta";
+    meta.textContent = oldMeta || "";
+    front.appendChild(p);
+    front.appendChild(meta);
+    var back = document.createElement("div");
+    back.className = "sb-turn-leaf__face sb-turn-leaf__face--back";
+    back.setAttribute("aria-hidden", "true");
+    leaf.appendChild(front);
+    leaf.appendChild(back);
+    overlay.appendChild(leaf);
+    overlay.hidden = false;
+    overlay.setAttribute("aria-hidden", "false");
+    overlay.classList.add("is-visible");
+
+    var done = false;
+    function cleanup() {
+      if (done) return;
+      done = true;
+      clearPageTurnOverlays();
+      finishPageTurnAnim();
+    }
+
+    function onTe(ev) {
+      if (ev.target !== leaf) return;
+      if (ev.propertyName !== "transform") return;
+      leaf.removeEventListener("transitionend", onTe);
+      cleanup();
+    }
+    leaf.addEventListener("transitionend", onTe);
+    window.setTimeout(cleanup, 1200);
+    window.requestAnimationFrame(function () {
+      window.requestAnimationFrame(function () {
+        leaf.classList.add("sb-turn-leaf--prev");
+      });
+    });
   }
 
   function setSpreadNavBusy(locked) {
@@ -475,102 +601,38 @@
     if (delta > 0 && spreadIndex >= numSpreads() - 1) return;
     if (delta < 0 && spreadIndex <= 0) return;
 
-    if (prefersReducedSpreadMotion() || !spreadInnerEl) {
+    if (prefersReducedSpreadMotion()) {
       spreadIndex += delta;
       applySpreadContent();
       return;
     }
     if (spreadAnimLock) return;
-    spreadAnimLock = true;
-    setSpreadNavBusy(true);
 
-    if (spreadNavFallbackT) {
-      clearTimeout(spreadNavFallbackT);
-      spreadNavFallbackT = null;
-    }
-
-    var outC =
-      delta > 0
-        ? "sb-flip-spread__inner--turn-out-next"
-        : "sb-flip-spread__inner--turn-out-prev";
-    var inC =
-      delta > 0
-        ? "sb-flip-spread__inner--turn-in-next"
-        : "sb-flip-spread__inner--turn-in-prev";
-
-    clearSpreadTurnClasses();
-    spreadInnerEl.classList.add(outC);
-
-    var outDone = false;
-    var inDone = false;
-    var inStarted = false;
-    function completeIn() {
-      if (inDone) return;
-      inDone = true;
-      if (spreadNavFallbackT) {
-        clearTimeout(spreadNavFallbackT);
-        spreadNavFallbackT = null;
+    if (delta > 0) {
+      var oldSrc = "";
+      if (spreadArtImg && spreadArtImg.getAttribute("src")) {
+        oldSrc = spreadArtImg.currentSrc || spreadArtImg.src || "";
       }
-      spreadInnerEl.classList.remove(inC);
-      spreadAnimLock = false;
-      setSpreadNavBusy(false);
-    }
-
-    function startIn() {
-      if (inStarted) return;
-      inStarted = true;
       spreadIndex += delta;
       applySpreadContent();
-      spreadInnerEl.classList.remove(outC);
-      void spreadInnerEl.offsetWidth;
-      spreadInnerEl.classList.add(inC);
-
-      function onInEnd(ev) {
-        if (ev && ev.target !== spreadInnerEl) return;
-        if (
-          ev &&
-          ev.animationName &&
-          ev.animationName.indexOf("sb-turn-in") !== 0
-        ) {
-          return;
-        }
-        spreadInnerEl.removeEventListener("animationend", onInEnd);
-        completeIn();
-      }
-      spreadInnerEl.addEventListener("animationend", onInEnd);
-      spreadNavFallbackT = setTimeout(function () {
-        spreadNavFallbackT = null;
-        spreadInnerEl.removeEventListener("animationend", onInEnd);
-        completeIn();
-      }, 560);
-    }
-
-    function onOutEnd(ev) {
-      if (outDone) return;
-      if (ev && ev.target !== spreadInnerEl) return;
-      if (
-        ev &&
-        ev.animationName &&
-        ev.animationName.indexOf("sb-turn-out") !== 0
-      ) {
+      if (!pageTurnRight || !oldSrc) {
         return;
       }
-      outDone = true;
-      spreadInnerEl.removeEventListener("animationend", onOutEnd);
-      if (spreadNavFallbackT) {
-        clearTimeout(spreadNavFallbackT);
-        spreadNavFallbackT = null;
+      spreadAnimLock = true;
+      setSpreadNavBusy(true);
+      runRightPageTurn(oldSrc);
+    } else {
+      var oldText = spreadText ? spreadText.textContent : "";
+      var oldMeta = spreadMeta ? spreadMeta.textContent : "";
+      spreadIndex += delta;
+      applySpreadContent();
+      if (!pageTurnLeft || (!oldText && !oldMeta)) {
+        return;
       }
-      startIn();
+      spreadAnimLock = true;
+      setSpreadNavBusy(true);
+      runLeftPageTurn(oldText, oldMeta);
     }
-    spreadInnerEl.addEventListener("animationend", onOutEnd);
-    spreadNavFallbackT = setTimeout(function () {
-      spreadNavFallbackT = null;
-      spreadInnerEl.removeEventListener("animationend", onOutEnd);
-      if (outDone) return;
-      outDone = true;
-      startIn();
-    }, 400);
   }
 
   function updatePagerHints() {
@@ -1175,10 +1237,6 @@
     story = null;
     spreadIndex = 0;
     spreadAnimLock = false;
-    if (spreadNavFallbackT) {
-      clearTimeout(spreadNavFallbackT);
-      spreadNavFallbackT = null;
-    }
     clearSpreadTurnClasses();
     resetBookCoverForWizard();
     closeJourney();

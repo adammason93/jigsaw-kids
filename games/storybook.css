@@ -786,8 +786,6 @@ body.page-storybook.sb-modal-open {
   align-items: center;
   justify-content: center;
   min-height: clamp(260px, min(56vw, 58vh), 500px);
-  perspective: 1500px;
-  perspective-origin: 50% 45%;
 }
 
 .sb-cover {
@@ -805,6 +803,8 @@ body.page-storybook.sb-modal-open {
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   filter: drop-shadow(0 16px 32px rgba(25, 25, 25, 0.32));
+  perspective: 1500px;
+  perspective-origin: 50% 45%;
   transform: translate(-50%, -50%);
   transform-style: preserve-3d;
 }
@@ -1005,9 +1005,7 @@ body.page-storybook.sb-modal-open {
   background: var(--sb-flip-desk);
   border-radius: 12px;
   box-sizing: border-box;
-  perspective: 1800px;
-  perspective-origin: 50% 50%;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .sb-flip-spread__inner {
@@ -1020,72 +1018,118 @@ body.page-storybook.sb-modal-open {
   border: 10px solid var(--sb-flip-red);
   border-radius: 8px;
   background: var(--sb-flip-paper);
-  overflow: visible;
   box-sizing: border-box;
   box-shadow: 0 2px 0 rgba(0, 0, 0, 0.06) inset;
-  transform-origin: 50% 50%;
+  overflow: visible;
+  transform-style: flat;
+}
+
+/* One half of the spread: static page + optional turn overlay stacked above */
+.sb-flip-left-shell,
+.sb-flip-right-shell {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-self: stretch;
+}
+
+.sb-flip-left-shell > .sb-flip-page,
+.sb-flip-right-shell > .sb-flip-page {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+}
+
+/* Page-turn: single “leaf” hinged at the gutter (not the whole spread) */
+.sb-page-turn-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  visibility: hidden;
+  opacity: 0;
+}
+
+.sb-page-turn-overlay.is-visible {
+  z-index: 8;
+  visibility: visible;
+  opacity: 1;
+}
+
+/* Match classic “CSS 3D book” feel (e.g. subhamgiri16/3D-Flipbook): huge perspective + left-hinge -180deg */
+.sb-page-turn-overlay--right {
+  perspective: min(250rem, 4200px);
+  perspective-origin: left center;
+}
+
+.sb-page-turn-overlay--left {
+  perspective: min(250rem, 4200px);
+  perspective-origin: right center;
+}
+
+.sb-turn-leaf {
+  width: 100%;
+  height: 100%;
+  position: relative;
   transform-style: preserve-3d;
-  will-change: auto;
+  transform-origin: left;
+  transform: rotateY(0deg);
+  transition: transform 1s cubic-bezier(0.645, 0.045, 0.355, 1);
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 0, 0, 0.06),
+    2px 0 12px rgba(0, 0, 0, 0.07);
+  border-radius: 0 3px 3px 0;
+}
+
+.sb-page-turn-overlay--left .sb-turn-leaf {
+  border-radius: 3px 0 0 3px;
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 0, 0, 0.06),
+    -2px 0 12px rgba(0, 0, 0, 0.07);
+}
+
+.sb-turn-leaf--next {
+  transform: rotateY(-180deg);
+}
+
+.sb-turn-leaf--prev {
+  transform-origin: right;
+  transform: rotateY(180deg);
+}
+
+.sb-turn-leaf__face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  background: var(--sb-flip-paper);
   overflow: hidden;
+  transform: rotateY(0deg) translateZ(1px);
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .sb-flip-spread__inner.sb-flip-spread__inner--turn-out-next {
-    animation: sb-turn-out-next 0.34s cubic-bezier(0.45, 0, 0.55, 1) forwards;
-    will-change: transform, opacity;
-  }
-
-  .sb-flip-spread__inner.sb-flip-spread__inner--turn-out-prev {
-    animation: sb-turn-out-prev 0.34s cubic-bezier(0.45, 0, 0.55, 1) forwards;
-    will-change: transform, opacity;
-  }
-
-  .sb-flip-spread__inner.sb-flip-spread__inner--turn-in-next {
-    animation: sb-turn-in-next 0.46s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-    will-change: transform, opacity;
-  }
-
-  .sb-flip-spread__inner.sb-flip-spread__inner--turn-in-prev {
-    animation: sb-turn-in-prev 0.46s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-    will-change: transform, opacity;
-  }
+.sb-turn-leaf__face--back {
+  transform: rotateY(180deg) translateZ(1px);
+  background: linear-gradient(105deg, #ebe6df 0%, #faf8f4 45%, #f3eee8 100%);
+  box-shadow: inset 4px 0 14px rgba(0, 0, 0, 0.07);
 }
 
-/* Next: spread rotates away around vertical spine (CCW from above) */
-@keyframes sb-turn-out-next {
-  to {
-    opacity: 0.08;
-    transform: rotateY(-76deg) translateZ(-28px) scale(0.985);
-  }
+.sb-turn-leaf__face--text {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: clamp(10px, 2.5vw, 20px);
+  box-sizing: border-box;
 }
 
-@keyframes sb-turn-out-prev {
-  to {
-    opacity: 0.08;
-    transform: rotateY(76deg) translateZ(-28px) scale(0.985);
-  }
-}
-
-@keyframes sb-turn-in-next {
-  from {
-    opacity: 0.08;
-    transform: rotateY(76deg) translateZ(-28px) scale(0.985);
-  }
-  to {
-    opacity: 1;
-    transform: rotateY(0deg) translateZ(0) scale(1);
-  }
-}
-
-@keyframes sb-turn-in-prev {
-  from {
-    opacity: 0.08;
-    transform: rotateY(-76deg) translateZ(-28px) scale(0.985);
-  }
-  to {
-    opacity: 1;
-    transform: rotateY(0deg) translateZ(0) scale(1);
-  }
+.sb-turn-leaf__face--front > img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
 }
 
 .sb-flip-page {

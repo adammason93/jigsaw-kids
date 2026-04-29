@@ -211,18 +211,34 @@
             <div class="sb-reader-pages" id="sbReaderPages" aria-hidden="true">
               <div class="sb-flip-spread" id="sbFlipSpread" aria-live="polite">
                 <div class="sb-flip-spread__inner" id="sbFlipSpreadInner">
-                  <div class="sb-flip-page sb-flip-page--text">
-                    <div class="sb-flip-page__sheet">
-                      <p class="sb-flip-text" id="sbSpreadText"></p>
-                      <p class="sb-flip-spread-meta" id="sbSpreadMeta"></p>
+                  <div class="sb-flip-left-shell">
+                    <div
+                      class="sb-page-turn-overlay sb-page-turn-overlay--left"
+                      id="sbPageTurnLeft"
+                      aria-hidden="true"
+                      hidden
+                    ></div>
+                    <div class="sb-flip-page sb-flip-page--text">
+                      <div class="sb-flip-page__sheet">
+                        <p class="sb-flip-text" id="sbSpreadText"></p>
+                        <p class="sb-flip-spread-meta" id="sbSpreadMeta"></p>
+                      </div>
                     </div>
                   </div>
                   <div class="sb-flip-gutter" aria-hidden="true"></div>
-                  <div class="sb-flip-page sb-flip-page--art">
-                    <div class="sb-flip-page__sheet">
-                      <div class="sb-flip-art" id="sbSpreadArt">
-                        <span class="sb-flip-art__num" id="sbSpreadArtNum" aria-hidden="true"></span>
-                        <img id="sbSpreadArtImg" alt="" decoding="async" />
+                  <div class="sb-flip-right-shell">
+                    <div
+                      class="sb-page-turn-overlay sb-page-turn-overlay--right"
+                      id="sbPageTurnRight"
+                      aria-hidden="true"
+                      hidden
+                    ></div>
+                    <div class="sb-flip-page sb-flip-page--art">
+                      <div class="sb-flip-page__sheet">
+                        <div class="sb-flip-art" id="sbSpreadArt">
+                          <span class="sb-flip-art__num" id="sbSpreadArtNum" aria-hidden="true"></span>
+                          <img id="sbSpreadArtImg" alt="" decoding="async" />
+                        </div>
                       </div>
                     </div>
                   </div>
