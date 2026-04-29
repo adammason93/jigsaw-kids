@@ -431,12 +431,8 @@ async function openaiImageUrl(
 
 /** Landscape spread first; some keys/billing paths fail on 1792×1024 — fall back to square. */
 async function openaiSpreadImageUrl(apiKey: string, prompt: string): Promise<string> {
-  try {
-    return await openaiImageUrl(apiKey, prompt, "1792x1024");
-  } catch (e) {
-    console.warn("[clever-service] DALL·E landscape failed, retry 1024×1024", e);
-    return await openaiImageUrl(apiKey, prompt, "1024x1024");
-  }
+  // Use 1024x1024 instead of 1792x1024 to speed up generation and reduce memory/cost.
+  return await openaiImageUrl(apiKey, prompt, "1024x1024");
 }
 
 Deno.serve(async (req) => {
