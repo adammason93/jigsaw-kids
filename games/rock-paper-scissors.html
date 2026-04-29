@@ -23,15 +23,10 @@
 
     <main class="rps-main" aria-labelledby="rpsHeading">
       <div class="rps-card">
-        <div class="rps-hero rps-hero--art" id="rpsHero" aria-hidden="true">
-          <img
-            class="rps-hero__cover"
-            src="images/portal/rock-paper-scissors-card.png"
-            width="674"
-            height="662"
-            alt=""
-            decoding="async"
-          />
+        <div class="rps-hero rps-hero--icons" id="rpsHero" aria-hidden="true">
+          <img class="rps-hero__icon" src="images/rps/rock.png" width="382" height="384" alt="" decoding="async" />
+          <img class="rps-hero__icon" src="images/rps/paper.png" width="376" height="382" alt="" decoding="async" />
+          <img class="rps-hero__icon" src="images/rps/scissors.png" width="361" height="379" alt="" decoding="async" />
         </div>
 
         <h1 class="rps-heading" id="rpsHeading">
@@ -56,15 +51,36 @@
           <p class="rps-flow-hint">Tap rock, paper, or scissors</p>
           <div class="rps-picks" id="rpsPicks" role="group" aria-label="Your move">
             <button type="button" class="rps-pick" data-move="rock" aria-label="Rock">
-              <span class="rps-pick__glyph rps-pick__glyph--rock" aria-hidden="true"></span>
+              <img
+                class="rps-pick__img"
+                src="images/rps/rock.png"
+                width="382"
+                height="384"
+                alt=""
+                decoding="async"
+              />
               <span class="rps-pick__label">Rock</span>
             </button>
             <button type="button" class="rps-pick" data-move="paper" aria-label="Paper">
-              <span class="rps-pick__glyph rps-pick__glyph--paper" aria-hidden="true"></span>
+              <img
+                class="rps-pick__img"
+                src="images/rps/paper.png"
+                width="376"
+                height="382"
+                alt=""
+                decoding="async"
+              />
               <span class="rps-pick__label">Paper</span>
             </button>
             <button type="button" class="rps-pick" data-move="scissors" aria-label="Scissors">
-              <span class="rps-pick__glyph rps-pick__glyph--scissors" aria-hidden="true"></span>
+              <img
+                class="rps-pick__img"
+                src="images/rps/scissors.png"
+                width="361"
+                height="379"
+                alt=""
+                decoding="async"
+              />
               <span class="rps-pick__label">Scissors</span>
             </button>
           </div>

@@ -78,20 +78,21 @@ body.page-rps {
   border: 1px solid rgba(124, 58, 237, 0.08);
 }
 
-.rps-hero--art {
+.rps-hero--icons {
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 0.4rem;
   margin-bottom: 0.85rem;
+  flex-wrap: nowrap;
 }
 
-.rps-hero__cover {
+.rps-hero__icon {
   display: block;
-  width: min(10.5rem, 58vw);
-  max-width: 100%;
+  width: min(5.25rem, 28vw);
   height: auto;
-  border-radius: 20px;
-  box-shadow: 0 6px 22px rgba(76, 29, 149, 0.14);
+  object-fit: contain;
+  flex-shrink: 1;
 }
 
 .rps-duel {
@@ -200,36 +201,19 @@ body.page-rps {
   box-shadow: 0 4px 14px rgba(124, 58, 237, 0.15);
 }
 
-.rps-pick__glyph {
+.rps-pick__img {
   display: block;
   width: min(3.85rem, 15vw);
   height: min(3.85rem, 15vw);
-  border-radius: 50%;
-  border: 3px solid #ffffff;
-  box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.16);
-  background-image: url("images/portal/rock-paper-scissors-card.png");
-  background-repeat: no-repeat;
+  object-fit: contain;
   flex-shrink: 0;
 }
 
-.rps-pick__glyph--rock {
-  background-size: 248% 248%;
-  background-position: 50% 24%;
-}
-
-.rps-pick__glyph--paper {
-  background-size: 248% 248%;
-  background-position: 28% 77%;
-}
-
-.rps-pick__glyph--scissors {
-  background-size: 248% 248%;
-  background-position: 72% 77%;
-}
-
-.rps-reveal-glyph {
+.rps-reveal-img {
+  display: block;
   width: min(5.5rem, 22vw);
   height: min(5.5rem, 22vw);
+  object-fit: contain;
 }
 
 .rps-pick:active:not(:disabled) {
@@ -424,7 +408,7 @@ body.page-rps {
     padding: 1.6rem 1.5rem 1.65rem;
   }
 
-  .rps-pick__glyph {
+  .rps-pick__img {
     width: 4.15rem;
     height: 4.15rem;
   }
