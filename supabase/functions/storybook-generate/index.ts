@@ -48,6 +48,66 @@ function jsonResponse(body: unknown, status = 200) {
   });
 }
 
+function unwrapJsonContent(raw: string): string {
+  let s = raw.trim();
+  const fence = /^```(?:json)?\s*([\s\S]*?)\s*```$/i.exec(s);
+  if (fence) s = fence[1].trim();
+  return s;
+}
+
+/** Normalise model output so we still get 8 pages + 4 images if the model is slightly off. */
+function normalizeStoryJson(raw: unknown): StoryJson {
+  const obj = raw as Partial<StoryJson>;
+  const title = String(obj.title ?? "A little adventure")
+    .trim()
+    .slice(0, 120);
+  const src = Array.isArray(obj.pages) ? obj.pages : [];
+  const pages: StoryPage[] = src.map((p) => ({
+    text: String((p as StoryPage)?.text ?? "")
+      .replace(/\s+/g, " ")
+      .trim(),
+    illustrationBrief:
+      (p as StoryPage)?.illustrationBrief != null &&
+      String((p as StoryPage).illustrationBrief).trim()
+        ? String((p as StoryPage).illustrationBrief).trim().slice(0, 400)
+        : null,
+  }));
+
+  while (pages.length < 8) {
+    pages.push({ text: "And that was a lovely day.", illustrationBrief: null });
+  }
+  pages.length = 8;
+
+  for (const p of pages) {
+    if (!p.text) p.text = "They smiled and looked around.";
+    if (p.text.length > 320) p.text = p.text.slice(0, 317) + "…";
+  }
+
+  const briefIndices = pages
+    .map((p, i) => ({ i, b: p.illustrationBrief }))
+    .filter((x) => x.b)
+    .map((x) => x.i);
+  if (briefIndices.length > 4) {
+    for (const i of briefIndices.slice(4)) pages[i].illustrationBrief = null;
+  } else if (briefIndices.length < 4) {
+    const need = 4 - briefIndices.length;
+    const spread = [0, 3, 6, 2, 5, 1, 4, 7];
+    let added = 0;
+    for (const i of spread) {
+      if (added >= need) break;
+      if (!pages[i].illustrationBrief) {
+        const basis = pages[i].text.replace(/[.!?…]+$/u, "").slice(0, 140);
+        pages[i].illustrationBrief =
+          (basis.length ? basis : "The heroes") +
+          ", bright friendly picture-book scene, simple shapes";
+        added++;
+      }
+    }
+  }
+
+  return { title, pages };
+}
+
 async function openaiChatJson(
   apiKey: string,
   system: string,
@@ -62,7 +122,7 @@ async function openaiChatJson(
     body: JSON.stringify({
       model: "gpt-4o-mini",
       temperature: 0.75,
-      max_tokens: 1400,
+      max_tokens: 3200,
       response_format: { type: "json_object" },
       messages: [
         { role: "system", content: system },
@@ -80,26 +140,19 @@ async function openaiChatJson(
   const data = await r.json();
   const content = data.choices?.[0]?.message?.content;
   if (!content) throw new Error("story_empty");
-  const parsed = JSON.parse(content) as StoryJson;
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(unwrapJsonContent(content));
+  } catch (e) {
+    console.error("story json parse", e, content.slice(0, 500));
+    throw new Error("story_parse");
+  }
 
-  if (
-    !parsed.title ||
-    !Array.isArray(parsed.pages) ||
-    parsed.pages.length !== 8
-  ) {
+  if (!parsed || typeof parsed !== "object" || !Array.isArray((parsed as StoryJson).pages)) {
     throw new Error("story_shape");
   }
 
-  const artCount = parsed.pages.filter(
-    (p) => p.illustrationBrief && String(p.illustrationBrief).trim()
-  ).length;
-  if (artCount !== 4) throw new Error("story_art_count");
-
-  for (const p of parsed.pages) {
-    if (!p.text || String(p.text).length > 320) throw new Error("story_page_len");
-  }
-
-  return parsed;
+  return normalizeStoryJson(parsed);
 }
 
 async function openaiImageUrl(apiKey: string, prompt: string): Promise<string> {
