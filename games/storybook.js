@@ -63,7 +63,6 @@
   var coverTitle = document.getElementById("sbCoverTitle");
   var btnPrev = document.getElementById("sbPrev");
   var btnNext = document.getElementById("sbNext");
-  var pagerLive = document.getElementById("sbPagerLive");
   /** Wide screens (tablets / large landscape): edge-to-edge reader + fixed overlays. */
   var immersiveReaderMq =
     typeof window !== "undefined" && window.matchMedia
@@ -708,21 +707,6 @@
     var n = numSpreads();
     var si = spreadIndex;
     si = Math.max(0, Math.min(si, Math.max(0, n - 1)));
-    var pLo = si * 2 + 1;
-    var pHi = si * 2 + 2;
-    if (pagerLive) {
-      pagerLive.textContent =
-        "Spread " +
-        (si + 1) +
-        " of " +
-        n +
-        " — pages " +
-        pLo +
-        "–" +
-        pHi +
-        " of " +
-        story.pages.length;
-    }
     if (spreadAnimLock) {
       if (btnPrev) btnPrev.disabled = true;
       if (btnNext) btnNext.disabled = true;

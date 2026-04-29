@@ -8,7 +8,7 @@
   <link rel="manifest" href="../manifest.json" />
   <link rel="stylesheet" href="../js/kids-core.css" />
   <!-- storybook-app.css = renamed file so CDN/browser cache cannot keep old storybook.css -->
-  <link rel="stylesheet" href="storybook-app.css?v=14" />
+  <link rel="stylesheet" href="storybook-app.css?v=15" />
   <link rel="stylesheet" href="../tablet-ipad.css" />
   <!-- Last wins: guarantees new background even if a proxy cached an ancient stylesheet elsewhere -->
   <style>
@@ -194,7 +194,6 @@
     </div>
 
     <section class="sb-book is-hidden" id="sbBook" aria-labelledby="sbBookHeading" hidden>
-      <span class="sb-sr-live" id="sbPagerLive" aria-live="polite"></span>
       <h2 class="sb-book-title" id="sbBookHeading"></h2>
       <p class="sb-book-close-tool">
         <button
@@ -310,7 +309,7 @@
   <script src="../js/kids-game-characters.js"></script>
   <script src="../js/score-config.js"></script>
   <script src="../js/kids-core.js"></script>
-  <script src="storybook.js?v=218" defer></script>
+  <script src="storybook.js?v=219" defer></script>
   <script>
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("../sw.js").catch(function () {});

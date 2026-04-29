@@ -954,20 +954,6 @@ body.page-storybook.sb-modal-open {
   font-weight: 800;
 }
 
-/* Screen-reader-only live region for page */
-.sb-sr-live {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
-
-/* Spread: prev | book | next (matches polished reference layout) */
 .sb-book-spread {
   display: flex;
   align-items: center;
