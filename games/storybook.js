@@ -843,94 +843,96 @@
   }
 
   function tryFetchImageDataUrl(url) {
-    if (!url) return Promise.resolve(null);
-    if (url.indexOf("data:") === 0) return Promise.resolve(url);
-    
-    // 1. First fetch the image using CORS fetch to get the raw Blob. 
-    // We proxy DALL-E urls through our edge function to completely bypass strict browser CORS rules.
-    var fetchUrl = url;
-    var fUrl = functionUrl();
-    var aKey = anonKey();
-    var reqOpts = {
-      method: "GET",
-      mode: "cors",
-      credentials: "omit",
-      cache: "default",
-      referrerPolicy: "no-referrer",
-    };
+    return Promise.resolve().then(function() {
+      if (!url) return null;
+      if (url.indexOf("data:") === 0) return url;
+      
+      // 1. First fetch the image using CORS fetch to get the raw Blob. 
+      // We proxy DALL-E urls through our edge function to completely bypass strict browser CORS rules.
+      var fetchUrl = url;
+      var fUrl = functionUrl();
+      var aKey = anonKey();
+      var reqOpts = {
+        method: "GET",
+        mode: "cors",
+        credentials: "omit",
+        cache: "default",
+        referrerPolicy: "no-referrer",
+      };
 
-    if (fUrl && url.indexOf("blob.core.windows.net") > -1) {
-      fetchUrl = fUrl + "?url=" + encodeURIComponent(url);
-      if (aKey) {
-        reqOpts.headers = { "Authorization": "Bearer " + aKey };
+      if (fUrl && (url.indexOf("blob.core.windows.net") > -1 || url.indexOf("oaiusercontent.com") > -1)) {
+        fetchUrl = fUrl + "?url=" + encodeURIComponent(url);
+        if (aKey) {
+          reqOpts.headers = { "Authorization": "Bearer " + aKey };
+        }
       }
-    }
 
-    return fetch(fetchUrl, reqOpts)
-      .then(function (r) {
-        if (!r.ok) throw new Error("bad " + r.status);
-        return r.blob();
-      })
-      .then(function (blob) {
-        // 2. Convert Blob to raw base64 data URL
-        return new Promise(function (resolve, reject) {
-          var fr = new FileReader();
-          fr.onload = function () {
-            resolve(fr.result);
-          };
-          fr.onerror = function () {
-            reject(new Error("read"));
-          };
-          fr.readAsDataURL(blob);
-        });
-      })
-      .then(function (rawBase64) {
-        // 3. Load the raw base64 data URL into an image to compress it.
-        // Because it's a data: URL, there are zero CORS restrictions and canvas won't be tainted.
-        return new Promise(function (resolve) {
-          var img = new Image();
-          // We set crossOrigin just in case the URL was NOT proxied and is a direct CDN link
-          if (rawBase64.indexOf("data:") !== 0) {
-            img.crossOrigin = "anonymous";
-          }
-          img.onload = function () {
-            var canvas = document.createElement("canvas");
-            var maxDim = 720; // Compress heavily to fit more books into localStorage
-            var w = img.width;
-            var h = img.height;
-            if (w > maxDim || h > maxDim) {
-              var ratio = w / h;
-              if (w > h) {
-                w = maxDim;
-                h = Math.round(maxDim / ratio);
-              } else {
-                h = maxDim;
-                w = Math.round(maxDim * ratio);
+      return fetch(fetchUrl, reqOpts)
+        .then(function (r) {
+          if (!r.ok) throw new Error("bad " + r.status);
+          return r.blob();
+        })
+        .then(function (blob) {
+          // 2. Convert Blob to raw base64 data URL
+          return new Promise(function (resolve, reject) {
+            var fr = new FileReader();
+            fr.onload = function () {
+              resolve(fr.result);
+            };
+            fr.onerror = function () {
+              reject(new Error("read"));
+            };
+            fr.readAsDataURL(blob);
+          });
+        })
+        .then(function (rawBase64) {
+          // 3. Load the raw base64 data URL into an image to compress it.
+          // Because it's a data: URL, there are zero CORS restrictions and canvas won't be tainted.
+          return new Promise(function (resolve) {
+            var img = new Image();
+            // We set crossOrigin just in case the URL was NOT proxied and is a direct CDN link
+            if (rawBase64.indexOf("data:") !== 0) {
+              img.crossOrigin = "anonymous";
+            }
+            img.onload = function () {
+              try {
+                var canvas = document.createElement("canvas");
+                var maxDim = 720; // Compress heavily to fit more books into localStorage
+                var w = img.width;
+                var h = img.height;
+                if (w > maxDim || h > maxDim) {
+                  var ratio = w / h;
+                  if (w > h) {
+                    w = maxDim;
+                    h = Math.round(maxDim / ratio);
+                  } else {
+                    h = maxDim;
+                    w = Math.round(maxDim * ratio);
+                  }
+                }
+                canvas.width = w || 1;
+                canvas.height = h || 1;
+                var ctx = canvas.getContext("2d");
+                if (!ctx) throw new Error("No 2d context");
+                ctx.drawImage(img, 0, 0, w, h);
+                // 0.55 JPEG quality drastically reduces file size
+                resolve(canvas.toDataURL("image/jpeg", 0.55));
+              } catch (e) {
+                console.warn("Canvas compression failed, falling back to raw", e);
+                resolve(rawBase64); // Fallback to raw base64 if compression fails
               }
-            }
-            canvas.width = w;
-            canvas.height = h;
-            var ctx = canvas.getContext("2d");
-            ctx.drawImage(img, 0, 0, w, h);
-            try {
-              // 0.55 JPEG quality drastically reduces file size
-              resolve(canvas.toDataURL("image/jpeg", 0.55));
-            } catch (e) {
-              console.warn("Canvas compression failed, falling back to raw", e);
-              resolve(rawBase64); // Fallback to raw base64 if compression fails
-            }
-          };
-          img.onerror = function (e) {
-            console.warn("Image element failed to load raw base64", e);
-            resolve(rawBase64); // Fallback to raw base64 if image load fails
-          };
-          img.src = rawBase64;
+            };
+            img.onerror = function (e) {
+              console.warn("Image element failed to load raw base64", e);
+              resolve(rawBase64); // Fallback to raw base64 if image load fails
+            };
+            img.src = rawBase64;
+          });
         });
-      })
-      .catch(function (err) {
-        console.warn("Could not fetch data URL for", url, err);
-        return null;
-      });
+    }).catch(function (err) {
+      console.warn("Could not fetch data URL for", url, err);
+      return null;
+    });
   }
 
   function fetchAllPageDataUrls() {
