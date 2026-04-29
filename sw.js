@@ -1,5 +1,5 @@
 /* Minimal offline shell — network-first, cache as fallback for same-origin */
-const CACHE = "jigsaw-kids-v153";
+const CACHE = "jigsaw-kids-v156";
 const SHELL = [
   "./index.html",
   "./manifest.json",
@@ -49,15 +49,15 @@ const SHELL = [
   "./games/rock-paper-scissors.html",
   "./games/rock-paper-scissors.css",
   "./games/rock-paper-scissors.js",
-  "./games/images/portal/rock-paper-scissors.svg",
+  "./games/images/portal/rock-paper-scissors-card.png",
   "./games/snake-arcade.html",
   "./games/snake-arcade.css",
   "./games/snake-arcade.js",
-  "./games/images/portal/snake-arcade.svg",
+  "./games/images/portal/snake-portal.png",
   "./games/zuma.html",
   "./games/zuma.css",
   "./games/zuma.js",
-  "./games/images/portal/zuma-frog.svg",
+  "./games/images/portal/zuma-portal.png",
   "./games/images/zuma/bg.svg",
   "./games/images/zuma/bg-leaf.svg",
   "./games/images/zuma/frog.svg",

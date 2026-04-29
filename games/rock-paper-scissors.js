@@ -72,13 +72,10 @@
   function clonePickIcon(move) {
     var btn = document.querySelector('.rps-pick[data-move="' + move + '"]');
     if (!btn) return null;
-    var svg = btn.querySelector("svg");
-    if (!svg) return null;
-    var c = svg.cloneNode(true);
-    c.classList.remove("rps-icon--pick");
-    c.setAttribute("class", "rps-icon");
-    c.style.width = "min(5.5rem, 22vw)";
-    c.style.height = "auto";
+    var g = btn.querySelector(".rps-pick__glyph");
+    if (!g) return null;
+    var c = g.cloneNode(true);
+    c.classList.add("rps-reveal-glyph");
     return c;
   }
 

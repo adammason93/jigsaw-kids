@@ -23,17 +23,15 @@
 
     <main class="rps-main" aria-labelledby="rpsHeading">
       <div class="rps-card">
-        <div class="rps-hero" id="rpsHero" aria-hidden="true">
-          <div class="rps-hero__fist rps-hero__fist--left" id="rpsHeroLeft">
-            <svg class="rps-icon rps-icon--hero" viewBox="0 0 120 140" aria-hidden="true">
-              <path fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" d="M38 42c-4 18 2 38 16 52l8 10c6 8 16 12 26 12h6c12 0 22-10 22-22V38c0-6-5-11-11-11s-11 5-11 11v18M60 38v22M72 33v27"/>
-            </svg>
-          </div>
-          <div class="rps-hero__fist rps-hero__fist--right" id="rpsHeroRight">
-            <svg class="rps-icon rps-icon--hero" viewBox="0 0 120 140" aria-hidden="true">
-              <path fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" d="M82 42c4 18-2 38-16 52l-8 10c-6 8-16 12-26 12h-6c-12 0-22-10-22-22V38c0-6 5-11 11-11s11 5 11 11v18M60 38v22M48 33v27"/>
-            </svg>
-          </div>
+        <div class="rps-hero rps-hero--art" id="rpsHero" aria-hidden="true">
+          <img
+            class="rps-hero__cover"
+            src="images/portal/rock-paper-scissors-card.png"
+            width="674"
+            height="662"
+            alt=""
+            decoding="async"
+          />
         </div>
 
         <h1 class="rps-heading" id="rpsHeading">
@@ -58,24 +56,15 @@
           <p class="rps-flow-hint">Tap rock, paper, or scissors</p>
           <div class="rps-picks" id="rpsPicks" role="group" aria-label="Your move">
             <button type="button" class="rps-pick" data-move="rock" aria-label="Rock">
-              <svg class="rps-icon rps-icon--pick" viewBox="0 0 120 140" aria-hidden="true">
-                <path fill="none" stroke="currentColor" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" d="M38 42c-4 18 2 38 16 52l8 10c6 8 16 12 26 12h6c12 0 22-10 22-22V38c0-6-5-11-11-11s-11 5-11 11v18M60 38v22M72 33v27"/>
-              </svg>
+              <span class="rps-pick__glyph rps-pick__glyph--rock" aria-hidden="true"></span>
               <span class="rps-pick__label">Rock</span>
             </button>
             <button type="button" class="rps-pick" data-move="paper" aria-label="Paper">
-              <svg class="rps-icon rps-icon--pick" viewBox="0 0 120 140" aria-hidden="true">
-                <path fill="none" stroke="currentColor" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" d="M28 88c0-16 14-30 30-30 6 0 12 2 16 5 4-8 12-14 22-14 12 0 22 8 26 20 4-4 10-6 16-6 14 0 26 12 26 26v6c0 20-16 36-36 36H44c-10 0-16-6-16-14V88z"/>
-                <path fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" d="M34 102l-6 28M48 98l-2 32M62 96v34M76 98l2 32M90 102l6 28"/>
-              </svg>
+              <span class="rps-pick__glyph rps-pick__glyph--paper" aria-hidden="true"></span>
               <span class="rps-pick__label">Paper</span>
             </button>
             <button type="button" class="rps-pick" data-move="scissors" aria-label="Scissors">
-              <svg class="rps-icon rps-icon--pick" viewBox="0 0 120 140" aria-hidden="true">
-                <path fill="none" stroke="currentColor" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" d="M44 38 L76 118 M76 38 L44 118"/>
-                <circle cx="44" cy="38" r="9" fill="none" stroke="currentColor" stroke-width="4.5"/>
-                <circle cx="76" cy="38" r="9" fill="none" stroke="currentColor" stroke-width="4.5"/>
-              </svg>
+              <span class="rps-pick__glyph rps-pick__glyph--scissors" aria-hidden="true"></span>
               <span class="rps-pick__label">Scissors</span>
             </button>
           </div>

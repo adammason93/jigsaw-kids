@@ -78,30 +78,20 @@ body.page-rps {
   border: 1px solid rgba(124, 58, 237, 0.08);
 }
 
-.rps-hero {
+.rps-hero--art {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
   margin-bottom: 0.85rem;
-  min-height: 6.5rem;
-  color: var(--rps-purple);
 }
 
-.rps-hero__fist {
-  flex: 1;
-  display: flex;
-  justify-content: center;
-  max-width: 44%;
-}
-
-.rps-hero__fist--left .rps-icon--hero {
-  transform: scaleX(-1);
-}
-
-.rps-icon--hero {
-  width: min(9rem, 38vw);
+.rps-hero__cover {
+  display: block;
+  width: min(10.5rem, 58vw);
+  max-width: 100%;
   height: auto;
+  border-radius: 20px;
+  box-shadow: 0 6px 22px rgba(76, 29, 149, 0.14);
 }
 
 .rps-duel {
@@ -136,11 +126,6 @@ body.page-rps {
   align-items: center;
   justify-content: center;
   min-height: 4.5rem;
-}
-
-.rps-duel__icon-wrap .rps-icon {
-  width: min(5.5rem, 22vw);
-  height: auto;
 }
 
 .rps-duel__vs {
@@ -199,20 +184,52 @@ body.page-rps {
   align-items: center;
   gap: 0.35rem;
   padding: 0.55rem 0.3rem 0.65rem;
-  border: 2px solid rgba(167, 139, 250, 0.45);
+  border: 2px solid rgba(124, 58, 237, 0.38);
   border-radius: 18px;
-  background: rgba(250, 245, 255, 0.65);
-  color: var(--rps-purple-muted);
+  background: #e8f2ff;
+  color: var(--rps-purple);
   cursor: pointer;
   font: inherit;
   touch-action: manipulation;
-  transition: border-color 0.12s, background 0.12s, transform 0.1s, color 0.12s;
+  transition: border-color 0.12s, background 0.12s, transform 0.1s, box-shadow 0.12s;
 }
 
 .rps-pick:hover:not(:disabled) {
-  border-color: var(--rps-purple-soft);
-  background: #faf5ff;
-  color: var(--rps-purple);
+  border-color: var(--rps-purple);
+  background: #d1e3ff;
+  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.15);
+}
+
+.rps-pick__glyph {
+  display: block;
+  width: min(3.85rem, 15vw);
+  height: min(3.85rem, 15vw);
+  border-radius: 50%;
+  border: 3px solid #ffffff;
+  box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.16);
+  background-image: url("images/portal/rock-paper-scissors-card.png");
+  background-repeat: no-repeat;
+  flex-shrink: 0;
+}
+
+.rps-pick__glyph--rock {
+  background-size: 248% 248%;
+  background-position: 50% 24%;
+}
+
+.rps-pick__glyph--paper {
+  background-size: 248% 248%;
+  background-position: 28% 77%;
+}
+
+.rps-pick__glyph--scissors {
+  background-size: 248% 248%;
+  background-position: 72% 77%;
+}
+
+.rps-reveal-glyph {
+  width: min(5.5rem, 22vw);
+  height: min(5.5rem, 22vw);
 }
 
 .rps-pick:active:not(:disabled) {
@@ -227,11 +244,6 @@ body.page-rps {
 .rps-pick:focus-visible {
   outline: 3px solid var(--rps-purple);
   outline-offset: 2px;
-}
-
-.rps-icon--pick {
-  width: min(3.25rem, 14vw);
-  height: auto;
 }
 
 .rps-pick__label {
@@ -288,7 +300,7 @@ body.page-rps {
   width: min(22rem, 100%);
   max-height: min(90dvh, 36rem);
   overflow: auto;
-  background: var(--rps-card);
+  background: linear-gradient(180deg, #eef5ff 0%, #ffffff 55%);
   border-radius: var(--rps-radius);
   box-shadow: 0 20px 50px rgba(76, 29, 149, 0.22), var(--rps-shadow);
   border: 1px solid rgba(124, 58, 237, 0.12);
@@ -412,7 +424,8 @@ body.page-rps {
     padding: 1.6rem 1.5rem 1.65rem;
   }
 
-  .rps-icon--pick {
-    width: 3.85rem;
+  .rps-pick__glyph {
+    width: 4.15rem;
+    height: 4.15rem;
   }
 }
