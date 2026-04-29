@@ -604,10 +604,11 @@ Return JSON shape: { "title": string, "characterDesign": string, "pages": [ { "t
   const portraitForImage = portraitAppearance.replace(/\s+/gu, " ").trim().slice(0, 900);
   const finalCharacterDesc = story.characterDesign || characterDesc;
   const imagePromptPrefix =
+    "A completely textless illustration. DO NOT include any writing, letters, words, typography, labels, or speech bubbles anywhere in the image. " +
     "Same soft 3D clay and matte toy render as a fancy kids' app, rounded shapes, gentle pastel lighting, " +
     "beautiful cinematic wide-angle scene filling the picture entirely edge-to-edge; " +
     "draw the actual story environment flowing seamlessly without any frames or margins; " +
-    "no letters no words no text in the image, wholesome and safe for toddlers. " +
+    "wholesome and safe for toddlers. " +
     `Main character to show (keep this character EXACTLY consistent): ${finalCharacterDesc}. Setting mood: ${placeDesc}. ` +
     (plotHint.length > 0 ? `CRITICAL VISUAL THEME to include: ${plotHint}. ` : "") +
     (familyNames.length > 0
@@ -633,7 +634,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "pages": [ { "t
     const staggerMs = 450;
     
     // Add cover image to the list of parallel generations
-    const coverPrompt = imagePromptPrefix + ` Beautiful illustration to be used as a cover art for "${story.title}". Centered, well-composed, full-bleed artwork.`;
+    const coverPrompt = imagePromptPrefix + ` Beautiful illustration to be used as background art for the cover of the story. Centered, well-composed, full-bleed artwork. DO NOT write the title or any text in the image.`;
     
     const [urls, coverUrl] = await Promise.all([
       Promise.all(
@@ -642,7 +643,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "pages": [ { "t
           const beat = spreadTextForPicturePage(b.index, story.pages).slice(0, 320);
           const beatSafe = beat.replace(/"/gu, "'");
           const beatClause = beatSafe
-            ? ` Illustrate this story moment from the text page before this picture (same characters, action, place): ${beatSafe}. `
+            ? ` Illustrate this story moment (same characters, action, place): ${beatSafe}. `
             : " ";
           const fullPrompt = imagePromptPrefix + beatClause + b.brief;
           return await openaiSpreadImageUrl(apiKey, fullPrompt);
