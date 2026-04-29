@@ -458,6 +458,26 @@ Deno.serve(async (req) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
+  // Optional simple proxy for downloading OpenAI images to avoid strict CORS
+  if (req.method === "GET") {
+    const urlStr = new URL(req.url).searchParams.get("url");
+    if (!urlStr) return jsonResponse({ error: "missing_url" }, 400);
+    try {
+      const res = await fetch(urlStr);
+      if (!res.ok) throw new Error("proxy_upstream_error");
+      return new Response(res.body, {
+        headers: {
+          ...corsHeaders,
+          "Content-Type": res.headers.get("Content-Type") || "image/png",
+          "Cache-Control": "public, max-age=31536000",
+        },
+      });
+    } catch (e) {
+      console.error("[proxy error]", e);
+      return jsonResponse({ error: "proxy_failed" }, 502);
+    }
+  }
+
   if (req.method !== "POST") {
     return jsonResponse({ error: "method_not_allowed" }, 405);
   }

@@ -847,13 +847,26 @@
     if (url.indexOf("data:") === 0) return Promise.resolve(url);
     
     // 1. First fetch the image using CORS fetch to get the raw Blob. 
-    // This is robust against strict CDNs that might reject <img crossorigin="anonymous">.
-    return fetch(url, {
+    // We proxy DALL-E urls through our edge function to completely bypass strict browser CORS rules.
+    var fetchUrl = url;
+    var fUrl = functionUrl();
+    var c = typeof global.SCORE_SYNC !== "undefined" ? global.SCORE_SYNC : {};
+    var anonKey = c.supabaseAnonKey || "";
+    var reqOpts = {
       mode: "cors",
       credentials: "omit",
       cache: "default",
       referrerPolicy: "no-referrer",
-    })
+    };
+
+    if (fUrl && url.indexOf("blob.core.windows.net") > -1) {
+      fetchUrl = fUrl + "?url=" + encodeURIComponent(url);
+      if (anonKey) {
+        reqOpts.headers = { "Authorization": "Bearer " + anonKey };
+      }
+    }
+
+    return fetch(fetchUrl, reqOpts)
       .then(function (r) {
         if (!r.ok) throw new Error("bad " + r.status);
         return r.blob();
