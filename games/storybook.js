@@ -308,6 +308,9 @@
     var nSpr = numSpreads();
     if (nSpr < 1) return "";
     si = Math.max(0, Math.min(si, nSpr - 1));
+    if (si * 2 >= story.pages.length) {
+      return story.sceneImageUrl || "";
+    }
     var rightP = story.pages[si * 2 + 1];
     return rightP && rightP.imageUrl ? String(rightP.imageUrl) : "";
   }
@@ -403,7 +406,13 @@
 
     var peelImg =
       spreadArtPeelImg || document.getElementById("sbSpreadArtPeelImg");
+    var peelBackImg = document.getElementById("sbSpreadArtPeelBackImg");
+    var outgoingLeftShell = document.getElementById("sbSpreadArtOutgoingLeft");
+    var outgoingLeftImg = document.getElementById("sbSpreadArtOutgoingLeftImg");
+
     var outgoingUrl = illustrationUrlAtSpreadIndex(fromSi);
+    var incomingUrl = illustrationUrlAtSpreadIndex(spreadIndex);
+
     if (peelImg) {
       peelImg.alt = "";
       if (outgoingUrl) {
@@ -413,8 +422,34 @@
         peelImg.removeAttribute("src");
       }
     }
+    
+    if (peelBackImg) {
+      peelBackImg.alt = "";
+      if (incomingUrl) {
+        peelBackImg.referrerPolicy = "no-referrer";
+        peelBackImg.src = incomingUrl;
+      } else {
+        peelBackImg.removeAttribute("src");
+      }
+    }
+
+    if (outgoingLeftImg) {
+      outgoingLeftImg.alt = "";
+      if (outgoingUrl) {
+        outgoingLeftImg.referrerPolicy = "no-referrer";
+        outgoingLeftImg.src = outgoingUrl;
+      } else {
+        outgoingLeftImg.removeAttribute("src");
+      }
+    }
+
     peelShell.hidden = false;
     peelShell.removeAttribute("hidden");
+    if (outgoingLeftShell) {
+      outgoingLeftShell.hidden = false;
+      outgoingLeftShell.removeAttribute("hidden");
+      outgoingLeftShell.style.display = "block";
+    }
 
     var isNext = delta > 0;
     var cls1 = isNext
@@ -426,17 +461,19 @@
       if (spreadTextClip) {
         spreadTextClip.classList.add("sb-flip-text__clip--reveal-turn");
       }
-      if (spreadArtBase) {
-        spreadArtBase.classList.add("sb-flip-spread__art-base--reveal-turn");
-      }
 
       bindCpShellTurnEnd(peelShell, function peelTurnDone() {
         clearSpreadPeelTurnClasses();
         clearSpreadTurnRevealFx();
-        if (peelImg) {
-          peelImg.removeAttribute("src");
-        }
+        if (peelImg) peelImg.removeAttribute("src");
+        if (peelBackImg) peelBackImg.removeAttribute("src");
+        if (outgoingLeftImg) outgoingLeftImg.removeAttribute("src");
+        
         peelShell.hidden = true;
+        if (outgoingLeftShell) {
+          outgoingLeftShell.hidden = true;
+          outgoingLeftShell.style.display = "none";
+        }
         spreadAnimLock = false;
         setSpreadNavBusy(false);
       });
@@ -625,7 +662,7 @@
   }
 
   function numSpreads() {
-    return story && story.pages ? Math.floor(story.pages.length / 2) : 0;
+    return story && story.pages ? Math.floor(story.pages.length / 2) + 1 : 0;
   }
 
   /** Local preview only — same shape as OpenAI output (pairs: text, then picture). */
@@ -669,6 +706,10 @@
     var n = numSpreads();
     if (n < 1) return;
     spreadIndex = Math.max(0, Math.min(spreadIndex, n - 1));
+    if (spreadIndex * 2 >= story.pages.length) {
+      spreadText.innerHTML = '<div style="text-align:center;margin-top:2rem;"><h2 style="font-size:2rem;margin-bottom:1rem;color:#9d174d;">The End</h2><p style="font-size:1.2rem;opacity:0.8;">We hope you enjoyed the story!</p></div>';
+      return;
+    }
     var i = spreadIndex * 2;
     var leftP = story.pages[i];
     spreadText.textContent = leftP ? leftP.text : "";
@@ -680,15 +721,16 @@
     if (n < 1) return;
     var si = spreadIndex;
     si = Math.max(0, Math.min(si, n - 1));
-    var i = si * 2;
-    var rightP = story.pages[i + 1];
-    var pLo = i + 1;
-    var pHi = i + 2;
-    if (rightP && rightP.imageUrl) {
-      var u = String(rightP.imageUrl);
+    var isTheEnd = si * 2 >= story.pages.length;
+    var rightP = isTheEnd ? null : story.pages[si * 2 + 1];
+    var pLo = isTheEnd ? story.pages.length : (si * 2 + 1);
+    var pHi = isTheEnd ? story.pages.length : (si * 2 + 2);
+    var u = isTheEnd ? (story.sceneImageUrl || "") : (rightP && rightP.imageUrl ? String(rightP.imageUrl) : "");
+
+    if (u) {
       if (spreadArtImg) {
         spreadArtImg.src = u;
-        spreadArtImg.alt = "Illustration for pages " + pLo + "–" + pHi;
+        spreadArtImg.alt = isTheEnd ? "The End" : "Illustration for pages " + pLo + "–" + pHi;
         spreadArtImg.referrerPolicy = "no-referrer";
       }
       if (spreadArt) spreadArt.classList.remove("is-empty");
@@ -697,8 +739,7 @@
       }
       if (spreadArtCover) {
         spreadArtCover.src = u;
-        spreadArtCover.alt =
-          "Illustration for pages " + pLo + "–" + pHi + " of " + story.pages.length;
+        spreadArtCover.alt = isTheEnd ? "The End" : "Illustration for pages " + pLo + "–" + pHi + " of " + story.pages.length;
         spreadArtCover.referrerPolicy = "no-referrer";
       }
       if (spreadInnerEl && spreadInnerEl.dataset) {
@@ -708,8 +749,7 @@
         spreadInnerEl.classList.add("sb-flip-spread__inner--has-art");
       }
       if (spreadArtNum) {
-        spreadArtNum.textContent =
-          "Pages " + pLo + "–" + pHi + " of " + story.pages.length;
+        spreadArtNum.textContent = isTheEnd ? "The End" : "Pages " + pLo + "–" + pHi + " of " + story.pages.length;
       }
     } else {
       if (spreadArtImg) spreadArtImg.removeAttribute("src");
