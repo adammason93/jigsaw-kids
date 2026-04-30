@@ -656,9 +656,9 @@ Return JSON shape: { "title": string, "characterDesign": string, "pages": [ { "t
   const finalCharacterDesc = story.characterDesign || characterDesc;
   const imagePromptPrefix =
     "A completely textless illustration. DO NOT include any writing, letters, words, typography, labels, or speech bubbles anywhere in the image. " +
+    "CRITICAL LAYOUT RULE: Leave the left half of the image mostly uncluttered with a simple, soft background (like empty sky, plain wall, or soft grass) so that black storybook text can be printed over it clearly. Keep all characters, creatures, and important action on the right half or center-right of the image. " +
     "Same soft 3D clay and matte toy render as a fancy kids' app, rounded shapes, gentle pastel lighting, " +
     "beautiful cinematic scene filling the picture edge-to-edge. " +
-    "CRITICAL LAYOUT RULE: Keep all characters, creatures, and important action perfectly centered in the middle third of the image. Leave the top and bottom thirds of the image as empty background scenery (sky, ground, etc.) so it can be safely cropped to a wide landscape format later. " +
     "draw the actual story environment flowing seamlessly without any frames or margins; " +
     "wholesome and safe for toddlers. " +
     `MASTER CHARACTER DESIGNS (You MUST use these exact outfits, genders, ages, body shapes, facial features, skin tones, hair styles, hair textures, anatomy, and accessory colors in every image to maintain perfect consistency. Do NOT change any colors or accessories between images, do NOT change textures from smooth clay to realistic textures, do NOT add or remove wings/horns/collars/logos. If a character is described with NO clothes, you MUST draw them completely naked with no clothes and no accessories): ${finalCharacterDesc}. ` +
