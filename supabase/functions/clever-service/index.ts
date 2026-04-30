@@ -354,6 +354,25 @@ function jsonResponse(body: unknown, status = 200) {
   });
 }
 
+/** When `FAL_KEY` is set, illustration failures must not fall back to DALL·E (avoids mixed-style books). */
+class FalImageError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "FalImageError";
+  }
+}
+
+function throwFalImage(label: string, cause: unknown): never {
+  const tail =
+    cause instanceof Error
+      ? cause.message
+      : typeof cause === "string"
+        ? cause
+        : String(cause);
+  console.error("[clever-service] Fal failure (no DALL·E fallback):", label, cause);
+  throw new FalImageError(`${label}: ${tail}`.slice(0, 900));
+}
+
 function unwrapJsonContent(raw: string): string {
   let s = raw.trim();
   const fence = /^```(?:json)?\s*([\s\S]*?)\s*```$/i.exec(s);
@@ -986,6 +1005,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
   let firstPanelVisualLockUsed = false;
   let falReduxSpreadCount = 0;
   let falTextSpreadCount = 0;
+  let falCastAnchorUsed = false;
 
   const falKey = (Deno.env.get("FAL_KEY") ?? "").trim();
   const falDisabled = Deno.env.get("STORYBOOK_FAL_DISABLE") === "1";
@@ -1023,63 +1043,153 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
       firstPanelLock: "",
     });
 
-    if (useFalRedux) {
-      try {
-        urls[0] = await falFluxProTextToImageUrl(falKey, falTextModel, spread1Prompt);
-        falTextSpreadCount = 1;
-      } catch (e) {
-        console.warn("[clever-service] Fal text-to-image (spread 1) failed, using OpenAI", e);
-        urls[0] = await openaiImageUrl(apiKey, spread1Prompt, "1024x1024");
-      }
-    } else {
-      urls[0] = await openaiImageUrl(apiKey, spread1Prompt, "1024x1024");
-    }
+    /** When set (default): one T2I “cast lineup”, then all 6 spreads = Fal image→image (Redux) from that anchor — strongest consistency. */
+    const useCastAnchor =
+      useFalRedux && Deno.env.get("STORYBOOK_FAL_CAST_ANCHOR") !== "0";
+
+    const anchorPreamble =
+      "A completely textless illustration. NO letters, words, typography, labels, or speech bubbles. " +
+      "CAST LINEUP / MODEL SHEET for a kids picture book: the hero and every main creature together in ONE frame, neutral friendly poses, " +
+      "full bodies visible, soft matte clay and toy-plastic 3D, gentle pastel light, plain soft background so each design reads clearly. " +
+      "Edge-to-edge, wholesome for toddlers. ";
+
+    const anchorPrompt = (
+      anchorPreamble + envTheme + "LOCKED CAST (draw exactly):\n" + castBible
+    ).slice(0, DALLE3_PROMPT_MAX);
 
     let panelLock = "";
-    try {
-      panelLock = await visualLockFromFirstImage(apiKey, urls[0]);
-      firstPanelVisualLockUsed = panelLock.length > 40;
-    } catch (e) {
-      console.warn("[clever-service] visual lock failed", e);
-    }
 
-    if (briefs.length > 1) {
-      const referenceStillUrl = urls[0];
-      const rest = await Promise.all(
-        briefs.slice(1).map(async (b, idx) => {
-          if (idx > 0) await delay(idx * staggerMs);
-          const composed = composeDallePrompt({
-            preamble: stylePreamble,
-            envTheme,
-            sceneBrief: b.brief,
-            castBible,
-            firstPanelLock: panelLock,
-          });
-          if (useFalRedux && referenceStillUrl) {
+    if (useCastAnchor) {
+      let anchorUrl: string | null = null;
+      try {
+        anchorUrl = await falFluxProTextToImageUrl(falKey, falTextModel, anchorPrompt);
+        falTextSpreadCount = 1;
+      } catch (e) {
+        console.warn(
+          "[clever-service] Fal cast-anchor T2I failed; falling back to spread-1 T2I + Redux×5",
+          e,
+        );
+      }
+
+      if (anchorUrl) {
+        try {
+          panelLock = await visualLockFromFirstImage(apiKey, anchorUrl);
+          firstPanelVisualLockUsed = panelLock.length > 40;
+        } catch (e) {
+          console.warn("[clever-service] visual lock (anchor) failed", e);
+        }
+
+        const allFromAnchor = await Promise.all(
+          briefs.map(async (b, idx) => {
+            if (idx > 0) await delay(idx * staggerMs);
+            const composed = composeDallePrompt({
+              preamble: stylePreamble,
+              envTheme,
+              sceneBrief: b.brief,
+              castBible,
+              firstPanelLock: panelLock,
+            });
             try {
               const falPrompt =
-                "New story moment — change poses, action, and background to match the scene. " +
-                "Keep the same hero face, hair, outfit colours, and the same buddy and creatures as the reference. " +
-                "Textless illustration; soft matte clay toy 3D style only. " +
-                composed.slice(0, FAL_REDUX_PROMPT_MAX - 220);
+                "Story spread — NEW scene, poses, and background for this moment only. " +
+                "Keep hero and every creature IDENTICAL to the reference lineup (faces, hair, outfit colours, species, size). " +
+                "Textless; soft matte clay toy 3D. " +
+                composed.slice(0, FAL_REDUX_PROMPT_MAX - 260);
               const u = await falFluxReduxImageUrl(
                 falKey,
                 falReduxModel,
-                referenceStillUrl,
+                anchorUrl as string,
                 falPrompt,
                 falStrength,
               );
               falReduxSpreadCount++;
               return u;
             } catch (e) {
-              console.warn("[clever-service] Fal Redux failed, using OpenAI", e);
+              console.warn("[clever-service] Fal Redux (anchor) failed for spread", idx, e);
+              throwFalImage(`Fal image-to-image failed for spread ${idx + 1} of 6`, e);
             }
+          }),
+        );
+        for (let i = 0; i < allFromAnchor.length; i++) {
+          urls[i] = allFromAnchor[i];
+        }
+        falCastAnchorUsed = true;
+      }
+    }
+
+    /* Legacy: spread 1 = T2I, spreads 2–6 = Redux(spread1). When FAL off, anchor off, anchor T2I failed, or incomplete urls. */
+    const needLegacySpreads =
+      !useFalRedux || urls.length < briefs.length || (useCastAnchor && falTextSpreadCount === 0);
+
+    if (needLegacySpreads) {
+      if (useFalRedux && useCastAnchor && falTextSpreadCount === 0) {
+        urls.length = 0;
+      }
+      if (urls.length === 0) {
+        if (useFalRedux) {
+          try {
+            urls[0] = await falFluxProTextToImageUrl(falKey, falTextModel, spread1Prompt);
+            falTextSpreadCount = 1;
+          } catch (e) {
+            console.warn("[clever-service] Fal text-to-image (spread 1) failed", e);
+            throwFalImage("Fal text-to-image failed for the first picture", e);
           }
-          return openaiImageUrl(apiKey, composed, "1024x1024");
-        }),
-      );
-      for (let i = 0; i < rest.length; i++) {
-        urls.push(rest[i]);
+        } else {
+          urls[0] = await openaiImageUrl(apiKey, spread1Prompt, "1024x1024");
+        }
+
+        if (!panelLock) {
+          try {
+            panelLock = await visualLockFromFirstImage(apiKey, urls[0]);
+            firstPanelVisualLockUsed = panelLock.length > 40;
+          } catch (e) {
+            console.warn("[clever-service] visual lock failed", e);
+          }
+        }
+
+        if (briefs.length > 1) {
+          const referenceStillUrl = urls[0];
+          const rest = await Promise.all(
+            briefs.slice(1).map(async (b, idx) => {
+              if (idx > 0) await delay(idx * staggerMs);
+              const composed = composeDallePrompt({
+                preamble: stylePreamble,
+                envTheme,
+                sceneBrief: b.brief,
+                castBible,
+                firstPanelLock: panelLock,
+              });
+              if (useFalRedux) {
+                if (!referenceStillUrl) {
+                  throwFalImage("Fal image-to-image missing reference from first picture", new Error("no_reference_url"));
+                }
+                try {
+                  const falPrompt =
+                    "New story moment — change poses, action, and background to match the scene. " +
+                    "Keep the same hero face, hair, outfit colours, and the same buddy and creatures as the reference. " +
+                    "Textless illustration; soft matte clay toy 3D style only. " +
+                    composed.slice(0, FAL_REDUX_PROMPT_MAX - 220);
+                  const u = await falFluxReduxImageUrl(
+                    falKey,
+                    falReduxModel,
+                    referenceStillUrl,
+                    falPrompt,
+                    falStrength,
+                  );
+                  falReduxSpreadCount++;
+                  return u;
+                } catch (e) {
+                  console.warn("[clever-service] Fal Redux failed", e);
+                  throwFalImage(`Fal image-to-image failed for spread ${idx + 2} of 6`, e);
+                }
+              }
+              return openaiImageUrl(apiKey, composed, "1024x1024");
+            }),
+          );
+          for (let i = 0; i < rest.length; i++) {
+            urls.push(rest[i]);
+          }
+        }
       }
     }
 
@@ -1097,9 +1207,10 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
   } catch (e) {
     console.error(e);
     const detail = e instanceof Error ? e.message : String(e);
+    const errKey = e instanceof FalImageError ? "fal_failed" : "images_failed";
     return jsonResponse(
       {
-        error: "images_failed",
+        error: errKey,
         detail,
         title: story.title,
         pages: story.pages.map((p) => ({ text: p.text.trim(), imageUrl: null })),
@@ -1130,6 +1241,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
       firstPanelVisualLock: firstPanelVisualLockUsed,
       falTextModel: useFalRedux ? falTextModel : null,
       falTextSpreads: falTextSpreadCount,
+      falCastAnchorUsed,
       falReduxModel: useFalRedux ? falReduxModel : null,
       falReduxSpreads: falReduxSpreadCount,
     },

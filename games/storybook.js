@@ -2240,6 +2240,10 @@
             } else if (b.error === "server_missing_openai") {
               msg =
                 "OpenAI isn’t connected yet. A grown-up needs to set OPENAI_API_KEY on the story function.";
+            } else if (b.error === "fal_failed" && b.detail) {
+              msg =
+                "The picture maker (Fal) stopped part-way — we didn’t switch to a different artist, so you weren’t given a mismatched book. Wait a moment and try again, or ask a grown-up to check Fal billing, FAL_KEY, and the function logs. " +
+                String(b.detail).slice(0, 400);
             } else if (b.error === "images_failed" && b.detail) {
               msg =
                 "Couldn’t make the book (pictures). " + String(b.detail);
