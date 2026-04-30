@@ -216,14 +216,18 @@
     });
   }
 
+  var COLOURING_BUCKET = "colouring_room";
+  var STORYBOOK_BUCKET = "storybook_room";
+  /** Must match games/storybook.js SHELF_STORAGE_KEY */
+  var STORYBOOK_SHELF_KEY = "jigsawKids_storybookShelf_v1";
+  var STORYBOOK_SHELF_MAX = 14;
+
   function refreshOpenScoreUis() {
     try {
       global.dispatchEvent(new CustomEvent("kids-scorecard-refresh"));
     } catch (e) {}
+    mergeStorybookShelfFromCloud();
   }
-
-  var COLOURING_BUCKET = "colouring_room";
-  var STORYBOOK_BUCKET = "storybook_room";
 
   function colouringObjectPath(uid) {
     return uid + "/colouring/session.json";
@@ -305,25 +309,17 @@
     });
   }
 
-  var storybookUploadTimer = null;
-
-  /** Debounced upload of raw shelf JSON string (same as localStorage value). */
+  /** Upload shelf JSON right after save so leaving the page doesn’t skip sync. */
   function scheduleStorybookUpload(rawJsonString) {
     console.log("[score-cloud] scheduleStorybookUpload called, isConfigured:", isConfigured(), "raw length:", rawJsonString ? rawJsonString.length : 0);
     if (!isConfigured() || !rawJsonString) {
       return;
     }
-    if (storybookUploadTimer) {
-      global.clearTimeout(storybookUploadTimer);
-    }
-    storybookUploadTimer = global.setTimeout(function () {
-      storybookUploadTimer = null;
-      console.log("[score-cloud] Executing debounced storybook upload...");
-      uploadStorybookLibrary(rawJsonString, function (err) {
-        if (err) console.error("[score-cloud] uploadStorybookLibrary error:", err);
-        else console.log("[score-cloud] uploadStorybookLibrary success!");
-      });
-    }, 3500);
+    console.log("[score-cloud] uploadStorybookLibrary (immediate)…");
+    uploadStorybookLibrary(rawJsonString, function (err) {
+      if (err) console.error("[score-cloud] uploadStorybookLibrary error:", err);
+      else console.log("[score-cloud] uploadStorybookLibrary success!");
+    });
   }
 
   /** @param {string} rawJsonString - full serialized shelf */
@@ -344,7 +340,13 @@
       sb.auth.getSession().then(function (res) {
         var sess = res.data && res.data.session;
         if (!sess || !sess.user) {
-          console.warn("[score-cloud] No active session or user");
+          console.warn(
+            "[score-cloud] No active session — storybook shelf not uploaded. Sign in under ⚙️ Sync, then shelve a book again."
+          );
+          setStorybookShelfSyncState(
+            "Not signed in — your story library did not upload. Use Sync below, then tap “Put on my shelf” once more.",
+            "warn"
+          );
           cb(null);
           return;
         }
@@ -360,13 +362,116 @@
             contentType: "application/json",
           })
           .then(function (up) {
-            if (up.error) console.error("[score-cloud] Upload error:", up.error);
-            cb(up.error || null);
+            if (up.error) {
+              var errMsg = formatStorageErr(up.error);
+              console.error("[score-cloud] Upload error (storybook_room):", up.error);
+              setStorybookShelfSyncState(
+                "Story upload failed — " + errMsg + " (check Storage policies / bucket storybook_room).",
+                "err"
+              );
+              cb(up.error);
+              return;
+            }
+            console.log("[score-cloud] uploadStorybookLibrary success! path:", path);
+            setStorybookShelfSyncState(
+              "Story library uploaded — you should see folder " +
+                String(sess.user.id).slice(0, 8) +
+                "…/storybook/shelf.json in bucket storybook_room.",
+              "ok"
+            );
+            cb(null);
           })
           .catch(function (e) {
             cb(e);
           });
       });
+    });
+  }
+
+  function normalizedCloudShelf(data) {
+    if (Array.isArray(data)) {
+      return data;
+    }
+    if (data && Array.isArray(data.books)) {
+      return data.books;
+    }
+    if (data && Array.isArray(data.shelf)) {
+      return data.shelf;
+    }
+    return [];
+  }
+
+  function loadLocalStorybookShelf() {
+    try {
+      var raw = global.localStorage.getItem(STORYBOOK_SHELF_KEY);
+      if (!raw) {
+        return [];
+      }
+      var parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  /** Download cloud shelf into localStorage (any page) and push when this device has extra books. */
+  function mergeStorybookShelfFromCloud() {
+    if (!isConfigured()) {
+      return;
+    }
+    downloadStorybookLibrary(function (err, data) {
+      var cloudBooks = normalizedCloudShelf(data);
+      var local = loadLocalStorybookShelf();
+      var changedLocal = false;
+      var needsUpload = false;
+      var mapLocal = Object.create(null);
+      var mapCloud = Object.create(null);
+      var i;
+      for (i = 0; i < local.length; i++) {
+        if (local[i] && local[i].id) {
+          mapLocal[local[i].id] = true;
+        }
+      }
+      for (i = 0; i < cloudBooks.length; i++) {
+        if (cloudBooks[i] && cloudBooks[i].id) {
+          mapCloud[cloudBooks[i].id] = true;
+        }
+      }
+      for (i = 0; i < cloudBooks.length; i++) {
+        var b = cloudBooks[i];
+        if (b && b.id && !mapLocal[b.id]) {
+          local.push(b);
+          mapLocal[b.id] = true;
+          changedLocal = true;
+        }
+      }
+      for (i = 0; i < local.length; i++) {
+        if (local[i] && local[i].id && !mapCloud[local[i].id]) {
+          needsUpload = true;
+          break;
+        }
+      }
+      if (changedLocal) {
+        local.sort(function (a, c) {
+          return String(c.id).localeCompare(String(a.id), undefined, { numeric: true });
+        });
+        while (local.length > STORYBOOK_SHELF_MAX) {
+          local.pop();
+        }
+        try {
+          global.localStorage.setItem(STORYBOOK_SHELF_KEY, JSON.stringify(local));
+        } catch (e) {}
+      }
+      if (needsUpload) {
+        try {
+          var payload = changedLocal ? JSON.stringify(local) : JSON.stringify(loadLocalStorybookShelf());
+          uploadStorybookLibrary(payload, function (err) {
+            if (err) {
+              console.error("[score-cloud] mergeStorybookShelfFromCloud upload:", formatStorageErr(err));
+            }
+          });
+        } catch (e2) {}
+      }
     });
   }
 
@@ -489,6 +594,72 @@
     }
   }
 
+  function formatStorageErr(err) {
+    if (err == null) {
+      return "Unknown error";
+    }
+    if (typeof err === "string") {
+      return err;
+    }
+    if (err.message) {
+      return String(err.message);
+    }
+    if (err.error && typeof err.error === "string") {
+      return err.error;
+    }
+    try {
+      return JSON.stringify(err);
+    } catch (e) {
+      return String(err);
+    }
+  }
+
+  var storybookShelfSyncState = { text: "", kind: "neutral", updatedAt: 0 };
+
+  function setStorybookShelfSyncState(text, kind) {
+    storybookShelfSyncState.text = text || "";
+    storybookShelfSyncState.kind = kind || "neutral";
+    storybookShelfSyncState.updatedAt = Date.now();
+    var shelfEl = global.document.getElementById("kidsStorybookShelfLine");
+    paintStorybookShelfLineEl(shelfEl);
+  }
+
+  function paintStorybookShelfLineEl(el) {
+    if (!el) {
+      return;
+    }
+    var k = storybookShelfSyncState.kind;
+    var base = "kids-settings__sync-storybook";
+    el.className = base + (k && k !== "neutral" ? " is-" + k : "");
+    el.textContent = storybookShelfSyncState.text;
+  }
+
+  function refreshStorybookShelfHintLine(sess) {
+    var shelfEl = global.document.getElementById("kidsStorybookShelfLine");
+    if (!shelfEl) {
+      return;
+    }
+    var recent =
+      storybookShelfSyncState.updatedAt &&
+      Date.now() - storybookShelfSyncState.updatedAt < 120000 &&
+      storybookShelfSyncState.text;
+    if (recent) {
+      paintStorybookShelfLineEl(shelfEl);
+      return;
+    }
+    if (sess && sess.user) {
+      storybookShelfSyncState.text =
+        "Storybooks: when you shelve a book, this device uploads shelf.json to Storage (storybook_room). If the bucket is empty, this browser was probably not signed in when you saved.";
+      storybookShelfSyncState.kind = "neutral";
+    } else {
+      storybookShelfSyncState.text =
+        "Storybooks: sign in below first — saves only reach Supabase after that.";
+      storybookShelfSyncState.kind = "warn";
+    }
+    storybookShelfSyncState.updatedAt = 0;
+    paintStorybookShelfLineEl(shelfEl);
+  }
+
   function patchSettingsUi() {
     var K = global.KidsCore;
     if (!K || settingsPatched) {
@@ -517,6 +688,7 @@
         '<h3 class="kids-settings__sync-title">Sync (optional)</h3>' +
         '<p class="kids-settings__sync-lead">A grown-up sets this up once in Supabase (one login email + password that match your site config). Here you only type the <strong>family password</strong>—no email.</p>' +
         '<p class="kids-settings__sync-status" id="kidsSyncStatus" role="status"></p>' +
+        '<p class="kids-settings__sync-storybook" id="kidsStorybookShelfLine" role="status" aria-live="polite"></p>' +
         '<label class="kids-settings__row kids-settings__row--email"><span class="kids-settings__sync-label">Family password</span><input type="password" id="kidsSyncPassword" class="kids-settings__sync-input" autocomplete="current-password" placeholder="Family password" /></label>' +
         '<label class="kids-settings__show-pass"><input type="checkbox" id="kidsSyncShowPass" checked /> Show password while typing</label>' +
         '<button type="button" class="kids-settings__sync-btn" id="kidsSyncSignIn">Sign in for cloud sync</button>' +
@@ -556,6 +728,7 @@
               );
               btnOut.style.display = "none";
             }
+            refreshStorybookShelfHintLine(sess && sess.user ? sess : null);
           });
         });
       }
@@ -629,7 +802,7 @@
             } else {
               setStatus(
                 statusEl,
-                "Nothing new from the cloud, or sign in isn’t finished yet."
+                "No new scores from the cloud. Story library still checked — open Build your book to see synced books."
               );
             }
           });
@@ -690,6 +863,13 @@
     downloadStorybookLibrary: downloadStorybookLibrary,
     uploadStorybookLibrary: uploadStorybookLibrary,
     scheduleStorybookUpload: scheduleStorybookUpload,
+    getStorybookShelfSyncState: function () {
+      return {
+        text: storybookShelfSyncState.text,
+        kind: storybookShelfSyncState.kind,
+        updatedAt: storybookShelfSyncState.updatedAt,
+      };
+    },
   };
 
   global.addEventListener("DOMContentLoaded", function () {

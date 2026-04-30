@@ -342,6 +342,10 @@ body.page-storybook.sb-modal-open {
   transition: transform 0.18s ease, box-shadow 0.18s ease;
 }
 
+.sb-cover-card:not(.sb-cover-card--placeholder) {
+  --sb-cover-photo-opacity: 0.33;
+}
+
 .sb-cover-card--hardback:active {
   transform: scale(0.98);
 }
@@ -420,8 +424,8 @@ body.page-storybook.sb-modal-open {
   height: 100%;
   object-fit: cover;
   object-position: center;
-  /* Make the cover image fully opaque, vibrant, and proud like a real picture book */
-  opacity: 1;
+  /* ~33% art so cloth / spine colour reads like the open book cover */
+  opacity: var(--sb-cover-photo-opacity, 0.33);
   filter: none;
   z-index: 5; /* Sit over the top of the fallback cloth and title so it looks like a real picture book */
   pointer-events: none;
@@ -1161,27 +1165,29 @@ body.page-storybook.sb-modal-open {
 }
 
 .sb-cover__panel--themed {
-  /* When a cover image is applied, we dim it slightly for text readability */
+  /* Cover art is painted in ::after at --sb-cover-photo-opacity so book colour shows through */
+  --sb-cover-photo-opacity: 0.33;
 }
 
 .sb-cover__panel--themed::after {
   content: "";
   position: absolute;
   inset: 0;
-  background: 
-    rgba(0, 0, 0, 0.25), /* Dark overlay to make text pop */
-    linear-gradient(145deg, var(--sb-flip-light) 0%, var(--sb-flip-red) 45%, var(--sb-flip-dark) 100%);
-  opacity: 0.8; /* Makes the photo underneath very transparent so the book color comes through */
+  border-radius: 0 10px 10px 0;
+  background-image: var(--sb-cover-photo, none);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: var(--sb-cover-photo-opacity, 0.33);
   pointer-events: none;
   z-index: 0;
-  border-radius: 0 10px 10px 0; /* Matches parent border radius roughly if needed */
 }
 
 .sb-cover__panel--themed .sb-cover__title,
 .sb-cover__panel--themed .sb-cover__hint,
 .sb-cover__panel--themed .sb-cover__deco {
   position: relative;
-  z-index: 1;
+  z-index: 2;
 }
 
 .sb-cover__panel::before {
@@ -1194,6 +1200,7 @@ body.page-storybook.sb-modal-open {
     inset 0 0 0 1px rgba(0, 0, 0, 0.12),
     0 0 0 1px rgba(0, 0, 0, 0.06);
   pointer-events: none;
+  z-index: 1;
 }
 
 .sb-cover__deco {
@@ -1343,9 +1350,9 @@ body.page-storybook.sb-modal-open {
 /* Open-book spread: shelf-like depth (subtle tilt) + red frame + gutter */
 .sb-flip-spread {
   width: 100%;
-  padding: 0.45rem;
+  padding: 0;
   background: var(--sb-flip-desk);
-  border-radius: 12px;
+  border-radius: 6px;
   box-sizing: border-box;
   overflow: visible;
   transform: perspective(3200px) rotateX(3.25deg);
@@ -1364,14 +1371,12 @@ body.page-storybook.sb-modal-open {
   max-width: 920px;
   margin: 0 auto;
   height: var(--sb-book-inner-h);
-  border: 6px solid rgba(219, 39, 119, 0.45);
-  border-radius: 12px;
+  border: 0;
+  border-radius: 6px;
   background: var(--sb-flip-paper);
   box-sizing: border-box;
-  box-shadow:
-    0 4px 0 rgba(190, 24, 93, 0.45) inset,
-    inset 8px 0 16px rgba(0, 0, 0, 0.05);
-  overflow: visible;
+  box-shadow: none;
+  overflow: hidden;
   /* Required for gutter 3D page turns; `flat` flattens descendants and breaks rotateY peels on Safari/WebKit */
   transform-style: preserve-3d;
   perspective: min(135vw, 2400px);
@@ -1441,7 +1446,7 @@ body.page-storybook.sb-modal-open {
   background-position: center;
   background-repeat: no-repeat;
   pointer-events: none;
-  transform: scale(1.02); /* Slight crop to hide any DALL-E generated borders */
+  transform: scale(1.05); /* Slight crop to hide any DALL-E generated borders */
 }
 
 .sb-flip-spread__art-base {
@@ -1463,7 +1468,7 @@ body.page-storybook.sb-modal-open {
   object-position: center;
   pointer-events: none;
   z-index: 1;
-  transform: scale(1.02); /* Slight crop to hide any DALL-E generated borders */
+  transform: scale(1.05); /* Slight crop to hide any DALL-E generated borders */
 }
 
 /* One leaf turns: right-hand page only, hinged at the gutter (normative book forward turn) */
@@ -1601,6 +1606,7 @@ body.page-storybook.sb-modal-open {
 
 .sb-flip-spread__inner--has-art .sb-flip-page--art .sb-flip-page__sheet {
   background: transparent;
+  padding: 0;
 }
 
 .sb-flip-spread__inner--has-art .sb-flip-page--art .sb-flip-art {
@@ -1904,7 +1910,6 @@ body.page-storybook.sb-modal-open {
   border-radius: 6px;
   overflow: hidden;
   background: linear-gradient(165deg, #faf7f2 0%, #fff 50%, #fef9f5 100%);
-  box-shadow: inset 0 0 0 2px rgba(230, 27, 65, 0.22);
 }
 
 .sb-flip-art::before {
@@ -1951,11 +1956,11 @@ body.page-storybook.sb-modal-open {
 
 .sb-flip-art img {
   position: absolute;
-  left: 12px;
-  top: 11px;
-  width: calc(100% - 24px);
-  height: calc(100% - 22px);
-  object-fit: contain;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
   object-position: center;
   z-index: 1;
   border-radius: 4px;

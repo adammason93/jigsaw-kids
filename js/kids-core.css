@@ -125,6 +125,26 @@
   min-height: 1.2rem;
 }
 
+.kids-settings__sync-storybook {
+  margin: 0 0 0.55rem;
+  font-size: 0.76rem;
+  line-height: 1.35;
+  font-weight: 650;
+  color: #64748b;
+}
+
+.kids-settings__sync-storybook.is-ok {
+  color: #15803d;
+}
+
+.kids-settings__sync-storybook.is-warn {
+  color: #b45309;
+}
+
+.kids-settings__sync-storybook.is-err {
+  color: #b91c1c;
+}
+
 .kids-settings__row--email {
   flex-direction: column;
   align-items: stretch;

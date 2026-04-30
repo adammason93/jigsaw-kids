@@ -767,14 +767,14 @@
       if (coverPanel) {
         coverPanel.classList.add("sb-cover__panel--themed");
         var safeUrl = String(u).replace(/\\/g, "\\\\").replace(/"/g, '\\"');
-        coverPanel.style.backgroundImage = 'url("' + safeUrl + '")';
+        coverPanel.style.setProperty("--sb-cover-photo", 'url("' + safeUrl + '")');
       }
     } else {
       book.classList.remove("sb-book--themed");
       book.style.backgroundImage = "";
       if (coverPanel) {
         coverPanel.classList.remove("sb-cover__panel--themed");
-        coverPanel.style.backgroundImage = "";
+        coverPanel.style.removeProperty("--sb-cover-photo");
       }
     }
   }
@@ -790,7 +790,7 @@
     book.style.backgroundImage = "";
     if (coverPanel) {
       coverPanel.classList.remove("sb-cover__panel--themed");
-      coverPanel.style.backgroundImage = "";
+      coverPanel.style.removeProperty("--sb-cover-photo");
     }
   }
 
