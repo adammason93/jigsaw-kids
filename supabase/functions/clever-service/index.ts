@@ -617,6 +617,118 @@ async function openaiImageUrl(
   throw lastErr ?? new Error("image_failed");
 }
 
+/** Fal prompts are shorter; Redux already conditions on reference image. */
+const FAL_REDUX_PROMPT_MAX = 2800;
+
+async function falQueueResult(
+  falKey: string,
+  modelId: string,
+  input: Record<string, unknown>,
+): Promise<Record<string, unknown>> {
+  const queueBase = `https://queue.fal.run/${modelId}`;
+  const tryBodies = [JSON.stringify(input), JSON.stringify({ input })];
+
+  let submitText = "";
+  let submitOk = false;
+  for (const body of tryBodies) {
+    const submitRes = await fetch(queueBase, {
+      method: "POST",
+      headers: {
+        Authorization: `Key ${falKey}`,
+        "Content-Type": "application/json",
+      },
+      body,
+    });
+    submitText = await submitRes.text();
+    if (submitRes.ok) {
+      submitOk = true;
+      break;
+    }
+    if (submitRes.status !== 400 && submitRes.status !== 422) {
+      throw new Error(`fal_submit_${submitRes.status}:${submitText.slice(0, 280)}`);
+    }
+  }
+  if (!submitOk) {
+    throw new Error(`fal_submit:${submitText.slice(0, 280)}`);
+  }
+
+  let sub: {
+    request_id?: string;
+    status_url?: string;
+    response_url?: string;
+  };
+  try {
+    sub = JSON.parse(submitText);
+  } catch {
+    throw new Error("fal_submit_bad_json");
+  }
+  const rid = sub.request_id;
+  if (!rid) throw new Error("fal_no_request_id");
+
+  const statusUrl = sub.status_url ?? `${queueBase}/requests/${rid}/status`;
+  const resultUrl = sub.response_url ?? `${queueBase}/requests/${rid}`;
+
+  const deadline = Date.now() + 240_000;
+  while (Date.now() < deadline) {
+    await delay(2500);
+    const st = await fetch(`${statusUrl}?logs=0`, {
+      headers: { Authorization: `Key ${falKey}` },
+    });
+    if (!st.ok) continue;
+    let sj: { status?: string; error?: string };
+    try {
+      sj = await st.json();
+    } catch {
+      continue;
+    }
+    if (sj.status === "COMPLETED") {
+      const res = await fetch(resultUrl, {
+        headers: { Authorization: `Key ${falKey}` },
+      });
+      if (!res.ok) {
+        const t = await res.text();
+        throw new Error(`fal_result_${res.status}:${t.slice(0, 220)}`);
+      }
+      return (await res.json()) as Record<string, unknown>;
+    }
+    if (sj.status === "FAILED") {
+      throw new Error(`fal_job_failed:${sj.error ?? "unknown"}`);
+    }
+    if (sj.error) throw new Error(`fal_job:${sj.error}`);
+  }
+  throw new Error("fal_timeout");
+}
+
+/**
+ * Image-to-image style spread using reference (spread 1). Better character continuity than text-only DALL·E.
+ * @see https://fal.ai/models/fal-ai/flux-pro/v1.1-ultra/redux
+ */
+async function falFluxReduxImageUrl(
+  falKey: string,
+  modelId: string,
+  referenceImageUrl: string,
+  prompt: string,
+  imagePromptStrength: number,
+): Promise<string> {
+  const input = {
+    image_url: referenceImageUrl,
+    prompt: prompt.slice(0, FAL_REDUX_PROMPT_MAX),
+    aspect_ratio: "4:3",
+    image_prompt_strength: Math.min(0.95, Math.max(0.05, imagePromptStrength)),
+    safety_tolerance: "2",
+    output_format: "png",
+    enhance_prompt: false,
+    num_images: 1,
+  };
+  const data = await falQueueResult(falKey, modelId, input);
+  const err = data.error;
+  if (typeof err === "string" && err) throw new Error(`fal_output:${err.slice(0, 200)}`);
+  const images = data.images as { url?: string }[] | undefined;
+  const u = images?.[0]?.url;
+  if (!u) throw new Error("fal_empty_images");
+  return u;
+}
+
 /** Landscape spread first; some keys/billing paths fail on 1792×1024 — fall back to square. */
 async function openaiSpreadImageUrl(apiKey: string, prompt: string): Promise<string> {
   // Try DALL-E 3 at 1792x1024 (landscape) to perfectly fit a double-page spread.
@@ -849,6 +961,16 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
   const pagesOut: { text: string; imageUrl: string | null }[] = [];
   let sceneImageUrl: string | null = null;
   let firstPanelVisualLockUsed = false;
+  let falReduxSpreadCount = 0;
+
+  const falKey = (Deno.env.get("FAL_KEY") ?? "").trim();
+  const falDisabled = Deno.env.get("STORYBOOK_FAL_DISABLE") === "1";
+  const useFalRedux = Boolean(falKey) && !falDisabled;
+  const falModel =
+    (Deno.env.get("STORYBOOK_FAL_MODEL") ?? "").trim() ||
+    "fal-ai/flux-pro/v1.1-ultra/redux";
+  const falStrengthRaw = Number(Deno.env.get("STORYBOOK_FAL_REFERENCE_STRENGTH") ?? "0.35");
+  const falStrength = Number.isFinite(falStrengthRaw) ? falStrengthRaw : 0.35;
 
   try {
     const briefs: { index: number; brief: string }[] = [];
@@ -887,20 +1009,38 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
     }
 
     if (briefs.length > 1) {
+      const referenceStillUrl = urls[0];
       const rest = await Promise.all(
         briefs.slice(1).map(async (b, idx) => {
           if (idx > 0) await delay(idx * staggerMs);
-          return openaiImageUrl(
-            apiKey,
-            composeDallePrompt({
-              preamble: stylePreamble,
-              envTheme,
-              sceneBrief: b.brief,
-              castBible,
-              firstPanelLock: panelLock,
-            }),
-            "1024x1024",
-          );
+          const composed = composeDallePrompt({
+            preamble: stylePreamble,
+            envTheme,
+            sceneBrief: b.brief,
+            castBible,
+            firstPanelLock: panelLock,
+          });
+          if (useFalRedux && referenceStillUrl) {
+            try {
+              const falPrompt =
+                "New story moment — change poses, action, and background to match the scene. " +
+                "Keep the same hero face, hair, outfit colours, and the same buddy and creatures as the reference. " +
+                "Textless illustration; soft matte clay toy 3D style only. " +
+                composed.slice(0, FAL_REDUX_PROMPT_MAX - 220);
+              const u = await falFluxReduxImageUrl(
+                falKey,
+                falModel,
+                referenceStillUrl,
+                falPrompt,
+                falStrength,
+              );
+              falReduxSpreadCount++;
+              return u;
+            } catch (e) {
+              console.warn("[clever-service] Fal Redux failed, using OpenAI", e);
+            }
+          }
+          return openaiImageUrl(apiKey, composed, "1024x1024");
         }),
       );
       for (let i = 0; i < rest.length; i++) {
@@ -953,6 +1093,8 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
       spreads: 6,
       characterLockCompiled: compiledLock.length > 0,
       firstPanelVisualLock: firstPanelVisualLockUsed,
+      falReduxModel: useFalRedux ? falModel : null,
+      falReduxSpreads: falReduxSpreadCount,
     },
   });
 });
