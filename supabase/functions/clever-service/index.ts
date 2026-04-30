@@ -623,12 +623,12 @@ Rules:
       ? " If appearance lines are given for those people, stay consistent with those visual details when you naturally describe them."
       : ""
   }
-- Include fields title (string), characterDesign (string), bookColor (string: "blue" or "green" if the child's name sounds like a boy, "pink" if it sounds like a girl), and pages (array of 12 objects).
+- Include fields title (string), characterDesign (string), bookColor (string: MUST be exactly "blue", "green", or "pink". If the child's name is typically male (e.g. Isaac, Leo), use "blue" or "green". If female, use "pink"), and pages (array of 12 objects).
   For "characterDesign": write an EXTREMELY detailed visual description of EVERY SINGLE character, animal, and creature that appears ANYWHERE in the story (including the hero, the buddy, and any animals they meet). For each, you MUST define their EXACT gender (e.g. boy/girl), age, height, body shape, skin/surface tone, eye color, facial features, hair color, hair style, AND exact texture/material (e.g. "smooth sculpted clay hair", "fuzzy felt fur", "shiny plastic"). For creatures, explicitly define their anatomy (e.g. "has small wings", "no wings", "long tail"). Plus ONE specific, unchanging outfit or set of accessories with exact colors and materials. If an animal or creature wears nothing, explicitly state "in natural animal form (no human outfits)". CRITICAL: Keep clothing solid-colored and simple. DO NOT put logos, graphics, patterns, or text on clothing (DALL-E hallucinates these). (e.g., "Sofia: a 5-year-old girl, short and chubby, round face, small button nose, wide happy smile, light peach skin, big round green eyes, blonde wavy shoulder-length hair made of smooth sculpted clay, wearing a plain solid cream hoodie, plain solid olive green cargo pants, and white sneakers. The Buddy: a small chubby wingless dragon with smooth solid teal clay skin, yellow spikes down its back, in natural animal form (no human outfits)"). DO NOT give them multiple outfits or changing colors. You MUST use the exact same clothing description for the hero in EVERY single illustrationBrief. This will be used as the master reference to keep them identical across all illustrations.
 - Each page: { "text": string, "illustrationBrief": string | null }.
 - DOUBLE-PAGE SPREADS: pair pages as (1,2), (3,4), (5,6), (7,8), (9,10), (11,12).
   Odd-numbered pages (1,3,5,7,9,11) are TEXT-FIRST pages only — use "illustrationBrief": null.
-  Even-numbered pages (2,4,6,8,10,12) are PICTURE pages — each MUST have a non-null "illustrationBrief": a short visual scene description for an illustrator (no text to draw, no words on signs). Each brief MUST be different. The brief MUST spell out the same specific moment as the text on the previous page: same characters, action, setting details, and props — not a generic scene for that chapter. CRITICAL: If the text mentions a character or animal (like a monkey or giraffe), they MUST be explicitly listed and described in the illustrationBrief so the illustrator knows to draw them! In every single brief, explicitly restate the exact gender, age, body shape, facial features, skin tone, hair style, hair texture, and clothing/accessory colors for EVERY character, creature, and object present in the scene to force the illustrator to draw them consistently. If an animal wears nothing, restate "in natural animal form (no human outfits)". Also, explicitly restate the exact visual style of the environment (e.g. "pastel pink sky, tall rounded green trees, smooth beige sand") in every brief to keep the background consistent.
+  Even-numbered pages (2,4,6,8,10,12) are PICTURE pages — each MUST have a non-null "illustrationBrief": a short visual scene description for an illustrator (no text to draw, no words on signs). Each brief MUST be different. The brief MUST spell out the same specific moment as the text on the previous page: same characters, action, setting details, and props — not a generic scene for that chapter. CRITICAL: If the text mentions a character or animal (like a monkey or giraffe), they MUST be explicitly listed and described in the illustrationBrief so the illustrator knows to draw them! CRITICAL FOR CONSISTENCY: DO NOT re-describe the characters' permanent looks (clothes, hair, colors) in the brief! Just state WHO is in the scene and WHAT they are doing (e.g. "Isaac and the Giraffe are standing next to a river"). The illustrator already has the master designs. If a character is NOT mentioned in the brief, they will NOT be drawn.
   When game people with portrait notes appear on a picture page, the brief should mention them looking like those notes (hair, outfit colours, age vibe).
 - If a "plot idea" is given, you MUST make it the central theme of the story and feature it heavily in EVERY illustration brief. If it is empty, invent a short happy outing that fits the setting.
 - JSON only, no markdown.`;
@@ -657,14 +657,11 @@ Return JSON shape: { "title": string, "characterDesign": string, "pages": [ { "t
   const imagePromptPrefix =
     "A completely textless illustration. DO NOT include any writing, letters, words, typography, labels, or speech bubbles anywhere in the image. " +
     "CRITICAL LAYOUT RULE: Leave the left half of the image mostly uncluttered with a simple, soft, darker background (like empty sky, plain wall, or soft grass) so that WHITE storybook text can be printed over it clearly. Place the main characters and action on the right half or center-right of the image. " +
-    "Same soft 3D clay and matte toy render as a fancy kids' app, rounded shapes, gentle pastel lighting, " +
-    "beautiful cinematic scene filling the picture edge-to-edge. " +
-    "draw the actual story environment flowing seamlessly without any frames or margins; " +
-    "wholesome and safe for toddlers. " +
+    "STYLE: Soft 3D clay and matte toy render as a fancy kids' app, rounded shapes, gentle pastel lighting, beautiful cinematic scene filling the picture edge-to-edge. Draw the actual story environment flowing seamlessly without any frames or margins; wholesome and safe for toddlers. " +
     `MASTER CHARACTER DESIGNS (You MUST use these exact outfits, genders, ages, body shapes, facial features, skin tones, hair styles, hair textures, anatomy, and accessory colors in every image to maintain perfect consistency. Do NOT change any colors or accessories between images, do NOT change textures from smooth clay to realistic textures, do NOT add or remove wings/horns/collars/logos. If an animal is described with no outfits, you MUST draw them in their natural animal form without any human accessories. CRITICAL: If a character or animal is mentioned in the Scene description below, you MUST include them in the illustration!): ${finalCharacterDesc}. ` +
-    `Setting mood and environment style (keep background colors, trees, buildings, and landscape details EXACTLY consistent in every image): ${placeDesc}. ` +
-    (plotHint.length > 0 ? `CRITICAL VISUAL THEME to include: ${plotHint}. ` : "") +
-    `Scene: `;
+    `ENVIRONMENT: ${placeDesc}. ` +
+    (plotHint.length > 0 ? `THEME: ${plotHint}. ` : "") +
+    `SCENE ACTION: `;
 
   const pagesOut: { text: string; imageUrl: string | null }[] = [];
   let sceneImageUrl: string | null = null;
@@ -683,14 +680,9 @@ Return JSON shape: { "title": string, "characterDesign": string, "pages": [ { "t
     const urls = await Promise.all(
       briefs.map(async (b, k) => {
         if (k > 0) await delay(k * staggerMs);
-        const beat = spreadTextForPicturePage(b.index, story.pages).slice(0, 320);
-          const beatSafe = beat.replace(/"/gu, "'").replace(/\n/g, " ");
-        const beatClause = beatSafe
-          ? ` Illustrate this story moment (same characters, action, place): ${beatSafe}. `
-          : " ";
-          const fullPrompt = imagePromptPrefix + beatClause + b.brief;
-          return await openaiImageUrl(apiKey, fullPrompt, "1024x1024");
-        }),
+        const fullPrompt = imagePromptPrefix + b.brief;
+        return await openaiImageUrl(apiKey, fullPrompt, "1024x1024");
+      }),
     );
     
     // Reuse the first spread's image as the cover art to save 1 image generation cost
