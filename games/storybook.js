@@ -1945,9 +1945,12 @@
           renderShelf();
         }
 
-        // 3. If local had books the cloud didn't, upload the merged list
-        if (needsUpload && window.KidsScoreCloud.scheduleStorybookUpload) {
-          window.KidsScoreCloud.scheduleStorybookUpload(JSON.stringify(local));
+        // 3. If local had books the cloud didn't, upload the merged list immediately
+        if (needsUpload && window.KidsScoreCloud.uploadStorybookLibrary) {
+          window.KidsScoreCloud.uploadStorybookLibrary(JSON.stringify(local), function(err) {
+            if (err) console.error("Error uploading storybook library:", err);
+            else console.log("Successfully uploaded merged storybook library.");
+          });
         }
       });
     };
