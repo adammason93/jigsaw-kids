@@ -66,10 +66,7 @@
     
     // Highlight the word being read
     if (element) {
-      element.style.backgroundColor = "rgba(255, 200, 0, 0.5)";
-      element.style.borderRadius = "4px";
-      element.style.padding = "0 2px";
-      element.style.transition = "background-color 0.2s";
+      element.classList.add("sb-word-reading");
     }
     
     var audioUrl = fUrl + "?ttsText=" + encodeURIComponent(word);
@@ -80,7 +77,7 @@
       playPromise.catch(function(e) {
         console.error("Word audio playback failed:", e);
         if (element) {
-          element.style.backgroundColor = "transparent";
+          element.classList.remove("sb-word-reading");
         }
         stopReading();
       });
@@ -88,13 +85,13 @@
     
     currentAudio.onended = function() {
       if (element) {
-        element.style.backgroundColor = "transparent";
+        element.classList.remove("sb-word-reading");
       }
       stopReading();
     };
     currentAudio.onerror = function() {
       if (element) {
-        element.style.backgroundColor = "transparent";
+        element.classList.remove("sb-word-reading");
       }
       stopReading();
     };
@@ -829,6 +826,100 @@
     };
   }
 
+  /** Words in ALL CAPS (sound effects) — skip common short words so body text stays normal. */
+  var SB_BIG_WORD_STOP = {
+    THE: true,
+    AND: true,
+    BUT: true,
+    FOR: true,
+    WAS: true,
+    ARE: true,
+    WERE: true,
+    NOT: true,
+    SHE: true,
+    HER: true,
+    HIS: true,
+    HIM: true,
+    YOU: true,
+    ALL: true,
+    CAN: true,
+    HAD: true,
+    HAS: true,
+    ONE: true,
+    TWO: true,
+    DAY: true,
+    WAY: true,
+    OUT: true,
+    OFF: true,
+    TOO: true,
+    WHO: true,
+    OUR: true,
+    SAY: true,
+    YES: true,
+    NOW: true,
+    NEW: true,
+    HOW: true,
+    WHY: true,
+    LET: true,
+    GOT: true,
+    GET: true,
+    BOY: true,
+    GIRL: true,
+    MAN: true,
+    MEN: true,
+    MUM: true,
+    DAD: true,
+  };
+
+  function isBigWordToken(part) {
+    if (!part) {
+      return false;
+    }
+    var letters = part.replace(/[^A-Za-z]/g, "");
+    if (letters.length < 3) {
+      return false;
+    }
+    if (letters !== letters.toUpperCase()) {
+      return false;
+    }
+    if (SB_BIG_WORD_STOP[letters]) {
+      return false;
+    }
+    return true;
+  }
+
+  function storyPageTextToReadableHtml(text) {
+    var lines = escapeHtml(String(text || ""))
+      .replace(/\r/g, "")
+      .split("\n");
+    var htmlLines = [];
+    for (var li = 0; li < lines.length; li++) {
+      var words = lines[li].split(/\s+/).filter(function (w) {
+        return w.length > 0;
+      });
+      var spans = [];
+      for (var wi = 0; wi < words.length; wi++) {
+        var word = words[wi];
+        var cleanWord = word.replace(/[.,/#!$%^&*;:{}=\-_`~()'"”]/g, "");
+        var cls = "sb-readable-word";
+        if (isBigWordToken(word)) {
+          cls += " sb-big-word";
+        }
+        spans.push(
+          '<span class="' +
+            cls +
+            '" data-word="' +
+            escapeAttr(cleanWord) +
+            '">' +
+            word +
+            "</span>"
+        );
+      }
+      htmlLines.push(spans.join(" "));
+    }
+    return htmlLines.join("<br/>");
+  }
+
   function openSampleBook() {
     story = buildSampleStory();
     spreadIndex = 0;
@@ -844,37 +935,25 @@
     stopReading(); // Stop any playing audio when page turns
     
     if (spreadIndex * 2 >= story.pages.length) {
-      spreadText.innerHTML = '<div style="text-align:center;margin-top:2rem;background:rgba(255,255,255,0.85);padding:2rem;border-radius:1.5rem;box-shadow:0 8px 32px rgba(157,23,77,0.15);display:inline-block;backdrop-filter:blur(4px);"><h2 style="font-size:2.5rem;margin-bottom:1rem;color:#9d174d;text-shadow:1px 1px 0 #fff;">The End</h2><p style="font-size:1.3rem;color:#500724;font-weight:700;margin:0;">We hope you enjoyed the story!</p></div>';
+      spreadText.innerHTML =
+        '<div class="sb-the-end-wrap" role="status">' +
+        '<h2 class="sb-the-end-title">The End</h2>' +
+        '<p class="sb-the-end-lead">We hope you enjoyed the story!</p>' +
+        "</div>";
       if (spreadTextActions) spreadTextActions.hidden = true;
       return;
     }
     var i = spreadIndex * 2;
     var leftP = story.pages[i];
     if (leftP && leftP.text) {
-      // Split text into words and wrap each in a span for individual word reading
-      var words = escapeHtml(leftP.text).split(/\s+/);
-      var html = words.map(function(word) {
-        // Handle newlines by splitting on them, wrapping words, and rejoining with <br/>
-        var parts = word.split('\n');
-        return parts.map(function(part) {
-          if (!part) return '';
-          // Strip punctuation for the data attribute so the TTS speaks the word cleanly
-          var cleanWord = part.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "");
-          return '<span class="sb-readable-word" data-word="' + escapeAttr(cleanWord) + '" style="cursor: pointer; display: inline-block;">' + part + '</span>';
-        }).join('<br/>');
-      }).join(' ');
-      
-      // Replace literal \n with <br/> as well just in case
-      html = html.replace(/\\n/g, "<br/>");
-      spreadText.innerHTML = html;
-      
-      // Add click listeners to all the words
-      var wordSpans = spreadText.querySelectorAll('.sb-readable-word');
+      spreadText.innerHTML = storyPageTextToReadableHtml(leftP.text);
+
+      var wordSpans = spreadText.querySelectorAll(".sb-readable-word");
       for (var w = 0; w < wordSpans.length; w++) {
-        wordSpans[w].addEventListener('click', function(e) {
+        wordSpans[w].addEventListener("click", function (e) {
           e.preventDefault();
           e.stopPropagation();
-          var wordToRead = this.getAttribute('data-word');
+          var wordToRead = this.getAttribute("data-word");
           if (wordToRead) {
             readWordOutLoud(wordToRead, this);
           }

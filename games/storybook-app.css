@@ -1597,7 +1597,7 @@ body.page-storybook.sb-modal-open {
   -webkit-transform: rotateY(180deg);
 }
 
-/* Text sits over the full-bleed art; readability comes from line-by-line pills on .sb-flip-text__highlight */
+/* Text over full-bleed art: “ink on picture” styling targets .sb-flip-text__highlight under .sb-flip-spread__inner--has-art */
 .sb-flip-spread__inner--has-art .sb-flip-page--text .sb-flip-page__sheet {
   background: transparent;
   box-shadow: none;
@@ -1830,6 +1830,105 @@ body.page-storybook.sb-modal-open {
   box-decoration-break: clone;
   -webkit-box-decoration-break: clone;
   box-shadow: 0 1px 3px rgba(42, 10, 31, 0.08);
+}
+
+/* Picture-book text: sits on the art like ink (no white boxes) — applies to all saved books via layout class */
+.sb-flip-spread__inner--has-art .sb-flip-text__highlight {
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+  border-radius: 0;
+  font-family: "Kalam", "Sniglet", "Fredoka", cursive, sans-serif;
+  font-size: clamp(1rem, 3.1vw, 1.22rem);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1.85;
+  color: #2e2720;
+  text-shadow:
+    0 0 1px rgba(255, 252, 248, 0.95),
+    0 0 16px rgba(255, 250, 245, 0.9),
+    0 0 26px rgba(255, 248, 242, 0.55),
+    0 1px 2px rgba(255, 255, 255, 0.78),
+    0 2px 10px rgba(35, 28, 22, 0.32);
+  -webkit-font-smoothing: antialiased;
+}
+
+.sb-flip-spread__inner--has-art .sb-flip-text {
+  max-width: min(28rem, 92%);
+}
+
+.sb-flip-spread__inner--has-art .sb-readable-word {
+  cursor: pointer;
+  border-radius: 0.18em;
+  transition: background 0.15s ease;
+}
+
+.sb-flip-spread__inner--has-art .sb-readable-word:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.sb-flip-spread__inner--has-art .sb-big-word {
+  font-family: "Kalam", "Sniglet", "Fredoka", cursive, sans-serif;
+  font-size: 1.55em;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  line-height: 1.15;
+  color: #166860;
+  color: color-mix(in srgb, var(--sb-flip-dark, #166860) 68%, #0f766e 32%);
+  transform: rotate(-2.5deg) skewX(-3deg);
+  display: inline-block;
+  margin: 0.1em 0.05em 0 0.02em;
+  text-shadow:
+    0 0 2px rgba(255, 252, 247, 0.98),
+    0 0 14px rgba(220, 250, 245, 0.55),
+    0 2px 0 rgba(255, 255, 255, 0.42),
+    0 3px 10px rgba(12, 55, 52, 0.35);
+}
+
+.sb-flip-spread__inner--has-art .sb-word-reading {
+  outline: 2px solid rgba(251, 191, 36, 0.95);
+  outline-offset: 2px;
+  background: rgba(255, 255, 255, 0.38);
+  border-radius: 0.24em;
+}
+
+.sb-the-end-wrap {
+  text-align: center;
+  margin-top: 1.25rem;
+  padding: 0.35rem 0.75rem;
+}
+
+.sb-the-end-title {
+  font-family: "Kalam", "Sniglet", "Fredoka", cursive, sans-serif;
+  font-size: clamp(1.75rem, 5.5vw, 2.35rem);
+  font-weight: 800;
+  margin: 0 0 0.35rem;
+  color: #9d174d;
+  letter-spacing: 0.03em;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+
+.sb-the-end-lead {
+  font-family: "Kalam", "Sniglet", "Fredoka", cursive, sans-serif;
+  font-size: clamp(0.98rem, 3vw, 1.15rem);
+  font-weight: 700;
+  margin: 0;
+  color: #500724;
+}
+
+.sb-flip-spread__inner--has-art .sb-the-end-title {
+  color: #fff9fb;
+  text-shadow:
+    0 0 16px rgba(255, 255, 255, 0.45),
+    0 2px 10px rgba(42, 12, 36, 0.45),
+    0 3px 18px rgba(25, 18, 32, 0.35);
+}
+
+.sb-flip-spread__inner--has-art .sb-the-end-lead {
+  color: #fffaf7;
+  text-shadow:
+    0 0 10px rgba(0, 0, 0, 0.3),
+    0 2px 8px rgba(35, 20, 40, 0.38);
 }
 
 .sb-flip-page--art .sb-flip-page__sheet {
