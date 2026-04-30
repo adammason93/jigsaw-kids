@@ -140,6 +140,14 @@
             placeholder="e.g. The star and the brave fox"
           />
           <p class="sb-panel__micro">This is the name on the front cover. Leave it blank and we’ll use a title from your story.</p>
+          <p class="sb-label sb-label--secondary" style="margin-top:1rem;">Book colour</p>
+          <p class="sb-panel__hint sb-panel__hint--tight">For the cover frame and pages. Auto guesses from the name if you don’t pick one.</p>
+          <div class="sb-chip-row" id="sbBookColors" role="radiogroup" aria-label="Book colour">
+            <button type="button" class="sb-chip is-selected" role="radio" aria-checked="true" data-book-color="">Auto</button>
+            <button type="button" class="sb-chip" role="radio" aria-checked="false" data-book-color="blue">Blue</button>
+            <button type="button" class="sb-chip" role="radio" aria-checked="false" data-book-color="green">Green</button>
+            <button type="button" class="sb-chip" role="radio" aria-checked="false" data-book-color="pink">Pink</button>
+          </div>
           <label class="sb-label sb-label--secondary" for="sbAuthor" style="margin-top:1rem;">Author / Illustrator (optional)</label>
           <input
             class="sb-input"
@@ -376,7 +384,7 @@
   <script src="../js/kids-core.js"></script>
   <!-- Required for cloud shelf sync + upload (same as other games) -->
   <script src="../js/score-cloud.js" defer></script>
-  <script src="storybook.js?v=257" defer></script>
+  <script src="storybook.js?v=258" defer></script>
   <script>
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("../sw.js").catch(function () {});

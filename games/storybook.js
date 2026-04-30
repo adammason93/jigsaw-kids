@@ -40,6 +40,7 @@
   var gamePeopleRow = document.getElementById("sbGamePeople");
   var gamePeopleBlock = document.getElementById("sbGamePeopleBlock");
   var placeRow = document.getElementById("sbPlaces");
+  var bookColorRow = document.getElementById("sbBookColors");
   var errEl = document.getElementById("sbError");
   var modalErr = document.getElementById("sbModalError");
   var progressEl = document.getElementById("sbProgress");
@@ -384,6 +385,8 @@
   var selectedChar = "unicorn";
   /** @type {string} */
   var selectedPlace = "beach";
+  /** @type {string} book frame colour: "" = Auto, or "blue"|"green"|"pink" */
+  var selectedBookCoverColor = "";
   /** @type {{ title: string, author?: string, sceneImageUrl?: string|null, pages: { text: string, imageUrl: string|null }[] } | null} */
   var story = null;
   var spreadIndex = 0;
@@ -1785,6 +1788,30 @@
     });
   }
 
+  function refreshBookColorChips() {
+    if (!bookColorRow) return;
+    Array.prototype.forEach.call(
+      bookColorRow.querySelectorAll("[data-book-color]"),
+      function (btn) {
+        var v = btn.getAttribute("data-book-color") || "";
+        var on = v === selectedBookCoverColor;
+        btn.classList.toggle("is-selected", on);
+        btn.setAttribute("aria-checked", on ? "true" : "false");
+      }
+    );
+  }
+
+  function wireBookColorChips() {
+    if (!bookColorRow) return;
+    Array.prototype.forEach.call(bookColorRow.querySelectorAll("[data-book-color]"), function (btn) {
+      btn.addEventListener("click", function () {
+        selectedBookCoverColor = btn.getAttribute("data-book-color") || "";
+        refreshBookColorChips();
+      });
+    });
+    refreshBookColorChips();
+  }
+
   function refreshCharacterChips() {
     if (!charRow) return;
     Array.prototype.forEach.call(charRow.querySelectorAll(".sb-chip"), function (el, i) {
@@ -1837,6 +1864,7 @@
       refreshPlaceChips();
     }
     buildGamePeopleChips();
+    wireBookColorChips();
   }
 
   function renderProgress() {
@@ -2187,6 +2215,7 @@
             return p.label;
           }),
           familyPeople: familyPeople,
+          bookCoverColor: selectedBookCoverColor || undefined,
         }),
       })
         .then(function (r) {

@@ -36,7 +36,154 @@ const FAMILY_PORTRAIT_PATHS: Record<string, string> = {
 type FamilyPerson = { id: string; label: string };
 
 type StoryPage = { text: string; illustrationBrief: string | null };
-type StoryJson = { title: string; characterDesign?: string; bookColor?: "pink" | "blue" | "green"; pages: StoryPage[] };
+type StoryJson = {
+  title: string;
+  characterDesign?: string;
+  bookColor?: "pink" | "blue" | "green";
+  pages: StoryPage[];
+};
+
+const DALLE3_PROMPT_MAX = 3900;
+
+function coerceBookColor(
+  requested: string | undefined,
+  modelRaw: unknown,
+  childName: string,
+): "pink" | "blue" | "green" {
+  const r = String(requested ?? "")
+    .trim()
+    .toLowerCase();
+  if (r === "pink" || r === "blue" || r === "green") return r;
+  const m = String(modelRaw ?? "")
+    .trim()
+    .toLowerCase();
+  if (m === "pink" || m === "blue" || m === "green") return m;
+  const n = (childName.trim().toLowerCase().split(/\s+/)[0] ?? "").replace(/[^a-z]/gu, "");
+  const boyNames = new Set([
+    "isaac", "noah", "oliver", "george", "harry", "jack", "leo", "arthur",
+    "james", "henry", "oscar", "ethan", "lucas", "mason", "liam", "theo",
+    "freddie", "charlie", "thomas", "william", "joshua", "samuel", "max",
+    "daniel", "alexander", "archie", "alfie", "teddy", "reuben", "adam",
+    "jacob", "benjamin", "joseph", "david", "logan", "finley", "harrison",
+  ]);
+  if (boyNames.has(n)) return "blue";
+  return "pink";
+}
+
+function composeDallePrompt(parts: {
+  preamble: string;
+  envTheme: string;
+  sceneBrief: string;
+  castBible: string;
+  firstPanelLock: string;
+}): string {
+  const lockChunk = parts.firstPanelLock.trim()
+    ? `MATCH FIRST SPREAD — copy these exact looks (faces, hair, outfits, creatures): ${parts.firstPanelLock.trim()}\n\n`
+    : "";
+  const mid = `SCENE ACTION: ${parts.sceneBrief}\n\n${lockChunk}MANDATORY CAST (same toy-clay 3D models on every page — identical proportions, colours, species; do not redesign or swap styles):\n`;
+  const head = `${parts.preamble}${parts.envTheme}`;
+  const room = DALLE3_PROMPT_MAX - head.length - mid.length;
+  let cast = parts.castBible.trim();
+  if (cast.length > room) {
+    const cap = Math.max(120, room - 1);
+    cast = cast.slice(0, cap) + "…";
+  }
+  const out = `${head}${mid}${cast}`;
+  return out.slice(0, DALLE3_PROMPT_MAX);
+}
+
+async function compileCharacterLockForImages(
+  apiKey: string,
+  input: {
+    childName: string;
+    buddyKey: string;
+    buddyDesc: string;
+    placeDesc: string;
+    plotHint: string;
+    draftDesign: string;
+    briefsSummary: string;
+  },
+): Promise<string> {
+  const user =
+    `Hero first name: ${input.childName}\n` +
+    `Main buddy type (${input.buddyKey}): ${input.buddyDesc}\n` +
+    `Setting: ${input.placeDesc}\n` +
+    `Plot: ${input.plotHint || "cozy adventure"}\n` +
+    `Who appears in pictures (beats): ${input.briefsSummary}\n\n` +
+    `Storywriter draft (may be messy):\n${input.draftDesign || "(none)"}\n\n` +
+    `Rewrite into LOCKED CAST only — plain text, no JSON.\n` +
+    `Use labeled lines: HERO:, BUDDY:, then one line per other recurring creature (MONKEY:, GIRAFFE:, etc.).\n` +
+    `Each line: exact colours, relative size vs hero, silhouette, distinctive marks, wings/tail yes/no.\n` +
+    `Art style words allowed ONLY: "soft matte clay toy, rounded limbs, gentle toy plastic sheen" — never "realistic" or "Pixar skin".\n` +
+    `Max 2100 characters. No scenery. No actions.`;
+
+  const r = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: "gpt-4o-mini",
+      temperature: 0.15,
+      max_tokens: 1200,
+      messages: [
+        {
+          role: "system",
+          content:
+            "You are an art director for a children's book. Output only the LOCKED CAST block. Be dense and consistent.",
+        },
+        { role: "user", content: user },
+      ],
+    }),
+  });
+
+  if (!r.ok) {
+    const t = await r.text();
+    console.error("compileCharacterLock error", r.status, t.slice(0, 400));
+    return "";
+  }
+  const data = await r.json();
+  const text = String(data.choices?.[0]?.message?.content ?? "").trim();
+  return text.slice(0, 2100);
+}
+
+async function visualLockFromFirstImage(apiKey: string, imageUrl: string): Promise<string> {
+  const r = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: "gpt-4o-mini",
+      temperature: 0.1,
+      max_tokens: 500,
+      messages: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "text",
+              text:
+                "This is spread 1 art for a kids' picture book. Write a single compact paragraph LOCK: only repeatable character looks for later spreads — " +
+                "hero child's face shape, hair colour and cut, eyes, skin, outfit colours; then each creature with species, exact colours, size vs child, distinctive marks. " +
+                "No background, no story. Max 900 characters.",
+            },
+            { type: "image_url", image_url: { url: imageUrl } },
+          ],
+        },
+      ],
+    }),
+  });
+  if (!r.ok) {
+    const t = await r.text();
+    console.error("visualLock error", r.status, t.slice(0, 400));
+    return "";
+  }
+  const data = await r.json();
+  return String(data.choices?.[0]?.message?.content ?? "").trim().slice(0, 900);
+}
 
 function sanitizeFamilyNames(raw: unknown): string[] {
   if (!Array.isArray(raw)) return [];
@@ -240,7 +387,7 @@ function normalizeStoryJson(raw: unknown): StoryJson {
     illustrationBrief:
       (p as StoryPage)?.illustrationBrief != null &&
       String((p as StoryPage).illustrationBrief).trim()
-        ? String((p as StoryPage).illustrationBrief).trim().slice(0, 400)
+        ? String((p as StoryPage).illustrationBrief).trim().slice(0, 520)
         : null,
   }));
 
@@ -271,8 +418,15 @@ function normalizeStoryJson(raw: unknown): StoryJson {
   }
 
   const characterDesign = obj.characterDesign ? String(obj.characterDesign).trim() : undefined;
+  let bookColor: "pink" | "blue" | "green" | undefined;
+  const bcRaw = String((obj as StoryJson).bookColor ?? "")
+    .trim()
+    .toLowerCase();
+  if (bcRaw === "pink" || bcRaw === "blue" || bcRaw === "green") {
+    bookColor = bcRaw;
+  }
 
-  return { title, characterDesign, pages };
+  return { title, characterDesign, bookColor, pages };
 }
 
 async function openaiChatJson(
@@ -418,7 +572,7 @@ async function openaiImageUrl(
             n: 1,
             size,
             quality: "standard",
-            style: "vivid",
+            style: "natural",
           },
           {
             model: "dall-e-3",
@@ -426,7 +580,7 @@ async function openaiImageUrl(
             n: 1,
             size,
             quality: "standard",
-            style: "natural",
+            style: "vivid",
           },
           {
             model: "dall-e-3",
@@ -566,6 +720,7 @@ Deno.serve(async (req) => {
     plotHint?: string;
     familyNames?: string[];
     familyPeople?: unknown;
+    bookCoverColor?: string;
   };
   try {
     body = await req.json();
@@ -643,7 +798,9 @@ Plot idea from the child (CRITICAL: make this the core focus of the story and pi
     plotHint.length ? plotHint : "(none — invent a cosy little adventure that fits the setting)"
   }
 
-Return JSON shape: { "title": string, "characterDesign": string, "pages": [ { "text": string, "illustrationBrief": string | null }, ... 12 items ] }`;
+Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "pink" | "blue" | "green", "pages": [ { "text": string, "illustrationBrief": string | null }, ... 12 items ] }`;
+
+  const bookCoverColorReq = String(body.bookCoverColor ?? "").trim();
 
   let story: StoryJson;
   try {
@@ -653,18 +810,45 @@ Return JSON shape: { "title": string, "characterDesign": string, "pages": [ { "t
     return jsonResponse({ error: "story_failed" }, 502);
   }
 
-  const finalCharacterDesc = story.characterDesign || characterDesc;
-  const imagePromptPrefix =
+  const briefsSummary = ILLUSTRATED_PAGE_INDICES.map((idx) => story.pages[idx]?.illustrationBrief)
+    .filter(Boolean)
+    .join(" | ")
+    .slice(0, 900);
+
+  let compiledLock = "";
+  try {
+    compiledLock = await compileCharacterLockForImages(apiKey, {
+      childName,
+      buddyKey: characterKey,
+      buddyDesc: characterDesc,
+      placeDesc,
+      plotHint,
+      draftDesign: story.characterDesign || "",
+      briefsSummary,
+    });
+  } catch (e) {
+    console.warn("[clever-service] compileCharacterLock failed", e);
+  }
+
+  const castBible =
+    compiledLock.length > 120
+      ? compiledLock
+      : story.characterDesign && story.characterDesign.length > 80
+        ? story.characterDesign
+        : `HERO: ${childName}, young child, friendly rounded face, simple solid-colour top and trousers, soft matte clay toy 3D. BUDDY: ${characterDesc}, same toy-clay style, same design on every page.`;
+
+  const stylePreamble =
     "A completely textless illustration. DO NOT include any writing, letters, words, typography, labels, or speech bubbles anywhere in the image. " +
     "CRITICAL LAYOUT RULE: Leave the left half of the image mostly uncluttered with a simple, soft, darker background (like empty sky, plain wall, or soft grass) so that WHITE storybook text can be printed over it clearly. Place the main characters and action on the right half or center-right of the image. " +
-    "STYLE: Soft 3D clay and matte toy render as a fancy kids' app, rounded shapes, gentle pastel lighting, beautiful cinematic scene filling the picture edge-to-edge. Draw the actual story environment flowing seamlessly without any frames or margins; wholesome and safe for toddlers. " +
-    `MASTER CHARACTER DESIGNS (You MUST use these exact outfits, genders, ages, body shapes, facial features, skin tones, hair styles, hair textures, anatomy, and accessory colors in every image to maintain perfect consistency. Do NOT change any colors or accessories between images, do NOT change textures from smooth clay to realistic textures, do NOT add or remove wings/horns/collars/logos. If an animal is described with no outfits, you MUST draw them in their natural animal form without any human accessories. CRITICAL: If a character or animal is mentioned in the Scene description below, you MUST include them in the illustration!): ${finalCharacterDesc}. ` +
-    `ENVIRONMENT: ${placeDesc}. ` +
-    (plotHint.length > 0 ? `THEME: ${plotHint}. ` : "") +
-    `SCENE ACTION: `;
+    "STYLE: soft matte clay and toy-plastic 3D ONLY — rounded limbs, gentle pastel lighting, not realistic human skin, not glossy CGI. Edge-to-edge scene, no frames or borders. Wholesome and safe for toddlers. " +
+    "Draw every creature named in SCENE ACTION. ";
+
+  const envTheme =
+    `ENVIRONMENT: ${placeDesc}. ` + (plotHint.length > 0 ? `THEME: ${plotHint}. ` : "");
 
   const pagesOut: { text: string; imageUrl: string | null }[] = [];
   let sceneImageUrl: string | null = null;
+  let firstPanelVisualLockUsed = false;
 
   try {
     const briefs: { index: number; brief: string }[] = [];
@@ -676,16 +860,54 @@ Return JSON shape: { "title": string, "characterDesign": string, "pages": [ { "t
     }
 
     const staggerMs = 450;
-    
-    const urls = await Promise.all(
-      briefs.map(async (b, k) => {
-        if (k > 0) await delay(k * staggerMs);
-        const fullPrompt = imagePromptPrefix + b.brief;
-        return await openaiImageUrl(apiKey, fullPrompt, "1024x1024");
+    const urls: string[] = [];
+
+    if (briefs.length === 0) {
+      throw new Error("no_illustration_briefs");
+    }
+
+    urls[0] = await openaiImageUrl(
+      apiKey,
+      composeDallePrompt({
+        preamble: stylePreamble,
+        envTheme,
+        sceneBrief: briefs[0].brief,
+        castBible,
+        firstPanelLock: "",
       }),
+      "1024x1024",
     );
-    
-    // Reuse the first spread's image as the cover art to save 1 image generation cost
+
+    let panelLock = "";
+    try {
+      panelLock = await visualLockFromFirstImage(apiKey, urls[0]);
+      firstPanelVisualLockUsed = panelLock.length > 40;
+    } catch (e) {
+      console.warn("[clever-service] visual lock failed", e);
+    }
+
+    if (briefs.length > 1) {
+      const rest = await Promise.all(
+        briefs.slice(1).map(async (b, idx) => {
+          if (idx > 0) await delay(idx * staggerMs);
+          return openaiImageUrl(
+            apiKey,
+            composeDallePrompt({
+              preamble: stylePreamble,
+              envTheme,
+              sceneBrief: b.brief,
+              castBible,
+              firstPanelLock: panelLock,
+            }),
+            "1024x1024",
+          );
+        }),
+      );
+      for (let i = 0; i < rest.length; i++) {
+        urls.push(rest[i]);
+      }
+    }
+
     sceneImageUrl = urls[0] || null;
 
     const urlByIndex = new Map<number, string>();
@@ -711,9 +933,11 @@ Return JSON shape: { "title": string, "characterDesign": string, "pages": [ { "t
     );
   }
 
+  const bookColorOut = coerceBookColor(bookCoverColorReq, story.bookColor, childName);
+
   return jsonResponse({
     title: story.title,
-    bookColor: story.bookColor,
+    bookColor: bookColorOut,
     sceneImageUrl,
     pages: pagesOut,
     meta: {
@@ -727,6 +951,8 @@ Return JSON shape: { "title": string, "characterDesign": string, "pages": [ { "t
       portraitAppearanceUsed: portraitAppearance.length > 0,
       imageCount: pagesOut.filter((p) => p.imageUrl).length,
       spreads: 6,
+      characterLockCompiled: compiledLock.length > 0,
+      firstPanelVisualLock: firstPanelVisualLockUsed,
     },
   });
 });
