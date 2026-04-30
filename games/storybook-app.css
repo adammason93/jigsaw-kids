@@ -1424,6 +1424,9 @@ body.page-storybook.sb-modal-open {
 }
 
 .sb-flip-spread__inner--has-art {
+  /* Fill the full spread width (immersive reader-book can be >920px; else desk colour shows as side bars) */
+  max-width: none;
+  width: 100%;
   /* Soft paper tint so transparency never reveals two-tone “desk” bands under the shells */
   background: radial-gradient(
     ellipse 130% 88% at 50% 42%,
@@ -1446,7 +1449,8 @@ body.page-storybook.sb-modal-open {
   background-position: center;
   background-repeat: no-repeat;
   pointer-events: none;
-  transform: scale(1.05); /* Slight crop to hide any DALL-E generated borders */
+  transform: scale(1.14);
+  transform-origin: center center;
 }
 
 .sb-flip-spread__art-base {
@@ -1468,7 +1472,8 @@ body.page-storybook.sb-modal-open {
   object-position: center;
   pointer-events: none;
   z-index: 1;
-  transform: scale(1.05); /* Slight crop to hide any DALL-E generated borders */
+  transform: scale(1.14);
+  transform-origin: center center;
 }
 
 /* One leaf turns: right-hand page only, hinged at the gutter (normative book forward turn) */
