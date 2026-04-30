@@ -729,6 +729,29 @@ async function falFluxReduxImageUrl(
   return u;
 }
 
+/** Spread 1 only: text-to-image (same Flux family as Redux for style alignment). */
+async function falFluxProTextToImageUrl(
+  falKey: string,
+  modelId: string,
+  prompt: string,
+): Promise<string> {
+  const input = {
+    prompt: prompt.slice(0, DALLE3_PROMPT_MAX),
+    image_size: "landscape_4_3",
+    output_format: "png",
+    safety_tolerance: "2",
+    enhance_prompt: false,
+    num_images: 1,
+  };
+  const data = await falQueueResult(falKey, modelId, input);
+  const err = data.error;
+  if (typeof err === "string" && err) throw new Error(`fal_output:${err.slice(0, 200)}`);
+  const images = data.images as { url?: string }[] | undefined;
+  const u = images?.[0]?.url;
+  if (!u) throw new Error("fal_empty_images");
+  return u;
+}
+
 /** Landscape spread first; some keys/billing paths fail on 1792×1024 — fall back to square. */
 async function openaiSpreadImageUrl(apiKey: string, prompt: string): Promise<string> {
   // Try DALL-E 3 at 1792x1024 (landscape) to perfectly fit a double-page spread.
@@ -962,13 +985,17 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
   let sceneImageUrl: string | null = null;
   let firstPanelVisualLockUsed = false;
   let falReduxSpreadCount = 0;
+  let falTextSpreadCount = 0;
 
   const falKey = (Deno.env.get("FAL_KEY") ?? "").trim();
   const falDisabled = Deno.env.get("STORYBOOK_FAL_DISABLE") === "1";
   const useFalRedux = Boolean(falKey) && !falDisabled;
-  const falModel =
+  const falReduxModel =
     (Deno.env.get("STORYBOOK_FAL_MODEL") ?? "").trim() ||
     "fal-ai/flux-pro/v1.1-ultra/redux";
+  const falTextModel =
+    (Deno.env.get("STORYBOOK_FAL_TEXT_MODEL") ?? "").trim() ||
+    "fal-ai/flux-pro/v1.1";
   const falStrengthRaw = Number(Deno.env.get("STORYBOOK_FAL_REFERENCE_STRENGTH") ?? "0.35");
   const falStrength = Number.isFinite(falStrengthRaw) ? falStrengthRaw : 0.35;
 
@@ -988,17 +1015,25 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
       throw new Error("no_illustration_briefs");
     }
 
-    urls[0] = await openaiImageUrl(
-      apiKey,
-      composeDallePrompt({
-        preamble: stylePreamble,
-        envTheme,
-        sceneBrief: briefs[0].brief,
-        castBible,
-        firstPanelLock: "",
-      }),
-      "1024x1024",
-    );
+    const spread1Prompt = composeDallePrompt({
+      preamble: stylePreamble,
+      envTheme,
+      sceneBrief: briefs[0].brief,
+      castBible,
+      firstPanelLock: "",
+    });
+
+    if (useFalRedux) {
+      try {
+        urls[0] = await falFluxProTextToImageUrl(falKey, falTextModel, spread1Prompt);
+        falTextSpreadCount = 1;
+      } catch (e) {
+        console.warn("[clever-service] Fal text-to-image (spread 1) failed, using OpenAI", e);
+        urls[0] = await openaiImageUrl(apiKey, spread1Prompt, "1024x1024");
+      }
+    } else {
+      urls[0] = await openaiImageUrl(apiKey, spread1Prompt, "1024x1024");
+    }
 
     let panelLock = "";
     try {
@@ -1029,7 +1064,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
                 composed.slice(0, FAL_REDUX_PROMPT_MAX - 220);
               const u = await falFluxReduxImageUrl(
                 falKey,
-                falModel,
+                falReduxModel,
                 referenceStillUrl,
                 falPrompt,
                 falStrength,
@@ -1093,7 +1128,9 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
       spreads: 6,
       characterLockCompiled: compiledLock.length > 0,
       firstPanelVisualLock: firstPanelVisualLockUsed,
-      falReduxModel: useFalRedux ? falModel : null,
+      falTextModel: useFalRedux ? falTextModel : null,
+      falTextSpreads: falTextSpreadCount,
+      falReduxModel: useFalRedux ? falReduxModel : null,
       falReduxSpreads: falReduxSpreadCount,
     },
   });

@@ -1,6 +1,6 @@
 # clever-service (storybook)
 
-Generates a **12-page** story (6 double-page spreads) with GPT-4o-mini JSON and **6** illustrations: **spread 1** is **DALL·E 3** (1024×1024); **spreads 2–6** are either **DALL·E 3** or **[Fal](https://fal.ai) Flux 1.1 Ultra Redux** (image-conditioned on spread 1) when `FAL_KEY` is set — see below.
+Generates a **12-page** story (6 double-page spreads) with **GPT-4o-mini** JSON. **Illustrations:** with **`FAL_KEY`** set — **all 6 spreads** use **[Fal](https://fal.ai)**: spread 1 is **Flux Pro 1.1** text-to-image; spreads 2–6 are **Flux 1.1 Ultra Redux** conditioned on spread 1’s image. Without **`FAL_KEY`**, all 6 images use **DALL·E 3** (OpenAI).
 
 ## Secrets
 
@@ -10,9 +10,10 @@ supabase secrets set OPENAI_API_KEY=sk-...
 # Used to fetch portrait PNGs (e.g. games/images/character-freya.png) for vision → DALL·E prompts.
 supabase secrets set BOOK_ASSETS_BASE_URL=https://your-site.example
 
-# Optional — improves character continuity on spreads 2–6 by conditioning on spread 1’s image.
+# Optional — all 6 pictures via Fal (spread 1: Flux Pro 1.1; 2–6: Ultra Redux + ref image). Falls back to DALL·E per spread if Fal errors.
 supabase secrets set FAL_KEY=...
 # Optional overrides:
+# supabase secrets set STORYBOOK_FAL_TEXT_MODEL=fal-ai/flux-pro/v1.1
 # supabase secrets set STORYBOOK_FAL_MODEL=fal-ai/flux-pro/v1.1-ultra/redux
 # supabase secrets set STORYBOOK_FAL_REFERENCE_STRENGTH=0.35
 # supabase secrets set STORYBOOK_FAL_DISABLE=1   # force all DALL·E even if FAL_KEY is set
@@ -32,7 +33,7 @@ The browser calls `…/functions/v1/clever-service` — set **`storybookEdgeSlug
 
 Rough order: **6** image calls (mix of DALL·E 3 and optional Fal) **+** story chat **+** character-bible chat **+** optional **vision** (portraits + first-panel lock) **+** optional **Fal queue** latency. Check [OpenAI](https://openai.com/pricing) and [Fal pricing](https://fal.ai/pricing) for current rates.
 
-The JSON response `meta` includes `falReduxSpreads` (how many panels used Fal) and `falReduxModel` when Fal is enabled.
+The JSON response **`meta`** includes **`falTextSpreads`** (1 when spread 1 used Fal), **`falReduxSpreads`** (up to 5), plus **`falTextModel`** / **`falReduxModel`** when Fal is enabled.
 
 Portrait images are **not** sent to DALL·E (it only accepts text). The function downloads PNGs from your deployed site, summarises looks with vision, and injects that text into story + image prompts.
 
