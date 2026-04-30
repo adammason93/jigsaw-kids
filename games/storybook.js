@@ -734,14 +734,14 @@
     if (!book || !story) return;
     
     // Apply book color
-    var c = story.bookColor;
-    if (c === "blue") {
+    var c = story.bookColor ? String(story.bookColor).toLowerCase() : "";
+    if (c === "blue" || c.indexOf("blue") !== -1) {
       book.style.setProperty("--sb-flip-red", "#2563eb");
       book.style.setProperty("--sb-flip-light", "#dbeafe");
       book.style.setProperty("--sb-flip-mid", "#1d4ed8");
       book.style.setProperty("--sb-flip-dark", "#1e40af");
       book.style.setProperty("--sb-flip-darker", "#1e3a8a");
-    } else if (c === "green") {
+    } else if (c === "green" || c.indexOf("green") !== -1) {
       book.style.setProperty("--sb-flip-red", "#16a34a");
       book.style.setProperty("--sb-flip-light", "#dcfce7");
       book.style.setProperty("--sb-flip-mid", "#15803d");
@@ -1250,9 +1250,10 @@
   function spineMeta(bookId, title, bookColor) {
     var h = hashFromString(bookId + ":" + title);
     var hue = h % 360;
-    if (bookColor === "blue") hue = 200 + (h % 40); // 200-240
-    else if (bookColor === "green") hue = 120 + (h % 40); // 120-160
-    else if (bookColor === "pink") hue = 320 + (h % 30); // 320-350
+    var c = bookColor ? String(bookColor).toLowerCase() : "";
+    if (c.indexOf("blue") !== -1) hue = 200 + (h % 40); // 200-240
+    else if (c.indexOf("green") !== -1) hue = 120 + (h % 40); // 120-160
+    else if (c.indexOf("pink") !== -1) hue = 320 + (h % 30); // 320-350
     return {
       hue: hue,
       pat: h % 4,
