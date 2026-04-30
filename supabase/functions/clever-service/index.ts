@@ -656,7 +656,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "pages": [ { "t
   const finalCharacterDesc = story.characterDesign || characterDesc;
   const imagePromptPrefix =
     "A completely textless illustration. DO NOT include any writing, letters, words, typography, labels, or speech bubbles anywhere in the image. " +
-    "CRITICAL LAYOUT RULE: Leave the left half of the image mostly uncluttered with a simple, soft background (like empty sky, plain wall, or soft grass) so that black storybook text can be printed over it clearly. Keep all characters, creatures, and important action on the right half or center-right of the image. " +
+    "CRITICAL LAYOUT RULE: Leave the left half of the image mostly uncluttered with a simple, soft, darker background (like empty sky, plain wall, or soft grass) so that WHITE storybook text can be printed over it clearly. Keep all characters, creatures, and important action on the right half or center-right of the image. " +
     "Same soft 3D clay and matte toy render as a fancy kids' app, rounded shapes, gentle pastel lighting, " +
     "beautiful cinematic scene filling the picture edge-to-edge. " +
     "draw the actual story environment flowing seamlessly without any frames or margins; " +
