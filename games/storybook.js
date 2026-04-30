@@ -735,6 +735,30 @@
 
   function applyBookThemingFromStory() {
     if (!book || !story) return;
+    
+    // Apply book color
+    var c = story.bookColor;
+    if (c === "blue") {
+      book.style.setProperty("--sb-flip-red", "#2563eb");
+      book.style.setProperty("--sb-flip-light", "#dbeafe");
+      book.style.setProperty("--sb-flip-mid", "#1d4ed8");
+      book.style.setProperty("--sb-flip-dark", "#1e40af");
+      book.style.setProperty("--sb-flip-darker", "#1e3a8a");
+    } else if (c === "green") {
+      book.style.setProperty("--sb-flip-red", "#16a34a");
+      book.style.setProperty("--sb-flip-light", "#dcfce7");
+      book.style.setProperty("--sb-flip-mid", "#15803d");
+      book.style.setProperty("--sb-flip-dark", "#166534");
+      book.style.setProperty("--sb-flip-darker", "#14532d");
+    } else {
+      // Default pink
+      book.style.setProperty("--sb-flip-red", "#db2777");
+      book.style.setProperty("--sb-flip-light", "#fce7f3");
+      book.style.setProperty("--sb-flip-mid", "#be185d");
+      book.style.setProperty("--sb-flip-dark", "#9d174d");
+      book.style.setProperty("--sb-flip-darker", "#831843");
+    }
+
     var u = story.sceneImageUrl;
     if (u) {
       book.classList.add("sb-book--themed");
@@ -742,8 +766,8 @@
       book.style.backgroundImage = "";
       if (coverPanel) {
         coverPanel.classList.add("sb-cover__panel--themed");
-        coverPanel.style.backgroundImage =
-          'url("' + String(u).replace(/\\/g, "\\\\").replace(/"/g, '\\"') + '")';
+        var safeUrl = String(u).replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+        coverPanel.style.backgroundImage = 'url("' + safeUrl + '")';
       }
     } else {
       book.classList.remove("sb-book--themed");
@@ -757,6 +781,11 @@
 
   function clearBookTheming() {
     if (!book) return;
+    book.style.removeProperty("--sb-flip-red");
+    book.style.removeProperty("--sb-flip-light");
+    book.style.removeProperty("--sb-flip-mid");
+    book.style.removeProperty("--sb-flip-dark");
+    book.style.removeProperty("--sb-flip-darker");
     book.classList.remove("sb-book--themed");
     book.style.backgroundImage = "";
     if (coverPanel) {
@@ -794,6 +823,7 @@
     }
     return {
       title: "Mira and the fallen star (sample)",
+      bookColor: "blue",
       sceneImageUrl: null,
       pages: pages,
     };
@@ -1138,10 +1168,14 @@
     return h >>> 0;
   }
 
-  function spineMeta(bookId, title) {
+  function spineMeta(bookId, title, bookColor) {
     var h = hashFromString(bookId + ":" + title);
+    var hue = h % 360;
+    if (bookColor === "blue") hue = 200 + (h % 40); // 200-240
+    else if (bookColor === "green") hue = 120 + (h % 40); // 120-160
+    else if (bookColor === "pink") hue = 320 + (h % 30); // 320-350
     return {
-      hue: h % 360,
+      hue: hue,
       pat: h % 4,
       hPx: 112 + (h % 40),
       wPx: 21 + (h % 16),
@@ -1160,7 +1194,8 @@
     pages,
     dataUrls,
     sceneDataUrl,
-    sceneUrlFallback
+    sceneUrlFallback,
+    bookColor
   ) {
     var list = loadShelf();
     var id = "b" + Date.now() + "-" + ((Math.random() * 1e6) | 0);
@@ -1175,6 +1210,7 @@
       id: id,
       title: title,
       author: author || "",
+      bookColor: bookColor || null,
       savedAt: new Date().toISOString(),
       pages: storedPages,
       sceneDataUrl: sceneDataUrl || null,
@@ -1207,6 +1243,7 @@
     story = {
       title: item.title,
       author: item.author || "",
+      bookColor: item.bookColor || null,
       sceneImageUrl: item.sceneDataUrl || item.sceneUrlFallback || null,
       pages: item.pages.map(function (p) {
         return {
@@ -1284,7 +1321,7 @@
   }
 
   function createCoverCardWrap(item) {
-    var meta = spineMeta(item.id, item.title);
+    var meta = spineMeta(item.id, item.title, item.bookColor);
     var cover = firstShelfCoverMeta(item);
     var coverSrc = cover.src;
     var pageIdxCover = cover.pageIndex;
@@ -1433,7 +1470,8 @@
             story.pages,
             o.dataUrls,
             o.sceneData,
-            story.sceneImageUrl || null
+            story.sceneImageUrl || null,
+            story.bookColor || null
           );
           renderShelf();
         } catch (e) {
@@ -2114,8 +2152,11 @@
           var apiTitle =
             out.body && out.body.title ? String(out.body.title).trim() : "";
           var customTitle = bookTitleInput ? bookTitleInput.value.trim() : "";
+          var customAuthor = authorInput ? authorInput.value.trim() : "";
           story = {
             title: customTitle || apiTitle || "Your story",
+            author: customAuthor,
+            bookColor: out.body.bookColor || null,
             pages: out.body.pages || [],
             sceneImageUrl: out.body.sceneImageUrl || null,
           };

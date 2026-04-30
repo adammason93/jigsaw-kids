@@ -36,7 +36,7 @@ const FAMILY_PORTRAIT_PATHS: Record<string, string> = {
 type FamilyPerson = { id: string; label: string };
 
 type StoryPage = { text: string; illustrationBrief: string | null };
-type StoryJson = { title: string; characterDesign?: string; pages: StoryPage[] };
+type StoryJson = { title: string; characterDesign?: string; bookColor?: "pink" | "blue" | "green"; pages: StoryPage[] };
 
 function sanitizeFamilyNames(raw: unknown): string[] {
   if (!Array.isArray(raw)) return [];
@@ -622,7 +622,7 @@ Rules:
       ? " If appearance lines are given for those people, stay consistent with those visual details when you naturally describe them."
       : ""
   }
-- Include fields title (string), characterDesign (string), and pages (array of 12 objects).
+- Include fields title (string), characterDesign (string), bookColor (string: "pink", "blue", or "green" based on if the child's name sounds like a boy or girl), and pages (array of 12 objects).
   For "characterDesign": write an EXTREMELY detailed visual description of EVERY character, creature, and important object in the story. For each, you MUST define their EXACT gender (e.g. boy/girl), age, height, body shape, skin/surface tone, eye color, facial features, hair color, hair style, AND exact texture/material (e.g. "smooth sculpted clay hair", "fuzzy felt fur", "shiny plastic"). For creatures, explicitly define their anatomy (e.g. "has small wings", "no wings", "long tail"). Plus ONE specific, unchanging outfit or set of accessories with exact colors and materials. If a creature wears nothing, explicitly state "wearing NO clothes and NO accessories". CRITICAL: Keep clothing solid-colored and simple. DO NOT put logos, graphics, patterns, or text on clothing (DALL-E hallucinates these). (e.g., "Sofia: a 5-year-old girl, short and chubby, round face, small button nose, wide happy smile, light peach skin, big round green eyes, blonde wavy shoulder-length hair made of smooth sculpted clay, wearing a plain solid cream hoodie, plain solid olive green cargo pants, and white sneakers. The Buddy: a small chubby wingless dragon with smooth solid teal clay skin, yellow spikes down its back, wearing NO clothes and NO accessories"). DO NOT give them multiple outfits or changing colors. This will be used as the master reference to keep them identical across all illustrations.
 - Each page: { "text": string, "illustrationBrief": string | null }.
 - DOUBLE-PAGE SPREADS: pair pages as (1,2), (3,4), (5,6), (7,8), (9,10), (11,12).
@@ -720,6 +720,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "pages": [ { "t
 
   return jsonResponse({
     title: story.title,
+    bookColor: story.bookColor,
     sceneImageUrl,
     pages: pagesOut,
     meta: {
@@ -736,3 +737,4 @@ Return JSON shape: { "title": string, "characterDesign": string, "pages": [ { "t
     },
   });
 });
+  
