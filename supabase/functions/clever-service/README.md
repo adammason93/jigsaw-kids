@@ -38,6 +38,8 @@ The JSON response **`meta`** includes **`falCastAnchorUsed`** (true when the anc
 
 Portrait images are **not** sent to DALL·E (it only accepts text). The function downloads PNGs from your deployed site, summarises looks with vision, and injects that text into story + image prompts.
 
+The static **storybook** page loads illustration URLs through the same **`clever-service?url=`** image proxy as DALL·E for **Fal** CDN links (`fal.media`, etc.) so spreads don’t randomly show a black picture pane when the browser can’t fetch the remote file directly.
+
 ## Troubleshooting
 
 - **Fal (`fal_failed`)**: When **`FAL_KEY`** is set, a failed Fal step stops the whole book (no DALL·E substitution). Check function logs, Fal queue errors, and billing. With **cast anchor**, the reference is the anchor URL; with **`STORYBOOK_FAL_CAST_ANCHOR=0`**, Fal must fetch spread 1’s image URL. Tune `STORYBOOK_FAL_REFERENCE_STRENGTH` (higher = stick closer to the reference).

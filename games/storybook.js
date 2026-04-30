@@ -412,10 +412,11 @@
     if (nSpr < 1) return "";
     si = Math.max(0, Math.min(si, nSpr - 1));
     if (si * 2 >= story.pages.length) {
-      return story.sceneImageUrl || "";
+      return storyImageDisplayUrl(story.sceneImageUrl || "");
     }
     var rightP = story.pages[si * 2 + 1];
-    return rightP && rightP.imageUrl ? String(rightP.imageUrl) : "";
+    var raw = rightP && rightP.imageUrl ? String(rightP.imageUrl) : "";
+    return storyImageDisplayUrl(raw);
   }
 
   function clearSpreadTurnRevealFx() {
@@ -986,7 +987,12 @@
     var rightP = isTheEnd ? null : story.pages[si * 2 + 1];
     var pLo = isTheEnd ? story.pages.length : (si * 2 + 1);
     var pHi = isTheEnd ? story.pages.length : (si * 2 + 2);
-    var u = isTheEnd ? (story.sceneImageUrl || "") : (rightP && rightP.imageUrl ? String(rightP.imageUrl) : "");
+    var rawU = isTheEnd
+      ? story.sceneImageUrl || ""
+      : rightP && rightP.imageUrl
+        ? String(rightP.imageUrl)
+        : "";
+    var u = storyImageDisplayUrl(rawU);
 
     if (u) {
       if (spreadArtImg) {
@@ -1091,6 +1097,36 @@
     return String(s).replace(/&/g, "&amp;").replace(/"/g, "&quot;");
   }
 
+  /**
+   * Remote hosts that often block direct browser fetch/CORS or cold-load inconsistently.
+   * Load via clever-service GET `?url=` (same as DALL·E) so images encode for the shelf and show in the reader.
+   */
+  function storyImageNeedsEdgeProxy(url) {
+    var u = String(url || "").toLowerCase();
+    if (!u || u.indexOf("data:") === 0) return false;
+    if (u.indexOf("/functions/v1/") !== -1 && u.indexOf("url=") !== -1) return false;
+    return (
+      u.indexOf("blob.core.windows.net") !== -1 ||
+      u.indexOf("oaiusercontent.com") !== -1 ||
+      u.indexOf("fal.media") !== -1 ||
+      u.indexOf("fal-cdn") !== -1 ||
+      u.indexOf(".r2.dev") !== -1
+    );
+  }
+
+  function storyImageDisplayUrl(remoteUrl) {
+    var u = String(remoteUrl || "").trim();
+    if (!u) return u;
+    if (u.indexOf("data:") === 0) return u;
+    if (!storyImageNeedsEdgeProxy(u)) return u;
+    var base = functionUrl();
+    if (!base) return u;
+    var key = anonKey();
+    var out = base + "?url=" + encodeURIComponent(u);
+    if (key) out += "&apikey=" + encodeURIComponent(key);
+    return out;
+  }
+
   function sanitizeFilename(raw) {
     var s = String(raw || "my-story-book")
       .trim()
@@ -1108,8 +1144,8 @@
       if (!url) return null;
       if (url.indexOf("data:") === 0) return url;
       
-      // 1. First fetch the image using CORS fetch to get the raw Blob. 
-      // We proxy DALL-E urls through our edge function to completely bypass strict browser CORS rules.
+      // 1. First fetch the image using CORS fetch to get the raw Blob.
+      // Proxy DALL·E + Fal (and similar) through clever-service ?url= so CORS/shelf encoding works.
       var fetchUrl = url;
       var fUrl = functionUrl();
       var aKey = anonKey();
@@ -1121,10 +1157,13 @@
         referrerPolicy: "no-referrer",
       };
 
-      if (fUrl && (url.indexOf("blob.core.windows.net") > -1 || url.indexOf("oaiusercontent.com") > -1)) {
-        fetchUrl = fUrl + "?url=" + encodeURIComponent(url);
+      if (fUrl && storyImageNeedsEdgeProxy(url)) {
+        fetchUrl = storyImageDisplayUrl(url);
         if (aKey) {
-          reqOpts.headers = { "Authorization": "Bearer " + aKey };
+          reqOpts.headers = {
+            Authorization: "Bearer " + aKey,
+            apikey: aKey,
+          };
         }
       }
 
