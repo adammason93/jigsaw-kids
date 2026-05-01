@@ -1,25 +1,29 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en-GB">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#354078" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
   <title>Star Catcher — Jigsaw Kids</title>
+  <link rel="manifest" href="../manifest.json" />
+  <link rel="stylesheet" href="../js/kids-core.css" />
   <style>
     * { box-sizing: border-box; }
 
     :root {
       --ink: #354078;
       --pink: #ef93c0;
+      --pink-dark: #b85a98;
       --cream: #fff3df;
       --sky: #add8e2;
+      --yellow: #fff2aa;
     }
 
-    body {
+    html, body {
       margin: 0;
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
+      width: 100%;
+      height: 100%;
       overflow: hidden;
       font-family: "Arial Rounded MT Bold", "Trebuchet MS", Arial, sans-serif;
       background:
@@ -28,49 +32,73 @@
         linear-gradient(180deg, #acd8e3 0%, #dff3f2 56%, #fff1c5 100%);
     }
 
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .star-catcher-back {
+      position: fixed;
+      top: max(6px, env(safe-area-inset-top));
+      left: max(6px, env(safe-area-inset-left));
+      z-index: 40;
+    }
+
+    .star-catcher-back .back-link.back-btn {
+      font-size: 0.92rem;
+      padding: 0.35rem 0.65rem;
+    }
+
     .game-wrap {
-      width: min(1120px, 96vw);
+      width: 100vw;
+      height: 100vh;
+      display: grid;
+      grid-template-rows: auto auto 1fr;
+      gap: 8px;
+      padding: 8px;
+      padding-top: max(8px, env(safe-area-inset-top));
       text-align: center;
       position: relative;
     }
 
     h1 {
-      margin: 6px 0 12px;
+      margin: 0;
       color: var(--ink);
-      font-size: clamp(34px, 5vw, 64px);
+      font-size: clamp(24px, 4.4vw, 54px);
       letter-spacing: 1px;
-      text-shadow: 0 5px 0 white, 0 13px 26px rgba(53,64,120,0.22);
+      text-shadow: 0 4px 0 white, 0 10px 20px rgba(53,64,120,0.2);
+      line-height: 1;
     }
 
     .top-bar {
-      display: flex;
-      gap: 14px;
-      margin-bottom: 14px;
-      flex-wrap: wrap;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+      z-index: 4;
     }
 
     .pill {
-      flex: 1;
-      min-width: 140px;
       background: linear-gradient(180deg, #ffffff 0%, #fff2fa 100%);
-      border: 4px solid var(--ink);
+      border: 3px solid var(--ink);
       border-radius: 999px;
-      padding: 12px 18px;
+      padding: 8px 10px;
+      font-size: clamp(12px, 1.9vw, 18px);
       font-weight: 950;
       color: var(--ink);
-      box-shadow: inset 0 5px 0 rgba(255,255,255,0.9), 0 8px 0 rgba(53,64,120,0.16), 0 16px 30px rgba(53,64,120,0.15);
+      box-shadow: inset 0 4px 0 rgba(255,255,255,0.9), 0 6px 0 rgba(53,64,120,0.16), 0 12px 20px rgba(53,64,120,0.12);
+      white-space: nowrap;
     }
 
     #gamePanel {
       width: 100%;
-      max-width: 1060px;
-      aspect-ratio: 16 / 9;
-      margin: 0 auto;
+      height: 100%;
+      min-height: 0;
       position: relative;
-      border: 8px solid var(--ink);
-      border-radius: 38px;
+      border: 6px solid var(--ink);
+      border-radius: 30px;
       overflow: hidden;
-      box-shadow: 0 24px 54px rgba(53,64,120,0.28), inset 0 0 0 7px rgba(255,255,255,0.45);
+      box-shadow: 0 18px 42px rgba(53,64,120,0.28), inset 0 0 0 6px rgba(255,255,255,0.45);
       background: #acd8e3;
     }
 
@@ -87,45 +115,59 @@
       top: 50%;
       transform: translate(-50%, -50%);
       width: min(500px, 86%);
-      padding: 26px 22px;
-      border-radius: 34px;
-      border: 6px solid var(--ink);
+      padding: 24px 20px;
+      border-radius: 32px;
+      border: 5px solid var(--ink);
       color: var(--ink);
       background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,241,250,0.96));
       box-shadow: 0 18px 35px rgba(53,64,120,0.22);
-      font-size: clamp(30px, 4vw, 46px);
+      font-size: clamp(28px, 4vw, 46px);
       font-weight: 950;
       display: grid;
       gap: 8px;
       pointer-events: none;
-      z-index: 3;
+      z-index: 6;
     }
 
-    .message span { font-size: 21px; }
+    .message span {
+      font-size: clamp(15px, 2vw, 21px);
+    }
+
     .hidden { display: none; }
 
     .controls {
-      margin-top: 16px;
+      position: absolute;
+      inset: auto 0 18px 0;
       display: flex;
-      justify-content: center;
-      gap: 14px;
-      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: end;
+      padding: 0 22px;
+      pointer-events: none;
+      z-index: 8;
+    }
+
+    .side-controls {
+      display: flex;
+      gap: 12px;
     }
 
     button {
       border: 0;
-      border-radius: 26px;
-      padding: 15px 26px;
-      font-size: 20px;
+      border-radius: 24px;
+      min-width: 92px;
+      padding: 14px 18px;
+      font-size: clamp(16px, 2.2vw, 20px);
       font-weight: 950;
       color: white;
       background: linear-gradient(180deg, #ffb0cb 0%, #f274aa 55%, #d85b98 100%);
       box-shadow: inset 0 5px 0 rgba(255,255,255,0.36), 0 8px 0 #a64678, 0 15px 26px rgba(166,70,120,0.25);
       cursor: pointer;
       user-select: none;
+      pointer-events: auto;
+      touch-action: none;
     }
 
-    button:nth-child(2) {
+    #startBtn {
       background: linear-gradient(180deg, #ffe77c 0%, #ffc247 58%, #ef9b2e 100%);
       box-shadow: inset 0 5px 0 rgba(255,255,255,0.4), 0 8px 0 #b8751e, 0 15px 26px rgba(184,117,30,0.24);
     }
@@ -135,44 +177,25 @@
       box-shadow: inset 0 3px 0 rgba(255,255,255,0.3), 0 3px 0 rgba(90,55,90,0.45), 0 8px 16px rgba(90,55,90,0.18);
     }
 
-    .hint {
-      margin-top: 11px;
-      color: var(--ink);
-      font-size: 16px;
-      font-weight: 900;
-      text-shadow: 0 2px 0 rgba(255,255,255,0.78);
-    }
+    .hint { display: none; }
 
-    .portal-back {
-      position: fixed;
-      top: 12px;
-      left: 12px;
-      z-index: 50;
-    }
-
-    .portal-back a {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 10px 16px;
-      border-radius: 999px;
-      font-size: 15px;
-      font-weight: 800;
-      color: var(--ink);
-      text-decoration: none;
-      background: linear-gradient(180deg, #ffffff 0%, #fff2fa 100%);
-      border: 3px solid var(--ink);
-      box-shadow: 0 4px 0 rgba(53,64,120,0.12);
-    }
-
-    .portal-back a:active {
-      transform: translateY(2px);
+    @media (max-width: 760px) {
+      .game-wrap { padding: 6px; gap: 6px; }
+      h1 { font-size: 25px; }
+      .top-bar { gap: 5px; }
+      .pill { padding: 6px 5px; border-width: 2px; }
+      #gamePanel { border-width: 4px; border-radius: 22px; }
+      .controls { padding: 0 12px; bottom: 12px; }
+      button { min-width: 78px; padding: 12px 12px; border-radius: 20px; }
     }
   </style>
 </head>
 <body>
-  <div class="portal-back"><a href="../index.html">← All games</a></div>
-
+  <nav class="star-catcher-back" aria-label="Breadcrumb">
+    <a class="back-link back-btn" href="../index.html" aria-label="Back to all games">
+      <span class="back-btn__icon" aria-hidden="true">&#8592;</span><span class="back-btn__text">Back</span>
+    </a>
+  </nav>
   <main class="game-wrap">
     <h1>⭐ Star Catcher ⭐</h1>
 
@@ -190,19 +213,19 @@
         Press Start!
         <span>Catch the 3D stars, dodge the rain clouds</span>
       </div>
+
+      <div class="controls">
+        <div class="side-controls">
+          <button type="button" id="leftBtn">⬅️ Left</button>
+          <button type="button" id="rightBtn">Right ➡️</button>
+        </div>
+        <button type="button" id="startBtn">▶️ Start</button>
+      </div>
     </section>
-
-    <div class="controls">
-      <button type="button" id="leftBtn">⬅️ Left</button>
-      <button type="button" id="startBtn">▶️ Start</button>
-      <button type="button" id="rightBtn">Right ➡️</button>
-    </div>
-
-    <p class="hint">Reach Level 5 to win 🏆. Each level gets faster with more rain clouds.</p>
   </main>
 
   <script type="module">
-    import * as THREE from 'https://esm.sh/three@0.160.0';
+    import * as THREE from 'https://unpkg.com/three@0.160.0/build/three.module.js';
 
     const panel = document.getElementById('gamePanel');
     const canvas = document.getElementById('gameCanvas');
@@ -258,14 +281,11 @@
     let stars = [];
     let clouds = [];
     let sparkles = [];
-    let combo = 0;
-    let comboTimer = 0;
-    let cameraShake = 0;
-    let nextStarSide = 1;
-    let activeCatchAnimations = [];
 
     const STAR_START_Y = 4.85;
     const PLAYER_MAX_X = 6.9;
+    let nextStarSide = 1;
+    let activeCatchAnimations = [];
 
     function getDifficulty() {
       return {
@@ -321,7 +341,7 @@
     bestEl.textContent = best;
 
     const palette = {
-      ink: '#354078', cream: '#fff1dc', housePink: '#f19ac1', roofPink: '#bd5aa2',
+      ink: '#354078', sky: '#acd8e3', cream: '#fff1dc', housePink: '#f19ac1', roofPink: '#bd5aa2',
       deepPink: '#8f3c8d', lilac: '#d8b4dc', cloudPink: '#f0c6d8', yellow: '#ffe66e',
       crystalBlue: '#bfe7ec', crystalMint: '#dff1d0', crystalGold: '#fff0b8'
     };
@@ -331,14 +351,12 @@
     }
 
     const materials = {
-      cream: mat(palette.cream), pink: mat(palette.housePink), roof: mat(palette.roofPink),
-      roofDark: mat(palette.deepPink), lilac: mat(palette.lilac), cloud: mat(palette.cloudPink),
-      white: mat('#fff8ee'), yellow: mat(palette.yellow), orange: mat('#f6a13a'),
-      blue: mat(palette.crystalBlue), mint: mat(palette.crystalMint), gold: mat(palette.crystalGold),
-      basket: mat('#c47a3a'), basketLight: mat('#f0b36a'), skin: mat('#ffc39f'),
-      hair: mat('#f4b64f'), jumper: mat('#fff0cf'), trousers: mat('#8e876f'),
-      shoes: mat('#f6d9a9'), rain: mat('#63a8f5', 0.55), ink: mat(palette.ink, 0.75),
-      ground: mat('#ecc0d8')
+      cream: mat(palette.cream), pink: mat(palette.housePink), roof: mat(palette.roofPink), roofDark: mat(palette.deepPink),
+      lilac: mat(palette.lilac), cloud: mat(palette.cloudPink), white: mat('#fff8ee'), yellow: mat(palette.yellow),
+      orange: mat('#f6a13a'), blue: mat(palette.crystalBlue), mint: mat(palette.crystalMint), gold: mat(palette.crystalGold),
+      basket: mat('#c47a3a'), basketLight: mat('#f0b36a'), skin: mat('#ffc39f'), hair: mat('#f4b64f'),
+      jumper: mat('#fff0cf'), trousers: mat('#8e876f'), shoes: mat('#f6d9a9'), rain: mat('#63a8f5', 0.55),
+      ink: mat(palette.ink, 0.75), ground: mat('#ecc0d8')
     };
 
     const hemi = new THREE.HemisphereLight('#ffffff', '#e5b4d4', 2.4);
@@ -418,7 +436,6 @@
         add(tube, group);
       });
       group.position.set(3.1, 2.15, -2.5);
-      group.scale.set(1.05, 1.05, 1);
       scene.add(group);
     }
 
@@ -429,22 +446,12 @@
         const a = (Math.PI / 5) * i - Math.PI / 2;
         const x = Math.cos(a) * r;
         const y = Math.sin(a) * r;
-        if (i === 0) shape.moveTo(x, y);
-        else shape.lineTo(x, y);
+        if (i === 0) shape.moveTo(x, y); else shape.lineTo(x, y);
       }
       shape.closePath();
-      const geo = new THREE.ExtrudeGeometry(shape, {
-        depth: 0.16,
-        bevelEnabled: true,
-        bevelThickness: 0.08,
-        bevelSize: 0.08,
-        bevelSegments: 4
-      });
+      const geo = new THREE.ExtrudeGeometry(shape, { depth: 0.16, bevelEnabled: true, bevelThickness: 0.08, bevelSize: 0.08, bevelSegments: 4 });
       geo.center();
-      const mesh = new THREE.Mesh(geo, material);
-      mesh.castShadow = true;
-      mesh.receiveShadow = true;
-      return mesh;
+      return new THREE.Mesh(geo, material);
     }
 
     function createHouse() {
@@ -453,28 +460,28 @@
       body.position.set(0, 0.1, 0);
       add(body, house);
 
-      const roof = cone(2.45, 1.35, materials.roof, 4);
-      roof.position.set(0, 1.85, 0);
+      const roof = cone(2.35, 1.4, materials.roof, 4);
+      roof.scale.z = 0.9;
       roof.rotation.y = Math.PI / 4;
-      roof.scale.z = 0.8;
+      roof.position.set(0, 1.95, 0);
       add(roof, house);
 
-      const trim = box(3.55, 0.18, 0.22, materials.pink);
-      trim.position.set(0, 0.92, 1.24);
-      add(trim, house);
-
-      const door = box(0.64, 1.04, 0.16, materials.pink);
-      door.position.set(-0.55, -0.68, 1.24);
+      const door = box(0.58, 1.0, 0.16, materials.pink);
+      door.position.set(-0.55, -0.68, 1.18);
       add(door, house);
 
       const windowRing = cylinder(0.35, 0.35, 0.13, materials.pink);
       windowRing.rotation.x = Math.PI / 2;
-      windowRing.position.set(0.72, 0.25, 1.28);
+      windowRing.position.set(0.58, 0.35, 1.22);
       add(windowRing, house);
+
+      const windowGlass = cylinder(0.23, 0.23, 0.15, mat('#eaf8ff', 0.55));
+      windowGlass.rotation.x = Math.PI / 2;
+      windowGlass.position.set(0.58, 0.35, 1.31);
+      add(windowGlass, house);
 
       const chimney = cylinder(0.16, 0.19, 1.15, mat('#9b8da7'));
       chimney.position.set(0.95, 2.35, -0.22);
-      chimney.rotation.z = -0.1;
       add(chimney, house);
 
       house.position.set(-2.65, 0.95, -2.1);
@@ -483,7 +490,8 @@
     }
 
     function createCrystal(x, z, h, material, scale = 1) {
-      const crystal = new THREE.Mesh(new THREE.ConeGeometry(0.42 * scale, h, 5, 1), material);
+      const geo = new THREE.ConeGeometry(0.42 * scale, h, 5, 1);
+      const crystal = new THREE.Mesh(geo, material);
       crystal.position.set(x, -1.05 + h / 2, z);
       crystal.rotation.y = Math.random() * Math.PI;
       crystal.scale.x = 0.72;
@@ -494,23 +502,52 @@
 
     function createWovenBasket() {
       const basket = new THREE.Group();
-      const bowl = new THREE.Mesh(new THREE.SphereGeometry(0.62, 40, 20, 0, Math.PI * 2, 0, Math.PI * 0.56), materials.basket);
+
+      // OUTER BOWL
+      const bowl = new THREE.Mesh(
+        new THREE.SphereGeometry(0.62, 40, 20, 0, Math.PI * 2, 0, Math.PI * 0.56),
+        materials.basket
+      );
       bowl.scale.set(1.35, 0.48, 0.72);
       bowl.rotation.x = Math.PI;
       bowl.position.y = -0.03;
       add(bowl, basket);
 
+      // INNER DEPTH (darker inside so it doesn't look empty)
+      const inner = new THREE.Mesh(
+        new THREE.SphereGeometry(0.58, 32, 16, 0, Math.PI * 2, 0, Math.PI * 0.56),
+        mat('#9a5e2e', 0.9)
+      );
+      inner.scale.set(1.2, 0.42, 0.65);
+      inner.rotation.x = Math.PI;
+      inner.position.y = -0.02;
+      add(inner, basket);
+
+      // RIM
       const rim = new THREE.Mesh(new THREE.TorusGeometry(0.62, 0.055, 14, 56), materials.basketLight);
       rim.scale.set(1.35, 0.72, 0.18);
       rim.rotation.x = Math.PI / 2;
       rim.position.y = 0.2;
       add(rim, basket);
 
-      const handle = new THREE.Mesh(new THREE.TorusGeometry(0.54, 0.035, 14, 56, Math.PI), materials.basketLight);
-      handle.rotation.z = Math.PI;
-      handle.position.y = 0.32;
-      handle.position.z = 0.03;
-      add(handle, basket);
+      // WEAVE DETAIL (front)
+      for (let i = -4; i <= 4; i++) {
+        const weave = cylinder(0.015, 0.015, 0.9, materials.basketLight, 10);
+        weave.rotation.z = i % 2 === 0 ? 0.5 : -0.5;
+        weave.rotation.x = Math.PI / 2;
+        weave.position.set(i * 0.11, 0.05, 0.08);
+        add(weave, basket);
+      }
+
+      // LITTLE BASE SHADOW (adds depth under basket)
+      const base = new THREE.Mesh(
+        new THREE.CircleGeometry(0.5, 24),
+        new THREE.MeshBasicMaterial({ color: '#5a3a1f', transparent: true, opacity: 0.25 })
+      );
+      base.rotation.x = -Math.PI / 2;
+      base.position.set(0, -0.2, 0);
+      basket.add(base);
+
       return basket;
     }
 
@@ -521,10 +558,6 @@
       const body = sphere(0.48, materials.jumper, [0.86, 0.95, 0.46]);
       body.position.set(0, 0.98, 0);
       add(body, group);
-
-      const neck = cylinder(0.12, 0.14, 0.16, materials.skin, 24);
-      neck.position.set(0, 1.48, 0.02);
-      add(neck, group);
 
       const head = sphere(0.43, materials.skin, [0.9, 1, 0.86]);
       head.position.set(0, 1.94, 0.06);
@@ -537,7 +570,6 @@
       [-0.32, -0.17, 0, 0.18, 0.33].forEach((x) => {
         const bit = sphere(0.16, materials.hair, [0.75, 1.25, 0.55]);
         bit.position.set(x, 2.3 - Math.abs(x) * 0.35, 0.28);
-        bit.rotation.z = x * 1.5;
         add(bit, group);
       });
 
@@ -548,14 +580,8 @@
       eyeR.position.set(0.15, 1.98, 0.43);
       add(eyeR, group);
 
-      const smile = new THREE.Mesh(new THREE.TorusGeometry(0.11, 0.012, 8, 28, Math.PI), materials.ink);
-      smile.rotation.z = Math.PI;
-      smile.position.set(0, 1.84, 0.45);
-      add(smile, group);
-
       const basket = createWovenBasket();
       basket.position.set(0.06, 0.98, 0.9);
-      basket.rotation.x = -0.08;
       basket.scale.set(0.78, 0.78, 0.78);
       group.add(basket);
 
@@ -566,10 +592,6 @@
       const rArmMesh = new THREE.Mesh(armGeo, materials.skin);
       lArmMesh.rotation.z = -1.22;
       rArmMesh.rotation.z = 1.22;
-      lArmMesh.rotation.x = -0.42;
-      rArmMesh.rotation.x = -0.42;
-      lArmMesh.position.set(-0.24, -0.18, 0.14);
-      rArmMesh.position.set(0.24, -0.18, 0.14);
       add(lArmMesh, leftArm);
       add(rArmMesh, rightArm);
       leftArm.position.set(-0.38, 1.18, 0.43);
@@ -620,16 +642,15 @@
     createCloud(6.4, 1.8, -2.7, 1.45);
     createCloud(-4.0, 4.1, -4.2, 0.85);
 
-    [ -7.4,-6.5,-5.7,-4.8,3.5,4.45,5.35,6.4,7.2 ].forEach((x, i) => {
-      const mats = [materials.blue, materials.mint, materials.gold, materials.lilac, materials.pink];
-      createCrystal(x, -1.9 - Math.sin(i) * 0.2, 1.2 + (i % 3) * 0.45, mats[i % mats.length], 0.9 + (i % 2) * 0.25);
+    const crystalMaterials = [materials.blue, materials.mint, materials.gold, materials.lilac, materials.pink];
+    [-7.4,-6.5,-5.7,-4.8,3.5,4.45,5.35,6.4,7.2].forEach((x, i) => {
+      createCrystal(x, -1.9 - Math.sin(i) * 0.2, 1.2 + (i % 3) * 0.45, crystalMaterials[i % crystalMaterials.length], 0.9 + (i % 2) * 0.25);
     });
 
     const tinyStars = [];
     for (let i = 0; i < 7; i++) {
       const s = createStarMesh(0.16, materials.pink);
       s.position.set(1.5 + i * 0.62, 2.85 + Math.sin(i) * 0.26, -1.1);
-      s.rotation.y = 0.25;
       scene.add(s);
       tinyStars.push(s);
     }
@@ -728,8 +749,6 @@
       targetX = THREE.MathUtils.clamp(targetX, -PLAYER_MAX_X + 0.8, PLAYER_MAX_X - 0.8);
       nextStarSide *= -1;
       mesh.position.set(targetX, STAR_START_Y, basketPos.z + 0.08);
-      mesh.rotation.set(Math.random(), Math.random(), Math.random());
-      mesh.scale.setScalar(1.05);
       scene.add(mesh);
       stars.push({ mesh, speed: getDifficulty().starSpeed, targetX });
     }
@@ -745,8 +764,6 @@
     }
 
     function addSparkleBurst(x, y, z, colour = '#fff6a8', amount = 16) {
-      combo++;
-      comboTimer = 1.2;
       for (let i = 0; i < amount; i++) {
         const s = sphere(0.045, mat(colour, 0.65), [1,1,1], 12);
         s.position.set(x, y, z);
@@ -763,12 +780,6 @@
 
     function getBasketWorldPosition() {
       const pos = new THREE.Vector3();
-      if (!player?.userData?.basket) {
-        player.getWorldPosition(pos);
-        pos.y += 1;
-        pos.z += 0.6;
-        return pos;
-      }
       player.userData.basket.getWorldPosition(pos);
       return pos;
     }
@@ -778,9 +789,6 @@
     }
 
     function updateGame(dt) {
-      comboTimer -= dt;
-      if (comboTimer <= 0) combo = 0;
-
       const movingLeft = keys.ArrowLeft || keys.a || keys.A;
       const movingRight = keys.ArrowRight || keys.d || keys.D;
       const isMoving = movingLeft || movingRight;
@@ -789,8 +797,7 @@
       if (movingRight) player.position.x += 5.7 * dt;
       player.position.x = THREE.MathUtils.clamp(player.position.x, -6.9, 6.9);
 
-      const facing = movingLeft ? 0.22 : movingRight ? -0.22 : 0;
-      player.rotation.y = THREE.MathUtils.lerp(player.rotation.y, facing, 0.14);
+      player.rotation.y = THREE.MathUtils.lerp(player.rotation.y, movingLeft ? 0.22 : movingRight ? -0.22 : 0, 0.14);
       player.rotation.z = THREE.MathUtils.lerp(player.rotation.z, movingLeft ? 0.08 : movingRight ? -0.08 : 0, 0.14);
 
       const walk = Math.sin(clock.elapsedTime * 10) * (isMoving ? 0.55 : 0.08);
@@ -826,16 +833,10 @@
 
         const basketCatchPoint = liveBasketPos.clone().add(new THREE.Vector3(0, 0.16, 0.08));
         if (hit3D(star.mesh.position, basketCatchPoint, 0.9, 0.28, 0.28)) {
-          score += 10 + combo * 2;
+          score += 10;
           scoreEl.textContent = score;
           checkLevelUp();
-          activeCatchAnimations.push({
-            mesh: star.mesh,
-            from: star.mesh.position.clone(),
-            to: basketCatchPoint.clone().add(new THREE.Vector3(0, -0.08, 0.02)),
-            life: 0,
-            duration: 0.22
-          });
+          activeCatchAnimations.push({ mesh: star.mesh, from: star.mesh.position.clone(), to: basketCatchPoint.clone().add(new THREE.Vector3(0, -0.08, 0.02)), life: 0, duration: 0.22 });
           stars.splice(i, 1);
           spawnStarTimer = 0;
         } else if (star.mesh.position.y < -1.45) {
@@ -855,7 +856,6 @@
         anim.mesh.rotation.z += dt * 8;
         if (p >= 1) {
           addSparkleBurst(anim.to.x, anim.to.y + 0.12, anim.to.z + 0.03, '#fff6a8', 34);
-          addSparkleBurst(anim.to.x, anim.to.y + 0.08, anim.to.z + 0.03, '#ffd1ec', 18);
           scene.remove(anim.mesh);
           activeCatchAnimations.splice(i, 1);
         }
@@ -864,12 +864,9 @@
       for (let i = clouds.length - 1; i >= 0; i--) {
         const cloud = clouds[i];
         cloud.mesh.position.y -= cloud.speed * dt;
-        cloud.mesh.rotation.y = Math.sin(clock.elapsedTime * 2 + i) * 0.1;
         const basketPos = getBasketWorldPosition();
         if (hit3D(cloud.mesh.position, basketPos, 0.95, 0.55, 0.3)) {
           loseLife();
-          combo = 0;
-          cameraShake = 0.25;
           addSparkleBurst(player.position.x, player.position.y + 0.65, player.position.z + 0.65, '#9ed8ff', 24);
           scene.remove(cloud.mesh);
           clouds.splice(i, 1);
@@ -895,22 +892,17 @@
     }
 
     function animate() {
-      if (cameraShake > 0) cameraShake -= 0.02;
       requestAnimationFrame(animate);
       const dt = Math.min(clock.getDelta(), 0.033);
       const t = clock.elapsedTime;
-
       scene.rotation.y = Math.sin(t * 0.22) * 0.018;
-      camera.position.x = THREE.MathUtils.lerp(camera.position.x, player.position.x * 0.025, 0.04) + (Math.random() - 0.5) * cameraShake;
+      camera.position.x = THREE.MathUtils.lerp(camera.position.x, player.position.x * 0.025, 0.04);
       camera.lookAt(player.position.x * 0.018, 1.25, 0);
-
       tinyStars.forEach((s, i) => {
         s.rotation.z += dt * (0.5 + i * 0.04);
         s.position.y += Math.sin(t * 1.6 + i) * 0.0015;
       });
-
       if (running) updateGame(dt);
-      player.position.y += Math.sin(clock.elapsedTime * 2) * 0.002;
       renderer.render(scene, camera);
     }
     animate();
@@ -932,6 +924,11 @@
     holdButton(leftBtn, 'ArrowLeft');
     holdButton(rightBtn, 'ArrowRight');
     startBtn.addEventListener('click', startGame);
+  </script>
+  <script>
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("../sw.js").catch(function () {});
+    }
   </script>
 </body>
 </html>
