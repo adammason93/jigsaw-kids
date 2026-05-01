@@ -205,11 +205,38 @@ body.page-storybook.sb-modal-open {
   text-align: center;
 }
 
-.sb-library__sync {
+/* Fixed bottom-left — visually aligned with kids-fbar (mute/settings) on the right */
+.sb-cloud-pull-fab {
+  position: fixed;
+  z-index: 9000;
+  left: max(0.5rem, env(safe-area-inset-left));
+  bottom: max(0.5rem, env(safe-area-inset-bottom));
+  width: 3rem;
+  height: 3rem;
+  min-width: 48px;
+  min-height: 48px;
+  box-sizing: border-box;
+  border-radius: 50%;
+  border: 3px solid #fff;
+  font-size: 1.35rem;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+  background: linear-gradient(180deg, #fff, #f3e8ff);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.sb-cloud-pull-fab:active {
+  transform: scale(0.96);
+}
+
+.sb-cloud-pull-fab__ic {
   display: block;
-  margin: -0.35rem auto 0.85rem;
-  max-width: 20rem;
-  font-size: 0.86rem;
+  line-height: 1;
 }
 
 .sb-carousel {
