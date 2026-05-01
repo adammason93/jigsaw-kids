@@ -807,6 +807,149 @@ async function falFluxProTextToImageUrl(
   return u;
 }
 
+/* ──────────────────────────────────────────────────────────────────────────
+ * GPT Image (a.k.a. "GPT Image 2" in some UIs) pipeline
+ *
+ * Uses OpenAI's `/v1/images/generations` and `/v1/images/edits` with model
+ * `gpt-image-1` (override via STORYBOOK_GPTIMAGE_MODEL). Output is base64 PNG;
+ * we upload it to the public `storybook_images` Supabase Storage bucket and
+ * return a public URL so the storybook UI can render it like any other URL.
+ * ────────────────────────────────────────────────────────────────────────── */
+
+const GPT_IMAGE_BUCKET = "storybook_images";
+const GPT_IMAGE_SIZE_LANDSCAPE = "1536x1024";
+const GPT_IMAGE_PROMPT_MAX = 4000;
+
+function decodeB64ToBytes(b64: string): Uint8Array {
+  const clean = b64.replace(/^data:image\/[a-z]+;base64,/i, "").trim();
+  const bin = atob(clean);
+  const out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out;
+}
+
+function randomKey(prefix: string): string {
+  const t = Date.now().toString(36);
+  const r = Math.random().toString(36).slice(2, 10);
+  return `${prefix}-${t}-${r}.png`;
+}
+
+async function uploadPngToStorybookImages(
+  bytes: Uint8Array,
+  name: string,
+): Promise<string> {
+  const url = (Deno.env.get("SUPABASE_URL") ?? "").trim();
+  const key = (Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "").trim();
+  if (!url || !key) {
+    throw new Error("storage_misconfigured: SUPABASE_URL or SERVICE_ROLE_KEY");
+  }
+  const cleanName = name.replace(/[^a-zA-Z0-9._-]/g, "");
+  const path = `gptimage/${cleanName}`;
+  const upUrl = `${url.replace(/\/+$/, "")}/storage/v1/object/${GPT_IMAGE_BUCKET}/${path}`;
+  const r = await fetch(upUrl, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${key}`,
+      apikey: key,
+      "Content-Type": "image/png",
+      "x-upsert": "true",
+    },
+    body: new Blob([bytes as unknown as BlobPart], { type: "image/png" }),
+  });
+  if (!r.ok) {
+    const t = await r.text();
+    throw new Error(`storage_upload_${r.status}:${t.slice(0, 240)}`);
+  }
+  return `${url.replace(/\/+$/, "")}/storage/v1/object/public/${GPT_IMAGE_BUCKET}/${path}`;
+}
+
+async function gptImageGenerate(
+  apiKey: string,
+  prompt: string,
+  size: string = GPT_IMAGE_SIZE_LANDSCAPE,
+): Promise<{ url: string; bytes: Uint8Array }> {
+  const model =
+    (Deno.env.get("STORYBOOK_GPTIMAGE_MODEL") ?? "").trim() || "gpt-image-1";
+  const trimmed = prompt.slice(0, GPT_IMAGE_PROMPT_MAX);
+
+  const r = await fetch("https://api.openai.com/v1/images/generations", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model,
+      prompt: trimmed,
+      n: 1,
+      size,
+      quality: "medium",
+    }),
+  });
+  const raw = await r.text();
+  if (!r.ok) {
+    console.error("[gpt-image] generations error", r.status, raw.slice(0, 700));
+    throw new Error(openaiImageErrorDetail(r.status, raw));
+  }
+  let data: { data?: { b64_json?: string }[] };
+  try {
+    data = JSON.parse(raw);
+  } catch {
+    throw new Error("gpt_image_response_not_json");
+  }
+  const b64 = data.data?.[0]?.b64_json;
+  if (!b64) throw new Error("gpt_image_empty");
+  const bytes = decodeB64ToBytes(b64);
+  const url = await uploadPngToStorybookImages(bytes, randomKey("anchor"));
+  return { url, bytes };
+}
+
+async function gptImageEdit(
+  apiKey: string,
+  prompt: string,
+  referenceBytes: Uint8Array[],
+  size: string = GPT_IMAGE_SIZE_LANDSCAPE,
+): Promise<{ url: string; bytes: Uint8Array }> {
+  const model =
+    (Deno.env.get("STORYBOOK_GPTIMAGE_MODEL") ?? "").trim() || "gpt-image-1";
+  const trimmed = prompt.slice(0, GPT_IMAGE_PROMPT_MAX);
+
+  const form = new FormData();
+  form.append("model", model);
+  form.append("prompt", trimmed);
+  form.append("n", "1");
+  form.append("size", size);
+  form.append("quality", "medium");
+  for (let i = 0; i < referenceBytes.length; i++) {
+    const blob = new Blob([referenceBytes[i]] as unknown as BlobPart[], {
+      type: "image/png",
+    });
+    form.append("image[]", blob, `ref-${i + 1}.png`);
+  }
+
+  const r = await fetch("https://api.openai.com/v1/images/edits", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${apiKey}` },
+    body: form,
+  });
+  const raw = await r.text();
+  if (!r.ok) {
+    console.error("[gpt-image] edits error", r.status, raw.slice(0, 700));
+    throw new Error(openaiImageErrorDetail(r.status, raw));
+  }
+  let data: { data?: { b64_json?: string }[] };
+  try {
+    data = JSON.parse(raw);
+  } catch {
+    throw new Error("gpt_image_response_not_json");
+  }
+  const b64 = data.data?.[0]?.b64_json;
+  if (!b64) throw new Error("gpt_image_empty");
+  const bytes = decodeB64ToBytes(b64);
+  const url = await uploadPngToStorybookImages(bytes, randomKey("spread"));
+  return { url, bytes };
+}
+
 /** Landscape spread first; some keys/billing paths fail on 1792×1024 — fall back to square. */
 async function openaiSpreadImageUrl(apiKey: string, prompt: string): Promise<string> {
   // Try DALL-E 3 at 1792x1024 (landscape) to perfectly fit a double-page spread.
@@ -1062,6 +1205,13 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
   let falReduxSpreadCount = 0;
   let falTextSpreadCount = 0;
   let falCastAnchorUsed = false;
+  let gptImageSpreadCount = 0;
+
+  /** Image generation mode: "fal" (default) or "gptimage" (OpenAI gpt-image-1 / future GPT Image 2). */
+  const imageMode = (Deno.env.get("STORYBOOK_IMAGE_MODE") ?? "")
+    .trim()
+    .toLowerCase();
+  const useGptImage = imageMode === "gptimage" || imageMode === "openai-image";
 
   const falKey = (Deno.env.get("FAL_KEY") ?? "").trim();
   const falDisabled = Deno.env.get("STORYBOOK_FAL_DISABLE") === "1";
@@ -1102,7 +1252,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
 
     /** When set (default): one T2I “cast lineup”, then all 6 spreads = Fal image→image (Redux) from that anchor — strongest consistency. */
     const useCastAnchor =
-      useFalRedux && Deno.env.get("STORYBOOK_FAL_CAST_ANCHOR") !== "0";
+      !useGptImage && useFalRedux && Deno.env.get("STORYBOOK_FAL_CAST_ANCHOR") !== "0";
 
     const anchorPreamble =
       "A completely textless illustration. NO letters, words, typography, labels, speech bubbles, signs with text, book pages with writing, loose papers, scrolls, glyph noise, watermarks, or fake paragraph texture anywhere. Plain smooth background regions only — no pseudo-text. " +
@@ -1115,6 +1265,60 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
     ).slice(0, DALLE3_PROMPT_MAX);
 
     let panelLock = "";
+
+    if (useGptImage) {
+      let anchorOut: { url: string; bytes: Uint8Array } | null = null;
+      try {
+        anchorOut = await gptImageGenerate(apiKey, anchorPrompt);
+      } catch (e) {
+        console.warn("[clever-service] GPT Image anchor failed", e);
+      }
+
+      if (anchorOut) {
+        try {
+          panelLock = await visualLockFromFirstImage(apiKey, anchorOut.url);
+          firstPanelVisualLockUsed = panelLock.length > 40;
+        } catch (e) {
+          console.warn("[clever-service] visual lock (anchor) failed", e);
+        }
+
+        const refBytes = anchorOut.bytes;
+        const allFromAnchor = await Promise.all(
+          briefs.map(async (b, idx) => {
+            if (idx > 0) await delay(idx * staggerMs);
+            const composed = composeDallePrompt({
+              preamble: stylePreamble,
+              envTheme,
+              sceneBrief: b.brief,
+              castBible,
+              firstPanelLock: panelLock,
+              heroFirstName: childName,
+            });
+            const openingPrefix =
+              idx === 0
+                ? "OPENING SPREAD — replace the plain reference backdrop with a full painted environment from SCENE ACTION (forest depth, ground, sky, hand-held torches/lanterns if in the scene). Match LIGHTING/MOOD exactly. Keep hero and every named creature IDENTICAL to the reference (faces, hair, outfit colours, species, size). "
+                : "";
+            const editPrompt =
+              openingPrefix +
+              "Story spread — NEW scene, poses, and background for this moment only. " +
+              "Keep hero and every named creature IDENTICAL to the reference (faces, hair, outfit colours, species, size). Only beings named in SCENE ACTION; no extra characters, no background crowd. " +
+              "TEXTLESS — no letters, fake text, signs, paper scraps with writing, logos, or glyph noise. " +
+              composed;
+            try {
+              const out = await gptImageEdit(apiKey, editPrompt, [refBytes]);
+              gptImageSpreadCount++;
+              return out.url;
+            } catch (e) {
+              console.warn("[clever-service] GPT Image edit failed for spread", idx, e);
+              throw e;
+            }
+          }),
+        );
+        for (let i = 0; i < allFromAnchor.length; i++) {
+          urls[i] = allFromAnchor[i];
+        }
+      }
+    }
 
     if (useCastAnchor) {
       let anchorUrl: string | null = null;
@@ -1188,7 +1392,10 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
 
     /* Legacy: spread 1 = T2I, spreads 2–6 = Redux(spread1). When FAL off, anchor off, anchor T2I failed, or incomplete urls. */
     const needLegacySpreads =
-      !useFalRedux || urls.length < briefs.length || (useCastAnchor && falTextSpreadCount === 0);
+      !useGptImage &&
+      (!useFalRedux ||
+        urls.length < briefs.length ||
+        (useCastAnchor && falTextSpreadCount === 0));
 
     if (needLegacySpreads) {
       if (useFalRedux && useCastAnchor && falTextSpreadCount === 0) {
@@ -1324,6 +1531,11 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
       falCastAnchorUsed,
       falReduxModel: useFalRedux ? falReduxModel : null,
       falReduxSpreads: falReduxSpreadCount,
+      imageMode: useGptImage ? "gptimage" : "fal",
+      gptImageModel: useGptImage
+        ? (Deno.env.get("STORYBOOK_GPTIMAGE_MODEL") ?? "").trim() || "gpt-image-1"
+        : null,
+      gptImageSpreads: useGptImage ? gptImageSpreadCount : 0,
       reuseFirstIllustrationOnLast:
         Deno.env.get("STORYBOOK_REUSE_FIRST_ON_LAST") !== "0",
     },

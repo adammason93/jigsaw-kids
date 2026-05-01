@@ -19,6 +19,12 @@ supabase secrets set FAL_KEY=...
 # supabase secrets set STORYBOOK_FAL_CAST_ANCHOR=0   # legacy: spread 1 T2I, spreads 2–6 Redux from spread 1 (not anchor sheet)
 # supabase secrets set STORYBOOK_REUSE_FIRST_ON_LAST=0   # default: last picture spread reuses spread 1 art; set 0 to generate distinct final art
 # supabase secrets set STORYBOOK_FAL_DISABLE=1   # force all DALL·E even if FAL_KEY is set
+
+# Optional — switch image pipeline to OpenAI's gpt-image-1 (a.k.a. "GPT Image 2" in some UIs).
+# Anchor = text-to-image, spreads 2–6 = images/edits with the anchor as reference (best character consistency on the OpenAI side).
+# Requires the public storage bucket created by migration 20260501093000_storybook_images_public_bucket.sql.
+# supabase secrets set STORYBOOK_IMAGE_MODE=gptimage
+# supabase secrets set STORYBOOK_GPTIMAGE_MODEL=gpt-image-1   # bump to the newest GPT image model when available
 ```
 
 ## Deploy
@@ -35,7 +41,7 @@ The browser calls `…/functions/v1/clever-service` — set **`storybookEdgeSlug
 
 Rough order: With Fal, typically **1** text-to-image (anchor) **+ 6** Redux image→image calls, or legacy **7** calls (1 T2I + 6 Redux), plus DALL·E-only paths **+** story chat **+** character-bible chat **+** optional **vision** (portraits + first-panel lock) **+** **Fal** latency. Check [OpenAI](https://openai.com/pricing) and [Fal pricing](https://fal.ai/pricing) for current rates.
 
-The JSON response **`meta`** includes **`falCastAnchorUsed`** (true when the anchor + 6× Redux path ran), **`falTextSpreads`**, **`falReduxSpreads`**, plus **`falTextModel`** / **`falReduxModel`** when Fal is enabled.
+The JSON response **`meta`** includes **`imageMode`** (`fal` or `gptimage`), **`falCastAnchorUsed`**, **`falTextSpreads`**, **`falReduxSpreads`**, **`falTextModel`** / **`falReduxModel`** when Fal is enabled, and **`gptImageModel`** / **`gptImageSpreads`** when GPT Image is enabled.
 
 Portrait images are **not** sent to DALL·E (it only accepts text). The function downloads PNGs from your deployed site, summarises looks with vision, and injects that text into story + image prompts.
 
@@ -43,6 +49,7 @@ The static **storybook** page loads illustration URLs through the same **`clever
 
 ## Troubleshooting
 
+- **GPT Image (`STORYBOOK_IMAGE_MODE=gptimage`)**: Anchor uses **`/v1/images/generations`** with `gpt-image-1`; spreads 2–6 use **`/v1/images/edits`** with the anchor PNG as reference. Output is decoded from base64 and uploaded to the public **`storybook_images`** Supabase Storage bucket (service role key auto-injected). Errors usually come from missing bucket (run the migration), rate limits (429 → backoff), or moderation policy on the prompt — check function logs.
 - **Fal (`fal_failed`)**: When **`FAL_KEY`** is set, a failed Fal step stops the whole book (no DALL·E substitution). Check function logs, Fal queue errors, and billing. With **cast anchor**, the reference is the anchor URL; with **`STORYBOOK_FAL_CAST_ANCHOR=0`**, Fal must fetch spread 1’s image URL. Tune `STORYBOOK_FAL_REFERENCE_STRENGTH` (higher = stick closer to the reference). The **first picture spread** uses a slightly lower strength than the rest so the opening scene (woods, torches, etc.) can replace the neutral lineup backdrop.
 - **`images_failed` / DALL·E HTTP 400** (no Fal, or non-Fal errors): Redeploy so you have the latest function (sequential images + retries). The API response body is returned as `detail` in the JSON and logged. Common causes: deprecated parameter combos (the function retries with minimal payload), invalid image size for the account, or prompt **content policy** (read the `detail` message from OpenAI).
 - **Logs still show `Promise.all`**: That stack trace is from an **older deployment** — run `supabase functions deploy clever-service` again.
