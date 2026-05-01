@@ -1372,7 +1372,7 @@ Rules:
     • If the verse says someone is HIDDEN, missing, lost, "where is", "can't find", "nowhere to be seen", "hiding", "we cannot see", "out of sight", or has flown / run / sailed AWAY — that character is NOT visible. Exclude them from VISIBLE.
     • Example, hide-and-seek beat where the dragon is the seeker hiding: VISIBLE: Sofia, Isaac (dragon hidden — do not include).
     • Example, beat where dragon is found / revealed: VISIBLE: Sofia, Isaac, dragon.
-    • Example, beat where the dragon is flying overhead and they spot it: VISIBLE: Sofia, Isaac, dragon (dragon up high in the sky, partially out of frame is fine).
+    • Example, beat where the dragon is flying overhead and they spot it: VISIBLE: Sofia, Isaac, dragon (dragon small in the upper sky, whole body and wings fully visible — not clipped by the top edge).
     • Never include a character in VISIBLE if the verse says they are NOT around for that moment.
   The DESCRIPTION (after VISIBLE) must spell out the same specific moment as the verse on the previous page: same action, same setting, same props, same time of day — not a generic scene and NEVER a different location or activity than the verse (e.g. if the verse says bouncy castle under the sky, the picture is that bouncy castle with sky visible — not a bike ride in the woods). NEVER add guardians, helpers, or creatures the verse does not mention. NEVER duplicate the buddy unless the text says so. CRITICAL FOR CONSISTENCY: DO NOT re-describe permanent looks (clothes, hair colours) in the brief — the illustrator has the master designs.
   ENVIRONMENT DETAIL (very important — each brief must paint a different *place* on the journey, matching the SETTING and PLOT IDEA above):
@@ -1386,7 +1386,7 @@ Rules:
       • BAKERY plot: "${childName} stands at a wooden counter rolling out dough, flour cloud puffing up, big stone oven glowing warmly behind."
     Vary the *place* between spreads in line with the plot's beats — e.g. CASTLE: gates → corridor → great hall → spiral tower → rooftop → courtyard with the dragon flying overhead. Don't repeat the same backdrop. State a different camera angle / shot type for each (wide establishing shot, mid shot, low-angle hero kneeling, over-the-shoulder peering, etc).
     Background details ARE allowed (in fact required) — what is NOT allowed is faced extras the verse doesn't mention.
-    COMPOSITION: main characters in the middle vertical band with headroom and visible feet.
+    COMPOSITION / SCALE FOR THE ILLUSTRATOR: Picture-book framing — camera pulled back enough that every listed character fits comfortably inside the double-page spread with clear margin (nothing important near the outer edges). Full heads and feet on wide and mid shots; on closer shots, still no edge-clipping of faces or hands. Prefer showing more environment over filling the frame with oversized figures.
   OPENING SPREAD (page 2 only — the first illustrationBrief): MUST match page 1 text and the child's plot, AND establish the actual SETTING (castle / woods / cave / beach / space / etc. — whichever the plot calls for). Page 1 text must name every main character the plot introduces (${childName}, any sibling/friend named in the plot idea, and the buddy creature by type — e.g. dinosaur). Only characters named on page 1 may appear on page 2's illustration. Example: if the plot is "hide and seek in a castle", the opening establishes castle gates / courtyard / great hall — NOT a forest. No unwritten extras.
   When game people with portrait notes appear on a picture page, the brief should mention them looking like those notes (hair, outfit colours, age vibe).
 - If a "plot idea" is given, you MUST make it the central theme of the story and feature it heavily in EVERY illustration brief. If it is empty, invent a short happy outing that fits the setting.
@@ -1476,7 +1476,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
     "No logos, social-media marks, app icons, or brand symbols. " +
     "The left third must be only smooth colour, soft sky, plain wall, or gentle gradient — zero pseudo-text texture there (the app draws real text in HTML). " +
     "CRITICAL LAYOUT RULE: Leave the left half of the image mostly uncluttered with a simple, soft, darker background so that WHITE storybook text can be printed over it clearly. Place the main characters and action on the right half or center-right of the image. " +
-    "FRAMING: Keep hero and buddies mostly in the vertical middle band — heads not jammed against the top edge, feet not chopped by the bottom edge. Never line up the whole cast as a tiny strip along the bottom like stickers; show comfortable ground and body. " +
+    "FRAMING / SCALE (critical): Pull the camera back — subjects must read at picture-book scale, NOT a tight poster crop. Leave roughly 8–12% clear margin on top, bottom, left, and right (nothing important touches the outer edges). Every visible character must fit entirely inside the frame: full head and hair, hands, feet, tail, and wings — zero edge-clipping. If in doubt, make characters smaller and show more setting. Never line up the whole cast as a tiny strip along the bottom like stickers; show comfortable ground and body. " +
     "STYLE: soft matte clay and toy-plastic 3D ONLY — rounded limbs, gentle pastel lighting, not realistic human skin, not glossy CGI. Edge-to-edge scene, no frames or borders. Wholesome and safe for toddlers. " +
     `HERO VISIBILITY: When "${childName}" appears in SCENE ACTION, they must be clearly visible (face on, not swapped for another kid). ` +
     "ONE BUDDY ANIMAL: Only one imaginary buddy creature from the BUDDY line in the image (e.g. one unicorn), not clones or a big+little pair, unless SCENE ACTION names two. " +
@@ -1556,7 +1556,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
     const anchorPreamble =
       "A completely textless illustration. NO letters, words, typography, labels, speech bubbles, signs with text, book pages with writing, loose papers, scrolls, glyph noise, watermarks, or fake paragraph texture anywhere. Plain smooth background regions only — no pseudo-text. " +
       "CAST LINEUP / MODEL SHEET for a kids picture book: every character line in LOCKED CAST below (hero, buddy, and any named human co-stars or game people) — no one else, no third mascot or crowd, no duplicate unicorns. Together in ONE frame, neutral friendly poses, " +
-      "full bodies visible above the bottom edge with headroom, soft matte clay and toy-plastic 3D, gentle pastel light, plain soft background so each design reads clearly. " +
+      "full bodies with generous margin — no hair, feet, wings, or tails touching the image border; figures occupy only the middle ~60–75% of frame height so each design reads clearly, soft matte clay and toy-plastic 3D, gentle pastel light, plain soft background. " +
       "Edge-to-edge, wholesome for toddlers. ";
 
     const anchorPrompt = (
@@ -1612,32 +1612,32 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
           {
             label: "WIDE ESTABLISHING SHOT",
             note:
-              "Wide establishing shot. Characters fill roughly the middle 35-45% of the frame, full bodies head to toe. The setting fills the rest with real depth — architecture, terrain, sky, ground.",
+              "Wide establishing shot. Full bodies head to toe — the whole group together must use at most ~55% of frame height and ~50% of width, with generous sky/ground/architecture around them (never touching the image edges). Setting fills the rest with real depth.",
           },
           {
             label: "MID SHOT",
             note:
-              "Mid shot from roughly the knees up. Characters occupy centre-left to centre. Setting visible behind and to the right with depth.",
+              "Mid shot from roughly the knees up. Entire heads (hair included) and hands well inside the frame with top and bottom margin. Characters occupy centre-left to centre; setting visible behind with depth.",
           },
           {
             label: "OVER-THE-SHOULDER / DISCOVERY ANGLE",
             note:
-              "Three-quarter or over-the-shoulder angle. One character partly visible from behind framing the focal moment from the verse. The other character reacts. The setting fills the surrounding space.",
+              "Three-quarter or over-the-shoulder angle. Foreground framing character still fully inside canvas (no cropped ears or elbows at edges). Focal character fully visible. Setting fills surrounding space.",
           },
           {
             label: "CLOSE-UP ON THE VERSE'S FOCAL MOMENT",
             note:
-              "Close-up on whatever the facing-page verse focuses on for this beat — the named action, expression, or object. Characters lean in from the edges; partial faces and hands are fine. The setting still shows behind with depth.",
+              "Closer on the verse's focal action or expression, but still picture-book safe: every face, hand, and prop that matters stays fully inside the frame with margin — no mouths, eyes, or fingertips clipped by edges. Setting visible behind with depth.",
           },
           {
             label: "WIDE JOURNEY SHOT — DIFFERENT PART OF THE SETTING",
             note:
-              "A second wide shot, but in a DIFFERENT corner of the same setting from spread 1. Characters smaller (roughly 25-35% of the canvas), environment dominates with strong depth and a clear sense of progress.",
+              "A second wide shot in a DIFFERENT corner of the same setting from spread 1. Characters small (roughly 20–32% of canvas height), environment dominates; full figures still readable, never cropped.",
           },
           {
             label: "MEDIUM CLOSE ON FACES — WARM FINALE",
             note:
-              "Medium-close on the characters' faces and upper bodies sharing a warm finale moment (smile, laugh, hug, cheer). Setting clearly visible behind them.",
+              "Medium-close chest-up to shoulders-up on a warm finale (smile, laugh, hug, cheer). Entire heads with hair and ears inside frame; no chin or forehead against the top edge. Setting clearly visible behind.",
           },
         ];
 
@@ -1671,6 +1671,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
           // 1. Style + reference instruction
           blocks.push(
             "Children's picture-book illustration, soft matte clay and toy-plastic 3D, gentle pastel light, edge-to-edge with no borders or text. " +
+              "SAFE SCALE: Pull the camera back — characters must be clearly smaller than a tight movie poster crop. Leave empty margin on every side (~8–12% of canvas); never crop heads, hair, feet, hands, wings, or tails at the frame edge — full silhouettes inside the image. " +
               "The attached reference image shows the cast on a neutral backdrop — use it ONLY to lock the characters' identity (faces, hair, outfit colours, species, body shape). Repaint the world fresh.",
           );
 
@@ -1818,7 +1819,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
                 "Story spread — NEW scene, poses, and background for this moment only. " +
                 "Keep hero and every creature IDENTICAL to the reference lineup (faces, hair, outfit colours, species, size) — match reference character COUNT only; add no beings not named in SCENE ACTION. " +
                 "TEXTLESS — no letters, fake text, signs, logos, paper scraps with writing, or glyph noise; soft matte clay toy 3D. " +
-                "FRAME: subjects in middle vertical band with feet and faces fully inside the canvas — not a bottom-cropped row. " +
+                "FRAME / SCALE: pull camera back — subjects clearly smaller than a poster crop; ~8–12% margin on all sides; full heads, feet, hands, wings, tails inside canvas — not edge-cropped; not a bottom-cropped row. " +
                 composed.slice(0, FAL_REDUX_PROMPT_MAX - 420);
               // Lower image→image strength on spread 1 so the opening scene can diverge from the neutral cast lineup.
               const reduxStrength =
@@ -1900,7 +1901,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
                     "New story moment — change poses, action, and background to match the scene. " +
                     "Keep the same hero face, hair, outfit colours, and the same buddy and named creatures as the reference — only beings named in SCENE ACTION, no new animals or people. " +
                     "TEXTLESS — no words, signs, book pages with text, logos, paper scraps with writing, or gibberish texture; soft matte clay toy 3D only. " +
-                    "FRAME: keep characters in the middle-to-upper-middle of the frame with visible feet — do not squash everyone along the bottom edge. " +
+                    "FRAME / SCALE: pull camera back — ~8–12% margin on all sides; full heads, feet, hands, wings inside canvas — not edge-cropped; middle vertical band — do not squash everyone along the bottom edge. " +
                     composed.slice(0, FAL_REDUX_PROMPT_MAX - 220);
                   const u = await falFluxReduxImageUrl(
                     falKey,
