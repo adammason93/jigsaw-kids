@@ -2260,6 +2260,21 @@
     if (String(params.get("from") || "") !== "portal") return;
 
     var dismissBtn = document.getElementById("sbPortalWelcomeDismiss");
+    var titleEl = document.getElementById("sbPortalWelcomeTitle");
+    var leadEl = document.getElementById("sbPortalWelcomeLead");
+    var prof =
+      typeof KidsCore !== "undefined" && typeof KidsCore.getProfile === "function"
+        ? KidsCore.getProfile()
+        : {};
+    var rawName = prof && prof.name ? String(prof.name).trim() : "";
+    var displayName = rawName || "Sofia";
+    if (titleEl) {
+      titleEl.textContent = "Welcome back, " + displayName + "!";
+    }
+    if (leadEl) {
+      leadEl.textContent =
+        "Let’s get creative — start a new book or open one you’ve put on your shelf.";
+    }
     var reduced =
       typeof window.matchMedia === "function" &&
       window.matchMedia("(prefers-reduced-motion: reduce)").matches;

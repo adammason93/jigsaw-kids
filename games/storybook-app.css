@@ -128,7 +128,7 @@ body.sb-portal-welcome-open {
 
 .sb-portal-welcome__inner {
   position: relative;
-  width: min(22rem, 100%);
+  width: min(24rem, 100%);
   padding: 1.65rem 1.35rem 1.5rem;
   border-radius: 24px;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.94) 0%, rgba(252, 247, 255, 0.92) 100%);
@@ -199,6 +199,41 @@ body.sb-portal-welcome-open {
   opacity: 0.7;
 }
 
+.sb-portal-welcome__mascot {
+  position: relative;
+  z-index: 1;
+  margin: 0 auto 0.25rem;
+  max-width: 7.5rem;
+}
+
+.sb-portal-welcome__char {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 10px 22px rgba(107, 47, 82, 0.2));
+  transform: scale(0.82) translateY(14px);
+  opacity: 0;
+  transition:
+    transform 0.5s cubic-bezier(0.34, 1.35, 0.64, 1),
+    opacity 0.4s ease;
+  transition-delay: 0.06s;
+}
+
+.sb-portal-welcome.is-active .sb-portal-welcome__char {
+  transform: scale(1) translateY(0);
+  opacity: 1;
+}
+
+.sb-portal-welcome.is-leaving .sb-portal-welcome__char {
+  transform: scale(0.9) translateY(-6px);
+  opacity: 0;
+  transition:
+    transform 0.28s ease,
+    opacity 0.24s ease;
+  transition-delay: 0s;
+}
+
 @keyframes sb-portal-sparkle-drift {
   0%,
   100% {
@@ -254,7 +289,15 @@ body.sb-portal-welcome-open {
     transition: opacity 0.2s ease;
   }
 
+  .sb-portal-welcome__char {
+    transition: opacity 0.2s ease;
+  }
+
   .sb-portal-welcome.is-active .sb-portal-welcome__inner {
+    transform: none;
+  }
+
+  .sb-portal-welcome.is-active .sb-portal-welcome__char {
     transform: none;
   }
 
@@ -264,6 +307,10 @@ body.sb-portal-welcome-open {
   }
 
   .sb-portal-welcome.is-leaving .sb-portal-welcome__inner {
+    transform: none;
+  }
+
+  .sb-portal-welcome.is-leaving .sb-portal-welcome__char {
     transform: none;
   }
 }

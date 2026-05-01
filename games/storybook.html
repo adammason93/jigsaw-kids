@@ -8,7 +8,7 @@
   <link rel="manifest" href="../manifest.json" />
   <link rel="stylesheet" href="../js/kids-core.css" />
   <!-- storybook-app.css = renamed file so CDN/browser cache cannot keep old storybook.css -->
-  <link rel="stylesheet" href="storybook-app.css?v=51" />
+  <link rel="stylesheet" href="storybook-app.css?v=52" />
   <link rel="stylesheet" href="../tablet-ipad.css" />
   <!-- Last wins: guarantees new background even if a proxy cached an ancient stylesheet elsewhere -->
   <style>
@@ -39,10 +39,20 @@
     <div class="sb-portal-welcome__veil" aria-hidden="true"></div>
     <div class="sb-portal-welcome__inner">
       <div class="sb-portal-welcome__sparkles" aria-hidden="true"></div>
-      <p class="sb-portal-welcome__kicker">✨ Your story room ✨</p>
-      <h2 class="sb-portal-welcome__title" id="sbPortalWelcomeTitle">Welcome in!</h2>
-      <p class="sb-portal-welcome__lead">
-        Build a brand-new book or open one you’ve put on your shelf.
+      <div class="sb-portal-welcome__mascot" aria-hidden="true">
+        <img
+          class="sb-portal-welcome__char"
+          src="images/character-girl-blonde.png"
+          alt=""
+          width="140"
+          height="140"
+          decoding="async"
+        />
+      </div>
+      <p class="sb-portal-welcome__kicker">✨ Sofia says ✨</p>
+      <h2 class="sb-portal-welcome__title" id="sbPortalWelcomeTitle">Welcome back!</h2>
+      <p class="sb-portal-welcome__lead" id="sbPortalWelcomeLead">
+        Let’s get creative — start a new book or open one you’ve put on your shelf.
       </p>
       <button type="button" class="sb-portal-welcome__dismiss sb-btn sb-btn--primary" id="sbPortalWelcomeDismiss">
         Let’s go
@@ -420,7 +430,7 @@
   <script src="../js/storybook-shelf-store.js" defer></script>
   <!-- Required for cloud shelf sync + upload (same as other games) -->
   <script src="../js/score-cloud.js" defer></script>
-  <script src="storybook.js?v=272" defer></script>
+  <script src="storybook.js?v=273" defer></script>
   <script>
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("../sw.js").catch(function () {});
