@@ -200,6 +200,8 @@
   var btnNew = document.getElementById("sbNew");
   var btnDownload = document.getElementById("sbDownloadBook");
   var btnShelf = document.getElementById("sbShelfBook");
+  var actionsDock = document.getElementById("sbBookActionsDock");
+  var actionsFab = document.getElementById("sbBookActionsFab");
   var shelfEl = document.getElementById("sbShelf");
   var btnVoiceName = document.getElementById("sbVoiceName");
   var btnVoicePlot = document.getElementById("sbVoicePlot");
@@ -2134,6 +2136,14 @@
     document.body.classList.remove("sb-modal-open");
   }
 
+  function setBookActionsOpen(open) {
+    if (!book) return;
+    book.classList.toggle("sb-book--actions-open", !!open);
+    if (actionsFab) {
+      actionsFab.setAttribute("aria-expanded", open ? "true" : "false");
+    }
+  }
+
   function setReaderImmersiveFromLayout() {
     if (!book) return;
     var on =
@@ -2144,6 +2154,8 @@
     } else {
       book.classList.remove("sb-book--immersive");
       document.body.classList.remove("sb-reader-immersive");
+      book.classList.remove("sb-book--actions-open");
+      if (actionsFab) actionsFab.setAttribute("aria-expanded", "false");
     }
   }
 
@@ -2234,6 +2246,7 @@
     applyBookThemingFromStory();
     renderSpread();
     syncCloseBookButton();
+    setBookActionsOpen(false);
     setReaderImmersiveFromLayout();
   }
 
@@ -2475,6 +2488,33 @@
     immersiveReaderMq.addListener(setReaderImmersiveFromLayout);
   }
 
+  if (actionsFab) {
+    actionsFab.addEventListener("click", function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!book || !book.classList.contains("sb-book--immersive")) return;
+      var open = !book.classList.contains("sb-book--actions-open");
+      setBookActionsOpen(open);
+    });
+  }
+  document.addEventListener(
+    "click",
+    function (e) {
+      if (!book || !book.classList.contains("sb-book--immersive")) return;
+      if (!book.classList.contains("sb-book--actions-open")) return;
+      if (!actionsDock || !e.target || !e.target.closest) return;
+      if (e.target.closest("#sbBookActionsDock")) return;
+      setBookActionsOpen(false);
+    },
+    true
+  );
+  document.addEventListener("keydown", function (e) {
+    if (e.key !== "Escape") return;
+    if (!book || !book.classList.contains("sb-book--immersive")) return;
+    if (!book.classList.contains("sb-book--actions-open")) return;
+    setBookActionsOpen(false);
+  });
+
   var btnPreviewSample = document.getElementById("sbPreviewSample");
 
   if (appEl) {
@@ -2686,16 +2726,19 @@
   }
   if (btnNew) {
     btnNew.addEventListener("click", function () {
+      setBookActionsOpen(false);
       showWizard();
     });
   }
   if (btnDownload) {
     btnDownload.addEventListener("click", function () {
+      setBookActionsOpen(false);
       downloadStoryBook();
     });
   }
   if (btnShelf) {
     btnShelf.addEventListener("click", function () {
+      setBookActionsOpen(false);
       saveBookToShelf();
     });
   }

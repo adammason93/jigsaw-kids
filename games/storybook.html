@@ -8,7 +8,7 @@
   <link rel="manifest" href="../manifest.json" />
   <link rel="stylesheet" href="../js/kids-core.css" />
   <!-- storybook-app.css = renamed file so CDN/browser cache cannot keep old storybook.css -->
-  <link rel="stylesheet" href="storybook-app.css?v=52" />
+  <link rel="stylesheet" href="storybook-app.css?v=53" />
   <link rel="stylesheet" href="../tablet-ipad.css" />
   <!-- Last wins: guarantees new background even if a proxy cached an ancient stylesheet elsewhere -->
   <style>
@@ -392,14 +392,27 @@
           ▶
         </button>
       </div>
-      <div class="sb-book__actions">
-        <button type="button" class="sb-btn sb-btn--primary" id="sbDownloadBook">
-          Download my book
+      <div class="sb-book__actions-dock" id="sbBookActionsDock">
+        <div class="sb-book__actions" id="sbBookActions" role="group" aria-label="Book actions">
+          <button type="button" class="sb-btn sb-btn--primary" id="sbDownloadBook">
+            Download my book
+          </button>
+          <button type="button" class="sb-btn sb-btn--secondary" id="sbShelfBook">
+            Put on my shelf
+          </button>
+          <button type="button" class="sb-btn sb-btn--secondary" id="sbNew">Build another book</button>
+        </div>
+        <button
+          type="button"
+          class="sb-book__actions-fab"
+          id="sbBookActionsFab"
+          aria-expanded="false"
+          aria-controls="sbBookActions"
+          title="Book menu"
+        >
+          <span class="sb-book__actions-fab-icon" aria-hidden="true">📚</span>
+          <span class="visually-hidden">Book menu — download, shelf, new story</span>
         </button>
-        <button type="button" class="sb-btn sb-btn--secondary" id="sbShelfBook">
-          Put on my shelf
-        </button>
-        <button type="button" class="sb-btn sb-btn--secondary" id="sbNew">Build another book</button>
       </div>
     </section>
 
@@ -430,7 +443,7 @@
   <script src="../js/storybook-shelf-store.js" defer></script>
   <!-- Required for cloud shelf sync + upload (same as other games) -->
   <script src="../js/score-cloud.js" defer></script>
-  <script src="storybook.js?v=274" defer></script>
+  <script src="storybook.js?v=275" defer></script>
   <script>
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("../sw.js").catch(function () {});
