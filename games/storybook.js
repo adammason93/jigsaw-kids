@@ -71,6 +71,15 @@
   var stepHeading = document.getElementById("sbStepHeading");
   var btnStart = document.getElementById("sbStartJourney");
   var btnGen = document.getElementById("sbGenerate");
+  var heroPhotoInput = document.getElementById("sbHeroPhoto");
+  var heroPhotoPreview = document.getElementById("sbHeroPhotoPreview");
+  var heroPhotoPreviewWrap = document.getElementById("sbHeroPhotoPreviewWrap");
+  var heroPhotoErr = document.getElementById("sbHeroPhotoErr");
+  var heroPhotoRemove = document.getElementById("sbHeroPhotoRemove");
+  /** @type {string|null} */
+  var heroPhotoDataUrl = null;
+  /** Keep under clever-service `MAX_HERO_REFERENCE_BYTES` after base64 (~1.2MB raw). */
+  var HERO_PHOTO_MAX_FILE_BYTES = Math.floor(1.25 * 1024 * 1024);
   var readerHeading = document.getElementById("sbBookHeading");
   var spreadText = document.getElementById("sbSpreadText");
   var spreadTextClip = document.getElementById("sbSpreadTextClip");
@@ -449,6 +458,8 @@
   function clearSpreadTurnRevealFx() {
     if (spreadTextClip) {
       spreadTextClip.classList.remove("sb-flip-text__clip--reveal-turn");
+      spreadTextClip.style.clipPath = "";
+      spreadTextClip.style.webkitClipPath = "";
     }
     if (spreadArtBase) {
       spreadArtBase.classList.remove("sb-flip-spread__art-base--reveal-turn");
@@ -1879,6 +1890,31 @@
       });
   }
 
+  function clearHeroPhoto() {
+    heroPhotoDataUrl = null;
+    if (heroPhotoInput) heroPhotoInput.value = "";
+    if (heroPhotoPreview) {
+      heroPhotoPreview.removeAttribute("src");
+      heroPhotoPreview.alt = "";
+    }
+    if (heroPhotoPreviewWrap) heroPhotoPreviewWrap.hidden = true;
+    if (heroPhotoErr) {
+      heroPhotoErr.textContent = "";
+      heroPhotoErr.hidden = true;
+    }
+  }
+
+  function setHeroPhotoError(msg) {
+    if (!heroPhotoErr) return;
+    if (msg) {
+      heroPhotoErr.textContent = msg;
+      heroPhotoErr.hidden = false;
+    } else {
+      heroPhotoErr.textContent = "";
+      heroPhotoErr.hidden = true;
+    }
+  }
+
   function setError(msg) {
     if (!msg) {
       if (errEl) {
@@ -2204,6 +2240,7 @@
     if (nameInput) nameInput.value = "";
     if (bookTitleInput) bookTitleInput.value = "";
     if (plotInput) plotInput.value = "";
+    clearHeroPhoto();
     clearGamePeopleChips();
     goToStep(0);
     setError("");
@@ -2569,6 +2606,49 @@
     });
   }
 
+  if (heroPhotoInput) {
+    heroPhotoInput.addEventListener("change", function () {
+      setHeroPhotoError("");
+      heroPhotoDataUrl = null;
+      if (heroPhotoPreviewWrap) heroPhotoPreviewWrap.hidden = true;
+      var f = heroPhotoInput.files && heroPhotoInput.files[0];
+      if (!f) return;
+      if (!/^image\/(jpeg|png|webp)$/i.test(f.type)) {
+        setHeroPhotoError("Use a JPG, PNG, or WebP photo.");
+        heroPhotoInput.value = "";
+        return;
+      }
+      if (f.size > HERO_PHOTO_MAX_FILE_BYTES) {
+        setHeroPhotoError("Photo is too large — try a smaller picture (under about 1 MB).");
+        heroPhotoInput.value = "";
+        return;
+      }
+      var r = new FileReader();
+      r.onload = function () {
+        var url = typeof r.result === "string" ? r.result : "";
+        if (!url || !/^data:image\//i.test(url)) {
+          setHeroPhotoError("Could not read that photo.");
+          return;
+        }
+        heroPhotoDataUrl = url;
+        if (heroPhotoPreview) {
+          heroPhotoPreview.src = url;
+          heroPhotoPreview.alt = "Hero photo preview";
+        }
+        if (heroPhotoPreviewWrap) heroPhotoPreviewWrap.hidden = false;
+      };
+      r.onerror = function () {
+        setHeroPhotoError("Could not read that photo.");
+      };
+      r.readAsDataURL(f);
+    });
+  }
+  if (heroPhotoRemove) {
+    heroPhotoRemove.addEventListener("click", function () {
+      clearHeroPhoto();
+    });
+  }
+
   var btnNext0 = document.getElementById("sbNext0");
   var btnBack1 = document.getElementById("sbBack1");
   var btnNext1 = document.getElementById("sbNext1");
@@ -2637,6 +2717,7 @@
           }),
           familyPeople: familyPeople,
           bookCoverColor: selectedBookCoverColor || undefined,
+          heroReferenceImage: heroPhotoDataUrl || undefined,
         }),
       })
         .then(function (r) {

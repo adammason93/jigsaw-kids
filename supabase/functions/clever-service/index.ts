@@ -77,6 +77,9 @@ const DALLE3_PROMPT_MAX = 3900;
 /** Max length for the child's free-text plot idea (must match storybook UI `maxlength`). */
 const STORYBOOK_PLOT_HINT_MAX = 800;
 
+/** Optional hero photo from the client (base64 data URL); cap raw size like game portraits. */
+const MAX_HERO_REFERENCE_BYTES = 1_200_000;
+
 function coerceBookColor(
   requested: string | undefined,
   modelRaw: unknown,
@@ -568,7 +571,7 @@ async function openaiVisionDescribePortraits(
     {
       type: "text",
       text:
-        `These ${items.length} images are official reference portraits for named characters in a kids' picture book, in order: ${ordered}.\n` +
+        `These ${items.length} images are reference photos for named characters in a kids' picture book, in order: ${ordered}.\n` +
         `Reply with exactly ${items.length} lines, one per character, format:\n` +
         `NAME: neutral appearance for an illustrator only — hair, skin tone, clothing colours and cut, approximate age; max 28 words; no art-style words; match the reference. CRITICAL: Ignore and omit any logos, graphics, or patterns on clothing.\n` +
         `Use each NAME exactly as spelled above. No other text.`,
@@ -606,18 +609,26 @@ async function openaiVisionDescribePortraits(
   return text.slice(0, 1200);
 }
 
-async function appearanceNotesFromFamilyPortraits(
+/**
+ * Vision pass: optional real-life hero photo first, then official game portraits.
+ * Order matches labels passed to `openaiVisionDescribePortraits`.
+ */
+async function appearanceNotesFromReferences(
   apiKey: string,
   assetsBase: string,
   people: FamilyPerson[],
+  hero: { label: string; dataUrl: string } | null,
 ): Promise<string> {
-  if (!people.length || !assetsBase) return "";
   const withUrls: { label: string; dataUrl: string }[] = [];
-  for (const p of people) {
-    const path = FAMILY_PORTRAIT_PATHS[p.id];
-    if (!path) continue;
-    const dataUrl = await fetchPortraitDataUrl(assetsBase, path);
-    if (dataUrl) withUrls.push({ label: p.label, dataUrl });
+  if (hero) withUrls.push(hero);
+  const base = (assetsBase ?? "").trim();
+  if (base && people.length > 0) {
+    for (const p of people) {
+      const path = FAMILY_PORTRAIT_PATHS[p.id];
+      if (!path) continue;
+      const dataUrl = await fetchPortraitDataUrl(base, path);
+      if (dataUrl) withUrls.push({ label: p.label, dataUrl });
+    }
   }
   if (withUrls.length === 0) return "";
   return openaiVisionDescribePortraits(apiKey, withUrls);
@@ -636,6 +647,26 @@ function sanitizePlotHint(raw: string): string {
     .slice(0, STORYBOOK_PLOT_HINT_MAX);
   const cleaned = oneLine.replace(/[^\p{L}\p{N}'\-\s\.,!?—–]/gu, "").trim();
   return cleaned.slice(0, STORYBOOK_PLOT_HINT_MAX);
+}
+
+/** Accepts only `data:image/(png|jpeg|webp);base64,...` from the storybook UI. */
+function sanitizeHeroReferenceImage(raw: unknown): string | null {
+  const s =
+    typeof raw === "string"
+      ? raw.trim().replace(/\s+/gu, "").replace(/\r|\n/gu, "")
+      : "";
+  if (!s) return null;
+  const m =
+    /^data:(image\/(?:png|jpeg|jpg|webp));base64,([A-Za-z0-9+/=]+)$/i.exec(s);
+  if (!m) return null;
+  const b64 = m[2];
+  const approxBytes = Math.floor((b64.length * 3) / 4);
+  if (approxBytes > MAX_HERO_REFERENCE_BYTES || approxBytes < 200) {
+    return null;
+  }
+  const mime =
+    m[1].toLowerCase() === "image/jpg" ? "image/jpeg" : m[1].toLowerCase();
+  return `data:${mime};base64,${b64}`;
 }
 
 function jsonResponse(body: unknown, status = 200) {
@@ -1422,6 +1453,8 @@ Deno.serve(async (req) => {
     familyNames?: string[];
     familyPeople?: unknown;
     bookCoverColor?: string;
+    /** Optional `data:image/jpeg|png|webp;base64,...` for hero appearance (storybook step 1). */
+    heroReferenceImage?: string;
   };
   try {
     body = await req.json();
@@ -1580,15 +1613,22 @@ Deno.serve(async (req) => {
   );
 
   const bookAssetsBase = (Deno.env.get("BOOK_ASSETS_BASE_URL") ?? "").trim();
+  const heroRefDataUrl = sanitizeHeroReferenceImage(body.heroReferenceImage);
+  const heroForVision = heroRefDataUrl
+    ? { label: childName, dataUrl: heroRefDataUrl }
+    : null;
 
   let portraitAppearance = "";
-  const portraitVisionAttempted = Boolean(bookAssetsBase && familyPeople.length > 0);
+  const portraitVisionAttempted = Boolean(
+    heroForVision || (bookAssetsBase && familyPeople.length > 0),
+  );
   if (portraitVisionAttempted) {
     try {
-      portraitAppearance = await appearanceNotesFromFamilyPortraits(
+      portraitAppearance = await appearanceNotesFromReferences(
         apiKey,
         bookAssetsBase,
         familyPeople,
+        heroForVision,
       );
     } catch (e) {
       console.warn("[clever-service] portrait vision failed", e);
@@ -1597,7 +1637,7 @@ Deno.serve(async (req) => {
 
   const portraitBlockForText =
     portraitAppearance.length > 0
-      ? `\n\nAppearance from reference portraits (match when describing these game people):\n${portraitAppearance}\n`
+      ? `\n\nAppearance from reference photos (first line is the hero when a photo was sent; other lines are game friends when selected — match when describing these people in the story):\n${portraitAppearance}\n`
       : "";
 
   const system = `You write very short picture-book stories for UK English-speaking children about age 5.
@@ -1611,7 +1651,7 @@ Rules:
 - CAST vs TEXT (strict): Each illustrationBrief may include ONLY characters who appear **by name** on that spread's paired text page (the odd page before it), or the one imaginary buddy when the text clearly means them ("the dinosaur", "their friend") after names were established. If the verse names ${childName} plus a human co-star (e.g. Isaac) plus the buddy, all three may appear when the verse puts them in the scene. If the verse only mentions ${childName} and the buddy, the picture has only those two. If the verse also names game people who are in that scene, they may appear — list everyone the text actually puts in the moment. Never add lions, bears, random pals, villagers, crowds, or background "silhouette people" that the text does not mention. A few characters is fine **only** when the text names them all for that beat.
 - If "People from the child's games" are listed, include them in the story by name as extra friends or family. They should feel like the same friendly faces the child picks in other games (e.g. Tilly, Baby). They are separate from the one imaginary "main friend character" (unicorn, dragon, etc.) — both can appear.${
     portraitAppearance
-      ? " If appearance lines are given for those people, stay consistent with those visual details when you naturally describe them."
+      ? " If appearance lines are given for the hero or game people, stay consistent with those visual details when you naturally describe them."
       : ""
   }
 - Include fields title (string), characterDesign (string), bookColor (string: MUST be exactly "blue", "green", or "pink". If the child's name is typically male (e.g. Isaac, Leo), use "blue" or "green". If female, use "pink"), and pages (array of 12 objects).
