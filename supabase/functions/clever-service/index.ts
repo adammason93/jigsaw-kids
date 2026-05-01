@@ -1857,6 +1857,8 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
           const raw = Number(Deno.env.get("STORYBOOK_GPTIMAGE_CHUNK_WAIT_MS"));
           return Number.isFinite(raw) && raw >= 0 ? raw : 12000;
         })();
+        const adaptiveChunkWait =
+          Deno.env.get("STORYBOOK_GPTIMAGE_CHUNK_WAIT_ADAPTIVE") !== "0";
 
         // SHOT PLAN — keeps each of the 6 spreads at a different camera
         // distance so the book reads as a journey, not 6 portraits. Notes are
@@ -1984,18 +1986,36 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
           return blocks.join("\n\n");
         };
 
+        let lastChunkMs = 0;
         for (
           let chunkStart = 0;
           chunkStart < briefs.length;
           chunkStart += chunkSize
         ) {
           if (chunkStart > 0 && interChunkWaitMs > 0) {
+            // Full cooldown protects OpenAI tier-1 RPM. But if the previous chunk
+            // already took ~one minute wall-clock, the rolling limit window has
+            // usually advanced — sleeping the full amount often pushes past the
+            // ~150s edge gateway (HTTP 546) for no benefit.
+            const prevMs = lastChunkMs;
+            let sleepMs = interChunkWaitMs;
+            if (adaptiveChunkWait) {
+              if (prevMs >= 55000) {
+                sleepMs = Math.min(sleepMs, 2000);
+              } else if (prevMs >= 35000) {
+                sleepMs = Math.min(
+                  sleepMs,
+                  Math.max(2000, Math.floor(interChunkWaitMs / 2)),
+                );
+              }
+            }
             console.info(
-              `[clever-service] cooldown ${interChunkWaitMs}ms before next gpt-image chunk`,
+              `[clever-service] gpt-image chunk cooldown ${sleepMs}ms (prev chunk ${prevMs}ms; budget ${interChunkWaitMs}ms)`,
             );
-            await delay(interChunkWaitMs);
+            await delay(sleepMs);
           }
           const slice = briefs.slice(chunkStart, chunkStart + chunkSize);
+          const chunkT0 = Date.now();
           const chunkResults = await Promise.all(
             slice.map(async (b, localIdx) => {
               const idx = chunkStart + localIdx;
@@ -2013,6 +2033,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
               }
             }),
           );
+          lastChunkMs = Date.now() - chunkT0;
           for (const r of chunkResults) {
             urls[r.idx] = r.url;
             gptImageSpreadCount++;
