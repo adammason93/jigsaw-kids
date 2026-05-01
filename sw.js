@@ -1,5 +1,5 @@
 /* Minimal offline shell — network-first, cache as fallback for same-origin */
-const CACHE = "jigsaw-kids-v274";
+const CACHE = "jigsaw-kids-v275";
 const SHELL = [
   "./index.html",
   "./manifest.json",
@@ -106,6 +106,7 @@ const SHELL = [
   "./games/prompt-game.css",
   "./games/prompt-game.js",
   "./games/images/portal/prompt-game.svg",
+  "./games/images/storybook-landing-room-bg.jpg",
   "./games/images/storybook-design-goal-reference.png",
   "./games/images/flip-book/page-front-edge.png",
   "./games/images/flip-book/page-back-edge.png",

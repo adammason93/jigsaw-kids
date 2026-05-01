@@ -150,9 +150,9 @@ body.page-storybook.sb-modal-open {
   content: "";
   position: absolute;
   inset: -14px;
-  background-image: url("images/storybook-design-goal-reference.png");
+  background-image: url("images/storybook-landing-room-bg.jpg");
   background-size: cover;
-  background-position: center 40%;
+  background-position: center center;
   filter: blur(12px);
   transform: scale(1.07);
   z-index: 0;
