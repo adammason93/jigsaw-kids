@@ -2114,60 +2114,30 @@
   initVoiceUi();
   renderShelf();
 
-  if (window.KidsScoreCloud && window.KidsScoreCloud.downloadStorybookLibrary) {
-    var syncLibrary = function() {
-      window.KidsScoreCloud.downloadStorybookLibrary(function (err, data) {
-        var local = loadShelf();
-        var cloudBooks = (Array.isArray(data)) ? data : [];
-        var changedLocal = false;
-        var needsUpload = false;
-
-        var mapLocal = {};
-        local.forEach(function (b) { mapLocal[b.id] = b; });
-
-        var mapCloud = {};
-        cloudBooks.forEach(function (b) { mapCloud[b.id] = b; });
-
-        // 1. Add any cloud books we don't have locally
-        cloudBooks.forEach(function (b) {
-          if (!mapLocal[b.id]) {
-            local.push(b);
-            changedLocal = true;
-          }
-        });
-
-        // 2. Check if local has books the cloud doesn't have
-        local.forEach(function (b) {
-          if (!mapCloud[b.id]) {
-            needsUpload = true;
-          }
-        });
-
-        if (changedLocal) {
-          // Sort descending by id (timestamp) so newest is first
-          local.sort(function(a, b) {
-            return b.id - a.id;
-          });
-          var raw = JSON.stringify(local);
-          localStorage.setItem(SHELF_STORAGE_KEY, raw);
+  if (window.KidsScoreCloud && window.KidsScoreCloud.mergeStorybookShelfFromCloud) {
+    var shelfPullTimer = null;
+    function pullShelfFromCloud() {
+      if (shelfPullTimer) {
+        clearTimeout(shelfPullTimer);
+      }
+      shelfPullTimer = setTimeout(function () {
+        shelfPullTimer = null;
+        window.KidsScoreCloud.mergeStorybookShelfFromCloud(function () {
           renderShelf();
-        }
+        });
+      }, 200);
+    }
 
-        // 3. If local had books the cloud didn't, upload the merged list immediately
-        if (needsUpload && window.KidsScoreCloud.uploadStorybookLibrary) {
-          window.KidsScoreCloud.uploadStorybookLibrary(JSON.stringify(local), function(err) {
-            if (err) console.error("Error uploading storybook library:", err);
-            else console.log("Successfully uploaded merged storybook library.");
-          });
-        }
-      });
-    };
-    
-    // Sync on initial load
-    syncLibrary();
-    
-    // Also sync when the user signs in or clicks "Pull scores" in settings
-    window.addEventListener("kids-scorecard-refresh", syncLibrary);
+    pullShelfFromCloud();
+    window.addEventListener("kids-scorecard-refresh", pullShelfFromCloud);
+    document.addEventListener("visibilitychange", function () {
+      if (document.visibilityState === "visible") {
+        pullShelfFromCloud();
+      }
+    });
+    window.addEventListener("pageshow", function () {
+      pullShelfFromCloud();
+    });
   }
 
   if (immersiveReaderMq.addEventListener) {

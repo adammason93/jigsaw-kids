@@ -414,63 +414,150 @@
     }
   }
 
-  /** Download cloud shelf into localStorage (any page) and push when this device has extra books. */
-  function mergeStorybookShelfFromCloud() {
+  /** Prefer savedAt, then id prefix b{timestamp}. */
+  function shelfBookVersionTime(book) {
+    if (!book) {
+      return 0;
+    }
+    if (book.savedAt) {
+      var t = Date.parse(book.savedAt);
+      if (!isNaN(t)) {
+        return t;
+      }
+    }
+    var id = String(book.id || "");
+    var m = id.match(/^b(\d+)/);
+    if (m) {
+      var n = parseInt(m[1], 10);
+      if (!isNaN(n)) {
+        return n;
+      }
+    }
+    return 0;
+  }
+
+  function sortShelfForCompare(arr) {
+    return arr.slice().sort(function (a, c) {
+      return String((a && a.id) || "").localeCompare(String((c && c.id) || ""), undefined, {
+        numeric: true,
+      });
+    });
+  }
+
+  /**
+   * Download cloud shelf, merge into localStorage (newest wins per book id), upload if this device is ahead or has unique books.
+   * @param {function(): void} [optionalCb] runs after merge + optional upload (e.g. re-render shelf UI)
+   */
+  function mergeStorybookShelfFromCloud(optionalCb) {
+    optionalCb = typeof optionalCb === "function" ? optionalCb : function () {};
     if (!isConfigured()) {
+      optionalCb();
       return;
     }
     downloadStorybookLibrary(function (err, data) {
+      if (err) {
+        optionalCb();
+        return;
+      }
       var cloudBooks = normalizedCloudShelf(data);
       var local = loadLocalStorybookShelf();
+      var cloudById = Object.create(null);
+      var i;
+      var b;
+      for (i = 0; i < cloudBooks.length; i++) {
+        b = cloudBooks[i];
+        if (b && b.id) {
+          cloudById[b.id] = b;
+        }
+      }
+
+      var mergedMap = Object.create(null);
+      for (i = 0; i < local.length; i++) {
+        b = local[i];
+        if (b && b.id) {
+          mergedMap[b.id] = b;
+        }
+      }
+
       var changedLocal = false;
       var needsUpload = false;
-      var mapLocal = Object.create(null);
-      var mapCloud = Object.create(null);
-      var i;
-      for (i = 0; i < local.length; i++) {
-        if (local[i] && local[i].id) {
-          mapLocal[local[i].id] = true;
-        }
-      }
+
       for (i = 0; i < cloudBooks.length; i++) {
-        if (cloudBooks[i] && cloudBooks[i].id) {
-          mapCloud[cloudBooks[i].id] = true;
+        b = cloudBooks[i];
+        if (!b || !b.id) {
+          continue;
         }
-      }
-      for (i = 0; i < cloudBooks.length; i++) {
-        var b = cloudBooks[i];
-        if (b && b.id && !mapLocal[b.id]) {
-          local.push(b);
-          mapLocal[b.id] = true;
+        var loc = mergedMap[b.id];
+        if (!loc) {
+          mergedMap[b.id] = b;
           changedLocal = true;
+          continue;
+        }
+        var tL = shelfBookVersionTime(loc);
+        var tC = shelfBookVersionTime(b);
+        if (tC > tL) {
+          mergedMap[b.id] = b;
+          changedLocal = true;
+        } else if (tL > tC) {
+          needsUpload = true;
         }
       }
+
       for (i = 0; i < local.length; i++) {
-        if (local[i] && local[i].id && !mapCloud[local[i].id]) {
+        b = local[i];
+        if (b && b.id && !cloudById[b.id]) {
           needsUpload = true;
           break;
         }
       }
-      if (changedLocal) {
-        local.sort(function (a, c) {
-          return String(c.id).localeCompare(String(a.id), undefined, { numeric: true });
-        });
-        while (local.length > STORYBOOK_SHELF_MAX) {
-          local.pop();
+
+      var merged = [];
+      for (var id in mergedMap) {
+        if (Object.prototype.hasOwnProperty.call(mergedMap, id)) {
+          merged.push(mergedMap[id]);
         }
+      }
+      merged.sort(function (a, c) {
+        return shelfBookVersionTime(c) - shelfBookVersionTime(a);
+      });
+      while (merged.length > STORYBOOK_SHELF_MAX) {
+        merged.pop();
+        changedLocal = true;
+        needsUpload = true;
+      }
+
+      var same =
+        JSON.stringify(sortShelfForCompare(merged)) === JSON.stringify(sortShelfForCompare(local));
+      if (!same) {
+        changedLocal = true;
+      }
+
+      if (changedLocal) {
         try {
-          global.localStorage.setItem(STORYBOOK_SHELF_KEY, JSON.stringify(local));
+          global.localStorage.setItem(STORYBOOK_SHELF_KEY, JSON.stringify(merged));
         } catch (e) {}
       }
+
+      function finish() {
+        optionalCb();
+      }
+
       if (needsUpload) {
         try {
-          var payload = changedLocal ? JSON.stringify(local) : JSON.stringify(loadLocalStorybookShelf());
-          uploadStorybookLibrary(payload, function (err) {
-            if (err) {
-              console.error("[score-cloud] mergeStorybookShelfFromCloud upload:", formatStorageErr(err));
+          uploadStorybookLibrary(JSON.stringify(merged), function (upErr) {
+            if (upErr) {
+              console.error(
+                "[score-cloud] mergeStorybookShelfFromCloud upload:",
+                formatStorageErr(upErr),
+              );
             }
+            finish();
           });
-        } catch (e2) {}
+        } catch (e2) {
+          finish();
+        }
+      } else {
+        finish();
       }
     });
   }
@@ -863,6 +950,7 @@
     downloadStorybookLibrary: downloadStorybookLibrary,
     uploadStorybookLibrary: uploadStorybookLibrary,
     scheduleStorybookUpload: scheduleStorybookUpload,
+    mergeStorybookShelfFromCloud: mergeStorybookShelfFromCloud,
     getStorybookShelfSyncState: function () {
       return {
         text: storybookShelfSyncState.text,
