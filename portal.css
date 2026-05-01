@@ -429,6 +429,312 @@ h2,
   }
 }
 
+/* ——— Sofia's story nook (featured) ——— */
+.portal-story-nook {
+  position: relative;
+  margin: 0 0 1.75rem;
+  z-index: 0;
+}
+
+.portal-story-nook__hit {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  border-radius: 28px;
+  outline: none;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.portal-story-nook__hit:focus-visible {
+  box-shadow: 0 0 0 3px #fff, 0 0 0 6px rgba(219, 39, 119, 0.55);
+}
+
+.portal-story-nook__hit:active {
+  transform: scale(0.992);
+}
+
+.portal-story-nook__aurora {
+  position: absolute;
+  inset: -12px -8px;
+  border-radius: 32px;
+  background:
+    radial-gradient(ellipse 80% 70% at 12% 40%, rgba(244, 114, 182, 0.35) 0%, transparent 55%),
+    radial-gradient(ellipse 70% 60% at 88% 60%, rgba(167, 139, 250, 0.28) 0%, transparent 50%),
+    radial-gradient(ellipse 50% 45% at 50% 110%, rgba(251, 191, 36, 0.12) 0%, transparent 45%);
+  filter: blur(2px);
+  z-index: -1;
+  pointer-events: none;
+  animation: portal-nook-aurora 10s ease-in-out infinite;
+}
+
+@keyframes portal-nook-aurora {
+  0%,
+  100% {
+    opacity: 0.85;
+    transform: scale(1) translate(0, 0);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.02) translate(1%, -1%);
+  }
+}
+
+.portal-story-nook__inner {
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem 1.75rem;
+  padding: 1.35rem 1.5rem 1.4rem;
+  background:
+    linear-gradient(
+      155deg,
+      rgba(255, 251, 253, 0.97) 0%,
+      rgba(252, 231, 243, 0.94) 38%,
+      rgba(237, 233, 254, 0.88) 100%
+    );
+  border: 3px solid rgba(219, 39, 119, 0.28);
+  border-radius: 28px;
+  box-shadow:
+    0 4px 0 rgba(190, 24, 93, 0.12),
+    0 20px 48px rgba(131, 24, 67, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95);
+  overflow: hidden;
+}
+
+.portal-story-nook__inner::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 100% 0%, rgba(255, 255, 255, 0.55) 0%, transparent 45%);
+  pointer-events: none;
+}
+
+.portal-story-nook__sparkles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.portal-story-nook__spark {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 10px 2px rgba(253, 186, 116, 0.9), 0 0 18px 4px rgba(251, 113, 190, 0.45);
+  opacity: 0;
+  animation: portal-nook-sparkle 3.2s ease-in-out infinite;
+}
+
+.portal-story-nook__spark:nth-child(1) {
+  left: 14%;
+  top: 22%;
+  animation-delay: 0s;
+}
+
+.portal-story-nook__spark:nth-child(2) {
+  left: 42%;
+  top: 12%;
+  animation-delay: 0.9s;
+}
+
+.portal-story-nook__spark:nth-child(3) {
+  right: 18%;
+  bottom: 28%;
+  animation-delay: 1.7s;
+}
+
+@keyframes portal-nook-sparkle {
+  0%,
+  100% {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  35% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  70% {
+    opacity: 0.4;
+    transform: scale(0.85);
+  }
+}
+
+.portal-story-nook__copy {
+  position: relative;
+  z-index: 1;
+  flex: 1 1 16rem;
+  max-width: 36rem;
+}
+
+.portal-story-nook__kicker {
+  margin: 0 0 0.4rem;
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #be185d;
+  opacity: 0.95;
+}
+
+.portal-story-nook__title {
+  margin: 0 0 0.5rem;
+  font-family: "Sniglet", "Nunito", system-ui, sans-serif;
+  font-size: clamp(1.55rem, 4.2vw, 2.1rem);
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  line-height: 1.12;
+  background: linear-gradient(100deg, #9d174d 0%, #db2777 42%, #c026d3 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.portal-story-nook__lead {
+  margin: 0 0 1rem;
+  font-size: clamp(0.95rem, 2.2vw, 1.05rem);
+  font-weight: 600;
+  color: #6b1d4a;
+  line-height: 1.55;
+  max-width: 40ch;
+}
+
+.portal-story-nook__lead strong {
+  font-weight: 800;
+  color: #831843;
+}
+
+.portal-story-nook__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.62rem 1.15rem;
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: #fff;
+  background: linear-gradient(165deg, #f472b6 0%, #db2777 50%, #9d174d 100%);
+  border-radius: 999px;
+  box-shadow:
+    0 3px 0 rgba(157, 23, 77, 0.35),
+    0 12px 28px rgba(219, 39, 119, 0.35);
+}
+
+.portal-story-nook__cta-arrow {
+  font-size: 1.05rem;
+  line-height: 1;
+  transition: transform 0.25s ease;
+}
+
+.portal-story-nook__hit:hover .portal-story-nook__cta-arrow {
+  transform: translateX(4px);
+}
+
+.portal-story-nook__preview {
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
+  width: min(9.5rem, 32vw);
+}
+
+.portal-story-nook__preview-ring {
+  position: absolute;
+  inset: -10%;
+  border-radius: 22px;
+  background: conic-gradient(
+    from 220deg,
+    rgba(251, 191, 36, 0.35),
+    rgba(244, 114, 182, 0.45),
+    rgba(167, 139, 250, 0.4),
+    rgba(251, 191, 36, 0.35)
+  );
+  animation: portal-nook-ring 8s linear infinite;
+  z-index: -1;
+}
+
+@keyframes portal-nook-ring {
+  to {
+      transform: rotate(360deg);
+    }
+}
+
+.portal-story-nook__preview-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 18px;
+  box-shadow: 0 10px 32px rgba(131, 24, 67, 0.22);
+  animation: portal-nook-float 5s ease-in-out infinite;
+}
+
+@keyframes portal-nook-float {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-1deg);
+  }
+  50% {
+    transform: translateY(-6px) rotate(1deg);
+  }
+}
+
+@media (max-width: 540px) {
+  .portal-story-nook__inner {
+    flex-direction: column;
+    text-align: center;
+    padding: 1.25rem 1.25rem 1.35rem;
+  }
+
+  .portal-story-nook__copy {
+    max-width: none;
+  }
+
+  .portal-story-nook__lead {
+    margin-inline: auto;
+  }
+
+  .portal-story-nook__preview {
+    width: min(10rem, 55vw);
+    order: -1;
+  }
+}
+
+/* Storybook card in grid: gentle magic pulse */
+a.game-card--story-magic .game-card__thumb {
+  animation: portal-story-magic-glow 4.5s ease-in-out infinite;
+}
+
+@keyframes portal-story-magic-glow {
+  0%,
+  100% {
+    box-shadow:
+      inset 0 0 0 1px rgba(15, 23, 42, 0.06),
+      0 0 0 0 rgba(219, 39, 119, 0);
+  }
+  50% {
+    box-shadow:
+      inset 0 0 0 1px rgba(219, 39, 119, 0.2),
+      0 0 20px 2px rgba(244, 114, 182, 0.25);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .portal-story-nook__aurora,
+  .portal-story-nook__spark,
+  .portal-story-nook__preview-ring,
+  .portal-story-nook__preview-img,
+  a.game-card--story-magic .game-card__thumb {
+    animation: none !important;
+  }
+
+  .portal-story-nook__hit:hover .portal-story-nook__cta-arrow {
+    transform: none;
+  }
+}
+
 /* ——— Section header ——— */
 .game-sections {
   display: flex;
