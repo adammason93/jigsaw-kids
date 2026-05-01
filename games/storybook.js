@@ -2119,7 +2119,14 @@
   if (window.KidsScoreCloud && window.KidsScoreCloud.mergeStorybookShelfFromCloud) {
     var shelfPullTimer = null;
     function pullShelfFromCloudNow() {
-      window.KidsScoreCloud.mergeStorybookShelfFromCloud(function () {
+      window.KidsScoreCloud.mergeStorybookShelfFromCloud(function (err) {
+        if (err) {
+          var msg = err && err.message ? err.message : String(err);
+          window.alert(
+            "Could not load your library from the cloud. Check you are signed in under Sync on the main menu, then try again.\n\nDetails: " +
+              msg,
+          );
+        }
         renderShelf();
       });
     }
