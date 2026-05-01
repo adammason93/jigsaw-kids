@@ -1285,7 +1285,17 @@ Rules:
 - Each page: { "text": string, "illustrationBrief": string | null }.
 - DOUBLE-PAGE SPREADS: pair pages as (1,2), (3,4), (5,6), (7,8), (9,10), (11,12).
   Odd-numbered pages (1,3,5,7,9,11) are TEXT-FIRST pages only — use "illustrationBrief": null.
-  Even-numbered pages (2,4,6,8,10,12) are PICTURE pages — each MUST have a non-null "illustrationBrief": a vivid visual scene description for an illustrator (no text to draw, no words on signs). Each brief MUST be different and visibly progress the journey. The brief MUST spell out the same specific moment as the text on the previous page: same characters named in that verse, same action, setting, props — not a generic scene. The brief must list **exactly** the same named cast as that text page (hero, buddy, and any game people actually in that verse). NEVER add guardians, helpers, or creatures the verse does not mention. NEVER duplicate the buddy as two unicorns unless the text says so. CRITICAL FOR CONSISTENCY: DO NOT re-describe permanent looks (clothes, hair colours) in the brief! Just state WHO (using names from the text) and WHAT they do. The illustrator has the master designs.
+  Even-numbered pages (2,4,6,8,10,12) are PICTURE pages — each MUST have a non-null "illustrationBrief": a vivid visual scene description for an illustrator (no text to draw, no words on signs). Each brief MUST be different and visibly progress the journey.
+  STRICT BRIEF FORMAT — start each brief with one explicit line, then a free description:
+    "VISIBLE: <comma-separated list of who is actually in this picture frame> — DESCRIPTION: <one or two sentences of what they do and where>"
+  VISIBLE CAST RULES (very important — read the paired verse carefully):
+    • Default visible = hero + buddy + any named friends mentioned in the paired verse, if they are present in that beat.
+    • If the verse says someone is HIDDEN, missing, lost, "where is", "can't find", "nowhere to be seen", "hiding", "we cannot see", "out of sight", or has flown / run / sailed AWAY — that character is NOT visible. Exclude them from VISIBLE.
+    • Example, hide-and-seek beat where the dragon is the seeker hiding: VISIBLE: Sofia, Isaac (dragon hidden — do not include).
+    • Example, beat where dragon is found / revealed: VISIBLE: Sofia, Isaac, dragon.
+    • Example, beat where the dragon is flying overhead and they spot it: VISIBLE: Sofia, Isaac, dragon (dragon up high in the sky, partially out of frame is fine).
+    • Never include a character in VISIBLE if the verse says they are NOT around for that moment.
+  The DESCRIPTION (after VISIBLE) must spell out the same specific moment as the verse on the previous page: same action, setting, props — not a generic scene. NEVER add guardians, helpers, or creatures the verse does not mention. NEVER duplicate the buddy unless the text says so. CRITICAL FOR CONSISTENCY: DO NOT re-describe permanent looks (clothes, hair colours) in the brief — the illustrator has the master designs.
   ENVIRONMENT DETAIL (very important — each brief must paint a different *place* on the journey, matching the SETTING and PLOT IDEA above):
     Every illustrationBrief MUST contain at least 2 specific environmental nouns (architecture, foliage, terrain, structure, weather, depth) AND at least 1 named prop or focal object from that beat. The environmental nouns MUST come from the actual SETTING and PLOT IDEA — if the plot says CASTLE, the briefs are inside or around a castle (stone walls, banners, courtyards, towers, throne room, drawbridge, tapestries) NOT in deep woods. If the plot says CAVE, the briefs are inside cave passages and chambers. If the plot says BEACH or UNDERSEA or SPACE, paint THAT setting. Only paint a forest if the plot or setting actually mentions woods/forest/trees.
     Examples of good briefs — note how each one fits a DIFFERENT plot, and how each only includes things the plot would actually contain:
@@ -1545,9 +1555,28 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
         // gpt-image-1 toward stock props (treasure chests, glowing flowers,
         // mossy logs) — every "no treasure" line counts as a treasure mention
         // to the model. So we list nothing to avoid: just the positive scene.
+        // Pull the LLM's "VISIBLE: ..." line out of the brief if present, plus
+        // detect missing-buddy cues in the verse ("where is", "can't find",
+        // "nowhere to be seen", "hidden", etc.) so the buddy is excluded from
+        // the picture when the story says they're not around.
+        const parseVisibleCast = (
+          brief: string,
+          verse: string,
+        ): { visibleLine: string | null; buddyMissing: boolean } => {
+          const m = brief.match(/^\s*VISIBLE\s*:\s*([^\n]+?)(?:\s*[—\-]\s*DESCRIPTION\s*:|$)/i);
+          const visibleLine = m ? m[1].trim() : null;
+          const v = verse.toLowerCase();
+          const buddyMissing =
+            /\b(where\s+is|where\s+are|where\s+could|cannot\s+find|can'?t\s+find|nowhere\s+(?:to\s+be\s+seen|around|in\s+sight)|out\s+of\s+sight|hidden\s+away|hiding\s+(?:somewhere|nearby)|gone\s+missing|lost|disappear(?:ed|s)?|vanish(?:ed|es)?)\b/i.test(
+              v,
+            );
+          return { visibleLine, buddyMissing };
+        };
+
         const buildEditPrompt = (b: typeof briefs[number], idx: number) => {
           const shot = shotPlan[idx] ?? shotPlan[shotPlan.length - 1];
           const verseLines = b.verse.trim().slice(0, 500);
+          const { visibleLine, buddyMissing } = parseVisibleCast(b.brief, verseLines);
 
           const blocks: string[] = [];
 
@@ -1565,23 +1594,42 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
           // 3. Shot framing
           blocks.push(`SHOT TYPE (spread ${idx + 1} of ${shotPlan.length}): ${shot.label}. ${shot.note}`);
 
-          // 4. The exact moment, from the verse + brief
+          // 4. The exact moment, from the verse
           if (verseLines) {
             blocks.push(
-              `THIS SPREAD'S MOMENT (from the rhyming verse on the facing page — show every action and named object literally):\n"""\n${verseLines}\n"""`,
+              `THIS SPREAD'S MOMENT (from the rhyming verse on the facing page — show every action literally):\n"""\n${verseLines}\n"""`,
             );
           }
+
+          // 5. Visible cast for THIS spread (the part that fixes the
+          //    "dinosaur is hidden but appears in the picture" bug).
+          //    Priority: explicit VISIBLE line from the LLM, else infer from
+          //    the verse's missing-buddy cues, else fall back to "the cast".
+          if (visibleLine) {
+            blocks.push(
+              `WHO IS IN THIS PICTURE (the only characters to draw — match the reference for each):\n${visibleLine}` +
+                (buddyMissing
+                  ? `\n(The verse says the buddy is hiding / out of sight / missing for this beat — keep them OUT of frame as VISIBLE says.)`
+                  : ""),
+            );
+          } else if (buddyMissing) {
+            blocks.push(
+              `WHO IS IN THIS PICTURE: ${childName} and any named human friends only. The buddy creature is hiding / out of sight / missing for this beat — DO NOT draw the buddy in this picture. The reference image is for character identity only — it does not mean every character on the reference must appear in this spread.`,
+            );
+          }
+
+          // 6. Scene note (free description from the LLM)
           blocks.push(`SCENE NOTE: ${b.brief}`);
 
-          // 5. Cast — keep the bible compact for the edit prompt
+          // 7. Cast bible (compact)
           const castSnippet = castBible.trim().slice(0, 800);
           blocks.push(
-            `CAST (paint exactly these named characters and only these — match the reference image for each):\n${castSnippet}`,
+            `CAST IDENTITIES (only draw the ones listed in WHO IS IN THIS PICTURE — match the reference for each):\n${castSnippet}`,
           );
 
-          // 6. Critical constraint — kept simple and positive-leaning
+          // 8. Final constraint
           blocks.push(
-            "Paint ONLY what the verse and SCENE NOTE describe — no extra props, no extra characters, no background crowd, no signs or writing in the picture.",
+            "Paint ONLY what the verse, WHO IS IN THIS PICTURE, and SCENE NOTE describe — no extra props, no extra characters, no background crowd, no signs or writing in the picture.",
           );
 
           return blocks.join("\n\n");
@@ -1861,4 +1909,4 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
     },
   });
 });
-  
+   
