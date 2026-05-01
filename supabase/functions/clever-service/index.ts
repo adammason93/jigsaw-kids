@@ -1087,6 +1087,13 @@ function gptImageModerationParam(): "low" | "auto" {
     : "low";
 }
 
+/** Default `low` — faster and helps stay under Supabase ~150s edge limit; set `medium` / `high` / `auto` for nicer art. */
+function gptImageQualityParam(): "low" | "medium" | "high" | "auto" {
+  const q = (Deno.env.get("STORYBOOK_GPTIMAGE_QUALITY") ?? "low").trim().toLowerCase();
+  if (q === "medium" || q === "high" || q === "auto") return q;
+  return "low";
+}
+
 function decodeB64ToBytes(b64: string): Uint8Array {
   const clean = b64.replace(/^data:image\/[a-z]+;base64,/i, "").trim();
   const bin = atob(clean);
@@ -1174,6 +1181,7 @@ async function gptImageGenerate(
 ): Promise<{ url: string; bytes: Uint8Array }> {
   const model = gptImageDefaultModel();
   const moderation = gptImageModerationParam();
+  const quality = gptImageQualityParam();
   const trimmed = prompt.slice(0, GPT_IMAGE_PROMPT_MAX);
 
   const post = (body: Record<string, unknown>) =>
@@ -1191,7 +1199,7 @@ async function gptImageGenerate(
     prompt: trimmed,
     n: 1,
     size,
-    quality: "medium",
+    quality,
     moderation,
     output_format: "png",
     stream: false,
@@ -1242,8 +1250,9 @@ async function gptImageEdit(
 ): Promise<{ url: string; bytes: Uint8Array }> {
   const model = gptImageDefaultModel();
   const moderation = gptImageModerationParam();
+  const quality = gptImageQualityParam();
   const trimmed = prompt.slice(0, GPT_IMAGE_PROMPT_MAX);
-  const fidRaw = (Deno.env.get("STORYBOOK_GPTIMAGE_INPUT_FIDELITY") ?? "high")
+  const fidRaw = (Deno.env.get("STORYBOOK_GPTIMAGE_INPUT_FIDELITY") ?? "low")
     .trim()
     .toLowerCase();
 
@@ -1254,7 +1263,7 @@ async function gptImageEdit(
     form.append("n", "1");
     form.append("size", size);
     if (withQuality) {
-      form.append("quality", "medium");
+      form.append("quality", quality);
     }
     form.append("output_format", "png");
     form.append("stream", "false");
@@ -1836,20 +1845,17 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
         // timeout. Identity is already locked by pixels. Visual lock stays in
         // play for the Fal / DALL·E paths below.
         const refBytes = anchorOut.bytes;
-        // OpenAI gpt-image-1 has a tight per-minute image cap (5/min on tier 1,
-        // shared across generations + edits). Going fully serial pushed past
-        // Cloudflare/Supabase's 150s wall-clock (HTTP 546). Instead we run in
-        // CHUNKS in parallel: first 4 spread edits together (anchor + 4 = 5,
-        // exactly at the per-minute ceiling), short cooldown so the anchor's
-        // request leaves the rate window, then the remaining edits in parallel.
-        // The 429 retry inside gptImageEdit catches any leftover bursts.
+        // Stay under Supabase/Cloudflare wall-clock (~150s): default LOW quality,
+        // LOW input_fidelity, and a shorter inter-chunk pause. Tier-1 OpenAI
+        // image RPM is 5 — chunk 4 edits, brief wait, then 2 edits. Raise wait or
+        // shrink chunk size if you see 429s; raise OpenAI tier or lower wait if 546.
         const chunkSize = (() => {
           const raw = Number(Deno.env.get("STORYBOOK_GPTIMAGE_CHUNK_SIZE"));
           return Number.isFinite(raw) && raw >= 1 ? Math.floor(raw) : 4;
         })();
         const interChunkWaitMs = (() => {
           const raw = Number(Deno.env.get("STORYBOOK_GPTIMAGE_CHUNK_WAIT_MS"));
-          return Number.isFinite(raw) && raw >= 0 ? raw : 20000;
+          return Number.isFinite(raw) && raw >= 0 ? raw : 12000;
         })();
 
         // SHOT PLAN — keeps each of the 6 spreads at a different camera
