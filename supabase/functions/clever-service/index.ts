@@ -1184,8 +1184,8 @@ Deno.serve(async (req) => {
   // If the child's plot prompt clearly names a different setting than the one
   // they tapped on (e.g. picker = "woods" but plot says "in a castle"), the
   // PLOT wins. Otherwise the LLM gets a conflicting "ENVIRONMENT: forest"
-  // alongside "THEME: castle hide and seek" and renders trees + treasure
-  // anyway. Detect the most specific setting word in the plot and swap.
+  // alongside "THEME: castle hide and seek" and the model averages them.
+  // Detect the most specific setting word in the plot and swap.
   let placeOverridden: { from: string; to: string } | null = null;
   if (plotHint) {
     const settingMap: Array<{
@@ -1288,25 +1288,25 @@ Rules:
   Even-numbered pages (2,4,6,8,10,12) are PICTURE pages — each MUST have a non-null "illustrationBrief": a vivid visual scene description for an illustrator (no text to draw, no words on signs). Each brief MUST be different and visibly progress the journey. The brief MUST spell out the same specific moment as the text on the previous page: same characters named in that verse, same action, setting, props — not a generic scene. The brief must list **exactly** the same named cast as that text page (hero, buddy, and any game people actually in that verse). NEVER add guardians, helpers, or creatures the verse does not mention. NEVER duplicate the buddy as two unicorns unless the text says so. CRITICAL FOR CONSISTENCY: DO NOT re-describe permanent looks (clothes, hair colours) in the brief! Just state WHO (using names from the text) and WHAT they do. The illustrator has the master designs.
   ENVIRONMENT DETAIL (very important — each brief must paint a different *place* on the journey, matching the SETTING and PLOT IDEA above):
     Every illustrationBrief MUST contain at least 2 specific environmental nouns (architecture, foliage, terrain, structure, weather, depth) AND at least 1 named prop or focal object from that beat. The environmental nouns MUST come from the actual SETTING and PLOT IDEA — if the plot says CASTLE, the briefs are inside or around a castle (stone walls, banners, courtyards, towers, throne room, drawbridge, tapestries) NOT in deep woods. If the plot says CAVE, the briefs are inside cave passages and chambers. If the plot says BEACH or UNDERSEA or SPACE, paint THAT setting. Only paint a forest if the plot or setting actually mentions woods/forest/trees.
-    Examples of good briefs — note how each one fits a DIFFERENT plot:
+    Examples of good briefs — note how each one fits a DIFFERENT plot, and how each only includes things the plot would actually contain:
       • CASTLE plot: "${childName} and the dragon peek around a stone archway in a torchlit castle corridor, banners hanging from the wall, suit of armour standing nearby."
       • CASTLE plot: "${childName} climbs a spiral stone staircase inside a tower, narrow window showing the dragon flying past in the night sky."
-      • WOODS plot: "${childName} and the unicorn creep between tall mossy oak trunks at night, fireflies dotting the dark path."
-      • CAVE plot: "${childName} stands in a glittering crystal cave, cave-pearls glowing on the rough walls, a treasure chest half-open at the buddy's feet."
+      • WOODS plot: "${childName} and the unicorn walk between tall trees at sunset, soft sunbeams falling on the path."
       • SPACE plot: "${childName} bounces on a soft pastel asteroid, ringed planet huge in the starry sky behind them."
       • UNDERWATER plot: "${childName} swims past a coral reef, rays of sunlight cutting down through the water, a friendly turtle alongside."
+      • BAKERY plot: "${childName} stands at a wooden counter rolling out dough, flour cloud puffing up, big stone oven glowing warmly behind."
     Vary the *place* between spreads in line with the plot's beats — e.g. CASTLE: gates → corridor → great hall → spiral tower → rooftop → courtyard with the dragon flying overhead. Don't repeat the same backdrop. State a different camera angle / shot type for each (wide establishing shot, mid shot, low-angle hero kneeling, over-the-shoulder peering, etc).
     Background details ARE allowed (in fact required) — what is NOT allowed is faced extras the verse doesn't mention.
     COMPOSITION: main characters in the middle vertical band with headroom and visible feet.
   OPENING SPREAD (page 2 only — the first illustrationBrief): MUST match page 1 text and the child's plot, AND establish the actual SETTING (castle / woods / cave / beach / space / etc. — whichever the plot calls for). Only characters named on page 1 (usually ${childName} and the buddy; plus game people only if page 1 names them). Example: if the plot is "hide and seek in a castle", the opening establishes castle gates / courtyard / great hall — NOT a forest. No unwritten extras.
   When game people with portrait notes appear on a picture page, the brief should mention them looking like those notes (hair, outfit colours, age vibe).
 - If a "plot idea" is given, you MUST make it the central theme of the story and feature it heavily in EVERY illustration brief. If it is empty, invent a short happy outing that fits the setting.
-- PLOT FIDELITY RULES — read the plot idea LITERALLY:
-  • Do NOT invent props, locations, or beats that are not in the plot. If the plot is "hide and seek in a castle" — the story is hide and seek in a castle. NO treasure chest, NO gold coins, NO glowing flower, NO mysterious key, NO mossy logs unless the plot literally mentions them.
-  • Do NOT default the ending to "they found a treasure" / "they found a golden flower" / "they discovered a magic stone". Resolve the story with whatever the plot actually says — e.g. "they realised the dragon could fly", "they finally caught the cheeky dragon", "the dragon swooped down for a hug".
-  • Do NOT relocate to woods/forest if the plot names a different setting (castle, cave, beach, space, garden, undersea). Every spread stays inside the named setting.
-  • Do NOT add background characters, animals, or family members the plot doesn't name.
-  • If the plot has a clear narrative twist or reveal (e.g. "they realise the dragon can fly", "the cat was inside the box all along", "the storm passes and the sun comes out"), the story MUST build to that reveal — make it the climax around spread 4 or 5, not an off-hand line.
+- PLOT FIDELITY — read the plot idea LITERALLY:
+  • Use ONLY props, locations, and story beats that actually appear in the plot the child wrote. Don't invent extras.
+  • Resolve the story with whatever the plot actually says is the climax — for example "they realised the dragon could fly", "they finally caught the cheeky dragon", "the cake came out of the oven golden brown". Don't substitute a generic ending.
+  • Stay inside the setting the plot names. If the plot says castle, every spread is in the castle. If beach, every spread is on the beach.
+  • Use only the named cast (hero + buddy + any named friends). Don't add background characters, animals, or family members.
+  • If the plot has a narrative twist or reveal, build to that reveal as the climax around spread 4 or 5 — not an off-hand line.
 - JSON only, no markdown.`;
 
   const user = `Child name: ${childName}
@@ -1501,102 +1501,90 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
           return Number.isFinite(raw) && raw >= 0 ? raw : 20000;
         })();
 
-        // Per-spread SHOT PLAN — gpt-image-1's edit endpoint tends to inherit
-        // the anchor's tight portrait crop on every spread, which makes the
-        // book feel like 6 close-ups instead of a journey. Force a different
-        // camera distance / framing on each spread so we actually see the
-        // setting (whatever it is — castle, woods, cave, beach, space).
+        // SHOT PLAN — keeps each of the 6 spreads at a different camera
+        // distance so the book reads as a journey, not 6 portraits. Notes are
+        // intentionally generic — no example props (no "treasure", no
+        // "glowing flower"), because mentioning those words even in negation
+        // primes gpt-image-1 to render them.
         const shotPlan = [
-          // idx 0 — opening: full establishing shot of the world
           {
             label: "WIDE ESTABLISHING SHOT",
             note:
-              "WIDE establishing shot of the entire SETTING (read PLACE/ENVIRONMENT from the prompt — castle, woods, cave, beach, etc.) — characters occupy roughly the centre 35-45% of the frame, NOT a close-up. Show the full environment with depth: architecture / foliage / terrain / sky / ground appropriate to that setting. Characters' full bodies (head to feet) clearly visible with comfortable headroom and ground beneath them. The environment is the star of this frame.",
+              "Wide establishing shot. Characters fill roughly the middle 35-45% of the frame, full bodies head to toe. The setting fills the rest with real depth — architecture, terrain, sky, ground.",
           },
-          // idx 1 — mid shot, action moment
           {
-            label: "MID SHOT (knees-up to full body)",
+            label: "MID SHOT",
             note:
-              "Mid shot — characters from the knees up or full body, occupying centre-left to centre of the frame. The far-background shows clear setting-appropriate environment (stone walls, foliage, rocks, water, sky, etc. — match PLACE). Show them DOING the action in SCENE ACTION (kneeling, peering, reaching, hiding).",
+              "Mid shot from roughly the knees up. Characters occupy centre-left to centre. Setting visible behind and to the right with depth.",
           },
-          // idx 2 — over-the-shoulder / discovery angle
           {
             label: "OVER-THE-SHOULDER / DISCOVERY ANGLE",
             note:
-              "Over-the-shoulder or three-quarter angle — show a glimpse of one character's back or shoulder framing the prop / discovery, with the other character partly visible reacting. The named prop (treasure, hidden buddy, archway, found item) is in the focal centre. Setting-appropriate environment fills the surrounding space.",
+              "Three-quarter or over-the-shoulder angle. One character partly visible from behind framing the focal moment from the verse. The other character reacts. The setting fills the surrounding space.",
           },
-          // idx 3 — close-up on the prop / found object
           {
-            label: "CLOSE-UP ON FOUND OBJECT / DISCOVERY",
+            label: "CLOSE-UP ON THE VERSE'S FOCAL MOMENT",
             note:
-              "Close-up on the named focal object from SCENE ACTION (e.g. open treasure chest with gold spilling, glowing flower, ancient key, the dragon peeking from a hiding spot). One or both characters lean in from the edges of the frame — partial faces and hands are fine; we don't need their full bodies. The focal object fills 40-60% of the canvas. Background remains visible (matching the SETTING — castle stones / cave walls / forest depth / sand / etc.) with depth.",
+              "Close-up on whatever the facing-page verse focuses on for this beat — the named action, expression, or object. Characters lean in from the edges; partial faces and hands are fine. The setting still shows behind with depth.",
           },
-          // idx 4 — wide journey continuation
           {
-            label: "WIDE JOURNEY SHOT (different location within the SETTING)",
+            label: "WIDE JOURNEY SHOT — DIFFERENT PART OF THE SETTING",
             note:
-              "WIDE shot of a DIFFERENT part of the same world established in spread 1 — if SETTING is castle: a different room/corridor/courtyard/tower; if woods: a clearing/bridge/cave-mouth; if beach: a different stretch of shore or rocky outcrop. Characters are smaller in the frame (roughly 25-35% of the canvas), environment dominates with strong depth and a clear sense of journey/progress.",
+              "A second wide shot, but in a DIFFERENT corner of the same setting from spread 1. Characters smaller (roughly 25-35% of the canvas), environment dominates with strong depth and a clear sense of progress.",
           },
-          // idx 5 — final beat: medium close on faces of joy/relief
           {
-            label: "MEDIUM CLOSE ON FACES (warm finale)",
+            label: "MEDIUM CLOSE ON FACES — WARM FINALE",
             note:
-              "Medium-close on the characters' faces and upper bodies sharing a warm finale moment (smiles, laughs, hug). Background still shows the SETTING clearly behind them (castle banners / forest depth / cave walls / starry sky / etc., matching PLACE) — not a blank backdrop.",
+              "Medium-close on the characters' faces and upper bodies sharing a warm finale moment (smile, laugh, hug, cheer). Setting clearly visible behind them.",
           },
         ];
 
+        // Clean, POSITIVE-ONLY edit prompt builder. We attach the anchor PNG as
+        // the character reference; everything else describes ONLY what to
+        // paint, not what to avoid. Negative lists were paradoxically nudging
+        // gpt-image-1 toward stock props (treasure chests, glowing flowers,
+        // mossy logs) — every "no treasure" line counts as a treasure mention
+        // to the model. So we list nothing to avoid: just the positive scene.
         const buildEditPrompt = (b: typeof briefs[number], idx: number) => {
-          const composed = composeDallePrompt({
-            preamble: stylePreamble,
-            envTheme,
-            sceneBrief: b.brief,
-            castBible,
-            firstPanelLock: panelLock,
-            heroFirstName: childName,
-          });
           const shot = shotPlan[idx] ?? shotPlan[shotPlan.length - 1];
-          // Verbatim verse — gives the model the exact action verbs from the
-          // facing page (e.g. "they dance with glee", "tiptoe softly", "open
-          // it wide"). Briefs sometimes paraphrase these away; the verse is
-          // what the child actually reads aloud, so the picture must show it.
-          const verseChunk = b.verse.trim()
-            ? `\n\nFACING-PAGE VERSE (literal — show these exact actions and props):\n"""\n${b.verse.trim().slice(0, 600)}\n"""\nThe picture MUST show the verbs and named props from this verse. If the verse says "dance" or "dancing" — show them dancing with movement. If it says "tiptoe" — show them creeping on their toes. If it says "open the chest" — show the chest opened. If it says "kneel" / "crouch" / "peek" / "hug" / "leap" — show that exact pose. If it says "found a glowing flower" — paint the glowing flower right there. Match the verse's mood (whisper, giggle, shout) in the characters' faces.\n\n`
-            : "";
-          // Strong repaint-the-environment directive on EVERY spread. Without
-          // this, gpt-image-1's edits tend to keep the anchor's plain studio
-          // backdrop, and the whole book ends up looking the same. The
-          // reference image is for CHARACTERS ONLY.
-          const repaintDirective =
-            "REFERENCE USAGE — the attached reference is a CHARACTER MODEL SHEET only. " +
-            "Use it to LOCK identities (faces, hair, outfit colours, species, body shape, size ratios) — but DO NOT copy its tight portrait/lineup crop, its plain studio backdrop, or its centred lineup pose. " +
-            "ZOOM OUT or RECOMPOSE as the SHOT TYPE below requires — the reference is at a much closer crop than this story spread should be. " +
-            "Paint a COMPLETELY NEW full-bleed environment for this exact story beat from SCENE ACTION: midground action area, foreground props, mid/background landscape with depth, sky/ceiling, ground texture, and any named props (treasure chest, glowing flower, stone door, mossy logs, lanterns hanging from branches, etc). ";
-          const shotDirective =
-            `SHOT TYPE for this spread (${idx + 1} of ${shotPlan.length}): ${shot.label}. ` +
-            `${shot.note} ` +
-            "DO NOT default to a tight chest-up portrait of the cast — match the SHOT TYPE precisely. ";
-          const openingPrefix =
-            idx === 0
-              ? "OPENING SPREAD — establish the world from the ENVIRONMENT and SCENE ACTION above. Read it literally: if it says castle, paint a castle (stone walls, banners, courtyards, towers, throne room, drawbridge); if it says woods, paint deep woods; if cave, beach, garden, space — paint that. DO NOT default to a forest unless the SETTING/PLOT actually mentions woods. Include any handheld torches / lanterns mentioned in SCENE ACTION. Match LIGHTING/MOOD exactly. "
-              : "";
-          // Belt-and-braces — even if the LLM brief leaks a stock prop, the
-          // image MUST NOT add things the user didn't ask for.
-          const noInventedProps =
-            "PROP DISCIPLINE — paint ONLY props that appear in the FACING-PAGE VERSE or SCENE ACTION above. " +
-            "DO NOT add a treasure chest, gold coins, gold pile, glowing flower, magic key, mossy log, lantern, mushroom, or any storybook trope unless the verse / scene action explicitly names it. " +
-            "DO NOT add forest trees, mossy ground, fallen logs, fireflies, or generic 'enchanted woods' details unless the SETTING/ENVIRONMENT and SCENE ACTION mention woods. " +
-            "If the plot is hide-and-seek in a castle, the only props are castle props (banners, suits of armour, chairs, curtains, candlesticks); NOT treasure or forest items. ";
-          return (
-            openingPrefix +
-            repaintDirective +
-            shotDirective +
-            verseChunk +
-            noInventedProps +
-            "Story spread — NEW environment, NEW poses, NEW camera distance for this exact moment. " +
-            "Keep hero and every named creature IDENTICAL to the reference (faces, hair, outfit colours, species, size). Only beings named in SCENE ACTION; no extra characters, no background crowd. " +
-            "TEXTLESS — no letters, fake text, signs, paper scraps with writing, logos, or glyph noise. The FACING-PAGE VERSE above is for your understanding only — DO NOT render it as text inside the picture. " +
-            composed
+          const verseLines = b.verse.trim().slice(0, 500);
+
+          const blocks: string[] = [];
+
+          // 1. Style + reference instruction
+          blocks.push(
+            "Children's picture-book illustration, soft matte clay and toy-plastic 3D, gentle pastel light, edge-to-edge with no borders or text. " +
+              "The attached reference image shows the cast on a neutral backdrop — use it ONLY to lock the characters' identity (faces, hair, outfit colours, species, body shape). Repaint the world fresh.",
           );
+
+          // 2. Setting (the override-resolved placeDesc + plotHint)
+          blocks.push(
+            `SETTING — paint exactly this world on every spread:\n${placeDesc}.${plotHint ? `\nThe child's story idea: ${plotHint}` : ""}`,
+          );
+
+          // 3. Shot framing
+          blocks.push(`SHOT TYPE (spread ${idx + 1} of ${shotPlan.length}): ${shot.label}. ${shot.note}`);
+
+          // 4. The exact moment, from the verse + brief
+          if (verseLines) {
+            blocks.push(
+              `THIS SPREAD'S MOMENT (from the rhyming verse on the facing page — show every action and named object literally):\n"""\n${verseLines}\n"""`,
+            );
+          }
+          blocks.push(`SCENE NOTE: ${b.brief}`);
+
+          // 5. Cast — keep the bible compact for the edit prompt
+          const castSnippet = castBible.trim().slice(0, 800);
+          blocks.push(
+            `CAST (paint exactly these named characters and only these — match the reference image for each):\n${castSnippet}`,
+          );
+
+          // 6. Critical constraint — kept simple and positive-leaning
+          blocks.push(
+            "Paint ONLY what the verse and SCENE NOTE describe — no extra props, no extra characters, no background crowd, no signs or writing in the picture.",
+          );
+
+          return blocks.join("\n\n");
         };
 
         for (
