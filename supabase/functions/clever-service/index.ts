@@ -77,11 +77,18 @@ function composeDallePrompt(parts: {
   sceneBrief: string;
   castBible: string;
   firstPanelLock: string;
+  heroFirstName: string;
 }): string {
   const lockChunk = parts.firstPanelLock.trim()
     ? `MATCH FIRST SPREAD — copy these exact looks (faces, hair, outfits, creatures): ${parts.firstPanelLock.trim()}\n\n`
     : "";
-  const mid = `SCENE ACTION: ${parts.sceneBrief}\n\n${lockChunk}MANDATORY CAST (same toy-clay 3D models on every page — identical proportions, colours, species; do not redesign or swap styles):\n`;
+  const identity =
+    `TEXT-LOCKED CAST: Draw ONLY the people and creatures explicitly named in SCENE ACTION — exactly who this spread's verse names or clearly refers to (no one else). ` +
+    `When ${parts.heroFirstName} is named in SCENE ACTION, they must appear clearly in the foreground (full face, correct child). ` +
+    `Only ONE imaginary buddy individual from the BUDDY line (e.g. one unicorn), not a duplicate big+small pair, unless SCENE ACTION explicitly names two distinct buddies. ` +
+    `NO unnamed villagers, torch-bearer extras, silhouettes with faces, mascots, or filler crowd. NO logos or brand marks. Background trees/ground/mist/sky only — no extra faced characters beyond SCENE ACTION.\n\n`;
+  const mid =
+    `SCENE ACTION: ${parts.sceneBrief}\n\n${identity}${lockChunk}MANDATORY CAST (same toy-clay 3D models on every page — identical proportions, colours, species; do not redesign or swap styles):\n`;
   const head = `${parts.preamble}${parts.envTheme}`;
   const room = DALLE3_PROMPT_MAX - head.length - mid.length;
   let cast = parts.castBible.trim();
@@ -94,20 +101,27 @@ function composeDallePrompt(parts: {
 }
 
 /** Bias image prompts toward dim / torchlit scenes when the child's plot asks for them. */
-function plotLightingEnvAddon(plotHint: string): string {
+function plotLightingEnvAddon(plotHint: string, heroFirstName: string): string {
   const p = plotHint.trim();
   if (!p) return "";
+  const parts: string[] = [];
   if (
-    !/dark|night|torch|lanterns?|moonlit|shadowy|spooky|dim|twilight|dusk|glow|stars|flicker|campfire|woods?\s*at\s*night|fairy\s*lights/i.test(
+    /dark|night|torch|lanterns?|moonlit|shadowy|spooky|dim|twilight|dusk|glow|stars|flicker|campfire|woods?\s*at\s*night|fairy\s*lights/i.test(
       p,
     )
   ) {
-    return "";
+    parts.push(
+      "LIGHTING/MOOD: dim mystical outdoor scene, warm torchlight or soft lantern glow, deep soft shadows between trees — " +
+        "not bright midday sun, not a washed-out white sky, not a generic sunny picnic or storybook street. ",
+    );
   }
-  return (
-    "LIGHTING/MOOD: dim mystical outdoor scene, warm torchlight or soft lantern glow, deep soft shadows between trees — " +
-    "not bright midday sun, not a washed-out white sky, not a generic sunny picnic or storybook street. "
-  );
+  if (/torch|lanterns?/i.test(p)) {
+    parts.push(
+      `PROPS: ${heroFirstName} and the buddy each hold simple wooden hand-torches with visible warm flames in their hands — ` +
+        "that torch light falls on their faces and the path; do not replace with only ground sparkles, coin glow, or a studio spotlight with no torches. ",
+    );
+  }
+  return parts.join("");
 }
 
 async function compileCharacterLockForImages(
@@ -150,8 +164,9 @@ async function compileCharacterLockForImages(
           role: "system",
           content:
             "You are an art director for a children's book. Output only the LOCKED CAST block. Be dense and consistent. " +
-            "Include ONLY people/creatures who actually appear in the storywriter draft — usually just HERO + BUDDY. " +
-            "If the draft only has the child and one imaginary friend, output exactly two lines (HERO: and BUDDY:) — never invent a third mascot, pet, or forest animal.",
+            "Include EVERY named person and recurring creature from the storywriter draft who actually appears in the book (HERO, BUDDY, and any named game friends from the draft). " +
+            "If the draft truly has only the child and one imaginary friend, output exactly HERO: and BUDDY: — never invent unnamed forest animals. " +
+            "If the draft names extra friends (e.g. Tilly), add one line each — never add MONKEY:, BEAR:, or random extras not in the draft.",
         },
         { role: "user", content: user },
       ],
@@ -186,8 +201,9 @@ async function visualLockFromFirstImage(apiKey: string, imageUrl: string): Promi
             {
               type: "text",
               text:
-                "This is spread 1 art for a kids' picture book. Write a single compact paragraph LOCK: only repeatable character looks for later spreads — " +
-                "hero child's face shape, hair colour and cut, eyes, skin, outfit colours; then each creature with species, exact colours, size vs child, distinctive marks. " +
+                "This is cast lineup / spread 1 art for a kids' picture book. Write a single compact paragraph LOCK: repeatable character looks for later spreads. " +
+                "Include every principal figure in the **foreground** of this art (the human hero child first, the one main buddy creature, plus any other named child who is clearly a main co-star in the lineup). " +
+                "For each: face shape, hair, eyes, skin, outfit colours, species/size for creatures. If crowd or blurry extras appear, IGNORE them — do not lock them. " +
                 "No background, no story. Max 900 characters.",
             },
             { type: "image_url", image_url: { url: imageUrl } },
@@ -481,7 +497,7 @@ async function openaiChatJson(
     },
     body: JSON.stringify({
       model: "gpt-4o-mini",
-      temperature: 0.75,
+      temperature: 0.52,
       max_tokens: 4000,
       response_format: { type: "json_object" },
       messages: [
@@ -946,8 +962,8 @@ Rules:
 - No romance, no weapons, no villains that frighten.
 - Exactly 12 pages (six double-page spreads). The text on every page MUST be exactly 4 lines long, written as a fun, rhythmic poem that rhymes perfectly (e.g., AABB or ABCB). Format the text with actual line breaks (\n) after each line so the rhyming words are at the end of each line. Use simple words.
 - On each odd-numbered (text-first) page, include exactly one short sound-effect or action word in ALL CAPS with an exclamation mark where it fits the rhyme (e.g. SPLASH! WHOOSH! YIPPEE!) so it feels like a printed picture book. Only that one word per page should be in all capitals; keep the rest in normal sentence case.
-- The hero's name is given — use it often.
-- CAST ROSTER (strict): Who may appear in the story text and in every picture? ONLY (1) the hero child, (2) the ONE main imaginary friend described under "Main friend character", and (3) people explicitly listed under "People from the child's games" with names. If that games list is "(none)", there are NO other human characters. Do NOT invent extra adventurers, pets, "helpful" lions/bears/rabbits, forest mascots, duplicate second unicorns, crowds, villagers, or silent background friends. If the child's plot only mentions the hero and the buddy (e.g. hunting in dark woods with torches), then EVERY page's text and EVERY illustrationBrief features ONLY those two — they stay together in the same shots when the rhyme says "side by side". Only add a third+ character if the plot idea explicitly names them or the games list names extra people.
+- The hero's name is given — use it often. The hero IS ${childName} — this exact first name must appear in the story text on every page where the main child acts. Whenever ${childName} is in a spread's scene, that spread's illustrationBrief must name ${childName} (you may list other named friends first if the verse introduces them that way). Never substitute a different child, wrong name, or wrong gender as the hero. The art paints only who you name — do not imply an unnamed generic kid.
+- CAST vs TEXT (strict): Each illustrationBrief may include ONLY characters who appear **by name** on that spread's paired text page (the odd page before it), or the one imaginary buddy when the text clearly means them ("the unicorn", "their friend") after names were established. If the verse only mentions ${childName} and the buddy, the picture has only those two. If the verse also names game people who are in that scene, they may appear — list everyone the text actually puts in the moment. Never add lions, bears, random pals, villagers, crowds, or background "silhouette people" that the text does not mention. A few characters is fine **only** when the text names them all for that beat.
 - If "People from the child's games" are listed, include them in the story by name as extra friends or family. They should feel like the same friendly faces the child picks in other games (e.g. Tilly, Baby). They are separate from the one imaginary "main friend character" (unicorn, dragon, etc.) — both can appear.${
     portraitAppearance
       ? " If appearance lines are given for those people, stay consistent with those visual details when you naturally describe them."
@@ -958,8 +974,8 @@ Rules:
 - Each page: { "text": string, "illustrationBrief": string | null }.
 - DOUBLE-PAGE SPREADS: pair pages as (1,2), (3,4), (5,6), (7,8), (9,10), (11,12).
   Odd-numbered pages (1,3,5,7,9,11) are TEXT-FIRST pages only — use "illustrationBrief": null.
-  Even-numbered pages (2,4,6,8,10,12) are PICTURE pages — each MUST have a non-null "illustrationBrief": a short visual scene description for an illustrator (no text to draw, no words on signs). Each brief MUST be different. The brief MUST spell out the same specific moment as the text on the previous page: same characters, action, setting details, and props — not a generic scene for that chapter. ONLY name characters who appear on that spread's text page — usually just the hero and buddy when the games list is empty. NEVER add "a lion watching", "a bear helper", "shadowy creatures", "forest spirits", extra torch-bearers, or duplicate unicorns. Background = trees, mist, path, sky — no faced silhouettes or mascot extras. CRITICAL: If the text mentions a character or animal, they MUST be explicitly listed in the illustrationBrief — but only if they truly appear in the text (hero, buddy, named game people). CRITICAL FOR CONSISTENCY: DO NOT re-describe the characters' permanent looks (clothes, hair, colors) in the brief! Just state WHO is in the scene and WHAT they are doing (e.g. "Sofia and the Giraffe are standing next to a river"). The illustrator already has the master designs. If a character is NOT mentioned in the brief, they will NOT be drawn. COMPOSITION: Each brief should describe staging where main characters sit in the middle vertical band of the picture with headroom and visible feet — not jammed in a thin row along the bottom edge of the frame.
-  OPENING SPREAD (page 2 only — the first illustrationBrief): MUST match the opening beat from page 1 text and the child's plot idea together — same setting, mood, time of day, and key props. Example: if the plot is exploring dark woods with a unicorn and handheld torches, the FIRST picture must show dim woods, ONLY the hero and the ONE unicorn buddy together, BOTH holding lit torches if the text says so, forest shadows — NOT a bright sunny clearing, NOT extra animals. Name the main friend character in this brief if they appear on page 1 (unicorn, dragon, etc.).
+  Even-numbered pages (2,4,6,8,10,12) are PICTURE pages — each MUST have a non-null "illustrationBrief": a short visual scene description for an illustrator (no text to draw, no words on signs). Each brief MUST be different. The brief MUST spell out the same specific moment as the text on the previous page: same characters named in that verse, same action, setting, props — not a generic scene. The brief must list **exactly** the same named cast as that text page (hero, buddy, and any game people actually in that verse). NEVER add guardians, helpers, or creatures the verse does not mention. NEVER duplicate the buddy as two unicorns unless the text says so. Background = trees, mist, path, sky — no faced extras not in the verse. CRITICAL FOR CONSISTENCY: DO NOT re-describe permanent looks (clothes, hair colours) in the brief! Just state WHO (using names from the text) and WHAT they do (e.g. "${childName} and their unicorn tiptoe with torches in the woods"). The illustrator has the master designs. If someone is NOT in the verse, they must NOT be in the brief. COMPOSITION: main characters in the middle vertical band with headroom and visible feet.
+  OPENING SPREAD (page 2 only — the first illustrationBrief): MUST match page 1 text and the child's plot. Only characters named on page 1 (usually ${childName} and the buddy; plus game people only if page 1 names them). Example: dark woods + handheld torches if the verse says so — BOTH hold torches if the text says. No unwritten extras.
   When game people with portrait notes appear on a picture page, the brief should mention them looking like those notes (hair, outfit colours, age vibe).
 - If a "plot idea" is given, you MUST make it the central theme of the story and feature it heavily in EVERY illustration brief. If it is empty, invent a short happy outing that fits the setting.
 - JSON only, no markdown.`;
@@ -976,8 +992,8 @@ Plot idea from the child (CRITICAL: make this the core focus of the story and pi
 Page 1 and page 2 must OPEN this plot: the first illustration (page 2 brief) is the first scene readers see — match this plot's setting, props, and buddy (e.g. dark woods + unicorn + torches), not a different mood or story beat.
 ${
     familyNames.length === 0
-      ? `Cast limit: the ONLY characters in the entire book are ${childName} and their one main imaginary friend — do not add anyone else to text or pictures.\n`
-      : `Also include only the named game people above as extra characters when it fits — still no invented lions, bears, or forest crowds.\n`
+      ? `Picture cast rule: only people/creatures **named in each verse** may appear on that spread's illustration — usually ${childName} and the buddy. Do not name anyone in a brief who is not in the paired text.\n`
+      : `Picture cast rule: only names that actually appear in each verse (including the game people above when you put them in the scene). No invented crowd.\n`
   }
 Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "pink" | "blue" | "green", "pages": [ { "text": string, "illustrationBrief": string | null }, ... 12 items ] }`;
 
@@ -1011,25 +1027,34 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
     console.warn("[clever-service] compileCharacterLock failed", e);
   }
 
+  const duoImageCastFallback =
+    `HERO: ${childName}, young child, friendly rounded face, simple solid-colour top and trousers, soft matte clay toy 3D — always the same human hero in every spread. ` +
+    `BUDDY: ${characterDesc}, exactly ONE individual of this species in every image — never duplicate, never parent+baby pair, same toy-clay style on every page.`;
+
   const castBible =
     compiledLock.length > 120
       ? compiledLock
-      : story.characterDesign && story.characterDesign.length > 80
-        ? story.characterDesign
-        : `HERO: ${childName}, young child, friendly rounded face, simple solid-colour top and trousers, soft matte clay toy 3D. BUDDY: ${characterDesc}, same toy-clay style, same design on every page.`;
+      : familyNames.length === 0
+        ? duoImageCastFallback
+        : story.characterDesign && story.characterDesign.length > 80
+          ? story.characterDesign
+          : duoImageCastFallback;
 
   const stylePreamble =
     "A completely textless illustration. DO NOT include any writing, letters, words, typography, labels, speech bubbles, newspapers, stone runes, book pages with text, loose paper sheets, scrolls, receipts, notebooks, stationery, litter, or ground clutter that looks like fake writing — no blurry shapes that look like fake paragraphs or gibberish anywhere. " +
+    "No logos, social-media marks, app icons, or brand symbols. " +
     "The left third must be only smooth colour, soft sky, plain wall, or gentle gradient — zero pseudo-text texture there (the app draws real text in HTML). " +
     "CRITICAL LAYOUT RULE: Leave the left half of the image mostly uncluttered with a simple, soft, darker background so that WHITE storybook text can be printed over it clearly. Place the main characters and action on the right half or center-right of the image. " +
     "FRAMING: Keep hero and buddies mostly in the vertical middle band — heads not jammed against the top edge, feet not chopped by the bottom edge. Never line up the whole cast as a tiny strip along the bottom like stickers; show comfortable ground and body. " +
     "STYLE: soft matte clay and toy-plastic 3D ONLY — rounded limbs, gentle pastel lighting, not realistic human skin, not glossy CGI. Edge-to-edge scene, no frames or borders. Wholesome and safe for toddlers. " +
-    "CAST COUNT: ONLY the living characters explicitly named in SCENE ACTION below — exactly those individuals, same count as MANDATORY CAST. NO extra animals, duplicate buddies, crowd, background creatures with faces, glowing eyes in bushes, lions, bears, rodents, or random forest friends. NO wooden signs, carved letter runes, or flyers nailed to trees. Background is only trees, ground, fog, sky — unpopulated except the named cast. ";
+    `HERO VISIBILITY: When "${childName}" appears in SCENE ACTION, they must be clearly visible (face on, not swapped for another kid). ` +
+    "ONE BUDDY ANIMAL: Only one imaginary buddy creature from the BUDDY line in the image (e.g. one unicorn), not clones or a big+little pair, unless SCENE ACTION names two. " +
+    "TEXT-LOCKED: ONLY characters explicitly named in SCENE ACTION — same roster as this spread's verse, same count. NO unnamed extras: no villagers, silhouettes with faces, filler torch-bearers, spare animals, or audience. NO logos. Background = trees, ground, fog, sky without extra faced characters. NO wooden signs with lettering, carved runes, or flyers on trees. ";
 
   const envTheme =
     `ENVIRONMENT: ${placeDesc}. ` +
     (plotHint.length > 0 ? `THEME: ${plotHint}. ` : "") +
-    plotLightingEnvAddon(plotHint);
+    plotLightingEnvAddon(plotHint, childName);
 
   const pagesOut: { text: string; imageUrl: string | null }[] = [];
   let sceneImageUrl: string | null = null;
@@ -1072,6 +1097,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
       sceneBrief: briefs[0].brief,
       castBible,
       firstPanelLock: "",
+      heroFirstName: childName,
     });
 
     /** When set (default): one T2I “cast lineup”, then all 6 spreads = Fal image→image (Redux) from that anchor — strongest consistency. */
@@ -1119,6 +1145,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
               sceneBrief: b.brief,
               castBible,
               firstPanelLock: panelLock,
+              heroFirstName: childName,
             });
             try {
               const openingPrefix =
@@ -1130,13 +1157,13 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
               const falPrompt =
                 openingPrefix +
                 "Story spread — NEW scene, poses, and background for this moment only. " +
-                "Keep hero and every creature IDENTICAL to the reference lineup (faces, hair, outfit colours, species, size) — same NUMBER of characters as reference, no added extras. " +
-                "TEXTLESS — no letters, fake text, signs, paper scraps with writing, or glyph noise; soft matte clay toy 3D. " +
+                "Keep hero and every creature IDENTICAL to the reference lineup (faces, hair, outfit colours, species, size) — match reference character COUNT only; add no beings not named in SCENE ACTION. " +
+                "TEXTLESS — no letters, fake text, signs, logos, paper scraps with writing, or glyph noise; soft matte clay toy 3D. " +
                 "FRAME: subjects in middle vertical band with feet and faces fully inside the canvas — not a bottom-cropped row. " +
                 composed.slice(0, FAL_REDUX_PROMPT_MAX - 420);
               // Lower image→image strength on spread 1 so the opening scene can diverge from the neutral cast lineup.
               const reduxStrength =
-                idx === 0 ? Math.max(0.18, falStrength - 0.12) : falStrength;
+                idx === 0 ? Math.max(0.24, falStrength - 0.06) : falStrength;
               const u = await falFluxReduxImageUrl(
                 falKey,
                 falReduxModel,
@@ -1200,6 +1227,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
                 sceneBrief: b.brief,
                 castBible,
                 firstPanelLock: panelLock,
+                heroFirstName: childName,
               });
               if (useFalRedux) {
                 if (!referenceStillUrl) {
@@ -1208,8 +1236,8 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
                 try {
                   const falPrompt =
                     "New story moment — change poses, action, and background to match the scene. " +
-                    "Keep the same hero face, hair, outfit colours, and the same buddy and creatures as the reference — same character COUNT, no new animals or people. " +
-                    "TEXTLESS — no words, signs, book pages with text, paper scraps with writing, or gibberish texture; soft matte clay toy 3D only. " +
+                    "Keep the same hero face, hair, outfit colours, and the same buddy and named creatures as the reference — only beings named in SCENE ACTION, no new animals or people. " +
+                    "TEXTLESS — no words, signs, book pages with text, logos, paper scraps with writing, or gibberish texture; soft matte clay toy 3D only. " +
                     "FRAME: keep characters in the middle-to-upper-middle of the frame with visible feet — do not squash everyone along the bottom edge. " +
                     composed.slice(0, FAL_REDUX_PROMPT_MAX - 220);
                   const u = await falFluxReduxImageUrl(
