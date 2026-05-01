@@ -2177,8 +2177,9 @@
         if (err) {
           var msg = err && err.message ? err.message : String(err);
           window.alert(
-            "Could not load your library from the cloud. Check you are signed in under Sync on the main menu, then try again.\n\nDetails: " +
-              msg,
+            "Could not load your library from the cloud.\n\n" +
+              mergeFailedMessage(msg) +
+              "\n\nAlso check you are signed in under ⚙️ on this device.",
           );
         }
         renderShelf();
@@ -2194,8 +2195,27 @@
       }, 200);
     }
 
+    function mergeFailedMessage(raw) {
+      var s = String(raw || "");
+      if (s === "localStorage_quota" || /quota|QuotaExceeded/i.test(s)) {
+        return (
+          "This phone or tablet ran out of browser storage for this site.\n\n" +
+          "Remove a few books from the shelf on this device (tap × on a cover), or clear site data for this website in Safari/Chrome settings, then open Build your book and tap “Get latest books from cloud” again."
+        );
+      }
+      return s;
+    }
+
+    window.addEventListener("kids-storybook-merge-failed", function (e) {
+      var raw = (e.detail && e.detail.message) || "Unknown error";
+      window.alert("Could not update your story library on this device.\n\n" + mergeFailedMessage(raw));
+      renderShelf();
+    });
+
     pullShelfFromCloudNow();
-    window.addEventListener("kids-scorecard-refresh", pullShelfFromCloud);
+    window.addEventListener("kids-scorecard-refresh", function () {
+      renderShelf();
+    });
     document.addEventListener("visibilitychange", function () {
       if (document.visibilityState === "visible") {
         pullShelfFromCloud();

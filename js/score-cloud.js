@@ -223,10 +223,20 @@
   var STORYBOOK_SHELF_MAX = 14;
 
   function refreshOpenScoreUis() {
-    try {
-      global.dispatchEvent(new CustomEvent("kids-scorecard-refresh"));
-    } catch (e) {}
-    mergeStorybookShelfFromCloud();
+    mergeStorybookShelfFromCloud(function (err) {
+      if (err) {
+        try {
+          global.dispatchEvent(
+            new CustomEvent("kids-storybook-merge-failed", {
+              detail: { message: formatStorageErr(err) },
+            }),
+          );
+        } catch (e) {}
+      }
+      try {
+        global.dispatchEvent(new CustomEvent("kids-scorecard-refresh"));
+      } catch (e) {}
+    });
   }
 
   function colouringObjectPath(uid) {
@@ -825,7 +835,11 @@
       if (changedLocal) {
         try {
           global.localStorage.setItem(STORYBOOK_SHELF_KEY, JSON.stringify(merged));
-        } catch (e) {}
+        } catch (e) {
+          console.warn("[score-cloud] mergeStorybookShelfFromCloud: localStorage setItem failed:", e);
+          optionalCb(new Error("localStorage_quota"));
+          return;
+        }
       }
 
       function finish() {
