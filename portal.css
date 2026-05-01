@@ -458,10 +458,9 @@ h2,
   inset: -12px -8px;
   border-radius: 32px;
   background:
-    radial-gradient(ellipse 80% 70% at 12% 40%, rgba(244, 114, 182, 0.35) 0%, transparent 55%),
-    radial-gradient(ellipse 70% 60% at 88% 60%, rgba(167, 139, 250, 0.28) 0%, transparent 50%),
-    radial-gradient(ellipse 50% 45% at 50% 110%, rgba(251, 191, 36, 0.12) 0%, transparent 45%);
-  filter: blur(2px);
+    radial-gradient(ellipse 92% 78% at 10% 38%, rgba(244, 114, 182, 0.32) 0%, transparent 58%),
+    radial-gradient(ellipse 78% 68% at 90% 58%, rgba(167, 139, 250, 0.24) 0%, transparent 54%),
+    radial-gradient(ellipse 58% 52% at 50% 108%, rgba(251, 191, 36, 0.1) 0%, transparent 50%);
   z-index: -1;
   pointer-events: none;
   animation: portal-nook-aurora 10s ease-in-out infinite;
@@ -736,7 +735,10 @@ a.game-card--story-magic .game-card__thumb {
 }
 
 /* ——— Section header ——— */
+/* Defer layout/paint of the game grid until near viewport (hero + story nook stay fast). */
 .game-sections {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 720px;
   display: flex;
   flex-direction: column;
   gap: 2rem;
