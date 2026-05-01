@@ -61,6 +61,17 @@ body.page-storybook.sb-route-story .sb-landing__left {
   }
 }
 
+/* Portrait: viewport width is the short edge — min(vw, vh) formulas wrongly pick vw and squash the spread. */
+@media (min-width: 640px) and (orientation: portrait) {
+  .page-storybook {
+    --sb-book-inner-h: clamp(268px, min(58dvh, 56vh, 92vw), 520px);
+  }
+
+  .sb-reader-stack {
+    min-height: clamp(280px, min(60dvh, 62vh, 94vw), 540px);
+  }
+}
+
 body.page-storybook.sb-modal-open {
   overflow: hidden;
 }
@@ -2989,5 +3000,16 @@ body.sb-portal-welcome-open {
 
   .sb-book.sb-book--immersive .sb-book__actions-fab {
     transition: none;
+  }
+}
+
+@media (min-width: 768px) and (orientation: portrait) {
+  .sb-book.sb-book--immersive {
+    /* Same issue as above: min(58dvh, 58vw) picks vw in portrait and shortens the book vs laptop. */
+    --sb-book-inner-h: clamp(300px, min(70dvh, 88vw), 620px);
+  }
+
+  .sb-book.sb-book--immersive .sb-reader-stack {
+    min-height: min(78dvh, 720px);
   }
 }
