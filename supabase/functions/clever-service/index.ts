@@ -1156,7 +1156,16 @@ Rules:
 - Each page: { "text": string, "illustrationBrief": string | null }.
 - DOUBLE-PAGE SPREADS: pair pages as (1,2), (3,4), (5,6), (7,8), (9,10), (11,12).
   Odd-numbered pages (1,3,5,7,9,11) are TEXT-FIRST pages only — use "illustrationBrief": null.
-  Even-numbered pages (2,4,6,8,10,12) are PICTURE pages — each MUST have a non-null "illustrationBrief": a short visual scene description for an illustrator (no text to draw, no words on signs). Each brief MUST be different. The brief MUST spell out the same specific moment as the text on the previous page: same characters named in that verse, same action, setting, props — not a generic scene. The brief must list **exactly** the same named cast as that text page (hero, buddy, and any game people actually in that verse). NEVER add guardians, helpers, or creatures the verse does not mention. NEVER duplicate the buddy as two unicorns unless the text says so. Background = trees, mist, path, sky — no faced extras not in the verse. CRITICAL FOR CONSISTENCY: DO NOT re-describe permanent looks (clothes, hair colours) in the brief! Just state WHO (using names from the text) and WHAT they do (e.g. "${childName} and their unicorn tiptoe with torches in the woods"). The illustrator has the master designs. If someone is NOT in the verse, they must NOT be in the brief. COMPOSITION: main characters in the middle vertical band with headroom and visible feet.
+  Even-numbered pages (2,4,6,8,10,12) are PICTURE pages — each MUST have a non-null "illustrationBrief": a vivid visual scene description for an illustrator (no text to draw, no words on signs). Each brief MUST be different and visibly progress the journey. The brief MUST spell out the same specific moment as the text on the previous page: same characters named in that verse, same action, setting, props — not a generic scene. The brief must list **exactly** the same named cast as that text page (hero, buddy, and any game people actually in that verse). NEVER add guardians, helpers, or creatures the verse does not mention. NEVER duplicate the buddy as two unicorns unless the text says so. CRITICAL FOR CONSISTENCY: DO NOT re-describe permanent looks (clothes, hair colours) in the brief! Just state WHO (using names from the text) and WHAT they do. The illustrator has the master designs.
+  ENVIRONMENT DETAIL (very important — each brief must paint a different *place* on the journey):
+    Every illustrationBrief MUST contain at least 2 specific environmental nouns (foliage, terrain, structure, weather, depth) AND at least 1 named prop or focal object from that beat. Examples of good briefs (use the same pattern, different content):
+      • "${childName} and the unicorn creep between tall mossy oak trunks at night, fireflies dotting the dark path, both holding warm wooden torches that cast orange glow on the ground."
+      • "${childName} kneels on a bed of glowing white moonflowers in a forest clearing while the unicorn watches from beside a fallen log, distant pines and stars behind."
+      • "${childName} and the unicorn stand in a stone archway at the mouth of a cave, an old wooden treasure chest at their feet half-open with gold spilling out, torchlight bouncing off rocky walls."
+      • "${childName} hugs the unicorn's neck on a wooden bridge over a quiet midnight stream, weeping willows around them, lanterns hanging from low branches."
+    Vary the *place* between spreads — don't keep all six in identical dark woods. Move them deeper / to a glade / to a cave / to a treasure room / to the path home, in line with the plot's beats. State a different camera angle / shot type for each (wide establishing shot, mid shot, low-angle hero kneeling, over-the-shoulder peering, etc).
+    Background details ARE allowed (in fact required) — what is NOT allowed is faced extras the verse doesn't mention.
+    COMPOSITION: main characters in the middle vertical band with headroom and visible feet.
   OPENING SPREAD (page 2 only — the first illustrationBrief): MUST match page 1 text and the child's plot. Only characters named on page 1 (usually ${childName} and the buddy; plus game people only if page 1 names them). Example: dark woods + handheld torches if the verse says so — BOTH hold torches if the text says. No unwritten extras.
   When game people with portrait notes appear on a picture page, the brief should mention them looking like those notes (hair, outfit colours, age vibe).
 - If a "plot idea" is given, you MUST make it the central theme of the story and feature it heavily in EVERY illustration brief. If it is empty, invent a short happy outing that fits the setting.
@@ -1347,13 +1356,24 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
             firstPanelLock: panelLock,
             heroFirstName: childName,
           });
+          // Strong repaint-the-environment directive on EVERY spread. Without
+          // this, gpt-image-1's edits tend to keep the anchor's plain studio
+          // backdrop, and the whole book ends up looking the same. The
+          // reference image is for CHARACTERS ONLY.
+          const repaintDirective =
+            "REFERENCE USAGE — the attached reference is a CHARACTER MODEL SHEET only. " +
+            "Use it to LOCK identities (faces, hair, outfit colours, species, body shape, size ratios). " +
+            "DISCARD its background entirely — do NOT reuse its plain studio backdrop, plain dark void, neutral coloured wall, lineup pose, or generic spotlight. " +
+            "Paint a COMPLETELY NEW full-bleed environment for this exact story beat from SCENE ACTION below: midground action area, foreground props, mid/background landscape with depth, sky/ceiling, ground texture, and any named props (treasure chest, glowing flower, stone door, mossy logs, lanterns hanging from branches, etc). " +
+            "Vary composition between spreads (sometimes wide environmental shot showing trees and path; sometimes mid-shot with hero kneeling over a found item; sometimes over-the-shoulder peering into a cave or chest) — never repeat the same camera angle or backdrop twice. ";
           const openingPrefix =
             idx === 0
-              ? "OPENING SPREAD — replace the plain reference backdrop with a full painted environment from SCENE ACTION (forest depth, ground, sky, hand-held torches/lanterns if in the scene). Match LIGHTING/MOOD exactly. Keep hero and every named creature IDENTICAL to the reference (faces, hair, outfit colours, species, size). "
+              ? "OPENING SPREAD — establish the world: full painted environment matching SCENE ACTION (e.g. dark deep woods with twisted oak trunks, mossy ground, distant fog between trees) with hand-held torches / lanterns if SCENE ACTION says so. Match LIGHTING/MOOD exactly. "
               : "";
           return (
             openingPrefix +
-            "Story spread — NEW scene, poses, and background for this moment only. " +
+            repaintDirective +
+            "Story spread — NEW environment, NEW poses, NEW camera angle for this exact moment. " +
             "Keep hero and every named creature IDENTICAL to the reference (faces, hair, outfit colours, species, size). Only beings named in SCENE ACTION; no extra characters, no background crowd. " +
             "TEXTLESS — no letters, fake text, signs, paper scraps with writing, logos, or glyph noise. " +
             composed
