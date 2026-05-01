@@ -1271,8 +1271,10 @@
 
   var SHELF_STORAGE_KEY = "jigsawKids_storybookShelf_v1";
   var SHELF_MAX_BOOKS = 14;
+  /** @type {Array|null} null until first hydrate from IndexedDB / localStorage */
+  var shelfCache = null;
 
-  function loadShelf() {
+  function loadShelfSyncFromLocalStorage() {
     try {
       var raw = localStorage.getItem(SHELF_STORAGE_KEY);
       if (!raw) return [];
@@ -1283,27 +1285,103 @@
     }
   }
 
-  function saveShelf(list, cloudDone) {
-    while (list.length > 0) {
-      try {
-        var raw = JSON.stringify(list);
-        localStorage.setItem(SHELF_STORAGE_KEY, raw);
-        if (window.KidsScoreCloud && window.KidsScoreCloud.scheduleStorybookUpload) {
-          window.KidsScoreCloud.scheduleStorybookUpload(raw, cloudDone);
-        } else if (typeof cloudDone === "function") {
-          cloudDone(null);
-        }
-        return; // Success!
-      } catch (e) {
-        // If localStorage quota is exceeded, remove the oldest book to make space and try again
-        if (list.length > 1) {
-          console.warn("localStorage quota exceeded, removing oldest book to make space.");
-          list.pop();
-        } else {
-          throw e; // Even 1 book doesn't fit
+  function loadShelf() {
+    if (shelfCache === null) {
+      return loadShelfSyncFromLocalStorage();
+    }
+    return shelfCache;
+  }
+
+  /**
+   * Refresh in-memory shelf from the same store the cloud merge uses (needed after pull).
+   * @param {function(): void} [done]
+   */
+  function reloadShelfCacheFromStore(done) {
+    if (window.StorybookShelfStore && typeof window.StorybookShelfStore.getJson === "function") {
+      window.StorybookShelfStore.getJson()
+        .then(function (list) {
+          shelfCache = Array.isArray(list) ? list : [];
+          if (done) {
+            done();
+          }
+        })
+        .catch(function () {
+          shelfCache = loadShelfSyncFromLocalStorage();
+          if (done) {
+            done();
+          }
+        });
+    } else {
+      shelfCache = loadShelfSyncFromLocalStorage();
+      if (done) {
+        done();
+      }
+    }
+  }
+
+  /**
+   * @param {function(): void} [onWritten] after data is persisted and shelfCache updated
+   */
+  function saveShelf(list, cloudDone, onWritten) {
+    cloudDone = typeof cloudDone === "function" ? cloudDone : null;
+    onWritten = typeof onWritten === "function" ? onWritten : null;
+    var tryList = list.slice();
+
+    function afterPersistOk(raw) {
+      shelfCache = tryList;
+      if (onWritten) {
+        onWritten();
+      }
+      if (window.KidsScoreCloud && window.KidsScoreCloud.scheduleStorybookUpload) {
+        window.KidsScoreCloud.scheduleStorybookUpload(raw, cloudDone);
+      } else if (cloudDone) {
+        cloudDone(null);
+      }
+    }
+
+    function attempt() {
+      var raw = JSON.stringify(tryList);
+      if (window.StorybookShelfStore && typeof window.StorybookShelfStore.setRaw === "function") {
+        window.StorybookShelfStore.setRaw(raw).then(
+          function () {
+            afterPersistOk(raw);
+          },
+          function (e) {
+            if (tryList.length > 1) {
+              console.warn("Shelf storage tight — removing oldest book and retrying.", e);
+              tryList.pop();
+              attempt();
+            } else {
+              if (cloudDone) {
+                cloudDone(e || new Error("storage_quota"));
+              } else {
+                window.alert("Could not save your library — storage is full on this device.");
+              }
+            }
+          },
+        );
+        return;
+      }
+      while (tryList.length > 0) {
+        try {
+          var r = JSON.stringify(tryList);
+          localStorage.setItem(SHELF_STORAGE_KEY, r);
+          afterPersistOk(r);
+          return;
+        } catch (e) {
+          if (tryList.length > 1) {
+            console.warn("localStorage quota exceeded, removing oldest book to make space.");
+            tryList.pop();
+          } else {
+            if (cloudDone) {
+              cloudDone(e);
+            }
+            throw e;
+          }
         }
       }
     }
+    attempt();
   }
 
   function hashFromString(str) {
@@ -1345,7 +1423,8 @@
     sceneDataUrl,
     sceneUrlFallback,
     bookColor,
-    cloudDone
+    cloudDone,
+    onWritten
   ) {
     var list = loadShelf();
     var id = "b" + Date.now() + "-" + ((Math.random() * 1e6) | 0);
@@ -1369,15 +1448,16 @@
     while (list.length > SHELF_MAX_BOOKS) {
       list.pop();
     }
-    saveShelf(list, cloudDone);
+    saveShelf(list, cloudDone, onWritten);
   }
 
   function removeShelfBook(bookId) {
     var list = loadShelf().filter(function (b) {
       return b.id !== bookId;
     });
-    saveShelf(list);
-    renderShelf();
+    saveShelf(list, null, function () {
+      renderShelf();
+    });
   }
 
   function openShelfBook(bookId) {
@@ -1672,9 +1752,11 @@
                   }
                 }, 14000);
               }
-            }
+            },
+            function () {
+              renderShelf();
+            },
           );
-          renderShelf();
         } catch (e) {
           window.alert("Couldn’t save — storage might be full. Try downloading instead.");
         }
@@ -2166,11 +2248,52 @@
     }
   }
 
-  buildChipRows();
-  initVoiceUi();
-  renderShelf();
+  function startStorybookApp() {
+    buildChipRows();
+    initVoiceUi();
 
-  if (window.KidsScoreCloud && window.KidsScoreCloud.mergeStorybookShelfFromCloud) {
+    function runAfterShelfHydrate() {
+      renderShelf();
+      setupShelfCloudSync();
+    }
+
+    if (window.StorybookShelfStore && typeof window.StorybookShelfStore.ready === "function") {
+      window.StorybookShelfStore.ready()
+        .then(function () {
+          return window.StorybookShelfStore.getJson();
+        })
+        .then(function (list) {
+          shelfCache = Array.isArray(list) ? list : [];
+        })
+        .catch(function () {
+          shelfCache = loadShelfSyncFromLocalStorage();
+        })
+        .then(runAfterShelfHydrate);
+    } else {
+      shelfCache = loadShelfSyncFromLocalStorage();
+      runAfterShelfHydrate();
+    }
+  }
+
+  function mergeFailedMessage(raw) {
+    var s = String(raw || "");
+    if (
+      s === "localStorage_quota" ||
+      s === "storage_quota" ||
+      /quota|QuotaExceeded/i.test(s)
+    ) {
+      return (
+        "This phone or tablet ran out of space for this site’s saved data.\n\n" +
+        "Remove a few books from the shelf on this device (tap × on a cover), or clear site data for this website in Safari/Chrome settings, then open Build your book and tap “Get latest books from cloud” again."
+      );
+    }
+    return s;
+  }
+
+  function setupShelfCloudSync() {
+    if (!window.KidsScoreCloud || !window.KidsScoreCloud.mergeStorybookShelfFromCloud) {
+      return;
+    }
     var shelfPullTimer = null;
     function pullShelfFromCloudNow() {
       window.KidsScoreCloud.mergeStorybookShelfFromCloud(function (err) {
@@ -2182,7 +2305,9 @@
               "\n\nAlso check you are signed in under ⚙️ on this device.",
           );
         }
-        renderShelf();
+        reloadShelfCacheFromStore(function () {
+          renderShelf();
+        });
       });
     }
     function pullShelfFromCloud() {
@@ -2195,26 +2320,19 @@
       }, 200);
     }
 
-    function mergeFailedMessage(raw) {
-      var s = String(raw || "");
-      if (s === "localStorage_quota" || /quota|QuotaExceeded/i.test(s)) {
-        return (
-          "This phone or tablet ran out of browser storage for this site.\n\n" +
-          "Remove a few books from the shelf on this device (tap × on a cover), or clear site data for this website in Safari/Chrome settings, then open Build your book and tap “Get latest books from cloud” again."
-        );
-      }
-      return s;
-    }
-
     window.addEventListener("kids-storybook-merge-failed", function (e) {
       var raw = (e.detail && e.detail.message) || "Unknown error";
       window.alert("Could not update your story library on this device.\n\n" + mergeFailedMessage(raw));
-      renderShelf();
+      reloadShelfCacheFromStore(function () {
+        renderShelf();
+      });
     });
 
     pullShelfFromCloudNow();
     window.addEventListener("kids-scorecard-refresh", function () {
-      renderShelf();
+      reloadShelfCacheFromStore(function () {
+        renderShelf();
+      });
     });
     document.addEventListener("visibilitychange", function () {
       if (document.visibilityState === "visible") {
@@ -2247,6 +2365,8 @@
       });
     }
   }
+
+  startStorybookApp();
 
   if (immersiveReaderMq.addEventListener) {
     immersiveReaderMq.addEventListener("change", setReaderImmersiveFromLayout);

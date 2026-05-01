@@ -708,6 +708,43 @@
     }
   }
 
+  /** @param {function(Array): void} cb */
+  function storybookShelfGetJson(cb) {
+    var st = global.StorybookShelfStore;
+    if (st && typeof st.getJson === "function") {
+      st.getJson()
+        .then(function (arr) {
+          cb(Array.isArray(arr) ? arr : []);
+        })
+        .catch(function () {
+          cb(loadLocalStorybookShelf());
+        });
+      return;
+    }
+    cb(loadLocalStorybookShelf());
+  }
+
+  /** @param {Array} merged @param {function(Error|null): void} cb */
+  function storybookShelfSetMerged(merged, cb) {
+    var st = global.StorybookShelfStore;
+    if (st && typeof st.setJson === "function") {
+      st.setJson(merged)
+        .then(function () {
+          cb(null);
+        })
+        .catch(function (e) {
+          cb(e || new Error("storage_quota"));
+        });
+      return;
+    }
+    try {
+      global.localStorage.setItem(STORYBOOK_SHELF_KEY, JSON.stringify(merged));
+      cb(null);
+    } catch (e) {
+      cb(e);
+    }
+  }
+
   /** Prefer savedAt, then id prefix b{timestamp}. */
   function shelfBookVersionTime(book) {
     if (!book) {
@@ -739,7 +776,7 @@
   }
 
   /**
-   * Download cloud shelf, merge into localStorage (newest wins per book id), upload if this device is ahead or has unique books.
+   * Download cloud shelf, merge into shelf store (IndexedDB when available), upload if needed.
    * @param {function(Error|null): void} [optionalCb] runs after merge + optional upload — passes download error if any, else null
    */
   function mergeStorybookShelfFromCloud(optionalCb) {
@@ -760,109 +797,116 @@
         return;
       }
       var cloudBooks = normalizedCloudShelf(data);
-      var local = loadLocalStorybookShelf();
-      var cloudById = Object.create(null);
-      var i;
-      var b;
-      for (i = 0; i < cloudBooks.length; i++) {
-        b = cloudBooks[i];
-        if (b && b.id) {
-          cloudById[b.id] = b;
-        }
-      }
 
-      var mergedMap = Object.create(null);
-      for (i = 0; i < local.length; i++) {
-        b = local[i];
-        if (b && b.id) {
-          mergedMap[b.id] = b;
+      storybookShelfGetJson(function (local) {
+        var cloudById = Object.create(null);
+        var i;
+        var b;
+        for (i = 0; i < cloudBooks.length; i++) {
+          b = cloudBooks[i];
+          if (b && b.id) {
+            cloudById[b.id] = b;
+          }
         }
-      }
 
-      var changedLocal = false;
-      var needsUpload = false;
-
-      for (i = 0; i < cloudBooks.length; i++) {
-        b = cloudBooks[i];
-        if (!b || !b.id) {
-          continue;
+        var mergedMap = Object.create(null);
+        for (i = 0; i < local.length; i++) {
+          b = local[i];
+          if (b && b.id) {
+            mergedMap[b.id] = b;
+          }
         }
-        var loc = mergedMap[b.id];
-        if (!loc) {
-          mergedMap[b.id] = b;
+
+        var changedLocal = false;
+        var needsUpload = false;
+
+        for (i = 0; i < cloudBooks.length; i++) {
+          b = cloudBooks[i];
+          if (!b || !b.id) {
+            continue;
+          }
+          var loc = mergedMap[b.id];
+          if (!loc) {
+            mergedMap[b.id] = b;
+            changedLocal = true;
+            continue;
+          }
+          var tL = shelfBookVersionTime(loc);
+          var tC = shelfBookVersionTime(b);
+          if (tC > tL) {
+            mergedMap[b.id] = b;
+            changedLocal = true;
+          } else if (tL > tC) {
+            needsUpload = true;
+          }
+        }
+
+        for (i = 0; i < local.length; i++) {
+          b = local[i];
+          if (b && b.id && !cloudById[b.id]) {
+            needsUpload = true;
+            break;
+          }
+        }
+
+        var merged = [];
+        for (var id in mergedMap) {
+          if (Object.prototype.hasOwnProperty.call(mergedMap, id)) {
+            merged.push(mergedMap[id]);
+          }
+        }
+        merged.sort(function (a, c) {
+          return shelfBookVersionTime(c) - shelfBookVersionTime(a);
+        });
+        while (merged.length > STORYBOOK_SHELF_MAX) {
+          merged.pop();
           changedLocal = true;
-          continue;
-        }
-        var tL = shelfBookVersionTime(loc);
-        var tC = shelfBookVersionTime(b);
-        if (tC > tL) {
-          mergedMap[b.id] = b;
-          changedLocal = true;
-        } else if (tL > tC) {
           needsUpload = true;
         }
-      }
 
-      for (i = 0; i < local.length; i++) {
-        b = local[i];
-        if (b && b.id && !cloudById[b.id]) {
-          needsUpload = true;
-          break;
+        var same =
+          JSON.stringify(sortShelfForCompare(merged)) === JSON.stringify(sortShelfForCompare(local));
+        if (!same) {
+          changedLocal = true;
         }
-      }
 
-      var merged = [];
-      for (var id in mergedMap) {
-        if (Object.prototype.hasOwnProperty.call(mergedMap, id)) {
-          merged.push(mergedMap[id]);
+        function finish() {
+          optionalCb(null);
         }
-      }
-      merged.sort(function (a, c) {
-        return shelfBookVersionTime(c) - shelfBookVersionTime(a);
-      });
-      while (merged.length > STORYBOOK_SHELF_MAX) {
-        merged.pop();
-        changedLocal = true;
-        needsUpload = true;
-      }
 
-      var same =
-        JSON.stringify(sortShelfForCompare(merged)) === JSON.stringify(sortShelfForCompare(local));
-      if (!same) {
-        changedLocal = true;
-      }
-
-      if (changedLocal) {
-        try {
-          global.localStorage.setItem(STORYBOOK_SHELF_KEY, JSON.stringify(merged));
-        } catch (e) {
-          console.warn("[score-cloud] mergeStorybookShelfFromCloud: localStorage setItem failed:", e);
-          optionalCb(new Error("localStorage_quota"));
-          return;
-        }
-      }
-
-      function finish() {
-        optionalCb(null);
-      }
-
-      if (needsUpload) {
-        try {
-          uploadStorybookLibrary(JSON.stringify(merged), function (upErr) {
-            if (upErr) {
-              console.error(
-                "[score-cloud] mergeStorybookShelfFromCloud upload:",
-                formatStorageErr(upErr),
-              );
+        function runUploadThenFinish() {
+          if (needsUpload) {
+            try {
+              uploadStorybookLibrary(JSON.stringify(merged), function (upErr) {
+                if (upErr) {
+                  console.error(
+                    "[score-cloud] mergeStorybookShelfFromCloud upload:",
+                    formatStorageErr(upErr),
+                  );
+                }
+                finish();
+              });
+            } catch (e2) {
+              finish();
             }
+          } else {
             finish();
-          });
-        } catch (e2) {
-          finish();
+          }
         }
-      } else {
-        finish();
-      }
+
+        if (changedLocal) {
+          storybookShelfSetMerged(merged, function (e) {
+            if (e) {
+              console.warn("[score-cloud] mergeStorybookShelfFromCloud: persist failed:", e);
+              optionalCb(new Error("storage_quota"));
+              return;
+            }
+            runUploadThenFinish();
+          });
+        } else {
+          runUploadThenFinish();
+        }
+      });
     });
   }
 

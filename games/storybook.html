@@ -393,9 +393,11 @@
   <script src="../js/kids-game-characters.js"></script>
   <script src="../js/score-config.js"></script>
   <script src="../js/kids-core.js"></script>
+  <!-- IndexedDB shelf (mobile); must load before score-cloud + storybook -->
+  <script src="../js/storybook-shelf-store.js" defer></script>
   <!-- Required for cloud shelf sync + upload (same as other games) -->
   <script src="../js/score-cloud.js" defer></script>
-  <script src="storybook.js?v=268" defer></script>
+  <script src="storybook.js?v=269" defer></script>
   <script>
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("../sw.js").catch(function () {});
