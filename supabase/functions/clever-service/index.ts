@@ -1323,13 +1323,12 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
       }
 
       if (anchorOut) {
-        try {
-          panelLock = await visualLockFromFirstImage(apiKey, anchorOut.url);
-          firstPanelVisualLockUsed = panelLock.length > 40;
-        } catch (e) {
-          console.warn("[clever-service] visual lock (anchor) failed", e);
-        }
-
+        // Skip the text-based visual lock for the GPT Image path — the anchor
+        // PNG is attached as a reference to EVERY spread edit, so a second
+        // text description of "what the anchor looks like" is redundant and
+        // costs ~10s of wall-clock we don't have inside Supabase's 150s edge
+        // timeout. Identity is already locked by pixels. Visual lock stays in
+        // play for the Fal / DALL·E paths below.
         const refBytes = anchorOut.bytes;
         // OpenAI gpt-image-1 has a tight per-minute image cap (5/min on tier 1,
         // shared across generations + edits). Going fully serial pushed past
@@ -1344,7 +1343,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
         })();
         const interChunkWaitMs = (() => {
           const raw = Number(Deno.env.get("STORYBOOK_GPTIMAGE_CHUNK_WAIT_MS"));
-          return Number.isFinite(raw) && raw >= 0 ? raw : 35000;
+          return Number.isFinite(raw) && raw >= 0 ? raw : 20000;
         })();
 
         const buildEditPrompt = (b: typeof briefs[number], idx: number) => {
