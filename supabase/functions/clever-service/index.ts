@@ -1350,7 +1350,7 @@ Rules:
 - Warm, gentle, silly — never scary, violent, or mean.
 - No romance, no weapons, no villains that frighten.
 - Exactly 12 pages (six double-page spreads). The text on every page MUST be exactly 4 lines long, written as a fun, rhythmic poem that rhymes perfectly (e.g., AABB or ABCB). Format the text with actual line breaks (\n) after each line so the rhyming words are at the end of each line. Use simple words.
-- On each odd-numbered (text-first) page, include exactly one short sound-effect or action word in ALL CAPS with an exclamation mark where it fits the rhyme (e.g. SPLASH! WHOOSH! YIPPEE!) so it feels like a printed picture book. Only that one word per page should be in all capitals; keep the rest in normal sentence case.
+- Odd-numbered (text-first) pages: end on a normal rhyming line — do NOT tack on a random ALL CAPS sound effect (SPLASH! SNORE! ZOOM!) after the verse; those often feel disconnected from the lines above. Keep the whole page in normal sentence case. Only use a short capped word if it is genuinely the punchline of that beat (rare); most pages should have no ALL CAPS word at all.
 - The hero's name is given — use it often. The hero IS ${childName} — this exact first name must appear in the story text on every page where the main child acts. Whenever ${childName} is in a spread's scene, that spread's illustrationBrief must name ${childName} (you may list other named friends first if the verse introduces them that way). Never substitute a different child, wrong name, or wrong gender as the hero. The art paints only who you name — do not imply an unnamed generic kid.
 - HUMAN CO-STARS vs IMAGINARY BUDDY (critical): The "Main friend character" below is always ONE imaginary creature (unicorn, dragon, dinosaur, etc.). If the plot idea also names another child (e.g. a brother or sister), that child is a REAL HUMAN — not the buddy, not a shape-shifted version of the buddy, and never given the buddy's role in the plot. NEVER merge names: do not write that the human sibling flies as the dragon, or that the dragon "is" the sibling. When the plot says the children cannot find the DINOSAUR / DRAGON, the verses must ask where the DINOSAUR or DRAGON is — do not substitute the sibling's name as the thing that is lost unless the plot literally says the sibling is hiding.
 - CAST vs TEXT (strict): Each illustrationBrief may include ONLY characters who appear **by name** on that spread's paired text page (the odd page before it), or the one imaginary buddy when the text clearly means them ("the dinosaur", "their friend") after names were established. If the verse names ${childName} plus a human co-star (e.g. Isaac) plus the buddy, all three may appear when the verse puts them in the scene. If the verse only mentions ${childName} and the buddy, the picture has only those two. If the verse also names game people who are in that scene, they may appear — list everyone the text actually puts in the moment. Never add lions, bears, random pals, villagers, crowds, or background "silhouette people" that the text does not mention. A few characters is fine **only** when the text names them all for that beat.
@@ -1374,7 +1374,7 @@ Rules:
     • Example, beat where dragon is found / revealed: VISIBLE: Sofia, Isaac, dragon.
     • Example, beat where the dragon is flying overhead and they spot it: VISIBLE: Sofia, Isaac, dragon (dragon up high in the sky, partially out of frame is fine).
     • Never include a character in VISIBLE if the verse says they are NOT around for that moment.
-  The DESCRIPTION (after VISIBLE) must spell out the same specific moment as the verse on the previous page: same action, setting, props — not a generic scene. NEVER add guardians, helpers, or creatures the verse does not mention. NEVER duplicate the buddy unless the text says so. CRITICAL FOR CONSISTENCY: DO NOT re-describe permanent looks (clothes, hair colours) in the brief — the illustrator has the master designs.
+  The DESCRIPTION (after VISIBLE) must spell out the same specific moment as the verse on the previous page: same action, same setting, same props, same time of day — not a generic scene and NEVER a different location or activity than the verse (e.g. if the verse says bouncy castle under the sky, the picture is that bouncy castle with sky visible — not a bike ride in the woods). NEVER add guardians, helpers, or creatures the verse does not mention. NEVER duplicate the buddy unless the text says so. CRITICAL FOR CONSISTENCY: DO NOT re-describe permanent looks (clothes, hair colours) in the brief — the illustrator has the master designs.
   ENVIRONMENT DETAIL (very important — each brief must paint a different *place* on the journey, matching the SETTING and PLOT IDEA above):
     Every illustrationBrief MUST contain at least 2 specific environmental nouns (architecture, foliage, terrain, structure, weather, depth) AND at least 1 named prop or focal object from that beat. The environmental nouns MUST come from the actual SETTING and PLOT IDEA — if the plot says CASTLE, the briefs are inside or around a castle (stone walls, banners, courtyards, towers, throne room, drawbridge, tapestries) NOT in deep woods. If the plot says CAVE, the briefs are inside cave passages and chambers. If the plot says BEACH or UNDERSEA or SPACE, paint THAT setting. Only paint a forest if the plot or setting actually mentions woods/forest/trees.
     Examples of good briefs — note how each one fits a DIFFERENT plot, and how each only includes things the plot would actually contain:
@@ -1687,6 +1687,9 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
             blocks.push(
               `THIS SPREAD'S MOMENT (from the rhyming verse on the facing page — show every action literally):\n"""\n${verseLines}\n"""`,
             );
+            blocks.push(
+              "VISUAL MATCHING: Paint the SAME setting, time of day, and activity as the verse — if it says bouncy castle under the sky, show padded inflatable bounce-house walls and open sky; if it says kitchen or courtyard, show that. Do not substitute a different scene (e.g. woods and bicycle) unless the verse names those.",
+            );
           }
 
           // 5. Visible cast for THIS spread (the part that fixes the
@@ -1923,8 +1926,8 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
       }
     }
 
-    /** Final picture page (page 12): reuse first spread art for a cosy bookend (disable with STORYBOOK_REUSE_FIRST_ON_LAST=0). */
-    const reuseFirstIllustrationOnLast = Deno.env.get("STORYBOOK_REUSE_FIRST_ON_LAST") !== "0";
+    /** Final picture page (page 12): opt-in reuse of spread 1 art (set STORYBOOK_REUSE_FIRST_ON_LAST=1 for a bookend repeat). Default = generate a distinct final spread. */
+    const reuseFirstIllustrationOnLast = Deno.env.get("STORYBOOK_REUSE_FIRST_ON_LAST") === "1";
     if (reuseFirstIllustrationOnLast && briefs.length >= 2 && urls.length >= briefs.length) {
       const first = urls[0];
       if (first && typeof first === "string" && /^https?:\/\//i.test(first.trim())) {
@@ -1998,7 +2001,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
         : null,
       gptImageSpreads: useGptImage ? gptImageSpreadCount : 0,
       reuseFirstIllustrationOnLast:
-        Deno.env.get("STORYBOOK_REUSE_FIRST_ON_LAST") !== "0",
+        Deno.env.get("STORYBOOK_REUSE_FIRST_ON_LAST") === "1",
     },
   });
 });
