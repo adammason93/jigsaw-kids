@@ -1386,7 +1386,7 @@ Rules:
       • BAKERY plot: "${childName} stands at a wooden counter rolling out dough, flour cloud puffing up, big stone oven glowing warmly behind."
     Vary the *place* between spreads in line with the plot's beats — e.g. CASTLE: gates → corridor → great hall → spiral tower → rooftop → courtyard with the dragon flying overhead. Don't repeat the same backdrop. State a different camera angle / shot type for each (wide establishing shot, mid shot, low-angle hero kneeling, over-the-shoulder peering, etc).
     Background details ARE allowed (in fact required) — what is NOT allowed is faced extras the verse doesn't mention.
-    COMPOSITION / SCALE FOR THE ILLUSTRATOR: Picture-book framing — camera pulled back enough that every listed character fits comfortably inside the double-page spread with clear margin (nothing important near the outer edges). Full heads and feet on wide and mid shots; on closer shots, still no edge-clipping of faces or hands. Prefer showing more environment over filling the frame with oversized figures.
+    COMPOSITION / SCALE FOR THE ILLUSTRATOR: Full-bleed spreads — the setting and atmosphere fill the double-page edge-to-edge. Size the cast slightly smaller than a maximum hero fill so every listed character fits with a modest inset and no edge-clipping (full heads and feet on wide and mid shots; on closer shots, no clipped faces or hands). Do not shrink the whole illustration into a small inset on the page; keep the world immersive and only dial back character scale.
   OPENING SPREAD (page 2 only — the first illustrationBrief): MUST match page 1 text and the child's plot, AND establish the actual SETTING (castle / woods / cave / beach / space / etc. — whichever the plot calls for). Page 1 text must name every main character the plot introduces (${childName}, any sibling/friend named in the plot idea, and the buddy creature by type — e.g. dinosaur). Only characters named on page 1 may appear on page 2's illustration. Example: if the plot is "hide and seek in a castle", the opening establishes castle gates / courtyard / great hall — NOT a forest. No unwritten extras.
   When game people with portrait notes appear on a picture page, the brief should mention them looking like those notes (hair, outfit colours, age vibe).
 - If a "plot idea" is given, you MUST make it the central theme of the story and feature it heavily in EVERY illustration brief. If it is empty, invent a short happy outing that fits the setting.
@@ -1476,7 +1476,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
     "No logos, social-media marks, app icons, or brand symbols. " +
     "The left third must be only smooth colour, soft sky, plain wall, or gentle gradient — zero pseudo-text texture there (the app draws real text in HTML). " +
     "CRITICAL LAYOUT RULE: Leave the left half of the image mostly uncluttered with a simple, soft, darker background so that WHITE storybook text can be printed over it clearly. Place the main characters and action on the right half or center-right of the image. " +
-    "FRAMING / SCALE (critical): Pull the camera back — subjects must read at picture-book scale, NOT a tight poster crop. Leave roughly 8–12% clear margin on top, bottom, left, and right (nothing important touches the outer edges). Every visible character must fit entirely inside the frame: full head and hair, hands, feet, tail, and wings — zero edge-clipping. If in doubt, make characters smaller and show more setting. Never line up the whole cast as a tiny strip along the bottom like stickers; show comfortable ground and body. " +
+    "FRAMING / CHARACTER SCALE (critical): FULL-BLEED SCENE — paint walls, sky, ground, props, and atmosphere so the artwork fills the entire canvas edge-to-edge (rich picture-book spread, not a tiny scene floating in empty space). Within that full-page painting, draw the named characters slightly smaller than a screen-filling hero poster (roughly 10–15% smaller overall) so their full head and hair, hands, feet, tail, and wings stay comfortably inside the frame with a modest inset from the outer edges — never cropped or jammed against the border. If a figure still feels tight, shrink only the cast, not the richness of the environment. Never line up the whole cast as a tiny strip along the bottom like stickers; show comfortable ground and body. " +
     "STYLE: soft matte clay and toy-plastic 3D ONLY — rounded limbs, gentle pastel lighting, not realistic human skin, not glossy CGI. Edge-to-edge scene, no frames or borders. Wholesome and safe for toddlers. " +
     `HERO VISIBILITY: When "${childName}" appears in SCENE ACTION, they must be clearly visible (face on, not swapped for another kid). ` +
     "ONE BUDDY ANIMAL: Only one imaginary buddy creature from the BUDDY line in the image (e.g. one unicorn), not clones or a big+little pair, unless SCENE ACTION names two. " +
@@ -1556,7 +1556,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
     const anchorPreamble =
       "A completely textless illustration. NO letters, words, typography, labels, speech bubbles, signs with text, book pages with writing, loose papers, scrolls, glyph noise, watermarks, or fake paragraph texture anywhere. Plain smooth background regions only — no pseudo-text. " +
       "CAST LINEUP / MODEL SHEET for a kids picture book: every character line in LOCKED CAST below (hero, buddy, and any named human co-stars or game people) — no one else, no third mascot or crowd, no duplicate unicorns. Together in ONE frame, neutral friendly poses, " +
-      "full bodies with generous margin — no hair, feet, wings, or tails touching the image border; figures occupy only the middle ~60–75% of frame height so each design reads clearly, soft matte clay and toy-plastic 3D, gentle pastel light, plain soft background. " +
+      "full bodies on a plain soft background that still fills the canvas edge-to-edge — modest inset so hair, feet, wings, and tails do not touch the border; figures roughly the middle ~65–80% of frame height so each design reads clearly, soft matte clay and toy-plastic 3D, gentle pastel light. " +
       "Edge-to-edge, wholesome for toddlers. ";
 
     const anchorPrompt = (
@@ -1612,32 +1612,32 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
           {
             label: "WIDE ESTABLISHING SHOT",
             note:
-              "Wide establishing shot. Full bodies head to toe — the whole group together must use at most ~55% of frame height and ~50% of width, with generous sky/ground/architecture around them (never touching the image edges). Setting fills the rest with real depth.",
+              "Wide establishing shot. Full-bleed environment — sky, architecture, terrain, and foreground paint to every edge. Full bodies head to toe: the whole cast together roughly ~48–55% of frame height (slightly smaller than a hero poster), fully inside the frame with modest breathing room — silhouettes never touch or clip the border. Setting stays rich and edge-to-edge around them.",
           },
           {
             label: "MID SHOT",
             note:
-              "Mid shot from roughly the knees up. Entire heads (hair included) and hands well inside the frame with top and bottom margin. Characters occupy centre-left to centre; setting visible behind with depth.",
+              "Mid shot from roughly the knees up. Full-bleed setting behind and around them. Entire heads (hair included) and hands inside the frame with modest inset — not edge-cropped. Characters centre-left to centre; world still fills the canvas edge-to-edge.",
           },
           {
             label: "OVER-THE-SHOULDER / DISCOVERY ANGLE",
             note:
-              "Three-quarter or over-the-shoulder angle. Foreground framing character still fully inside canvas (no cropped ears or elbows at edges). Focal character fully visible. Setting fills surrounding space.",
+              "Three-quarter or over-the-shoulder angle. Full-bleed environment. Foreground framing character still fully inside canvas (no cropped ears or elbows at edges). Focal character fully visible. Setting fills surrounding space to the edges.",
           },
           {
             label: "CLOSE-UP ON THE VERSE'S FOCAL MOMENT",
             note:
-              "Closer on the verse's focal action or expression, but still picture-book safe: every face, hand, and prop that matters stays fully inside the frame with margin — no mouths, eyes, or fingertips clipped by edges. Setting visible behind with depth.",
+              "Closer on the verse's focal action or expression. Full-bleed scene — background and atmosphere still run to the edges. Every face, hand, and prop that matters stays fully inside the frame with modest inset — no mouths, eyes, or fingertips clipped.",
           },
           {
             label: "WIDE JOURNEY SHOT — DIFFERENT PART OF THE SETTING",
             note:
-              "A second wide shot in a DIFFERENT corner of the same setting from spread 1. Characters small (roughly 20–32% of canvas height), environment dominates; full figures still readable, never cropped.",
+              "A second wide shot in a DIFFERENT corner of the same setting from spread 1. Full-bleed world — environment dominates edge-to-edge. Cast smaller on the canvas (roughly 24–36% of frame height), full figures readable, never cropped.",
           },
           {
             label: "MEDIUM CLOSE ON FACES — WARM FINALE",
             note:
-              "Medium-close chest-up to shoulders-up on a warm finale (smile, laugh, hug, cheer). Entire heads with hair and ears inside frame; no chin or forehead against the top edge. Setting clearly visible behind.",
+              "Medium-close chest-up to shoulders-up on a warm finale (smile, laugh, hug, cheer). Full-bleed setting behind and around them. Entire heads with hair and ears inside frame with modest inset; no chin or forehead against the top edge.",
           },
         ];
 
@@ -1671,7 +1671,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
           // 1. Style + reference instruction
           blocks.push(
             "Children's picture-book illustration, soft matte clay and toy-plastic 3D, gentle pastel light, edge-to-edge with no borders or text. " +
-              "SAFE SCALE: Pull the camera back — characters must be clearly smaller than a tight movie poster crop. Leave empty margin on every side (~8–12% of canvas); never crop heads, hair, feet, hands, wings, or tails at the frame edge — full silhouettes inside the image. " +
+              "SAFE SCALE: Full-bleed scene — environment fills the entire canvas edge-to-edge. Draw the cast slightly smaller than a tight movie poster crop (~10–15% smaller) so full heads, hair, feet, hands, wings, and tails sit inside the frame with modest inset — never edge-clipped. Do not leave empty margins around the whole painting; only shrink the characters within the scene. " +
               "The attached reference image shows the cast on a neutral backdrop — use it ONLY to lock the characters' identity (faces, hair, outfit colours, species, body shape). Repaint the world fresh.",
           );
 
@@ -1819,7 +1819,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
                 "Story spread — NEW scene, poses, and background for this moment only. " +
                 "Keep hero and every creature IDENTICAL to the reference lineup (faces, hair, outfit colours, species, size) — match reference character COUNT only; add no beings not named in SCENE ACTION. " +
                 "TEXTLESS — no letters, fake text, signs, logos, paper scraps with writing, or glyph noise; soft matte clay toy 3D. " +
-                "FRAME / SCALE: pull camera back — subjects clearly smaller than a poster crop; ~8–12% margin on all sides; full heads, feet, hands, wings, tails inside canvas — not edge-cropped; not a bottom-cropped row. " +
+                "FRAME / SCALE: full-bleed environment edge-to-edge; cast slightly smaller than a poster crop (~10–15%) with modest inset — full heads, feet, hands, wings, tails inside canvas, not edge-cropped; not a bottom-cropped row. " +
                 composed.slice(0, FAL_REDUX_PROMPT_MAX - 420);
               // Lower image→image strength on spread 1 so the opening scene can diverge from the neutral cast lineup.
               const reduxStrength =
@@ -1901,7 +1901,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
                     "New story moment — change poses, action, and background to match the scene. " +
                     "Keep the same hero face, hair, outfit colours, and the same buddy and named creatures as the reference — only beings named in SCENE ACTION, no new animals or people. " +
                     "TEXTLESS — no words, signs, book pages with text, logos, paper scraps with writing, or gibberish texture; soft matte clay toy 3D only. " +
-                    "FRAME / SCALE: pull camera back — ~8–12% margin on all sides; full heads, feet, hands, wings inside canvas — not edge-cropped; middle vertical band — do not squash everyone along the bottom edge. " +
+                    "FRAME / SCALE: full-bleed scene edge-to-edge; cast slightly smaller with modest inset — full heads, feet, hands, wings inside canvas, not edge-cropped; middle vertical band — do not squash everyone along the bottom edge. " +
                     composed.slice(0, FAL_REDUX_PROMPT_MAX - 220);
                   const u = await falFluxReduxImageUrl(
                     falKey,
