@@ -1315,14 +1315,20 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
     let panelLock = "";
 
     if (useGptImage) {
-      let anchorOut: { url: string; bytes: Uint8Array } | null = null;
+      // STRICT MODE — when STORYBOOK_IMAGE_MODE=gptimage is set, this is the
+      // ONLY pipeline we want to run. No silent fallback to Fal or DALL-E.
+      // If anything fails, we throw with a clear, actionable error so the
+      // caller knows GPT Image specifically failed (rather than getting an
+      // imageless 200 or a mixed-style book).
+      let anchorOut: { url: string; bytes: Uint8Array };
       try {
         anchorOut = await gptImageGenerate(apiKey, anchorPrompt);
       } catch (e) {
-        console.warn("[clever-service] GPT Image anchor failed", e);
+        const detail = e instanceof Error ? e.message : String(e);
+        throw new Error(`gpt_image_anchor_failed: ${detail}`);
       }
 
-      if (anchorOut) {
+      {
         // Skip the text-based visual lock for the GPT Image path — the anchor
         // PNG is attached as a reference to EVERY spread edit, so a second
         // text description of "what the anchor looks like" is redundant and
@@ -1413,10 +1419,20 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
             gptImageSpreadCount++;
           }
         }
+        // Strict completeness check — if for any reason urls didn't fill,
+        // surface a clear error so the UI doesn't render an imageless book.
+        const missing = briefs
+          .map((_, i) => i)
+          .filter((i) => !urls[i] || typeof urls[i] !== "string");
+        if (missing.length > 0) {
+          throw new Error(
+            `gpt_image_incomplete: missing ${missing.length}/${briefs.length} spread(s) at index ${missing.join(",")}`,
+          );
+        }
       }
     }
 
-    if (useCastAnchor) {
+    if (!useGptImage && useCastAnchor) {
       let anchorUrl: string | null = null;
       try {
         anchorUrl = await falFluxProTextToImageUrl(falKey, falTextModel, anchorPrompt);
@@ -1590,11 +1606,17 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
   } catch (e) {
     console.error(e);
     const detail = e instanceof Error ? e.message : String(e);
-    const errKey = e instanceof FalImageError ? "fal_failed" : "images_failed";
+    const isGpt = useGptImage && /^gpt_image_/i.test(detail);
+    const errKey = isGpt
+      ? "gpt_image_failed"
+      : e instanceof FalImageError
+      ? "fal_failed"
+      : "images_failed";
     return jsonResponse(
       {
         error: errKey,
         detail,
+        imageMode,
         title: story.title,
         pages: story.pages.map((p) => ({ text: p.text.trim(), imageUrl: null })),
       },
