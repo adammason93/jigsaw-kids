@@ -86,7 +86,7 @@ function composeDallePrompt(parts: {
     `TEXT-LOCKED CAST: Draw ONLY the people and creatures explicitly named in SCENE ACTION — exactly who this spread's verse names or clearly refers to (no one else). ` +
     `When ${parts.heroFirstName} is named in SCENE ACTION, they must appear clearly in the foreground (full face, correct child). ` +
     `Only ONE imaginary buddy individual from the BUDDY line (e.g. one unicorn), not a duplicate big+small pair, unless SCENE ACTION explicitly names two distinct buddies. ` +
-    `NO unnamed villagers, torch-bearer extras, silhouettes with faces, mascots, or filler crowd. NO logos or brand marks. Background trees/ground/mist/sky only — no extra faced characters beyond SCENE ACTION.\n\n`;
+    `NO unnamed villagers, torch-bearer extras, silhouettes with faces, mascots, or filler crowd. NO logos or brand marks. Background = whatever PLACE/ENVIRONMENT specifies (castle interior/grounds, woodland, cave, beach, garden, etc.) without extra faced characters beyond SCENE ACTION.\n\n`;
   const mid =
     `SCENE ACTION: ${parts.sceneBrief}\n\n${identity}${lockChunk}MANDATORY CAST (same toy-clay 3D models on every page — identical proportions, colours, species; do not redesign or swap styles):\n`;
   const head = `${parts.preamble}${parts.envTheme}`;
@@ -100,27 +100,96 @@ function composeDallePrompt(parts: {
   return out.slice(0, DALLE3_PROMPT_MAX);
 }
 
-/** Bias image prompts toward dim / torchlit scenes when the child's plot asks for them. */
+/** Bias image prompts toward the lighting / structural cues implied by the child's plot. */
 function plotLightingEnvAddon(plotHint: string, heroFirstName: string): string {
   const p = plotHint.trim();
   if (!p) return "";
   const parts: string[] = [];
-  if (
-    /dark|night|torch|lanterns?|moonlit|shadowy|spooky|dim|twilight|dusk|glow|stars|flicker|campfire|woods?\s*at\s*night|fairy\s*lights/i.test(
-      p,
-    )
-  ) {
-    parts.push(
-      "LIGHTING/MOOD: dim mystical outdoor scene, warm torchlight or soft lantern glow, deep soft shadows between trees — " +
-        "not bright midday sun, not a washed-out white sky, not a generic sunny picnic or storybook street. ",
-    );
+
+  const isCastle = /castle|fortress|palace|throne|drawbridge|turret|tower|keep|dungeon|battlement/i.test(p);
+  const isWoods = /woods?|forest|trees|jungle|glade|grove|thicket|undergrowth/i.test(p);
+  const isCave = /cave|cavern|tunnel|underground/i.test(p);
+  const isUnderwater = /underwater|ocean|sea|coral|reef|mermaid|submarine/i.test(p);
+  const isSpace = /space|stars|moon|planet|galaxy|cosmic|rocket|comet/i.test(p);
+  const isBeach = /beach|shore|sand|seaside/i.test(p);
+
+  const isDimMood = /dark|night|torch|lanterns?|moonlit|shadowy|spooky|dim|twilight|dusk|glow|flicker|campfire|fairy\s*lights/i.test(p);
+  const hasHandTorches = /\btorch(es)?\b/i.test(p);
+  const hasLanterns = /\blanterns?\b/i.test(p);
+
+  if (isDimMood) {
+    let lighting = "LIGHTING/MOOD: ";
+    if (isCastle) {
+      lighting +=
+        "dim atmospheric castle interior or moonlit castle grounds — warm flicker from wall sconces, glowing braziers, or hanging lanterns against cool stone walls. " +
+        "Not bright midday sun, not a washed-out white sky. ";
+    } else if (isCave) {
+      lighting +=
+        "dim cave interior — warm pools of torchlight bouncing off rough rock walls, deep shadow in the recesses. ";
+    } else if (isUnderwater) {
+      lighting +=
+        "soft caustic blue-green underwater light with shimmering rays from above and gentle bioluminescent glow. ";
+    } else if (isSpace) {
+      lighting +=
+        "deep starry-night space lighting with cool moonlight or planet-glow on faces, distant nebulae as soft pastel washes. ";
+    } else if (isBeach) {
+      lighting +=
+        "moonlit beach at night — silver moonlight on calm waves, warm bonfire or lantern glow on faces. ";
+    } else {
+      // Outdoor / woods default
+      lighting +=
+        "dim mystical outdoor scene with warm torchlight or soft lantern glow and deep soft shadows. " +
+        "Not bright midday sun, not a washed-out white sky, not a generic sunny picnic or storybook street. ";
+    }
+    parts.push(lighting);
   }
-  if (/torch|lanterns?/i.test(p)) {
+
+  if (hasHandTorches) {
     parts.push(
       `PROPS: ${heroFirstName} and the buddy each hold simple wooden hand-torches with visible warm flames in their hands — ` +
-        "that torch light falls on their faces and the path; do not replace with only ground sparkles, coin glow, or a studio spotlight with no torches. ",
+        "that torch light falls on their faces and the surroundings; do not replace with only ground sparkles, coin glow, or a studio spotlight with no torches. ",
+    );
+  } else if (hasLanterns) {
+    parts.push(
+      `PROPS: ${heroFirstName} and the buddy each carry a small glowing lantern (warm flame inside metal-and-glass casing) — ` +
+        "the lantern light falls on their faces and the surroundings. ",
     );
   }
+
+  // Structural / setting cues — give the model concrete elements to paint
+  // appropriate to the plot, not woods by default.
+  if (isCastle) {
+    parts.push(
+      "STRUCTURE: stone walls and corridors with arched doorways, hanging tapestries or banners, flagstone floors, narrow windows; or castle grounds with crenellated walls, courtyards, and turrets. " +
+        "Show CASTLE architecture clearly — this is NOT a forest. " +
+        (isWoods
+          ? "If both castle AND surrounding woods are mentioned, blend them (woodland approach to castle gates, or castle visible through trees). "
+          : "Trees should NOT dominate any spread unless the plot explicitly says woods. "),
+    );
+  }
+  if (isCave) {
+    parts.push(
+      "STRUCTURE: rough rock walls, stalactites, narrow passages opening into wider chambers, occasional puddles reflecting torchlight. ",
+    );
+  }
+  if (isUnderwater) {
+    parts.push(
+      "STRUCTURE: coral formations, kelp forests, sandy seabed, fish schools in mid-distance, bubbles rising from characters. " +
+        "No campfires or torches underwater — use bioluminescent props instead if a glow is needed. ",
+    );
+  }
+  if (isSpace) {
+    parts.push(
+      "STRUCTURE: soft asteroid field or planet surface with low gravity feel, distant pastel planets, comet trails. " +
+        "No fire torches in vacuum — use friendly glowing crystals or starlight. ",
+    );
+  }
+  if (isBeach) {
+    parts.push(
+      "STRUCTURE: soft sand, gentle waves, scattered shells, distant calm horizon, maybe palm trees or rocky outcrops. ",
+    );
+  }
+
   return parts.join("");
 }
 
@@ -1157,16 +1226,19 @@ Rules:
 - DOUBLE-PAGE SPREADS: pair pages as (1,2), (3,4), (5,6), (7,8), (9,10), (11,12).
   Odd-numbered pages (1,3,5,7,9,11) are TEXT-FIRST pages only — use "illustrationBrief": null.
   Even-numbered pages (2,4,6,8,10,12) are PICTURE pages — each MUST have a non-null "illustrationBrief": a vivid visual scene description for an illustrator (no text to draw, no words on signs). Each brief MUST be different and visibly progress the journey. The brief MUST spell out the same specific moment as the text on the previous page: same characters named in that verse, same action, setting, props — not a generic scene. The brief must list **exactly** the same named cast as that text page (hero, buddy, and any game people actually in that verse). NEVER add guardians, helpers, or creatures the verse does not mention. NEVER duplicate the buddy as two unicorns unless the text says so. CRITICAL FOR CONSISTENCY: DO NOT re-describe permanent looks (clothes, hair colours) in the brief! Just state WHO (using names from the text) and WHAT they do. The illustrator has the master designs.
-  ENVIRONMENT DETAIL (very important — each brief must paint a different *place* on the journey):
-    Every illustrationBrief MUST contain at least 2 specific environmental nouns (foliage, terrain, structure, weather, depth) AND at least 1 named prop or focal object from that beat. Examples of good briefs (use the same pattern, different content):
-      • "${childName} and the unicorn creep between tall mossy oak trunks at night, fireflies dotting the dark path, both holding warm wooden torches that cast orange glow on the ground."
-      • "${childName} kneels on a bed of glowing white moonflowers in a forest clearing while the unicorn watches from beside a fallen log, distant pines and stars behind."
-      • "${childName} and the unicorn stand in a stone archway at the mouth of a cave, an old wooden treasure chest at their feet half-open with gold spilling out, torchlight bouncing off rocky walls."
-      • "${childName} hugs the unicorn's neck on a wooden bridge over a quiet midnight stream, weeping willows around them, lanterns hanging from low branches."
-    Vary the *place* between spreads — don't keep all six in identical dark woods. Move them deeper / to a glade / to a cave / to a treasure room / to the path home, in line with the plot's beats. State a different camera angle / shot type for each (wide establishing shot, mid shot, low-angle hero kneeling, over-the-shoulder peering, etc).
+  ENVIRONMENT DETAIL (very important — each brief must paint a different *place* on the journey, matching the SETTING and PLOT IDEA above):
+    Every illustrationBrief MUST contain at least 2 specific environmental nouns (architecture, foliage, terrain, structure, weather, depth) AND at least 1 named prop or focal object from that beat. The environmental nouns MUST come from the actual SETTING and PLOT IDEA — if the plot says CASTLE, the briefs are inside or around a castle (stone walls, banners, courtyards, towers, throne room, drawbridge, tapestries) NOT in deep woods. If the plot says CAVE, the briefs are inside cave passages and chambers. If the plot says BEACH or UNDERSEA or SPACE, paint THAT setting. Only paint a forest if the plot or setting actually mentions woods/forest/trees.
+    Examples of good briefs — note how each one fits a DIFFERENT plot:
+      • CASTLE plot: "${childName} and the dragon peek around a stone archway in a torchlit castle corridor, banners hanging from the wall, suit of armour standing nearby."
+      • CASTLE plot: "${childName} climbs a spiral stone staircase inside a tower, narrow window showing the dragon flying past in the night sky."
+      • WOODS plot: "${childName} and the unicorn creep between tall mossy oak trunks at night, fireflies dotting the dark path."
+      • CAVE plot: "${childName} stands in a glittering crystal cave, cave-pearls glowing on the rough walls, a treasure chest half-open at the buddy's feet."
+      • SPACE plot: "${childName} bounces on a soft pastel asteroid, ringed planet huge in the starry sky behind them."
+      • UNDERWATER plot: "${childName} swims past a coral reef, rays of sunlight cutting down through the water, a friendly turtle alongside."
+    Vary the *place* between spreads in line with the plot's beats — e.g. CASTLE: gates → corridor → great hall → spiral tower → rooftop → courtyard with the dragon flying overhead. Don't repeat the same backdrop. State a different camera angle / shot type for each (wide establishing shot, mid shot, low-angle hero kneeling, over-the-shoulder peering, etc).
     Background details ARE allowed (in fact required) — what is NOT allowed is faced extras the verse doesn't mention.
     COMPOSITION: main characters in the middle vertical band with headroom and visible feet.
-  OPENING SPREAD (page 2 only — the first illustrationBrief): MUST match page 1 text and the child's plot. Only characters named on page 1 (usually ${childName} and the buddy; plus game people only if page 1 names them). Example: dark woods + handheld torches if the verse says so — BOTH hold torches if the text says. No unwritten extras.
+  OPENING SPREAD (page 2 only — the first illustrationBrief): MUST match page 1 text and the child's plot, AND establish the actual SETTING (castle / woods / cave / beach / space / etc. — whichever the plot calls for). Only characters named on page 1 (usually ${childName} and the buddy; plus game people only if page 1 names them). Example: if the plot is "hide and seek in a castle", the opening establishes castle gates / courtyard / great hall — NOT a forest. No unwritten extras.
   When game people with portrait notes appear on a picture page, the brief should mention them looking like those notes (hair, outfit colours, age vibe).
 - If a "plot idea" is given, you MUST make it the central theme of the story and feature it heavily in EVERY illustration brief. If it is empty, invent a short happy outing that fits the setting.
 - JSON only, no markdown.`;
@@ -1180,7 +1252,7 @@ People from the child's games to include by name (friends/family — use them wa
 Plot idea from the child (CRITICAL: make this the core focus of the story and pictures): ${
     plotHint.length ? plotHint : "(none — invent a cosy little adventure that fits the setting)"
   }
-Page 1 and page 2 must OPEN this plot: the first illustration (page 2 brief) is the first scene readers see — match this plot's setting, props, and buddy (e.g. dark woods + unicorn + torches), not a different mood or story beat.
+Page 1 and page 2 must OPEN this plot: the first illustration (page 2 brief) is the first scene readers see — match this plot's SETTING, props, and buddy. Read the plot literally: if it says "castle", spread 1 is the castle (gates, great hall, courtyard); if it says "woods", spread 1 is woods; if it says "underwater", spread 1 is underwater. Do NOT default to woods.
 ${
     familyNames.length === 0
       ? `Picture cast rule: only people/creatures **named in each verse** may appear on that spread's illustration — usually ${childName} and the buddy. Do not name anyone in a brief who is not in the paired text.\n`
@@ -1240,11 +1312,13 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
     "STYLE: soft matte clay and toy-plastic 3D ONLY — rounded limbs, gentle pastel lighting, not realistic human skin, not glossy CGI. Edge-to-edge scene, no frames or borders. Wholesome and safe for toddlers. " +
     `HERO VISIBILITY: When "${childName}" appears in SCENE ACTION, they must be clearly visible (face on, not swapped for another kid). ` +
     "ONE BUDDY ANIMAL: Only one imaginary buddy creature from the BUDDY line in the image (e.g. one unicorn), not clones or a big+little pair, unless SCENE ACTION names two. " +
-    "TEXT-LOCKED: ONLY characters explicitly named in SCENE ACTION — same roster as this spread's verse, same count. NO unnamed extras: no villagers, silhouettes with faces, filler torch-bearers, spare animals, or audience. NO logos. Background = trees, ground, fog, sky without extra faced characters. NO wooden signs with lettering, carved runes, or flyers on trees. ";
+    "TEXT-LOCKED: ONLY characters explicitly named in SCENE ACTION — same roster as this spread's verse, same count. NO unnamed extras: no villagers, silhouettes with faces, filler torch-bearers, spare animals, or audience. NO logos. Background = whatever the ENVIRONMENT line specifies (castle interior/grounds, woodland, cave, beach, garden, space, etc.) without extra faced characters. NO signs with lettering, carved runes, or flyers. ";
 
   const envTheme =
-    `ENVIRONMENT: ${placeDesc}. ` +
-    (plotHint.length > 0 ? `THEME: ${plotHint}. ` : "") +
+    `ENVIRONMENT (paint THIS exact setting on every spread — do not default to woods or any other generic backdrop): ${placeDesc}. ` +
+    (plotHint.length > 0
+      ? `THEME / PLOT IDEA from the child (READ LITERALLY — if it mentions castle, paint a castle; cave, paint a cave; beach, paint a beach; etc.): ${plotHint}. `
+      : "") +
     plotLightingEnvAddon(plotHint, childName);
 
   const pagesOut: { text: string; imageUrl: string | null }[] = [];
@@ -1365,43 +1439,43 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
         // the anchor's tight portrait crop on every spread, which makes the
         // book feel like 6 close-ups instead of a journey. Force a different
         // camera distance / framing on each spread so we actually see the
-        // woods, the cave, the path, etc.
+        // setting (whatever it is — castle, woods, cave, beach, space).
         const shotPlan = [
           // idx 0 — opening: full establishing shot of the world
           {
             label: "WIDE ESTABLISHING SHOT",
             note:
-              "WIDE establishing shot of the entire scene — characters occupy roughly the centre 35-45% of the frame, NOT a close-up. Show the full environment: trees, path, sky/ceiling, ground texture, depth into the distance. Characters' full bodies (head to feet) clearly visible with comfortable headroom and ground beneath them. The environment is the star of this frame.",
+              "WIDE establishing shot of the entire SETTING (read PLACE/ENVIRONMENT from the prompt — castle, woods, cave, beach, etc.) — characters occupy roughly the centre 35-45% of the frame, NOT a close-up. Show the full environment with depth: architecture / foliage / terrain / sky / ground appropriate to that setting. Characters' full bodies (head to feet) clearly visible with comfortable headroom and ground beneath them. The environment is the star of this frame.",
           },
           // idx 1 — mid shot, action moment
           {
             label: "MID SHOT (knees-up to full body)",
             note:
-              "Mid shot — characters from the knees up or full body, occupying centre-left to centre of the frame. The right and far-background show clear environment (foliage, rocks, path). Show them DOING the action in SCENE ACTION (kneeling, peering, reaching).",
+              "Mid shot — characters from the knees up or full body, occupying centre-left to centre of the frame. The far-background shows clear setting-appropriate environment (stone walls, foliage, rocks, water, sky, etc. — match PLACE). Show them DOING the action in SCENE ACTION (kneeling, peering, reaching, hiding).",
           },
           // idx 2 — over-the-shoulder / discovery angle
           {
             label: "OVER-THE-SHOULDER / DISCOVERY ANGLE",
             note:
-              "Over-the-shoulder or three-quarter angle — show a glimpse of one character's back or shoulder framing the prop / discovery, with the other character partly visible reacting. The named prop (treasure, flower, door, etc.) is in the focal centre. Environment fills the surrounding space.",
+              "Over-the-shoulder or three-quarter angle — show a glimpse of one character's back or shoulder framing the prop / discovery, with the other character partly visible reacting. The named prop (treasure, hidden buddy, archway, found item) is in the focal centre. Setting-appropriate environment fills the surrounding space.",
           },
-          // idx 3 — close-up on the prop / found object (this kind worked beautifully in the user's feedback)
+          // idx 3 — close-up on the prop / found object
           {
-            label: "CLOSE-UP ON FOUND OBJECT",
+            label: "CLOSE-UP ON FOUND OBJECT / DISCOVERY",
             note:
-              "Close-up on the named prop or focal object from SCENE ACTION (e.g. open treasure chest with gold spilling, glowing moonflower, key on moss). One or both characters lean in from the edges of the frame — partial faces and hands are fine; we don't need their full bodies. The prop fills 40-60% of the canvas. Background remains visible (forest, cave, etc.) with depth.",
+              "Close-up on the named focal object from SCENE ACTION (e.g. open treasure chest with gold spilling, glowing flower, ancient key, the dragon peeking from a hiding spot). One or both characters lean in from the edges of the frame — partial faces and hands are fine; we don't need their full bodies. The focal object fills 40-60% of the canvas. Background remains visible (matching the SETTING — castle stones / cave walls / forest depth / sand / etc.) with depth.",
           },
           // idx 4 — wide journey continuation
           {
-            label: "WIDE JOURNEY SHOT (different location)",
+            label: "WIDE JOURNEY SHOT (different location within the SETTING)",
             note:
-              "WIDE shot of a DIFFERENT part of the woods/world from spread 1 — e.g. a clearing, a stone bridge, a glowing path, the mouth of a cave, a moonlit glade. Characters are smaller in the frame (roughly 25-35% of the canvas), environment dominates with trees/structures/sky stretching out. Strong sense of depth and journey.",
+              "WIDE shot of a DIFFERENT part of the same world established in spread 1 — if SETTING is castle: a different room/corridor/courtyard/tower; if woods: a clearing/bridge/cave-mouth; if beach: a different stretch of shore or rocky outcrop. Characters are smaller in the frame (roughly 25-35% of the canvas), environment dominates with strong depth and a clear sense of journey/progress.",
           },
           // idx 5 — final beat: medium close on faces of joy/relief
           {
             label: "MEDIUM CLOSE ON FACES (warm finale)",
             note:
-              "Medium-close on the characters' faces and upper bodies sharing a warm finale moment (smiles, laughs, hug). Background still shows the location clearly behind them (e.g. treasure scattered around, the unicorn's mane catching light, lanterns glowing) — not a blank backdrop.",
+              "Medium-close on the characters' faces and upper bodies sharing a warm finale moment (smiles, laughs, hug). Background still shows the SETTING clearly behind them (castle banners / forest depth / cave walls / starry sky / etc., matching PLACE) — not a blank backdrop.",
           },
         ];
 
@@ -1437,7 +1511,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
             "DO NOT default to a tight chest-up portrait of the cast — match the SHOT TYPE precisely. ";
           const openingPrefix =
             idx === 0
-              ? "OPENING SPREAD — establish the world: full painted environment matching SCENE ACTION (e.g. dark deep woods with twisted oak trunks, mossy ground, distant fog between trees) with hand-held torches / lanterns if SCENE ACTION says so. Match LIGHTING/MOOD exactly. "
+              ? "OPENING SPREAD — establish the world from the ENVIRONMENT and SCENE ACTION above. Read it literally: if it says castle, paint a castle (stone walls, banners, courtyards, towers, throne room, drawbridge); if it says woods, paint deep woods; if cave, beach, garden, space — paint that. DO NOT default to a forest unless the SETTING/PLOT actually mentions woods. Include any handheld torches / lanterns mentioned in SCENE ACTION. Match LIGHTING/MOOD exactly. "
               : "";
           return (
             openingPrefix +
@@ -1532,7 +1606,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
             try {
               const openingPrefix =
                 idx === 0
-                  ? "OPENING SPREAD — replace the plain reference backdrop with a full painted environment from SCENE ACTION (forest depth, ground, sky, hand-held torches or lanterns if in the scene). " +
+                  ? "OPENING SPREAD — replace the plain reference backdrop with a full painted environment from the ENVIRONMENT and SCENE ACTION above. Read it literally: castle, woods, cave, beach, garden, space — paint that exact setting with depth, architecture, terrain, sky/ceiling. Include hand-held torches or lanterns only if SCENE ACTION says so. " +
                     "Match THEME/LIGHTING/MOOD exactly — not a bright sunny epilogue field or unrelated finale. " +
                     "Keep hero and every creature IDENTICAL to the reference (faces, hair, outfit colours, species, size). "
                   : "";
