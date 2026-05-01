@@ -8,7 +8,8 @@ const corsHeaders: Record<string, string> = {
 };
 
 const CHARACTERS: Record<string, string> = {
-  unicorn: "a friendly unicorn with a sparkly mane",
+  unicorn:
+    "a friendly horse-like unicorn with four hooves, equine face and body, single spiral horn on forehead, sparkly mane and tail",
   dragon: "a small cute dragon with soft round wings",
   robot: "a round friendly robot with big eyes",
   bunny: "a fluffy bunny with long ears",
@@ -129,7 +130,7 @@ async function compileCharacterLockForImages(
     `Who appears in pictures (beats): ${input.briefsSummary}\n\n` +
     `Storywriter draft (may be messy):\n${input.draftDesign || "(none)"}\n\n` +
     `Rewrite into LOCKED CAST only — plain text, no JSON.\n` +
-    `Use labeled lines: HERO:, BUDDY:, then one line per other recurring creature (MONKEY:, GIRAFFE:, etc.).\n` +
+    `Use labeled lines: HERO:, BUDDY:, then ONLY if the draft explicitly adds more named recurring characters, one line each (e.g. TILLY:). Never add MONKEY:, BEAR:, LION:, or random extras.\n` +
     `Each line: exact colours, relative size vs hero, silhouette, distinctive marks, wings/tail yes/no.\n` +
     `Art style words allowed ONLY: "soft matte clay toy, rounded limbs, gentle toy plastic sheen" — never "realistic" or "Pixar skin".\n` +
     `Max 2100 characters. No scenery. No actions.`;
@@ -148,7 +149,9 @@ async function compileCharacterLockForImages(
         {
           role: "system",
           content:
-            "You are an art director for a children's book. Output only the LOCKED CAST block. Be dense and consistent.",
+            "You are an art director for a children's book. Output only the LOCKED CAST block. Be dense and consistent. " +
+            "Include ONLY people/creatures who actually appear in the storywriter draft — usually just HERO + BUDDY. " +
+            "If the draft only has the child and one imaginary friend, output exactly two lines (HERO: and BUDDY:) — never invent a third mascot, pet, or forest animal.",
         },
         { role: "user", content: user },
       ],
@@ -944,18 +947,19 @@ Rules:
 - Exactly 12 pages (six double-page spreads). The text on every page MUST be exactly 4 lines long, written as a fun, rhythmic poem that rhymes perfectly (e.g., AABB or ABCB). Format the text with actual line breaks (\n) after each line so the rhyming words are at the end of each line. Use simple words.
 - On each odd-numbered (text-first) page, include exactly one short sound-effect or action word in ALL CAPS with an exclamation mark where it fits the rhyme (e.g. SPLASH! WHOOSH! YIPPEE!) so it feels like a printed picture book. Only that one word per page should be in all capitals; keep the rest in normal sentence case.
 - The hero's name is given — use it often.
+- CAST ROSTER (strict): Who may appear in the story text and in every picture? ONLY (1) the hero child, (2) the ONE main imaginary friend described under "Main friend character", and (3) people explicitly listed under "People from the child's games" with names. If that games list is "(none)", there are NO other human characters. Do NOT invent extra adventurers, pets, "helpful" lions/bears/rabbits, forest mascots, duplicate second unicorns, crowds, villagers, or silent background friends. If the child's plot only mentions the hero and the buddy (e.g. hunting in dark woods with torches), then EVERY page's text and EVERY illustrationBrief features ONLY those two — they stay together in the same shots when the rhyme says "side by side". Only add a third+ character if the plot idea explicitly names them or the games list names extra people.
 - If "People from the child's games" are listed, include them in the story by name as extra friends or family. They should feel like the same friendly faces the child picks in other games (e.g. Tilly, Baby). They are separate from the one imaginary "main friend character" (unicorn, dragon, etc.) — both can appear.${
     portraitAppearance
       ? " If appearance lines are given for those people, stay consistent with those visual details when you naturally describe them."
       : ""
   }
 - Include fields title (string), characterDesign (string), bookColor (string: MUST be exactly "blue", "green", or "pink". If the child's name is typically male (e.g. Isaac, Leo), use "blue" or "green". If female, use "pink"), and pages (array of 12 objects).
-  For "characterDesign": write an EXTREMELY detailed visual description of EVERY SINGLE character, animal, and creature that appears ANYWHERE in the story (including the hero, the buddy, and any animals they meet). For each, you MUST define their EXACT gender (e.g. boy/girl), age, height, body shape, skin/surface tone, eye color, facial features, hair color, hair style, AND exact texture/material (e.g. "smooth sculpted clay hair", "fuzzy felt fur", "shiny plastic"). For creatures, explicitly define their anatomy (e.g. "has small wings", "no wings", "long tail"). Plus ONE specific, unchanging outfit or set of accessories with exact colors and materials. If an animal or creature wears nothing, explicitly state "in natural animal form (no human outfits)". CRITICAL: Keep clothing solid-colored and simple. DO NOT put logos, graphics, patterns, or text on clothing (DALL-E hallucinates these). (e.g., "Sofia: a 5-year-old girl, short and chubby, round face, small button nose, wide happy smile, light peach skin, big round green eyes, blonde wavy shoulder-length hair made of smooth sculpted clay, wearing a plain solid cream hoodie, plain solid olive green cargo pants, and white sneakers. The Buddy: a small chubby wingless dragon with smooth solid teal clay skin, yellow spikes down its back, in natural animal form (no human outfits)"). DO NOT give them multiple outfits or changing colors. You MUST use the exact same clothing description for the hero in EVERY single illustrationBrief. This will be used as the master reference to keep them identical across all illustrations.
+  For "characterDesign": describe ONLY the hero, the one main buddy, and any named game people who actually appear in your story. If the cast is only hero + buddy, characterDesign has exactly those two rich descriptions — never lions, bears, or unnamed critters. For each included character you MUST define their EXACT gender (e.g. boy/girl), age, height, body shape, skin/surface tone, eye color, facial features, hair color, hair style, AND exact texture/material (e.g. "smooth sculpted clay hair", "fuzzy felt fur", "shiny plastic"). For the buddy creature, explicitly define anatomy (horse-like unicorn with hooves and horn; or winged dragon; etc.). Plus ONE specific, unchanging outfit or set of accessories with exact colors and materials. If an animal or creature wears nothing, explicitly state "in natural animal form (no human outfits)". CRITICAL: Keep clothing solid-colored and simple. DO NOT put logos, graphics, patterns, or text on clothing (DALL-E hallucinates these). DO NOT give them multiple outfits or changing colors. You MUST use the exact same clothing description for the hero in EVERY single illustrationBrief. This will be used as the master reference to keep them identical across all illustrations.
 - Each page: { "text": string, "illustrationBrief": string | null }.
 - DOUBLE-PAGE SPREADS: pair pages as (1,2), (3,4), (5,6), (7,8), (9,10), (11,12).
   Odd-numbered pages (1,3,5,7,9,11) are TEXT-FIRST pages only — use "illustrationBrief": null.
-  Even-numbered pages (2,4,6,8,10,12) are PICTURE pages — each MUST have a non-null "illustrationBrief": a short visual scene description for an illustrator (no text to draw, no words on signs). Each brief MUST be different. The brief MUST spell out the same specific moment as the text on the previous page: same characters, action, setting details, and props — not a generic scene for that chapter. CRITICAL: If the text mentions a character or animal (like a monkey or giraffe), they MUST be explicitly listed and described in the illustrationBrief so the illustrator knows to draw them! CRITICAL FOR CONSISTENCY: DO NOT re-describe the characters' permanent looks (clothes, hair, colors) in the brief! Just state WHO is in the scene and WHAT they are doing (e.g. "Isaac and the Giraffe are standing next to a river"). The illustrator already has the master designs. If a character is NOT mentioned in the brief, they will NOT be drawn. COMPOSITION: Each brief should describe staging where main characters sit in the middle vertical band of the picture with headroom and visible feet — not jammed in a thin row along the bottom edge of the frame.
-  OPENING SPREAD (page 2 only — the first illustrationBrief): MUST match the opening beat from page 1 text and the child's plot idea together — same setting, mood, time of day, and key props. Example: if the plot is exploring dark woods with a unicorn and handheld torches, the FIRST picture must show dim woods, the unicorn buddy, characters with lit torches, and forest shadows — NOT a bright sunny clearing, NOT a paved plaza, NOT a finale picnic with random papers, and NOT a generic epilogue that skips the opening premise. Name the main friend character in this brief if they appear on page 1 (unicorn, dragon, etc.).
+  Even-numbered pages (2,4,6,8,10,12) are PICTURE pages — each MUST have a non-null "illustrationBrief": a short visual scene description for an illustrator (no text to draw, no words on signs). Each brief MUST be different. The brief MUST spell out the same specific moment as the text on the previous page: same characters, action, setting details, and props — not a generic scene for that chapter. ONLY name characters who appear on that spread's text page — usually just the hero and buddy when the games list is empty. NEVER add "a lion watching", "a bear helper", "shadowy creatures", "forest spirits", extra torch-bearers, or duplicate unicorns. Background = trees, mist, path, sky — no faced silhouettes or mascot extras. CRITICAL: If the text mentions a character or animal, they MUST be explicitly listed in the illustrationBrief — but only if they truly appear in the text (hero, buddy, named game people). CRITICAL FOR CONSISTENCY: DO NOT re-describe the characters' permanent looks (clothes, hair, colors) in the brief! Just state WHO is in the scene and WHAT they are doing (e.g. "Sofia and the Giraffe are standing next to a river"). The illustrator already has the master designs. If a character is NOT mentioned in the brief, they will NOT be drawn. COMPOSITION: Each brief should describe staging where main characters sit in the middle vertical band of the picture with headroom and visible feet — not jammed in a thin row along the bottom edge of the frame.
+  OPENING SPREAD (page 2 only — the first illustrationBrief): MUST match the opening beat from page 1 text and the child's plot idea together — same setting, mood, time of day, and key props. Example: if the plot is exploring dark woods with a unicorn and handheld torches, the FIRST picture must show dim woods, ONLY the hero and the ONE unicorn buddy together, BOTH holding lit torches if the text says so, forest shadows — NOT a bright sunny clearing, NOT extra animals. Name the main friend character in this brief if they appear on page 1 (unicorn, dragon, etc.).
   When game people with portrait notes appear on a picture page, the brief should mention them looking like those notes (hair, outfit colours, age vibe).
 - If a "plot idea" is given, you MUST make it the central theme of the story and feature it heavily in EVERY illustration brief. If it is empty, invent a short happy outing that fits the setting.
 - JSON only, no markdown.`;
@@ -970,7 +974,11 @@ Plot idea from the child (CRITICAL: make this the core focus of the story and pi
     plotHint.length ? plotHint : "(none — invent a cosy little adventure that fits the setting)"
   }
 Page 1 and page 2 must OPEN this plot: the first illustration (page 2 brief) is the first scene readers see — match this plot's setting, props, and buddy (e.g. dark woods + unicorn + torches), not a different mood or story beat.
-
+${
+    familyNames.length === 0
+      ? `Cast limit: the ONLY characters in the entire book are ${childName} and their one main imaginary friend — do not add anyone else to text or pictures.\n`
+      : `Also include only the named game people above as extra characters when it fits — still no invented lions, bears, or forest crowds.\n`
+  }
 Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "pink" | "blue" | "green", "pages": [ { "text": string, "illustrationBrief": string | null }, ... 12 items ] }`;
 
   const bookCoverColorReq = String(body.bookCoverColor ?? "").trim();
@@ -1016,7 +1024,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
     "CRITICAL LAYOUT RULE: Leave the left half of the image mostly uncluttered with a simple, soft, darker background so that WHITE storybook text can be printed over it clearly. Place the main characters and action on the right half or center-right of the image. " +
     "FRAMING: Keep hero and buddies mostly in the vertical middle band — heads not jammed against the top edge, feet not chopped by the bottom edge. Never line up the whole cast as a tiny strip along the bottom like stickers; show comfortable ground and body. " +
     "STYLE: soft matte clay and toy-plastic 3D ONLY — rounded limbs, gentle pastel lighting, not realistic human skin, not glossy CGI. Edge-to-edge scene, no frames or borders. Wholesome and safe for toddlers. " +
-    "Draw every creature named in SCENE ACTION. ";
+    "CAST COUNT: ONLY the living characters explicitly named in SCENE ACTION below — exactly those individuals, same count as MANDATORY CAST. NO extra animals, duplicate buddies, crowd, background creatures with faces, glowing eyes in bushes, lions, bears, rodents, or random forest friends. NO wooden signs, carved letter runes, or flyers nailed to trees. Background is only trees, ground, fog, sky — unpopulated except the named cast. ";
 
   const envTheme =
     `ENVIRONMENT: ${placeDesc}. ` +
@@ -1072,7 +1080,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
 
     const anchorPreamble =
       "A completely textless illustration. NO letters, words, typography, labels, speech bubbles, signs with text, book pages with writing, loose papers, scrolls, glyph noise, watermarks, or fake paragraph texture anywhere. Plain smooth background regions only — no pseudo-text. " +
-      "CAST LINEUP / MODEL SHEET for a kids picture book: the hero and every main creature together in ONE frame, neutral friendly poses, " +
+      "CAST LINEUP / MODEL SHEET for a kids picture book: every character line in LOCKED CAST below (hero, buddy, and any named game people only) — no one else, no third mascot or crowd, no duplicate unicorns. Together in ONE frame, neutral friendly poses, " +
       "full bodies visible above the bottom edge with headroom, soft matte clay and toy-plastic 3D, gentle pastel light, plain soft background so each design reads clearly. " +
       "Edge-to-edge, wholesome for toddlers. ";
 
@@ -1122,7 +1130,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
               const falPrompt =
                 openingPrefix +
                 "Story spread — NEW scene, poses, and background for this moment only. " +
-                "Keep hero and every creature IDENTICAL to the reference lineup (faces, hair, outfit colours, species, size). " +
+                "Keep hero and every creature IDENTICAL to the reference lineup (faces, hair, outfit colours, species, size) — same NUMBER of characters as reference, no added extras. " +
                 "TEXTLESS — no letters, fake text, signs, paper scraps with writing, or glyph noise; soft matte clay toy 3D. " +
                 "FRAME: subjects in middle vertical band with feet and faces fully inside the canvas — not a bottom-cropped row. " +
                 composed.slice(0, FAL_REDUX_PROMPT_MAX - 420);
@@ -1200,7 +1208,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
                 try {
                   const falPrompt =
                     "New story moment — change poses, action, and background to match the scene. " +
-                    "Keep the same hero face, hair, outfit colours, and the same buddy and creatures as the reference. " +
+                    "Keep the same hero face, hair, outfit colours, and the same buddy and creatures as the reference — same character COUNT, no new animals or people. " +
                     "TEXTLESS — no words, signs, book pages with text, paper scraps with writing, or gibberish texture; soft matte clay toy 3D only. " +
                     "FRAME: keep characters in the middle-to-upper-middle of the frame with visible feet — do not squash everyone along the bottom edge. " +
                     composed.slice(0, FAL_REDUX_PROMPT_MAX - 220);
