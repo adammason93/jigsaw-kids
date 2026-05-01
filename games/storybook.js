@@ -1039,9 +1039,6 @@
         spreadArtImg.referrerPolicy = "no-referrer";
       }
       if (spreadArt) spreadArt.classList.remove("is-empty");
-      if (spreadArtBg) {
-        spreadArtBg.style.backgroundImage = "url(" + JSON.stringify(u) + ")";
-      }
       if (spreadArtCover) {
         spreadArtCover.src = u;
         spreadArtCover.alt = isTheEnd ? "The End" : "Illustration for pages " + pLo + "–" + pHi + " of " + story.pages.length;

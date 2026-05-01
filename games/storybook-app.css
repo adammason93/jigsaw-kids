@@ -1993,6 +1993,8 @@ body.sb-portal-welcome-open {
   /* Fill the full spread width (immersive reader-book can be >920px; else desk colour shows as side bars) */
   max-width: none;
   width: 100%;
+  /* Single zoom only on .sb-flip-spread__art-cover — never also on .sb-flip-spread__art-bg (would compound ~scale² and crop casts). */
+  --sb-spread-art-scale: 1;
   /* Soft paper tint so transparency never reveals two-tone “desk” bands under the shells */
   background: radial-gradient(
     ellipse 130% 88% at 50% 42%,
@@ -2011,13 +2013,8 @@ body.sb-portal-welcome-open {
   inset: 0;
   z-index: 2;
   border-radius: 6px;
-  background-size: cover;
-  /* Anchor toward image bottom so cover-crop keeps feet in frame when art is staged low */
-  background-position: center bottom;
-  background-repeat: no-repeat;
   pointer-events: none;
-  transform: scale(1.14);
-  transform-origin: center center;
+  /* No background-image in normal use (see JS); no transform here — preserves 3D peel + avoids double scale with child imgs. */
 }
 
 .sb-flip-spread__art-base {
@@ -2039,7 +2036,7 @@ body.sb-portal-welcome-open {
   object-position: center bottom;
   pointer-events: none;
   z-index: 1;
-  transform: scale(1.14);
+  transform: scale(var(--sb-spread-art-scale, 1));
   transform-origin: center center;
 }
 
