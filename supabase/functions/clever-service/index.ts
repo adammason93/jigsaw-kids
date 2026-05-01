@@ -863,10 +863,23 @@ async function uploadPngToStorybookImages(
   return `${url.replace(/\/+$/, "")}/storage/v1/object/public/${GPT_IMAGE_BUCKET}/${path}`;
 }
 
+/** Parse a 429 retry hint and add jitter; default 14s + 0–3s jitter. */
+function parseRetryAfterMs(headerStr: string | null, fallback = 14000): number {
+  if (!headerStr) return fallback + Math.random() * 3000;
+  const matchS = headerStr.match(/(\d+)s/);
+  const matchM = headerStr.match(/(\d+)m/);
+  let seconds = 0;
+  if (matchM) seconds += parseInt(matchM[1], 10) * 60;
+  if (matchS) seconds += parseInt(matchS[1], 10);
+  if (seconds > 0) return seconds * 1000 + Math.random() * 3000;
+  return fallback + Math.random() * 3000;
+}
+
 async function gptImageGenerate(
   apiKey: string,
   prompt: string,
   size: string = GPT_IMAGE_SIZE_LANDSCAPE,
+  retryCount = 0,
 ): Promise<{ url: string; bytes: Uint8Array }> {
   const model =
     (Deno.env.get("STORYBOOK_GPTIMAGE_MODEL") ?? "").trim() || "gpt-image-1";
@@ -888,6 +901,18 @@ async function gptImageGenerate(
   });
   const raw = await r.text();
   if (!r.ok) {
+    if (r.status === 429 && retryCount < 3) {
+      const waitMs = parseRetryAfterMs(
+        r.headers.get("retry-after") ||
+          r.headers.get("x-ratelimit-reset-images") ||
+          r.headers.get("x-ratelimit-reset-requests"),
+      );
+      console.warn(
+        `[gpt-image] 429 generations — wait ${Math.round(waitMs / 1000)}s, retry ${retryCount + 1}`,
+      );
+      await delay(waitMs);
+      return gptImageGenerate(apiKey, prompt, size, retryCount + 1);
+    }
     console.error("[gpt-image] generations error", r.status, raw.slice(0, 700));
     throw new Error(openaiImageErrorDetail(r.status, raw));
   }
@@ -909,6 +934,7 @@ async function gptImageEdit(
   prompt: string,
   referenceBytes: Uint8Array[],
   size: string = GPT_IMAGE_SIZE_LANDSCAPE,
+  retryCount = 0,
 ): Promise<{ url: string; bytes: Uint8Array }> {
   const model =
     (Deno.env.get("STORYBOOK_GPTIMAGE_MODEL") ?? "").trim() || "gpt-image-1";
@@ -934,6 +960,19 @@ async function gptImageEdit(
   });
   const raw = await r.text();
   if (!r.ok) {
+    if (r.status === 429 && retryCount < 4) {
+      const waitMs = parseRetryAfterMs(
+        r.headers.get("retry-after") ||
+          r.headers.get("x-ratelimit-reset-images") ||
+          r.headers.get("x-ratelimit-reset-input-images") ||
+          r.headers.get("x-ratelimit-reset-requests"),
+      );
+      console.warn(
+        `[gpt-image] 429 edits — wait ${Math.round(waitMs / 1000)}s, retry ${retryCount + 1}`,
+      );
+      await delay(waitMs);
+      return gptImageEdit(apiKey, prompt, referenceBytes, size, retryCount + 1);
+    }
     console.error("[gpt-image] edits error", r.status, raw.slice(0, 700));
     throw new Error(openaiImageErrorDetail(r.status, raw));
   }
@@ -1283,39 +1322,50 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
         }
 
         const refBytes = anchorOut.bytes;
-        const allFromAnchor = await Promise.all(
-          briefs.map(async (b, idx) => {
-            if (idx > 0) await delay(idx * staggerMs);
-            const composed = composeDallePrompt({
-              preamble: stylePreamble,
-              envTheme,
-              sceneBrief: b.brief,
-              castBible,
-              firstPanelLock: panelLock,
-              heroFirstName: childName,
-            });
-            const openingPrefix =
-              idx === 0
-                ? "OPENING SPREAD — replace the plain reference backdrop with a full painted environment from SCENE ACTION (forest depth, ground, sky, hand-held torches/lanterns if in the scene). Match LIGHTING/MOOD exactly. Keep hero and every named creature IDENTICAL to the reference (faces, hair, outfit colours, species, size). "
-                : "";
-            const editPrompt =
-              openingPrefix +
-              "Story spread — NEW scene, poses, and background for this moment only. " +
-              "Keep hero and every named creature IDENTICAL to the reference (faces, hair, outfit colours, species, size). Only beings named in SCENE ACTION; no extra characters, no background crowd. " +
-              "TEXTLESS — no letters, fake text, signs, paper scraps with writing, logos, or glyph noise. " +
-              composed;
-            try {
-              const out = await gptImageEdit(apiKey, editPrompt, [refBytes]);
-              gptImageSpreadCount++;
-              return out.url;
-            } catch (e) {
-              console.warn("[clever-service] GPT Image edit failed for spread", idx, e);
-              throw e;
-            }
-          }),
-        );
-        for (let i = 0; i < allFromAnchor.length; i++) {
-          urls[i] = allFromAnchor[i];
+        // OpenAI gpt-image-1 has a tight per-minute image cap (5/min on tier 1,
+        // shared across generations + edits). The anchor already used 1, so we
+        // run the spread edits SERIALLY with a small inter-call gap. Each call
+        // takes ~15–25s, which keeps us well under the 5/min ceiling. The 429
+        // retry inside gptImageEdit handles any short bursts.
+        const interEditPauseMs = (() => {
+          const raw = Number(Deno.env.get("STORYBOOK_GPTIMAGE_PAUSE_MS"));
+          return Number.isFinite(raw) && raw >= 0 ? raw : 1500;
+        })();
+        for (let idx = 0; idx < briefs.length; idx++) {
+          const b = briefs[idx];
+          if (idx > 0 && interEditPauseMs > 0) {
+            await delay(interEditPauseMs);
+          }
+          const composed = composeDallePrompt({
+            preamble: stylePreamble,
+            envTheme,
+            sceneBrief: b.brief,
+            castBible,
+            firstPanelLock: panelLock,
+            heroFirstName: childName,
+          });
+          const openingPrefix =
+            idx === 0
+              ? "OPENING SPREAD — replace the plain reference backdrop with a full painted environment from SCENE ACTION (forest depth, ground, sky, hand-held torches/lanterns if in the scene). Match LIGHTING/MOOD exactly. Keep hero and every named creature IDENTICAL to the reference (faces, hair, outfit colours, species, size). "
+              : "";
+          const editPrompt =
+            openingPrefix +
+            "Story spread — NEW scene, poses, and background for this moment only. " +
+            "Keep hero and every named creature IDENTICAL to the reference (faces, hair, outfit colours, species, size). Only beings named in SCENE ACTION; no extra characters, no background crowd. " +
+            "TEXTLESS — no letters, fake text, signs, paper scraps with writing, logos, or glyph noise. " +
+            composed;
+          try {
+            const out = await gptImageEdit(apiKey, editPrompt, [refBytes]);
+            urls[idx] = out.url;
+            gptImageSpreadCount++;
+          } catch (e) {
+            console.warn(
+              "[clever-service] GPT Image edit failed for spread",
+              idx,
+              e,
+            );
+            throw e;
+          }
         }
       }
     }

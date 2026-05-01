@@ -25,6 +25,7 @@ supabase secrets set FAL_KEY=...
 # Requires the public storage bucket created by migration 20260501093000_storybook_images_public_bucket.sql.
 # supabase secrets set STORYBOOK_IMAGE_MODE=gptimage
 # supabase secrets set STORYBOOK_GPTIMAGE_MODEL=gpt-image-1   # bump to the newest GPT image model when available
+# supabase secrets set STORYBOOK_GPTIMAGE_PAUSE_MS=1500        # pause between serial spread edits (default 1500ms; raise to 3000+ on tier 1 if you still see 429)
 ```
 
 ## Deploy
@@ -49,7 +50,7 @@ The static **storybook** page loads illustration URLs through the same **`clever
 
 ## Troubleshooting
 
-- **GPT Image (`STORYBOOK_IMAGE_MODE=gptimage`)**: Anchor uses **`/v1/images/generations`** with `gpt-image-1`; spreads 2–6 use **`/v1/images/edits`** with the anchor PNG as reference. Output is decoded from base64 and uploaded to the public **`storybook_images`** Supabase Storage bucket (service role key auto-injected). Errors usually come from missing bucket (run the migration), rate limits (429 → backoff), or moderation policy on the prompt — check function logs.
+- **GPT Image (`STORYBOOK_IMAGE_MODE=gptimage`)**: Anchor uses **`/v1/images/generations`** with `gpt-image-1`; spreads 2–6 use **`/v1/images/edits`** with the anchor PNG as reference. Output is decoded from base64 and uploaded to the public **`storybook_images`** Supabase Storage bucket (service role key auto-injected). The 6 spread edits are run **serially** (not in parallel) with a small inter-call pause (`STORYBOOK_GPTIMAGE_PAUSE_MS`, default 1500ms) and a built-in **429 retry-after backoff** so the call stays under OpenAI’s tier-1 cap of **5 images/min** for `gpt-image-1`. Errors usually come from missing bucket (run the migration), rate limits (raise `STORYBOOK_GPTIMAGE_PAUSE_MS` or upgrade tier), or moderation policy on the prompt — check function logs.
 - **Fal (`fal_failed`)**: When **`FAL_KEY`** is set, a failed Fal step stops the whole book (no DALL·E substitution). Check function logs, Fal queue errors, and billing. With **cast anchor**, the reference is the anchor URL; with **`STORYBOOK_FAL_CAST_ANCHOR=0`**, Fal must fetch spread 1’s image URL. Tune `STORYBOOK_FAL_REFERENCE_STRENGTH` (higher = stick closer to the reference). The **first picture spread** uses a slightly lower strength than the rest so the opening scene (woods, torches, etc.) can replace the neutral lineup backdrop.
 - **`images_failed` / DALL·E HTTP 400** (no Fal, or non-Fal errors): Redeploy so you have the latest function (sequential images + retries). The API response body is returned as `detail` in the JSON and logged. Common causes: deprecated parameter combos (the function retries with minimal payload), invalid image size for the account, or prompt **content policy** (read the `detail` message from OpenAI).
 - **Logs still show `Promise.all`**: That stack trace is from an **older deployment** — run `supabase functions deploy clever-service` again.
