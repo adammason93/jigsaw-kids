@@ -1739,7 +1739,7 @@
                 window.alert(
                   "Saved on this device, but cloud backup failed:\n\n" +
                     msg +
-                    "\n\nIf this keeps happening, ask a grown-up to check saved books in your account storage.";
+                    "\n\nIf this keeps happening, ask a grown-up to check saved books in your account storage."
                 );
               }
               if (hintEl) {

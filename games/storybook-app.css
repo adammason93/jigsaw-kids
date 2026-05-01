@@ -50,8 +50,7 @@ body.page-storybook.sb-reader-immersive::before {
   transition: opacity 0.35s ease;
 }
 
-body.page-storybook.sb-route-story .sb-landing__left,
-body.page-storybook.sb-route-story .sb-landing__right .sb-library {
+body.page-storybook.sb-route-story .sb-landing__left {
   -webkit-backdrop-filter: blur(18px);
   backdrop-filter: blur(18px);
 }
@@ -149,6 +148,10 @@ body.sb-portal-welcome-open {
 .sb-portal-welcome.is-active .sb-portal-welcome__inner {
   transform: scale(1) translateY(0);
   opacity: 1;
+}
+
+.sb-portal-welcome.is-leaving {
+  pointer-events: none;
 }
 
 .sb-portal-welcome.is-leaving .sb-portal-welcome__veil {
@@ -483,14 +486,35 @@ body.sb-portal-welcome-open {
 }
 
 .sb-landing__right .sb-library {
+  position: relative;
   margin-bottom: 0;
   padding: 1.2rem 1rem 1.45rem;
   border-radius: 24px;
-  background: rgba(255, 255, 255, 0.5);
   border: 1px solid rgba(255, 255, 255, 0.88);
   box-shadow:
     0 6px 28px rgba(80, 20, 55, 0.14),
     inset 0 1px 0 rgba(255, 255, 255, 0.92);
+  background: transparent;
+  overflow: visible;
+  isolation: isolate;
+}
+
+/* Frosted glass on a ::before layer so WebKit still composites 3D-style shelf covers (backdrop on parent hid them). */
+.sb-landing__right .sb-library::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  z-index: 0;
+  pointer-events: none;
+  background: rgba(255, 255, 255, 0.5);
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
+}
+
+.sb-landing__right .sb-library > * {
+  position: relative;
+  z-index: 1;
 }
 
 .sb-landing__right .sb-library__h {
