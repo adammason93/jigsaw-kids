@@ -2118,19 +2118,22 @@
 
   if (window.KidsScoreCloud && window.KidsScoreCloud.mergeStorybookShelfFromCloud) {
     var shelfPullTimer = null;
+    function pullShelfFromCloudNow() {
+      window.KidsScoreCloud.mergeStorybookShelfFromCloud(function () {
+        renderShelf();
+      });
+    }
     function pullShelfFromCloud() {
       if (shelfPullTimer) {
         clearTimeout(shelfPullTimer);
       }
       shelfPullTimer = setTimeout(function () {
         shelfPullTimer = null;
-        window.KidsScoreCloud.mergeStorybookShelfFromCloud(function () {
-          renderShelf();
-        });
+        pullShelfFromCloudNow();
       }, 200);
     }
 
-    pullShelfFromCloud();
+    pullShelfFromCloudNow();
     window.addEventListener("kids-scorecard-refresh", pullShelfFromCloud);
     document.addEventListener("visibilitychange", function () {
       if (document.visibilityState === "visible") {
@@ -2140,6 +2143,28 @@
     window.addEventListener("pageshow", function () {
       pullShelfFromCloud();
     });
+
+    var btnPullLibrary = document.getElementById("sbPullLibrary");
+    if (btnPullLibrary) {
+      function syncPullButtonVisibility() {
+        var on =
+          window.KidsScoreCloud &&
+          window.KidsScoreCloud.isConfigured &&
+          window.KidsScoreCloud.isConfigured();
+        btnPullLibrary.hidden = !on;
+      }
+      syncPullButtonVisibility();
+      window.addEventListener("kids-scorecard-refresh", syncPullButtonVisibility);
+      btnPullLibrary.addEventListener("click", function () {
+        if (!window.KidsScoreCloud.isConfigured || !window.KidsScoreCloud.isConfigured()) {
+          window.alert(
+            "Turn on Sync on the main menu (gear) and sign in — then you can pull books from the cloud.",
+          );
+          return;
+        }
+        pullShelfFromCloudNow();
+      });
+    }
   }
 
   if (immersiveReaderMq.addEventListener) {

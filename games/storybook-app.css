@@ -205,6 +205,13 @@ body.page-storybook.sb-modal-open {
   text-align: center;
 }
 
+.sb-library__sync {
+  display: block;
+  margin: -0.35rem auto 0.85rem;
+  max-width: 20rem;
+  font-size: 0.86rem;
+}
+
 .sb-carousel {
   margin-top: 1.5rem;
   position: relative;

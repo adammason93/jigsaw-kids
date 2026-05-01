@@ -8,7 +8,7 @@
   <link rel="manifest" href="../manifest.json" />
   <link rel="stylesheet" href="../js/kids-core.css" />
   <!-- storybook-app.css = renamed file so CDN/browser cache cannot keep old storybook.css -->
-  <link rel="stylesheet" href="storybook-app.css?v=39" />
+  <link rel="stylesheet" href="storybook-app.css?v=40" />
   <link rel="stylesheet" href="../tablet-ipad.css" />
   <!-- Last wins: guarantees new background even if a proxy cached an ancient stylesheet elsewhere -->
   <style>
@@ -79,6 +79,9 @@
             <p class="sb-library__hint" id="sbLibraryHint">
               Put a book on the shelf after you read it — tap a cover to open it again.
             </p>
+            <button type="button" class="sb-btn sb-btn--ghost sb-library__sync" id="sbPullLibrary" hidden>
+              Get latest books from cloud
+            </button>
             <div class="sb-carousel" aria-label="Saved books library">
               <button type="button" class="sb-carousel__btn sb-carousel__btn--prev" id="sbCarouselPrev" aria-label="Scroll left">
                 <span aria-hidden="true">&lsaquo;</span>
@@ -392,7 +395,7 @@
   <script src="../js/kids-core.js"></script>
   <!-- Required for cloud shelf sync + upload (same as other games) -->
   <script src="../js/score-cloud.js" defer></script>
-  <script src="storybook.js?v=264" defer></script>
+  <script src="storybook.js?v=265" defer></script>
   <script>
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("../sw.js").catch(function () {});

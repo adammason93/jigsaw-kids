@@ -238,72 +238,146 @@
   }
 
   /**
-   * Latest storybook shelf JSON (parsed), or null if missing / offline / anon.
-   * @param {(err: Error|null, data: object|null) => void} cb
+   * Latest storybook shelf JSON (parsed), or (err, null) on failure.
+   * Uses a short-lived signed URL + fetch(no-store) so browsers/CDNs don't serve a stale shelf.json.
+   * @param {(err: Error|null, data: object|array|null) => void} cb
    */
   function downloadStorybookLibrary(cb) {
     console.log("[score-cloud] downloadStorybookLibrary starting...");
     if (!isConfigured()) {
       console.warn("[score-cloud] Not configured");
-      cb(null, null);
+      cb(new Error("not_configured"), null);
       return;
     }
     ensureClient(function (sb) {
       if (!sb) {
         console.error("[score-cloud] No supabase client");
-        cb(null, null);
+        cb(new Error("no_client"), null);
         return;
       }
       sb.auth.getSession().then(function (res) {
         var sess = res.data && res.data.session;
         if (!sess || !sess.user) {
           console.warn("[score-cloud] No active session or user");
-          cb(null, null);
+          cb(new Error("no_session"), null);
           return;
         }
         var path = storybookObjectPath(sess.user.id);
-        console.log("[score-cloud] Downloading from path:", path);
+        console.log("[score-cloud] Downloading shelf path:", path);
+
+        function parseBodyText(text) {
+          var t = String(text || "").trim();
+          if (!t) {
+            cb(null, []);
+            return;
+          }
+          try {
+            var json = JSON.parse(t);
+            console.log(
+              "[score-cloud] Parsed shelf JSON",
+              Array.isArray(json) ? "array len " + json.length : typeof json,
+            );
+            cb(null, json);
+          } catch (e) {
+            console.error("[score-cloud] JSON parse error:", e);
+            cb(e, null);
+          }
+        }
+
+        function fromBlob(blob) {
+          if (blob.text && typeof blob.text === "function") {
+            blob
+              .text()
+              .then(parseBodyText)
+              .catch(function (err) {
+                console.error("[score-cloud] Blob text error:", err);
+                cb(err, null);
+              });
+          } else {
+            var fr = new global.FileReader();
+            fr.onload = function () {
+              parseBodyText(String(fr.result));
+            };
+            fr.onerror = function (err) {
+              cb(err, null);
+            };
+            fr.readAsText(blob);
+          }
+        }
+
+        function notFoundMessage(msg) {
+          var m = String(msg || "").toLowerCase();
+          return (
+            m.indexOf("not found") >= 0 ||
+            m.indexOf("does not exist") >= 0 ||
+            m.indexOf("404") >= 0 ||
+            m.indexOf("object not found") >= 0
+          );
+        }
+
+        function doLegacyDownload() {
+          sb.storage
+            .from(STORYBOOK_BUCKET)
+            .download(path)
+            .then(function (result) {
+              if (result.error || !result.data) {
+                var rawErr = result.error && (result.error.message || result.error);
+                if (notFoundMessage(rawErr)) {
+                  cb(null, []);
+                  return;
+                }
+                console.warn("[score-cloud] legacy download error:", result.error);
+                cb(
+                  result.error instanceof Error
+                    ? result.error
+                    : new Error(String(rawErr || "download")),
+                  null,
+                );
+                return;
+              }
+              fromBlob(result.data);
+            })
+            .catch(function (err) {
+              console.error("[score-cloud] Download catch error:", err);
+              cb(err, null);
+            });
+        }
+
         sb.storage
           .from(STORYBOOK_BUCKET)
-          .download(path)
-          .then(function (result) {
-            if (result.error || !result.data) {
-              console.warn("[score-cloud] Download result error or no data:", result.error);
-              cb(null, null);
+          .createSignedUrl(path, 900)
+          .then(function (su) {
+            if (su.error || !su.data || !su.data.signedUrl) {
+              console.warn("[score-cloud] createSignedUrl failed, legacy download:", su.error);
+              doLegacyDownload();
               return;
             }
-            console.log("[score-cloud] Download success, parsing blob...");
-            var blob = result.data;
-            function parseText(t) {
-              try {
-                var json = JSON.parse(t);
-                console.log("[score-cloud] Successfully parsed downloaded library, items:", Array.isArray(json) ? json.length : 0);
-                cb(null, json);
-              } catch (e) {
-                console.error("[score-cloud] JSON parse error:", e);
-                cb(e, null);
-              }
-            }
-            if (blob.text && typeof blob.text === "function") {
-              blob.text().then(parseText).catch(function (err) {
-                console.error("[score-cloud] Blob text error:", err);
-                cb(null, null);
+            global
+              .fetch(su.data.signedUrl, { cache: "no-store", credentials: "omit" })
+              .then(function (r) {
+                if (r.status === 404) {
+                  cb(null, []);
+                  return;
+                }
+                if (!r.ok) {
+                  throw new Error("signed_fetch_" + r.status);
+                }
+                return r.text();
+              })
+              .then(function (text) {
+                if (text === undefined) {
+                  return;
+                }
+                parseBodyText(text);
+              })
+              .catch(function (e) {
+                console.warn("[score-cloud] signed URL fetch failed, trying legacy download:", e);
+                doLegacyDownload();
               });
-            } else {
-              var fr = new global.FileReader();
-              fr.onload = function () {
-                parseText(String(fr.result));
-              };
-              fr.onerror = function (err) {
-                console.error("[score-cloud] FileReader error:", err);
-                cb(null, null);
-              };
-              fr.readAsText(blob);
-            }
           })
-          .catch(function (err) {
-            console.error("[score-cloud] Download catch error:", err);
-            cb(null, null);
+          .catch(function (e) {
+            console.warn("[score-cloud] createSignedUrl threw, legacy download:", e);
+            doLegacyDownload();
           });
       });
     });
@@ -456,6 +530,12 @@
     }
     downloadStorybookLibrary(function (err, data) {
       if (err) {
+        console.warn("[score-cloud] mergeStorybookShelfFromCloud: download error, leaving local shelf untouched:", err);
+        optionalCb();
+        return;
+      }
+      if (data === null || data === undefined) {
+        console.warn("[score-cloud] mergeStorybookShelfFromCloud: no data from download");
         optionalCb();
         return;
       }
