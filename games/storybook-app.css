@@ -2075,14 +2075,21 @@ body.sb-portal-welcome-open {
   -webkit-backface-visibility: hidden;
   overflow: hidden;
   border-radius: 0 6px 6px 0;
+  -webkit-transform-style: preserve-3d;
+  transform-style: preserve-3d;
+}
+
+.sb-flip-spread__peel-front {
+  transform: rotateY(0deg) translateZ(0.5px);
+  -webkit-transform: rotateY(0deg) translateZ(0.5px);
 }
 
 .sb-flip-spread__peel-back {
-  transform: rotateY(180deg);
-  -webkit-transform: rotateY(180deg);
+  transform: rotateY(180deg) translateZ(0.5px);
+  -webkit-transform: rotateY(180deg) translateZ(0.5px);
 }
 
-/* Recto illustration + verso blank so a full hinge fold reads like a physical leaf */
+/* Recto (front of leaf): right half of OUTGOING duplex. Verso (back): left half of INCOMING duplex — not the same crop. */
 .sb-flip-spread__peel-front .sb-flip-spread__art-cover {
   width: 200%;
   height: 100%;
@@ -2096,7 +2103,7 @@ body.sb-portal-welcome-open {
   width: 200%;
   height: 100%;
   max-width: none;
-  left: -100%;
+  left: 0;
   top: 0;
   position: absolute;
 }

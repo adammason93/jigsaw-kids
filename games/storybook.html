@@ -8,7 +8,7 @@
   <link rel="manifest" href="../manifest.json" />
   <link rel="stylesheet" href="../js/kids-core.css" />
   <!-- storybook-app.css = renamed file so CDN/browser cache cannot keep old storybook.css -->
-  <link rel="stylesheet" href="storybook-app.css?v=55" />
+  <link rel="stylesheet" href="storybook-app.css?v=56" />
   <link rel="stylesheet" href="../tablet-ipad.css" />
   <!-- Last wins: guarantees new background even if a proxy cached an ancient stylesheet elsewhere -->
   <style>
@@ -358,22 +358,25 @@
                         aria-hidden="true"
                         hidden
                       >
-                        <!-- Front face of turning page (Right 1) -->
-                        <img
-                          class="sb-flip-spread__art-cover sb-flip-spread__art-peel__img"
-                          id="sbSpreadArtPeelImg"
-                          alt=""
-                          decoding="async"
-                          referrerpolicy="no-referrer"
-                        />
-                        <!-- Back face of turning page (Left 2) -->
-                        <img
-                          class="sb-flip-spread__art-cover sb-flip-spread__art-peel__back-img"
-                          id="sbSpreadArtPeelBackImg"
-                          alt=""
-                          decoding="async"
-                          referrerpolicy="no-referrer"
-                        />
+                        <!-- Wrapper required: backface-visibility + rotateY(180deg) on back only (raw imgs broke 3D book fold). -->
+                        <div class="sb-flip-spread__peel-front">
+                          <img
+                            class="sb-flip-spread__art-cover sb-flip-spread__art-peel__img"
+                            id="sbSpreadArtPeelImg"
+                            alt=""
+                            decoding="async"
+                            referrerpolicy="no-referrer"
+                          />
+                        </div>
+                        <div class="sb-flip-spread__peel-back">
+                          <img
+                            class="sb-flip-spread__art-cover sb-flip-spread__art-peel__back-img"
+                            id="sbSpreadArtPeelBackImg"
+                            alt=""
+                            decoding="async"
+                            referrerpolicy="no-referrer"
+                          />
+                        </div>
                       </div>
                     </div>
                     <div class="sb-flip-left-shell">
@@ -461,7 +464,7 @@
   <script src="../js/storybook-shelf-store.js" defer></script>
   <!-- Required for cloud shelf sync + upload (same as other games) -->
   <script src="../js/score-cloud.js" defer></script>
-  <script src="storybook.js?v=277" defer></script>
+  <script src="storybook.js?v=278" defer></script>
   <script>
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("../sw.js").catch(function () {});
