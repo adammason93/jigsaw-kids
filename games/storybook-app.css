@@ -138,7 +138,7 @@ body.page-storybook.sb-modal-open {
   text-align: center;
 }
 
-/* Build your book column — blurred story art + frosted veil (image matches .sb-landing__vision-img) */
+/* Build your book column — room art fills the panel (very light blur + soft veil for text) */
 .sb-landing__left {
   position: relative;
   overflow: hidden;
@@ -149,12 +149,12 @@ body.page-storybook.sb-modal-open {
 .sb-landing__left::before {
   content: "";
   position: absolute;
-  inset: -14px;
+  inset: -4px;
   background-image: url("images/storybook-landing-room-bg.jpg");
   background-size: cover;
   background-position: center center;
-  filter: blur(12px);
-  transform: scale(1.07);
+  filter: blur(2.5px);
+  transform: scale(1.02);
   z-index: 0;
   pointer-events: none;
 }
@@ -166,9 +166,9 @@ body.page-storybook.sb-modal-open {
   border-radius: inherit;
   background: linear-gradient(
     165deg,
-    rgba(255, 253, 251, 0.78) 0%,
-    rgba(252, 231, 243, 0.62) 40%,
-    rgba(245, 243, 255, 0.72) 100%
+    rgba(255, 253, 251, 0.36) 0%,
+    rgba(252, 231, 243, 0.28) 42%,
+    rgba(245, 243, 255, 0.34) 100%
   );
   z-index: 0;
   pointer-events: none;
@@ -177,6 +177,16 @@ body.page-storybook.sb-modal-open {
 .sb-landing__left > * {
   position: relative;
   z-index: 1;
+}
+
+.sb-landing__left .sb-landing__title {
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.9), 0 2px 12px rgba(255, 250, 252, 0.75);
+}
+
+.sb-landing__left .sb-landing__lead,
+.sb-landing__left .sb-landing__vision-cap,
+.sb-landing__left .sb-landing__demo-hint {
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.85);
 }
 
 @media (min-width: 900px) {
