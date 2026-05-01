@@ -47,6 +47,8 @@
   --theme-marble-tilt-soft: #ede6e3;
   --theme-storybook: #db2777;
   --theme-storybook-soft: #fce7f3;
+  --theme-prompt-game: #7c3aed;
+  --theme-prompt-game-soft: #ede9fe;
 }
 
 html {
@@ -672,6 +674,11 @@ h2,
 .game-card--storybook {
   --card-accent: var(--theme-storybook);
   --card-soft: var(--theme-storybook-soft);
+}
+
+.game-card--prompt-game {
+  --card-accent: var(--theme-prompt-game);
+  --card-soft: var(--theme-prompt-game-soft);
 }
 
 a.game-card:hover {

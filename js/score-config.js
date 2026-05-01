@@ -9,5 +9,7 @@ window.SCORE_SYNC = {
   syncLoginEmail: "sofia-room@fam.local",
   /** Slug in …/functions/v1/{slug} — matches folder / deploy name `clever-service`. */
   storybookEdgeSlug: "clever-service",
+  /** Prompt → Babylon HTML (`game-maker` edge function). */
+  gameMakerEdgeSlug: "game-maker",
 };
 window.SCORE_CONFIG = window.SCORE_SYNC;

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#7c3aed" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="description" content="Describe a mini 3D game and play it — Sofia's Game Room." />
+  <title>Make a 3D game — Sofia's Game Room</title>
+  <link rel="manifest" href="../manifest.json" />
+  <link rel="stylesheet" href="../js/kids-core.css" />
+  <link rel="stylesheet" href="prompt-game.css" />
+  <link rel="stylesheet" href="../tablet-ipad.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Sniglet:wght@400;800&display=swap" rel="stylesheet" />
+</head>
+<body class="page-prompt-game">
+  <div class="prompt-game-app" id="promptGameApp">
+    <nav class="prompt-game-nav" aria-label="Breadcrumb">
+      <a class="back-btn" href="../index.html" aria-label="Back to all games">
+        <span class="back-btn__icon" aria-hidden="true">&#8592;</span><span class="back-btn__text">Back</span>
+      </a>
+    </nav>
+
+    <div class="prompt-game-panel">
+      <h1>Make a 3D game</h1>
+      <p class="prompt-game-lead">
+        Type what you want — like “collect sparkly stars in a purple forest” or “roll a ball to the rainbow door”.
+        A grown-up needs to have turned on the game-maker on the internet box (Supabase + OpenAI). Your game runs inside the sandpit below.
+      </p>
+
+      <label class="prompt-game-label" for="promptGameInput">Your idea</label>
+      <textarea
+        id="promptGameInput"
+        class="prompt-game-input"
+        maxlength="480"
+        rows="4"
+        placeholder="Example: A happy unicorn pops balloons in the clouds — tap them before they float away!"
+        autocomplete="off"
+      ></textarea>
+
+      <div class="prompt-game-actions">
+        <button type="button" class="prompt-game-btn" id="promptGameCreate">Create my game</button>
+        <button type="button" class="prompt-game-btn prompt-game-btn-secondary" id="promptGameClear">Hide game</button>
+      </div>
+      <p class="prompt-game-status" id="promptGameStatus" role="status" aria-live="polite"></p>
+
+      <div class="prompt-game-frame-wrap" id="promptGameFrameWrap" hidden>
+        <iframe
+          id="promptGameFrame"
+          class="prompt-game-frame"
+          title="Your generated 3D game"
+          sandbox="allow-scripts"
+        ></iframe>
+      </div>
+
+      <p class="prompt-game-note">
+        Games are made by AI and may be a bit wobbly — try again with simpler words. Nothing leaves this page except your idea to the family’s game server.
+      </p>
+    </div>
+  </div>
+
+  <script src="../js/score-config.js"></script>
+  <script src="../js/kids-core.js"></script>
+  <script src="prompt-game.js" defer></script>
+  <script>
+    if (typeof KidsCore !== "undefined") {
+      KidsCore.init();
+      KidsCore.bindTapSound(document.body);
+    }
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("../sw.js").catch(function () {});
+    }
+  </script>
+</body>
+</html>
