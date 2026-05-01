@@ -17,6 +17,7 @@ supabase secrets set FAL_KEY=...
 # supabase secrets set STORYBOOK_FAL_MODEL=fal-ai/flux-pro/v1.1-ultra/redux
 # supabase secrets set STORYBOOK_FAL_REFERENCE_STRENGTH=0.35
 # supabase secrets set STORYBOOK_FAL_CAST_ANCHOR=0   # legacy: spread 1 T2I, spreads 2–6 Redux from spread 1 (not anchor sheet)
+# supabase secrets set STORYBOOK_REUSE_FIRST_ON_LAST=0   # default: last picture spread reuses spread 1 art; set 0 to generate distinct final art
 # supabase secrets set STORYBOOK_FAL_DISABLE=1   # force all DALL·E even if FAL_KEY is set
 ```
 

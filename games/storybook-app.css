@@ -1446,7 +1446,8 @@ body.page-storybook.sb-modal-open {
   z-index: 2;
   border-radius: 6px;
   background-size: cover;
-  background-position: center;
+  /* Anchor toward image bottom so cover-crop keeps feet in frame when art is staged low */
+  background-position: center bottom;
   background-repeat: no-repeat;
   pointer-events: none;
   transform: scale(1.14);
@@ -1469,7 +1470,7 @@ body.page-storybook.sb-modal-open {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center;
+  object-position: center bottom;
   pointer-events: none;
   z-index: 1;
   transform: scale(1.14);
@@ -1773,7 +1774,7 @@ body.page-storybook.sb-modal-open {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center;
+  object-position: center bottom;
 }
 
 /* Turning leaf when the previous spread had no illustration URL (still get a convincing page turn). */
@@ -1987,7 +1988,7 @@ body.page-storybook.sb-modal-open {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center;
+  object-position: center bottom;
   border-radius: 0;
 }
 
@@ -2065,7 +2066,7 @@ body.page-storybook.sb-modal-open {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center;
+  object-position: center bottom;
   z-index: 1;
   border-radius: 4px;
 }

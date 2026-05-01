@@ -937,7 +937,7 @@ Rules:
 - Each page: { "text": string, "illustrationBrief": string | null }.
 - DOUBLE-PAGE SPREADS: pair pages as (1,2), (3,4), (5,6), (7,8), (9,10), (11,12).
   Odd-numbered pages (1,3,5,7,9,11) are TEXT-FIRST pages only — use "illustrationBrief": null.
-  Even-numbered pages (2,4,6,8,10,12) are PICTURE pages — each MUST have a non-null "illustrationBrief": a short visual scene description for an illustrator (no text to draw, no words on signs). Each brief MUST be different. The brief MUST spell out the same specific moment as the text on the previous page: same characters, action, setting details, and props — not a generic scene for that chapter. CRITICAL: If the text mentions a character or animal (like a monkey or giraffe), they MUST be explicitly listed and described in the illustrationBrief so the illustrator knows to draw them! CRITICAL FOR CONSISTENCY: DO NOT re-describe the characters' permanent looks (clothes, hair, colors) in the brief! Just state WHO is in the scene and WHAT they are doing (e.g. "Isaac and the Giraffe are standing next to a river"). The illustrator already has the master designs. If a character is NOT mentioned in the brief, they will NOT be drawn.
+  Even-numbered pages (2,4,6,8,10,12) are PICTURE pages — each MUST have a non-null "illustrationBrief": a short visual scene description for an illustrator (no text to draw, no words on signs). Each brief MUST be different. The brief MUST spell out the same specific moment as the text on the previous page: same characters, action, setting details, and props — not a generic scene for that chapter. CRITICAL: If the text mentions a character or animal (like a monkey or giraffe), they MUST be explicitly listed and described in the illustrationBrief so the illustrator knows to draw them! CRITICAL FOR CONSISTENCY: DO NOT re-describe the characters' permanent looks (clothes, hair, colors) in the brief! Just state WHO is in the scene and WHAT they are doing (e.g. "Isaac and the Giraffe are standing next to a river"). The illustrator already has the master designs. If a character is NOT mentioned in the brief, they will NOT be drawn. COMPOSITION: Each brief should describe staging where main characters sit in the middle vertical band of the picture with headroom and visible feet — not jammed in a thin row along the bottom edge of the frame.
   When game people with portrait notes appear on a picture page, the brief should mention them looking like those notes (hair, outfit colours, age vibe).
 - If a "plot idea" is given, you MUST make it the central theme of the story and feature it heavily in EVERY illustration brief. If it is empty, invent a short happy outing that fits the setting.
 - JSON only, no markdown.`;
@@ -992,8 +992,10 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
         : `HERO: ${childName}, young child, friendly rounded face, simple solid-colour top and trousers, soft matte clay toy 3D. BUDDY: ${characterDesc}, same toy-clay style, same design on every page.`;
 
   const stylePreamble =
-    "A completely textless illustration. DO NOT include any writing, letters, words, typography, labels, or speech bubbles anywhere in the image. " +
-    "CRITICAL LAYOUT RULE: Leave the left half of the image mostly uncluttered with a simple, soft, darker background (like empty sky, plain wall, or soft grass) so that WHITE storybook text can be printed over it clearly. Place the main characters and action on the right half or center-right of the image. " +
+    "A completely textless illustration. DO NOT include any writing, letters, words, typography, labels, speech bubbles, newspapers, stone runes, book pages with text, watermarks, UI, or blurry shapes that look like fake paragraphs or gibberish anywhere in the image. " +
+    "The left third must be only smooth colour, soft sky, plain wall, or gentle gradient — zero pseudo-text texture there (the app draws real text in HTML). " +
+    "CRITICAL LAYOUT RULE: Leave the left half of the image mostly uncluttered with a simple, soft, darker background so that WHITE storybook text can be printed over it clearly. Place the main characters and action on the right half or center-right of the image. " +
+    "FRAMING: Keep hero and buddies mostly in the vertical middle band — heads not jammed against the top edge, feet not chopped by the bottom edge. Never line up the whole cast as a tiny strip along the bottom like stickers; show comfortable ground and body. " +
     "STYLE: soft matte clay and toy-plastic 3D ONLY — rounded limbs, gentle pastel lighting, not realistic human skin, not glossy CGI. Edge-to-edge scene, no frames or borders. Wholesome and safe for toddlers. " +
     "Draw every creature named in SCENE ACTION. ";
 
@@ -1048,9 +1050,9 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
       useFalRedux && Deno.env.get("STORYBOOK_FAL_CAST_ANCHOR") !== "0";
 
     const anchorPreamble =
-      "A completely textless illustration. NO letters, words, typography, labels, or speech bubbles. " +
+      "A completely textless illustration. NO letters, words, typography, labels, speech bubbles, signs with text, book pages with writing, glyph noise, watermarks, or fake paragraph texture anywhere. Plain smooth background regions only — no pseudo-text. " +
       "CAST LINEUP / MODEL SHEET for a kids picture book: the hero and every main creature together in ONE frame, neutral friendly poses, " +
-      "full bodies visible, soft matte clay and toy-plastic 3D, gentle pastel light, plain soft background so each design reads clearly. " +
+      "full bodies visible above the bottom edge with headroom, soft matte clay and toy-plastic 3D, gentle pastel light, plain soft background so each design reads clearly. " +
       "Edge-to-edge, wholesome for toddlers. ";
 
     const anchorPrompt = (
@@ -1093,7 +1095,8 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
               const falPrompt =
                 "Story spread — NEW scene, poses, and background for this moment only. " +
                 "Keep hero and every creature IDENTICAL to the reference lineup (faces, hair, outfit colours, species, size). " +
-                "Textless; soft matte clay toy 3D. " +
+                "TEXTLESS — no letters, fake text, signs, or glyph noise; soft matte clay toy 3D. " +
+                "FRAME: subjects in middle vertical band with feet and faces fully inside the canvas — not a bottom-cropped row. " +
                 composed.slice(0, FAL_REDUX_PROMPT_MAX - 260);
               const u = await falFluxReduxImageUrl(
                 falKey,
@@ -1167,7 +1170,8 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
                   const falPrompt =
                     "New story moment — change poses, action, and background to match the scene. " +
                     "Keep the same hero face, hair, outfit colours, and the same buddy and creatures as the reference. " +
-                    "Textless illustration; soft matte clay toy 3D style only. " +
+                    "TEXTLESS — no words, signs, book pages with text, or gibberish texture; soft matte clay toy 3D only. " +
+                    "FRAME: keep characters in the middle-to-upper-middle of the frame with visible feet — do not squash everyone along the bottom edge. " +
                     composed.slice(0, FAL_REDUX_PROMPT_MAX - 220);
                   const u = await falFluxReduxImageUrl(
                     falKey,
@@ -1190,6 +1194,15 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
             urls.push(rest[i]);
           }
         }
+      }
+    }
+
+    /** Final picture page (page 12): reuse first spread art for a cosy bookend (disable with STORYBOOK_REUSE_FIRST_ON_LAST=0). */
+    const reuseFirstIllustrationOnLast = Deno.env.get("STORYBOOK_REUSE_FIRST_ON_LAST") !== "0";
+    if (reuseFirstIllustrationOnLast && briefs.length >= 2 && urls.length >= briefs.length) {
+      const first = urls[0];
+      if (first && typeof first === "string" && /^https?:\/\//i.test(first.trim())) {
+        urls[briefs.length - 1] = first;
       }
     }
 
@@ -1244,6 +1257,8 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
       falCastAnchorUsed,
       falReduxModel: useFalRedux ? falReduxModel : null,
       falReduxSpreads: falReduxSpreadCount,
+      reuseFirstIllustrationOnLast:
+        Deno.env.get("STORYBOOK_REUSE_FIRST_ON_LAST") !== "0",
     },
   });
 });
