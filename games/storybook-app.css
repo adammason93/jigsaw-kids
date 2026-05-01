@@ -24,6 +24,38 @@
   --sb-book-inner-h: clamp(240px, min(52vw, 54vh), 460px);
 }
 
+/* Landing: magical room art edge-to-edge; hidden during immersive reader */
+body.page-storybook.sb-route-story {
+  background: #f4e8ef;
+}
+
+body.page-storybook.sb-route-story::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 253, 251, 0.42) 0%,
+      rgba(255, 250, 252, 0.18) 45%,
+      rgba(237, 231, 255, 0.28) 100%
+    ),
+    url("images/storybook-landing-room-bg.jpg") center / cover no-repeat;
+  pointer-events: none;
+}
+
+body.page-storybook.sb-reader-immersive::before {
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+
+body.page-storybook.sb-route-story .sb-landing__left,
+body.page-storybook.sb-route-story .sb-landing__right .sb-library {
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
+}
+
 @media (min-width: 640px) {
   .page-storybook {
     --sb-book-inner-h: clamp(268px, min(48vw, 52vh), 480px);
@@ -79,30 +111,14 @@ body.page-storybook.sb-modal-open {
   color: #9d174d;
 }
 
-.sb-landing__vision {
+.sb-landing__tagline {
   margin: 0 auto 1.1rem;
   max-width: 22rem;
-  text-align: center;
-}
-
-.sb-landing__vision-img {
-  display: block;
-  width: 100%;
-  height: auto;
-  border-radius: 28px;
-  box-shadow:
-    0 12px 0 rgba(219, 39, 119, 0.15),
-    0 24px 48px rgba(80, 20, 55, 0.25);
-  border: 4px solid rgba(255, 255, 255, 0.95);
-  transform: rotate(-1deg);
-}
-
-.sb-landing__vision-cap {
-  margin: 1.25rem 0 0;
   font-size: 0.9rem;
   font-weight: 800;
   color: #9d174d;
   line-height: 1.45;
+  text-align: center;
 }
 
 .sb-landing__lead {
@@ -138,40 +154,17 @@ body.page-storybook.sb-modal-open {
   text-align: center;
 }
 
-/* Build your book column — room art fills the panel (very light blur + soft veil for text) */
+/* Build your book column — frosted card over full-bleed room */
 .sb-landing__left {
   position: relative;
   overflow: hidden;
   border-radius: 24px;
   padding: 1.1rem 0.85rem 1.35rem;
-}
-
-.sb-landing__left::before {
-  content: "";
-  position: absolute;
-  inset: -4px;
-  background-image: url("images/storybook-landing-room-bg.jpg");
-  background-size: cover;
-  background-position: center center;
-  filter: blur(2.5px);
-  transform: scale(1.02);
-  z-index: 0;
-  pointer-events: none;
-}
-
-.sb-landing__left::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: linear-gradient(
-    165deg,
-    rgba(255, 253, 251, 0.36) 0%,
-    rgba(252, 231, 243, 0.28) 42%,
-    rgba(245, 243, 255, 0.34) 100%
-  );
-  z-index: 0;
-  pointer-events: none;
+  background: rgba(255, 255, 255, 0.52);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  box-shadow:
+    0 4px 24px rgba(80, 20, 55, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95);
 }
 
 .sb-landing__left > * {
@@ -180,13 +173,17 @@ body.page-storybook.sb-modal-open {
 }
 
 .sb-landing__left .sb-landing__title {
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.9), 0 2px 12px rgba(255, 250, 252, 0.75);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.92), 0 2px 10px rgba(255, 250, 252, 0.8);
 }
 
+.sb-landing__left .sb-landing__tagline,
 .sb-landing__left .sb-landing__lead,
-.sb-landing__left .sb-landing__vision-cap,
 .sb-landing__left .sb-landing__demo-hint {
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.85);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.88);
+}
+
+.sb-landing__left .sb-landing__tagline {
+  color: #831843;
 }
 
 @media (min-width: 900px) {
@@ -203,8 +200,8 @@ body.page-storybook.sb-modal-open {
     max-width: 50%;
   }
 
-  .sb-landing__left .sb-landing__vision {
-    margin: 0 0 1.5rem;
+  .sb-landing__left .sb-landing__tagline {
+    margin: 0 0 1.1rem;
     text-align: left;
   }
 
@@ -230,10 +227,29 @@ body.page-storybook.sb-modal-open {
   margin-bottom: 1rem;
 }
 
-/* My library — tiered white display shelf (forward-facing covers, reference style) */
+/* My library — frosted panel so covers pop over full-bleed room */
 .sb-library {
   text-align: left;
   margin-bottom: 1.35rem;
+}
+
+.sb-landing__right .sb-library {
+  margin-bottom: 0;
+  padding: 1.2rem 1rem 1.45rem;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.88);
+  box-shadow:
+    0 6px 28px rgba(80, 20, 55, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.92);
+}
+
+.sb-landing__right .sb-library__h {
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.95), 0 2px 8px rgba(255, 250, 252, 0.85);
+}
+
+.sb-landing__right .sb-library__hint {
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.85);
 }
 
 .sb-library__h {

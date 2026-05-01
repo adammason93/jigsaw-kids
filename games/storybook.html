@@ -8,15 +8,10 @@
   <link rel="manifest" href="../manifest.json" />
   <link rel="stylesheet" href="../js/kids-core.css" />
   <!-- storybook-app.css = renamed file so CDN/browser cache cannot keep old storybook.css -->
-  <link rel="stylesheet" href="storybook-app.css?v=45" />
+  <link rel="stylesheet" href="storybook-app.css?v=46" />
   <link rel="stylesheet" href="../tablet-ipad.css" />
   <!-- Last wins: guarantees new background even if a proxy cached an ancient stylesheet elsewhere -->
   <style>
-    body.page-storybook.sb-route-story {
-      background:
-        radial-gradient(ellipse 100% 80% at 50% -10%, rgba(255, 251, 235, 0.9) 0%, transparent 55%),
-        linear-gradient(168deg, #f5f3ff 0%, #fbcfe8 42%, #a78bfa 95%) !important;
-    }
     body.page-storybook.sb-route-story .sb-shelf-unit {
       border: 3px solid rgba(168, 85, 247, 0.55) !important;
       box-shadow:
@@ -44,17 +39,9 @@
         <div class="sb-landing__left">
           <p class="sb-landing__emoji" aria-hidden="true">📖✨</p>
           <h1 class="sb-landing__title" id="sbLandingTitle">Build your book</h1>
-          <figure class="sb-landing__vision">
-            <img
-              class="sb-landing__vision-img"
-              src="images/storybook-landing-room-bg.jpg"
-              width="1024"
-              height="682"
-              alt="Cozy story room with tree bookshelf, cloud window, and a rug — create your own story."
-              decoding="async"
-            />
-            <figcaption class="sb-landing__vision-cap">Your own magical reading nook — tap below to start a journey.</figcaption>
-          </figure>
+          <p class="sb-landing__tagline">
+            Your own magical reading nook — tap below to start a journey.
+          </p>
           <p class="sb-landing__lead">
             A little journey — a few pop-up questions. Then we draw the pictures and write the story
             (OpenAI + Supabase).
