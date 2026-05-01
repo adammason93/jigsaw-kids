@@ -675,6 +675,22 @@ body.page-storybook.sb-modal-open {
   flex: 1 1 auto;
 }
 
+.sb-modal__actions--full {
+  margin-top: 0.4rem;
+}
+
+.sb-modal__actions--full .sb-btn {
+  width: 100%;
+}
+
+.sb-panel__micro--skip-hint {
+  margin-top: 0.35rem;
+  text-align: center;
+  font-weight: 600;
+  font-size: 0.72rem;
+  opacity: 0.92;
+}
+
 .sb-btn--modal {
   padding: 0.65rem 0.85rem;
   font-size: 1rem;

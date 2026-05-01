@@ -404,6 +404,8 @@
 
   /** @type {number} */
   var journeyStep = 0;
+  /** True when user skipped buddy + place panels; Back from plot returns to name step. */
+  var skippedBuddyAndPlace = false;
   /** @type {string} */
   var selectedChar = "unicorn";
   /** @type {string} */
@@ -2203,6 +2205,7 @@
   var btnNext0 = document.getElementById("sbNext0");
   var btnBack1 = document.getElementById("sbBack1");
   var btnNext1 = document.getElementById("sbNext1");
+  var btnSkipToPlot = document.getElementById("sbSkipToPlot");
   var btnBack2 = document.getElementById("sbBack2");
   var btnNext2 = document.getElementById("sbNext2");
   var btnBack3 = document.getElementById("sbBack3");
@@ -2211,12 +2214,31 @@
 
   if (btnNext0) btnNext0.addEventListener("click", function () { goToStep(1); });
   if (btnBack1) btnBack1.addEventListener("click", function () { goToStep(0); });
-  if (btnNext1) btnNext1.addEventListener("click", function () { goToStep(2); });
+  if (btnNext1) {
+    btnNext1.addEventListener("click", function () {
+      skippedBuddyAndPlace = false;
+      goToStep(2);
+    });
+  }
+  if (btnSkipToPlot) {
+    btnSkipToPlot.addEventListener("click", function () {
+      skippedBuddyAndPlace = true;
+      selectedChar = "unicorn";
+      selectedPlace = "beach";
+      refreshCharacterChips();
+      refreshPlaceChips();
+      goToStep(4);
+    });
+  }
   if (btnBack2) btnBack2.addEventListener("click", function () { goToStep(1); });
   if (btnNext2) btnNext2.addEventListener("click", function () { goToStep(3); });
   if (btnBack3) btnBack3.addEventListener("click", function () { goToStep(2); });
   if (btnNext3) btnNext3.addEventListener("click", function () { goToStep(4); });
-  if (btnBack4) btnBack4.addEventListener("click", function () { goToStep(3); });
+  if (btnBack4) {
+    btnBack4.addEventListener("click", function () {
+      goToStep(skippedBuddyAndPlace ? 1 : 3);
+    });
+  }
 
   if (btnGen) {
     btnGen.addEventListener("click", function () {
