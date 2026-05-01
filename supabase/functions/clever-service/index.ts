@@ -1323,19 +1323,22 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
 
         const refBytes = anchorOut.bytes;
         // OpenAI gpt-image-1 has a tight per-minute image cap (5/min on tier 1,
-        // shared across generations + edits). The anchor already used 1, so we
-        // run the spread edits SERIALLY with a small inter-call gap. Each call
-        // takes ~15–25s, which keeps us well under the 5/min ceiling. The 429
-        // retry inside gptImageEdit handles any short bursts.
-        const interEditPauseMs = (() => {
-          const raw = Number(Deno.env.get("STORYBOOK_GPTIMAGE_PAUSE_MS"));
-          return Number.isFinite(raw) && raw >= 0 ? raw : 1500;
+        // shared across generations + edits). Going fully serial pushed past
+        // Cloudflare/Supabase's 150s wall-clock (HTTP 546). Instead we run in
+        // CHUNKS in parallel: first 4 spread edits together (anchor + 4 = 5,
+        // exactly at the per-minute ceiling), short cooldown so the anchor's
+        // request leaves the rate window, then the remaining edits in parallel.
+        // The 429 retry inside gptImageEdit catches any leftover bursts.
+        const chunkSize = (() => {
+          const raw = Number(Deno.env.get("STORYBOOK_GPTIMAGE_CHUNK_SIZE"));
+          return Number.isFinite(raw) && raw >= 1 ? Math.floor(raw) : 4;
         })();
-        for (let idx = 0; idx < briefs.length; idx++) {
-          const b = briefs[idx];
-          if (idx > 0 && interEditPauseMs > 0) {
-            await delay(interEditPauseMs);
-          }
+        const interChunkWaitMs = (() => {
+          const raw = Number(Deno.env.get("STORYBOOK_GPTIMAGE_CHUNK_WAIT_MS"));
+          return Number.isFinite(raw) && raw >= 0 ? raw : 35000;
+        })();
+
+        const buildEditPrompt = (b: typeof briefs[number], idx: number) => {
           const composed = composeDallePrompt({
             preamble: stylePreamble,
             envTheme,
@@ -1348,23 +1351,47 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
             idx === 0
               ? "OPENING SPREAD — replace the plain reference backdrop with a full painted environment from SCENE ACTION (forest depth, ground, sky, hand-held torches/lanterns if in the scene). Match LIGHTING/MOOD exactly. Keep hero and every named creature IDENTICAL to the reference (faces, hair, outfit colours, species, size). "
               : "";
-          const editPrompt =
+          return (
             openingPrefix +
             "Story spread — NEW scene, poses, and background for this moment only. " +
             "Keep hero and every named creature IDENTICAL to the reference (faces, hair, outfit colours, species, size). Only beings named in SCENE ACTION; no extra characters, no background crowd. " +
             "TEXTLESS — no letters, fake text, signs, paper scraps with writing, logos, or glyph noise. " +
-            composed;
-          try {
-            const out = await gptImageEdit(apiKey, editPrompt, [refBytes]);
-            urls[idx] = out.url;
-            gptImageSpreadCount++;
-          } catch (e) {
-            console.warn(
-              "[clever-service] GPT Image edit failed for spread",
-              idx,
-              e,
+            composed
+          );
+        };
+
+        for (
+          let chunkStart = 0;
+          chunkStart < briefs.length;
+          chunkStart += chunkSize
+        ) {
+          if (chunkStart > 0 && interChunkWaitMs > 0) {
+            console.info(
+              `[clever-service] cooldown ${interChunkWaitMs}ms before next gpt-image chunk`,
             );
-            throw e;
+            await delay(interChunkWaitMs);
+          }
+          const slice = briefs.slice(chunkStart, chunkStart + chunkSize);
+          const chunkResults = await Promise.all(
+            slice.map(async (b, localIdx) => {
+              const idx = chunkStart + localIdx;
+              const editPrompt = buildEditPrompt(b, idx);
+              try {
+                const out = await gptImageEdit(apiKey, editPrompt, [refBytes]);
+                return { idx, url: out.url };
+              } catch (e) {
+                console.warn(
+                  "[clever-service] GPT Image edit failed for spread",
+                  idx,
+                  e,
+                );
+                throw e;
+              }
+            }),
+          );
+          for (const r of chunkResults) {
+            urls[r.idx] = r.url;
+            gptImageSpreadCount++;
           }
         }
       }
