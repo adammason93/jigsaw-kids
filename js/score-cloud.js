@@ -494,16 +494,36 @@
     });
   }
 
-  /** Upload shelf JSON right after save so leaving the page doesn’t skip sync. */
-  function scheduleStorybookUpload(rawJsonString) {
+  function emitStorybookShelfUpload(detail) {
+    try {
+      global.dispatchEvent(new CustomEvent("kids-storybook-shelf-upload", { detail: detail }));
+    } catch (e) {}
+  }
+
+  /**
+   * Upload shelf JSON right after save so leaving the page doesn’t skip sync.
+   * @param {string} rawJsonString
+   * @param {function(Error|null): void} [onDone] — null on success; Error on failure (including no_session when sync is configured but user not signed in)
+   */
+  function scheduleStorybookUpload(rawJsonString, onDone) {
+    onDone = typeof onDone === "function" ? onDone : null;
     console.log("[score-cloud] scheduleStorybookUpload called, isConfigured:", isConfigured(), "raw length:", rawJsonString ? rawJsonString.length : 0);
     if (!isConfigured() || !rawJsonString) {
+      if (onDone) {
+        onDone(null);
+      }
       return;
     }
     console.log("[score-cloud] uploadStorybookLibrary (immediate)…");
     uploadStorybookLibrary(rawJsonString, function (err) {
-      if (err) console.error("[score-cloud] uploadStorybookLibrary error:", err);
-      else console.log("[score-cloud] uploadStorybookLibrary success!");
+      if (err) {
+        console.error("[score-cloud] uploadStorybookLibrary error:", err);
+      } else {
+        console.log("[score-cloud] uploadStorybookLibrary success!");
+      }
+      if (onDone) {
+        onDone(err || null);
+      }
     });
   }
 
@@ -513,13 +533,15 @@
     console.log("[score-cloud] uploadStorybookLibrary starting...");
     if (!isConfigured() || !rawJsonString) {
       console.warn("[score-cloud] Not configured or no data");
-      cb(null);
+      emitStorybookShelfUpload({ ok: false, code: "not_configured", message: "Sync not configured" });
+      cb(new Error("not_configured"));
       return;
     }
     ensureClient(function (sb) {
       if (!sb) {
         console.error("[score-cloud] No supabase client");
-        cb(new Error("sync"));
+        emitStorybookShelfUpload({ ok: false, code: "no_client", message: "Could not load sync" });
+        cb(new Error("no_client"));
         return;
       }
       sb.auth.getSession().then(function (res) {
@@ -532,7 +554,12 @@
             "Not signed in — your story library did not upload. Use Sync below, then tap “Put on my shelf” once more.",
             "warn"
           );
-          cb(null);
+          emitStorybookShelfUpload({
+            ok: false,
+            code: "no_session",
+            message: "Not signed in — open ⚙️ and use family password, then shelve again.",
+          });
+          cb(new Error("no_session"));
           return;
         }
         var path = storybookObjectPath(sess.user.id);
@@ -554,6 +581,7 @@
                 "Story upload failed — " + errMsg + " (check Storage policies / bucket storybook_room).",
                 "err"
               );
+              emitStorybookShelfUpload({ ok: false, code: "storage", message: errMsg });
               cb(up.error);
               return;
             }
@@ -564,9 +592,15 @@
                 "…/storybook/shelf.json in bucket storybook_room.",
               "ok"
             );
+            emitStorybookShelfUpload({ ok: true, code: "ok" });
             cb(null);
           })
           .catch(function (e) {
+            emitStorybookShelfUpload({
+              ok: false,
+              code: "network",
+              message: formatStorageErr(e),
+            });
             cb(e);
           });
       });

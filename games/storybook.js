@@ -1283,13 +1283,15 @@
     }
   }
 
-  function saveShelf(list) {
+  function saveShelf(list, cloudDone) {
     while (list.length > 0) {
       try {
         var raw = JSON.stringify(list);
         localStorage.setItem(SHELF_STORAGE_KEY, raw);
         if (window.KidsScoreCloud && window.KidsScoreCloud.scheduleStorybookUpload) {
-          window.KidsScoreCloud.scheduleStorybookUpload(raw);
+          window.KidsScoreCloud.scheduleStorybookUpload(raw, cloudDone);
+        } else if (typeof cloudDone === "function") {
+          cloudDone(null);
         }
         return; // Success!
       } catch (e) {
@@ -1342,7 +1344,8 @@
     dataUrls,
     sceneDataUrl,
     sceneUrlFallback,
-    bookColor
+    bookColor,
+    cloudDone
   ) {
     var list = loadShelf();
     var id = "b" + Date.now() + "-" + ((Math.random() * 1e6) | 0);
@@ -1366,7 +1369,7 @@
     while (list.length > SHELF_MAX_BOOKS) {
       list.pop();
     }
-    saveShelf(list);
+    saveShelf(list, cloudDone);
   }
 
   function removeShelfBook(bookId) {
@@ -1618,7 +1621,58 @@
             o.dataUrls,
             o.sceneData,
             story.sceneImageUrl || null,
-            story.bookColor || null
+            story.bookColor || null,
+            function (cloudErr) {
+              if (
+                !window.KidsScoreCloud ||
+                !window.KidsScoreCloud.isConfigured ||
+                !window.KidsScoreCloud.isConfigured()
+              ) {
+                return;
+              }
+              var hintEl = document.getElementById("sbLibraryHint");
+              var defaultHint =
+                (hintEl && hintEl.getAttribute("data-default-hint")) ||
+                "Put a book on the shelf after you read it — tap a cover to open it again.";
+              if (hintEl && !hintEl.getAttribute("data-default-hint")) {
+                hintEl.setAttribute("data-default-hint", hintEl.textContent.trim() || defaultHint);
+              }
+              if (!cloudErr) {
+                if (hintEl) {
+                  hintEl.textContent =
+                    "Saved on this device and backed up to the cloud. Use the same family password on other devices, then “Get latest books from cloud”.";
+                  window.setTimeout(function () {
+                    if (hintEl) {
+                      hintEl.textContent =
+                        hintEl.getAttribute("data-default-hint") || defaultHint;
+                    }
+                  }, 12000);
+                }
+                return;
+              }
+              var msg = cloudErr && cloudErr.message ? String(cloudErr.message) : String(cloudErr);
+              if (msg === "no_session") {
+                window.alert(
+                  "This tablet saved the book only on itself — it did not reach the cloud.\n\nOpen ⚙️ (bottom corner) → Sign in with your family password → tap “Put on my shelf” again.\n\n(Deploying edge functions does not update shelf sync — the website’s JavaScript does.)",
+                );
+              } else {
+                window.alert(
+                  "Saved on this device, but cloud backup failed:\n\n" +
+                    msg +
+                    "\n\nIf this persists, open Supabase → Storage → storybook_room and check the file for your user folder.",
+                );
+              }
+              if (hintEl) {
+                hintEl.textContent =
+                  "Cloud backup failed — see the message above. Books are still on this device.";
+                window.setTimeout(function () {
+                  if (hintEl) {
+                    hintEl.textContent =
+                      hintEl.getAttribute("data-default-hint") || defaultHint;
+                  }
+                }, 14000);
+              }
+            }
           );
           renderShelf();
         } catch (e) {
