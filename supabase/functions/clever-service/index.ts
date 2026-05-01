@@ -566,7 +566,7 @@ async function openaiChatJson(
     },
     body: JSON.stringify({
       model: "gpt-4o-mini",
-      temperature: 0.52,
+      temperature: 0.35,
       max_tokens: 4000,
       response_format: { type: "json_object" },
       messages: [
@@ -1174,12 +1174,72 @@ Deno.serve(async (req) => {
   const placeKey = String(body.place ?? "");
 
   const characterDesc = CHARACTERS[characterKey];
-  const placeDesc = PLACES[placeKey];
+  let placeDesc = PLACES[placeKey];
   if (!characterDesc || !placeDesc) {
     return jsonResponse({ error: "invalid_choices" }, 400);
   }
 
   const plotHint = sanitizePlotHint(String(body.plotHint ?? ""));
+
+  // If the child's plot prompt clearly names a different setting than the one
+  // they tapped on (e.g. picker = "woods" but plot says "in a castle"), the
+  // PLOT wins. Otherwise the LLM gets a conflicting "ENVIRONMENT: forest"
+  // alongside "THEME: castle hide and seek" and renders trees + treasure
+  // anyway. Detect the most specific setting word in the plot and swap.
+  let placeOverridden: { from: string; to: string } | null = null;
+  if (plotHint) {
+    const settingMap: Array<{
+      pattern: RegExp;
+      key: string;
+      desc: string;
+    }> = [
+      {
+        pattern: /\b(castle|fortress|palace|throne\s*room|drawbridge|turret|keep|battlement)\b/i,
+        key: "castle",
+        desc: "a fairy-tale castle — stone walls and corridors with arched doorways, hanging tapestries and banners, flagstone floors, courtyards with crenellated walls, narrow turret windows",
+      },
+      {
+        pattern: /\b(cave|cavern|tunnel|underground)\b/i,
+        key: "cave",
+        desc: "a glittering cave — rough rock walls, stalactites, narrow passages opening into wider chambers, occasional puddles reflecting torchlight",
+      },
+      {
+        pattern: /\b(underwater|under\s*the\s*sea|ocean\s*floor|coral|reef|mermaid)\b/i,
+        key: "undersea",
+        desc: "an underwater world — coral formations, kelp forests, sandy seabed, fish schools in the mid-distance, soft caustic blue-green light from above",
+      },
+      {
+        pattern: /\b(space|outer\s*space|moon|planet|galaxy|cosmic|rocket|asteroid|comet)\b/i,
+        key: "space",
+        desc: "a friendly cartoon planet or asteroid in space — soft pastel landscape with distant ringed planets, comet trails, and starry sky",
+      },
+      {
+        pattern: /\b(beach|shore|seaside|sand\s*castle|surf|rockpool)\b/i,
+        key: "beach",
+        desc: "a sunny beach with gentle waves, soft sand, scattered shells, and palm trees or rocky outcrops in the distance",
+      },
+      {
+        pattern: /\b(garden|meadow|orchard|vegetable\s*patch|allotment)\b/i,
+        key: "garden",
+        desc: "a flower garden with butterflies, tall hollyhocks, a winding path, and a wooden gate or trellis",
+      },
+      {
+        pattern: /\b(woods?|forest|jungle|glade|grove|thicket|undergrowth)\b/i,
+        key: "woods",
+        desc: PLACES.woods,
+      },
+    ];
+    for (const s of settingMap) {
+      if (s.pattern.test(plotHint) && placeKey !== s.key) {
+        placeOverridden = { from: placeKey, to: s.key };
+        placeDesc = s.desc;
+        console.info(
+          `[clever-service] place override: picker="${placeKey}" -> plot-detected="${s.key}"`,
+        );
+        break;
+      }
+    }
+  }
   const familyPeople = sanitizeFamilyPeople(body.familyPeople);
   const familyNames =
     familyPeople.length > 0
@@ -1241,6 +1301,12 @@ Rules:
   OPENING SPREAD (page 2 only — the first illustrationBrief): MUST match page 1 text and the child's plot, AND establish the actual SETTING (castle / woods / cave / beach / space / etc. — whichever the plot calls for). Only characters named on page 1 (usually ${childName} and the buddy; plus game people only if page 1 names them). Example: if the plot is "hide and seek in a castle", the opening establishes castle gates / courtyard / great hall — NOT a forest. No unwritten extras.
   When game people with portrait notes appear on a picture page, the brief should mention them looking like those notes (hair, outfit colours, age vibe).
 - If a "plot idea" is given, you MUST make it the central theme of the story and feature it heavily in EVERY illustration brief. If it is empty, invent a short happy outing that fits the setting.
+- PLOT FIDELITY RULES — read the plot idea LITERALLY:
+  • Do NOT invent props, locations, or beats that are not in the plot. If the plot is "hide and seek in a castle" — the story is hide and seek in a castle. NO treasure chest, NO gold coins, NO glowing flower, NO mysterious key, NO mossy logs unless the plot literally mentions them.
+  • Do NOT default the ending to "they found a treasure" / "they found a golden flower" / "they discovered a magic stone". Resolve the story with whatever the plot actually says — e.g. "they realised the dragon could fly", "they finally caught the cheeky dragon", "the dragon swooped down for a hug".
+  • Do NOT relocate to woods/forest if the plot names a different setting (castle, cave, beach, space, garden, undersea). Every spread stays inside the named setting.
+  • Do NOT add background characters, animals, or family members the plot doesn't name.
+  • If the plot has a clear narrative twist or reveal (e.g. "they realise the dragon can fly", "the cat was inside the box all along", "the storm passes and the sun comes out"), the story MUST build to that reveal — make it the climax around spread 4 or 5, not an off-hand line.
 - JSON only, no markdown.`;
 
   const user = `Child name: ${childName}
@@ -1513,11 +1579,19 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
             idx === 0
               ? "OPENING SPREAD — establish the world from the ENVIRONMENT and SCENE ACTION above. Read it literally: if it says castle, paint a castle (stone walls, banners, courtyards, towers, throne room, drawbridge); if it says woods, paint deep woods; if cave, beach, garden, space — paint that. DO NOT default to a forest unless the SETTING/PLOT actually mentions woods. Include any handheld torches / lanterns mentioned in SCENE ACTION. Match LIGHTING/MOOD exactly. "
               : "";
+          // Belt-and-braces — even if the LLM brief leaks a stock prop, the
+          // image MUST NOT add things the user didn't ask for.
+          const noInventedProps =
+            "PROP DISCIPLINE — paint ONLY props that appear in the FACING-PAGE VERSE or SCENE ACTION above. " +
+            "DO NOT add a treasure chest, gold coins, gold pile, glowing flower, magic key, mossy log, lantern, mushroom, or any storybook trope unless the verse / scene action explicitly names it. " +
+            "DO NOT add forest trees, mossy ground, fallen logs, fireflies, or generic 'enchanted woods' details unless the SETTING/ENVIRONMENT and SCENE ACTION mention woods. " +
+            "If the plot is hide-and-seek in a castle, the only props are castle props (banners, suits of armour, chairs, curtains, candlesticks); NOT treasure or forest items. ";
           return (
             openingPrefix +
             repaintDirective +
             shotDirective +
             verseChunk +
+            noInventedProps +
             "Story spread — NEW environment, NEW poses, NEW camera distance for this exact moment. " +
             "Keep hero and every named creature IDENTICAL to the reference (faces, hair, outfit colours, species, size). Only beings named in SCENE ACTION; no extra characters, no background crowd. " +
             "TEXTLESS — no letters, fake text, signs, paper scraps with writing, logos, or glyph noise. The FACING-PAGE VERSE above is for your understanding only — DO NOT render it as text inside the picture. " +
