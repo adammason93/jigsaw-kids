@@ -18,6 +18,9 @@
     { id: "octopus", label: "Octopus" },
   ];
 
+  /** Max characters for "What happens?" — keep in sync with clever-service `STORYBOOK_PLOT_HINT_MAX`. */
+  var PLOT_INPUT_MAX = 800;
+
   var PLACES = [
     { id: "beach", label: "Beach" },
     { id: "woods", label: "Woods" },
@@ -346,7 +349,7 @@
       var merged = (base && tail ? base + " " + tail : base + tail)
         .replace(/\s+/g, " ")
         .trim();
-      plotInput.value = merged.slice(0, 220);
+      plotInput.value = merged.slice(0, PLOT_INPUT_MAX);
     };
     rec.onerror = function (e) {
       if (e.error === "aborted") return;

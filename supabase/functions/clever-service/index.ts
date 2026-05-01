@@ -74,6 +74,8 @@ type StoryJson = {
 };
 
 const DALLE3_PROMPT_MAX = 3900;
+/** Max length for the child's free-text plot idea (must match storybook UI `maxlength`). */
+const STORYBOOK_PLOT_HINT_MAX = 800;
 
 function coerceBookColor(
   requested: string | undefined,
@@ -631,9 +633,9 @@ function sanitizePlotHint(raw: string): string {
   const oneLine = (raw ?? "")
     .replace(/\s+/gu, " ")
     .trim()
-    .slice(0, 220);
+    .slice(0, STORYBOOK_PLOT_HINT_MAX);
   const cleaned = oneLine.replace(/[^\p{L}\p{N}'\-\s\.,!?—–]/gu, "").trim();
-  return cleaned.slice(0, 220);
+  return cleaned.slice(0, STORYBOOK_PLOT_HINT_MAX);
 }
 
 function jsonResponse(body: unknown, status = 200) {
