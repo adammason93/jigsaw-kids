@@ -125,6 +125,15 @@
   min-height: 1.2rem;
 }
 
+.kids-settings__sync-account {
+  margin: 0 0 0.55rem;
+  font-size: 0.72rem;
+  line-height: 1.35;
+  font-weight: 650;
+  color: #475569;
+  word-break: break-all;
+}
+
 .kids-settings__sync-storybook {
   margin: 0 0 0.55rem;
   font-size: 0.76rem;

@@ -238,6 +238,28 @@
   }
 
   /**
+   * Refresh JWT before Storage calls — expired access_token breaks private bucket reads/writes.
+   */
+  function withFreshSession(sb, cb) {
+    sb.auth.getSession().then(function (res) {
+      var sess = res.data && res.data.session;
+      if (!sess || !sess.user) {
+        cb(null);
+        return;
+      }
+      sb.auth
+        .refreshSession()
+        .then(function (r2) {
+          var next = r2.data && r2.data.session;
+          cb(next && next.user ? next : sess);
+        })
+        .catch(function () {
+          cb(sess);
+        });
+    });
+  }
+
+  /**
    * Latest storybook shelf JSON (parsed), or (err, null) on failure.
    * Tries SDK download(cache:no-store), Storage REST (Bearer), signed URL + fetch(no-store), then plain SDK download.
    * @param {(err: Error|null, data: object|array|null) => void} cb
@@ -255,8 +277,7 @@
         cb(new Error("no_client"), null);
         return;
       }
-      sb.auth.getSession().then(function (res) {
-        var sess = res.data && res.data.session;
+      withFreshSession(sb, function (sess) {
         if (!sess || !sess.user) {
           console.warn("[score-cloud] No active session or user");
           cb(new Error("no_session"), null);
@@ -544,8 +565,7 @@
         cb(new Error("no_client"));
         return;
       }
-      sb.auth.getSession().then(function (res) {
-        var sess = res.data && res.data.session;
+      withFreshSession(sb, function (sess) {
         if (!sess || !sess.user) {
           console.warn(
             "[score-cloud] No active session — storybook shelf not uploaded. Sign in under ⚙️ Sync, then shelve a book again."
@@ -602,6 +622,51 @@
               message: formatStorageErr(e),
             });
             cb(e);
+          });
+      });
+    });
+  }
+
+  /**
+   * Grown-up diagnostic: list storybook folder + try download (same as the app). Calls cb(err, info).
+   */
+  function debugStorybookStorage(cb) {
+    if (!isConfigured()) {
+      cb(new Error("not_configured"), null);
+      return;
+    }
+    ensureClient(function (sb) {
+      if (!sb) {
+        cb(new Error("no_client"), null);
+        return;
+      }
+      withFreshSession(sb, function (sess) {
+        if (!sess || !sess.user) {
+          cb(new Error("no_session"), null);
+          return;
+        }
+        var uid = String(sess.user.id);
+        var folder = uid + "/storybook";
+        sb.storage
+          .from(STORYBOOK_BUCKET)
+          .list(folder, { limit: 40 })
+          .then(function (listRes) {
+            if (listRes.error) {
+              cb(listRes.error, { userId: uid, files: null });
+              return;
+            }
+            downloadStorybookLibrary(function (derr, data) {
+              var books = null;
+              if (!derr && data != null) {
+                books = normalizedCloudShelf(data);
+              }
+              cb(null, {
+                userId: uid,
+                files: listRes.data || [],
+                bookCount: Array.isArray(books) ? books.length : null,
+                downloadError: derr ? formatStorageErr(derr) : null,
+              });
+            });
           });
       });
     });
@@ -1000,11 +1065,13 @@
         '<h3 class="kids-settings__sync-title">Sync (optional)</h3>' +
         '<p class="kids-settings__sync-lead">A grown-up sets this up once in Supabase (one login email + password that match your site config). Here you only type the <strong>family password</strong>—no email.</p>' +
         '<p class="kids-settings__sync-status" id="kidsSyncStatus" role="status"></p>' +
+        '<p class="kids-settings__sync-account" id="kidsSyncAccountLine" hidden></p>' +
         '<p class="kids-settings__sync-storybook" id="kidsStorybookShelfLine" role="status" aria-live="polite"></p>' +
         '<label class="kids-settings__row kids-settings__row--email"><span class="kids-settings__sync-label">Family password</span><input type="password" id="kidsSyncPassword" class="kids-settings__sync-input" autocomplete="current-password" placeholder="Family password" /></label>' +
         '<label class="kids-settings__show-pass"><input type="checkbox" id="kidsSyncShowPass" checked /> Show password while typing</label>' +
         '<button type="button" class="kids-settings__sync-btn" id="kidsSyncSignIn">Sign in for cloud sync</button>' +
         '<button type="button" class="kids-settings__sync-btn kids-settings__sync-btn--ghost" id="kidsSyncPull">Pull scores from cloud now</button>' +
+        '<button type="button" class="kids-settings__sync-btn kids-settings__sync-btn--ghost" id="kidsSyncTestStorybook">Test story library in cloud</button>' +
         '<button type="button" class="kids-settings__sync-btn kids-settings__sync-btn--ghost" id="kidsSyncOut">Sign out</button>';
       if (hr) {
         panel.insertBefore(zone, hr);
@@ -1017,12 +1084,17 @@
       var showPassEl = zone.querySelector("#kidsSyncShowPass");
       var btnSignIn = zone.querySelector("#kidsSyncSignIn");
       var btnPull = zone.querySelector("#kidsSyncPull");
+      var btnTestStory = zone.querySelector("#kidsSyncTestStorybook");
       var btnOut = zone.querySelector("#kidsSyncOut");
+      var accountLineEl = zone.querySelector("#kidsSyncAccountLine");
 
       function refreshAuthUi() {
         ensureClient(function (sb) {
           if (!sb) {
             setStatus(statusEl, "Could not load sync.");
+            if (accountLineEl) {
+              accountLineEl.hidden = true;
+            }
             return;
           }
           sb.auth.getSession().then(function (res) {
@@ -1033,12 +1105,21 @@
                 "Cloud sync is on — scores and colouring can stay in sync on this tablet."
               );
               btnOut.style.display = "";
+              if (accountLineEl) {
+                accountLineEl.hidden = false;
+                accountLineEl.textContent =
+                  "Cloud account id (must match every device after sign-in): " + String(sess.user.id);
+              }
             } else {
               setStatus(
                 statusEl,
                 "Sign in with the family password to turn on sync."
               );
               btnOut.style.display = "none";
+              if (accountLineEl) {
+                accountLineEl.hidden = true;
+                accountLineEl.textContent = "";
+              }
             }
             refreshStorybookShelfHintLine(sess && sess.user ? sess : null);
           });
@@ -1121,6 +1202,43 @@
         });
       }
 
+      if (btnTestStory) {
+        btnTestStory.addEventListener("click", function () {
+          setStatus(statusEl, "Testing story library storage…");
+          debugStorybookStorage(function (err, info) {
+            if (err) {
+              var em = formatStorageErr(err);
+              setStatus(statusEl, "Story library test failed — see alert.");
+              global.alert(
+                "Could not read your story library in Supabase Storage.\n\n" +
+                  em +
+                  "\n\nCheck: Dashboard → Storage → bucket storybook_room → policies; sign in again with ⚙️; deploy latest site JS (not only edge functions).",
+              );
+              return;
+            }
+            var names = (info.files || [])
+              .map(function (f) {
+                return f.name;
+              })
+              .join(", ");
+            var dl = info.downloadError ? "\nDownload / parse error: " + info.downloadError : "";
+            var bc = info.bookCount;
+            setStatus(statusEl, "Story library test finished — see alert.");
+            global.alert(
+              "Story library cloud check\n\n" +
+                "User id:\n" +
+                info.userId +
+                "\n\nFiles in …/storybook/:\n" +
+                (names || "(none)") +
+                "\n\nBooks parsed from shelf.json: " +
+                (bc == null ? "?" : String(bc)) +
+                dl +
+                "\n\nIf two tablets show different user ids, they are using different accounts.",
+            );
+          });
+        });
+      }
+
       if (btnOut) {
         btnOut.addEventListener("click", function () {
           ensureClient(function (sb) {
@@ -1176,6 +1294,7 @@
     uploadStorybookLibrary: uploadStorybookLibrary,
     scheduleStorybookUpload: scheduleStorybookUpload,
     mergeStorybookShelfFromCloud: mergeStorybookShelfFromCloud,
+    debugStorybookStorage: debugStorybookStorage,
     getStorybookShelfSyncState: function () {
       return {
         text: storybookShelfSyncState.text,
