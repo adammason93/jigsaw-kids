@@ -38,6 +38,7 @@
     { id: "lake", label: "Lake" },
     { id: "snow", label: "Snowy land" },
     { id: "desert", label: "Desert" },
+    { id: "stadium", label: "Football stadium" },
     { id: "museum", label: "Museum" },
     { id: "island", label: "Tropical island" },
   ];

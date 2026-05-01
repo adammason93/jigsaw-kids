@@ -20,7 +20,7 @@ const CHARACTERS: Record<string, string> = {
   dog: "a friendly floppy-eared cartoon puppy with big eyes, soft fur, and a wagging tail",
   fox: "a small bright storybook fox with big ears, a fluffy tail, and a friendly face — soft warm colours",
   penguin: "a round cartoon penguin with big eyes and simple flippers — classic black-and-white markings, wobbly cute stance",
-  owl: "a small wide-eyed cartoon owl with soft feather tufts and rounded wings — gentle perch-ready pose",
+  owl: "a small wide-eyed cartoon owl with soft feather tufts and rounded wings — can appear as a gentle fuzzy mascot with big friendly eyes, simple blue-and-white stripes or a soft scarf, plush toy style (no logos or readable text), never scary or hyper-realistic",
   octopus:
     "a small cheerful cartoon octopus with a round body and curly tentacles — soft colours, big friendly eyes, rounded suckers",
 };
@@ -49,6 +49,8 @@ const PLACES: Record<string, string> = {
   desert: "soft cartoon desert dunes — warm rose and gold sand, rounded cactus shapes, distant rock mesas, clear turquoise sky",
   museum:
     "a bright children's museum hall — big dinosaur skeleton silhouette in the round, colourful display cases with toy-like exhibits, polished floor reflections",
+  stadium:
+    "a big friendly storybook football stadium — lush green pitch with soft white line markings and simple goal frames, sweeping curved stands in royal blue and white seats, roof shelter and floodlight rigs overhead, bright open sky; tiny soft-focus crowd blobs only — no readable signs, logos, crests, or sponsor text; hero and buddy can stand on the grass or touchline — pairs beautifully with an owl buddy as a cuddly mascot",
   island:
     "a tiny tropical island — curved beach, palm trees, tide pools, bright lagoon colours, inviting storybook adventure vibe",
 };
@@ -1497,6 +1499,12 @@ Deno.serve(async (req) => {
         desc: "a glittering cave — rough rock walls, stalactites, narrow passages opening into wider chambers, occasional puddles reflecting torchlight",
       },
       {
+        pattern:
+          /\b(football\s*stadium|soccer\s*stadium|football\s*ground|football\s*pitch|soccer\s*pitch|soccer\s*field|at\s+the\s+stadium|in\s+the\s+stadium|stadium\s+stands?)\b/i,
+        key: "stadium",
+        desc: PLACES.stadium,
+      },
+      {
         pattern: /\b(museum|gallery)\b/i,
         key: "museum",
         desc: PLACES.museum,
@@ -2112,51 +2120,42 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
           console.warn("[clever-service] visual lock (anchor) failed", e);
         }
 
-        const allFromAnchor = await Promise.all(
-          briefs.map(async (b, idx) => {
-            if (idx > 0) await delay(idx * staggerMs);
-            const composed = composeDallePrompt({
-              preamble: stylePreamble,
-              envTheme,
-              sceneBrief: b.brief,
-              castBible,
-              firstPanelLock: panelLock,
-              heroFirstName: childName,
-            });
-            try {
-              const openingPrefix =
-                idx === 0
-                  ? "OPENING SPREAD — replace the plain reference backdrop with a full painted environment from the ENVIRONMENT and SCENE ACTION above. Read it literally: castle, woods, cave, beach, garden, space, sea, pirate ship, mountain, zoo, farm, circus, city, train, lake, snow, desert, museum, island — paint that exact setting with depth, architecture, terrain, sky/ceiling. Include hand-held torches or lanterns only if SCENE ACTION says so. " +
-                    "Match THEME/LIGHTING/MOOD exactly — not a bright sunny epilogue field or unrelated finale. " +
-                    "Keep hero and every creature IDENTICAL to the reference (faces, hair, outfit colours, species, size). "
-                  : "";
-              const falPrompt =
-                openingPrefix +
-                "Story spread — NEW scene, poses, and background for this moment only. " +
-                "Keep hero and every creature IDENTICAL to the reference lineup (faces, hair, outfit colours, species, size) — match reference character COUNT only; add no beings not named in SCENE ACTION. " +
-                "TEXTLESS — no letters, fake text, signs, logos, paper scraps with writing, or glyph noise; soft matte clay toy 3D. " +
-                "FRAME / SCALE: full-bleed environment edge-to-edge; cast slightly smaller than a poster crop (~10–15%) with modest inset — full heads, feet, hands, wings, tails inside canvas, not edge-cropped; not a bottom-cropped row. " +
-                composed.slice(0, FAL_REDUX_PROMPT_MAX - 420);
-              // Lower image→image strength on spread 1 so the opening scene can diverge from the neutral cast lineup.
-              const reduxStrength =
-                idx === 0 ? Math.max(0.24, falStrength - 0.06) : falStrength;
-              const u = await falFluxReduxImageUrl(
-                falKey,
-                falReduxModel,
-                anchorUrl as string,
-                falPrompt,
-                reduxStrength,
-              );
-              falReduxSpreadCount++;
-              return u;
-            } catch (e) {
-              console.warn("[clever-service] Fal Redux (anchor) failed for spread", idx, e);
-              throwFalImage(`Fal image-to-image failed for spread ${idx + 1} of 6`, e);
-            }
-          }),
-        );
-        for (let i = 0; i < allFromAnchor.length; i++) {
-          urls[i] = allFromAnchor[i];
+        let refUrl: string = anchorUrl as string;
+        for (let idx = 0; idx < briefs.length; idx++) {
+          if (idx > 0) await delay(staggerMs);
+          const b = briefs[idx];
+          const composed = composeDallePrompt({
+            preamble: stylePreamble,
+            envTheme,
+            sceneBrief: b.brief,
+            castBible,
+            firstPanelLock: panelLock,
+          });
+          const verseBeat = spreadTextForPicturePage(b.index, story.pages).slice(0, 360);
+          try {
+            const falPrompt =
+              "PICTURE BOOK SPREAD — illustrate THIS story beat literally. " +
+              "VERSE (must match mood, action, props): " +
+              verseBeat +
+              ". " +
+              "SCENE: change layout, camera, and environment completely vs the reference. Show the action and setting in the brief — rockets, trampolines, castles, planets, etc. must appear visibly if the story calls for them. " +
+              "Keep character IDENTITY only from the reference (face, species, hair/outfit colours, sizes)—do not recreate neutral lineup poses or plain backdrop. " +
+              "Textless; soft matte clay toy 3D. " +
+              composed.slice(0, FAL_REDUX_PROMPT_MAX - 420);
+            const u = await falFluxReduxImageUrl(
+              falKey,
+              falReduxModel,
+              refUrl,
+              falPrompt,
+              falStrength,
+            );
+            urls[idx] = u;
+            falReduxSpreadCount++;
+            refUrl = u;
+          } catch (e) {
+            console.warn("[clever-service] Fal Redux (anchor chain) failed for spread", idx, e);
+            throwFalImage(`Fal image-to-image failed for spread ${idx + 1} of 6`, e);
+          }
         }
         falCastAnchorUsed = true;
       }
