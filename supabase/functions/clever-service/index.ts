@@ -203,17 +203,22 @@ async function compileCharacterLockForImages(
     plotHint: string;
     draftDesign: string;
     briefsSummary: string;
+    plotNamedHumans: string[];
   },
 ): Promise<string> {
+  const co = input.plotNamedHumans.length > 0
+    ? input.plotNamedHumans.join(", ")
+    : "(none)";
   const user =
     `Hero first name: ${input.childName}\n` +
     `Main buddy type (${input.buddyKey}): ${input.buddyDesc}\n` +
     `Setting: ${input.placeDesc}\n` +
     `Plot: ${input.plotHint || "cozy adventure"}\n` +
+    `Human co-stars named in the plot (each is a REAL CHILD — NOT the imaginary buddy; give each their own NAME: line if they appear in the draft): ${co}\n` +
     `Who appears in pictures (beats): ${input.briefsSummary}\n\n` +
     `Storywriter draft (may be messy):\n${input.draftDesign || "(none)"}\n\n` +
     `Rewrite into LOCKED CAST only — plain text, no JSON.\n` +
-    `Use labeled lines: HERO:, BUDDY:, then ONLY if the draft explicitly adds more named recurring characters, one line each (e.g. TILLY:). Never add MONKEY:, BEAR:, LION:, or random extras.\n` +
+    `Use labeled lines: HERO:, BUDDY:, then one line per other named recurring HUMAN child from the plot or draft (e.g. ISAAC:) — same detail as HERO (gender, hair, eyes, skin, outfit). Never add MONKEY:, BEAR:, LION:, or random extras.\n` +
     `Each line: exact colours, relative size vs hero, silhouette, distinctive marks, wings/tail yes/no.\n` +
     `Art style words allowed ONLY: "soft matte clay toy, rounded limbs, gentle toy plastic sheen" — never "realistic" or "Pixar skin".\n` +
     `Max 2100 characters. No scenery. No actions.`;
@@ -233,7 +238,8 @@ async function compileCharacterLockForImages(
           role: "system",
           content:
             "You are an art director for a children's book. Output only the LOCKED CAST block. Be dense and consistent. " +
-            "Include EVERY named person and recurring creature from the storywriter draft who actually appears in the book (HERO, BUDDY, and any named game friends from the draft). " +
+            "Include EVERY named person and recurring creature from the storywriter draft who actually appears in the book (HERO, BUDDY, named human siblings/friends from the plot, and any named game friends from the draft). " +
+            "If the user lists human co-stars in the plot (e.g. Isaac), they MUST appear as their own NAME: lines — never merge a human child into BUDDY and never call the dragon/dinosaur by a human sibling's name. " +
             "If the draft truly has only the child and one imaginary friend, output exactly HERO: and BUDDY: — never invent unnamed forest animals. " +
             "If the draft names extra friends (e.g. Tilly), add one line each — never add MONKEY:, BEAR:, or random extras not in the draft.",
         },
@@ -307,6 +313,70 @@ function sanitizeFamilyNames(raw: unknown): string[] {
     out.push(cleaned);
   }
   return out;
+}
+
+/** Capitalised words in the plot that look like extra human first names (e.g. Isaac when hero is Sofia). */
+const PLOT_NAME_STOP = new Set(
+  (
+    "the they them their and but when until then with from into that this her his she he him one love playing paying hide seek castle " +
+      "outside inside above below everywhere every day story big see flying flying friend dinosaur dragon unicorn griffin storybook " +
+      "until again still just very also what who how why both each other another while during because games game about " +
+      "playing paying seek hiding found look looks looking search searching cant find"
+  )
+    .split(/\s+/)
+    .filter(Boolean),
+);
+
+function extractPlotNamedHumans(plotHint: string, heroFirstName: string): string[] {
+  const hero = heroFirstName.trim().toLowerCase();
+  const out: string[] = [];
+  const seen = new Set<string>();
+  for (const m of plotHint.matchAll(/\b([A-Z][a-z]{2,15})\b/g)) {
+    const w = m[1];
+    const low = w.toLowerCase();
+    if (low === hero) continue;
+    if (PLOT_NAME_STOP.has(low)) continue;
+    if (seen.has(low)) continue;
+    seen.add(low);
+    out.push(w);
+  }
+  return out.slice(0, 4);
+}
+
+function mergeUniqueFirstNames(a: string[], b: string[]): string[] {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const x of a) {
+    const t = String(x ?? "").trim();
+    const k = t.toLowerCase();
+    if (!t || seen.has(k)) continue;
+    seen.add(k);
+    out.push(t);
+  }
+  for (const x of b) {
+    const t = String(x ?? "").trim();
+    const k = t.toLowerCase();
+    if (!t || seen.has(k)) continue;
+    seen.add(k);
+    out.push(t);
+  }
+  return out;
+}
+
+/** True when the verse is about searching for / not finding the buddy creature (not a human name). */
+function buddyCreatureHiddenInVerse(verse: string): boolean {
+  const v = verse.toLowerCase();
+  if (
+    /\b(there\s+he\s+is|there\s+she\s+is|there\s+they\s+are|found\s+him|found\s+her|see\s+him\s+glide|see\s+him\s+fly|up\s+in\s+the\s+air|flying\s+so\s+high|flying\s+right\s+into\s+view|saw\s+him\s+flying|spotted\s+him)\b/i
+      .test(v)
+  ) {
+    return false;
+  }
+  const creature = /\b(dinosaur|dragon|unicorn|griffin)\b/i.test(v);
+  const seeking =
+    /\b(where'?s?\s+the|where\s+is\s+the|where\s+are\s+they|where\s+could|can'?t\s+find|cannot\s+find|no\s+sign|nowhere\b|not\s+around|not\s+here|looking\s+for|searching\s+for|still\s+can'?t\s+find|have\s+no\s+idea|where\s+is\s+he\b|where'?s\s+he\b)\b/i
+      .test(v);
+  return creature && seeking;
 }
 
 /** Selected game people with ids (for portrait lookup). Ignores unknown ids. */
@@ -1245,6 +1315,14 @@ Deno.serve(async (req) => {
     familyPeople.length > 0
       ? familyPeople.map((p) => p.label)
       : sanitizeFamilyNames(body.familyNames);
+  const plotNamedHumans = extractPlotNamedHumans(plotHint, childName);
+  const storyHumanNames = mergeUniqueFirstNames(
+    [childName],
+    mergeUniqueFirstNames(familyNames, plotNamedHumans),
+  );
+  const plotOnlyHumans = plotNamedHumans.filter(
+    (n) => !familyNames.some((f) => f.toLowerCase() === n.toLowerCase()),
+  );
 
   const bookAssetsBase = (Deno.env.get("BOOK_ASSETS_BASE_URL") ?? "").trim();
 
@@ -1274,14 +1352,15 @@ Rules:
 - Exactly 12 pages (six double-page spreads). The text on every page MUST be exactly 4 lines long, written as a fun, rhythmic poem that rhymes perfectly (e.g., AABB or ABCB). Format the text with actual line breaks (\n) after each line so the rhyming words are at the end of each line. Use simple words.
 - On each odd-numbered (text-first) page, include exactly one short sound-effect or action word in ALL CAPS with an exclamation mark where it fits the rhyme (e.g. SPLASH! WHOOSH! YIPPEE!) so it feels like a printed picture book. Only that one word per page should be in all capitals; keep the rest in normal sentence case.
 - The hero's name is given — use it often. The hero IS ${childName} — this exact first name must appear in the story text on every page where the main child acts. Whenever ${childName} is in a spread's scene, that spread's illustrationBrief must name ${childName} (you may list other named friends first if the verse introduces them that way). Never substitute a different child, wrong name, or wrong gender as the hero. The art paints only who you name — do not imply an unnamed generic kid.
-- CAST vs TEXT (strict): Each illustrationBrief may include ONLY characters who appear **by name** on that spread's paired text page (the odd page before it), or the one imaginary buddy when the text clearly means them ("the unicorn", "their friend") after names were established. If the verse only mentions ${childName} and the buddy, the picture has only those two. If the verse also names game people who are in that scene, they may appear — list everyone the text actually puts in the moment. Never add lions, bears, random pals, villagers, crowds, or background "silhouette people" that the text does not mention. A few characters is fine **only** when the text names them all for that beat.
+- HUMAN CO-STARS vs IMAGINARY BUDDY (critical): The "Main friend character" below is always ONE imaginary creature (unicorn, dragon, dinosaur, etc.). If the plot idea also names another child (e.g. a brother or sister), that child is a REAL HUMAN — not the buddy, not a shape-shifted version of the buddy, and never given the buddy's role in the plot. NEVER merge names: do not write that the human sibling flies as the dragon, or that the dragon "is" the sibling. When the plot says the children cannot find the DINOSAUR / DRAGON, the verses must ask where the DINOSAUR or DRAGON is — do not substitute the sibling's name as the thing that is lost unless the plot literally says the sibling is hiding.
+- CAST vs TEXT (strict): Each illustrationBrief may include ONLY characters who appear **by name** on that spread's paired text page (the odd page before it), or the one imaginary buddy when the text clearly means them ("the dinosaur", "their friend") after names were established. If the verse names ${childName} plus a human co-star (e.g. Isaac) plus the buddy, all three may appear when the verse puts them in the scene. If the verse only mentions ${childName} and the buddy, the picture has only those two. If the verse also names game people who are in that scene, they may appear — list everyone the text actually puts in the moment. Never add lions, bears, random pals, villagers, crowds, or background "silhouette people" that the text does not mention. A few characters is fine **only** when the text names them all for that beat.
 - If "People from the child's games" are listed, include them in the story by name as extra friends or family. They should feel like the same friendly faces the child picks in other games (e.g. Tilly, Baby). They are separate from the one imaginary "main friend character" (unicorn, dragon, etc.) — both can appear.${
     portraitAppearance
       ? " If appearance lines are given for those people, stay consistent with those visual details when you naturally describe them."
       : ""
   }
 - Include fields title (string), characterDesign (string), bookColor (string: MUST be exactly "blue", "green", or "pink". If the child's name is typically male (e.g. Isaac, Leo), use "blue" or "green". If female, use "pink"), and pages (array of 12 objects).
-  For "characterDesign": describe ONLY the hero, the one main buddy, and any named game people who actually appear in your story. If the cast is only hero + buddy, characterDesign has exactly those two rich descriptions — never lions, bears, or unnamed critters. For each included character you MUST define their EXACT gender (e.g. boy/girl), age, height, body shape, skin/surface tone, eye color, facial features, hair color, hair style, AND exact texture/material (e.g. "smooth sculpted clay hair", "fuzzy felt fur", "shiny plastic"). For the buddy creature, explicitly define anatomy (horse-like unicorn with hooves and horn; or winged dragon; etc.). Plus ONE specific, unchanging outfit or set of accessories with exact colors and materials. If an animal or creature wears nothing, explicitly state "in natural animal form (no human outfits)". CRITICAL: Keep clothing solid-colored and simple. DO NOT put logos, graphics, patterns, or text on clothing (DALL-E hallucinates these). DO NOT give them multiple outfits or changing colors. You MUST use the exact same clothing description for the hero in EVERY single illustrationBrief. This will be used as the master reference to keep them identical across all illustrations.
+  For "characterDesign": describe the hero, the one main buddy creature, EVERY human child named in the plot idea (e.g. a brother or sister) who appears in the story, and any named game people who actually appear. If the plot names only ${childName} plus the buddy, characterDesign has exactly those two rich descriptions. If the plot names an extra child (e.g. Isaac), add a full third block for that child — never fold them into the buddy description. Never lions, bears, or unnamed critters. For each included character you MUST define their EXACT gender (e.g. boy/girl), age, height, body shape, skin/surface tone, eye color, facial features, hair color, hair style, AND exact texture/material (e.g. "smooth sculpted clay hair", "fuzzy felt fur", "shiny plastic"). For the buddy creature, explicitly define anatomy (horse-like unicorn with hooves and horn; or winged dragon; etc.). Plus ONE specific, unchanging outfit or set of accessories with exact colors and materials. If an animal or creature wears nothing, explicitly state "in natural animal form (no human outfits)". CRITICAL: Keep clothing solid-colored and simple. DO NOT put logos, graphics, patterns, or text on clothing (DALL-E hallucinates these). DO NOT give them multiple outfits or changing colors. You MUST use the exact same clothing description for the hero in EVERY single illustrationBrief. This will be used as the master reference to keep them identical across all illustrations.
 - Each page: { "text": string, "illustrationBrief": string | null }.
 - DOUBLE-PAGE SPREADS: pair pages as (1,2), (3,4), (5,6), (7,8), (9,10), (11,12).
   Odd-numbered pages (1,3,5,7,9,11) are TEXT-FIRST pages only — use "illustrationBrief": null.
@@ -1289,7 +1368,7 @@ Rules:
   STRICT BRIEF FORMAT — start each brief with one explicit line, then a free description:
     "VISIBLE: <comma-separated list of who is actually in this picture frame> — DESCRIPTION: <one or two sentences of what they do and where>"
   VISIBLE CAST RULES (very important — read the paired verse carefully):
-    • Default visible = hero + buddy + any named friends mentioned in the paired verse, if they are present in that beat.
+    • Default visible = hero + any human co-stars named in the verse (e.g. a sibling) + the buddy, **only when that verse actually puts them on stage together**. If the verse is only about ${childName} and the buddy, VISIBLE lists those two. If the verse names ${childName}, Isaac, and the buddy together, list all three.
     • If the verse says someone is HIDDEN, missing, lost, "where is", "can't find", "nowhere to be seen", "hiding", "we cannot see", "out of sight", or has flown / run / sailed AWAY — that character is NOT visible. Exclude them from VISIBLE.
     • Example, hide-and-seek beat where the dragon is the seeker hiding: VISIBLE: Sofia, Isaac (dragon hidden — do not include).
     • Example, beat where dragon is found / revealed: VISIBLE: Sofia, Isaac, dragon.
@@ -1308,31 +1387,34 @@ Rules:
     Vary the *place* between spreads in line with the plot's beats — e.g. CASTLE: gates → corridor → great hall → spiral tower → rooftop → courtyard with the dragon flying overhead. Don't repeat the same backdrop. State a different camera angle / shot type for each (wide establishing shot, mid shot, low-angle hero kneeling, over-the-shoulder peering, etc).
     Background details ARE allowed (in fact required) — what is NOT allowed is faced extras the verse doesn't mention.
     COMPOSITION: main characters in the middle vertical band with headroom and visible feet.
-  OPENING SPREAD (page 2 only — the first illustrationBrief): MUST match page 1 text and the child's plot, AND establish the actual SETTING (castle / woods / cave / beach / space / etc. — whichever the plot calls for). Only characters named on page 1 (usually ${childName} and the buddy; plus game people only if page 1 names them). Example: if the plot is "hide and seek in a castle", the opening establishes castle gates / courtyard / great hall — NOT a forest. No unwritten extras.
+  OPENING SPREAD (page 2 only — the first illustrationBrief): MUST match page 1 text and the child's plot, AND establish the actual SETTING (castle / woods / cave / beach / space / etc. — whichever the plot calls for). Page 1 text must name every main character the plot introduces (${childName}, any sibling/friend named in the plot idea, and the buddy creature by type — e.g. dinosaur). Only characters named on page 1 may appear on page 2's illustration. Example: if the plot is "hide and seek in a castle", the opening establishes castle gates / courtyard / great hall — NOT a forest. No unwritten extras.
   When game people with portrait notes appear on a picture page, the brief should mention them looking like those notes (hair, outfit colours, age vibe).
 - If a "plot idea" is given, you MUST make it the central theme of the story and feature it heavily in EVERY illustration brief. If it is empty, invent a short happy outing that fits the setting.
 - PLOT FIDELITY — read the plot idea LITERALLY:
   • Use ONLY props, locations, and story beats that actually appear in the plot the child wrote. Don't invent extras.
   • Resolve the story with whatever the plot actually says is the climax — for example "they realised the dragon could fly", "they finally caught the cheeky dragon", "the cake came out of the oven golden brown". Don't substitute a generic ending.
   • Stay inside the setting the plot names. If the plot says castle, every spread is in the castle. If beach, every spread is on the beach.
-  • Use only the named cast (hero + buddy + any named friends). Don't add background characters, animals, or family members.
+  • Use only the named cast (hero + human co-stars from the plot + buddy + any game people the plot uses). Don't add background characters, animals, or family members the plot does not name.
   • If the plot has a narrative twist or reveal, build to that reveal as the climax around spread 4 or 5 — not an off-hand line.
 - JSON only, no markdown.`;
 
   const user = `Child name: ${childName}
 Main friend character (imaginary buddy): ${characterDesc}
 Setting to feature: ${placeDesc}
-People from the child's games to include by name (friends/family — use them warmly and often; if none listed, skip): ${
+People from the child's games to include by name (friends/family — use them warmly when listed; each may have a portrait note above): ${
     familyNames.length > 0 ? familyNames.join(", ") : "(none)"
+  }
+Other human children named ONLY in the plot idea below (they are REAL KIDS in the story — NOT the imaginary buddy; give each a clear role; if not listed above, invent a simple distinct look): ${
+    plotOnlyHumans.length > 0 ? plotOnlyHumans.join(", ") : "(none)"
   }${portraitBlockForText}
 Plot idea from the child (CRITICAL: make this the core focus of the story and pictures): ${
     plotHint.length ? plotHint : "(none — invent a cosy little adventure that fits the setting)"
   }
 Page 1 and page 2 must OPEN this plot: the first illustration (page 2 brief) is the first scene readers see — match this plot's SETTING, props, and buddy. Read the plot literally: if it says "castle", spread 1 is the castle (gates, great hall, courtyard); if it says "woods", spread 1 is woods; if it says "underwater", spread 1 is underwater. Do NOT default to woods.
 ${
-    familyNames.length === 0
+    familyNames.length === 0 && plotNamedHumans.length === 0
       ? `Picture cast rule: only people/creatures **named in each verse** may appear on that spread's illustration — usually ${childName} and the buddy. Do not name anyone in a brief who is not in the paired text.\n`
-      : `Picture cast rule: only names that actually appear in each verse (including the game people above when you put them in the scene). No invented crowd.\n`
+      : `Main human cast for this book (must appear in the verses whenever they are in the scene together — use these exact names): ${storyHumanNames.join(", ")}. Picture rule: only names that appear in each verse may be in that spread's illustration; match the plot's who-is-hiding logic with the VISIBLE line.\n`
   }
 Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "pink" | "blue" | "green", "pages": [ { "text": string, "illustrationBrief": string | null }, ... 12 items ] }`;
 
@@ -1361,6 +1443,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
       plotHint,
       draftDesign: story.characterDesign || "",
       briefsSummary,
+      plotNamedHumans,
     });
   } catch (e) {
     console.warn("[clever-service] compileCharacterLock failed", e);
@@ -1368,12 +1451,21 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
 
   const duoImageCastFallback =
     `HERO: ${childName}, young child, friendly rounded face, simple solid-colour top and trousers, soft matte clay toy 3D — always the same human hero in every spread. ` +
-    `BUDDY: ${characterDesc}, exactly ONE individual of this species in every image — never duplicate, never parent+baby pair, same toy-clay style on every page.`;
+    `BUDDY: ${characterDesc}, exactly ONE individual of this species in every image — never duplicate, never parent+baby pair, same toy-clay style on every page.` +
+    (plotNamedHumans.length > 0
+      ? " " +
+        plotNamedHumans
+          .map(
+            (n) =>
+              `${n.toUpperCase()}: human child co-star named in the plot — distinct face, hair, and outfit colours from ${childName}, same soft matte clay toy 3D whenever this child appears.`,
+          )
+          .join(" ")
+      : "");
 
   const castBible =
     compiledLock.length > 120
       ? compiledLock
-      : familyNames.length === 0
+      : familyNames.length === 0 && plotNamedHumans.length === 0
         ? duoImageCastFallback
         : story.characterDesign && story.characterDesign.length > 80
           ? story.characterDesign
@@ -1463,7 +1555,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
 
     const anchorPreamble =
       "A completely textless illustration. NO letters, words, typography, labels, speech bubbles, signs with text, book pages with writing, loose papers, scrolls, glyph noise, watermarks, or fake paragraph texture anywhere. Plain smooth background regions only — no pseudo-text. " +
-      "CAST LINEUP / MODEL SHEET for a kids picture book: every character line in LOCKED CAST below (hero, buddy, and any named game people only) — no one else, no third mascot or crowd, no duplicate unicorns. Together in ONE frame, neutral friendly poses, " +
+      "CAST LINEUP / MODEL SHEET for a kids picture book: every character line in LOCKED CAST below (hero, buddy, and any named human co-stars or game people) — no one else, no third mascot or crowd, no duplicate unicorns. Together in ONE frame, neutral friendly poses, " +
       "full bodies visible above the bottom edge with headroom, soft matte clay and toy-plastic 3D, gentle pastel light, plain soft background so each design reads clearly. " +
       "Edge-to-edge, wholesome for toddlers. ";
 
@@ -1565,11 +1657,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
         ): { visibleLine: string | null; buddyMissing: boolean } => {
           const m = brief.match(/^\s*VISIBLE\s*:\s*([^\n]+?)(?:\s*[—\-]\s*DESCRIPTION\s*:|$)/i);
           const visibleLine = m ? m[1].trim() : null;
-          const v = verse.toLowerCase();
-          const buddyMissing =
-            /\b(where\s+is|where\s+are|where\s+could|cannot\s+find|can'?t\s+find|nowhere\s+(?:to\s+be\s+seen|around|in\s+sight)|out\s+of\s+sight|hidden\s+away|hiding\s+(?:somewhere|nearby)|gone\s+missing|lost|disappear(?:ed|s)?|vanish(?:ed|es)?)\b/i.test(
-              v,
-            );
+          const buddyMissing = buddyCreatureHiddenInVerse(verse);
           return { visibleLine, buddyMissing };
         };
 
@@ -1613,8 +1701,10 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
                   : ""),
             );
           } else if (buddyMissing) {
+            const humanList =
+              storyHumanNames.length > 0 ? storyHumanNames.join(", ") : childName;
             blocks.push(
-              `WHO IS IN THIS PICTURE: ${childName} and any named human friends only. The buddy creature is hiding / out of sight / missing for this beat — DO NOT draw the buddy in this picture. The reference image is for character identity only — it does not mean every character on the reference must appear in this spread.`,
+              `WHO IS IN THIS PICTURE: ${humanList}. The imaginary buddy creature is not in this scene — the verse is about searching or not finding them — do not draw the buddy creature in this frame.`,
             );
           }
 
@@ -1885,6 +1975,9 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
       childName,
       characterKey,
       placeKey,
+      placeOverridden,
+      plotNamedHumans,
+      storyHumanNames,
       plotHintLen: plotHint.length,
       familyNames,
       familyPeopleIds: familyPeople.map((p) => p.id),
