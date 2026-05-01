@@ -138,6 +138,47 @@ body.page-storybook.sb-modal-open {
   text-align: center;
 }
 
+/* Build your book column — blurred story art + frosted veil (image matches .sb-landing__vision-img) */
+.sb-landing__left {
+  position: relative;
+  overflow: hidden;
+  border-radius: 24px;
+  padding: 1.1rem 0.85rem 1.35rem;
+}
+
+.sb-landing__left::before {
+  content: "";
+  position: absolute;
+  inset: -14px;
+  background-image: url("images/storybook-design-goal-reference.png");
+  background-size: cover;
+  background-position: center 40%;
+  filter: blur(12px);
+  transform: scale(1.07);
+  z-index: 0;
+  pointer-events: none;
+}
+
+.sb-landing__left::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    165deg,
+    rgba(255, 253, 251, 0.78) 0%,
+    rgba(252, 231, 243, 0.62) 40%,
+    rgba(245, 243, 255, 0.72) 100%
+  );
+  z-index: 0;
+  pointer-events: none;
+}
+
+.sb-landing__left > * {
+  position: relative;
+  z-index: 1;
+}
+
 @media (min-width: 900px) {
   .sb-landing__split {
     flex-direction: row;
