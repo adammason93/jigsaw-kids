@@ -2625,6 +2625,9 @@
               msg =
                 "We couldn’t finish all the pictures — you weren’t given a mismatched book. Wait a moment and try again, or ask a grown-up to check billing and setup. " +
                 String(b.detail).slice(0, 400);
+            } else if (b.error === "gpt_image_failed" && b.detail) {
+              msg =
+                "Couldn’t make the book (pictures). " + String(b.detail).slice(0, 500);
             } else if (b.error === "images_failed" && b.detail) {
               msg =
                 "Couldn’t make the book (pictures). " + String(b.detail);

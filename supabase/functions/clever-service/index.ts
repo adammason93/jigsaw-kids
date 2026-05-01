@@ -1066,14 +1066,26 @@ async function falFluxProTextToImageUrl(
  * GPT Image (a.k.a. "GPT Image 2" in some UIs) pipeline
  *
  * Uses OpenAI's `/v1/images/generations` and `/v1/images/edits` with model
- * `gpt-image-1` (override via STORYBOOK_GPTIMAGE_MODEL). Output is base64 PNG;
- * we upload it to the public `storybook_images` Supabase Storage bucket and
- * return a public URL so the storybook UI can render it like any other URL.
+ * `gpt-image-1.5` by default (override via STORYBOOK_GPTIMAGE_MODEL). Output is
+ * base64 PNG; we upload it to the public `storybook_images` Supabase Storage
+ * bucket and return a public URL so the storybook UI can render it like any
+ * other URL.
  * ────────────────────────────────────────────────────────────────────────── */
 
 const GPT_IMAGE_BUCKET = "storybook_images";
 const GPT_IMAGE_SIZE_LANDSCAPE = "1536x1024";
 const GPT_IMAGE_PROMPT_MAX = 4000;
+
+function gptImageDefaultModel(): string {
+  return (Deno.env.get("STORYBOOK_GPTIMAGE_MODEL") ?? "").trim() || "gpt-image-1.5";
+}
+
+/** OpenAI default is "auto"; we default to "low" to reduce false refusals on kids' story prompts. */
+function gptImageModerationParam(): "low" | "auto" {
+  return (Deno.env.get("STORYBOOK_GPTIMAGE_MODERATION") ?? "").trim() === "auto"
+    ? "auto"
+    : "low";
+}
 
 function decodeB64ToBytes(b64: string): Uint8Array {
   const clean = b64.replace(/^data:image\/[a-z]+;base64,/i, "").trim();
@@ -1130,31 +1142,75 @@ function parseRetryAfterMs(headerStr: string | null, fallback = 14000): number {
   return fallback + Math.random() * 3000;
 }
 
+async function gptImageBytesFromImagesResponse(raw: string): Promise<Uint8Array> {
+  let data: { data?: { b64_json?: string; url?: string }[] };
+  try {
+    data = JSON.parse(raw);
+  } catch {
+    throw new Error("gpt_image_response_not_json");
+  }
+  const item = data.data?.[0];
+  if (item?.b64_json) {
+    return decodeB64ToBytes(item.b64_json);
+  }
+  const u = item?.url;
+  if (u && /^https?:\/\//i.test(u)) {
+    const ir = await fetch(u);
+    if (!ir.ok) {
+      throw new Error(`gpt_image_url_fetch_${ir.status}`);
+    }
+    return new Uint8Array(await ir.arrayBuffer());
+  }
+  const hint = raw.length > 400 ? raw.slice(0, 400) + "…" : raw;
+  console.error("[gpt-image] missing b64_json/url in data[0]; body:", hint);
+  throw new Error("gpt_image_empty");
+}
+
 async function gptImageGenerate(
   apiKey: string,
   prompt: string,
   size: string = GPT_IMAGE_SIZE_LANDSCAPE,
   retryCount = 0,
 ): Promise<{ url: string; bytes: Uint8Array }> {
-  const model =
-    (Deno.env.get("STORYBOOK_GPTIMAGE_MODEL") ?? "").trim() || "gpt-image-1";
+  const model = gptImageDefaultModel();
+  const moderation = gptImageModerationParam();
   const trimmed = prompt.slice(0, GPT_IMAGE_PROMPT_MAX);
 
-  const r = await fetch("https://api.openai.com/v1/images/generations", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
+  const post = (body: Record<string, unknown>) =>
+    fetch("https://api.openai.com/v1/images/generations", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+
+  let r = await post({
+    model,
+    prompt: trimmed,
+    n: 1,
+    size,
+    quality: "medium",
+    moderation,
+    output_format: "png",
+    stream: false,
+  });
+  let raw = await r.text();
+  if (!r.ok && r.status === 400) {
+    console.warn(
+      "[gpt-image] generations HTTP 400 — retrying minimal payload (no size/quality)",
+    );
+    r = await post({
       model,
       prompt: trimmed,
       n: 1,
-      size,
-      quality: "medium",
-    }),
-  });
-  const raw = await r.text();
+      moderation,
+      output_format: "png",
+      stream: false,
+    });
+    raw = await r.text();
+  }
   if (!r.ok) {
     if (r.status === 429 && retryCount < 3) {
       const waitMs = parseRetryAfterMs(
@@ -1171,15 +1227,8 @@ async function gptImageGenerate(
     console.error("[gpt-image] generations error", r.status, raw.slice(0, 700));
     throw new Error(openaiImageErrorDetail(r.status, raw));
   }
-  let data: { data?: { b64_json?: string }[] };
-  try {
-    data = JSON.parse(raw);
-  } catch {
-    throw new Error("gpt_image_response_not_json");
-  }
-  const b64 = data.data?.[0]?.b64_json;
-  if (!b64) throw new Error("gpt_image_empty");
-  const bytes = decodeB64ToBytes(b64);
+
+  const bytes = await gptImageBytesFromImagesResponse(raw);
   const url = await uploadPngToStorybookImages(bytes, randomKey("anchor"));
   return { url, bytes };
 }
@@ -1191,29 +1240,52 @@ async function gptImageEdit(
   size: string = GPT_IMAGE_SIZE_LANDSCAPE,
   retryCount = 0,
 ): Promise<{ url: string; bytes: Uint8Array }> {
-  const model =
-    (Deno.env.get("STORYBOOK_GPTIMAGE_MODEL") ?? "").trim() || "gpt-image-1";
+  const model = gptImageDefaultModel();
+  const moderation = gptImageModerationParam();
   const trimmed = prompt.slice(0, GPT_IMAGE_PROMPT_MAX);
+  const fidRaw = (Deno.env.get("STORYBOOK_GPTIMAGE_INPUT_FIDELITY") ?? "high")
+    .trim()
+    .toLowerCase();
 
-  const form = new FormData();
-  form.append("model", model);
-  form.append("prompt", trimmed);
-  form.append("n", "1");
-  form.append("size", size);
-  form.append("quality", "medium");
-  for (let i = 0; i < referenceBytes.length; i++) {
-    const blob = new Blob([referenceBytes[i]] as unknown as BlobPart[], {
-      type: "image/png",
-    });
-    form.append("image[]", blob, `ref-${i + 1}.png`);
-  }
+  const buildForm = (withQuality: boolean): FormData => {
+    const form = new FormData();
+    form.append("model", model);
+    form.append("prompt", trimmed);
+    form.append("n", "1");
+    form.append("size", size);
+    if (withQuality) {
+      form.append("quality", "medium");
+    }
+    form.append("output_format", "png");
+    form.append("stream", "false");
+    form.append("moderation", moderation);
+    if (fidRaw === "high" || fidRaw === "low") {
+      form.append("input_fidelity", fidRaw);
+    }
+    for (let i = 0; i < referenceBytes.length; i++) {
+      const blob = new Blob([referenceBytes[i]] as unknown as BlobPart[], {
+        type: "image/png",
+      });
+      form.append("image[]", blob, `ref-${i + 1}.png`);
+    }
+    return form;
+  };
 
-  const r = await fetch("https://api.openai.com/v1/images/edits", {
+  let r = await fetch("https://api.openai.com/v1/images/edits", {
     method: "POST",
     headers: { Authorization: `Bearer ${apiKey}` },
-    body: form,
+    body: buildForm(true),
   });
-  const raw = await r.text();
+  let raw = await r.text();
+  if (!r.ok && r.status === 400) {
+    console.warn("[gpt-image] edits HTTP 400 — retrying without quality field");
+    r = await fetch("https://api.openai.com/v1/images/edits", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${apiKey}` },
+      body: buildForm(false),
+    });
+    raw = await r.text();
+  }
   if (!r.ok) {
     if (r.status === 429 && retryCount < 4) {
       const waitMs = parseRetryAfterMs(
@@ -1231,15 +1303,8 @@ async function gptImageEdit(
     console.error("[gpt-image] edits error", r.status, raw.slice(0, 700));
     throw new Error(openaiImageErrorDetail(r.status, raw));
   }
-  let data: { data?: { b64_json?: string }[] };
-  try {
-    data = JSON.parse(raw);
-  } catch {
-    throw new Error("gpt_image_response_not_json");
-  }
-  const b64 = data.data?.[0]?.b64_json;
-  if (!b64) throw new Error("gpt_image_empty");
-  const bytes = decodeB64ToBytes(b64);
+
+  const bytes = await gptImageBytesFromImagesResponse(raw);
   const url = await uploadPngToStorybookImages(bytes, randomKey("spread"));
   return { url, bytes };
 }
@@ -2182,7 +2247,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
       falReduxSpreads: falReduxSpreadCount,
       imageMode: useGptImage ? "gptimage" : "fal",
       gptImageModel: useGptImage
-        ? (Deno.env.get("STORYBOOK_GPTIMAGE_MODEL") ?? "").trim() || "gpt-image-1"
+        ? (Deno.env.get("STORYBOOK_GPTIMAGE_MODEL") ?? "").trim() || "gpt-image-1.5"
         : null,
       gptImageSpreads: useGptImage ? gptImageSpreadCount : 0,
       reuseFirstIllustrationOnLast:
