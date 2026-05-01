@@ -1274,11 +1274,20 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
   const falStrength = Number.isFinite(falStrengthRaw) ? falStrengthRaw : 0.35;
 
   try {
-    const briefs: { index: number; brief: string }[] = [];
+    const briefs: { index: number; brief: string; verse: string }[] = [];
     for (const i of ILLUSTRATED_PAGE_INDICES) {
       const p = story.pages[i];
       if (p?.illustrationBrief && String(p.illustrationBrief).trim()) {
-        briefs.push({ index: i, brief: String(p.illustrationBrief).trim() });
+        // Picture pages live at even 0-based indices (1,3,5,7,9,11). The
+        // matching VERSE — the rhyming text the child reads aloud — lives at
+        // i-1. We pass it down to the image prompt so the model can read the
+        // actual story beat verbatim, not just the LLM-paraphrased brief.
+        const verse = String(story.pages[i - 1]?.text ?? "").trim();
+        briefs.push({
+          index: i,
+          brief: String(p.illustrationBrief).trim(),
+          verse,
+        });
       }
     }
 
@@ -1406,6 +1415,13 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
             heroFirstName: childName,
           });
           const shot = shotPlan[idx] ?? shotPlan[shotPlan.length - 1];
+          // Verbatim verse — gives the model the exact action verbs from the
+          // facing page (e.g. "they dance with glee", "tiptoe softly", "open
+          // it wide"). Briefs sometimes paraphrase these away; the verse is
+          // what the child actually reads aloud, so the picture must show it.
+          const verseChunk = b.verse.trim()
+            ? `\n\nFACING-PAGE VERSE (literal — show these exact actions and props):\n"""\n${b.verse.trim().slice(0, 600)}\n"""\nThe picture MUST show the verbs and named props from this verse. If the verse says "dance" or "dancing" — show them dancing with movement. If it says "tiptoe" — show them creeping on their toes. If it says "open the chest" — show the chest opened. If it says "kneel" / "crouch" / "peek" / "hug" / "leap" — show that exact pose. If it says "found a glowing flower" — paint the glowing flower right there. Match the verse's mood (whisper, giggle, shout) in the characters' faces.\n\n`
+            : "";
           // Strong repaint-the-environment directive on EVERY spread. Without
           // this, gpt-image-1's edits tend to keep the anchor's plain studio
           // backdrop, and the whole book ends up looking the same. The
@@ -1427,9 +1443,10 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
             openingPrefix +
             repaintDirective +
             shotDirective +
+            verseChunk +
             "Story spread — NEW environment, NEW poses, NEW camera distance for this exact moment. " +
             "Keep hero and every named creature IDENTICAL to the reference (faces, hair, outfit colours, species, size). Only beings named in SCENE ACTION; no extra characters, no background crowd. " +
-            "TEXTLESS — no letters, fake text, signs, paper scraps with writing, logos, or glyph noise. " +
+            "TEXTLESS — no letters, fake text, signs, paper scraps with writing, logos, or glyph noise. The FACING-PAGE VERSE above is for your understanding only — DO NOT render it as text inside the picture. " +
             composed
           );
         };
