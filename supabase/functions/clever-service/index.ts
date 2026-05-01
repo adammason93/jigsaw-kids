@@ -1352,6 +1352,50 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
           return Number.isFinite(raw) && raw >= 0 ? raw : 20000;
         })();
 
+        // Per-spread SHOT PLAN — gpt-image-1's edit endpoint tends to inherit
+        // the anchor's tight portrait crop on every spread, which makes the
+        // book feel like 6 close-ups instead of a journey. Force a different
+        // camera distance / framing on each spread so we actually see the
+        // woods, the cave, the path, etc.
+        const shotPlan = [
+          // idx 0 — opening: full establishing shot of the world
+          {
+            label: "WIDE ESTABLISHING SHOT",
+            note:
+              "WIDE establishing shot of the entire scene — characters occupy roughly the centre 35-45% of the frame, NOT a close-up. Show the full environment: trees, path, sky/ceiling, ground texture, depth into the distance. Characters' full bodies (head to feet) clearly visible with comfortable headroom and ground beneath them. The environment is the star of this frame.",
+          },
+          // idx 1 — mid shot, action moment
+          {
+            label: "MID SHOT (knees-up to full body)",
+            note:
+              "Mid shot — characters from the knees up or full body, occupying centre-left to centre of the frame. The right and far-background show clear environment (foliage, rocks, path). Show them DOING the action in SCENE ACTION (kneeling, peering, reaching).",
+          },
+          // idx 2 — over-the-shoulder / discovery angle
+          {
+            label: "OVER-THE-SHOULDER / DISCOVERY ANGLE",
+            note:
+              "Over-the-shoulder or three-quarter angle — show a glimpse of one character's back or shoulder framing the prop / discovery, with the other character partly visible reacting. The named prop (treasure, flower, door, etc.) is in the focal centre. Environment fills the surrounding space.",
+          },
+          // idx 3 — close-up on the prop / found object (this kind worked beautifully in the user's feedback)
+          {
+            label: "CLOSE-UP ON FOUND OBJECT",
+            note:
+              "Close-up on the named prop or focal object from SCENE ACTION (e.g. open treasure chest with gold spilling, glowing moonflower, key on moss). One or both characters lean in from the edges of the frame — partial faces and hands are fine; we don't need their full bodies. The prop fills 40-60% of the canvas. Background remains visible (forest, cave, etc.) with depth.",
+          },
+          // idx 4 — wide journey continuation
+          {
+            label: "WIDE JOURNEY SHOT (different location)",
+            note:
+              "WIDE shot of a DIFFERENT part of the woods/world from spread 1 — e.g. a clearing, a stone bridge, a glowing path, the mouth of a cave, a moonlit glade. Characters are smaller in the frame (roughly 25-35% of the canvas), environment dominates with trees/structures/sky stretching out. Strong sense of depth and journey.",
+          },
+          // idx 5 — final beat: medium close on faces of joy/relief
+          {
+            label: "MEDIUM CLOSE ON FACES (warm finale)",
+            note:
+              "Medium-close on the characters' faces and upper bodies sharing a warm finale moment (smiles, laughs, hug). Background still shows the location clearly behind them (e.g. treasure scattered around, the unicorn's mane catching light, lanterns glowing) — not a blank backdrop.",
+          },
+        ];
+
         const buildEditPrompt = (b: typeof briefs[number], idx: number) => {
           const composed = composeDallePrompt({
             preamble: stylePreamble,
@@ -1361,16 +1405,20 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
             firstPanelLock: panelLock,
             heroFirstName: childName,
           });
+          const shot = shotPlan[idx] ?? shotPlan[shotPlan.length - 1];
           // Strong repaint-the-environment directive on EVERY spread. Without
           // this, gpt-image-1's edits tend to keep the anchor's plain studio
           // backdrop, and the whole book ends up looking the same. The
           // reference image is for CHARACTERS ONLY.
           const repaintDirective =
             "REFERENCE USAGE — the attached reference is a CHARACTER MODEL SHEET only. " +
-            "Use it to LOCK identities (faces, hair, outfit colours, species, body shape, size ratios). " +
-            "DISCARD its background entirely — do NOT reuse its plain studio backdrop, plain dark void, neutral coloured wall, lineup pose, or generic spotlight. " +
-            "Paint a COMPLETELY NEW full-bleed environment for this exact story beat from SCENE ACTION below: midground action area, foreground props, mid/background landscape with depth, sky/ceiling, ground texture, and any named props (treasure chest, glowing flower, stone door, mossy logs, lanterns hanging from branches, etc). " +
-            "Vary composition between spreads (sometimes wide environmental shot showing trees and path; sometimes mid-shot with hero kneeling over a found item; sometimes over-the-shoulder peering into a cave or chest) — never repeat the same camera angle or backdrop twice. ";
+            "Use it to LOCK identities (faces, hair, outfit colours, species, body shape, size ratios) — but DO NOT copy its tight portrait/lineup crop, its plain studio backdrop, or its centred lineup pose. " +
+            "ZOOM OUT or RECOMPOSE as the SHOT TYPE below requires — the reference is at a much closer crop than this story spread should be. " +
+            "Paint a COMPLETELY NEW full-bleed environment for this exact story beat from SCENE ACTION: midground action area, foreground props, mid/background landscape with depth, sky/ceiling, ground texture, and any named props (treasure chest, glowing flower, stone door, mossy logs, lanterns hanging from branches, etc). ";
+          const shotDirective =
+            `SHOT TYPE for this spread (${idx + 1} of ${shotPlan.length}): ${shot.label}. ` +
+            `${shot.note} ` +
+            "DO NOT default to a tight chest-up portrait of the cast — match the SHOT TYPE precisely. ";
           const openingPrefix =
             idx === 0
               ? "OPENING SPREAD — establish the world: full painted environment matching SCENE ACTION (e.g. dark deep woods with twisted oak trunks, mossy ground, distant fog between trees) with hand-held torches / lanterns if SCENE ACTION says so. Match LIGHTING/MOOD exactly. "
@@ -1378,7 +1426,8 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
           return (
             openingPrefix +
             repaintDirective +
-            "Story spread — NEW environment, NEW poses, NEW camera angle for this exact moment. " +
+            shotDirective +
+            "Story spread — NEW environment, NEW poses, NEW camera distance for this exact moment. " +
             "Keep hero and every named creature IDENTICAL to the reference (faces, hair, outfit colours, species, size). Only beings named in SCENE ACTION; no extra characters, no background crowd. " +
             "TEXTLESS — no letters, fake text, signs, paper scraps with writing, logos, or glyph noise. " +
             composed
