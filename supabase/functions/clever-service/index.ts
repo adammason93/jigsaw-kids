@@ -17,7 +17,7 @@ const CHARACTERS: Record<string, string> = {
 
 const PLACES: Record<string, string> = {
   beach: "a sunny beach with gentle waves and sand castles",
-  woods: "a magical forest with tall trees and dappled light",
+  woods: "a forest with tall trees — picture-book woods; match story mood (sunlit glade or dim mystical understory per plot)",
   castle: "a fairy-tale castle with colourful flags",
   garden: "a flower garden with butterflies",
   space: "a friendly cartoon planet with stars and a pastel rocket",
@@ -90,6 +90,23 @@ function composeDallePrompt(parts: {
   }
   const out = `${head}${mid}${cast}`;
   return out.slice(0, DALLE3_PROMPT_MAX);
+}
+
+/** Bias image prompts toward dim / torchlit scenes when the child's plot asks for them. */
+function plotLightingEnvAddon(plotHint: string): string {
+  const p = plotHint.trim();
+  if (!p) return "";
+  if (
+    !/dark|night|torch|lanterns?|moonlit|shadowy|spooky|dim|twilight|dusk|glow|stars|flicker|campfire|woods?\s*at\s*night|fairy\s*lights/i.test(
+      p,
+    )
+  ) {
+    return "";
+  }
+  return (
+    "LIGHTING/MOOD: dim mystical outdoor scene, warm torchlight or soft lantern glow, deep soft shadows between trees — " +
+    "not bright midday sun, not a washed-out white sky, not a generic sunny picnic or storybook street. "
+  );
 }
 
 async function compileCharacterLockForImages(
@@ -938,6 +955,7 @@ Rules:
 - DOUBLE-PAGE SPREADS: pair pages as (1,2), (3,4), (5,6), (7,8), (9,10), (11,12).
   Odd-numbered pages (1,3,5,7,9,11) are TEXT-FIRST pages only — use "illustrationBrief": null.
   Even-numbered pages (2,4,6,8,10,12) are PICTURE pages — each MUST have a non-null "illustrationBrief": a short visual scene description for an illustrator (no text to draw, no words on signs). Each brief MUST be different. The brief MUST spell out the same specific moment as the text on the previous page: same characters, action, setting details, and props — not a generic scene for that chapter. CRITICAL: If the text mentions a character or animal (like a monkey or giraffe), they MUST be explicitly listed and described in the illustrationBrief so the illustrator knows to draw them! CRITICAL FOR CONSISTENCY: DO NOT re-describe the characters' permanent looks (clothes, hair, colors) in the brief! Just state WHO is in the scene and WHAT they are doing (e.g. "Isaac and the Giraffe are standing next to a river"). The illustrator already has the master designs. If a character is NOT mentioned in the brief, they will NOT be drawn. COMPOSITION: Each brief should describe staging where main characters sit in the middle vertical band of the picture with headroom and visible feet — not jammed in a thin row along the bottom edge of the frame.
+  OPENING SPREAD (page 2 only — the first illustrationBrief): MUST match the opening beat from page 1 text and the child's plot idea together — same setting, mood, time of day, and key props. Example: if the plot is exploring dark woods with a unicorn and handheld torches, the FIRST picture must show dim woods, the unicorn buddy, characters with lit torches, and forest shadows — NOT a bright sunny clearing, NOT a paved plaza, NOT a finale picnic with random papers, and NOT a generic epilogue that skips the opening premise. Name the main friend character in this brief if they appear on page 1 (unicorn, dragon, etc.).
   When game people with portrait notes appear on a picture page, the brief should mention them looking like those notes (hair, outfit colours, age vibe).
 - If a "plot idea" is given, you MUST make it the central theme of the story and feature it heavily in EVERY illustration brief. If it is empty, invent a short happy outing that fits the setting.
 - JSON only, no markdown.`;
@@ -951,6 +969,7 @@ People from the child's games to include by name (friends/family — use them wa
 Plot idea from the child (CRITICAL: make this the core focus of the story and pictures): ${
     plotHint.length ? plotHint : "(none — invent a cosy little adventure that fits the setting)"
   }
+Page 1 and page 2 must OPEN this plot: the first illustration (page 2 brief) is the first scene readers see — match this plot's setting, props, and buddy (e.g. dark woods + unicorn + torches), not a different mood or story beat.
 
 Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "pink" | "blue" | "green", "pages": [ { "text": string, "illustrationBrief": string | null }, ... 12 items ] }`;
 
@@ -992,7 +1011,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
         : `HERO: ${childName}, young child, friendly rounded face, simple solid-colour top and trousers, soft matte clay toy 3D. BUDDY: ${characterDesc}, same toy-clay style, same design on every page.`;
 
   const stylePreamble =
-    "A completely textless illustration. DO NOT include any writing, letters, words, typography, labels, speech bubbles, newspapers, stone runes, book pages with text, watermarks, UI, or blurry shapes that look like fake paragraphs or gibberish anywhere in the image. " +
+    "A completely textless illustration. DO NOT include any writing, letters, words, typography, labels, speech bubbles, newspapers, stone runes, book pages with text, loose paper sheets, scrolls, receipts, notebooks, stationery, litter, or ground clutter that looks like fake writing — no blurry shapes that look like fake paragraphs or gibberish anywhere. " +
     "The left third must be only smooth colour, soft sky, plain wall, or gentle gradient — zero pseudo-text texture there (the app draws real text in HTML). " +
     "CRITICAL LAYOUT RULE: Leave the left half of the image mostly uncluttered with a simple, soft, darker background so that WHITE storybook text can be printed over it clearly. Place the main characters and action on the right half or center-right of the image. " +
     "FRAMING: Keep hero and buddies mostly in the vertical middle band — heads not jammed against the top edge, feet not chopped by the bottom edge. Never line up the whole cast as a tiny strip along the bottom like stickers; show comfortable ground and body. " +
@@ -1000,7 +1019,9 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
     "Draw every creature named in SCENE ACTION. ";
 
   const envTheme =
-    `ENVIRONMENT: ${placeDesc}. ` + (plotHint.length > 0 ? `THEME: ${plotHint}. ` : "");
+    `ENVIRONMENT: ${placeDesc}. ` +
+    (plotHint.length > 0 ? `THEME: ${plotHint}. ` : "") +
+    plotLightingEnvAddon(plotHint);
 
   const pagesOut: { text: string; imageUrl: string | null }[] = [];
   let sceneImageUrl: string | null = null;
@@ -1050,7 +1071,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
       useFalRedux && Deno.env.get("STORYBOOK_FAL_CAST_ANCHOR") !== "0";
 
     const anchorPreamble =
-      "A completely textless illustration. NO letters, words, typography, labels, speech bubbles, signs with text, book pages with writing, glyph noise, watermarks, or fake paragraph texture anywhere. Plain smooth background regions only — no pseudo-text. " +
+      "A completely textless illustration. NO letters, words, typography, labels, speech bubbles, signs with text, book pages with writing, loose papers, scrolls, glyph noise, watermarks, or fake paragraph texture anywhere. Plain smooth background regions only — no pseudo-text. " +
       "CAST LINEUP / MODEL SHEET for a kids picture book: the hero and every main creature together in ONE frame, neutral friendly poses, " +
       "full bodies visible above the bottom edge with headroom, soft matte clay and toy-plastic 3D, gentle pastel light, plain soft background so each design reads clearly. " +
       "Edge-to-edge, wholesome for toddlers. ";
@@ -1092,18 +1113,28 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
               firstPanelLock: panelLock,
             });
             try {
+              const openingPrefix =
+                idx === 0
+                  ? "OPENING SPREAD — replace the plain reference backdrop with a full painted environment from SCENE ACTION (forest depth, ground, sky, hand-held torches or lanterns if in the scene). " +
+                    "Match THEME/LIGHTING/MOOD exactly — not a bright sunny epilogue field or unrelated finale. " +
+                    "Keep hero and every creature IDENTICAL to the reference (faces, hair, outfit colours, species, size). "
+                  : "";
               const falPrompt =
+                openingPrefix +
                 "Story spread — NEW scene, poses, and background for this moment only. " +
                 "Keep hero and every creature IDENTICAL to the reference lineup (faces, hair, outfit colours, species, size). " +
-                "TEXTLESS — no letters, fake text, signs, or glyph noise; soft matte clay toy 3D. " +
+                "TEXTLESS — no letters, fake text, signs, paper scraps with writing, or glyph noise; soft matte clay toy 3D. " +
                 "FRAME: subjects in middle vertical band with feet and faces fully inside the canvas — not a bottom-cropped row. " +
-                composed.slice(0, FAL_REDUX_PROMPT_MAX - 260);
+                composed.slice(0, FAL_REDUX_PROMPT_MAX - 420);
+              // Lower image→image strength on spread 1 so the opening scene can diverge from the neutral cast lineup.
+              const reduxStrength =
+                idx === 0 ? Math.max(0.18, falStrength - 0.12) : falStrength;
               const u = await falFluxReduxImageUrl(
                 falKey,
                 falReduxModel,
                 anchorUrl as string,
                 falPrompt,
-                falStrength,
+                reduxStrength,
               );
               falReduxSpreadCount++;
               return u;
@@ -1170,7 +1201,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
                   const falPrompt =
                     "New story moment — change poses, action, and background to match the scene. " +
                     "Keep the same hero face, hair, outfit colours, and the same buddy and creatures as the reference. " +
-                    "TEXTLESS — no words, signs, book pages with text, or gibberish texture; soft matte clay toy 3D only. " +
+                    "TEXTLESS — no words, signs, book pages with text, paper scraps with writing, or gibberish texture; soft matte clay toy 3D only. " +
                     "FRAME: keep characters in the middle-to-upper-middle of the frame with visible feet — do not squash everyone along the bottom edge. " +
                     composed.slice(0, FAL_REDUX_PROMPT_MAX - 220);
                   const u = await falFluxReduxImageUrl(
