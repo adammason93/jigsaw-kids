@@ -1739,7 +1739,7 @@
                 window.alert(
                   "Saved on this device, but cloud backup failed:\n\n" +
                     msg +
-                    "\n\nIf this persists, open Supabase → Storage → storybook_room and check the file for your user folder.",
+                    "\n\nIf this keeps happening, ask a grown-up to check saved books in your account storage.";
                 );
               }
               if (hintEl) {
@@ -2248,6 +2248,91 @@
     }
   }
 
+  function initPortalWelcome() {
+    var el = document.getElementById("sbPortalWelcome");
+    if (!el) return;
+    var params;
+    try {
+      params = new URLSearchParams(window.location.search || "");
+    } catch (e) {
+      return;
+    }
+    if (String(params.get("from") || "") !== "portal") return;
+
+    var dismissBtn = document.getElementById("sbPortalWelcomeDismiss");
+    var reduced =
+      typeof window.matchMedia === "function" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    function cleanUrl() {
+      try {
+        var u = new URL(window.location.href);
+        if (!u.searchParams.has("from")) return;
+        u.searchParams.delete("from");
+        var next = u.pathname + (u.search || "") + (u.hash || "");
+        window.history.replaceState({}, "", next);
+      } catch (e2) {}
+    }
+
+    function dismiss() {
+      if (!el || el.hidden) return;
+      el.classList.add("is-leaving");
+      document.body.classList.remove("sb-portal-welcome-open");
+      window.setTimeout(function () {
+        el.hidden = true;
+        el.classList.remove("is-active", "is-leaving");
+        el.setAttribute("aria-hidden", "true");
+        document.removeEventListener("keydown", onKey);
+        var startBtn = document.getElementById("sbStartJourney");
+        if (startBtn && typeof startBtn.focus === "function") {
+          startBtn.focus();
+        }
+      }, reduced ? 120 : 340);
+    }
+
+    function onKey(ev) {
+      if (ev.key === "Escape") {
+        ev.preventDefault();
+        dismiss();
+      }
+    }
+
+    cleanUrl();
+    el.hidden = false;
+    el.setAttribute("aria-hidden", "false");
+    document.body.classList.add("sb-portal-welcome-open");
+    document.addEventListener("keydown", onKey);
+
+    if (dismissBtn) {
+      dismissBtn.addEventListener("click", function (e) {
+        e.preventDefault();
+        dismiss();
+      });
+    }
+
+    el.addEventListener("click", function (e) {
+      if (
+        e.target &&
+        e.target.classList &&
+        e.target.classList.contains("sb-portal-welcome__veil")
+      ) {
+        dismiss();
+      }
+    });
+
+    if (reduced) {
+      el.classList.add("is-active");
+      if (dismissBtn) dismissBtn.focus();
+    } else {
+      window.requestAnimationFrame(function () {
+        window.requestAnimationFrame(function () {
+          el.classList.add("is-active");
+          if (dismissBtn) dismissBtn.focus();
+        });
+      });
+    }
+  }
+
   function startStorybookApp() {
   buildChipRows();
   initVoiceUi();
@@ -2366,6 +2451,7 @@
     }
   }
 
+  initPortalWelcome();
   startStorybookApp();
 
   if (immersiveReaderMq.addEventListener) {
@@ -2472,7 +2558,7 @@
       var url = functionUrl();
       var key = anonKey();
       if (!url || !key) {
-        setError("Story server isn’t configured. Check score-config (Supabase URL + anon key).");
+        setError("Story magic isn’t set up here yet. Ask a grown-up to open ⚙️ and check sign-in / settings.");
         return;
       }
       var childName = nameInput ? nameInput.value.trim() : "";
@@ -2516,20 +2602,20 @@
             var msg;
             if (isTimeout) {
               msg =
-                "The story maker hit a server time limit (" + out.status + "). Making the book asks for a story plus six pictures in one run; try again, or ask a grown-up to check clever-service logs/duration.";
+                "The story maker ran out of time — it was still drawing lots of pictures. Wait a moment and try again, or ask a grown-up for help.";
             } else if (b.error === "server_missing_openai") {
               msg =
-                "OpenAI isn’t connected yet. A grown-up needs to set OPENAI_API_KEY on the story function.";
+                "Story drawing isn’t turned on for this game yet. A grown-up needs to finish setup on the server.";
             } else if (b.error === "fal_failed" && b.detail) {
               msg =
-                "The picture maker (Fal) stopped part-way — we didn’t switch to a different artist, so you weren’t given a mismatched book. Wait a moment and try again, or ask a grown-up to check Fal billing, FAL_KEY, and the function logs. " +
+                "We couldn’t finish all the pictures — you weren’t given a mismatched book. Wait a moment and try again, or ask a grown-up to check billing and setup. " +
                 String(b.detail).slice(0, 400);
             } else if (b.error === "images_failed" && b.detail) {
               msg =
                 "Couldn’t make the book (pictures). " + String(b.detail);
             } else if (b.error === "story_failed") {
               msg =
-                "Couldn’t generate the story (OpenAI). Try again — if this repeats, check the function logs and API key.";
+                "Couldn’t finish the story text. Try again — if it keeps happening, ask a grown-up to check the setup.";
             } else if (b.error && typeof b.error === "string") {
               msg = "Couldn’t make the book (" + b.error + ").";
             } else {
@@ -2560,10 +2646,8 @@
           var u = functionUrl();
           setError(
             u
-              ? "Can’t reach the story server (" +
-                u +
-                "). Check connection, Supabase function + OPENAI_API_KEY, and storybookEdgeSlug in score-config if the URL slug changed."
-              : "Story server isn’t configured. Check score-config (Supabase URL + anon key)."
+              ? "Can’t reach the story magic right now. Check your internet, or ask a grown-up to try again in a minute."
+              : "Story magic isn’t set up here yet. Ask a grown-up to open ⚙️ and check sign-in / settings."
           );
         })
         .finally(function () {

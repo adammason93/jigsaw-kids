@@ -92,6 +92,179 @@ body.page-storybook.sb-modal-open {
   font-size: 0.95rem;
 }
 
+/* Full-screen welcome when opening storybook from main portal (?from=portal) */
+body.sb-portal-welcome-open {
+  overflow: hidden;
+}
+
+.sb-portal-welcome {
+  position: fixed;
+  inset: 0;
+  z-index: 8500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: max(1rem, env(safe-area-inset-top)) 1.25rem max(1rem, env(safe-area-inset-bottom));
+  box-sizing: border-box;
+}
+
+.sb-portal-welcome[hidden] {
+  display: none !important;
+}
+
+.sb-portal-welcome__veil {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 85% 70% at 50% 45%, rgba(255, 253, 251, 0.55) 0%, transparent 55%),
+    linear-gradient(165deg, rgba(245, 230, 255, 0.42) 0%, rgba(253, 232, 242, 0.5) 50%, rgba(220, 210, 245, 0.45) 100%);
+  opacity: 0;
+  transition: opacity 0.55s ease;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.sb-portal-welcome.is-active .sb-portal-welcome__veil {
+  opacity: 1;
+}
+
+.sb-portal-welcome__inner {
+  position: relative;
+  width: min(22rem, 100%);
+  padding: 1.65rem 1.35rem 1.5rem;
+  border-radius: 24px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.94) 0%, rgba(252, 247, 255, 0.92) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.95);
+  box-shadow:
+    0 4px 0 rgba(180, 140, 200, 0.12),
+    0 28px 56px rgba(75, 40, 90, 0.18),
+    inset 0 1px 0 #fff;
+  text-align: center;
+  transform: scale(0.88) translateY(12px);
+  opacity: 0;
+  transition:
+    transform 0.55s cubic-bezier(0.34, 1.35, 0.64, 1),
+    opacity 0.45s ease;
+}
+
+.sb-portal-welcome.is-active .sb-portal-welcome__inner {
+  transform: scale(1) translateY(0);
+  opacity: 1;
+}
+
+.sb-portal-welcome.is-leaving .sb-portal-welcome__veil {
+  opacity: 0;
+  transition-duration: 0.28s;
+}
+
+.sb-portal-welcome.is-leaving .sb-portal-welcome__inner {
+  transform: scale(0.96) translateY(-8px);
+  opacity: 0;
+  transition:
+    transform 0.32s ease,
+    opacity 0.28s ease;
+}
+
+.sb-portal-welcome__sparkles {
+  position: absolute;
+  inset: -6px;
+  border-radius: inherit;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: 0.85;
+}
+
+.sb-portal-welcome__sparkles::before,
+.sb-portal-welcome__sparkles::after {
+  content: "";
+  position: absolute;
+  width: 120%;
+  height: 120%;
+  left: -10%;
+  top: -10%;
+  background-image:
+    radial-gradient(circle at 15% 22%, rgba(255, 220, 120, 0.55) 0%, transparent 9px),
+    radial-gradient(circle at 78% 18%, rgba(255, 182, 220, 0.5) 0%, transparent 8px),
+    radial-gradient(circle at 42% 78%, rgba(186, 230, 253, 0.5) 0%, transparent 7px),
+    radial-gradient(circle at 88% 72%, rgba(196, 181, 253, 0.45) 0%, transparent 8px),
+    radial-gradient(circle at 8% 65%, rgba(253, 224, 171, 0.5) 0%, transparent 6px);
+  background-size: 100% 100%;
+  animation: sb-portal-sparkle-drift 4.5s ease-in-out infinite;
+}
+
+.sb-portal-welcome__sparkles::after {
+  animation-delay: -2.2s;
+  opacity: 0.7;
+}
+
+@keyframes sb-portal-sparkle-drift {
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  50% {
+    transform: translate(3%, -2%) rotate(4deg);
+  }
+}
+
+.sb-portal-welcome__kicker {
+  position: relative;
+  margin: 0 0 0.35rem;
+  font-family: "Nunito", system-ui, sans-serif;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #7c3a6a;
+  letter-spacing: 0.02em;
+}
+
+.sb-portal-welcome__title {
+  position: relative;
+  margin: 0 0 0.65rem;
+  font-family: "Fredoka", "Sniglet", "Nunito", sans-serif;
+  font-size: clamp(1.6rem, 5vw, 1.9rem);
+  font-weight: 800;
+  color: #6b2f52;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+.sb-portal-welcome__lead {
+  position: relative;
+  margin: 0 0 1.25rem;
+  font-family: "Nunito", system-ui, sans-serif;
+  font-size: 0.98rem;
+  font-weight: 600;
+  color: rgba(80, 45, 70, 0.88);
+  line-height: 1.55;
+}
+
+.sb-portal-welcome__dismiss {
+  position: relative;
+  width: 100%;
+  max-width: 16rem;
+  margin: 0 auto;
+  border-radius: 14px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sb-portal-welcome__veil,
+  .sb-portal-welcome__inner {
+    transition: opacity 0.2s ease;
+  }
+
+  .sb-portal-welcome.is-active .sb-portal-welcome__inner {
+    transform: none;
+  }
+
+  .sb-portal-welcome__sparkles::before,
+  .sb-portal-welcome__sparkles::after {
+    animation: none;
+  }
+
+  .sb-portal-welcome.is-leaving .sb-portal-welcome__inner {
+    transform: none;
+  }
+}
+
 .sb-landing {
   text-align: center;
   padding: 0.5rem 0 1.5rem;

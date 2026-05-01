@@ -8,7 +8,7 @@
   <link rel="manifest" href="../manifest.json" />
   <link rel="stylesheet" href="../js/kids-core.css" />
   <!-- storybook-app.css = renamed file so CDN/browser cache cannot keep old storybook.css -->
-  <link rel="stylesheet" href="storybook-app.css?v=48" />
+  <link rel="stylesheet" href="storybook-app.css?v=49" />
   <link rel="stylesheet" href="../tablet-ipad.css" />
   <!-- Last wins: guarantees new background even if a proxy cached an ancient stylesheet elsewhere -->
   <style>
@@ -26,6 +26,29 @@
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Kalam:wght@400;700&family=Nunito:wght@600;700;800&family=Schoolbell&family=Sniglet:wght@400;800&display=swap" rel="stylesheet" />
 </head>
 <body class="page-storybook sb-route-story">
+  <!-- Magical welcome when arriving from main portal (?from=portal) -->
+  <div
+    class="sb-portal-welcome"
+    id="sbPortalWelcome"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="sbPortalWelcomeTitle"
+    aria-hidden="true"
+    hidden
+  >
+    <div class="sb-portal-welcome__veil" aria-hidden="true"></div>
+    <div class="sb-portal-welcome__inner">
+      <div class="sb-portal-welcome__sparkles" aria-hidden="true"></div>
+      <p class="sb-portal-welcome__kicker">✨ Your story room ✨</p>
+      <h2 class="sb-portal-welcome__title" id="sbPortalWelcomeTitle">Welcome in!</h2>
+      <p class="sb-portal-welcome__lead">
+        Build a brand-new book or open one you’ve put on your shelf.
+      </p>
+      <button type="button" class="sb-portal-welcome__dismiss sb-btn sb-btn--primary" id="sbPortalWelcomeDismiss">
+        Let’s go
+      </button>
+    </div>
+  </div>
   <div class="sb-app" id="app">
     <nav class="sb-nav">
       <a class="sb-back back-btn" href="../index.html" aria-label="Back to all games">
@@ -46,8 +69,7 @@
               Your own magical reading nook — tap below to start a journey.
             </p>
             <p class="sb-landing__lead">
-              A little journey — a few pop-up questions. Then we draw the pictures and write the story
-              (OpenAI + Supabase).
+              A little journey — a few pop-up questions. Then we draw the pictures and write the story for you.
             </p>
           </div>
           <p class="sb-note sb-note--landing" id="sbError" role="alert" hidden></p>
@@ -57,7 +79,7 @@
             </button>
             <div class="sb-landing__secondary">
               <button type="button" class="sb-btn sb-btn--ghost sb-btn--landing-secondary" id="sbPreviewSample">
-                Preview sample book (no OpenAI)
+                Preview sample book
               </button>
               <p class="sb-landing__demo-hint">
                 Uses the same two-page layout as a real story. Arrows move one spread at a time.
@@ -106,7 +128,7 @@
         <div class="sb-panel is-active" data-panel="0" id="sbPanel0">
           <p class="sb-panel__text">
             We’ll ask who you are, who might join from your games, who your buddy is, where you go, and what happens.
-            Grown-ups: the story magic uses your Supabase function + OpenAI key.
+            Grown-ups: turn on story magic in Settings (⚙️) when you’re ready — sign in so books can be saved.
           </p>
           <div class="sb-modal__actions">
             <button type="button" class="sb-btn sb-btn--primary sb-btn--modal" id="sbNext0">Let’s go</button>
@@ -398,7 +420,7 @@
   <script src="../js/storybook-shelf-store.js" defer></script>
   <!-- Required for cloud shelf sync + upload (same as other games) -->
   <script src="../js/score-cloud.js" defer></script>
-  <script src="storybook.js?v=269" defer></script>
+  <script src="storybook.js?v=271" defer></script>
   <script>
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("../sw.js").catch(function () {});
