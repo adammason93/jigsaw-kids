@@ -6,9 +6,16 @@
   var CHARACTERS = [
     { id: "unicorn", label: "Unicorn" },
     { id: "dragon", label: "Little dragon" },
+    { id: "dinosaur", label: "Dinosaur" },
     { id: "robot", label: "Robot" },
     { id: "bunny", label: "Bunny" },
     { id: "teddy", label: "Teddy bear" },
+    { id: "cat", label: "Kitty" },
+    { id: "dog", label: "Puppy" },
+    { id: "fox", label: "Fox" },
+    { id: "penguin", label: "Penguin" },
+    { id: "owl", label: "Owl" },
+    { id: "octopus", label: "Octopus" },
   ];
 
   var PLACES = [
@@ -17,6 +24,19 @@
     { id: "castle", label: "Castle" },
     { id: "garden", label: "Garden" },
     { id: "space", label: "Space" },
+    { id: "sea", label: "Open sea" },
+    { id: "pirateship", label: "Pirate ship" },
+    { id: "mountain", label: "Mountains" },
+    { id: "zoo", label: "Zoo" },
+    { id: "farm", label: "Farm" },
+    { id: "circus", label: "Circus" },
+    { id: "city", label: "Toy town" },
+    { id: "train", label: "Train ride" },
+    { id: "lake", label: "Lake" },
+    { id: "snow", label: "Snowy land" },
+    { id: "desert", label: "Desert" },
+    { id: "museum", label: "Museum" },
+    { id: "island", label: "Tropical island" },
   ];
 
   var STEP_HEADINGS = [

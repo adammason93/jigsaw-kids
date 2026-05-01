@@ -11,9 +11,18 @@ const CHARACTERS: Record<string, string> = {
   unicorn:
     "a friendly horse-like unicorn with four hooves, equine face and body, single spiral horn on forehead, sparkly mane and tail",
   dragon: "a small cute dragon with soft round wings",
+  dinosaur:
+    "a friendly small upright cartoon dinosaur with a soft rounded snout, big eyes, short tail, and stubby arms — toy-clay style, rounded scales, never scary",
   robot: "a round friendly robot with big eyes",
   bunny: "a fluffy bunny with long ears",
   teddy: "a cuddly teddy bear",
+  cat: "a cute round cartoon cat with big eyes and soft striped fur, tiny paws, simple whiskers",
+  dog: "a friendly floppy-eared cartoon puppy with big eyes, soft fur, and a wagging tail",
+  fox: "a small bright storybook fox with big ears, a fluffy tail, and a friendly face — soft warm colours",
+  penguin: "a round cartoon penguin with big eyes and simple flippers — classic black-and-white markings, wobbly cute stance",
+  owl: "a small wide-eyed cartoon owl with soft feather tufts and rounded wings — gentle perch-ready pose",
+  octopus:
+    "a small cheerful cartoon octopus with a round body and curly tentacles — soft colours, big friendly eyes, rounded suckers",
 };
 
 const PLACES: Record<string, string> = {
@@ -22,6 +31,26 @@ const PLACES: Record<string, string> = {
   castle: "a fairy-tale castle with colourful flags",
   garden: "a flower garden with butterflies",
   space: "a friendly cartoon planet with stars and a pastel rocket",
+  sea: "open sea and rolling waves — wide horizon, soft blues and foam, friendly sail shapes or a wooden ship rail in the mid-distance, gulls and sparkle",
+  pirateship:
+    "aboard a colourful storybook sailing ship — wooden decks, rope coils, masts and billowing sails, brass fittings; cheerful pirate-adventure mood with no skull flags, cannons, or weapons",
+  mountain:
+    "rolling green hills and rocky peaks — winding paths, wildflowers, soft clouds, maybe a wooden bridge or lookout, crisp bright air",
+  zoo: "a cheerful storybook zoo — wide leafy paths, friendly rounded enclosure fences, toy-bright viewing decks, colourful kiosks with no readable text, no crowds of stranger faces",
+  farm: "a sunny storybook farm — red barn, golden hay bales, green fields, fence lines, a tractor in soft focus, chickens scratching nearby",
+  circus:
+    "a circus fairground and big top — striped tent, bunting flags, soft lights, carousel shapes in the distance, cotton-candy colours, gentle silly fun (no scary clowns)",
+  city:
+    "a friendly toy-town city — rounded pastel buildings, bakeries and shop awnings, flower boxes, simple cars and lampposts, no readable shop signs",
+  train:
+    "a vintage storybook train journey — gleaming locomotive, plush carriage seats, big windows showing passing hills or coastline, station platform glimpses",
+  lake: "a peaceful lake shore — reeds, wooden jetty or rowing boat, lily pads, distant treeline, gentle ripples, dragonflies",
+  snow: "a snowy winter landscape — soft drifts, pine trees with sugar-frost tops, scarf-bright colours, maybe a sled path and distant cottages with glowing windows",
+  desert: "soft cartoon desert dunes — warm rose and gold sand, rounded cactus shapes, distant rock mesas, clear turquoise sky",
+  museum:
+    "a bright children's museum hall — big dinosaur skeleton silhouette in the round, colourful display cases with toy-like exhibits, polished floor reflections",
+  island:
+    "a tiny tropical island — curved beach, palm trees, tide pools, bright lagoon colours, inviting storybook adventure vibe",
 };
 
 /** Paths relative to site root; must match static deploy + `kids-game-characters.js` portrait fields. */
@@ -86,7 +115,7 @@ function composeDallePrompt(parts: {
     `TEXT-LOCKED CAST: Draw ONLY the people and creatures explicitly named in SCENE ACTION — exactly who this spread's verse names or clearly refers to (no one else). ` +
     `When ${parts.heroFirstName} is named in SCENE ACTION, they must appear clearly in the foreground (full face, correct child). ` +
     `Only ONE imaginary buddy individual from the BUDDY line (e.g. one unicorn), not a duplicate big+small pair, unless SCENE ACTION explicitly names two distinct buddies. ` +
-    `NO unnamed villagers, torch-bearer extras, silhouettes with faces, mascots, or filler crowd. NO logos or brand marks. Background = whatever PLACE/ENVIRONMENT specifies (castle interior/grounds, woodland, cave, beach, garden, etc.) without extra faced characters beyond SCENE ACTION.\n\n`;
+    `NO unnamed villagers, torch-bearer extras, silhouettes with faces, mascots, or filler crowd. NO logos or brand marks. Background = whatever PLACE/ENVIRONMENT specifies (castle, woods, cave, beach, garden, space, sea, ship, mountain, zoo, farm, circus, city, train, lake, snow, desert, museum, island, etc.) without extra faced characters beyond SCENE ACTION.\n\n`;
   const mid =
     `SCENE ACTION: ${parts.sceneBrief}\n\n${identity}${lockChunk}MANDATORY CAST (same toy-clay 3D models on every page — identical proportions, colours, species; do not redesign or swap styles):\n`;
   const head = `${parts.preamble}${parts.envTheme}`;
@@ -109,9 +138,24 @@ function plotLightingEnvAddon(plotHint: string, heroFirstName: string): string {
   const isCastle = /castle|fortress|palace|throne|drawbridge|turret|tower|keep|dungeon|battlement/i.test(p);
   const isWoods = /woods?|forest|trees|jungle|glade|grove|thicket|undergrowth/i.test(p);
   const isCave = /cave|cavern|tunnel|underground/i.test(p);
-  const isUnderwater = /underwater|ocean|sea|coral|reef|mermaid|submarine/i.test(p);
+  const isUnderwater =
+    /underwater|under\s*the\s*sea|ocean\s*floor|submarine|mermaid|kelp|seabed|\bcoral\s+reef\b/i.test(p);
   const isSpace = /space|stars|moon|planet|galaxy|cosmic|rocket|comet/i.test(p);
   const isBeach = /beach|shore|sand|seaside/i.test(p);
+  const isSeaSurface =
+    /\b(at\s*sea|open\s*ocean|sailing|yacht|on\s+the\s+waves)\b/i.test(p) ||
+    /\b(pirate\s*ship|galleon|shipwreck|aboard\s+a\s+ship)\b/i.test(p);
+  const isMountain = /mountain|mountains|alpine|summit|peak|hillside|hilltop/i.test(p);
+  const isZoo = /zoo|safari|petting\s+zoo|animal\s+park|aquarium/i.test(p);
+  const isFarm = /farm|barn|tractor|hayloft|farmland/i.test(p);
+  const isCircus = /circus|big\s*top/i.test(p);
+  const isTrain = /train|railway|locomotive|carriage|station\s+platform/i.test(p);
+  const isCity = /\b(town|city|market\s+square|high\s*street)\b/i.test(p);
+  const isDesert = /desert|sand\s*dunes|oasis/i.test(p);
+  const isSnow = /snow|snowy|igloo|ski\s+slope|winter\s+wonderland/i.test(p);
+  const isLake = /lake|lakeside|riverbank|rowing\s+boat/i.test(p);
+  const isMuseum = /museum|gallery/i.test(p);
+  const isIsland = /tropical\s*island|on\s+an\s+island|island\s+adventure/i.test(p);
 
   const isDimMood = /dark|night|torch|lanterns?|moonlit|shadowy|spooky|dim|twilight|dusk|glow|flicker|campfire|fairy\s*lights/i.test(p);
   const hasHandTorches = /\btorch(es)?\b/i.test(p);
@@ -135,6 +179,15 @@ function plotLightingEnvAddon(plotHint: string, heroFirstName: string): string {
     } else if (isBeach) {
       lighting +=
         "moonlit beach at night — silver moonlight on calm waves, warm bonfire or lantern glow on faces. ";
+    } else if (isSeaSurface) {
+      lighting +=
+        "cool moonlit open water — silver highlights on rolling waves, warm lantern glow if aboard a ship. ";
+    } else if (isMuseum || isZoo) {
+      lighting +=
+        "soft indoor exhibit lighting with gentle pools of warm light on faces and cool ambient fill. ";
+    } else if (isTrain) {
+      lighting +=
+        "warm golden carriage lamps with blue dusk or night sky visible through big windows. ";
     } else {
       // Outdoor / woods default
       lighting +=
@@ -187,6 +240,67 @@ function plotLightingEnvAddon(plotHint: string, heroFirstName: string): string {
   if (isBeach) {
     parts.push(
       "STRUCTURE: soft sand, gentle waves, scattered shells, distant calm horizon, maybe palm trees or rocky outcrops. ",
+    );
+  }
+  if (isSeaSurface && !isUnderwater) {
+    parts.push(
+      "STRUCTURE: rolling ocean waves, wide horizon, salt-spray sparkle, wooden ship rails or deck planks if aboard a vessel, distant friendly sails. " +
+        "This is surface water or ship deck — NOT a deep underwater seabed unless the plot also says underwater. ",
+    );
+  }
+  if (isMountain) {
+    parts.push(
+      "STRUCTURE: grassy slopes, rocky outcrops, winding paths, wildflowers, soft clouds around peaks, distant valleys. ",
+    );
+  }
+  if (isZoo) {
+    parts.push(
+      "STRUCTURE: wide leafy paths, rounded enclosure fences, viewing platforms, toy-bright exhibit shapes — show setting depth without crowds of stranger faces or readable signage. ",
+    );
+  }
+  if (isFarm) {
+    parts.push(
+      "STRUCTURE: red barn, hay bales, green fields, fence lines, distant tractor, chicken coop shapes, orchard rows optional. ",
+    );
+  }
+  if (isCircus) {
+    parts.push(
+      "STRUCTURE: striped big top, bunting flags, fairground lights, carousel silhouettes, soft cotton-candy colours. ",
+    );
+  }
+  if (isTrain) {
+    parts.push(
+      "STRUCTURE: locomotive nose, plush seats, big picture windows, luggage racks, station platform glimpses, passing countryside blur. ",
+    );
+  }
+  if (isCity) {
+    parts.push(
+      "STRUCTURE: rounded pastel buildings, awnings, flower boxes, simple toy cars, lampposts, market stalls without readable text. ",
+    );
+  }
+  if (isDesert) {
+    parts.push(
+      "STRUCTURE: soft dunes, rounded cactus shapes, distant mesas, heat-shimmer optional, clear bright sky. ",
+    );
+  }
+  if (isSnow) {
+    parts.push(
+      "STRUCTURE: snowdrifts, frosted pine trees, sled tracks, cottage windows glowing warm, icicles optional. ",
+    );
+  }
+  if (isLake) {
+    parts.push(
+      "STRUCTURE: reeds, wooden jetty, lily pads, calm ripples, distant forest line, dragonflies optional. ",
+    );
+  }
+  if (isMuseum) {
+    parts.push(
+      "STRUCTURE: polished floors, tall exhibit halls, dinosaur skeleton silhouette, colourful display cases with toy-like objects, no readable labels. ",
+    );
+  }
+  if (isIsland) {
+    parts.push(
+      "STRUCTURE: curved beach, palm trunks, tide pools, lagoon colours, small rocky headlands. ",
     );
   }
 
@@ -1274,7 +1388,67 @@ Deno.serve(async (req) => {
         desc: "a glittering cave — rough rock walls, stalactites, narrow passages opening into wider chambers, occasional puddles reflecting torchlight",
       },
       {
-        pattern: /\b(underwater|under\s*the\s*sea|ocean\s*floor|coral|reef|mermaid)\b/i,
+        pattern: /\b(museum|gallery)\b/i,
+        key: "museum",
+        desc: PLACES.museum,
+      },
+      {
+        pattern: /\b(train|railway|locomotive|carriage|station\s+platform)\b/i,
+        key: "train",
+        desc: PLACES.train,
+      },
+      {
+        pattern: /\b(circus|big\s*top|under\s+the\s+circus\s+tent)\b/i,
+        key: "circus",
+        desc: PLACES.circus,
+      },
+      {
+        pattern: /\b(pirate\s*ship|galleon|shipwreck|aboard\s+a\s+ship|on\s+a\s+pirate\s+ship)\b/i,
+        key: "pirateship",
+        desc: PLACES.pirateship,
+      },
+      {
+        pattern: /\b(zoo|safari\s*park|petting\s+zoo|animal\s*park|aquarium)\b/i,
+        key: "zoo",
+        desc: PLACES.zoo,
+      },
+      {
+        pattern: /\b(farm|barn|tractor|hayloft|farmland)\b/i,
+        key: "farm",
+        desc: PLACES.farm,
+      },
+      {
+        pattern: /\b(mountain|mountains|alpine|summit|peak|hillside|hilltop)\b/i,
+        key: "mountain",
+        desc: PLACES.mountain,
+      },
+      {
+        pattern: /\b(desert|sand\s*dunes|oasis)\b/i,
+        key: "desert",
+        desc: PLACES.desert,
+      },
+      {
+        pattern: /\b(snow|snowy|igloo|ski\s+slope|winter\s+wonderland)\b/i,
+        key: "snow",
+        desc: PLACES.snow,
+      },
+      {
+        pattern: /\b(town|city|market\s+square|high\s*street)\b/i,
+        key: "city",
+        desc: PLACES.city,
+      },
+      {
+        pattern: /\b(lake|lakeside|riverbank|rowing\s+boat)\b/i,
+        key: "lake",
+        desc: PLACES.lake,
+      },
+      {
+        pattern: /\b(tropical\s*island|on\s+an\s+island|island\s+adventure)\b/i,
+        key: "island",
+        desc: PLACES.island,
+      },
+      {
+        pattern: /\b(underwater|under\s*the\s*sea|ocean\s*floor|coral|reef|mermaid|submarine)\b/i,
         key: "undersea",
         desc: "an underwater world — coral formations, kelp forests, sandy seabed, fish schools in the mid-distance, soft caustic blue-green light from above",
       },
@@ -1282,6 +1456,11 @@ Deno.serve(async (req) => {
         pattern: /\b(space|outer\s*space|moon|planet|galaxy|cosmic|rocket|asteroid|comet)\b/i,
         key: "space",
         desc: "a friendly cartoon planet or asteroid in space — soft pastel landscape with distant ringed planets, comet trails, and starry sky",
+      },
+      {
+        pattern: /\b(at\s*sea|open\s*ocean|sailing|yacht|out\s*on\s*the\s*waves)\b/i,
+        key: "sea",
+        desc: PLACES.sea,
       },
       {
         pattern: /\b(beach|shore|seaside|sand\s*castle|surf|rockpool)\b/i,
@@ -1376,7 +1555,7 @@ Rules:
     • Never include a character in VISIBLE if the verse says they are NOT around for that moment.
   The DESCRIPTION (after VISIBLE) must spell out the same specific moment as the verse on the previous page: same action, same setting, same props, same time of day — not a generic scene and NEVER a different location or activity than the verse (e.g. if the verse says bouncy castle under the sky, the picture is that bouncy castle with sky visible — not a bike ride in the woods). NEVER add guardians, helpers, or creatures the verse does not mention. NEVER duplicate the buddy unless the text says so. CRITICAL FOR CONSISTENCY: DO NOT re-describe permanent looks (clothes, hair colours) in the brief — the illustrator has the master designs.
   ENVIRONMENT DETAIL (very important — each brief must paint a different *place* on the journey, matching the SETTING and PLOT IDEA above):
-    Every illustrationBrief MUST contain at least 2 specific environmental nouns (architecture, foliage, terrain, structure, weather, depth) AND at least 1 named prop or focal object from that beat. The environmental nouns MUST come from the actual SETTING and PLOT IDEA — if the plot says CASTLE, the briefs are inside or around a castle (stone walls, banners, courtyards, towers, throne room, drawbridge, tapestries) NOT in deep woods. If the plot says CAVE, the briefs are inside cave passages and chambers. If the plot says BEACH or UNDERSEA or SPACE, paint THAT setting. Only paint a forest if the plot or setting actually mentions woods/forest/trees.
+    Every illustrationBrief MUST contain at least 2 specific environmental nouns (architecture, foliage, terrain, structure, weather, depth) AND at least 1 named prop or focal object from that beat. The environmental nouns MUST come from the actual SETTING and PLOT IDEA — if the plot says CASTLE, the briefs are inside or around a castle (stone walls, banners, courtyards, towers, throne room, drawbridge, tapestries) NOT in deep woods. If the plot says CAVE, the briefs are inside cave passages and chambers. If the plot says BEACH, UNDERSEA, SPACE, ZOO, FARM, MOUNTAIN, DESERT, SNOW, LAKE, ISLAND, MUSEUM, CIRCUS, TRAIN, CITY, OPEN SEA, or PIRATE SHIP, paint THAT setting with matching props. Only paint a forest if the plot or setting actually mentions woods/forest/trees.
     Examples of good briefs — note how each one fits a DIFFERENT plot, and how each only includes things the plot would actually contain:
       • CASTLE plot: "${childName} and the dragon peek around a stone archway in a torchlit castle corridor, banners hanging from the wall, suit of armour standing nearby."
       • CASTLE plot: "${childName} climbs a spiral stone staircase inside a tower, narrow window showing the dragon flying past in the night sky."
@@ -1384,10 +1563,13 @@ Rules:
       • SPACE plot: "${childName} bounces on a soft pastel asteroid, ringed planet huge in the starry sky behind them."
       • UNDERWATER plot: "${childName} swims past a coral reef, rays of sunlight cutting down through the water, a friendly turtle alongside."
       • BAKERY plot: "${childName} stands at a wooden counter rolling out dough, flour cloud puffing up, big stone oven glowing warmly behind."
+      • ZOO plot: "${childName} and their buddy creature wave from a wide zoo path, leafy trees and a rounded viewing deck behind them, colourful enclosure shapes in soft focus."
+      • PIRATE SHIP plot: "${childName} balances on a sunny wooden deck beside coiled ropes, billowing sails and a bright horizon, the dragon perched on the rail like a lookout."
+      • MOUNTAIN plot: "${childName} hikes a flower-lined mountain path, rocky peaks and soft clouds above, a wooden bridge crossing a tiny stream."
     Vary the *place* between spreads in line with the plot's beats — e.g. CASTLE: gates → corridor → great hall → spiral tower → rooftop → courtyard with the dragon flying overhead. Don't repeat the same backdrop. State a different camera angle / shot type for each (wide establishing shot, mid shot, low-angle hero kneeling, over-the-shoulder peering, etc).
     Background details ARE allowed (in fact required) — what is NOT allowed is faced extras the verse doesn't mention.
     COMPOSITION / SCALE FOR THE ILLUSTRATOR: Full-bleed spreads — the setting and atmosphere fill the double-page edge-to-edge. Size the cast slightly smaller than a maximum hero fill so every listed character fits with a modest inset and no edge-clipping (full heads and feet on wide and mid shots; on closer shots, no clipped faces or hands). Do not shrink the whole illustration into a small inset on the page; keep the world immersive and only dial back character scale.
-  OPENING SPREAD (page 2 only — the first illustrationBrief): MUST match page 1 text and the child's plot, AND establish the actual SETTING (castle / woods / cave / beach / space / etc. — whichever the plot calls for). Page 1 text must name every main character the plot introduces (${childName}, any sibling/friend named in the plot idea, and the buddy creature by type — e.g. dinosaur). Only characters named on page 1 may appear on page 2's illustration. Example: if the plot is "hide and seek in a castle", the opening establishes castle gates / courtyard / great hall — NOT a forest. No unwritten extras.
+  OPENING SPREAD (page 2 only — the first illustrationBrief): MUST match page 1 text and the child's plot, AND establish the actual SETTING (castle / woods / cave / beach / space / zoo / farm / mountain / sea / ship / train / city / circus / lake / snow / desert / museum / island / etc. — whichever the plot calls for). Page 1 text must name every main character the plot introduces (${childName}, any sibling/friend named in the plot idea, and the buddy creature by type — e.g. dinosaur). Only characters named on page 1 may appear on page 2's illustration. Example: if the plot is "hide and seek in a castle", the opening establishes castle gates / courtyard / great hall — NOT a forest. No unwritten extras.
   When game people with portrait notes appear on a picture page, the brief should mention them looking like those notes (hair, outfit colours, age vibe).
 - If a "plot idea" is given, you MUST make it the central theme of the story and feature it heavily in EVERY illustration brief. If it is empty, invent a short happy outing that fits the setting.
 - PLOT FIDELITY — read the plot idea LITERALLY:
@@ -1480,7 +1662,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
     "STYLE: soft matte clay and toy-plastic 3D ONLY — rounded limbs, gentle pastel lighting, not realistic human skin, not glossy CGI. Edge-to-edge scene, no frames or borders. Wholesome and safe for toddlers. " +
     `HERO VISIBILITY: When "${childName}" appears in SCENE ACTION, they must be clearly visible (face on, not swapped for another kid). ` +
     "ONE BUDDY ANIMAL: Only one imaginary buddy creature from the BUDDY line in the image (e.g. one unicorn), not clones or a big+little pair, unless SCENE ACTION names two. " +
-    "TEXT-LOCKED: ONLY characters explicitly named in SCENE ACTION — same roster as this spread's verse, same count. NO unnamed extras: no villagers, silhouettes with faces, filler torch-bearers, spare animals, or audience. NO logos. Background = whatever the ENVIRONMENT line specifies (castle interior/grounds, woodland, cave, beach, garden, space, etc.) without extra faced characters. NO signs with lettering, carved runes, or flyers. ";
+    "TEXT-LOCKED: ONLY characters explicitly named in SCENE ACTION — same roster as this spread's verse, same count. NO unnamed extras: no villagers, silhouettes with faces, filler torch-bearers, spare animals, or audience. NO logos. Background = whatever the ENVIRONMENT line specifies (castle, woods, cave, beach, garden, space, sea, ship, mountain, zoo, farm, circus, city, train, lake, snow, desert, museum, island, etc.) without extra faced characters. NO signs with lettering, carved runes, or flyers. ";
 
   const envTheme =
     `ENVIRONMENT (paint THIS exact setting on every spread — do not default to woods or any other generic backdrop): ${placeDesc}. ` +
@@ -1810,7 +1992,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
             try {
               const openingPrefix =
                 idx === 0
-                  ? "OPENING SPREAD — replace the plain reference backdrop with a full painted environment from the ENVIRONMENT and SCENE ACTION above. Read it literally: castle, woods, cave, beach, garden, space — paint that exact setting with depth, architecture, terrain, sky/ceiling. Include hand-held torches or lanterns only if SCENE ACTION says so. " +
+                  ? "OPENING SPREAD — replace the plain reference backdrop with a full painted environment from the ENVIRONMENT and SCENE ACTION above. Read it literally: castle, woods, cave, beach, garden, space, sea, pirate ship, mountain, zoo, farm, circus, city, train, lake, snow, desert, museum, island — paint that exact setting with depth, architecture, terrain, sky/ceiling. Include hand-held torches or lanterns only if SCENE ACTION says so. " +
                     "Match THEME/LIGHTING/MOOD exactly — not a bright sunny epilogue field or unrelated finale. " +
                     "Keep hero and every creature IDENTICAL to the reference (faces, hair, outfit colours, species, size). "
                   : "";

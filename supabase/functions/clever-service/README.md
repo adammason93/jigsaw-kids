@@ -37,7 +37,7 @@ supabase functions deploy clever-service --no-verify-jwt
 
 (`verify_jwt` is off in `config.toml` for `[functions.clever-service]` so the static kids’ site can call with the **anon** key; use **Dashboard rate limits** and billing alerts.)
 
-The browser calls `…/functions/v1/clever-service` — set **`storybookEdgeSlug`** in `js/score-config.js` if you ever use a different slug.
+The browser calls `…/functions/v1/clever-service` — set **`storybookEdgeSlug`** in `js/score-config.js` if you ever use a different slug. **`character`** and **`place`** in the JSON body must be keys from `CHARACTERS` and `PLACES` in `supabase/functions/clever-service/index.ts` (the storybook UI lists the same ids in `games/storybook.js`).
 
 ## Cost (indicative)
 
