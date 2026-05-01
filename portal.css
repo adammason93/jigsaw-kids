@@ -49,6 +49,8 @@
   --theme-storybook-soft: #fce7f3;
   --theme-prompt-game: #7c3aed;
   --theme-prompt-game-soft: #ede9fe;
+  --theme-star-catcher: #354078;
+  --theme-star-catcher-soft: #e8f4fc;
 }
 
 html {
@@ -679,6 +681,11 @@ h2,
 .game-card--prompt-game {
   --card-accent: var(--theme-prompt-game);
   --card-soft: var(--theme-prompt-game-soft);
+}
+
+.game-card--star-catcher {
+  --card-accent: var(--theme-star-catcher);
+  --card-soft: var(--theme-star-catcher-soft);
 }
 
 a.game-card:hover {

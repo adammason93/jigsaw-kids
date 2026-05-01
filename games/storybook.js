@@ -1169,7 +1169,7 @@
       if (!url) return null;
       if (url.indexOf("data:") === 0) return url;
       
-      // 1. First fetch the image using CORS fetch to get the raw Blob.
+      // 1. First fetch the image using CORS fetch to get the raw Blob. 
       // Proxy DALL·E + Fal (and similar) through clever-service ?url= so CORS/shelf encoding works.
       var fetchUrl = url;
       var fUrl = functionUrl();
@@ -1332,7 +1332,7 @@
       if (onWritten) {
         onWritten();
       }
-      if (window.KidsScoreCloud && window.KidsScoreCloud.scheduleStorybookUpload) {
+        if (window.KidsScoreCloud && window.KidsScoreCloud.scheduleStorybookUpload) {
         window.KidsScoreCloud.scheduleStorybookUpload(raw, cloudDone);
       } else if (cloudDone) {
         cloudDone(null);
@@ -1368,17 +1368,17 @@
           localStorage.setItem(SHELF_STORAGE_KEY, r);
           afterPersistOk(r);
           return;
-        } catch (e) {
+      } catch (e) {
           if (tryList.length > 1) {
-            console.warn("localStorage quota exceeded, removing oldest book to make space.");
+          console.warn("localStorage quota exceeded, removing oldest book to make space.");
             tryList.pop();
-          } else {
+        } else {
             if (cloudDone) {
               cloudDone(e);
-            }
-            throw e;
-          }
         }
+            throw e;
+      }
+    }
       }
     }
     attempt();
@@ -1456,7 +1456,7 @@
       return b.id !== bookId;
     });
     saveShelf(list, null, function () {
-      renderShelf();
+    renderShelf();
     });
   }
 
@@ -1562,7 +1562,7 @@
     openBtn.className =
       "sb-cover-card sb-cover-card--hardback sb-cover-card--pat" +
       meta.pat +
-      (coverSrc ? "" : " sb-cover-card--placeholder");
+      (coverSrc ? " sb-cover-card--has-art" : " sb-cover-card--placeholder");
     openBtn.style.setProperty("--sb-h", String(meta.hue));
     openBtn.setAttribute("role", "listitem");
     openBtn.setAttribute("aria-label", "Open book: " + item.title);
@@ -1626,7 +1626,7 @@
       e.preventDefault();
       e.stopPropagation();
       if (window.confirm('Remove "' + item.title + '" from your shelf?')) {
-        removeShelfBook(item.id);
+      removeShelfBook(item.id);
       }
     });
     wrap.appendChild(openBtn);
@@ -1754,7 +1754,7 @@
               }
             },
             function () {
-              renderShelf();
+          renderShelf();
             },
           );
         } catch (e) {
@@ -2249,11 +2249,11 @@
   }
 
   function startStorybookApp() {
-    buildChipRows();
-    initVoiceUi();
+  buildChipRows();
+  initVoiceUi();
 
     function runAfterShelfHydrate() {
-      renderShelf();
+  renderShelf();
       setupShelfCloudSync();
     }
 
@@ -2331,7 +2331,7 @@
     pullShelfFromCloudNow();
     window.addEventListener("kids-scorecard-refresh", function () {
       reloadShelfCacheFromStore(function () {
-        renderShelf();
+          renderShelf();
       });
     });
     document.addEventListener("visibilitychange", function () {
