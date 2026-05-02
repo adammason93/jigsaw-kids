@@ -26,7 +26,8 @@ supabase secrets set FAL_KEY=...
 # supabase secrets set STORYBOOK_IMAGE_MODE=gptimage
 # supabase secrets set STORYBOOK_GPTIMAGE_MODEL=gpt-image-1.5   # or gpt-image-1, gpt-image-1-mini, etc.
 # supabase secrets set STORYBOOK_GPTIMAGE_MODERATION=low        # default low (omit or set low); use auto for OpenAI default moderation
-# supabase secrets set STORYBOOK_GPTIMAGE_QUALITY=low       # optional: cheaper; code default is medium — also high | auto
+# supabase secrets set STORYBOOK_GPTIMAGE_QUALITY=high    # optional: priciest; code default is medium (not high)
+# supabase secrets set STORYBOOK_GPTIMAGE_QUALITY=low       # optional: cheapest; code default is medium
 # supabase secrets set STORYBOOK_GPTIMAGE_SIZE=1536x1024    # optional: default 1024x1024 (cheapest); 1536x1024 = wider spread, costs more
 # supabase secrets set STORYBOOK_GPTIMAGE_INPUT_FIDELITY=low    # edits: low (default) | high — high costs more, sticks closer to anchor
 # supabase secrets set STORYBOOK_GPTIMAGE_CHUNK_SIZE=4         # how many spread edits to run in parallel per chunk (default 4 — anchor+4=5/min, the tier-1 ceiling)

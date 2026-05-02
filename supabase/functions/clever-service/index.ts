@@ -1547,7 +1547,7 @@ function gptImageModerationParam(): "low" | "auto" {
     : "low";
 }
 
-/** Default `medium` — acceptable art without `high` pricing; set `low` via secret to shave £/book. */
+/** Default `medium` — sharper than `low`, much cheaper than defaulting to `high`. Override: `STORYBOOK_GPTIMAGE_QUALITY=low|high|auto`. */
 function gptImageQualityParam(): "low" | "medium" | "high" | "auto" {
   const q = (Deno.env.get("STORYBOOK_GPTIMAGE_QUALITY") ?? "medium").trim().toLowerCase();
   if (q === "medium" || q === "high" || q === "auto") return q;
