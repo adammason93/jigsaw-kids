@@ -2342,7 +2342,7 @@ body.sb-portal-welcome-open {
   -webkit-transform: rotateY(180deg);
 }
 
-/* Text over full-bleed art: “ink on picture” styling targets .sb-flip-text__highlight under .sb-flip-spread__inner--has-art */
+/* Text over full-bleed art: plain type + soft shadow for legibility (no per-line tape) */
 .sb-flip-spread__inner--has-art .sb-flip-page--text .sb-flip-page__sheet {
   background: transparent;
   box-shadow: none;
@@ -2581,23 +2581,27 @@ body.sb-portal-welcome-open {
   box-shadow: 0 1px 3px rgba(42, 10, 31, 0.08);
 }
 
-/* Picture-book text over art: soft per-line “paper tape” — reads as part of the page, not a dark panel */
+/* Picture-book text over art: no background panels — light outline + shadow so type reads on busy colour */
 .sb-flip-spread__inner--has-art .sb-flip-text__highlight {
   display: inline;
   font-family: var(--sb-reader-font-over-art);
   font-size: clamp(1.35rem, 4.2vw, 1.75rem);
-  font-weight: 400;
+  font-weight: 500;
   letter-spacing: 0.02em;
   line-height: 1.55;
-  color: #2a141c;
+  color: #2a1814;
   text-align: left;
-  padding: 0.08em 0.38em;
-  background: rgba(255, 252, 249, 0.78);
-  border-radius: 0.32em;
+  padding: 0;
+  background: none;
+  border-radius: 0;
   box-decoration-break: clone;
   -webkit-box-decoration-break: clone;
-  box-shadow: 0 1px 2px rgba(45, 25, 40, 0.08);
-  text-shadow: none;
+  box-shadow: none;
+  text-shadow:
+    0 0 1px rgba(255, 255, 255, 0.95),
+    0 1px 0 rgba(255, 255, 255, 0.88),
+    0 2px 8px rgba(255, 255, 255, 0.55),
+    0 1px 3px rgba(0, 0, 0, 0.14);
   -webkit-text-stroke: 0;
   -webkit-font-smoothing: antialiased;
 }
@@ -2633,7 +2637,10 @@ body.sb-portal-welcome-open {
   display: inline-block;
   margin: 0.1em 0.05em 0 0.02em;
   -webkit-text-stroke: 0;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.65);
+  text-shadow:
+    0 0 1px rgba(255, 255, 255, 0.95),
+    0 1px 0 rgba(255, 255, 255, 0.75),
+    0 2px 6px rgba(0, 0, 0, 0.12);
 }
 
 .sb-flip-spread__inner--has-art .sb-word-reading {
@@ -2670,19 +2677,27 @@ body.sb-portal-welcome-open {
 
 .sb-flip-spread__inner--has-art .sb-the-end-title {
   color: #831843;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.75);
+  text-shadow:
+    0 0 1px rgba(255, 255, 255, 0.95),
+    0 1px 0 rgba(255, 255, 255, 0.85),
+    0 2px 8px rgba(255, 255, 255, 0.5),
+    0 1px 3px rgba(0, 0, 0, 0.12);
 }
 
 .sb-flip-spread__inner--has-art .sb-the-end-lead {
   color: #5c1835;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.65);
+  text-shadow:
+    0 0 1px rgba(255, 255, 255, 0.95),
+    0 1px 0 rgba(255, 255, 255, 0.85),
+    0 2px 8px rgba(255, 255, 255, 0.5),
+    0 1px 3px rgba(0, 0, 0, 0.12);
 }
 
 .sb-flip-spread__inner--has-art .sb-the-end-wrap {
   padding: 0.5rem 0.75rem;
-  border-radius: 0.5rem;
-  background: rgba(255, 252, 249, 0.72);
-  box-shadow: 0 1px 3px rgba(45, 25, 40, 0.08);
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
 }
 
 .sb-flip-page--art .sb-flip-page__sheet {
