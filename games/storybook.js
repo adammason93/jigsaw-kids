@@ -3060,6 +3060,9 @@
             } else if (b.error === "story_failed") {
               msg =
                 "Couldn’t finish the story text. Try again — if it keeps happening, ask a grown-up to check the setup.";
+              if (b.detail) {
+                msg += " " + String(b.detail).slice(0, 320);
+              }
             } else if (b.error && typeof b.error === "string") {
               msg = "Couldn’t make the book (" + b.error + ").";
             } else {

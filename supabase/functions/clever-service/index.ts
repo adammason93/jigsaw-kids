@@ -1053,6 +1053,11 @@ function unwrapJsonContent(raw: string): string {
   let s = raw.trim();
   const fence = /^```(?:json)?\s*([\s\S]*?)\s*```$/i.exec(s);
   if (fence) s = fence[1].trim();
+  const first = s.indexOf("{");
+  const last = s.lastIndexOf("}");
+  if (first !== -1 && last > first) {
+    s = s.slice(first, last + 1);
+  }
   return s;
 }
 
@@ -1124,7 +1129,7 @@ function normalizeStoryJson(raw: unknown): StoryJson {
   return { title, characterDesign, bookColor, pages };
 }
 
-async function openaiChatJson(
+async function openaiChatJsonOnce(
   apiKey: string,
   system: string,
   user: string
@@ -1138,7 +1143,7 @@ async function openaiChatJson(
     body: JSON.stringify({
       model: "gpt-4o-mini",
       temperature: 0.35,
-      max_tokens: 4000,
+      max_tokens: 10000,
       response_format: { type: "json_object" },
       messages: [
         { role: "system", content: system },
@@ -1149,12 +1154,18 @@ async function openaiChatJson(
 
   if (!r.ok) {
     const t = await r.text();
-    console.error("openai chat error", r.status, t);
+    console.error("openai chat error", r.status, t.slice(0, 900));
     throw new Error(`story_model_error:${r.status}`);
   }
 
   const data = await r.json();
-  const content = data.choices?.[0]?.message?.content;
+  const choice = data.choices?.[0];
+  const finish = choice?.finish_reason;
+  if (finish === "length") {
+    console.warn("[clever-service] story chat finish_reason=length (output may be truncated)");
+    throw new Error("story_truncated");
+  }
+  const content = choice?.message?.content;
   if (!content) throw new Error("story_empty");
   let parsed: unknown;
   try {
@@ -1169,6 +1180,38 @@ async function openaiChatJson(
   }
 
   return normalizeStoryJson(parsed);
+}
+
+async function openaiChatJson(
+  apiKey: string,
+  system: string,
+  user: string
+): Promise<StoryJson> {
+  const maxAttempts = 3;
+  let lastErr: Error | null = null;
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    if (attempt > 0) {
+      await delay(600 * attempt + Math.floor(Math.random() * 500));
+    }
+    try {
+      return await openaiChatJsonOnce(apiKey, system, user);
+    } catch (e) {
+      lastErr = e instanceof Error ? e : new Error(String(e));
+      const msg = lastErr.message;
+      const httpRetry = /^story_model_error:(429|5\d\d)$/.test(msg);
+      const softRetry =
+        msg === "story_parse" ||
+        msg === "story_empty" ||
+        msg === "story_truncated" ||
+        msg === "story_shape";
+      const retryable = httpRetry || softRetry;
+      if (!retryable || attempt === maxAttempts - 1) {
+        throw lastErr;
+      }
+      console.warn("[clever-service] openaiChatJson retry", attempt + 1, msg);
+    }
+  }
+  throw lastErr ?? new Error("story_unknown");
 }
 
 type DalleSize = "1024x1024" | "1792x1024" | "1024x1792" | "512x512" | "256x256";
@@ -2101,7 +2144,9 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
     story = await openaiChatJson(apiKey, system, user);
   } catch (e) {
     console.error(e);
-    return jsonResponse({ error: "story_failed" }, 502);
+    const detail =
+      e instanceof Error ? e.message.slice(0, 420) : String(e).slice(0, 420);
+    return jsonResponse({ error: "story_failed", detail }, 502);
   }
 
   const briefsSummary = ILLUSTRATED_PAGE_INDICES.map((idx) => story.pages[idx]?.illustrationBrief)
