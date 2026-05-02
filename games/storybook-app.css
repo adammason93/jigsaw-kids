@@ -2670,6 +2670,12 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   border-radius: 0 6px 6px 0;
 }
 
+/* Author `display:flex` above beats the default `[hidden]{display:none}` — without this, the flyleaf
+   stays an invisible white slab over the right half of #sbSpreadArtCover until the peel stacks above it. */
+.sb-flip-spread__art-flyleaf[hidden] {
+  display: none !important;
+}
+
 .sb-flip-spread__art-flyleaf .sb-flip-flyleaf-paragraph {
   margin: 0;
   font-family: var(--sb-reader-font-body, "Fredoka", "Nunito", sans-serif);
