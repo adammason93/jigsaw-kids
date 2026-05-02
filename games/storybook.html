@@ -9,7 +9,7 @@
   <link rel="manifest" href="../manifest.json" />
   <link rel="stylesheet" href="../js/kids-core.css" />
   <!-- storybook-app.css = renamed file so CDN/browser cache cannot keep old storybook.css -->
-  <link rel="stylesheet" href="storybook-app.css?v=59" />
+  <link rel="stylesheet" href="storybook-app.css?v=60" />
   <link rel="stylesheet" href="../tablet-ipad.css" />
   <!-- Last wins: guarantees new background even if a proxy cached an ancient stylesheet elsewhere -->
   <style>
@@ -157,21 +157,22 @@
           </div>
           <p class="sb-voice-hint" id="sbVoiceNameHint" aria-live="polite"></p>
           <div class="sb-hero-ref" id="sbHeroRefBlock">
-            <label class="sb-label sb-label--secondary" for="sbHeroPhoto">Photo of the hero (optional)</label>
+            <label class="sb-label sb-label--secondary" for="sbHeroPhoto">Photos of the hero (optional, up to 3)</label>
             <p class="sb-panel__hint sb-panel__hint--tight">
-              Helps the art match your child. Sent only to describe hair, skin, and clothes — pictures stay in soft toy style.
+              Different angles or lighting help the art stay on-model. Sent only to describe hair, skin, and clothes — pictures stay in soft toy style.
             </p>
             <input
               class="sb-hero-ref__input"
               type="file"
               id="sbHeroPhoto"
               accept="image/jpeg,image/png,image/webp"
+              multiple
               autocomplete="off"
             />
             <p class="sb-note sb-note--inline" id="sbHeroPhotoErr" role="alert" hidden></p>
-            <div class="sb-hero-ref__preview" id="sbHeroPhotoPreviewWrap" hidden>
-              <img class="sb-hero-ref__thumb" id="sbHeroPhotoPreview" alt="" width="96" height="96" decoding="async" />
-              <button type="button" class="sb-btn sb-btn--ghost sb-btn--small" id="sbHeroPhotoRemove">Remove photo</button>
+            <div class="sb-hero-ref__preview" id="sbHeroPhotoThumbsWrap" hidden>
+              <ul class="sb-hero-ref__thumbs" id="sbHeroPhotoThumbs" aria-label="Hero photo previews"></ul>
+              <button type="button" class="sb-btn sb-btn--ghost sb-btn--small" id="sbHeroPhotoRemove">Remove all photos</button>
             </div>
           </div>
           <label class="sb-label sb-label--secondary" for="sbBookTitle">What should we call your book?</label>
@@ -465,7 +466,7 @@
   <script src="../js/storybook-shelf-store.js" defer></script>
   <!-- Required for cloud shelf sync + upload (same as other games) -->
   <script src="../js/score-cloud.js" defer></script>
-  <script src="storybook.js?v=280" defer></script>
+  <script src="storybook.js?v=281" defer></script>
   <script>
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("../sw.js").catch(function () {});

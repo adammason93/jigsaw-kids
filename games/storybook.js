@@ -73,13 +73,14 @@
   var btnStart = document.getElementById("sbStartJourney");
   var btnGen = document.getElementById("sbGenerate");
   var heroPhotoInput = document.getElementById("sbHeroPhoto");
-  var heroPhotoPreview = document.getElementById("sbHeroPhotoPreview");
-  var heroPhotoPreviewWrap = document.getElementById("sbHeroPhotoPreviewWrap");
+  var heroPhotoThumbsWrap = document.getElementById("sbHeroPhotoThumbsWrap");
+  var heroPhotoThumbsList = document.getElementById("sbHeroPhotoThumbs");
   var heroPhotoErr = document.getElementById("sbHeroPhotoErr");
   var heroPhotoRemove = document.getElementById("sbHeroPhotoRemove");
-  /** @type {string|null} */
-  var heroPhotoDataUrl = null;
-  /** Keep under clever-service `MAX_HERO_REFERENCE_BYTES` after base64 (~1.2MB raw). */
+  /** @type {string[]} */
+  var heroPhotoDataUrls = [];
+  var HERO_PHOTO_MAX_COUNT = 3;
+  /** Keep under clever-service `MAX_HERO_REFERENCE_BYTES` per image after base64 (~1.2MB raw). */
   var HERO_PHOTO_MAX_FILE_BYTES = Math.floor(1.25 * 1024 * 1024);
   var readerHeading = document.getElementById("sbBookHeading");
   var spreadText = document.getElementById("sbSpreadText");
@@ -1888,14 +1889,36 @@
       });
   }
 
+  function renderHeroPhotoThumbs() {
+    if (!heroPhotoThumbsList || !heroPhotoThumbsWrap) return;
+    heroPhotoThumbsList.replaceChildren();
+    heroPhotoDataUrls.forEach(function (url, idx) {
+      var li = document.createElement("li");
+      li.className = "sb-hero-ref__thumb-item";
+      var img = document.createElement("img");
+      img.className = "sb-hero-ref__thumb";
+      img.src = url;
+      img.alt = "Photo " + (idx + 1);
+      img.width = 96;
+      img.height = 96;
+      img.decoding = "async";
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "sb-hero-ref__thumb-remove";
+      btn.setAttribute("aria-label", "Remove photo " + (idx + 1));
+      btn.setAttribute("data-idx", String(idx));
+      btn.textContent = "\u00d7";
+      li.appendChild(img);
+      li.appendChild(btn);
+      heroPhotoThumbsList.appendChild(li);
+    });
+    heroPhotoThumbsWrap.hidden = heroPhotoDataUrls.length === 0;
+  }
+
   function clearHeroPhoto() {
-    heroPhotoDataUrl = null;
+    heroPhotoDataUrls = [];
     if (heroPhotoInput) heroPhotoInput.value = "";
-    if (heroPhotoPreview) {
-      heroPhotoPreview.removeAttribute("src");
-      heroPhotoPreview.alt = "";
-    }
-    if (heroPhotoPreviewWrap) heroPhotoPreviewWrap.hidden = true;
+    renderHeroPhotoThumbs();
     if (heroPhotoErr) {
       heroPhotoErr.textContent = "";
       heroPhotoErr.hidden = true;
@@ -2607,38 +2630,70 @@
   if (heroPhotoInput) {
     heroPhotoInput.addEventListener("change", function () {
       setHeroPhotoError("");
-      heroPhotoDataUrl = null;
-      if (heroPhotoPreviewWrap) heroPhotoPreviewWrap.hidden = true;
-      var f = heroPhotoInput.files && heroPhotoInput.files[0];
-      if (!f) return;
-      if (!/^image\/(jpeg|png|webp)$/i.test(f.type)) {
-        setHeroPhotoError("Use a JPG, PNG, or WebP photo.");
-        heroPhotoInput.value = "";
+      var files = Array.prototype.slice.call(heroPhotoInput.files || []);
+      heroPhotoInput.value = "";
+      if (!files.length) return;
+      var slotsLeft = HERO_PHOTO_MAX_COUNT - heroPhotoDataUrls.length;
+      if (slotsLeft <= 0) {
+        setHeroPhotoError("You already have 3 photos — remove one to add another.");
         return;
       }
-      if (f.size > HERO_PHOTO_MAX_FILE_BYTES) {
-        setHeroPhotoError("Photo is too large — try a smaller picture (under about 1 MB).");
-        heroPhotoInput.value = "";
-        return;
+      if (files.length > slotsLeft) {
+        setHeroPhotoError("Only room for " + slotsLeft + " more — pick fewer photos.");
+        files = files.slice(0, slotsLeft);
       }
-      var r = new FileReader();
-      r.onload = function () {
-        var url = typeof r.result === "string" ? r.result : "";
-        if (!url || !/^data:image\//i.test(url)) {
-          setHeroPhotoError("Could not read that photo.");
+      for (var i = 0; i < files.length; i++) {
+        if (!/^image\/(jpeg|png|webp)$/i.test(files[i].type)) {
+          setHeroPhotoError("Use JPG, PNG, or WebP photos only.");
           return;
         }
-        heroPhotoDataUrl = url;
-        if (heroPhotoPreview) {
-          heroPhotoPreview.src = url;
-          heroPhotoPreview.alt = "Hero photo preview";
+        if (files[i].size > HERO_PHOTO_MAX_FILE_BYTES) {
+          setHeroPhotoError("Each photo must be under about 1 MB.");
+          return;
         }
-        if (heroPhotoPreviewWrap) heroPhotoPreviewWrap.hidden = false;
-      };
-      r.onerror = function () {
-        setHeroPhotoError("Could not read that photo.");
-      };
-      r.readAsDataURL(f);
+      }
+      var reads = files.map(function (f) {
+        return new Promise(function (resolve, reject) {
+          var r = new FileReader();
+          r.onload = function () {
+            resolve(typeof r.result === "string" ? r.result : "");
+          };
+          r.onerror = function () {
+            reject(new Error("read"));
+          };
+          r.readAsDataURL(f);
+        });
+      });
+      Promise.all(reads)
+        .then(function (urls) {
+          urls.forEach(function (url) {
+            if (
+              url &&
+              /^data:image\//i.test(url) &&
+              heroPhotoDataUrls.length < HERO_PHOTO_MAX_COUNT
+            ) {
+              heroPhotoDataUrls.push(url);
+            }
+          });
+          renderHeroPhotoThumbs();
+        })
+        .catch(function () {
+          setHeroPhotoError("Could not read that photo.");
+        });
+    });
+  }
+  if (heroPhotoThumbsList) {
+    heroPhotoThumbsList.addEventListener("click", function (e) {
+      var t = e.target;
+      if (!t || !t.closest) return;
+      var rm = t.closest(".sb-hero-ref__thumb-remove");
+      if (!rm) return;
+      var idx = parseInt(rm.getAttribute("data-idx") || "-1", 10);
+      if (idx >= 0 && idx < heroPhotoDataUrls.length) {
+        heroPhotoDataUrls.splice(idx, 1);
+        renderHeroPhotoThumbs();
+        setHeroPhotoError("");
+      }
     });
   }
   if (heroPhotoRemove) {
@@ -2715,7 +2770,7 @@
           }),
           familyPeople: familyPeople,
           bookCoverColor: selectedBookCoverColor || undefined,
-          heroReferenceImage: heroPhotoDataUrl || undefined,
+          heroReferenceImages: heroPhotoDataUrls.length ? heroPhotoDataUrls : undefined,
         }),
       })
         .then(function (r) {

@@ -79,8 +79,11 @@ const DALLE3_PROMPT_MAX = 3900;
 /** Max length for the child's free-text plot idea (must match storybook UI `maxlength`). */
 const STORYBOOK_PLOT_HINT_MAX = 800;
 
-/** Optional hero photo from the client (base64 data URL); cap raw size like game portraits. */
+/** Optional hero photo(s) from the client (base64 data URL); cap raw size like game portraits. */
 const MAX_HERO_REFERENCE_BYTES = 1_200_000;
+const MAX_HERO_REFERENCE_IMAGES = 3;
+/** Total decoded bytes across all hero reference images (keeps Edge request size safe). */
+const MAX_HERO_REFERENCES_TOTAL_BYTES = 2_800_000;
 
 function coerceBookColor(
   requested: string | undefined,
@@ -612,18 +615,92 @@ async function openaiVisionDescribePortraits(
 }
 
 /**
- * Vision pass: optional real-life hero photo first, then official game portraits.
- * Order matches labels passed to `openaiVisionDescribePortraits`.
+ * One or more photos of the same child (hero). Always returns a single appearance line
+ * so story text + image prompts don't get duplicate hero rows.
+ */
+async function openaiVisionSummarizeHeroFromRefs(
+  apiKey: string,
+  childName: string,
+  dataUrls: string[],
+): Promise<string> {
+  if (dataUrls.length === 0) return "";
+  const name = sanitizeName(childName) || "Hero";
+  const content: Record<string, unknown>[] = [];
+  if (dataUrls.length === 1) {
+    content.push({
+      type: "text",
+      text:
+        `This image is a reference photo of ${name}, the child hero of a kids' picture book.\n` +
+        `Reply with exactly one line:\n` +
+        `${name}: neutral appearance for an illustrator only — hair, skin tone, clothing colours and cut, approximate age; max 34 words; no art-style words; match the reference. CRITICAL: Ignore and omit any logos, graphics, or patterns on clothing.\n` +
+        `Use the NAME exactly as spelled above. No other text.`,
+    });
+    content.push({ type: "image_url", image_url: { url: dataUrls[0] } });
+  } else {
+    content.push({
+      type: "text",
+      text:
+        `These ${dataUrls.length} images are all of the SAME child: ${name}, the hero of a kids' picture book (different angles or moments).\n` +
+        `Reply with exactly ONE line:\n` +
+        `${name}: neutral appearance for an illustrator only — combine what you see across the photos — hair, skin tone, clothing colours and cut, approximate age; max 44 words; no art-style words. CRITICAL: Ignore and omit any logos, graphics, or patterns on clothing.\n` +
+        `Use the NAME exactly as spelled above. No other text.`,
+    });
+    for (const u of dataUrls) {
+      content.push({ type: "image_url", image_url: { url: u } });
+    }
+  }
+
+  const r = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: "gpt-4o-mini",
+      temperature: 0.15,
+      max_tokens: 500,
+      messages: [{ role: "user", content }],
+    }),
+  });
+
+  if (!r.ok) {
+    const t = await r.text();
+    console.error("openai vision (hero refs) error", r.status, t.slice(0, 400));
+    throw new Error(`vision_hero_error:${r.status}`);
+  }
+
+  const data = await r.json();
+  const text = String(data.choices?.[0]?.message?.content ?? "").trim();
+  return text.slice(0, 1200);
+}
+
+/**
+ * Vision pass: optional real-life hero photo(s), then official game portraits (one line each).
  */
 async function appearanceNotesFromReferences(
   apiKey: string,
   assetsBase: string,
   people: FamilyPerson[],
-  hero: { label: string; dataUrl: string } | null,
+  heroDataUrls: string[],
+  childName: string,
 ): Promise<string> {
-  const withUrls: { label: string; dataUrl: string }[] = [];
-  if (hero) withUrls.push(hero);
+  const chunks: string[] = [];
+  if (heroDataUrls.length > 0) {
+    try {
+      const heroLine = await openaiVisionSummarizeHeroFromRefs(
+        apiKey,
+        childName,
+        heroDataUrls,
+      );
+      if (heroLine.trim()) chunks.push(heroLine.trim());
+    } catch (e) {
+      console.warn("[clever-service] hero ref vision failed", e);
+    }
+  }
+
   const base = (assetsBase ?? "").trim();
+  const withUrls: { label: string; dataUrl: string }[] = [];
   if (base && people.length > 0) {
     for (const p of people) {
       const path = FAMILY_PORTRAIT_PATHS[p.id];
@@ -632,8 +709,12 @@ async function appearanceNotesFromReferences(
       if (dataUrl) withUrls.push({ label: p.label, dataUrl });
     }
   }
-  if (withUrls.length === 0) return "";
-  return openaiVisionDescribePortraits(apiKey, withUrls);
+  if (withUrls.length > 0) {
+    const familyText = await openaiVisionDescribePortraits(apiKey, withUrls);
+    if (familyText.trim()) chunks.push(familyText.trim());
+  }
+
+  return chunks.join("\n");
 }
 
 function sanitizeName(raw: string): string {
@@ -669,6 +750,53 @@ function sanitizeHeroReferenceImage(raw: unknown): string | null {
   const mime =
     m[1].toLowerCase() === "image/jpg" ? "image/jpeg" : m[1].toLowerCase();
   return `data:${mime};base64,${b64}`;
+}
+
+/** Up to `MAX_HERO_REFERENCE_IMAGES` data URLs; supports legacy `heroReferenceImage` string. */
+function sanitizeHeroReferenceImages(body: {
+  heroReferenceImage?: string;
+  heroReferenceImages?: unknown;
+}): string[] {
+  const candidates: unknown[] = [];
+  if (Array.isArray(body.heroReferenceImages)) {
+    for (const x of body.heroReferenceImages) candidates.push(x);
+  } else if (
+    body.heroReferenceImage !== undefined &&
+    body.heroReferenceImage !== null
+  ) {
+    candidates.push(body.heroReferenceImage);
+  }
+
+  const decodedSizes: number[] = [];
+  const out: string[] = [];
+  for (const raw of candidates) {
+    const one = sanitizeHeroReferenceImage(raw);
+    if (!one) continue;
+    const m =
+      /^data:image\/(?:png|jpeg|jpg|webp);base64,([A-Za-z0-9+/=]+)$/i.exec(
+        one.replace(/\s+/gu, "").replace(/\r|\n/gu, ""),
+      );
+    const approx = m ? Math.floor((m[1].length * 3) / 4) : 0;
+    decodedSizes.push(approx);
+    out.push(one);
+    if (out.length >= MAX_HERO_REFERENCE_IMAGES) break;
+  }
+
+  let total = 0;
+  const capped: string[] = [];
+  for (let i = 0; i < out.length; i++) {
+    const add = decodedSizes[i] ?? 0;
+    if (total + add > MAX_HERO_REFERENCES_TOTAL_BYTES) {
+      console.warn(
+        `[clever-service] hero reference images truncated at ${capped.length} (total byte budget)`,
+      );
+      break;
+    }
+    total += add;
+    capped.push(out[i]);
+  }
+
+  return capped;
 }
 
 function jsonResponse(body: unknown, status = 200) {
@@ -1457,6 +1585,8 @@ Deno.serve(async (req) => {
     bookCoverColor?: string;
     /** Optional `data:image/jpeg|png|webp;base64,...` for hero appearance (storybook step 1). */
     heroReferenceImage?: string;
+    /** Up to 3 hero reference photos (preferred); same schema as `heroReferenceImage` each. */
+    heroReferenceImages?: string[];
   };
   try {
     body = await req.json();
@@ -1621,14 +1751,12 @@ Deno.serve(async (req) => {
   );
 
   const bookAssetsBase = (Deno.env.get("BOOK_ASSETS_BASE_URL") ?? "").trim();
-  const heroRefDataUrl = sanitizeHeroReferenceImage(body.heroReferenceImage);
-  const heroForVision = heroRefDataUrl
-    ? { label: childName, dataUrl: heroRefDataUrl }
-    : null;
+  const heroRefDataUrls = sanitizeHeroReferenceImages(body);
 
   let portraitAppearance = "";
   const portraitVisionAttempted = Boolean(
-    heroForVision || (bookAssetsBase && familyPeople.length > 0),
+    heroRefDataUrls.length > 0 ||
+      (bookAssetsBase && familyPeople.length > 0),
   );
   if (portraitVisionAttempted) {
     try {
@@ -1636,7 +1764,8 @@ Deno.serve(async (req) => {
         apiKey,
         bookAssetsBase,
         familyPeople,
-        heroForVision,
+        heroRefDataUrls,
+        childName,
       );
     } catch (e) {
       console.warn("[clever-service] portrait vision failed", e);
@@ -1645,7 +1774,7 @@ Deno.serve(async (req) => {
 
   const portraitBlockForText =
     portraitAppearance.length > 0
-      ? `\n\nAppearance from reference photos (first line is the hero when a photo was sent; other lines are game friends when selected — match when describing these people in the story):\n${portraitAppearance}\n`
+      ? `\n\nAppearance from reference photos (hero line(s) when photos were sent — one combined line for up to three angles; further lines are game friends when selected — match when describing these people in the story):\n${portraitAppearance}\n`
       : "";
 
   const system = `You write very short picture-book stories for UK English-speaking children about age 5.
@@ -1663,7 +1792,7 @@ Rules:
       : ""
   }
 - Include fields title (string), characterDesign (string), bookColor (string: MUST be exactly "blue", "green", or "pink". If the child's name is typically male (e.g. Isaac, Leo), use "blue" or "green". If female, use "pink"), and pages (array of 12 objects).
-  For "characterDesign": describe the hero, the one main buddy creature, EVERY human child named in the plot idea (e.g. a brother or sister) who appears in the story, and any named game people who actually appear. If the plot names only ${childName} plus the buddy, characterDesign has exactly those two rich descriptions. If the plot names an extra child (e.g. Isaac), add a full third block for that child — never fold them into the buddy description. Never lions, bears, or unnamed critters. For each included character you MUST define their EXACT gender (e.g. boy/girl), age, height, body shape, skin/surface tone, eye color, facial features, hair color, hair style, AND exact texture/material (e.g. "smooth sculpted clay hair", "fuzzy felt fur", "shiny plastic"). For the buddy creature, explicitly define anatomy (horse-like unicorn with hooves and horn; or winged dragon; etc.). Plus ONE specific, unchanging outfit or set of accessories with exact colors and materials. If an animal or creature wears nothing, explicitly state "in natural animal form (no human outfits)". CRITICAL: Keep clothing solid-colored and simple. DO NOT put logos, graphics, patterns, or text on clothing (DALL-E hallucinates these). DO NOT give them multiple outfits or changing colors. You MUST use the exact same clothing description for the hero in EVERY single illustrationBrief. This will be used as the master reference to keep them identical across all illustrations.
+  For "characterDesign": describe the hero, the one main buddy creature, EVERY human child named in the plot idea (e.g. a brother or sister) who appears in the story, and any named game people who actually appear. If the plot names only ${childName} plus the buddy, characterDesign has exactly those two rich descriptions. If the plot names an extra child (e.g. Isaac), add a full third block for that child — never fold them into the buddy description. Never lions, bears, or unnamed critters. For each included character you MUST define their EXACT gender (e.g. boy/girl), age, height, body shape, skin/surface tone, eye color, facial features, hair color, hair style, AND exact texture/material (e.g. "smooth sculpted clay hair", "fuzzy felt fur", "shiny plastic"). For the buddy creature, explicitly define anatomy (horse-like unicorn with hooves and horn; or winged dragon; etc.). Plus ONE specific, unchanging outfit or set of accessories with exact colors and materials. If an animal or creature wears nothing, explicitly state "in natural animal form (no human outfits)". CRITICAL: Keep clothing solid-colored and simple. DO NOT put logos, graphics, patterns, or text on clothing (DALL-E hallucinates these). DO NOT give them multiple outfits or changing colors. You MUST use the exact same clothing description for the hero in EVERY single illustrationBrief. That locks their look for the book; the illustrator still shows different faces and poses per spread from the story beats — your prose should not force the same generic smile line into every brief.
 - Each page: { "text": string, "illustrationBrief": string | null }.
 - DOUBLE-PAGE SPREADS: pair pages as (1,2), (3,4), (5,6), (7,8), (9,10), (11,12).
   Odd-numbered pages (1,3,5,7,9,11) are TEXT-FIRST pages only — use "illustrationBrief": null.
@@ -1677,7 +1806,7 @@ Rules:
     • Example, beat where dragon is found / revealed: VISIBLE: Sofia, Isaac, dragon.
     • Example, beat where the dragon is flying overhead and they spot it: VISIBLE: Sofia, Isaac, dragon (dragon small in the upper sky, whole body and wings fully visible — not clipped by the top edge).
     • Never include a character in VISIBLE if the verse says they are NOT around for that moment.
-  The DESCRIPTION (after VISIBLE) must spell out the same specific moment as the verse on the previous page: same action, same setting, same props, same time of day — not a generic scene and NEVER a different location or activity than the verse (e.g. if the verse says bouncy castle under the sky, the picture is that bouncy castle with sky visible — not a bike ride in the woods). NEVER add guardians, helpers, or creatures the verse does not mention. NEVER duplicate the buddy unless the text says so. CRITICAL FOR CONSISTENCY: DO NOT re-describe permanent looks (clothes, hair colours) in the brief — the illustrator has the master designs.
+  The DESCRIPTION (after VISIBLE) must spell out the same specific moment as the verse on the previous page: same action, same setting, same props, same time of day — not a generic scene and NEVER a different location or activity than the verse (e.g. if the verse says bouncy castle under the sky, the picture is that bouncy castle with sky visible — not a bike ride in the woods). NEVER add guardians, helpers, or creatures the verse does not mention. NEVER duplicate the buddy unless the text says so. CRITICAL FOR CONSISTENCY: DO NOT re-describe permanent looks (clothes, hair colours) in the brief — the illustrator has the master designs. DO hint mood or emotion when the verse supports it (surprise, giggling, worry melting into relief) — only in the DESCRIPTION, not by re-listing outfits; avoid copying the same stock smile line into every spread.
   ENVIRONMENT DETAIL (very important — each brief must paint a different *place* on the journey, matching the SETTING and PLOT IDEA above):
     Every illustrationBrief MUST contain at least 2 specific environmental nouns (architecture, foliage, terrain, structure, weather, depth) AND at least 1 named prop or focal object from that beat. The environmental nouns MUST come from the actual SETTING and PLOT IDEA — if the plot says CASTLE, the briefs are inside or around a castle (stone walls, banners, courtyards, towers, throne room, drawbridge, tapestries) NOT in deep woods. If the plot says CAVE, the briefs are inside cave passages and chambers. If the plot says BEACH, UNDERSEA, SPACE, ZOO, FARM, MOUNTAIN, DESERT, SNOW, LAKE, ISLAND, MUSEUM, CIRCUS, TRAIN, CITY, OPEN SEA, or PIRATE SHIP, paint THAT setting with matching props. Only paint a forest if the plot or setting actually mentions woods/forest/trees.
     Examples of good briefs — note how each one fits a DIFFERENT plot, and how each only includes things the plot would actually contain:
@@ -1861,7 +1990,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
 
     const anchorPreamble =
       "A completely textless illustration. NO letters, words, typography, labels, speech bubbles, signs with text, book pages with writing, loose papers, scrolls, glyph noise, watermarks, or fake paragraph texture anywhere. Plain smooth background regions only — no pseudo-text. " +
-      "CAST LINEUP / MODEL SHEET for a kids picture book: every character line in LOCKED CAST below (hero, buddy, and any named human co-stars or game people) — no one else, no third mascot or crowd, no duplicate unicorns. Together in ONE frame, neutral friendly poses, " +
+      "CAST LINEUP / MODEL SHEET for a kids picture book: every character line in LOCKED CAST below (hero, buddy, and any named human co-stars or game people) — no one else, no third mascot or crowd, no duplicate unicorns. Together in ONE frame, calm neutral expressions and friendly standing poses for identity reference only — story illustrations later will change faces and poses per scene. " +
       "full bodies on a plain soft background that still fills the canvas edge-to-edge — modest inset so hair, feet, wings, and tails do not touch the border; figures roughly the middle ~65–80% of frame height so each design reads clearly, soft matte clay and toy-plastic 3D, gentle pastel light. " +
       "Edge-to-edge, wholesome for toddlers. ";
 
@@ -1977,7 +2106,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
           blocks.push(
             "Children's picture-book illustration, soft matte clay and toy-plastic 3D, gentle pastel light, edge-to-edge with no borders or text. " +
               "SAFE SCALE: Full-bleed scene — environment fills the entire canvas edge-to-edge. Draw the cast slightly smaller than a tight movie poster crop (~10–15% smaller) so full heads, hair, feet, hands, wings, and tails sit inside the frame with modest inset — never edge-clipped. Do not leave empty margins around the whole painting; only shrink the characters within the scene. " +
-              "The attached reference image shows the cast on a neutral backdrop — use it ONLY to lock the characters' identity (faces, hair, outfit colours, species, body shape). Repaint the world fresh.",
+              "The attached reference image shows the cast on a neutral backdrop — use it ONLY to lock each character's identity (face shapes, hair, outfit colours, species, body shape). Ignore the lineup's neutral expressions and poses for this sheet — on THIS spread, show expressions and poses that fit the story moment. Repaint the world fresh.",
           );
 
           // 2. Setting (the override-resolved placeDesc + plotHint)
@@ -1997,6 +2126,10 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
               "VISUAL MATCHING: Paint the SAME setting, time of day, and activity as the verse — if it says bouncy castle under the sky, show padded inflatable bounce-house walls and open sky; if it says kitchen or courtyard, show that. Do not substitute a different scene (e.g. woods and bicycle) unless the verse names those.",
             );
           }
+
+          blocks.push(
+            "EXPRESSION & POSE: Keep each character's IDENTITY locked to the reference — same face shape, hair, skin tone, outfit colours, species, proportions. Change pose, body language, and facial expression to match THIS SPREAD'S MOMENT (e.g. surprised brows, belly laugh, anxious side-glance, sleepy smile, focused pout). Do not give every spread the same neutral grin unless the verse is neutral; buddy creatures should emote in species-appropriate ways too.",
+          );
 
           // 5. Visible cast for THIS spread (the part that fixes the
           //    "dinosaur is hidden but appears in the picture" bug).
@@ -2139,7 +2272,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
               verseBeat +
               ". " +
               "SCENE: change layout, camera, and environment completely vs the reference. Show the action and setting in the brief — rockets, trampolines, castles, planets, etc. must appear visibly if the story calls for them. " +
-              "Keep character IDENTITY only from the reference (face, species, hair/outfit colours, sizes)—do not recreate neutral lineup poses or plain backdrop. " +
+              "Keep character IDENTITY only from the reference (face shape, species, hair/outfit colours, sizes)—vary expressions and poses to match the verse's emotion; do not recycle the same neutral smile on every spread. Do not recreate neutral lineup poses or plain backdrop. " +
               "Textless; soft matte clay toy 3D. " +
               composed.slice(0, FAL_REDUX_PROMPT_MAX - 420);
             const u = await falFluxReduxImageUrl(
@@ -2214,7 +2347,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
                 try {
                   const falPrompt =
                     "New story moment — change poses, action, and background to match the scene. " +
-                    "Keep the same hero face, hair, outfit colours, and the same buddy and named creatures as the reference — only beings named in SCENE ACTION, no new animals or people. " +
+                    "Keep the same hero face shape, hair, outfit colours, and the same buddy and named creatures as the reference — only beings named in SCENE ACTION, no new animals or people. Shift facial expressions and body language to match the story beat — not the same static expression every time. " +
                     "TEXTLESS — no words, signs, book pages with text, logos, paper scraps with writing, or gibberish texture; soft matte clay toy 3D only. " +
                     "FRAME / SCALE: full-bleed scene edge-to-edge; cast slightly smaller with modest inset — full heads, feet, hands, wings inside canvas, not edge-cropped; middle vertical band — do not squash everyone along the bottom edge. " +
                     composed.slice(0, FAL_REDUX_PROMPT_MAX - 220);
