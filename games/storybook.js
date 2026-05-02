@@ -459,8 +459,47 @@
   var selectedPlace = "beach";
   /** @type {string} book frame colour: "" = Auto, or "blue"|"green"|"pink" */
   var selectedBookCoverColor = "";
-  /** @type {{ title: string, author?: string, sceneImageUrl?: string|null, pages: { text: string, imageUrl: string|null }[] } | null} */
+  /** @type {{ title: string, author?: string, readerFont?: string|null, sceneImageUrl?: string|null, pages: { text: string, imageUrl: string|null }[] } | null} */
   var story = null;
+
+  /** Matches clever-service STORY_READER_FONT_KEYS — body / tape-over-art / splash word stack per book. */
+  var SB_READER_FONT_PRESETS = {
+    fredoka: {
+      body: '"Fredoka","Sniglet","Nunito",sans-serif',
+      overArt: '"Schoolbell","Fredoka","Nunito",sans-serif',
+      emphasis: '"Kalam","Fredoka","Nunito",cursive,sans-serif',
+    },
+    schoolbell: {
+      body: '"Schoolbell","Nunito",sans-serif',
+      overArt: '"Schoolbell","Nunito",sans-serif',
+      emphasis: '"Kalam","Schoolbell","Nunito",cursive,sans-serif',
+    },
+    sniglet: {
+      body: '"Sniglet","Fredoka","Nunito",sans-serif',
+      overArt: '"Sniglet","Schoolbell","Nunito",sans-serif',
+      emphasis: '"Sniglet","Fredoka","Nunito",sans-serif',
+    },
+    kalam: {
+      body: '"Kalam","Sniglet","Nunito",cursive,sans-serif',
+      overArt: '"Kalam","Schoolbell","Nunito",cursive,sans-serif',
+      emphasis: '"Kalam","Fredoka","Nunito",cursive,sans-serif',
+    },
+    patrick: {
+      body: '"Patrick Hand","Schoolbell","Nunito",cursive,sans-serif',
+      overArt: '"Patrick Hand","Nunito",cursive,sans-serif',
+      emphasis: '"Kalam","Patrick Hand","Nunito",cursive,sans-serif',
+    },
+    comic: {
+      body: '"Comic Neue","Nunito",sans-serif',
+      overArt: '"Comic Neue","Schoolbell","Nunito",sans-serif',
+      emphasis: '"Sniglet","Comic Neue","Nunito",sans-serif',
+    },
+  };
+
+  function normalizeReaderFontKey(key) {
+    var k = key ? String(key).toLowerCase().trim() : "";
+    return SB_READER_FONT_PRESETS[k] ? k : "fredoka";
+  }
   var spreadIndex = 0;
   /** @type {boolean} */
   var spreadAnimLock = false;
@@ -841,6 +880,12 @@
       book.style.setProperty("--sb-flip-darker", "#831843");
     }
 
+    var preset =
+      SB_READER_FONT_PRESETS[normalizeReaderFontKey(story.readerFont)];
+    book.style.setProperty("--sb-reader-font-body", preset.body);
+    book.style.setProperty("--sb-reader-font-over-art", preset.overArt);
+    book.style.setProperty("--sb-reader-font-emphasis", preset.emphasis);
+
     var u = story.sceneImageUrl;
     if (u) {
       book.classList.add("sb-book--themed");
@@ -868,6 +913,9 @@
     book.style.removeProperty("--sb-flip-mid");
     book.style.removeProperty("--sb-flip-dark");
     book.style.removeProperty("--sb-flip-darker");
+    book.style.removeProperty("--sb-reader-font-body");
+    book.style.removeProperty("--sb-reader-font-over-art");
+    book.style.removeProperty("--sb-reader-font-emphasis");
     book.classList.remove("sb-book--themed");
     book.style.backgroundImage = "";
     if (coverPanel) {
@@ -903,9 +951,12 @@
       pages.push({ text: texts[s], imageUrl: null });
       pages.push({ text: "", imageUrl: imgs[s] });
     }
+    var rfKeys = Object.keys(SB_READER_FONT_PRESETS);
+    var rfPick = rfKeys[(Math.random() * rfKeys.length) | 0] || "fredoka";
     return {
       title: "Mira and the fallen star (sample)",
       bookColor: "blue",
+      readerFont: rfPick,
       sceneImageUrl: null,
       pages: pages,
     };
@@ -1485,6 +1536,7 @@
     sceneDataUrl,
     sceneUrlFallback,
     bookColor,
+    readerFont,
     cloudDone,
     onWritten
   ) {
@@ -1502,6 +1554,7 @@
       title: title,
       author: author || "",
       bookColor: bookColor || null,
+      readerFont: readerFont || null,
       savedAt: new Date().toISOString(),
       pages: storedPages,
       sceneDataUrl: sceneDataUrl || null,
@@ -1536,6 +1589,7 @@
       title: item.title,
       author: item.author || "",
       bookColor: item.bookColor || null,
+      readerFont: item.readerFont || null,
       sceneImageUrl: item.sceneDataUrl || item.sceneUrlFallback || null,
       pages: item.pages.map(function (p) {
         return {
@@ -1764,6 +1818,7 @@
             o.sceneData,
             story.sceneImageUrl || null,
             story.bookColor || null,
+            story.readerFont || null,
             function (cloudErr) {
               if (
                 !window.KidsScoreCloud ||
@@ -1832,11 +1887,16 @@
       });
   }
 
-  function buildStandaloneBookHtml(title, author, pages, dataUrls, sceneDataUrl) {
+  function buildStandaloneBookHtml(title, author, pages, dataUrls, sceneDataUrl, readerFont) {
+    var rf = normalizeReaderFontKey(readerFont);
+    var preset = SB_READER_FONT_PRESETS[rf];
     var escTitle = escapeHtml(title);
     var escAuthor = author ? escapeHtml(author) : "";
     var authorHtml = escAuthor ? '<p class="sbdl-cover-author">' + escAuthor + '</p>' : '';
-    var bodyRule = "body{font-family:system-ui,-apple-system,'Segoe UI',sans-serif;margin:0;background:linear-gradient(165deg,#fce7f3,#fdf2f8 45%,#e9d5ff);color:#500724}";
+    var bodyRule =
+      "body{font-family:" +
+      preset.body +
+      ";margin:0;background:linear-gradient(165deg,#fce7f3,#fdf2f8 45%,#e9d5ff);color:#500724}";
     var articles = [];
     
     if (sceneDataUrl) {
@@ -1888,7 +1948,9 @@
       ".sbdl-k{font-size:.75rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#be185d;margin-top:auto;padding-top:1.5rem;text-align:center;opacity:0.6;}" +
       ".sbdl-art{border-radius:16px;overflow:hidden;margin:0 0 1.25rem;background:#fdf2f8;box-shadow:0 4px 16px rgba(0,0,0,0.06);}" +
       ".sbdl-art img{display:block;width:100%;height:auto;aspect-ratio:16/9;object-fit:cover;transform:scale(1.02);}" +
-      ".sbdl-t{font-size:1.25rem;font-weight:600;line-height:1.65;margin:0;color:#500724;}" +
+      ".sbdl-t{font-size:1.25rem;font-weight:600;line-height:1.65;margin:0;color:#500724;font-family:" +
+      preset.body +
+      ";}" +
       ".sbdl-spread--cover{position:relative;padding:0;overflow:hidden;border:none;box-shadow:0 12px 40px rgba(157,23,77,.2);}" +
       "@media(min-width:768px){.sbdl-spread--cover{padding:0;}}" +
       ".sbdl-cover-img{display:block;width:100%;height:auto;aspect-ratio:1/1;object-fit:cover;transform:scale(1.02);}" +
@@ -1899,7 +1961,7 @@
       "@media print{.sbdl-spread{break-inside:avoid;flex-direction:row;padding:2rem;gap:2rem;}}";
 
     return (
-      '<!DOCTYPE html><html lang="en-GB"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><title>' +
+      '<!DOCTYPE html><html lang="en-GB"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin=""/><link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&amp;family=Fredoka:wght@400;500;600;700&amp;family=Kalam:wght@400;700&amp;family=Nunito:wght@600;700;800&amp;family=Patrick+Hand&amp;family=Schoolbell&amp;family=Sniglet:wght@400;800&amp;display=swap" rel="stylesheet"/><title>' +
       escTitle +
       "</title><style>" +
       css +
@@ -1919,7 +1981,14 @@
       tryFetchImageDataUrl(story.sceneImageUrl || ""),
     ])
       .then(function (arr) {
-        var html = buildStandaloneBookHtml(story.title, story.author, story.pages, arr[0], arr[1]);
+        var html = buildStandaloneBookHtml(
+          story.title,
+          story.author,
+          story.pages,
+          arr[0],
+          arr[1],
+          story.readerFont
+        );
         var blob = new Blob([html], { type: "text/html;charset=utf-8" });
         var u = URL.createObjectURL(blob);
         var a = document.createElement("a");
@@ -3011,6 +3080,7 @@
             title: customTitle || apiTitle || "Your story",
             author: customAuthor,
             bookColor: out.body.bookColor || null,
+            readerFont: out.body.readerFont || null,
             pages: out.body.pages || [],
             sceneImageUrl: out.body.sceneImageUrl || null,
           };

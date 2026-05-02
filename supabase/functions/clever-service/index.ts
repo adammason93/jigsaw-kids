@@ -114,6 +114,22 @@ type StoryJson = {
   pages: StoryPage[];
 };
 
+/** Reader typefaces — keep in sync with `games/storybook.js` SB_READER_FONT_PRESETS. */
+const STORY_READER_FONT_KEYS = [
+  "fredoka",
+  "schoolbell",
+  "sniglet",
+  "kalam",
+  "patrick",
+  "comic",
+] as const;
+type StoryReaderFontKey = (typeof STORY_READER_FONT_KEYS)[number];
+
+function pickStoryReaderFont(): StoryReaderFontKey {
+  const idx = Math.floor(Math.random() * STORY_READER_FONT_KEYS.length);
+  return STORY_READER_FONT_KEYS[idx] ?? "fredoka";
+}
+
 const DALLE3_PROMPT_MAX = 3900;
 /** Max length for the child's free-text plot idea (must match storybook UI `maxlength`). */
 const STORYBOOK_PLOT_HINT_MAX = 800;
@@ -194,6 +210,15 @@ function composeDallePrompt(parts: {
   }
   const out = `${head}${mid}${cast}`;
   return out.slice(0, DALLE3_PROMPT_MAX);
+}
+
+/** Verse + brief imply vertical / airborne motion — image prompts should force wide full-body framing. */
+function needsFullBodyWideFraming(text: string): boolean {
+  const t = text.trim();
+  if (!t) return false;
+  return /\b(bounc(?:e|ed|es|ing)?|bounce|jump(?:ed|ing|s)?|leap(?:t|ed|s|ing)?|soar(?:ed|ing|s)?|trampoline|trampolines|high\s+in\s+the\s+air|up\s+in\s+the\s+air|spring|sprung|springs|hop(?:ped|ping|s)?|cartwheel|flew|flying|\bfly\s+high\b|airborne|flips?|somersault|skyward)\b/i.test(
+    t,
+  );
 }
 
 /** Bias image prompts toward the lighting / structural cues implied by the child's plot. */
@@ -2030,7 +2055,7 @@ ${noBuddyBook ? `BOOK MODE — NO IMAGINARY BUDDY: The reader chose "No buddy". 
       • MOUNTAIN plot: "${childName} hikes a flower-lined mountain path, rocky peaks and soft clouds above, a wooden bridge crossing a tiny stream."
     Vary the *place* between spreads in line with the plot's beats — e.g. CASTLE: gates → corridor → great hall → spiral tower → rooftop → courtyard with the dragon flying overhead. Don't repeat the same backdrop. State a different camera angle / shot type for each (wide establishing shot, mid shot, low-angle hero kneeling, over-the-shoulder peering, etc).
     Background details ARE allowed (in fact required) — what is NOT allowed is faced extras the verse doesn't mention.
-    COMPOSITION / SCALE FOR THE ILLUSTRATOR: Full-bleed spreads — the setting and atmosphere fill the double-page edge-to-edge. Size the cast slightly smaller than a maximum hero fill so every listed character fits with a modest inset and no edge-clipping (full heads and feet on wide and mid shots; on closer shots, no clipped faces or hands). The tallest features (unicorn horn, ears, hair, wing tips) must sit fully inside the frame with visible margin from the top and sides — never cropped. If tight, widen the shot or shrink the characters. Do not shrink the whole illustration into a small inset on the page; keep the world immersive and only dial back character scale.
+    COMPOSITION / SCALE FOR THE ILLUSTRATOR: Full-bleed spreads — the setting and atmosphere fill the double-page edge-to-edge. Size the cast slightly smaller than a maximum hero fill so every listed character fits with a modest inset and no edge-clipping (full heads and feet on wide and mid shots; on closer shots, no clipped faces or hands). The tallest features (unicorn horn, ears, hair, wing tips) must sit fully inside the frame with visible margin from the top and sides — never cropped. If tight, widen the shot or shrink the characters. Do not shrink the whole illustration into a small inset on the page; keep the world immersive and only dial back character scale. When the verse describes jumping, bouncing, trampolines, soaring, flying, or reaching high in the air, the illustrationBrief MUST specify a wide or full shot with every visible named figure shown completely head-to-toe (and buddy tail/mane/horn/hooves fully inside the frame) — never a tight mid-shot that crops at the neck, waist, or knees.
   OPENING SPREAD (page 2 only — the first illustrationBrief): MUST match page 1 text and the child's plot, AND establish the actual SETTING (castle / woods / cave / beach / space / zoo / farm / mountain / sea / ship / train / city / circus / lake / snow / desert / museum / island / etc. — whichever the plot calls for). Page 1 text must name every main character the plot introduces (${childName}, any sibling/friend named in the plot idea, and the buddy creature by type — e.g. dinosaur). Only characters named on page 1 may appear on page 2's illustration. Example: if the plot is "hide and seek in a castle", the opening establishes castle gates / courtyard / great hall — NOT a forest. No unwritten extras.
   When game people with portrait notes appear on a picture page, the brief should mention them looking like those notes (hair, outfit colours, age vibe).
 - If a "plot idea" is given, you MUST make it the central theme of the story and feature it heavily in EVERY illustration brief. If it is empty, invent a short happy outing that fits the setting.
@@ -2137,7 +2162,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
     "No logos, social-media marks, app icons, or brand symbols. " +
     "The left third must be only smooth colour, soft sky, plain wall, or gentle gradient — zero pseudo-text texture there (the app draws real text in HTML). " +
     "CRITICAL LAYOUT RULE: Leave the left half of the image mostly uncluttered with a simple, soft, darker background so that WHITE storybook text can be printed over it clearly. Place the main characters and action on the right half or center-right of the image. " +
-    "FRAMING / CHARACTER SCALE (critical): FULL-BLEED SCENE — paint walls, sky, ground, props, and atmosphere so the artwork fills the entire canvas edge-to-edge (rich picture-book spread, not a tiny scene floating in empty space). Within that full-page painting, draw the named characters slightly smaller than a screen-filling hero poster (roughly 10–15% smaller overall) so their full head and hair, hands, feet, tail, and wings stay comfortably inside the frame with a modest inset from the outer edges — never cropped or jammed against the border. Unicorn horns, tall ears, hair poofs, wing tips, and raised hooves/paws must be fully visible with clear air above and beside them — never clipped by the top or side edges. If a figure still feels tight, shrink only the cast and pull the camera back slightly, not the richness of the environment. Never line up the whole cast as a tiny strip along the bottom like stickers; show comfortable ground and body. " +
+    "FRAMING / CHARACTER SCALE (critical): FULL-BLEED SCENE — paint walls, sky, ground, props, and atmosphere so the artwork fills the entire canvas edge-to-edge (rich picture-book spread, not a tiny scene floating in empty space). Within that full-page painting, draw the named characters slightly smaller than a screen-filling hero poster (roughly 10–15% smaller overall) so their full head and hair, hands, feet, tail, and wings stay comfortably inside the frame with a modest inset from the outer edges — never cropped or jammed against the border. Never crop a child or buddy at the neck or waist when the moment shows their whole body standing, jumping, or bouncing — use a wider shot instead. For jumping, trampolines, bouncing, soaring, or flying beats, default to a wide shot with the group using only ~35–48% of frame height so heads, feet, and hooves stay clear of the top and bottom edges. Unicorn horns, tall ears, hair poofs, wing tips, and raised hooves/paws must be fully visible with clear air above and beside them — never clipped by the top or side edges. If a figure still feels tight, shrink only the cast and pull the camera back slightly, not the richness of the environment. Never line up the whole cast as a tiny strip along the bottom like stickers; show comfortable ground and body. " +
     "STYLE: soft matte clay and toy-plastic 3D ONLY — rounded limbs, gentle pastel lighting, not realistic human skin, not glossy CGI. Edge-to-edge scene, no frames or borders. Wholesome and safe for toddlers. " +
     `HERO VISIBILITY: When "${childName}" appears in SCENE ACTION, they must be clearly visible (face on, not swapped for another kid). ` +
     (noBuddyBook
@@ -2281,7 +2306,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
           {
             label: "MID SHOT",
             note:
-              "Mid shot from roughly the knees up. Full-bleed setting behind and around them. Entire heads (hair included) and hands inside the frame with modest inset — not edge-cropped. Characters centre-left to centre; world still fills the canvas edge-to-edge.",
+              "Mid shot from roughly the knees up. Full-bleed setting behind and around them. Entire heads (hair included) and hands inside the frame with modest inset — not edge-cropped. Characters centre-left to centre; world still fills the canvas edge-to-edge. If the verse implies jumping, bouncing, trampoline, soaring, or flying, override this plan: use a wide full-body shot (same inset rules as spread 1) so no neck/waist crops.",
           },
           {
             label: "OVER-THE-SHOULDER / DISCOVERY ANGLE",
@@ -2291,7 +2316,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
           {
             label: "CLOSE-UP ON THE VERSE'S FOCAL MOMENT",
             note:
-              "Closer on the verse's focal action or expression. Full-bleed scene — background and atmosphere still run to the edges. Every face, hand, and prop that matters stays fully inside the frame with modest inset — no mouths, eyes, or fingertips clipped.",
+              "Closer on the verse's focal action or expression. Full-bleed scene — background and atmosphere still run to the edges. Every face, hand, and prop that matters stays fully inside the frame with modest inset — no mouths, eyes, or fingertips clipped. If the verse implies jumping, bouncing, trampoline, or airborne motion, override to a wide full-body framing instead — no tight crop on leaping bodies.",
           },
           {
             label: "WIDE JOURNEY SHOT — DIFFERENT PART OF THE SETTING",
@@ -2301,7 +2326,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
           {
             label: "MEDIUM CLOSE ON FACES — WARM FINALE",
             note:
-              "Medium-close chest-up to shoulders-up on a warm finale (smile, laugh, hug, cheer). Full-bleed setting behind and around them. Entire heads with hair and ears inside frame with modest inset; no chin or forehead against the top edge.",
+              "Medium-close chest-up to shoulders-up on a warm finale (smile, laugh, hug, cheer). Full-bleed setting behind and around them. Entire heads with hair and ears inside frame with modest inset; no chin or forehead against the top edge. If the finale verse still describes jumping, bouncing, or flying, use wide full-body instead.",
           },
         ];
 
@@ -2335,7 +2360,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
           // 1. Style + reference instruction
           blocks.push(
             "Children's picture-book illustration, soft matte clay and toy-plastic 3D, gentle pastel light, edge-to-edge with no borders or text. " +
-              "SAFE SCALE: Full-bleed scene — environment fills the entire canvas edge-to-edge. Draw the cast slightly smaller than a tight movie poster crop (~10–15% smaller) so full heads, hair, feet, hands, wings, and tails sit inside the frame with modest inset — never edge-clipped. Do not leave empty margins around the whole painting; only shrink the characters within the scene. " +
+              "SAFE SCALE: Full-bleed scene — environment fills the entire canvas edge-to-edge. Draw the cast slightly smaller than a tight movie poster crop (~10–15% smaller) so full heads, hair, feet, hands, wings, and tails sit inside the frame with modest inset — never edge-clipped. Never crop standing or jumping children at the neck, waist, or knees — if the moment is full-body, show full-body. Do not leave empty margins around the whole painting; only shrink the characters within the scene. " +
               "The attached reference image shows the cast on a neutral backdrop — use it ONLY to lock each character's identity (face shapes, hair, outfit colours, species, body shape). Ignore the lineup's neutral expressions and poses for this sheet — on THIS spread, show expressions and poses that fit the story moment. Repaint the world fresh.",
           );
 
@@ -2346,6 +2371,13 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
 
           // 3. Shot framing
           blocks.push(`SHOT TYPE (spread ${idx + 1} of ${shotPlan.length}): ${shot.label}. ${shot.note}`);
+
+          const verseBriefForCam = `${b.verse}\n${b.brief}`;
+          if (needsFullBodyWideFraming(verseBriefForCam)) {
+            blocks.push(
+              "CAMERA OVERRIDE — VERTICAL OR AIRBORNE ACTION: This spread's verse or scene implies jumping, bouncing, trampoline, soaring, flying, or similar. Treat any mid-shot or close-up plan as superseded: use a WIDE or FULL shot with the camera pulled back. Every named person and the buddy (if listed in WHO IS IN THIS PICTURE) must show a complete head (hair, hat, unicorn horn if any), full torso, arms, legs, feet, and the buddy's tail, mane, and hooves — all fully inside the frame with clear margin from every edge. Never crop at the neck, waist, or knees. The cast together may use only ~35–48% of frame height so airborne poses have room above the heads.",
+            );
+          }
 
           // 4. The exact moment, from the verse
           if (verseLines) {
@@ -2493,10 +2525,15 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
             sceneBrief: b.brief,
             castBible,
             firstPanelLock: panelLock,
+            heroFirstName: childName,
           });
           const verseBeat = spreadTextForPicturePage(b.index, story.pages).slice(0, 360);
+          const wideBeatClause = needsFullBodyWideFraming(`${verseBeat} ${b.brief}`)
+            ? "WIDE FULL-BODY CAM: verse implies jumping/bouncing/airborne — pull camera back; every named figure complete head-to-toe, buddy tail/horn/mane in frame; no neck or waist crops. "
+            : "";
           try {
             const falPrompt =
+              wideBeatClause +
               "PICTURE BOOK SPREAD — illustrate THIS story beat literally. " +
               "VERSE (must match mood, action, props): " +
               verseBeat +
@@ -2575,7 +2612,11 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
                   throwFalImage("Fal image-to-image missing reference from first picture", new Error("no_reference_url"));
                 }
                 try {
+                  const wideBeatClause = needsFullBodyWideFraming(`${b.verse} ${b.brief}`)
+                    ? "WIDE FULL-BODY CAM: jumping/bouncing/airborne — pull camera back; head-to-toe for every named figure; buddy tail/horn in frame. "
+                    : "";
                   const falPrompt =
+                    wideBeatClause +
                     "New story moment — change poses, action, and background to match the scene. " +
                     "Keep the same hero face shape, hair, outfit colours, and the same buddy and named creatures as the reference — only beings named in SCENE ACTION, no new animals or people. Shift facial expressions and body language to match the story beat — not the same static expression every time. " +
                     "TEXTLESS — no words, signs, book pages with text, logos, paper scraps with writing, or gibberish texture; soft matte clay toy 3D only. " +
@@ -2647,10 +2688,12 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
   }
 
   const bookColorOut = coerceBookColor(bookCoverColorReq, story.bookColor, childName);
+  const readerFont = pickStoryReaderFont();
 
   return jsonResponse({
     title: story.title,
     bookColor: bookColorOut,
+    readerFont,
     sceneImageUrl,
     pages: pagesOut,
     meta: {

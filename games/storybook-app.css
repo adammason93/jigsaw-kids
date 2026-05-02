@@ -1671,6 +1671,10 @@ body.sb-portal-welcome-open {
   position: relative;
   border-radius: 22px;
   padding: 0.35rem 0.15rem 0.15rem;
+  /* Per-book overrides set inline from `story.readerFont` (clever-service picks at creation). */
+  --sb-reader-font-body: "Fredoka", "Sniglet", "Nunito", sans-serif;
+  --sb-reader-font-over-art: "Schoolbell", "Nunito", sans-serif;
+  --sb-reader-font-emphasis: "Kalam", "Sniglet", "Fredoka", cursive, sans-serif;
 }
 
 .sb-book--themed {
@@ -1714,7 +1718,7 @@ body.sb-portal-welcome-open {
 }
 
 .sb-book-title {
-  font-family: "Fredoka", "Sniglet", "Nunito", sans-serif;
+  font-family: var(--sb-reader-font-body);
   text-align: center;
   font-size: clamp(1.35rem, 4vw, 1.7rem);
   font-weight: 700;
@@ -1930,7 +1934,7 @@ body.sb-portal-welcome-open {
 }
 
 .sb-cover__title {
-  font-family: "Fredoka", "Sniglet", "Nunito", sans-serif;
+  font-family: var(--sb-reader-font-body);
   font-size: clamp(1rem, 4.2vw, 1.35rem);
   font-weight: 600;
   color: #fff8fa;
@@ -2156,8 +2160,9 @@ body.sb-portal-welcome-open {
   /* Fill the full spread width (immersive reader-book can be >920px; else desk colour shows as side bars) */
   max-width: none;
   width: 100%;
-  /* Single zoom only on .sb-flip-spread__art-cover — never also on .sb-flip-spread__art-bg (would compound ~scale² and crop casts). */
-  --sb-spread-art-scale: 1;
+  /* Single zoom only on .sb-flip-spread__art-cover — never also on .sb-flip-spread__art-bg (would compound ~scale² and crop casts).
+   * Slightly <1 “zooms out” cover-cropped art so heads/feet/tails are less often clipped at the spread edges. */
+  --sb-spread-art-scale: 0.9;
   /* Soft paper tint so transparency never reveals two-tone “desk” bands under the shells */
   background: radial-gradient(
     ellipse 130% 88% at 50% 42%,
@@ -2562,7 +2567,7 @@ body.sb-portal-welcome-open {
 /* Child-friendly type + per-line white “tape” so story reads over busy art */
 .sb-flip-text__highlight {
   display: inline;
-  font-family: "Fredoka", "Sniglet", "Nunito", sans-serif;
+  font-family: var(--sb-reader-font-body);
   font-size: clamp(0.92rem, 2.6vw, 1.12rem);
   font-weight: 500;
   line-height: 1.65;
@@ -2579,7 +2584,7 @@ body.sb-portal-welcome-open {
 /* Picture-book text over art: soft per-line “paper tape” — reads as part of the page, not a dark panel */
 .sb-flip-spread__inner--has-art .sb-flip-text__highlight {
   display: inline;
-  font-family: "Schoolbell", "Nunito", sans-serif;
+  font-family: var(--sb-reader-font-over-art);
   font-size: clamp(1.35rem, 4.2vw, 1.75rem);
   font-weight: 400;
   letter-spacing: 0.02em;
@@ -2618,7 +2623,7 @@ body.sb-portal-welcome-open {
 }
 
 .sb-flip-spread__inner--has-art .sb-big-word {
-  font-family: "Kalam", "Sniglet", "Fredoka", cursive, sans-serif;
+  font-family: var(--sb-reader-font-emphasis);
   font-size: 1.65em;
   font-weight: 800;
   letter-spacing: 0.04em;
@@ -2646,7 +2651,7 @@ body.sb-portal-welcome-open {
 }
 
 .sb-the-end-title {
-  font-family: "Kalam", "Sniglet", "Fredoka", cursive, sans-serif;
+  font-family: var(--sb-reader-font-emphasis);
   font-size: clamp(1.75rem, 5.5vw, 2.35rem);
   font-weight: 800;
   margin: 0 0 0.35rem;
@@ -2656,7 +2661,7 @@ body.sb-portal-welcome-open {
 }
 
 .sb-the-end-lead {
-  font-family: "Kalam", "Sniglet", "Fredoka", cursive, sans-serif;
+  font-family: var(--sb-reader-font-emphasis);
   font-size: clamp(0.98rem, 3vw, 1.15rem);
   font-weight: 700;
   margin: 0;
