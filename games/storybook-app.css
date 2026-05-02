@@ -2203,15 +2203,24 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   transform-style: preserve-3d;
 }
 
-/* Reader cover: CodePen “journal” isometric when closed → eases forward while cover hinge opens */
+/* Reader cover: isometric rest pose — straighter than full -45° Z, slight -Y to show spine depth */
 .sb-book.sb-book--cover-visible:not(.sb-reader--sample)
   .sb-reader-stack:not(.sb-reader-stack--open):not(.sb-reader-stack--opening)
   .sb-cover {
-  transform: translate3d(-50%, 0, 0) rotateX(45deg) rotateY(0deg) rotateZ(-45deg);
-  -webkit-transform: translate3d(-50%, 0, 0) rotateX(45deg) rotateY(0deg) rotateZ(-45deg);
+  transform: translate3d(-50%, 0, 0) rotateX(36deg) rotateY(-14deg) rotateZ(-28deg);
+  -webkit-transform: translate3d(-50%, 0, 0) rotateX(36deg) rotateY(-14deg) rotateZ(-28deg);
   transform-origin: 50% 55%;
   -webkit-transform-origin: 50% 55%;
   transition: transform 0.9s cubic-bezier(0.33, 1, 0.48, 1);
+}
+
+.sb-book.sb-book--cover-visible:not(.sb-reader--sample)
+  .sb-reader-stack:not(.sb-reader-stack--open):not(.sb-reader-stack--opening)
+  .sb-cover__spine {
+  width: clamp(15px, 2.4vw, 22px);
+  box-shadow:
+    inset -3px 0 8px rgba(0, 0, 0, 0.22),
+    -2px 0 6px rgba(0, 0, 0, 0.12);
 }
 
 .sb-book.sb-book--cover-visible:not(.sb-reader--sample)
