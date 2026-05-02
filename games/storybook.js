@@ -868,6 +868,7 @@
           outgoingLeftShell.style.display = "none";
         }
         writeSpreadTextMetaFromStory();
+        syncSpreadIllustrationFromStory();
         spreadAnimLock = false;
         setSpreadNavBusy(false);
       });
@@ -877,6 +878,11 @@
   function navigateSpreadInstant(delta) {
     spreadAnimLock = false;
     bumpSpreadIndex(delta);
+    if (typeof window.requestAnimationFrame === "function") {
+      window.requestAnimationFrame(function () {
+        syncSpreadIllustrationFromStory();
+      });
+    }
   }
 
   function navigateSpread(delta) {
@@ -950,9 +956,6 @@
     if (!readerStack) return;
 
     spreadIndex = 0;
-    syncSpreadIllustrationFromStory();
-    writeSpreadTextMetaFromStory(0);
-
     coverOpenGeneration += 1;
     readerStack.classList.add("sb-reader-stack--open");
     book.classList.remove("sb-book--cover-visible");
@@ -963,6 +966,36 @@
     }
     syncCloseBookButton();
     updatePagerHints();
+
+    function paintOpenSpread() {
+      syncSpreadIllustrationFromStory();
+      writeSpreadTextMetaFromStory(spreadIndex);
+    }
+    paintOpenSpread();
+    if (typeof window.requestAnimationFrame === "function") {
+      window.requestAnimationFrame(function () {
+        window.requestAnimationFrame(paintOpenSpread);
+      });
+    }
+    var plate = book.querySelector(".sb-reader-book");
+    if (plate && !prefersReducedSpreadMotion()) {
+      var settled = false;
+      function onPlateTransitionEnd(ev) {
+        if (settled || ev.target !== plate) return;
+        if (ev.propertyName !== "max-width") return;
+        settled = true;
+        plate.removeEventListener("transitionend", onPlateTransitionEnd);
+        paintOpenSpread();
+      }
+      plate.addEventListener("transitionend", onPlateTransitionEnd);
+      window.setTimeout(function () {
+        if (!settled) {
+          settled = true;
+          paintOpenSpread();
+        }
+        plate.removeEventListener("transitionend", onPlateTransitionEnd);
+      }, 1300);
+    }
   }
 
   function resetBookCoverForWizard() {
