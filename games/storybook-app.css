@@ -758,6 +758,90 @@ body.sb-portal-welcome-open {
   justify-items: center;
   align-items: end;
   scroll-snap-align: start;
+  overflow: visible;
+  padding-top: 0.35rem;
+  padding-bottom: 0.85rem;
+  perspective: min(1200px, 165vw);
+  -webkit-perspective: min(1200px, 165vw);
+  perspective-origin: 50% 40%;
+  -webkit-perspective-origin: 50% 40%;
+}
+
+/* ─── Shelf grid only: CodePen “journal” isometric idle + open on click ─── */
+.sb-library-page > .sb-cover-card-wrap {
+  transform: rotateX(45deg) rotateY(0deg) rotateZ(-45deg);
+  -webkit-transform: rotateX(45deg) rotateY(0deg) rotateZ(-45deg);
+  transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
+}
+
+.sb-library-page > .sb-cover-card-wrap:hover,
+.sb-library-page > .sb-cover-card-wrap:focus-within {
+  transform: translateY(-10px) rotateX(45deg) rotateY(0deg) rotateZ(-45deg) scale(1.05);
+  -webkit-transform: translateY(-10px) rotateX(45deg) rotateY(0deg) rotateZ(-45deg) scale(1.05);
+}
+
+.sb-library-page > .sb-cover-card-wrap.sb-shelf-journal--opening {
+  pointer-events: none;
+  z-index: 40;
+  transform: rotateZ(-4deg) rotateX(13deg) rotateY(0deg) scale(1.06);
+  -webkit-transform: rotateZ(-4deg) rotateX(13deg) rotateY(0deg) scale(1.06);
+  transition: transform 1.15s cubic-bezier(0.33, 1, 0.48, 1);
+}
+
+.sb-library-page .sb-cover-card__book {
+  transform: translate3d(0, 0, 0) rotateX(0deg) rotateY(-18deg);
+  -webkit-transform: translate3d(0, 0, 0) rotateX(0deg) rotateY(-18deg);
+}
+
+.sb-library-page .sb-cover-card-wrap:hover .sb-cover-card__book,
+.sb-library-page .sb-cover-card-wrap:focus-within .sb-cover-card__book {
+  animation: none !important;
+}
+
+.sb-library-page > .sb-cover-card-wrap.sb-shelf-journal--opening .sb-cover-card__book {
+  transform: translate3d(0, 0, 0) rotateX(0deg) rotateY(-6deg);
+  -webkit-transform: translate3d(0, 0, 0) rotateX(0deg) rotateY(-6deg);
+  transition: transform 1.05s cubic-bezier(0.33, 1, 0.48, 1) 0.06s;
+}
+
+/* Hinged cover: inside board is ::after; art stays on .face */
+.sb-library-page .sb-cover-card__book-front {
+  transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
+}
+
+.sb-library-page .sb-cover-card__book-front::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(145deg, #faf7f2 0%, #ebe4d8 100%);
+  box-shadow: inset 0 0 0 1px rgba(75, 56, 76, 0.1);
+  transform: rotateY(180deg) translateZ(0.55px);
+  -webkit-transform: rotateY(180deg) translateZ(0.55px);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  pointer-events: none;
+}
+
+.sb-library-page .sb-cover-card__face {
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  transform: translateZ(0.65px);
+  -webkit-transform: translateZ(0.65px);
+}
+
+.sb-library-page > .sb-cover-card-wrap.sb-shelf-journal--opening .sb-cover-card__book-front {
+  transform-origin: 0% 50%;
+  -webkit-transform-origin: 0% 50%;
+  overflow: visible;
+  transition:
+    transform 1s cubic-bezier(0.33, 1, 0.48, 1) 0.38s,
+    box-shadow 1s cubic-bezier(0.33, 1, 0.48, 1) 0.38s;
+  transform: translateZ(calc(var(--sb-book-thickness) + 0.75px)) rotateY(-172deg);
+  -webkit-transform: translateZ(calc(var(--sb-book-thickness) + 0.75px)) rotateY(-172deg);
+  box-shadow: -8px 12px 18px rgba(0, 0, 0, 0.28);
 }
 
 .sb-library__empty {
@@ -997,6 +1081,51 @@ body.sb-portal-welcome-open {
   .sb-cover-card-wrap:hover .sb-cover-card__book,
   .sb-cover-card-wrap:focus-within .sb-cover-card__book {
     animation: none !important;
+  }
+
+  .sb-library-page > .sb-cover-card-wrap {
+    transform: none;
+    -webkit-transform: none;
+  }
+
+  .sb-library-page {
+    perspective: none;
+    -webkit-perspective: none;
+  }
+
+  .sb-library-page > .sb-cover-card-wrap:hover,
+  .sb-library-page > .sb-cover-card-wrap:focus-within {
+    transform: translateY(-6px) scale(1.03);
+    -webkit-transform: translateY(-6px) scale(1.03);
+  }
+
+  .sb-library-page .sb-cover-card__book {
+    transform: translate3d(0, 0, 0) rotateX(2deg) rotateY(-34deg);
+    -webkit-transform: translate3d(0, 0, 0) rotateX(2deg) rotateY(-34deg);
+  }
+
+  .sb-library-page .sb-cover-card__face {
+    transform: none;
+    -webkit-transform: none;
+    -webkit-backface-visibility: visible;
+    backface-visibility: visible;
+  }
+
+  .sb-library-page .sb-cover-card__book-front::after {
+    display: none;
+  }
+
+  .sb-library-page > .sb-cover-card-wrap.sb-shelf-journal--opening {
+    transform: none;
+    -webkit-transform: none;
+    transition: none;
+  }
+
+  .sb-library-page > .sb-cover-card-wrap.sb-shelf-journal--opening .sb-cover-card__book-front {
+    transform: translateZ(calc(var(--sb-book-thickness) + 0.75px));
+    -webkit-transform: translateZ(calc(var(--sb-book-thickness) + 0.75px));
+    transition: none;
+    box-shadow: none;
   }
 }
 
@@ -1242,158 +1371,6 @@ body.sb-portal-welcome-open {
 
 .sb-shelf-remove:active {
   background: rgba(185, 28, 28, 0.9);
-}
-
-/* Shelf → reader: journal-style isometric tilt + scale + hinged cover (library click only) */
-.sb-shelf-open-flyout {
-  position: fixed;
-  inset: 0;
-  z-index: 8300;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  pointer-events: none;
-}
-
-body.sb-shelf-open-flyout-active .sb-shelf-open-flyout {
-  pointer-events: auto;
-}
-
-.sb-shelf-open-flyout[hidden] {
-  display: none !important;
-}
-
-.sb-shelf-open-flyout__veil {
-  position: absolute;
-  inset: 0;
-  background: rgba(255, 253, 252, 0.55);
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
-  opacity: 0;
-  transition: opacity 0.45s ease;
-  pointer-events: auto;
-}
-
-.sb-shelf-open-flyout--open .sb-shelf-open-flyout__veil {
-  opacity: 1;
-}
-
-.sb-shelf-open-flyout__inner {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: min(72vh, 520px);
-  width: 100%;
-  padding: 1rem;
-  perspective: min(1400px, 200vw);
-  perspective-origin: 48% 42%;
-  pointer-events: none;
-}
-
-/* “Journal” stage: tabletop isometric → eases toward the reader (like the CodePen demo) */
-.sb-shelf-open-flyout .sb-shelf-open-flyout__clone.sb-cover-card-wrap {
-  pointer-events: none;
-  width: min(42vw, 11rem) !important;
-  max-width: 11.5rem !important;
-  flex: 0 0 auto !important;
-  padding-bottom: 0.35rem;
-  transform-style: preserve-3d;
-  -webkit-transform-style: preserve-3d;
-  transform: rotateX(45deg) rotateY(0deg) rotateZ(-45deg) scale(0.52);
-  -webkit-transform: rotateX(45deg) rotateY(0deg) rotateZ(-45deg) scale(0.52);
-  transition: transform 1.2s cubic-bezier(0.33, 1, 0.48, 1);
-  z-index: 3;
-}
-
-.sb-shelf-open-flyout--open .sb-shelf-open-flyout__clone.sb-cover-card-wrap {
-  transform: rotateZ(-4deg) rotateX(13deg) rotateY(0deg) scale(1.06);
-  -webkit-transform: rotateZ(-4deg) rotateX(13deg) rotateY(0deg) scale(1.06);
-}
-
-.sb-shelf-open-flyout .sb-shelf-open-flyout__clone .sb-cover-card {
-  max-width: none;
-  width: 100%;
-  cursor: default;
-  transform-style: preserve-3d;
-  -webkit-transform-style: preserve-3d;
-}
-
-.sb-shelf-open-flyout .sb-shelf-open-flyout__clone .sb-cover-card__book {
-  animation: none !important;
-  transition: transform 1.05s cubic-bezier(0.33, 1, 0.48, 1) 0.06s;
-  transform: translate3d(0, 0, 0) rotateX(2deg) rotateY(-34deg);
-  -webkit-transform: translate3d(0, 0, 0) rotateX(2deg) rotateY(-34deg);
-}
-
-.sb-shelf-open-flyout--open .sb-shelf-open-flyout__clone .sb-cover-card__book {
-  transform: translate3d(0, 0, 0) rotateX(0deg) rotateY(-8deg);
-  -webkit-transform: translate3d(0, 0, 0) rotateX(0deg) rotateY(-8deg);
-}
-
-/* Hinged cover: spine at left; inside face is ::after so art stays on .face */
-.sb-shelf-open-flyout .sb-shelf-open-flyout__clone .sb-cover-card__book-front {
-  transform-style: preserve-3d;
-  -webkit-transform-style: preserve-3d;
-  transform-origin: 0% 50%;
-  -webkit-transform-origin: 0% 50%;
-  overflow: visible;
-  transition:
-    transform 1s cubic-bezier(0.33, 1, 0.48, 1) 0.42s,
-    box-shadow 1s cubic-bezier(0.33, 1, 0.48, 1) 0.42s;
-  transform: translateZ(calc(var(--sb-book-thickness) + 0.75px)) rotateY(0deg);
-  -webkit-transform: translateZ(calc(var(--sb-book-thickness) + 0.75px)) rotateY(0deg);
-  box-shadow: none;
-}
-
-.sb-shelf-open-flyout--open .sb-shelf-open-flyout__clone .sb-cover-card__book-front {
-  transform: translateZ(calc(var(--sb-book-thickness) + 0.75px)) rotateY(-172deg);
-  -webkit-transform: translateZ(calc(var(--sb-book-thickness) + 0.75px)) rotateY(-172deg);
-  box-shadow: -8px 12px 18px rgba(0, 0, 0, 0.3);
-}
-
-.sb-shelf-open-flyout .sb-shelf-open-flyout__clone .sb-cover-card__book-front::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: linear-gradient(145deg, #faf7f2 0%, #ebe4d8 100%);
-  box-shadow: inset 0 0 0 1px rgba(75, 56, 76, 0.1);
-  transform: rotateY(180deg) translateZ(0.55px);
-  -webkit-transform: rotateY(180deg) translateZ(0.55px);
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
-  pointer-events: none;
-}
-
-.sb-shelf-open-flyout .sb-shelf-open-flyout__clone .sb-cover-card__face {
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
-  transform: translateZ(0.65px);
-  -webkit-transform: translateZ(0.65px);
-}
-
-body.page-storybook.sb-shelf-open-flyout-active {
-  overflow: hidden;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .sb-shelf-open-flyout__veil {
-    transition: none;
-  }
-
-  .sb-shelf-open-flyout .sb-shelf-open-flyout__clone.sb-cover-card-wrap {
-    transition: none;
-  }
-
-  .sb-shelf-open-flyout .sb-shelf-open-flyout__clone .sb-cover-card__book {
-    transition: none;
-  }
-
-  .sb-shelf-open-flyout .sb-shelf-open-flyout__clone .sb-cover-card__book-front {
-    transition: none;
-  }
 }
 
 .sb-note--modal {

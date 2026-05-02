@@ -574,8 +574,8 @@
   var selectedBookCoverColor = "";
   /** @type {{ title: string, author?: string, readerFont?: string|null, sceneImageUrl?: string|null, pages: { text: string, imageUrl: string|null }[] } | null} */
   var story = null;
-  /** True while shelf → reader flyout is running (avoid re-entrancy). */
-  var shelfOpenFlyoutBusy = false;
+  /** True while a shelf book is playing the journal open transition. */
+  var shelfJournalOpening = false;
 
   /** Matches clever-service STORY_READER_FONT_KEYS — body / tape-over-art / splash word stack per book. */
   var SB_READER_FONT_PRESETS = {
@@ -1727,8 +1727,8 @@
     });
   }
 
-  function openShelfBook(bookId, openBtn) {
-    if (shelfOpenFlyoutBusy) return;
+  function openShelfBook(bookId, wrap) {
+    if (shelfJournalOpening) return;
     var list = loadShelf();
     var item = null;
     for (var i = 0; i < list.length; i++) {
@@ -1754,61 +1754,23 @@
     };
     spreadIndex = 0;
 
-    var wrap =
-      openBtn && openBtn.closest
-        ? openBtn.closest(".sb-cover-card-wrap")
-        : null;
-    var flyRoot = document.getElementById("sbShelfOpenFlyout");
-    var flyInner = document.getElementById("sbShelfOpenFlyoutInner");
     if (
-      !wrap ||
-      !flyRoot ||
-      !flyInner ||
-      prefersReducedSpreadMotion()
+      wrap &&
+      wrap.classList &&
+      wrap.closest(".sb-library-page") &&
+      !prefersReducedSpreadMotion()
     ) {
-      showBook();
+      shelfJournalOpening = true;
+      wrap.classList.add("sb-shelf-journal--opening");
+      window.setTimeout(function () {
+        wrap.classList.remove("sb-shelf-journal--opening");
+        shelfJournalOpening = false;
+        showBook();
+      }, 2100);
       return;
     }
 
-    shelfOpenFlyoutBusy = true;
-    var clone = wrap.cloneNode(true);
-    var rmBtns = clone.querySelectorAll(".sb-shelf-remove");
-    for (var r = 0; r < rmBtns.length; r++) {
-      rmBtns[r].remove();
-    }
-    var cloneOpen = clone.querySelector(".sb-cover-card");
-    if (cloneOpen) {
-      cloneOpen.disabled = true;
-      cloneOpen.setAttribute("tabindex", "-1");
-    }
-    clone.classList.add("sb-shelf-open-flyout__clone");
-
-    flyInner.textContent = "";
-    flyInner.appendChild(clone);
-    flyRoot.removeAttribute("hidden");
-    flyRoot.setAttribute("aria-hidden", "true");
-    flyRoot.classList.remove("sb-shelf-open-flyout--open");
-    document.body.classList.add("sb-shelf-open-flyout-active");
-
-    var finished = false;
-    function finishFlyout() {
-      if (finished) return;
-      finished = true;
-      flyInner.textContent = "";
-      flyRoot.setAttribute("hidden", "");
-      flyRoot.classList.remove("sb-shelf-open-flyout--open");
-      document.body.classList.remove("sb-shelf-open-flyout-active");
-      shelfOpenFlyoutBusy = false;
-      showBook();
-    }
-
-    requestAnimationFrame(function () {
-      requestAnimationFrame(function () {
-        flyRoot.classList.add("sb-shelf-open-flyout--open");
-      });
-    });
-
-    window.setTimeout(finishFlyout, 2100);
+    showBook();
   }
 
   /**
@@ -1969,7 +1931,7 @@
 
     openBtn.appendChild(wrapShelfCoverInBook3d(face));
     openBtn.addEventListener("click", function () {
-      openShelfBook(item.id, openBtn);
+      openShelfBook(item.id, wrap);
     });
     var rm = document.createElement("button");
     rm.type = "button";
