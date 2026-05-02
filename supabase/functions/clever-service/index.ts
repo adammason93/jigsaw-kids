@@ -23,6 +23,9 @@ const CHARACTERS: Record<string, string> = {
   owl: "a small wide-eyed cartoon owl with soft feather tufts and rounded wings — can appear as a gentle fuzzy mascot with big friendly eyes, simple blue-and-white stripes or a soft scarf, plush toy style (no logos or readable text), never scary or hyper-realistic",
   octopus:
     "a small cheerful cartoon octopus with a round body and curly tentacles — soft colours, big friendly eyes, rounded suckers",
+  /** Human-only books: no imaginary creature companion. */
+  nobuddy:
+    "NONE — no imaginary creature buddy; humans only unless the plot explicitly requires a specific creature.",
 };
 
 const PLACES: Record<string, string> = {
@@ -347,6 +350,18 @@ async function compileCharacterLockForImages(
     `Art style words allowed ONLY: "soft matte clay toy, rounded limbs, gentle toy plastic sheen" — never "realistic" or "Pixar skin".\n` +
     `Max 2100 characters. No scenery. No actions.`;
 
+  const noBuddyLock = input.buddyKey === "nobuddy";
+  const systemLock = noBuddyLock
+    ? "You are an art director for a children's book. Output only the LOCKED CAST block. Be dense and consistent. " +
+      "This book has NO imaginary creature buddy — only humans (hero, plot-named children, game friends). " +
+      "Output HERO: and one line per other named HUMAN (e.g. ISAAC:, TILLY:) from the draft. Do NOT output BUDDY: or any creature/animal mascot line unless the plot explicitly requires a non-human co-star (rare). " +
+      "If the draft truly has only the hero, output exactly one HERO: line. Never invent MONKEY:, BEAR:, unicorn, or dragon unless the storywriter draft explicitly includes that creature."
+    : "You are an art director for a children's book. Output only the LOCKED CAST block. Be dense and consistent. " +
+      "Include EVERY named person and recurring creature from the storywriter draft who actually appears in the book (HERO, BUDDY, named human siblings/friends from the plot, and any named game friends from the draft). " +
+      "If the user lists human co-stars in the plot (e.g. Isaac), they MUST appear as their own NAME: lines — never merge a human child into BUDDY and never call the dragon/dinosaur by a human sibling's name. " +
+      "If the draft truly has only the child and one imaginary friend, output exactly HERO: and BUDDY: — never invent unnamed forest animals. " +
+      "If the draft names extra friends (e.g. Tilly), add one line each — never add MONKEY:, BEAR:, or random extras not in the draft.";
+
   const r = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
     headers: {
@@ -360,12 +375,7 @@ async function compileCharacterLockForImages(
       messages: [
         {
           role: "system",
-          content:
-            "You are an art director for a children's book. Output only the LOCKED CAST block. Be dense and consistent. " +
-            "Include EVERY named person and recurring creature from the storywriter draft who actually appears in the book (HERO, BUDDY, named human siblings/friends from the plot, and any named game friends from the draft). " +
-            "If the user lists human co-stars in the plot (e.g. Isaac), they MUST appear as their own NAME: lines — never merge a human child into BUDDY and never call the dragon/dinosaur by a human sibling's name. " +
-            "If the draft truly has only the child and one imaginary friend, output exactly HERO: and BUDDY: — never invent unnamed forest animals. " +
-            "If the draft names extra friends (e.g. Tilly), add one line each — never add MONKEY:, BEAR:, or random extras not in the draft.",
+          content: systemLock,
         },
         { role: "user", content: user },
       ],
@@ -1716,6 +1726,8 @@ Deno.serve(async (req) => {
     return jsonResponse({ error: "invalid_choices" }, 400);
   }
 
+  const noBuddyBook = characterKey === "nobuddy";
+
   const plotHint = sanitizePlotHint(String(body.plotHint ?? ""));
 
   // If the child's plot prompt clearly names a different setting than the one
@@ -1897,7 +1909,7 @@ Deno.serve(async (req) => {
 
   const system = `You write very short picture-book stories for UK English-speaking children about age 5.
 Rules:
-- Warm, gentle, silly — never scary, violent, or mean.
+${noBuddyBook ? `BOOK MODE — NO IMAGINARY BUDDY: The reader chose "No buddy". For this entire book: (1) Do NOT add a recurring fantasy creature companion (unicorn, dragon, robot, etc.) in story text, characterDesign, or illustrationBriefs unless the child's plot idea explicitly requires that creature. (2) characterDesign must describe ONLY humans — the hero, any plot-named children, and game people. (3) Each illustrationBrief VISIBLE line lists only people (humans) named in that verse. (4) Page 1 must not introduce a creature buddy. Invent gentle human-centred adventures when the plot is open-ended.\n\n` : ""}- Warm, gentle, silly — never scary, violent, or mean.
 - No romance, no weapons, no villains that frighten.
 - Exactly 12 pages (six double-page spreads). The text on every page MUST be exactly 4 lines long, written as a fun, rhythmic poem that rhymes perfectly (e.g., AABB or ABCB). Format the text with actual line breaks (\n) after each line so the rhyming words are at the end of each line. Use simple words.
 - Odd-numbered (text-first) pages: end on a normal rhyming line — do NOT tack on a random ALL CAPS sound effect (SPLASH! SNORE! ZOOM!) after the verse; those often feel disconnected from the lines above. Keep the whole page in normal sentence case. Only use a short capped word if it is genuinely the punchline of that beat (rare); most pages should have no ALL CAPS word at all.
@@ -1952,8 +1964,11 @@ Rules:
 - JSON only, no markdown.`;
 
   const user = `Child name: ${childName}
-Main friend character (imaginary buddy): ${characterDesc}
-Setting to feature: ${placeDesc}
+${
+  noBuddyBook
+    ? "Imaginary buddy: none — human-only book (no standing creature companion unless the plot explicitly demands one).\n"
+    : `Main friend character (imaginary buddy): ${characterDesc}\n`
+}Setting to feature: ${placeDesc}
 People from the child's games to include by name (friends/family — use them warmly when listed; each may have a portrait note above): ${
     familyNames.length > 0 ? familyNames.join(", ") : "(none)"
   }
@@ -1963,11 +1978,15 @@ Other human children named ONLY in the plot idea below (they are REAL KIDS in th
 Plot idea from the child (CRITICAL: make this the core focus of the story and pictures): ${
     plotHint.length ? plotHint : "(none — invent a cosy little adventure that fits the setting)"
   }
-Page 1 and page 2 must OPEN this plot: the first illustration (page 2 brief) is the first scene readers see — match this plot's SETTING, props, and buddy. Read the plot literally: if it says "castle", spread 1 is the castle (gates, great hall, courtyard); if it says "woods", spread 1 is woods; if it says "underwater", spread 1 is underwater. Do NOT default to woods.
+Page 1 and page 2 must OPEN this plot: the first illustration (page 2 brief) is the first scene readers see — match this plot's SETTING and props${
+  noBuddyBook ? "" : ", and buddy"
+}. Read the plot literally: if it says "castle", spread 1 is the castle (gates, great hall, courtyard); if it says "woods", spread 1 is woods; if it says "underwater", spread 1 is underwater. Do NOT default to woods.
 ${
-    familyNames.length === 0 && plotNamedHumans.length === 0
-      ? `Picture cast rule: only people/creatures **named in each verse** may appear on that spread's illustration — usually ${childName} and the buddy. Do not name anyone in a brief who is not in the paired text.\n`
-      : `Main human cast for this book (must appear in the verses whenever they are in the scene together — use these exact names): ${storyHumanNames.join(", ")}. Picture rule: only names that appear in each verse may be in that spread's illustration; match the plot's who-is-hiding logic with the VISIBLE line.\n`
+  familyNames.length === 0 && plotNamedHumans.length === 0
+    ? noBuddyBook
+      ? `Picture cast rule: only people **named in each verse** may appear on that spread's illustration — usually ${childName} alone or with named human friends. No creature buddy.\n`
+      : `Picture cast rule: only people/creatures **named in each verse** may appear on that spread's illustration — usually ${childName} and the buddy. Do not name anyone in a brief who is not in the paired text.\n`
+    : `Main human cast for this book (must appear in the verses whenever they are in the scene together — use these exact names): ${storyHumanNames.join(", ")}. Picture rule: only names that appear in each verse may be in that spread's illustration; match the plot's who-is-hiding logic with the VISIBLE line.\n`
   }
 Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "pink" | "blue" | "green", "pages": [ { "text": string, "illustrationBrief": string | null }, ... 12 items ] }`;
 
@@ -2002,18 +2021,28 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
     console.warn("[clever-service] compileCharacterLock failed", e);
   }
 
-  const duoImageCastFallback =
-    `HERO: ${childName}, young child, friendly rounded face, simple solid-colour top and trousers, soft matte clay toy 3D — always the same human hero in every spread. ` +
-    `BUDDY: ${characterDesc}, exactly ONE individual of this species in every image — never duplicate, never parent+baby pair, same toy-clay style on every page.` +
-    (plotNamedHumans.length > 0
-      ? " " +
-        plotNamedHumans
-          .map(
-            (n) =>
-              `${n.toUpperCase()}: human child co-star named in the plot — distinct face, hair, and outfit colours from ${childName}, same soft matte clay toy 3D whenever this child appears.`,
-          )
-          .join(" ")
-      : "");
+  const duoImageCastFallback = noBuddyBook
+    ? `HERO: ${childName}, young child, friendly rounded face, simple solid-colour top and trousers, soft matte clay toy 3D — always the same human hero in every spread.` +
+      (plotNamedHumans.length > 0
+        ? " " +
+          plotNamedHumans
+            .map(
+              (n) =>
+                `${n.toUpperCase()}: human child co-star named in the plot — distinct face, hair, and outfit colours from ${childName}, same soft matte clay toy 3D whenever this child appears.`,
+            )
+            .join(" ")
+        : "")
+    : `HERO: ${childName}, young child, friendly rounded face, simple solid-colour top and trousers, soft matte clay toy 3D — always the same human hero in every spread. ` +
+      `BUDDY: ${characterDesc}, exactly ONE individual of this species in every image — never duplicate, never parent+baby pair, same toy-clay style on every page.` +
+      (plotNamedHumans.length > 0
+        ? " " +
+          plotNamedHumans
+            .map(
+              (n) =>
+                `${n.toUpperCase()}: human child co-star named in the plot — distinct face, hair, and outfit colours from ${childName}, same soft matte clay toy 3D whenever this child appears.`,
+            )
+            .join(" ")
+        : "");
 
   const castBible =
     compiledLock.length > 120
@@ -2032,7 +2061,9 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
     "FRAMING / CHARACTER SCALE (critical): FULL-BLEED SCENE — paint walls, sky, ground, props, and atmosphere so the artwork fills the entire canvas edge-to-edge (rich picture-book spread, not a tiny scene floating in empty space). Within that full-page painting, draw the named characters slightly smaller than a screen-filling hero poster (roughly 10–15% smaller overall) so their full head and hair, hands, feet, tail, and wings stay comfortably inside the frame with a modest inset from the outer edges — never cropped or jammed against the border. If a figure still feels tight, shrink only the cast, not the richness of the environment. Never line up the whole cast as a tiny strip along the bottom like stickers; show comfortable ground and body. " +
     "STYLE: soft matte clay and toy-plastic 3D ONLY — rounded limbs, gentle pastel lighting, not realistic human skin, not glossy CGI. Edge-to-edge scene, no frames or borders. Wholesome and safe for toddlers. " +
     `HERO VISIBILITY: When "${childName}" appears in SCENE ACTION, they must be clearly visible (face on, not swapped for another kid). ` +
-    "ONE BUDDY ANIMAL: Only one imaginary buddy creature from the BUDDY line in the image (e.g. one unicorn), not clones or a big+little pair, unless SCENE ACTION names two. " +
+    (noBuddyBook
+      ? "NO STANDING CREATURE BUDDY: Illustrate only humans named in SCENE ACTION — do not add a unicorn, dragon, robot, or animal mascot unless SCENE ACTION explicitly names that element from the plot. "
+      : "ONE BUDDY ANIMAL: Only one imaginary buddy creature from the BUDDY line in the image (e.g. one unicorn), not clones or a big+little pair, unless SCENE ACTION names two. ") +
     "TEXT-LOCKED: ONLY characters explicitly named in SCENE ACTION — same roster as this spread's verse, same count. NO unnamed extras: no villagers, silhouettes with faces, filler torch-bearers, spare animals, or audience. NO logos. Background = whatever the ENVIRONMENT line specifies (castle, woods, cave, beach, garden, space, sea, ship, mountain, zoo, farm, circus, city, train, lake, snow, desert, museum, island, etc.) without extra faced characters. NO signs with lettering, carved runes, or flyers. ";
 
   const envTheme =
@@ -2108,7 +2139,9 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
 
     const anchorPreamble =
       "A completely textless illustration. NO letters, words, typography, labels, speech bubbles, signs with text, book pages with writing, loose papers, scrolls, glyph noise, watermarks, or fake paragraph texture anywhere. Plain smooth background regions only — no pseudo-text. " +
-      "CAST LINEUP / MODEL SHEET for a kids picture book: every character line in LOCKED CAST below (hero, buddy, and any named human co-stars or game people) — no one else, no third mascot or crowd, no duplicate unicorns. Together in ONE frame, calm neutral expressions and friendly standing poses for identity reference only — story illustrations later will change faces and poses per scene. " +
+      (noBuddyBook
+        ? "CAST LINEUP / MODEL SHEET for a kids picture book: every character line in LOCKED CAST below (human hero and any named human co-stars or game people ONLY — no creature buddy in the lineup). Together in ONE frame, calm neutral expressions and friendly standing poses for identity reference only — story illustrations later will change faces and poses per scene. "
+        : "CAST LINEUP / MODEL SHEET for a kids picture book: every character line in LOCKED CAST below (hero, buddy, and any named human co-stars or game people) — no one else, no third mascot or crowd, no duplicate unicorns. Together in ONE frame, calm neutral expressions and friendly standing poses for identity reference only — story illustrations later will change faces and poses per scene. ") +
       "full bodies on a plain soft background that still fills the canvas edge-to-edge — modest inset so hair, feet, wings, and tails do not touch the border; figures roughly the middle ~65–80% of frame height so each design reads clearly, soft matte clay and toy-plastic 3D, gentle pastel light. " +
       "Edge-to-edge, wholesome for toddlers. ";
 

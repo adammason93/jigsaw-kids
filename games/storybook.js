@@ -16,6 +16,7 @@
     { id: "penguin", label: "Penguin" },
     { id: "owl", label: "Owl" },
     { id: "octopus", label: "Octopus" },
+    { id: "nobuddy", label: "No buddy" },
   ];
 
   /** Max characters for "What happens?" — keep in sync with clever-service `STORYBOOK_PLOT_HINT_MAX`. */
