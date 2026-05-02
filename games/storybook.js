@@ -1786,31 +1786,6 @@
 
   var SHELF_COVERS_PER_TIER = 4;
 
-  function createShelfBookBox3d(face) {
-    var box = document.createElement("div");
-    box.className = "sb-cover-card__box3d";
-    var back = document.createElement("div");
-    back.className = "sb-cover-card__plane sb-cover-card__plane--back";
-    var bottom = document.createElement("div");
-    bottom.className = "sb-cover-card__plane sb-cover-card__plane--bottom";
-    var top = document.createElement("div");
-    top.className = "sb-cover-card__plane sb-cover-card__plane--top";
-    var spine = document.createElement("div");
-    spine.className = "sb-cover-card__plane sb-cover-card__plane--spine";
-    var fore = document.createElement("div");
-    fore.className = "sb-cover-card__plane sb-cover-card__plane--fore";
-    var front = document.createElement("div");
-    front.className = "sb-cover-card__plane sb-cover-card__plane--front";
-    front.appendChild(face);
-    box.appendChild(back);
-    box.appendChild(bottom);
-    box.appendChild(top);
-    box.appendChild(spine);
-    box.appendChild(fore);
-    box.appendChild(front);
-    return box;
-  }
-
   function composeHardbackShelfFace(face, meta, rawTitle, imgElOpt) {
     var titleShown = spineLabel(rawTitle);
     face.textContent = "";
@@ -1905,7 +1880,7 @@
       composeHardbackShelfFace(face, meta, item.title, null);
     }
 
-    openBtn.appendChild(createShelfBookBox3d(face));
+    openBtn.appendChild(face);
     openBtn.addEventListener("click", function () {
       openShelfBook(item.id);
     });
