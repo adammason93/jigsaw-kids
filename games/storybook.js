@@ -77,6 +77,7 @@
   var heroPhotoThumbsList = document.getElementById("sbHeroPhotoThumbs");
   var heroPhotoErr = document.getElementById("sbHeroPhotoErr");
   var heroPhotoRemove = document.getElementById("sbHeroPhotoRemove");
+  var heroRefDatalist = document.getElementById("sbHeroRefWhoDatalist");
   /** @type {{ dataUrl: string, who: string }[]} */
   var heroPhotoItems = [];
   var HERO_PHOTO_MAX_COUNT = 3;
@@ -1889,22 +1890,100 @@
       });
   }
 
-  function heroRefWhoOptions() {
-    var opts = [];
+  function heroFirstToken() {
+    var n = nameInput && nameInput.value.trim() ? nameInput.value.trim() : "";
+    var first = (n.split(/\s+/)[0] || "").replace(/[^a-z]/gi, "");
+    return first.toLowerCase();
+  }
+
+  function syncHeroRefDatalist() {
+    if (!heroRefDatalist) return;
+    heroRefDatalist.replaceChildren();
     var heroLab = nameInput && nameInput.value.trim()
       ? nameInput.value.trim()
       : "Hero";
-    opts.push({ v: "hero", t: heroLab + " (hero in this book)" });
+    var oHero = document.createElement("option");
+    oHero.value = heroLab;
+    heroRefDatalist.appendChild(oHero);
     var list =
       typeof window.KidsGameCharacters !== "undefined" &&
       Array.isArray(window.KidsGameCharacters)
         ? window.KidsGameCharacters
         : [];
     list.forEach(function (item) {
-      if (!item || !item.id) return;
-      opts.push({ v: item.id, t: item.label });
+      if (!item || !item.label) return;
+      var o = document.createElement("option");
+      o.value = item.label;
+      heroRefDatalist.appendChild(o);
     });
-    return opts;
+  }
+
+  function displayNameForWho(who) {
+    if (who === "hero") {
+      return nameInput && nameInput.value.trim()
+        ? nameInput.value.trim()
+        : "Hero";
+    }
+    var list =
+      typeof window.KidsGameCharacters !== "undefined" &&
+      Array.isArray(window.KidsGameCharacters)
+        ? window.KidsGameCharacters
+        : [];
+    for (var i = 0; i < list.length; i++) {
+      if (list[i] && list[i].id === who) return list[i].label;
+    }
+    return who;
+  }
+
+  /** @returns {"hero"|string|null} */
+  function resolveWhoFromText(raw) {
+    var t = (raw || "").trim();
+    if (!t.length) return "hero";
+    var tLo = t.toLowerCase();
+    var tNorm = tLo.replace(/[^a-z0-9]/gu, "");
+
+    if (!tNorm || tNorm === "hero" || tNorm === "me") return "hero";
+    if (/\(\s*hero\s*\)/i.test(t)) return "hero";
+
+    var heroName = nameInput && nameInput.value.trim()
+      ? nameInput.value.trim()
+      : "";
+    if (heroName && tLo === heroName.toLowerCase()) return "hero";
+
+    var hf = heroFirstToken();
+    if (hf && tNorm === hf) return "hero";
+
+    var list =
+      typeof window.KidsGameCharacters !== "undefined" &&
+      Array.isArray(window.KidsGameCharacters)
+        ? window.KidsGameCharacters
+        : [];
+    for (var j = 0; j < list.length; j++) {
+      var item = list[j];
+      if (!item || !item.id) continue;
+      if (item.id === tNorm || item.label.trim().toLowerCase() === tLo) {
+        return item.id;
+      }
+    }
+    return null;
+  }
+
+  function normalizeWhoInput(idx, inp) {
+    if (!inp || idx < 0 || idx >= heroPhotoItems.length) return;
+    setHeroPhotoError("");
+    var prev = heroPhotoItems[idx].who;
+    var r = resolveWhoFromText(inp.value);
+    if (r === null) {
+      setHeroPhotoError(
+        "Type the hero’s name or a game friend (e.g. Freya) — check spelling.",
+      );
+      heroPhotoItems[idx].who = prev;
+      inp.value = displayNameForWho(prev);
+      return;
+    }
+    heroPhotoItems[idx].who = r;
+    if (r !== "hero") ensureGamePersonSelected(r);
+    inp.value = displayNameForWho(r);
   }
 
   function ensureGamePersonSelected(personId) {
@@ -1935,26 +2014,9 @@
     return dirty;
   }
 
-  function buildWhoSelect(currentWho) {
-    var sel = document.createElement("select");
-    sel.className = "sb-hero-ref__who";
-    sel.setAttribute("aria-label", "Who is in this photo");
-    heroRefWhoOptions().forEach(function (o) {
-      var opt = document.createElement("option");
-      opt.value = o.v;
-      opt.textContent = o.t;
-      sel.appendChild(opt);
-    });
-    var ok = false;
-    Array.prototype.forEach.call(sel.options, function (o) {
-      if (o.value === currentWho) ok = true;
-    });
-    sel.value = ok ? currentWho : "hero";
-    return sel;
-  }
-
   function renderHeroPhotoThumbs() {
     if (!heroPhotoThumbsList || !heroPhotoThumbsWrap) return;
+    syncHeroRefDatalist();
     heroPhotoThumbsList.replaceChildren();
     heroPhotoItems.forEach(function (item, idx) {
       var li = document.createElement("li");
@@ -1967,7 +2029,23 @@
       img.width = 96;
       img.height = 96;
       img.decoding = "async";
-      var sel = buildWhoSelect(item.who);
+      var inp = document.createElement("input");
+      inp.type = "text";
+      inp.className = "sb-hero-ref__who-input";
+      inp.setAttribute("list", "sbHeroRefWhoDatalist");
+      inp.setAttribute("autocomplete", "off");
+      inp.setAttribute("aria-label", "Who is in this photo — type a name");
+      inp.setAttribute("maxlength", "48");
+      inp.value = displayNameForWho(item.who);
+      inp.addEventListener("keydown", function (ev) {
+        if (ev.key === "Enter") {
+          ev.preventDefault();
+          inp.blur();
+        }
+      });
+      inp.addEventListener("focusout", function () {
+        normalizeWhoInput(idx, inp);
+      });
       var btn = document.createElement("button");
       btn.type = "button";
       btn.className = "sb-hero-ref__thumb-remove";
@@ -1975,7 +2053,7 @@
       btn.setAttribute("data-idx", String(idx));
       btn.textContent = "\u00d7";
       li.appendChild(img);
-      li.appendChild(sel);
+      li.appendChild(inp);
       li.appendChild(btn);
       heroPhotoThumbsList.appendChild(li);
     });
@@ -2750,17 +2828,6 @@
     });
   }
   if (heroPhotoThumbsList) {
-    heroPhotoThumbsList.addEventListener("change", function (e) {
-      var t = e.target;
-      if (!t || !t.classList || !t.classList.contains("sb-hero-ref__who")) return;
-      var li = t.closest && t.closest(".sb-hero-ref__thumb-item");
-      if (!li) return;
-      var idx = parseInt(li.getAttribute("data-idx") || "-1", 10);
-      if (idx >= 0 && idx < heroPhotoItems.length) {
-        heroPhotoItems[idx].who = t.value;
-        ensureGamePersonSelected(t.value);
-      }
-    });
     heroPhotoThumbsList.addEventListener("click", function (e) {
       var t = e.target;
       if (!t || !t.closest) return;

@@ -1397,7 +1397,7 @@ body.sb-portal-welcome-open {
   max-width: 100%;
 }
 
-.sb-hero-ref__who {
+.sb-hero-ref__who-input {
   display: block;
   width: 100%;
   min-width: 9rem;
@@ -1410,7 +1410,7 @@ body.sb-portal-welcome-open {
   background: #fff;
   border: 2px solid rgba(219, 39, 119, 0.35);
   border-radius: 10px;
-  cursor: pointer;
+  box-sizing: border-box;
 }
 
 .sb-hero-ref__thumb-remove {

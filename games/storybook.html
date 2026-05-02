@@ -9,7 +9,7 @@
   <link rel="manifest" href="../manifest.json" />
   <link rel="stylesheet" href="../js/kids-core.css" />
   <!-- storybook-app.css = renamed file so CDN/browser cache cannot keep old storybook.css -->
-  <link rel="stylesheet" href="storybook-app.css?v=63" />
+  <link rel="stylesheet" href="storybook-app.css?v=64" />
   <link rel="stylesheet" href="../tablet-ipad.css" />
   <!-- Last wins: guarantees new background even if a proxy cached an ancient stylesheet elsewhere -->
   <style>
@@ -159,7 +159,7 @@
           <div class="sb-game-people-block" id="sbGamePeopleBlock" hidden>
           <p class="sb-label sb-label--secondary">Friends from your games (optional)</p>
           <p class="sb-panel__hint sb-panel__hint--tight">
-            Tap anyone who might appear in the story — or choose them from a photo&rsquo;s menu and we&rsquo;ll tick them for you.
+            Tap anyone who might appear in the story — typing a friend’s name under a photo also ticks them here.
           </p>
           <div
             class="sb-chip-row sb-chip-row--family"
@@ -171,8 +171,9 @@
           <div class="sb-hero-ref" id="sbHeroRefBlock">
             <label class="sb-label sb-label--secondary" for="sbHeroPhoto">Photos for the book (optional, up to 3)</label>
             <p class="sb-panel__hint sb-panel__hint--tight">
-              For each picture, pick who it is &mdash; the hero or a game friend (everyone from your games is in the menu).
+              Under each photo, type who it is (hero’s name or a friend like Freya) — suggestions appear as you type.
             </p>
+            <datalist id="sbHeroRefWhoDatalist"></datalist>
             <input
               class="sb-hero-ref__input"
               type="file"
@@ -466,7 +467,7 @@
   <script src="../js/storybook-shelf-store.js" defer></script>
   <!-- Required for cloud shelf sync + upload (same as other games) -->
   <script src="../js/score-cloud.js" defer></script>
-  <script src="storybook.js?v=285" defer></script>
+  <script src="storybook.js?v=286" defer></script>
   <script>
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("../sw.js").catch(function () {});
