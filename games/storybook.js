@@ -574,8 +574,6 @@
   var selectedBookCoverColor = "";
   /** @type {{ title: string, author?: string, readerFont?: string|null, sceneImageUrl?: string|null, pages: { text: string, imageUrl: string|null }[] } | null} */
   var story = null;
-  /** True while a shelf book is playing the journal open transition. */
-  var shelfJournalOpening = false;
 
   /** Matches clever-service STORY_READER_FONT_KEYS — body / tape-over-art / splash word stack per book. */
   var SB_READER_FONT_PRESETS = {
@@ -1728,8 +1726,7 @@
     });
   }
 
-  function openShelfBook(bookId, wrap) {
-    if (shelfJournalOpening) return;
+  function openShelfBook(bookId) {
     var list = loadShelf();
     var item = null;
     for (var i = 0; i < list.length; i++) {
@@ -1754,23 +1751,6 @@
       }),
     };
     spreadIndex = 0;
-
-    if (
-      wrap &&
-      wrap.classList &&
-      wrap.closest(".sb-library-page") &&
-      !prefersReducedSpreadMotion()
-    ) {
-      shelfJournalOpening = true;
-      wrap.classList.add("sb-shelf-journal--opening");
-      window.setTimeout(function () {
-        wrap.classList.remove("sb-shelf-journal--opening");
-        shelfJournalOpening = false;
-        showBook();
-      }, 2100);
-      return;
-    }
-
     showBook();
   }
 
@@ -1932,7 +1912,7 @@
 
     openBtn.appendChild(wrapShelfCoverInBook3d(face));
     openBtn.addEventListener("click", function () {
-      openShelfBook(item.id, wrap);
+      openShelfBook(item.id);
     });
     var rm = document.createElement("button");
     rm.type = "button";
