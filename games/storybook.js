@@ -1947,64 +1947,73 @@
 
   var SHELF_COVERS_PER_TIER = 4;
 
-  /**
-   * CodePen-style 3D volume: front (cover) + paper block + back — fewer faces than a full cube,
-   * works better with dynamic cover art.
-   */
-  function wrapShelfCoverInBook3d(face) {
+  /** Flat portrait “app cover” tile for My library (spine, framed art, title, TAP TO OPEN). */
+  function wrapShelfCoverLibraryFlat(face) {
     var scene = document.createElement("span");
-    scene.className = "sb-cover-card__scene";
-    var shadow = document.createElement("span");
-    shadow.className = "sb-cover-card__book-shadow";
-    shadow.setAttribute("aria-hidden", "true");
-    var book = document.createElement("span");
-    book.className = "sb-cover-card__book";
-    var front = document.createElement("span");
-    front.className = "sb-cover-card__book-front";
-    front.appendChild(face);
-    var paper = document.createElement("span");
-    paper.className = "sb-cover-card__book-paper";
-    paper.setAttribute("aria-hidden", "true");
-    var back = document.createElement("span");
-    back.className = "sb-cover-card__book-back";
-    back.setAttribute("aria-hidden", "true");
-    book.appendChild(back);
-    book.appendChild(paper);
-    book.appendChild(front);
-    scene.appendChild(shadow);
-    scene.appendChild(book);
+    scene.className = "sb-cover-card__scene sb-cover-card__scene--library-flat";
+    scene.appendChild(face);
     return scene;
   }
 
-  function composeHardbackShelfFace(face, meta, rawTitle, imgElOpt) {
+  function composeLibraryShelfFace(face, meta, rawTitle, imgElOpt) {
     var titleShown = spineLabel(rawTitle);
     face.textContent = "";
-    var shell = document.createElement("span");
-    shell.className = "sb-cover-card__hardback";
-    var cloth = document.createElement("span");
-    cloth.className =
-      "sb-cover-card__cloth sb-cover-card__cloth--pat" + String(meta.pat);
-    cloth.style.setProperty("--sb-h", String(meta.hue));
+    var root = document.createElement("span");
+    root.className = "sb-library-cover";
+
+    var spine = document.createElement("span");
+    spine.className = "sb-library-cover__spine";
+    spine.setAttribute("aria-hidden", "true");
+    spine.style.setProperty("--sb-h", String(meta.hue));
+
+    var panel = document.createElement("span");
+    panel.className = "sb-library-cover__panel";
+
     if (imgElOpt) {
-      cloth.appendChild(imgElOpt);
+      panel.appendChild(imgElOpt);
+    } else {
+      var ph = document.createElement("span");
+      ph.className = "sb-library-cover__placeholder-bg";
+      ph.setAttribute("aria-hidden", "true");
+      ph.style.setProperty("--sb-h", String(meta.hue));
+      panel.appendChild(ph);
     }
-    var giltTop = document.createElement("span");
-    giltTop.className = "sb-cover-card__gilt sb-cover-card__gilt--top";
-    giltTop.setAttribute("aria-hidden", "true");
-    var titleWrap = document.createElement("span");
-    titleWrap.className = "sb-cover-card__cover-title-wrap";
+
+    var tint = document.createElement("span");
+    tint.className = "sb-library-cover__tint";
+    tint.setAttribute("aria-hidden", "true");
+    tint.style.setProperty("--sb-h", String(meta.hue));
+    panel.appendChild(tint);
+
+    var frame = document.createElement("span");
+    frame.className = "sb-library-cover__frame";
+    frame.setAttribute("aria-hidden", "true");
+    panel.appendChild(frame);
+
+    var titles = document.createElement("span");
+    titles.className = "sb-library-cover__titles";
+
+    var spark = document.createElement("span");
+    spark.className = "sb-library-cover__sparkle-icon";
+    spark.setAttribute("aria-hidden", "true");
+    spark.textContent = "\u2726";
+
     var tit = document.createElement("span");
-    tit.className = "sb-cover-card__cover-title";
+    tit.className = "sb-library-cover__title";
     tit.textContent = titleShown;
-    titleWrap.appendChild(tit);
-    var giltBot = document.createElement("span");
-    giltBot.className = "sb-cover-card__gilt sb-cover-card__gilt--bot";
-    giltBot.setAttribute("aria-hidden", "true");
-    cloth.appendChild(giltTop);
-    cloth.appendChild(titleWrap);
-    cloth.appendChild(giltBot);
-    shell.appendChild(cloth);
-    face.appendChild(shell);
+
+    var tap = document.createElement("span");
+    tap.className = "sb-library-cover__tap";
+    tap.textContent = "TAP TO OPEN";
+
+    titles.appendChild(spark);
+    titles.appendChild(tit);
+    titles.appendChild(tap);
+    panel.appendChild(titles);
+
+    root.appendChild(spine);
+    root.appendChild(panel);
+    face.appendChild(root);
   }
 
   function createCoverCardWrap(item) {
@@ -2017,8 +2026,7 @@
     var openBtn = document.createElement("button");
     openBtn.type = "button";
     openBtn.className =
-      "sb-cover-card sb-cover-card--hardback sb-cover-card--pat" +
-      meta.pat +
+      "sb-cover-card sb-cover-card--library-preview" +
       (coverSrc ? " sb-cover-card--has-art" : " sb-cover-card--placeholder");
     openBtn.style.setProperty("--sb-h", String(meta.hue));
     openBtn.setAttribute("role", "listitem");
@@ -2028,10 +2036,9 @@
 
     function finishCoverFallback() {
       openBtn.className =
-        "sb-cover-card sb-cover-card--hardback sb-cover-card--pat" +
-        meta.pat +
-        " sb-cover-card--placeholder";
-      composeHardbackShelfFace(face, meta, item.title, null);
+        "sb-cover-card sb-cover-card--library-preview sb-cover-card--placeholder";
+      openBtn.style.setProperty("--sb-h", String(meta.hue));
+      composeLibraryShelfFace(face, meta, item.title, null);
     }
 
     if (coverSrc) {
@@ -2040,7 +2047,7 @@
       img.alt = "";
       img.decoding = "async";
       img.loading = "lazy";
-      img.className = "sb-cover-card__thumb-bg";
+      img.className = "sb-cover-card__thumb-bg sb-library-cover__img";
       img.referrerPolicy = "no-referrer";
       var retriedCover = false;
       img.onerror = function () {
@@ -2065,12 +2072,12 @@
         }
         finishCoverFallback();
       };
-      composeHardbackShelfFace(face, meta, item.title, img);
+      composeLibraryShelfFace(face, meta, item.title, img);
     } else {
-      composeHardbackShelfFace(face, meta, item.title, null);
+      composeLibraryShelfFace(face, meta, item.title, null);
     }
 
-    openBtn.appendChild(wrapShelfCoverInBook3d(face));
+    openBtn.appendChild(wrapShelfCoverLibraryFlat(face));
     openBtn.addEventListener("click", function () {
       openShelfBook(item.id);
     });
@@ -2105,15 +2112,12 @@
       return;
     }
     
-    var itemsPerPage = 8;
-    for (var i = 0; i < list.length; i += itemsPerPage) {
-      var pageDiv = document.createElement("div");
-      pageDiv.className = "sb-library-page";
-      for (var j = i; j < i + itemsPerPage && j < list.length; j++) {
-        pageDiv.appendChild(createCoverCardWrap(list[j]));
-      }
-      shelfEl.appendChild(pageDiv);
+    var pageDiv = document.createElement("div");
+    pageDiv.className = "sb-library-page";
+    for (var i = 0; i < list.length; i++) {
+      pageDiv.appendChild(createCoverCardWrap(list[i]));
     }
+    shelfEl.appendChild(pageDiv);
     updateCarouselButtons();
   }
 
