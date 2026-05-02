@@ -1072,11 +1072,38 @@ function sanitizeModelJsonForParse(s: string): string {
   return t;
 }
 
-/** 12 pages = 6 spreads; illustration only on the second page of each spread (indices 1,3,…,11). */
-const ILLUSTRATED_PAGE_INDICES = [1, 3, 5, 7, 9, 11] as const;
+/** 12 text+picture pages from the model (before two front-matter pages are prepended). */
 const PAGE_COUNT = 12;
+const FRONT_MATTER_PAGE_COUNT = 2;
 
-/** Picture page index (1,3,…); story beat is usually on the previous (text) page. */
+/** 0-based indices of picture pages in the **12-page model** output (normalize + briefs). */
+const MODEL_PICTURE_PAGE_INDICES = [1, 3, 5, 7, 9, 11] as const;
+
+/** After `FRONT_MATTER_PAGE_COUNT` pages are prepended, model picture indices shift by this amount. */
+function runtimePicturePageIndices(pageCount: number): readonly number[] {
+  if (pageCount >= PAGE_COUNT + FRONT_MATTER_PAGE_COUNT) {
+    return MODEL_PICTURE_PAGE_INDICES.map((i) => i + FRONT_MATTER_PAGE_COUNT);
+  }
+  return MODEL_PICTURE_PAGE_INDICES;
+}
+
+function prependFrontMatterPages(
+  corePages: StoryPage[],
+  authorDisplayName: string,
+): StoryPage[] {
+  const name = String(authorDisplayName || "").trim();
+  const credit =
+    name.length > 0
+      ? `This book was brought to you by the wonderful mind of ${name}.`
+      : "This book was brought to you by a wonderful young storyteller.";
+  return [
+    { text: "", illustrationBrief: null },
+    { text: credit, illustrationBrief: null },
+    ...corePages,
+  ];
+}
+
+/** Picture page index in the **12-page** array; story beat is usually on the previous (text) page. */
 function spreadTextForPicturePage(pictureIndex: number, pages: StoryPage[]): string {
   const left = pages[pictureIndex - 1]?.text?.trim() ?? "";
   const same = pages[pictureIndex]?.text?.trim() ?? "";
@@ -1116,7 +1143,7 @@ function normalizeStoryJson(raw: unknown): StoryJson {
     if (i % 2 === 0) pages[i].illustrationBrief = null;
   }
 
-  for (const i of ILLUSTRATED_PAGE_INDICES) {
+  for (const i of MODEL_PICTURE_PAGE_INDICES) {
     let brief = pages[i].illustrationBrief ? String(pages[i].illustrationBrief).trim() : "";
     if (!brief) {
       const basis = spreadTextForPicturePage(i, pages).slice(0, 220);
@@ -1891,6 +1918,8 @@ Deno.serve(async (req) => {
     familyNames?: string[];
     familyPeople?: unknown;
     bookCoverColor?: string;
+    /** Display name on dedication page (falls back to child name). */
+    author?: string;
     /** Optional `data:image/jpeg|png|webp;base64,...` for hero appearance (storybook step 1). */
     heroReferenceImage?: string;
     /** Up to 3 hero reference photos; only used if `characterReferencePhotos` is absent. */
@@ -1905,6 +1934,8 @@ Deno.serve(async (req) => {
   }
 
   const childName = sanitizeName(String(body.childName ?? ""));
+  const dedicationAuthor =
+    String(body.author ?? "").trim() || childName;
   const characterKey = String(body.character ?? "");
   const placeKey = String(body.place ?? "");
 
@@ -2191,7 +2222,10 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
     return jsonResponse({ error: "story_failed", detail }, 502);
   }
 
-  const briefsSummary = ILLUSTRATED_PAGE_INDICES.map((idx) => story.pages[idx]?.illustrationBrief)
+  story.pages = prependFrontMatterPages(story.pages, dedicationAuthor);
+
+  const briefsSummary = runtimePicturePageIndices(story.pages.length)
+    .map((idx) => story.pages[idx]?.illustrationBrief)
     .filter(Boolean)
     .join(" | ")
     .slice(0, 900);
@@ -2292,13 +2326,11 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
 
   try {
     const briefs: { index: number; brief: string; verse: string }[] = [];
-    for (const i of ILLUSTRATED_PAGE_INDICES) {
+    for (const i of runtimePicturePageIndices(story.pages.length)) {
       const p = story.pages[i];
       if (p?.illustrationBrief && String(p.illustrationBrief).trim()) {
-        // Picture pages live at even 0-based indices (1,3,5,7,9,11). The
-        // matching VERSE — the rhyming text the child reads aloud — lives at
-        // i-1. We pass it down to the image prompt so the model can read the
-        // actual story beat verbatim, not just the LLM-paraphrased brief.
+        // Picture pages are odd 0-based indices; with front matter they are 3,5,7,…
+        // The rhyming verse for the image prompt lives at i-1.
         const verse = String(story.pages[i - 1]?.text ?? "").trim();
         briefs.push({
           index: i,
@@ -2796,7 +2828,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
       portraitVisionAttempted,
       portraitAppearanceUsed: portraitAppearance.length > 0,
       imageCount: pagesOut.filter((p) => p.imageUrl).length,
-      spreads: 6,
+      spreads: Math.floor(pagesOut.length / 2),
       characterLockCompiled: compiledLock.length > 0,
       firstPanelVisualLock: firstPanelVisualLockUsed,
       falTextModel: useFalRedux ? falTextModel : null,

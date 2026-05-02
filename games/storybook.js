@@ -335,6 +335,7 @@
   var spreadArtBg = document.getElementById("sbSpreadArtBg");
   var spreadArtBase = document.getElementById("sbSpreadArtBase");
   var spreadArtCover = document.getElementById("sbSpreadArtCover");
+  var spreadArtFlyleaf = document.getElementById("sbSpreadArtFlyleaf");
   /** Incoming spread: full duplex under the peel (#sbSpreadArtCover inside .sb-flip-spread__art-base). */
   /** Outgoing duplex on #sbSpreadArtPeel rotates away above it. */
   var spreadArtPeelShell = document.getElementById("sbSpreadArtPeel");
@@ -642,6 +643,46 @@
     var rightP = story.pages[si * 2 + 1];
     var raw = rightP && rightP.imageUrl ? String(rightP.imageUrl) : "";
     return storyImageDisplayUrl(raw);
+  }
+
+  /** First duplex art URL for inside-cover preview (skips blank front-matter spreads). */
+  function firstSpreadArtUrlForCover() {
+    if (!story || !story.pages) return "";
+    var scene = story.sceneImageUrl
+      ? storyImageDisplayUrl(String(story.sceneImageUrl))
+      : "";
+    if (scene) return scene;
+    var n = Math.floor(story.pages.length / 2);
+    for (var si = 0; si < n; si++) {
+      var u = illustrationUrlAtSpreadIndex(si);
+      if (u) return u;
+    }
+    return "";
+  }
+
+  function clearArtFlyleaf() {
+    if (spreadArtFlyleaf) {
+      spreadArtFlyleaf.hidden = true;
+      spreadArtFlyleaf.innerHTML = "";
+    }
+    if (spreadInnerEl) {
+      spreadInnerEl.classList.remove("sb-flip-spread__inner--flyleaf-pane");
+    }
+  }
+
+  function bindReadableWordSpans(rootEl) {
+    if (!rootEl) return;
+    var wordSpans = rootEl.querySelectorAll(".sb-readable-word");
+    for (var w = 0; w < wordSpans.length; w++) {
+      wordSpans[w].addEventListener("click", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var wordToRead = this.getAttribute("data-word");
+        if (wordToRead) {
+          readWordOutLoud(wordToRead, this);
+        }
+      });
+    }
   }
 
   function clearSpreadTurnRevealFx() {
@@ -1042,6 +1083,13 @@
       pages.push({ text: texts[s], imageUrl: null });
       pages.push({ text: "", imageUrl: imgs[s] });
     }
+    pages.unshift(
+      { text: "", imageUrl: null },
+      {
+        text: "This book was brought to you by the wonderful mind of Mira.",
+        imageUrl: null,
+      }
+    );
     var rfKeys = Object.keys(SB_READER_FONT_PRESETS);
     var rfPick = rfKeys[(Math.random() * rfKeys.length) | 0] || "fredoka";
     return {
@@ -1228,18 +1276,7 @@
     }
     if (block.kind === "prose" && block.html) {
       spreadText.innerHTML = block.html;
-
-      var wordSpans = spreadText.querySelectorAll(".sb-readable-word");
-      for (var w = 0; w < wordSpans.length; w++) {
-        wordSpans[w].addEventListener("click", function (e) {
-          e.preventDefault();
-          e.stopPropagation();
-          var wordToRead = this.getAttribute("data-word");
-          if (wordToRead) {
-            readWordOutLoud(wordToRead, this);
-          }
-        });
-      }
+      bindReadableWordSpans(spreadText);
       if (spreadTextActions) {
         spreadTextActions.hidden = false;
         spreadTextActions.style.display = "flex";
@@ -1271,6 +1308,7 @@
     var u = storyImageDisplayUrl(rawU);
 
     if (u) {
+      clearArtFlyleaf();
       if (spreadArtImg) {
         spreadArtImg.src = u;
         spreadArtImg.alt = isTheEnd ? "The End" : "Illustration for pages " + pLo + "–" + pHi;
@@ -1292,21 +1330,53 @@
         spreadArtNum.textContent = isTheEnd ? "The End" : "Pages " + pLo + "–" + pHi + " of " + story.pages.length;
       }
     } else {
-      if (spreadArtImg) spreadArtImg.removeAttribute("src");
-      if (spreadArt) spreadArt.classList.add("is-empty");
-      if (spreadArtBg) spreadArtBg.style.backgroundImage = "";
-      if (spreadArtCover) {
-        spreadArtCover.removeAttribute("src");
-        spreadArtCover.alt = "";
-      }
-      if (spreadInnerEl && spreadInnerEl.dataset && spreadInnerEl.dataset.sbArtUrl) {
-        delete spreadInnerEl.dataset.sbArtUrl;
-      }
-      if (spreadInnerEl) {
-        spreadInnerEl.classList.remove("sb-flip-spread__inner--has-art");
-      }
-      if (spreadArtNum) {
-        spreadArtNum.textContent = rightP ? "Drawing missing" : "";
+      var flyTxt =
+        !isTheEnd && rightP && rightP.text
+          ? String(rightP.text).trim()
+          : "";
+      if (flyTxt && spreadArtFlyleaf) {
+        if (spreadArtImg) spreadArtImg.removeAttribute("src");
+        if (spreadArt) spreadArt.classList.add("is-empty");
+        if (spreadArtBg) spreadArtBg.style.backgroundImage = "";
+        if (spreadArtCover) {
+          spreadArtCover.removeAttribute("src");
+          spreadArtCover.alt = "";
+        }
+        if (spreadInnerEl && spreadInnerEl.dataset && spreadInnerEl.dataset.sbArtUrl) {
+          delete spreadInnerEl.dataset.sbArtUrl;
+        }
+        if (spreadInnerEl) {
+          spreadInnerEl.classList.remove("sb-flip-spread__inner--has-art");
+          spreadInnerEl.classList.add("sb-flip-spread__inner--flyleaf-pane");
+        }
+        if (spreadArtNum) {
+          spreadArtNum.textContent = "";
+        }
+        spreadArtFlyleaf.innerHTML =
+          '<p class="sb-flip-text sb-flip-flyleaf-paragraph"><span class="sb-flip-text__highlight">' +
+          storyPageTextToReadableHtml(flyTxt) +
+          "</span></p>";
+        bindReadableWordSpans(spreadArtFlyleaf);
+        spreadArtFlyleaf.removeAttribute("hidden");
+        spreadArtFlyleaf.hidden = false;
+      } else {
+        clearArtFlyleaf();
+        if (spreadArtImg) spreadArtImg.removeAttribute("src");
+        if (spreadArt) spreadArt.classList.add("is-empty");
+        if (spreadArtBg) spreadArtBg.style.backgroundImage = "";
+        if (spreadArtCover) {
+          spreadArtCover.removeAttribute("src");
+          spreadArtCover.alt = "";
+        }
+        if (spreadInnerEl && spreadInnerEl.dataset && spreadInnerEl.dataset.sbArtUrl) {
+          delete spreadInnerEl.dataset.sbArtUrl;
+        }
+        if (spreadInnerEl) {
+          spreadInnerEl.classList.remove("sb-flip-spread__inner--has-art");
+        }
+        if (spreadArtNum) {
+          spreadArtNum.textContent = rightP ? "Drawing missing" : "";
+        }
       }
     }
   }
@@ -2731,6 +2801,7 @@
       spreadArtCover.removeAttribute("src");
       spreadArtCover.alt = "";
     }
+    clearArtFlyleaf();
     if (spreadArtBg) {
       spreadArtBg.style.backgroundImage = "";
     }
@@ -2743,7 +2814,8 @@
     }
     if (spreadInnerEl) {
       spreadInnerEl.classList.remove(
-        "sb-flip-spread__inner--has-art"
+        "sb-flip-spread__inner--has-art",
+        "sb-flip-spread__inner--flyleaf-pane"
       );
       if (spreadInnerEl.dataset && spreadInnerEl.dataset.sbArtUrl) {
         delete spreadInnerEl.dataset.sbArtUrl;
@@ -2811,7 +2883,7 @@
     }
     if (book) book.classList.add("sb-book--cover-visible");
     if (book) {
-      var inArt = illustrationUrlAtSpreadIndex(0);
+      var inArt = firstSpreadArtUrlForCover();
       if (inArt) {
         var esc = String(inArt).replace(/\\/g, "\\\\").replace(/"/g, '\\"');
         book.style.setProperty("--sb-cover-inside-art", 'url("' + esc + '")');
@@ -3284,6 +3356,7 @@
       }
       var childName = nameInput ? nameInput.value.trim() : "";
       var plotHint = plotInput ? plotInput.value.trim() : "";
+      var customAuthor = authorInput ? authorInput.value.trim() : "";
       setBusy(true);
       var familyPeople = getSelectedFamilyPeople();
       fetch(url, {
@@ -3298,6 +3371,7 @@
           character: selectedChar,
           place: selectedPlace,
           plotHint: plotHint,
+          author: customAuthor || undefined,
           familyNames: familyPeople.map(function (p) {
             return p.label;
           }),

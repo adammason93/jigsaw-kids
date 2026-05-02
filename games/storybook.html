@@ -9,7 +9,7 @@
   <link rel="manifest" href="../manifest.json" />
   <link rel="stylesheet" href="../js/kids-core.css" />
   <!-- storybook-app.css = renamed file so CDN/browser cache cannot keep old storybook.css -->
-  <link rel="stylesheet" href="storybook-app.css?v=121" />
+  <link rel="stylesheet" href="storybook-app.css?v=122" />
   <link rel="stylesheet" href="../tablet-ipad.css" />
   <!-- Last wins: guarantees new background even if a proxy cached an ancient stylesheet elsewhere -->
   <style>
@@ -351,6 +351,11 @@
                           alt=""
                           decoding="async"
                         />
+                        <div
+                          class="sb-flip-spread__art-flyleaf"
+                          id="sbSpreadArtFlyleaf"
+                          hidden
+                        ></div>
                       </div>
                       
                       <!-- Static outgoing left page (Left 1), sits over the incoming left page during turn -->
@@ -476,7 +481,7 @@
     <div class="sb-busy is-hidden" id="sbBusy" aria-live="polite" aria-busy="true" hidden>
       <div class="sb-busy__card">
         <p class="sb-busy__title">Creating your book…</p>
-        <p class="sb-busy__msg">Twelve little pages and six pictures — one drawing every two pages.</p>
+        <p class="sb-busy__msg">Writing your story and drawing the pictures — it may take a little while.</p>
         <div class="sb-busy__dots" aria-hidden="true"><span></span><span></span><span></span></div>
       </div>
     </div>
@@ -500,7 +505,7 @@
   <script src="../js/storybook-shelf-store.js" defer></script>
   <!-- Required for cloud shelf sync + upload (same as other games) -->
   <script src="../js/score-cloud.js" defer></script>
-  <script src="storybook.js?v=304" defer></script>
+  <script src="storybook.js?v=305" defer></script>
   <script>
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("../sw.js").catch(function () {});

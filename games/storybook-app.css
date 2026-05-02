@@ -2650,6 +2650,36 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   overflow: hidden;
 }
 
+.sb-flip-spread__art-flyleaf {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  box-sizing: border-box;
+  padding: clamp(1rem, 4vw, 2.25rem);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  background: #fff;
+  pointer-events: auto;
+  border-radius: inherit;
+}
+
+.sb-flip-spread__art-flyleaf .sb-flip-flyleaf-paragraph {
+  margin: 0;
+  font-family: var(--sb-reader-font-body, "Fredoka", "Nunito", sans-serif);
+  font-size: clamp(1rem, 2.8vw, 1.35rem);
+  font-weight: 600;
+  line-height: 1.45;
+  color: rgba(55, 35, 60, 0.92);
+  max-width: 28ch;
+}
+
+.sb-flip-spread__inner--flyleaf-pane .sb-flip-spread__art-cover {
+  opacity: 0;
+  visibility: hidden;
+}
+
 /* Base duplex: cover keeps the spread fully painted; center crop balances top/bottom so horns and heads are less often clipped */
 .sb-flip-spread__art-cover {
   position: absolute;
