@@ -776,26 +776,14 @@ body.sb-portal-welcome-open {
   justify-content: center;
 }
 
-/* Shelf 3D book: idle sway (no hover required); front node last for painter order */
+/* Spine toward viewer: positive rotateY (page block sits on the right in local space) */
 @keyframes sb-shelf-book-sway {
   0%,
   100% {
-    transform: rotateX(0.8deg) rotateY(-14deg);
+    transform: translate3d(0, 0, 0) rotateX(0.8deg) rotateY(14deg);
   }
   50% {
-    transform: rotateX(5deg) rotateY(-38deg);
-  }
-}
-
-@keyframes sb-shelf-book-shadow-sway {
-  0%,
-  100% {
-    transform: translateX(-50%) rotateX(90deg) rotateZ(20deg);
-    opacity: 0.32;
-  }
-  50% {
-    transform: translateX(-50%) rotateX(90deg) rotateZ(40deg);
-    opacity: 0.5;
+    transform: translate3d(0, 0, 0) rotateX(5deg) rotateY(38deg);
   }
 }
 
@@ -803,28 +791,28 @@ body.sb-portal-welcome-open {
   --sb-shelf-stagger: 0s;
 }
 .sb-library-page .sb-cover-card-wrap:nth-child(2) {
-  --sb-shelf-stagger: 0.75s;
+  --sb-shelf-stagger: 0.83s;
 }
 .sb-library-page .sb-cover-card-wrap:nth-child(3) {
-  --sb-shelf-stagger: 1.5s;
+  --sb-shelf-stagger: 1.67s;
 }
 .sb-library-page .sb-cover-card-wrap:nth-child(4) {
-  --sb-shelf-stagger: 2.25s;
+  --sb-shelf-stagger: 2.5s;
 }
 .sb-library-page .sb-cover-card-wrap:nth-child(5) {
-  --sb-shelf-stagger: 3s;
+  --sb-shelf-stagger: 3.33s;
 }
 .sb-library-page .sb-cover-card-wrap:nth-child(6) {
-  --sb-shelf-stagger: 3.75s;
+  --sb-shelf-stagger: 4.17s;
 }
 .sb-library-page .sb-cover-card-wrap:nth-child(7) {
-  --sb-shelf-stagger: 4.5s;
+  --sb-shelf-stagger: 5s;
 }
 .sb-library-page .sb-cover-card-wrap:nth-child(8) {
-  --sb-shelf-stagger: 5.25s;
+  --sb-shelf-stagger: 5.83s;
 }
 .sb-library-page .sb-cover-card-wrap:nth-child(9) {
-  --sb-shelf-stagger: 6s;
+  --sb-shelf-stagger: 6.67s;
 }
 
 .sb-library-page .sb-cover-card-wrap:nth-child(10) {
@@ -840,7 +828,7 @@ body.sb-portal-welcome-open {
 /* Front-facing shelf book: real cover art + soft spine; placeholder keeps cloth fallback */
 .sb-cover-card-wrap {
   --sb-shelf-stagger: 0s;
-  --sb-shelf-anim-dur: 6.75s;
+  --sb-shelf-anim-dur: 7.5s;
   position: relative;
   flex: 0 0 auto;
   display: flex;
@@ -852,7 +840,7 @@ body.sb-portal-welcome-open {
     z-index 0s linear;
   width: 100%;
   perspective: min(920px, 145vw);
-  perspective-origin: 46% 42%;
+  perspective-origin: 56% 42%;
   padding-bottom: 0.45rem;
   box-sizing: border-box;
 }
@@ -891,10 +879,9 @@ body.sb-portal-welcome-open {
   z-index: 1;
   transform-style: preserve-3d;
   -webkit-transform-style: preserve-3d;
-  transform-origin: 50% 88%;
-  animation: sb-shelf-book-sway var(--sb-shelf-anim-dur, 6.75s) ease-in-out infinite;
+  transform-origin: 42% 88%;
+  animation: sb-shelf-book-sway var(--sb-shelf-anim-dur, 7.5s) cubic-bezier(0.42, 0, 0.58, 1) infinite;
   animation-delay: var(--sb-shelf-stagger, 0s);
-  will-change: transform;
 }
 
 .sb-cover-card__book-front {
@@ -978,28 +965,9 @@ body.sb-portal-welcome-open {
   box-shadow: inset -2px 0 5px rgba(0, 0, 0, 0.12);
 }
 
+/* 3D "floor" ellipse removed — looked like a flat plate behind the book; use light tile shadow only */
 .sb-cover-card__book-shadow {
-  position: absolute;
-  z-index: 0;
-  left: 50%;
-  bottom: -6%;
-  width: 118%;
-  height: 32%;
-  margin: 0;
-  pointer-events: none;
-  border-radius: 40%;
-  background: radial-gradient(
-    ellipse 72% 80% at 50% 45%,
-    rgba(35, 22, 40, 0.32) 0%,
-    rgba(35, 22, 40, 0) 72%
-  );
-  filter: blur(14px);
-  transform: translateX(-50%) rotateX(90deg) rotateZ(24deg);
-  transform-origin: 50% 50%;
-  opacity: 0.38;
-  animation: sb-shelf-book-shadow-sway var(--sb-shelf-anim-dur, 6.75s) ease-in-out infinite;
-  animation-delay: var(--sb-shelf-stagger, 0s);
-  will-change: transform, opacity;
+  display: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1009,16 +977,8 @@ body.sb-portal-welcome-open {
 
   .sb-cover-card__book {
     animation: none;
-    transform: rotateX(2.2deg) rotateY(-22deg);
-    -webkit-transform: rotateX(2.2deg) rotateY(-22deg);
-    will-change: auto;
-  }
-
-  .sb-cover-card__book-shadow {
-    animation: none;
-    transform: translateX(-50%) rotateX(90deg) rotateZ(26deg);
-    opacity: 0.38;
-    will-change: auto;
+    transform: translate3d(0, 0, 0) rotateX(2.2deg) rotateY(22deg);
+    -webkit-transform: translate3d(0, 0, 0) rotateX(2.2deg) rotateY(22deg);
   }
 }
 
@@ -1026,16 +986,12 @@ body.sb-portal-welcome-open {
 .sb-cover-card--has-art {
   --sb-cover-photo-opacity: 1;
   background: transparent;
-  box-shadow:
-    0 2px 0 rgba(160, 140, 130, 0.12),
-    0 14px 28px rgba(45, 32, 42, 0.18);
+  box-shadow: 0 4px 12px rgba(45, 32, 42, 0.12);
 }
 
 .sb-cover-card--placeholder {
   background: transparent;
-  box-shadow:
-    0 2px 0 rgba(255, 255, 255, 0.08),
-    0 14px 30px rgba(25, 15, 32, 0.26);
+  box-shadow: 0 4px 12px rgba(25, 15, 32, 0.12);
 }
 
 .sb-cover-card--hardback:active {
