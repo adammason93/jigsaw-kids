@@ -1547,11 +1547,19 @@ function gptImageModerationParam(): "low" | "auto" {
     : "low";
 }
 
-/** Default `medium` — sharper than `low`, much cheaper than defaulting to `high`. Override: `STORYBOOK_GPTIMAGE_QUALITY=low|high|auto`. */
-function gptImageQualityParam(): "low" | "medium" | "high" | "auto" {
-  const q = (Deno.env.get("STORYBOOK_GPTIMAGE_QUALITY") ?? "medium").trim().toLowerCase();
-  if (q === "medium" || q === "high" || q === "auto") return q;
-  return "low";
+/**
+ * Split defaults when `STORYBOOK_GPTIMAGE_QUALITY` is unset: **`medium`** for the single
+ * anchor generation, **`low`** for the six spread edits (where most image cost sits).
+ * Set `STORYBOOK_GPTIMAGE_QUALITY=low|medium|high|auto` to use one value for both.
+ */
+function gptImageQualityParam(
+  scope: "generation" | "edit",
+): "low" | "medium" | "high" | "auto" {
+  const raw = (Deno.env.get("STORYBOOK_GPTIMAGE_QUALITY") ?? "").trim().toLowerCase();
+  if (raw === "medium" || raw === "high" || raw === "auto" || raw === "low") {
+    return raw;
+  }
+  return scope === "generation" ? "medium" : "low";
 }
 
 function decodeB64ToBytes(b64: string): Uint8Array {
@@ -1641,7 +1649,7 @@ async function gptImageGenerate(
 ): Promise<{ url: string; bytes: Uint8Array }> {
   const model = gptImageDefaultModel();
   const moderation = gptImageModerationParam();
-  const quality = gptImageQualityParam();
+  const quality = gptImageQualityParam("generation");
   const trimmed = prompt.slice(0, GPT_IMAGE_PROMPT_MAX);
 
   const post = (body: Record<string, unknown>) =>
@@ -1710,7 +1718,7 @@ async function gptImageEdit(
 ): Promise<{ url: string; bytes: Uint8Array }> {
   const model = gptImageDefaultModel();
   const moderation = gptImageModerationParam();
-  const quality = gptImageQualityParam();
+  const quality = gptImageQualityParam("edit");
   const trimmed = prompt.slice(0, GPT_IMAGE_PROMPT_MAX);
   const fidRaw = (Deno.env.get("STORYBOOK_GPTIMAGE_INPUT_FIDELITY") ?? "low")
     .trim()
@@ -2356,7 +2364,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
         // play for the Fal / DALL·E paths below.
         const refBytes = anchorOut.bytes;
         // Stay under Supabase/Cloudflare wall-clock (~150s): quality defaults to
-        // Cost-aware defaults: quality medium + size 1024x1024 + input_fidelity low (override via secrets).
+        // Cost-aware defaults: anchor quality medium, spread edits low + size 1024x1024 + input_fidelity low (override via secrets).
         // Tier-1 OpenAI image RPM is 5 — chunk 4 edits, brief wait, then 2 edits. Raise wait or
         // shrink chunk size if you see 429s; raise OpenAI tier or lower wait if 546.
         const chunkSize = (() => {

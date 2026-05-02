@@ -2161,8 +2161,8 @@ body.sb-portal-welcome-open {
   max-width: none;
   width: 100%;
   /* Single zoom only on .sb-flip-spread__art-cover — never also on .sb-flip-spread__art-bg (would compound ~scale² and crop casts).
-   * 1 = true edge-to-edge cover inside the spread; <1 left visible margins (was 0.9 for character inset). */
-  --sb-spread-art-scale: 1;
+   * >1 cropsinto the bitmap — GPT/DALL·E squares often include white matting; ~1.1 hides most of it while staying full-bleed on the paper. */
+  --sb-spread-art-scale: 1.1;
   /* Soft paper tint so transparency never reveals two-tone “desk” bands under the shells */
   background: radial-gradient(
     ellipse 130% 88% at 50% 42%,
