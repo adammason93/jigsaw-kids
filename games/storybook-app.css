@@ -2392,15 +2392,17 @@ body.sb-portal-welcome-open {
   background: transparent;
   box-shadow: none;
   margin: 0;
-  /* dvh keeps top breathing room proportional to book height — vw alone stole space on squat landscape tablets */
-  padding: clamp(8px, 1.8dvh, 18px) clamp(10px, 3.5vw, 24px);
+  /* dvh + safe-area: tablets in portrait/edge-to-edge browsers were clipping the verse on the left */
+  padding: clamp(8px, 1.8dvh, 18px) clamp(12px, 4vw, 22px);
+  padding-top: clamp(0.55rem, 2.5dvh, 1.85rem);
+  padding-bottom: clamp(0.45rem, 1.4dvh, 1rem);
+  padding-left: max(0.85rem, 3.5vw, env(safe-area-inset-left, 0px));
+  padding-right: max(0.5rem, 2vw, env(safe-area-inset-right, 0px));
   align-self: stretch;
   width: 100%;
   max-width: none;
   justify-content: flex-start;
-  align-items: flex-start; /* Push text to top */
-  padding-top: clamp(0.55rem, 2.5dvh, 1.85rem);
-  padding-bottom: clamp(0.45rem, 1.4dvh, 1rem);
+  align-items: flex-start;
   min-height: 0;
   /* Avoid pairing clip-path reveal with overflow:auto — WebKit clips the left edge of lines mid-turn. */
   overflow: visible;
@@ -3046,7 +3048,8 @@ body.sb-portal-welcome-open {
   }
 
   .sb-book.sb-book--immersive {
-    --sb-book-inner-h: clamp(280px, min(58dvh, 58vw), 540px);
+    /* Avoid min(58dvh, 58vw): in landscape vw is huge but dvh is the real limit; in portrait vw is the narrow edge and wrongly caps height → letterboxing. */
+    --sb-book-inner-h: clamp(300px, min(76dvh, 74vh, 56vw), 640px);
     position: fixed;
     inset: 0;
     z-index: 40;
@@ -3129,7 +3132,7 @@ body.sb-portal-welcome-open {
     min-height: 0;
     margin: 0;
     align-items: stretch;
-    padding-top: clamp(2.75rem, 8vw, 3.5rem);
+    padding-top: clamp(2.25rem, 5.5dvh, 3.25rem);
     padding-bottom: 6.5rem;
     gap: 0;
     position: relative;
@@ -3140,8 +3143,8 @@ body.sb-portal-welcome-open {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding-left: 3.5rem;
-    padding-right: 3.5rem;
+    padding-left: max(1.25rem, env(safe-area-inset-left, 12px));
+    padding-right: max(1.25rem, env(safe-area-inset-right, 12px));
   }
 
   .sb-book.sb-book--immersive .sb-read-arrow {
@@ -3173,12 +3176,12 @@ body.sb-portal-welcome-open {
   }
 
   .sb-book.sb-book--immersive .sb-reader-stack {
-    min-height: min(72dvh, 660px);
+    min-height: min(80dvh, 780px);
     width: 100%;
   }
 
   .sb-book.sb-book--immersive .sb-reader-book {
-    max-width: min(980px, 96vw);
+    max-width: min(980px, 98vw);
   }
 
   .sb-book.sb-book--immersive .sb-book__actions-dock {
@@ -3310,11 +3313,41 @@ body.sb-portal-welcome-open {
 
 @media (min-width: 768px) and (orientation: portrait) {
   .sb-book.sb-book--immersive {
-    /* Same issue as above: min(58dvh, 58vw) picks vw in portrait and shortens the book vs laptop. */
-    --sb-book-inner-h: clamp(300px, min(70dvh, 88vw), 620px);
+    --sb-book-inner-h: clamp(320px, min(82dvh, 94vw), 680px);
   }
 
   .sb-book.sb-book--immersive .sb-reader-stack {
-    min-height: min(78dvh, 720px);
+    min-height: min(84dvh, 800px);
+  }
+}
+
+/* Landscape tablets: height is scarce — weight dvh over vw so the spread grows taller and fills the screen. */
+@media (min-width: 768px) and (orientation: landscape) and (max-height: 900px) {
+  .sb-book.sb-book--immersive {
+    /* dvh-first — do not cap with vw here or landscape tablets end up shorter than the base rule */
+    --sb-book-inner-h: clamp(300px, min(80dvh, 78vh), 640px);
+  }
+
+  .sb-book.sb-book--immersive .sb-reader-stack {
+    min-height: min(84dvh, 780px);
+  }
+
+  .sb-book.sb-book--immersive .sb-book-spread {
+    padding-top: clamp(1.85rem, 4.5dvh, 2.75rem);
+  }
+}
+
+/* Between phone and laptop: a bit more horizontal room for the spread (arrows are fixed overlays). */
+@media (min-width: 768px) and (max-width: 1100px) {
+  .sb-book.sb-book--immersive .sb-read-stage {
+    padding-left: max(0.85rem, env(safe-area-inset-left, 8px));
+    padding-right: max(0.85rem, env(safe-area-inset-right, 8px));
+  }
+}
+
+/* Touch tablets / phones: slightly less art zoom — still full-bleed cover, less aggressive crop on short viewports. */
+@media (max-width: 1100px) and (hover: none) and (pointer: coarse) {
+  .sb-flip-spread__inner--has-art {
+    --sb-spread-art-scale: 1.05;
   }
 }
