@@ -1079,12 +1079,16 @@ const FRONT_MATTER_PAGE_COUNT = 2;
 /** 0-based indices of picture pages in the **12-page model** output (normalize + briefs). */
 const MODEL_PICTURE_PAGE_INDICES = [1, 3, 5, 7, 9, 11] as const;
 
-/** After `FRONT_MATTER_PAGE_COUNT` pages are prepended, model picture indices shift by this amount. */
-function runtimePicturePageIndices(pageCount: number): readonly number[] {
-  if (pageCount >= PAGE_COUNT + FRONT_MATTER_PAGE_COUNT) {
-    return MODEL_PICTURE_PAGE_INDICES.map((i) => i + FRONT_MATTER_PAGE_COUNT);
+/** After `FRONT_MATTER_PAGE_COUNT` pages are prepended, core picture indices stay odd (1,3,5,…) but skip pages with no brief (e.g. dedication). */
+function oddPagesWithIllustrationBriefs(pages: StoryPage[]): number[] {
+  const out: number[] = [];
+  for (let i = 1; i < pages.length; i += 2) {
+    const p = pages[i];
+    if (p?.illustrationBrief && String(p.illustrationBrief).trim()) {
+      out.push(i);
+    }
   }
-  return MODEL_PICTURE_PAGE_INDICES;
+  return out;
 }
 
 function prependFrontMatterPages(
@@ -2224,7 +2228,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
 
   story.pages = prependFrontMatterPages(story.pages, dedicationAuthor);
 
-  const briefsSummary = runtimePicturePageIndices(story.pages.length)
+  const briefsSummary = oddPagesWithIllustrationBriefs(story.pages)
     .map((idx) => story.pages[idx]?.illustrationBrief)
     .filter(Boolean)
     .join(" | ")
@@ -2326,18 +2330,14 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
 
   try {
     const briefs: { index: number; brief: string; verse: string }[] = [];
-    for (const i of runtimePicturePageIndices(story.pages.length)) {
+    for (const i of oddPagesWithIllustrationBriefs(story.pages)) {
       const p = story.pages[i];
-      if (p?.illustrationBrief && String(p.illustrationBrief).trim()) {
-        // Picture pages are odd 0-based indices; with front matter they are 3,5,7,…
-        // The rhyming verse for the image prompt lives at i-1.
-        const verse = String(story.pages[i - 1]?.text ?? "").trim();
-        briefs.push({
-          index: i,
-          brief: String(p.illustrationBrief).trim(),
-          verse,
-        });
-      }
+      if (!p) continue;
+      briefs.push({
+        index: i,
+        brief: String(p.illustrationBrief ?? "").trim(),
+        verse: String(story.pages[i - 1]?.text ?? "").trim(),
+      });
     }
 
     const staggerMs = 450;

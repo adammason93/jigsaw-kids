@@ -664,6 +664,7 @@
     if (spreadArtFlyleaf) {
       spreadArtFlyleaf.hidden = true;
       spreadArtFlyleaf.innerHTML = "";
+      spreadArtFlyleaf.setAttribute("hidden", "");
     }
     if (spreadInnerEl) {
       spreadInnerEl.classList.remove("sb-flip-spread__inner--flyleaf-pane");
@@ -1319,6 +1320,8 @@
         spreadArtCover.src = u;
         spreadArtCover.alt = isTheEnd ? "The End" : "Illustration for pages " + pLo + "–" + pHi + " of " + story.pages.length;
         spreadArtCover.referrerPolicy = "no-referrer";
+        spreadArtCover.style.opacity = "";
+        spreadArtCover.style.visibility = "";
       }
       if (spreadInnerEl && spreadInnerEl.dataset) {
         spreadInnerEl.dataset.sbArtUrl = u;
@@ -1331,7 +1334,10 @@
       }
     } else {
       var flyTxt =
-        !isTheEnd && rightP && rightP.text
+        si === 0 &&
+        !isTheEnd &&
+        rightP &&
+        rightP.text
           ? String(rightP.text).trim()
           : "";
       if (flyTxt && spreadArtFlyleaf) {

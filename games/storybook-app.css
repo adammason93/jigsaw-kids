@@ -2650,9 +2650,14 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   overflow: hidden;
 }
 
+/* Dedication / blank art: only the right-hand page (matches 7px gutter + flex half-columns). */
 .sb-flip-spread__art-flyleaf {
   position: absolute;
-  inset: 0;
+  top: 0;
+  bottom: 0;
+  left: calc(50% + 3.5px);
+  width: calc(50% - 3.5px);
+  right: auto;
   z-index: 3;
   box-sizing: border-box;
   padding: clamp(1rem, 4vw, 2.25rem);
@@ -2662,7 +2667,7 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   text-align: center;
   background: #fff;
   pointer-events: auto;
-  border-radius: inherit;
+  border-radius: 0 6px 6px 0;
 }
 
 .sb-flip-spread__art-flyleaf .sb-flip-flyleaf-paragraph {
@@ -2678,6 +2683,12 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
 .sb-flip-spread__inner--flyleaf-pane .sb-flip-spread__art-cover {
   opacity: 0;
   visibility: hidden;
+}
+
+/* Definite paint when a duplex image is active (overrides flyleaf-pane if a class race happens). */
+.sb-flip-spread__inner--has-art .sb-flip-spread__art-cover {
+  opacity: 1;
+  visibility: visible;
 }
 
 /* Base duplex: cover keeps the spread fully painted; center crop balances top/bottom so horns and heads are less often clipped */
