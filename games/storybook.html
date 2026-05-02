@@ -9,7 +9,7 @@
   <link rel="manifest" href="../manifest.json" />
   <link rel="stylesheet" href="../js/kids-core.css" />
   <!-- storybook-app.css = renamed file so CDN/browser cache cannot keep old storybook.css -->
-  <link rel="stylesheet" href="storybook-app.css?v=79" />
+  <link rel="stylesheet" href="storybook-app.css?v=80" />
   <link rel="stylesheet" href="../tablet-ipad.css" />
   <!-- Last wins: guarantees new background even if a proxy cached an ancient stylesheet elsewhere -->
   <style>
@@ -294,15 +294,6 @@
         </button>
       </p>
       <div class="sb-book-spread" id="sbBookSpread">
-        <div class="sb-book-side-actions" id="sbSpreadTextActions" hidden style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); display: none; flex-direction: column; align-items: center; gap: 0.5rem; z-index: 10;">
-          <button type="button" class="sb-btn sb-btn--ghost sb-read-to-me" id="sbReadToMe" aria-label="Read page to me" style="font-size: 1.1rem; padding: 0.75rem; background: rgba(255,255,255,0.8); border-radius: 50%; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 3rem; height: 3rem; display: flex; align-items: center; justify-content: center;">
-            <span aria-hidden="true" style="margin: 0;">🔊</span>
-          </button>
-          <div class="sb-tap-hint" style="background: rgba(255,255,255,0.9); padding: 0.5rem 0.75rem; border-radius: 1rem; font-size: 0.85rem; color: var(--sb-flip-dark); font-weight: 600; box-shadow: 0 2px 8px rgba(0,0,0,0.05); text-align: center; max-width: 120px;">
-            <span aria-hidden="true" style="display: block; margin-bottom: 0.25rem;">👆</span>
-            Tap any word to hear it
-          </div>
-        </div>
         <button
           type="button"
           class="sb-btn sb-btn--ghost sb-read-arrow"
@@ -411,6 +402,25 @@
                 </div>
               </div>
             </div>
+          </div>
+          <div
+            class="sb-book-side-actions"
+            id="sbSpreadTextActions"
+            hidden
+            aria-label="Read aloud controls"
+          >
+            <div class="sb-tap-hint">
+              <span class="sb-tap-hint__ic" aria-hidden="true">👆</span>
+              Tap any word to hear it
+            </div>
+            <button
+              type="button"
+              class="sb-btn sb-btn--ghost sb-read-to-me"
+              id="sbReadToMe"
+              aria-label="Read page to me"
+            >
+              <span aria-hidden="true">🔊</span>
+            </button>
           </div>
         </div>
         <button
