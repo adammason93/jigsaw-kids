@@ -1061,6 +1061,17 @@ function unwrapJsonContent(raw: string): string {
   return s;
 }
 
+/**
+ * Models often write heights like 4'0" inside characterDesign — the inch " terminates the JSON string and breaks parse.
+ * Rewrite common ft/in patterns to words before JSON.parse.
+ */
+function sanitizeModelJsonForParse(s: string): string {
+  let t = s;
+  t = t.replace(/(\d{1,2})\s*['′]\s*(\d{1,2})\s*["″]/g, "$1 ft $2 in");
+  t = t.replace(/(\d{1,2})['′](\d{1,2})["″]/g, "$1 ft $2 in");
+  return t;
+}
+
 /** 12 pages = 6 spreads; illustration only on the second page of each spread (indices 1,3,…,11). */
 const ILLUSTRATED_PAGE_INDICES = [1, 3, 5, 7, 9, 11] as const;
 const PAGE_COUNT = 12;
@@ -1167,11 +1178,12 @@ async function openaiChatJsonOnce(
   }
   const content = choice?.message?.content;
   if (!content) throw new Error("story_empty");
+  const unwrapped = sanitizeModelJsonForParse(unwrapJsonContent(content));
   let parsed: unknown;
   try {
-    parsed = JSON.parse(unwrapJsonContent(content));
+    parsed = JSON.parse(unwrapped);
   } catch (e) {
-    console.error("story json parse", e, content.slice(0, 500));
+    console.error("story json parse", e, unwrapped.slice(0, 500));
     throw new Error("story_parse");
   }
 
@@ -2069,7 +2081,7 @@ ${noBuddyBook ? `BOOK MODE — NO IMAGINARY BUDDY: The reader chose "No buddy". 
       : ""
   }
 - Include fields title (string), characterDesign (string), bookColor (string: ${BOOK_COLOR_MODEL_HINT}. If unsure, pick a tint that fits the child's name — cooler tones for many boy names, warmer for many girl names), and pages (array of 12 objects).
-  For "characterDesign": describe the hero, the one main buddy creature, EVERY human child named in the plot idea (e.g. a brother or sister) who appears in the story, and any named game people who actually appear. If the plot names only ${childName} plus the buddy, characterDesign has exactly those two rich descriptions. If the plot names an extra child (e.g. Isaac), add a full third block for that child — never fold them into the buddy description. Never lions, bears, or unnamed critters. For each included character you MUST define their EXACT gender (e.g. boy/girl), age, height, body shape, skin/surface tone, eye color, facial features, hair color, hair style, AND exact texture/material (e.g. "smooth sculpted clay hair", "fuzzy felt fur", "shiny plastic"). For the buddy creature, explicitly define anatomy (horse-like unicorn with hooves and horn; or winged dragon; etc.). Plus ONE specific, unchanging outfit or set of accessories with exact colors and materials. If an animal or creature wears nothing, explicitly state "in natural animal form (no human outfits)". CRITICAL: Keep clothing solid-colored and simple. DO NOT put logos, graphics, patterns, or text on clothing (DALL-E hallucinates these). DO NOT give them multiple outfits or changing colors. You MUST use the exact same clothing description for the hero in EVERY single illustrationBrief. That locks their look for the book; the illustrator still shows different faces and poses per spread from the story beats — your prose should not force the same generic smile line into every brief.
+  For "characterDesign": describe the hero, the one main buddy creature, EVERY human child named in the plot idea (e.g. a brother or sister) who appears in the story, and any named game people who actually appear. If the plot names only ${childName} plus the buddy, characterDesign has exactly those two rich descriptions. If the plot names an extra child (e.g. Isaac), add a full third block for that child — never fold them into the buddy description. Never lions, bears, or unnamed critters. For each included character you MUST define their EXACT gender (e.g. boy/girl), age, height in words or feet without inch marks (e.g. about four feet tall, or 4 ft), body shape, skin/surface tone, eye color, facial features, hair color, hair style, AND exact texture/material (e.g. smooth sculpted clay hair, fuzzy felt fur, shiny plastic — never use the double-quote character anywhere in this field). For the buddy creature, explicitly define anatomy (horse-like unicorn with hooves and horn; or winged dragon; etc.). Plus ONE specific, unchanging outfit or set of accessories with exact colors and materials. If an animal or creature wears nothing, say they are in natural animal form with no human outfits. CRITICAL: Keep clothing solid-colored and simple. DO NOT put logos, graphics, patterns, or text on clothing (DALL-E hallucinates these). DO NOT give them multiple outfits or changing colors. You MUST use the exact same clothing description for the hero in EVERY single illustrationBrief. That locks their look for the book; the illustrator still shows different faces and poses per spread from the story beats — your prose should not force the same generic smile line into every brief.
 - Each page: { "text": string, "illustrationBrief": string | null }.
 - DOUBLE-PAGE SPREADS: pair pages as (1,2), (3,4), (5,6), (7,8), (9,10), (11,12).
   Odd-numbered pages (1,3,5,7,9,11) are TEXT-FIRST pages only — use "illustrationBrief": null.
@@ -2108,6 +2120,7 @@ ${noBuddyBook ? `BOOK MODE — NO IMAGINARY BUDDY: The reader chose "No buddy". 
   • Stay inside the setting the plot names. If the plot says castle, every spread is in the castle. If beach, every spread is on the beach.
   • Use only the named cast (hero + human co-stars from the plot + buddy + any game people the plot uses). Don't add background characters, animals, or family members the plot does not name.
   • If the plot has a narrative twist or reveal, build to that reveal as the climax around spread 4 or 5 — not an off-hand line.
+- OUTPUT MUST BE VALID JSON: In title, characterDesign, and EVERY page "text" and "illustrationBrief" string, do NOT put the double-quote character ("). It ends the string and corrupts the whole file. For heights use words (about four feet tall) or 4 ft / 5 ft — never write 4'0\" or 5'2\" style inch marks. For emphasis use single quotes or nothing — never paste (e.g. \"smooth clay\") with raw \" inside values.
 - JSON only, no markdown.`;
 
   const user = `Child name: ${childName}
