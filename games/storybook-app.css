@@ -1389,6 +1389,28 @@ body.sb-portal-welcome-open {
   position: relative;
   margin: 0;
   padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.35rem;
+  width: fit-content;
+  max-width: 100%;
+}
+
+.sb-hero-ref__who {
+  display: block;
+  width: 100%;
+  min-width: 9rem;
+  max-width: 12rem;
+  padding: 0.35rem 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  font-family: inherit;
+  color: #6b1d4a;
+  background: #fff;
+  border: 2px solid rgba(219, 39, 119, 0.35);
+  border-radius: 10px;
+  cursor: pointer;
 }
 
 .sb-hero-ref__thumb-remove {

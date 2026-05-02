@@ -9,7 +9,7 @@
   <link rel="manifest" href="../manifest.json" />
   <link rel="stylesheet" href="../js/kids-core.css" />
   <!-- storybook-app.css = renamed file so CDN/browser cache cannot keep old storybook.css -->
-  <link rel="stylesheet" href="storybook-app.css?v=60" />
+  <link rel="stylesheet" href="storybook-app.css?v=62" />
   <link rel="stylesheet" href="../tablet-ipad.css" />
   <!-- Last wins: guarantees new background even if a proxy cached an ancient stylesheet elsewhere -->
   <style>
@@ -157,9 +157,9 @@
           </div>
           <p class="sb-voice-hint" id="sbVoiceNameHint" aria-live="polite"></p>
           <div class="sb-hero-ref" id="sbHeroRefBlock">
-            <label class="sb-label sb-label--secondary" for="sbHeroPhoto">Photos of the hero (optional, up to 3)</label>
+            <label class="sb-label sb-label--secondary" for="sbHeroPhoto">Photos for the book (optional, up to 3)</label>
             <p class="sb-panel__hint sb-panel__hint--tight">
-              Different angles or lighting help the art stay on-model. Sent only to describe hair, skin, and clothes — pictures stay in soft toy style.
+              After you add a picture, choose who it is — the hero or a friend you tick below. Freya only appears if you select her under &ldquo;Friends from your games&rdquo;.
             </p>
             <input
               class="sb-hero-ref__input"
@@ -466,7 +466,7 @@
   <script src="../js/storybook-shelf-store.js" defer></script>
   <!-- Required for cloud shelf sync + upload (same as other games) -->
   <script src="../js/score-cloud.js" defer></script>
-  <script src="storybook.js?v=281" defer></script>
+  <script src="storybook.js?v=283" defer></script>
   <script>
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("../sw.js").catch(function () {});

@@ -620,17 +620,22 @@ async function openaiVisionDescribePortraits(
  */
 async function openaiVisionSummarizeHeroFromRefs(
   apiKey: string,
-  childName: string,
+  displayName: string,
   dataUrls: string[],
+  role: "hero" | "character" = "hero",
 ): Promise<string> {
   if (dataUrls.length === 0) return "";
-  const name = sanitizeName(childName) || "Hero";
+  const name = sanitizeName(displayName) || "Child";
+  const rolePhrase =
+    role === "hero"
+      ? `${name}, the child hero of a kids' picture book`
+      : `${name}, a named child character in a kids' picture book`;
   const content: Record<string, unknown>[] = [];
   if (dataUrls.length === 1) {
     content.push({
       type: "text",
       text:
-        `This image is a reference photo of ${name}, the child hero of a kids' picture book.\n` +
+        `This image is a reference photo of ${name} (${role === "hero" ? "story hero" : "story character"}).\n` +
         `Reply with exactly one line:\n` +
         `${name}: neutral appearance for an illustrator only — hair, skin tone, clothing colours and cut, approximate age; max 34 words; no art-style words; match the reference. CRITICAL: Ignore and omit any logos, graphics, or patterns on clothing.\n` +
         `Use the NAME exactly as spelled above. No other text.`,
@@ -640,7 +645,7 @@ async function openaiVisionSummarizeHeroFromRefs(
     content.push({
       type: "text",
       text:
-        `These ${dataUrls.length} images are all of the SAME child: ${name}, the hero of a kids' picture book (different angles or moments).\n` +
+        `These ${dataUrls.length} images are all of the SAME person: ${rolePhrase} (different angles or moments).\n` +
         `Reply with exactly ONE line:\n` +
         `${name}: neutral appearance for an illustrator only — combine what you see across the photos — hair, skin tone, clothing colours and cut, approximate age; max 44 words; no art-style words. CRITICAL: Ignore and omit any logos, graphics, or patterns on clothing.\n` +
         `Use the NAME exactly as spelled above. No other text.`,
@@ -676,22 +681,24 @@ async function openaiVisionSummarizeHeroFromRefs(
 }
 
 /**
- * Vision pass: optional real-life hero photo(s), then official game portraits (one line each).
+ * Vision pass: optional tagged photos for hero + selected game friends; then default game portraits.
  */
 async function appearanceNotesFromReferences(
   apiKey: string,
   assetsBase: string,
   people: FamilyPerson[],
-  heroDataUrls: string[],
   childName: string,
+  heroUrls: string[],
+  customByFriendId: Record<string, string[]>,
 ): Promise<string> {
   const chunks: string[] = [];
-  if (heroDataUrls.length > 0) {
+  if (heroUrls.length > 0) {
     try {
       const heroLine = await openaiVisionSummarizeHeroFromRefs(
         apiKey,
         childName,
-        heroDataUrls,
+        heroUrls,
+        "hero",
       );
       if (heroLine.trim()) chunks.push(heroLine.trim());
     } catch (e) {
@@ -700,17 +707,31 @@ async function appearanceNotesFromReferences(
   }
 
   const base = (assetsBase ?? "").trim();
-  const withUrls: { label: string; dataUrl: string }[] = [];
-  if (base && people.length > 0) {
-    for (const p of people) {
+  const batchItems: { label: string; dataUrl: string }[] = [];
+
+  for (const p of people) {
+    const custom = customByFriendId[p.id];
+    if (custom && custom.length > 0) {
+      try {
+        const line = await openaiVisionSummarizeHeroFromRefs(
+          apiKey,
+          p.label,
+          custom,
+          "character",
+        );
+        if (line.trim()) chunks.push(line.trim());
+      } catch (e) {
+        console.warn("[clever-service] friend ref vision failed", p.id, e);
+      }
+    } else if (base) {
       const path = FAMILY_PORTRAIT_PATHS[p.id];
       if (!path) continue;
       const dataUrl = await fetchPortraitDataUrl(base, path);
-      if (dataUrl) withUrls.push({ label: p.label, dataUrl });
+      if (dataUrl) batchItems.push({ label: p.label, dataUrl });
     }
   }
-  if (withUrls.length > 0) {
-    const familyText = await openaiVisionDescribePortraits(apiKey, withUrls);
+  if (batchItems.length > 0) {
+    const familyText = await openaiVisionDescribePortraits(apiKey, batchItems);
     if (familyText.trim()) chunks.push(familyText.trim());
   }
 
@@ -797,6 +818,95 @@ function sanitizeHeroReferenceImages(body: {
   }
 
   return capped;
+}
+
+/**
+ * Tagged reference photos: `who` is "hero", the hero's first name, a friend `id` (e.g. freya), or friend's label.
+ * Falls back to legacy `heroReferenceImages` when `characterReferencePhotos` is missing/empty.
+ */
+function sanitizeCharacterReferencePhotos(
+  body: {
+    characterReferencePhotos?: unknown;
+    heroReferenceImages?: unknown;
+    heroReferenceImage?: string;
+  },
+  familyPeople: FamilyPerson[],
+  childName: string,
+): { heroUrls: string[]; customByFriendId: Record<string, string[]> } {
+  const allowedFriend = new Set(familyPeople.map((p) => p.id));
+
+  const resolveWho = (whoRaw: string): "hero" | string | null => {
+    const trimmed = whoRaw.trim();
+    const whoLo = trimmed.toLowerCase();
+    const whoNorm = whoLo.replace(/[^a-z0-9]/gu, "");
+
+    if (!whoNorm || whoNorm === "hero" || whoNorm === "me") return "hero";
+
+    const heroToken =
+      sanitizeName(childName)
+        .toLowerCase()
+        .split(/\s+/)[0]
+        ?.replace(/[^a-z]/gu, "") ?? "";
+    if (heroToken && whoNorm === heroToken) return "hero";
+
+    if (allowedFriend.has(whoNorm)) return whoNorm;
+
+    const byLabel = familyPeople.find(
+      (p) => p.label.trim().toLowerCase() === whoLo,
+    );
+    if (byLabel && allowedFriend.has(byLabel.id)) return byLabel.id;
+
+    return null;
+  };
+
+  type Tagged = { target: "hero" | string; url: string; approx: number };
+  const tagged: Tagged[] = [];
+
+  const rawArr = body.characterReferencePhotos;
+  if (!Array.isArray(rawArr) || rawArr.length === 0) {
+    const legacy = sanitizeHeroReferenceImages(body);
+    return { heroUrls: legacy, customByFriendId: {} };
+  }
+
+  for (const x of rawArr.slice(0, 24)) {
+    if (!x || typeof x !== "object") continue;
+    const o = x as Record<string, unknown>;
+    const url = sanitizeHeroReferenceImage(o.image ?? o.dataUrl);
+    if (!url) continue;
+    const whoR = String(o.who ?? o.character ?? "hero");
+    const target = resolveWho(whoR);
+    if (target === null) {
+      console.warn(
+        "[clever-service] characterReferencePhotos skipped unknown who (hero name or selected friend only)",
+        whoR,
+      );
+      continue;
+    }
+    if (target !== "hero" && !allowedFriend.has(target)) continue;
+    const m =
+      /^data:image\/(?:png|jpeg|jpg|webp);base64,([A-Za-z0-9+/=]+)$/i.exec(
+        url.replace(/\s+/gu, "").replace(/\r|\n/gu, ""),
+      );
+    const approx = m ? Math.floor((m[1].length * 3) / 4) : 0;
+    tagged.push({ target, url, approx });
+  }
+
+  const outHero: string[] = [];
+  const outFriend: Record<string, string[]> = {};
+  let count = 0;
+  let totalBytes = 0;
+  for (const t of tagged) {
+    if (count >= MAX_HERO_REFERENCE_IMAGES) break;
+    if (totalBytes + t.approx > MAX_HERO_REFERENCES_TOTAL_BYTES) break;
+    totalBytes += t.approx;
+    count++;
+    if (t.target === "hero") outHero.push(t.url);
+    else {
+      if (!outFriend[t.target]) outFriend[t.target] = [];
+      outFriend[t.target].push(t.url);
+    }
+  }
+  return { heroUrls: outHero, customByFriendId: outFriend };
 }
 
 function jsonResponse(body: unknown, status = 200) {
@@ -1585,8 +1695,10 @@ Deno.serve(async (req) => {
     bookCoverColor?: string;
     /** Optional `data:image/jpeg|png|webp;base64,...` for hero appearance (storybook step 1). */
     heroReferenceImage?: string;
-    /** Up to 3 hero reference photos (preferred); same schema as `heroReferenceImage` each. */
+    /** Up to 3 hero reference photos; only used if `characterReferencePhotos` is absent. */
     heroReferenceImages?: string[];
+    /** Tagged refs: `who` = "hero", hero's first name, friend id, or friend label (friend must be in `familyPeople`). */
+    characterReferencePhotos?: unknown;
   };
   try {
     body = await req.json();
@@ -1751,11 +1863,16 @@ Deno.serve(async (req) => {
   );
 
   const bookAssetsBase = (Deno.env.get("BOOK_ASSETS_BASE_URL") ?? "").trim();
-  const heroRefDataUrls = sanitizeHeroReferenceImages(body);
+  const refPack = sanitizeCharacterReferencePhotos(
+    body,
+    familyPeople,
+    childName,
+  );
 
   let portraitAppearance = "";
   const portraitVisionAttempted = Boolean(
-    heroRefDataUrls.length > 0 ||
+    refPack.heroUrls.length > 0 ||
+      Object.keys(refPack.customByFriendId).length > 0 ||
       (bookAssetsBase && familyPeople.length > 0),
   );
   if (portraitVisionAttempted) {
@@ -1764,8 +1881,9 @@ Deno.serve(async (req) => {
         apiKey,
         bookAssetsBase,
         familyPeople,
-        heroRefDataUrls,
         childName,
+        refPack.heroUrls,
+        refPack.customByFriendId,
       );
     } catch (e) {
       console.warn("[clever-service] portrait vision failed", e);
@@ -1774,7 +1892,7 @@ Deno.serve(async (req) => {
 
   const portraitBlockForText =
     portraitAppearance.length > 0
-      ? `\n\nAppearance from reference photos (hero line(s) when photos were sent — one combined line for up to three angles; further lines are game friends when selected — match when describing these people in the story):\n${portraitAppearance}\n`
+      ? `\n\nAppearance from reference photos (each line is one person — hero and any friends you tagged with a photo, or default game portraits; match when describing these people in the story):\n${portraitAppearance}\n`
       : "";
 
   const system = `You write very short picture-book stories for UK English-speaking children about age 5.

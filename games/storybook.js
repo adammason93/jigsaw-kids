@@ -77,8 +77,8 @@
   var heroPhotoThumbsList = document.getElementById("sbHeroPhotoThumbs");
   var heroPhotoErr = document.getElementById("sbHeroPhotoErr");
   var heroPhotoRemove = document.getElementById("sbHeroPhotoRemove");
-  /** @type {string[]} */
-  var heroPhotoDataUrls = [];
+  /** @type {{ dataUrl: string, who: string }[]} */
+  var heroPhotoItems = [];
   var HERO_PHOTO_MAX_COUNT = 3;
   /** Keep under clever-service `MAX_HERO_REFERENCE_BYTES` per image after base64 (~1.2MB raw). */
   var HERO_PHOTO_MAX_FILE_BYTES = Math.floor(1.25 * 1024 * 1024);
@@ -1889,19 +1889,51 @@
       });
   }
 
+  function heroRefWhoOptions() {
+    var opts = [];
+    var heroLab = nameInput && nameInput.value.trim()
+      ? nameInput.value.trim()
+      : "Hero";
+    opts.push({ v: "hero", t: heroLab + " (hero in this book)" });
+    getSelectedFamilyPeople().forEach(function (p) {
+      opts.push({ v: p.id, t: p.label });
+    });
+    return opts;
+  }
+
+  function buildWhoSelect(currentWho) {
+    var sel = document.createElement("select");
+    sel.className = "sb-hero-ref__who";
+    sel.setAttribute("aria-label", "Who is in this photo");
+    heroRefWhoOptions().forEach(function (o) {
+      var opt = document.createElement("option");
+      opt.value = o.v;
+      opt.textContent = o.t;
+      sel.appendChild(opt);
+    });
+    var ok = false;
+    Array.prototype.forEach.call(sel.options, function (o) {
+      if (o.value === currentWho) ok = true;
+    });
+    sel.value = ok ? currentWho : "hero";
+    return sel;
+  }
+
   function renderHeroPhotoThumbs() {
     if (!heroPhotoThumbsList || !heroPhotoThumbsWrap) return;
     heroPhotoThumbsList.replaceChildren();
-    heroPhotoDataUrls.forEach(function (url, idx) {
+    heroPhotoItems.forEach(function (item, idx) {
       var li = document.createElement("li");
       li.className = "sb-hero-ref__thumb-item";
+      li.setAttribute("data-idx", String(idx));
       var img = document.createElement("img");
       img.className = "sb-hero-ref__thumb";
-      img.src = url;
+      img.src = item.dataUrl;
       img.alt = "Photo " + (idx + 1);
       img.width = 96;
       img.height = 96;
       img.decoding = "async";
+      var sel = buildWhoSelect(item.who);
       var btn = document.createElement("button");
       btn.type = "button";
       btn.className = "sb-hero-ref__thumb-remove";
@@ -1909,14 +1941,15 @@
       btn.setAttribute("data-idx", String(idx));
       btn.textContent = "\u00d7";
       li.appendChild(img);
+      li.appendChild(sel);
       li.appendChild(btn);
       heroPhotoThumbsList.appendChild(li);
     });
-    heroPhotoThumbsWrap.hidden = heroPhotoDataUrls.length === 0;
+    heroPhotoThumbsWrap.hidden = heroPhotoItems.length === 0;
   }
 
   function clearHeroPhoto() {
-    heroPhotoDataUrls = [];
+    heroPhotoItems = [];
     if (heroPhotoInput) heroPhotoInput.value = "";
     renderHeroPhotoThumbs();
     if (heroPhotoErr) {
@@ -2633,7 +2666,7 @@
       var files = Array.prototype.slice.call(heroPhotoInput.files || []);
       heroPhotoInput.value = "";
       if (!files.length) return;
-      var slotsLeft = HERO_PHOTO_MAX_COUNT - heroPhotoDataUrls.length;
+      var slotsLeft = HERO_PHOTO_MAX_COUNT - heroPhotoItems.length;
       if (slotsLeft <= 0) {
         setHeroPhotoError("You already have 3 photos — remove one to add another.");
         return;
@@ -2670,9 +2703,9 @@
             if (
               url &&
               /^data:image\//i.test(url) &&
-              heroPhotoDataUrls.length < HERO_PHOTO_MAX_COUNT
+              heroPhotoItems.length < HERO_PHOTO_MAX_COUNT
             ) {
-              heroPhotoDataUrls.push(url);
+              heroPhotoItems.push({ dataUrl: url, who: "hero" });
             }
           });
           renderHeroPhotoThumbs();
@@ -2683,14 +2716,24 @@
     });
   }
   if (heroPhotoThumbsList) {
+    heroPhotoThumbsList.addEventListener("change", function (e) {
+      var t = e.target;
+      if (!t || !t.classList || !t.classList.contains("sb-hero-ref__who")) return;
+      var li = t.closest && t.closest(".sb-hero-ref__thumb-item");
+      if (!li) return;
+      var idx = parseInt(li.getAttribute("data-idx") || "-1", 10);
+      if (idx >= 0 && idx < heroPhotoItems.length) {
+        heroPhotoItems[idx].who = t.value;
+      }
+    });
     heroPhotoThumbsList.addEventListener("click", function (e) {
       var t = e.target;
       if (!t || !t.closest) return;
       var rm = t.closest(".sb-hero-ref__thumb-remove");
       if (!rm) return;
       var idx = parseInt(rm.getAttribute("data-idx") || "-1", 10);
-      if (idx >= 0 && idx < heroPhotoDataUrls.length) {
-        heroPhotoDataUrls.splice(idx, 1);
+      if (idx >= 0 && idx < heroPhotoItems.length) {
+        heroPhotoItems.splice(idx, 1);
         renderHeroPhotoThumbs();
         setHeroPhotoError("");
       }
@@ -2699,6 +2742,16 @@
   if (heroPhotoRemove) {
     heroPhotoRemove.addEventListener("click", function () {
       clearHeroPhoto();
+    });
+  }
+  if (nameInput) {
+    nameInput.addEventListener("input", function () {
+      renderHeroPhotoThumbs();
+    });
+  }
+  if (gamePeopleRow) {
+    gamePeopleRow.addEventListener("click", function () {
+      window.setTimeout(renderHeroPhotoThumbs, 0);
     });
   }
 
@@ -2770,7 +2823,11 @@
           }),
           familyPeople: familyPeople,
           bookCoverColor: selectedBookCoverColor || undefined,
-          heroReferenceImages: heroPhotoDataUrls.length ? heroPhotoDataUrls : undefined,
+          characterReferencePhotos: heroPhotoItems.length
+            ? heroPhotoItems.map(function (x) {
+                return { who: x.who, image: x.dataUrl };
+              })
+            : undefined,
         }),
       })
         .then(function (r) {
