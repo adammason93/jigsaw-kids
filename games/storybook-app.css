@@ -72,6 +72,49 @@ body.page-storybook.sb-route-story .sb-landing__left {
   }
 }
 
+/* Compact / tablet / short landscape: avoid laptop-sized vw with tiny vh (book looked wide but vertically crushed; text clipped). */
+@media (max-width: 1200px) {
+  .page-storybook {
+    --sb-book-inner-h: clamp(252px, min(48vw, 58dvh, 56vh), 548px);
+  }
+
+  .sb-reader-stack {
+    min-height: clamp(265px, min(50vw, 60dvh, 58vh), 568px);
+  }
+}
+
+@media (max-width: 1200px) and (orientation: landscape) and (max-height: 900px) {
+  .page-storybook {
+    /* Height was often driven by 52vh or vw — too squat vs full spread width; bias dvh so the book scales with viewport height. */
+    --sb-book-inner-h: clamp(280px, min(68dvh, 65vh, 50vw), 548px);
+  }
+
+  .sb-reader-stack {
+    min-height: clamp(292px, min(70dvh, 67vh, 52vw), 568px);
+  }
+}
+
+@media (max-width: 1200px) and (orientation: portrait) {
+  .page-storybook {
+    --sb-book-inner-h: clamp(276px, min(54dvh, 52vh, 88vw), 580px);
+  }
+
+  .sb-reader-stack {
+    min-height: clamp(290px, min(56dvh, 54vh, 90vw), 600px);
+  }
+}
+
+@media (max-width: 1200px) and (max-height: 900px) {
+  .sb-flip-spread__inner--has-art .sb-flip-text__highlight {
+    font-size: clamp(1rem, min(3.6vw, 3.4dvh), 1.52rem);
+    line-height: 1.48;
+  }
+
+  .sb-flip-spread__inner--has-art .sb-big-word {
+    font-size: 1.48em;
+  }
+}
+
 body.page-storybook.sb-modal-open {
   overflow: hidden;
 }
@@ -2349,13 +2392,16 @@ body.sb-portal-welcome-open {
   background: transparent;
   box-shadow: none;
   margin: 0;
-  padding: clamp(10px, 2.5vw, 22px) clamp(14px, 4vw, 28px);
+  /* dvh keeps top breathing room proportional to book height — vw alone stole space on squat landscape tablets */
+  padding: clamp(8px, 1.8dvh, 18px) clamp(10px, 3.5vw, 24px);
   align-self: stretch;
   width: 100%;
   max-width: none;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: flex-start; /* Push text to top */
-  padding-top: clamp(2rem, 8vw, 4rem); /* Give it some breathing room from the top edge */
+  padding-top: clamp(0.55rem, 2.5dvh, 1.85rem);
+  padding-bottom: clamp(0.45rem, 1.4dvh, 1rem);
+  min-height: 0;
   /* Avoid pairing clip-path reveal with overflow:auto — WebKit clips the left edge of lines mid-turn. */
   overflow: visible;
 }
