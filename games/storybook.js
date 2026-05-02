@@ -1243,6 +1243,24 @@
     );
   }
 
+  /**
+   * Shelf storage can skip canvas JPEG re-encode when the URL is a stable public asset
+   * the browser loads at full quality (e.g. Supabase Storage). Proxied / ephemeral hosts
+   * still use tryFetchImageDataUrl.
+   */
+  function shelfKeepOriginalRemoteUrl(url) {
+    var u = String(url || "").trim().toLowerCase();
+    if (!u || u.indexOf("data:") === 0) return false;
+    if (storyImageNeedsEdgeProxy(url)) return false;
+    if (
+      u.indexOf(".supabase.co/") !== -1 &&
+      u.indexOf("/storage/v1/object/public/") !== -1
+    ) {
+      return true;
+    }
+    return false;
+  }
+
   function storyImageDisplayUrl(remoteUrl) {
     var u = String(remoteUrl || "").trim();
     if (!u) return u;
@@ -1326,7 +1344,8 @@
             img.onload = function () {
               try {
                 var canvas = document.createElement("canvas");
-                var maxDim = 720; // Compress heavily to fit more books into localStorage
+                /* Match ~1024px+ story art: 720 was visibly soft when reopening from shelf. */
+                var maxDim = 1280;
                 var w = img.width;
                 var h = img.height;
                 if (w > maxDim || h > maxDim) {
@@ -1344,8 +1363,8 @@
                 var ctx = canvas.getContext("2d");
                 if (!ctx) throw new Error("No 2d context");
                 ctx.drawImage(img, 0, 0, w, h);
-                // 0.55 JPEG quality drastically reduces file size
-                resolve(canvas.toDataURL("image/jpeg", 0.55));
+                /* Higher than 0.55 — shelf reopen looked muddy; still JPEG for quota vs PNG */
+                resolve(canvas.toDataURL("image/jpeg", 0.85));
               } catch (e) {
                 console.warn("Canvas compression failed, falling back to original URL", e);
                 resolve(url); // Fallback to original URL if compression fails
@@ -1371,6 +1390,24 @@
         return tryFetchImageDataUrl(p.imageUrl || "");
       })
     );
+  }
+
+  /** Like fetchAllPageDataUrls but avoids re-encoding URLs already served at full quality (e.g. Supabase public). */
+  function fetchShelfPageDataUrls() {
+    if (!story || !story.pages.length) return Promise.resolve([]);
+    return Promise.all(
+      story.pages.map(function (p) {
+        var u = p.imageUrl || "";
+        if (shelfKeepOriginalRemoteUrl(u)) return Promise.resolve(null);
+        return tryFetchImageDataUrl(u);
+      })
+    );
+  }
+
+  function fetchSceneDataUrlForShelf(sceneUrl) {
+    if (!sceneUrl) return Promise.resolve(null);
+    if (shelfKeepOriginalRemoteUrl(sceneUrl)) return Promise.resolve(null);
+    return tryFetchImageDataUrl(sceneUrl);
   }
 
   var SHELF_STORAGE_KEY = "jigsawKids_storybookShelf_v1";
@@ -1590,11 +1627,12 @@
       author: item.author || "",
       bookColor: item.bookColor || null,
       readerFont: item.readerFont || null,
-      sceneImageUrl: item.sceneDataUrl || item.sceneUrlFallback || null,
+      /* Prefer remote asset when present so reopen matches stored PNG (not shelf JPEG). */
+      sceneImageUrl: item.sceneUrlFallback || item.sceneDataUrl || null,
       pages: item.pages.map(function (p) {
         return {
           text: p.text,
-          imageUrl: p.imageDataUrl || p.imageUrlFallback || null,
+          imageUrl: p.imageUrlFallback || p.imageDataUrl || null,
         };
       }),
     };
@@ -1607,15 +1645,15 @@
    * @returns {{ src: string, pageIndex: number }}
    */
   function firstShelfCoverMeta(item) {
-    if (item.sceneDataUrl || item.sceneUrlFallback) {
-      return { src: item.sceneDataUrl || item.sceneUrlFallback, pageIndex: -1 };
+    if (item.sceneUrlFallback || item.sceneDataUrl) {
+      return { src: item.sceneUrlFallback || item.sceneDataUrl, pageIndex: -1 };
     }
     if (!item.pages || !item.pages.length) return { src: "", pageIndex: -1 };
     for (var i = 0; i < item.pages.length; i++) {
       var p = item.pages[i];
       var du = String(p.imageDataUrl || "").trim();
       var hu = String(p.imageUrlFallback || "").trim();
-      var src = du || hu;
+      var src = hu || du;
       if (src) return { src: src, pageIndex: i };
     }
     return { src: "", pageIndex: -1 };
@@ -1802,9 +1840,9 @@
     var label = btnShelf.textContent;
     btnShelf.disabled = true;
     btnShelf.textContent = "Saving…";
-    fetchAllPageDataUrls()
+    fetchShelfPageDataUrls()
       .then(function (dataUrls) {
-        return tryFetchImageDataUrl(story.sceneImageUrl || "").then(function (sceneData) {
+        return fetchSceneDataUrlForShelf(story.sceneImageUrl || "").then(function (sceneData) {
           return { dataUrls: dataUrls, sceneData: sceneData };
         });
       })
