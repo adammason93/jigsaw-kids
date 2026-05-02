@@ -1527,7 +1527,7 @@ function gptImageModerationParam(): "low" | "auto" {
     : "low";
 }
 
-/** Default `medium` — sharper than `low` (old default); set `STORYBOOK_GPTIMAGE_QUALITY=low` if edge timeouts (546) or 429s increase. */
+/** Default `medium` — between cheap `low` (soft) and pricey `high`; pair with low input_fidelity on edits. Set `STORYBOOK_GPTIMAGE_QUALITY=low` if timeouts/429s; `high` only if budget allows. */
 function gptImageQualityParam(): "low" | "medium" | "high" | "auto" {
   const q = (Deno.env.get("STORYBOOK_GPTIMAGE_QUALITY") ?? "medium").trim().toLowerCase();
   if (q === "medium" || q === "high" || q === "auto") return q;
@@ -1692,7 +1692,7 @@ async function gptImageEdit(
   const moderation = gptImageModerationParam();
   const quality = gptImageQualityParam();
   const trimmed = prompt.slice(0, GPT_IMAGE_PROMPT_MAX);
-  const fidRaw = (Deno.env.get("STORYBOOK_GPTIMAGE_INPUT_FIDELITY") ?? "high")
+  const fidRaw = (Deno.env.get("STORYBOOK_GPTIMAGE_INPUT_FIDELITY") ?? "low")
     .trim()
     .toLowerCase();
 
@@ -2336,8 +2336,8 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
         // play for the Fal / DALL·E paths below.
         const refBytes = anchorOut.bytes;
         // Stay under Supabase/Cloudflare wall-clock (~150s): quality defaults to
-        // medium + input_fidelity high (see gptImageQualityParam); override with
-        // STORYBOOK_GPTIMAGE_QUALITY=low and STORYBOOK_GPTIMAGE_INPUT_FIDELITY=low if needed.
+        // Cost/quality balance: medium render quality + low edit input_fidelity (high
+        // on both was ~£0.33/book — too high). Override via STORYBOOK_GPTIMAGE_* secrets.
         // Tier-1 OpenAI image RPM is 5 — chunk 4 edits, brief wait, then 2 edits. Raise wait or
         // shrink chunk size if you see 429s; raise OpenAI tier or lower wait if 546.
         const chunkSize = (() => {
