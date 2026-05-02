@@ -776,12 +776,60 @@ body.sb-portal-welcome-open {
   justify-content: center;
 }
 
+/* Shelf 3D book: idle sway (no hover required); front node last for painter order */
+@keyframes sb-shelf-book-sway {
+  0%,
+  100% {
+    transform: rotateX(1.4deg) rotateY(-7deg);
+  }
+  50% {
+    transform: rotateX(2.6deg) rotateY(-17deg);
+  }
+}
+
+@keyframes sb-shelf-book-shadow-sway {
+  0%,
+  100% {
+    transform: translateX(-50%) rotateX(90deg) rotateZ(24deg);
+    opacity: 0.36;
+  }
+  50% {
+    transform: translateX(-50%) rotateX(90deg) rotateZ(31deg);
+    opacity: 0.44;
+  }
+}
+
+.sb-library-page .sb-cover-card-wrap:nth-child(1) {
+  --sb-shelf-stagger: 0s;
+}
+.sb-library-page .sb-cover-card-wrap:nth-child(2) {
+  --sb-shelf-stagger: -0.55s;
+}
+.sb-library-page .sb-cover-card-wrap:nth-child(3) {
+  --sb-shelf-stagger: -1.1s;
+}
+.sb-library-page .sb-cover-card-wrap:nth-child(4) {
+  --sb-shelf-stagger: -1.65s;
+}
+.sb-library-page .sb-cover-card-wrap:nth-child(5) {
+  --sb-shelf-stagger: -2.2s;
+}
+.sb-library-page .sb-cover-card-wrap:nth-child(6) {
+  --sb-shelf-stagger: -2.75s;
+}
+.sb-library-page .sb-cover-card-wrap:nth-child(7) {
+  --sb-shelf-stagger: -3.3s;
+}
+.sb-library-page .sb-cover-card-wrap:nth-child(8) {
+  --sb-shelf-stagger: -3.85s;
+}
+.sb-library-page .sb-cover-card-wrap:nth-child(9) {
+  --sb-shelf-stagger: -4.4s;
+}
+
 /* Front-facing shelf book: real cover art + soft spine; placeholder keeps cloth fallback */
 .sb-cover-card-wrap {
-  --sb-book-rot-x: 2deg;
-  --sb-book-rot-y: -25deg;
-  --sb-book-shadow-z: 28deg;
-  --sb-book-shadow-op: 0.4;
+  --sb-shelf-stagger: 0s;
   position: relative;
   flex: 0 0 auto;
   display: flex;
@@ -800,10 +848,6 @@ body.sb-portal-welcome-open {
 
 .sb-cover-card-wrap:hover,
 .sb-cover-card-wrap:focus-within {
-  --sb-book-rot-x: 4.25deg;
-  --sb-book-rot-y: -40deg;
-  --sb-book-shadow-z: 38deg;
-  --sb-book-shadow-op: 0.52;
   z-index: 8;
   transform: translateY(-8px) scale(1.05);
 }
@@ -836,10 +880,10 @@ body.sb-portal-welcome-open {
   z-index: 1;
   transform-style: preserve-3d;
   -webkit-transform-style: preserve-3d;
-  transform: rotateX(var(--sb-book-rot-x)) rotateY(var(--sb-book-rot-y));
-  -webkit-transform: rotateX(var(--sb-book-rot-x)) rotateY(var(--sb-book-rot-y));
   transform-origin: 50% 88%;
-  transition: transform 0.62s cubic-bezier(0.33, 1, 0.48, 1);
+  animation: sb-shelf-book-sway 5.5s ease-in-out infinite;
+  animation-delay: var(--sb-shelf-stagger, 0s);
+  will-change: transform;
 }
 
 .sb-cover-card__book-front {
@@ -847,8 +891,8 @@ body.sb-portal-welcome-open {
   inset: 0;
   border-radius: inherit;
   overflow: hidden;
-  transform: translateZ(var(--sb-book-thickness));
-  -webkit-transform: translateZ(var(--sb-book-thickness));
+  transform: translateZ(calc(var(--sb-book-thickness) + 0.75px));
+  -webkit-transform: translateZ(calc(var(--sb-book-thickness) + 0.75px));
   transform-style: flat;
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
@@ -913,10 +957,10 @@ body.sb-portal-welcome-open {
       #b0a79c 1px
     );
   border-radius: 0 2px 2px 0;
-  transform: rotateY(90deg) translateX(calc(var(--sb-book-thickness) / 7))
-    translateZ(calc(var(--sb-book-thickness) / 1.2));
-  -webkit-transform: rotateY(90deg) translateX(calc(var(--sb-book-thickness) / 7))
-    translateZ(calc(var(--sb-book-thickness) / 1.2));
+  transform: rotateY(90deg) translateX(calc(var(--sb-book-thickness) / 10))
+    translateZ(calc(var(--sb-book-thickness) * 0.32));
+  -webkit-transform: rotateY(90deg) translateX(calc(var(--sb-book-thickness) / 10))
+    translateZ(calc(var(--sb-book-thickness) * 0.32));
   transform-origin: right center;
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
@@ -939,34 +983,31 @@ body.sb-portal-welcome-open {
     rgba(35, 22, 40, 0) 72%
   );
   filter: blur(14px);
-  transform: translateX(-50%) rotateX(90deg) rotateZ(var(--sb-book-shadow-z));
+  transform: translateX(-50%) rotateX(90deg) rotateZ(24deg);
   transform-origin: 50% 50%;
-  opacity: var(--sb-book-shadow-op);
-  transition:
-    transform 0.62s cubic-bezier(0.33, 1, 0.48, 1),
-    opacity 0.62s cubic-bezier(0.33, 1, 0.48, 1);
+  opacity: 0.38;
+  animation: sb-shelf-book-shadow-sway 5.5s ease-in-out infinite;
+  animation-delay: var(--sb-shelf-stagger, 0s);
+  will-change: transform, opacity;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .sb-cover-card-wrap {
-    --sb-book-rot-x: 2deg;
-    --sb-book-rot-y: -24deg;
-    --sb-book-shadow-z: 28deg;
-    --sb-book-shadow-op: 0.4;
     transition: transform 0.2s ease, z-index 0s linear;
   }
 
-  .sb-cover-card-wrap:hover,
-  .sb-cover-card-wrap:focus-within {
-    --sb-book-rot-x: 2deg;
-    --sb-book-rot-y: -24deg;
-    --sb-book-shadow-z: 28deg;
-    --sb-book-shadow-op: 0.4;
+  .sb-cover-card__book {
+    animation: none;
+    transform: rotateX(1.8deg) rotateY(-11deg);
+    -webkit-transform: rotateX(1.8deg) rotateY(-11deg);
+    will-change: auto;
   }
 
-  .sb-cover-card__book,
   .sb-cover-card__book-shadow {
-    transition: none;
+    animation: none;
+    transform: translateX(-50%) rotateX(90deg) rotateZ(26deg);
+    opacity: 0.38;
+    will-change: auto;
   }
 }
 

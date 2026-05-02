@@ -1807,9 +1807,9 @@
     var back = document.createElement("span");
     back.className = "sb-cover-card__book-back";
     back.setAttribute("aria-hidden", "true");
-    book.appendChild(front);
-    book.appendChild(paper);
     book.appendChild(back);
+    book.appendChild(paper);
+    book.appendChild(front);
     scene.appendChild(shadow);
     scene.appendChild(book);
     return scene;
