@@ -373,7 +373,7 @@ body.sb-portal-welcome-open {
   font-family: "Nunito", "Segoe UI", system-ui, sans-serif;
   font-size: 0.9375rem;
   font-weight: 600;
-  color: rgba(91, 39, 68, 0.88);
+  color: rgba(55, 22, 40, 0.96);
   line-height: 1.65;
   text-align: center;
 }
@@ -1062,9 +1062,10 @@ body.sb-portal-welcome-open {
   overflow-y: auto;
   margin: 0 auto;
   padding: 1.5rem 1.25rem 1.65rem;
-  background: #fffafb;
-  background-image: radial-gradient(#fce7f3 20%, transparent 20%);
-  background-size: 16px 16px;
+  /* Softer dots + cleaner base so body text isn’t fighting pink-on-pink */
+  background-color: #fffdfbff;
+  background-image: radial-gradient(rgba(219, 39, 119, 0.11) 17%, transparent 18%);
+  background-size: 18px 18px;
   background-position: 0 0;
   border-radius: 28px 28px 0 0;
   box-shadow: 0 -12px 48px rgba(131, 24, 67, 0.18), 0 0 0 1px rgba(244, 114, 182, 0.2);
@@ -1126,31 +1127,34 @@ body.sb-portal-welcome-open {
 
 .sb-panel__text {
   margin: 0 0 1.1rem;
-  font-size: 0.92rem;
+  font-size: 0.94rem;
   font-weight: 700;
-  color: #831843;
-  line-height: 1.5;
+  color: #5c1835;
+  line-height: 1.55;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.85);
 }
 
 .sb-panel__hint {
   margin: 0 0 0.65rem;
-  font-size: 0.9rem;
+  font-size: 0.92rem;
   font-weight: 800;
-  color: #9d174d;
+  color: #701a36;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.9);
 }
 
 .sb-panel__hint--tight {
   margin-bottom: 0.4rem;
-  font-size: 0.82rem;
+  font-size: 0.86rem;
   font-weight: 700;
-  line-height: 1.35;
+  line-height: 1.4;
+  color: #5c1835;
 }
 
 .sb-panel__micro {
   margin: 0.45rem 0 0.85rem;
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   font-weight: 700;
-  color: #be185d;
+  color: #631f3b;
 }
 
 .sb-modal__actions {
@@ -1184,8 +1188,9 @@ body.sb-portal-welcome-open {
   margin-top: 0.35rem;
   text-align: center;
   font-weight: 600;
-  font-size: 0.72rem;
-  opacity: 0.92;
+  font-size: 0.75rem;
+  color: #522030;
+  opacity: 1;
 }
 
 .sb-btn--modal {
@@ -1200,6 +1205,7 @@ body.sb-portal-welcome-open {
   border: 3px solid rgba(219, 39, 119, 0.25);
   font: inherit;
   font-weight: 700;
+  color: #3d0a22;
   background: #fff;
   resize: vertical;
   min-height: 6.5rem;
@@ -1478,12 +1484,12 @@ body.sb-portal-welcome-open {
 .sb-chip {
   padding: 0.45rem 0.85rem;
   border-radius: 999px;
-  border: 3px solid rgba(219, 39, 119, 0.2);
+  border: 3px solid rgba(219, 39, 119, 0.28);
   background: #fff;
   font: inherit;
   font-size: 0.9rem;
   font-weight: 800;
-  color: #9d174d;
+  color: #831843;
   cursor: pointer;
   touch-action: manipulation;
   transition: all 0.15s ease;
@@ -2488,18 +2494,42 @@ body.sb-portal-welcome-open {
   font-weight: 400; /* Schoolbell only has 400 weight */
   letter-spacing: 0.02em;
   line-height: 1.5;
-  color: #ffffff;
+  color: #fffef8;
+  -webkit-text-stroke: 0.028em rgba(15, 8, 18, 0.55);
   text-shadow:
-    0 1px 3px rgba(0, 0, 0, 0.8),
-    0 2px 12px rgba(0, 0, 0, 0.5),
-    0 0 30px rgba(0, 0, 0, 0.4);
+    0 0 1px rgba(0, 0, 0, 0.95),
+    0 1px 2px rgba(0, 0, 0, 0.85),
+    0 2px 14px rgba(0, 0, 0, 0.65),
+    0 4px 28px rgba(0, 0, 0, 0.45);
   -webkit-font-smoothing: antialiased;
 }
 
 .sb-flip-spread__inner--has-art .sb-flip-text {
+  position: relative;
+  z-index: 0;
+  isolation: isolate;
   max-width: min(32rem, 95%);
   text-align: left; /* Make text left-aligned like a real book */
-  padding-left: clamp(1rem, 4vw, 3rem);
+  padding: clamp(0.45rem, 1.8vw, 0.85rem) clamp(0.6rem, 2.4vw, 1.2rem) clamp(0.45rem, 1.8vw, 0.85rem)
+    clamp(0.85rem, 3.4vw, 2.5rem);
+  border-radius: 0.65rem;
+}
+
+.sb-flip-spread__inner--has-art .sb-flip-text::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  z-index: -1;
+  pointer-events: none;
+  /* Dark wash behind the column so light type stays legible on pale illustrations */
+  background: linear-gradient(
+    105deg,
+    rgba(14, 10, 20, 0.78) 0%,
+    rgba(14, 10, 20, 0.5) 46%,
+    rgba(14, 10, 20, 0.2) 78%,
+    transparent 100%
+  );
 }
 
 .sb-flip-spread__inner--has-art .sb-readable-word {
@@ -2518,10 +2548,11 @@ body.sb-portal-welcome-open {
   font-weight: 800;
   letter-spacing: 0.04em;
   line-height: 1.15;
-  color: #fbbf24; /* Warm yellow/gold for big words so they pop against dark backgrounds */
+  color: #fde68a; /* Slightly brighter on variable art + scrim */
   transform: rotate(-3deg) skewX(-4deg);
   display: inline-block;
   margin: 0.1em 0.05em 0 0.02em;
+  -webkit-text-stroke: 0.02em rgba(15, 8, 18, 0.55);
   text-shadow:
     0 1px 3px rgba(0, 0, 0, 0.9),
     0 3px 14px rgba(0, 0, 0, 0.6),
@@ -2531,8 +2562,9 @@ body.sb-portal-welcome-open {
 .sb-flip-spread__inner--has-art .sb-word-reading {
   outline: 2px solid rgba(251, 191, 36, 0.95);
   outline-offset: 2px;
-  background: rgba(255, 255, 255, 0.38);
+  background: rgba(255, 255, 255, 0.62);
   border-radius: 0.24em;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.22);
 }
 
 .sb-the-end-wrap {
