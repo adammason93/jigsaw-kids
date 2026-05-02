@@ -2060,6 +2060,41 @@ body.sb-portal-welcome-open {
     0 0 14px rgba(253, 242, 248, 1);
 }
 
+/* Full-screen cover (non-sample): book “on a table” — wood + key light; reader / library preview only differ by sb-book state */
+.sb-book.sb-book--cover-visible:not(.sb-reader--sample).sb-book--themed {
+  background-color: #4a3426;
+  background-image: url("images/storybook-cover-table-wood.png");
+  background-size: cover;
+  background-position: 52% 42%;
+  background-repeat: no-repeat;
+  border-color: rgba(45, 32, 22, 0.55);
+  box-shadow:
+    0 4px 28px rgba(18, 10, 6, 0.4),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.09);
+}
+
+.sb-book.sb-book--cover-visible:not(.sb-reader--sample).sb-book--themed::before {
+  background:
+    radial-gradient(
+      ellipse 92% 78% at 72% 26%,
+      rgba(255, 235, 210, 0.26) 0%,
+      rgba(255, 220, 190, 0.08) 40%,
+      transparent 58%
+    ),
+    radial-gradient(
+      ellipse 145% 125% at 50% 50%,
+      transparent 22%,
+      rgba(18, 10, 6, 0.52) 100%
+    );
+}
+
+.sb-book.sb-book--cover-visible:not(.sb-reader--sample) .sb-book-title {
+  color: #fffaf3;
+  text-shadow:
+    0 2px 14px rgba(0, 0, 0, 0.55),
+    0 1px 4px rgba(0, 0, 0, 0.65);
+}
+
 .sb-book-title {
   font-family: var(--sb-reader-font-body);
   text-align: center;
@@ -2203,12 +2238,13 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   transform-style: preserve-3d;
 }
 
-/* Reader cover: isometric rest pose — straighter than full -45° Z, slight -Y to show spine depth */
+/* Reader cover: reference pose ~17° clockwise Z, three-quarter tilt; shadow toward bottom-left (light top-right) */
 .sb-book.sb-book--cover-visible:not(.sb-reader--sample)
   .sb-reader-stack:not(.sb-reader-stack--open):not(.sb-reader-stack--opening)
   .sb-cover {
-  transform: translate3d(-50%, 0, 0) rotateX(36deg) rotateY(-14deg) rotateZ(-28deg);
-  -webkit-transform: translate3d(-50%, 0, 0) rotateX(36deg) rotateY(-14deg) rotateZ(-28deg);
+  --sb-reader-cover-lift: 18px;
+  transform: translate3d(-50%, 0, 0) rotateX(32deg) rotateY(-22deg) rotateZ(17deg);
+  -webkit-transform: translate3d(-50%, 0, 0) rotateX(32deg) rotateY(-22deg) rotateZ(17deg);
   transform-origin: 50% 55%;
   -webkit-transform-origin: 50% 55%;
   transition: transform 0.9s cubic-bezier(0.33, 1, 0.48, 1);
@@ -2216,11 +2252,95 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
 
 .sb-book.sb-book--cover-visible:not(.sb-reader--sample)
   .sb-reader-stack:not(.sb-reader-stack--open):not(.sb-reader-stack--opening)
+  .sb-cover__outside {
+  transform: translateZ(var(--sb-reader-cover-lift)) rotateY(0deg);
+  -webkit-transform: translateZ(var(--sb-reader-cover-lift)) rotateY(0deg);
+  box-shadow:
+    -14px 28px 44px rgba(0, 0, 0, 0.48),
+    -6px 12px 20px rgba(0, 0, 0, 0.32),
+    3px 4px 18px rgba(0, 0, 0, 0.22);
+}
+
+/* Bottom page block + right fore-edge (3D extrusion); pseudos absolute → not flex items */
+.sb-book.sb-book--cover-visible:not(.sb-reader--sample)
+  .sb-reader-stack:not(.sb-reader-stack--open):not(.sb-reader-stack--opening)
+  .sb-cover__face {
+  overflow: visible;
+  transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
+  transform: translateZ(2px);
+  -webkit-transform: translateZ(2px);
+}
+
+.sb-book.sb-book--cover-visible:not(.sb-reader--sample)
+  .sb-reader-stack:not(.sb-reader-stack--open):not(.sb-reader-stack--opening)
+  .sb-cover__face::before {
+  content: "";
+  position: absolute;
+  left: 2px;
+  right: 2px;
+  bottom: 0;
+  height: 22px;
+  border-radius: 0 0 9px 9px;
+  background:
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.14), transparent 42%),
+    repeating-linear-gradient(
+      90deg,
+      #faf7f0 0,
+      #faf7f0 2px,
+      rgba(48, 42, 38, 0.16) 2px,
+      rgba(48, 42, 38, 0.16) 2.5px,
+      #ede7dc 2.5px,
+      #ede7dc 5px
+    );
+  transform-origin: 50% 0%;
+  -webkit-transform-origin: 50% 0%;
+  transform: rotateX(92deg);
+  -webkit-transform: rotateX(92deg);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.sb-book.sb-book--cover-visible:not(.sb-reader--sample)
+  .sb-reader-stack:not(.sb-reader-stack--open):not(.sb-reader-stack--opening)
+  .sb-cover__face::after {
+  content: "";
+  position: absolute;
+  top: 8%;
+  right: 0;
+  bottom: 8%;
+  width: clamp(11px, 2vw, 18px);
+  border-radius: 0 5px 5px 0;
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, 0.12), transparent 45%),
+    repeating-linear-gradient(
+      90deg,
+      #faf7f0 0,
+      #faf7f0 2px,
+      rgba(48, 42, 38, 0.14) 2px,
+      rgba(48, 42, 38, 0.14) 2.5px,
+      #f0ebe3 2.5px,
+      #f0ebe3 5px
+    );
+  transform-origin: 0 50%;
+  -webkit-transform-origin: 0 50%;
+  transform: rotateY(92deg);
+  -webkit-transform: rotateY(92deg);
+  box-shadow: inset 2px 0 4px rgba(0, 0, 0, 0.1);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.sb-book.sb-book--cover-visible:not(.sb-reader--sample)
+  .sb-reader-stack:not(.sb-reader-stack--open):not(.sb-reader-stack--opening)
   .sb-cover__spine {
-  width: clamp(15px, 2.4vw, 22px);
+  width: clamp(16px, 2.8vw, 24px);
+  transform: translateZ(3px);
+  -webkit-transform: translateZ(3px);
   box-shadow:
     inset -3px 0 8px rgba(0, 0, 0, 0.22),
-    -2px 0 6px rgba(0, 0, 0, 0.12);
+    -3px 0 10px rgba(0, 0, 0, 0.18);
 }
 
 .sb-book.sb-book--cover-visible:not(.sb-reader--sample)
@@ -2238,6 +2358,40 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
     transform: translate3d(-50%, 0, 0);
     -webkit-transform: translate3d(-50%, 0, 0);
     transition: transform 0.2s ease;
+  }
+
+  .sb-book.sb-book--cover-visible:not(.sb-reader--sample)
+    .sb-reader-stack:not(.sb-reader-stack--open):not(.sb-reader-stack--opening)
+    .sb-cover__outside {
+    transform: rotateY(0deg);
+    -webkit-transform: rotateY(0deg);
+    box-shadow: 2px 2px 12px rgba(0, 0, 0, 0.12);
+  }
+
+  .sb-book.sb-book--cover-visible:not(.sb-reader--sample)
+    .sb-reader-stack:not(.sb-reader-stack--open):not(.sb-reader-stack--opening)
+    .sb-cover__face {
+    overflow: hidden;
+    transform: none;
+    -webkit-transform: none;
+  }
+
+  .sb-book.sb-book--cover-visible:not(.sb-reader--sample)
+    .sb-reader-stack:not(.sb-reader-stack--open):not(.sb-reader-stack--opening)
+    .sb-cover__face::before,
+  .sb-book.sb-book--cover-visible:not(.sb-reader--sample)
+    .sb-reader-stack:not(.sb-reader-stack--open):not(.sb-reader-stack--opening)
+    .sb-cover__face::after {
+    content: none;
+  }
+
+  .sb-book.sb-book--cover-visible:not(.sb-reader--sample)
+    .sb-reader-stack:not(.sb-reader-stack--open):not(.sb-reader-stack--opening)
+    .sb-cover__spine {
+    transform: none;
+    -webkit-transform: none;
+    width: 14px;
+    box-shadow: inset -3px 0 8px rgba(0, 0, 0, 0.2);
   }
 }
 
@@ -3701,6 +3855,38 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
 
   .sb-book.sb-book--immersive.sb-book--actions-open .sb-book-spread {
     padding-bottom: 6.75rem;
+  }
+
+  /* Immersive tablet: same wood table when the large cover is showing */
+  body.page-storybook.sb-reader-immersive
+    .sb-book.sb-book--immersive.sb-book--cover-visible:not(.sb-reader--sample) {
+    background-color: #4a3426;
+    background-image: url("images/storybook-cover-table-wood.png");
+    background-size: cover;
+    background-position: 52% 42%;
+    background-repeat: no-repeat;
+  }
+
+  body.page-storybook.sb-reader-immersive
+    .sb-book.sb-book--immersive.sb-book--cover-visible:not(.sb-reader--sample)::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    border-radius: 0;
+    background:
+      radial-gradient(
+        ellipse 92% 78% at 72% 26%,
+        rgba(255, 235, 210, 0.24) 0%,
+        rgba(255, 220, 190, 0.07) 40%,
+        transparent 58%
+      ),
+      radial-gradient(
+        ellipse 145% 125% at 50% 50%,
+        transparent 22%,
+        rgba(18, 10, 6, 0.55) 100%
+      );
   }
 }
 
