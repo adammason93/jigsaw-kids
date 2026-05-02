@@ -9,7 +9,7 @@
   <link rel="manifest" href="../manifest.json" />
   <link rel="stylesheet" href="../js/kids-core.css" />
   <!-- storybook-app.css = renamed file so CDN/browser cache cannot keep old storybook.css -->
-  <link rel="stylesheet" href="storybook-app.css?v=66" />
+  <link rel="stylesheet" href="storybook-app.css?v=67" />
   <link rel="stylesheet" href="../tablet-ipad.css" />
   <!-- Last wins: guarantees new background even if a proxy cached an ancient stylesheet elsewhere -->
   <style>
@@ -138,7 +138,7 @@
 
         <div class="sb-panel is-active" data-panel="0" id="sbPanel0">
           <p class="sb-panel__text">
-            We’ll ask who you are, who might join from your games, who your buddy is, where you go, and what happens.
+            We’ll ask who you are, who your buddy is, where you go, and what happens.
             Grown-ups: turn on story magic in Settings (⚙️) when you’re ready — sign in so books can be saved.
           </p>
           <div class="sb-modal__actions">
@@ -156,32 +156,27 @@
             </button>
           </div>
           <p class="sb-voice-hint" id="sbVoiceNameHint" aria-live="polite"></p>
-          <div class="sb-game-people-block" id="sbGamePeopleBlock" hidden>
-          <p class="sb-label sb-label--secondary">Friends from your games (optional)</p>
-          <p class="sb-panel__hint sb-panel__hint--tight">
-            Tap anyone who might appear in the story — typing a friend’s name under a photo also ticks them here.
-          </p>
-          <div
-            class="sb-chip-row sb-chip-row--family"
-            id="sbGamePeople"
-            role="group"
-            aria-label="People from your games to include in the story"
-          ></div>
-          </div>
           <div class="sb-hero-ref" id="sbHeroRefBlock">
-            <label class="sb-label sb-label--secondary" for="sbHeroPhoto">Photos for the book (optional, up to 3)</label>
+            <label class="sb-label sb-label--secondary" for="sbHeroPhotoPick">Photos for the book (optional, up to 3)</label>
             <p class="sb-panel__hint sb-panel__hint--tight">
-              Under each photo, type who it is (hero’s name or a friend like Freya) — suggestions appear as you type.
+              Under each photo, type who it is (hero’s name or another child’s name) — suggestions appear as you type.
             </p>
             <datalist id="sbHeroRefWhoDatalist"></datalist>
-            <input
-              class="sb-hero-ref__input"
-              type="file"
-              id="sbHeroPhoto"
-              accept="image/jpeg,image/png,image/webp"
-              multiple
-              autocomplete="off"
-            />
+            <div class="sb-filepick">
+              <input
+                class="sb-hero-ref__input visually-hidden"
+                type="file"
+                id="sbHeroPhoto"
+                accept="image/jpeg,image/png,image/webp"
+                multiple
+                autocomplete="off"
+                aria-hidden="true"
+                tabindex="-1"
+              />
+              <button type="button" class="sb-btn sb-btn--ghost sb-filepick__btn" id="sbHeroPhotoPick">
+                Add photos…
+              </button>
+            </div>
             <p class="sb-note sb-note--inline" id="sbHeroPhotoErr" role="alert" hidden></p>
             <div class="sb-hero-ref__preview" id="sbHeroPhotoThumbsWrap" hidden>
               <ul class="sb-hero-ref__thumbs" id="sbHeroPhotoThumbs" aria-label="Hero photo previews"></ul>
@@ -198,13 +193,24 @@
             placeholder="e.g. The star and the brave fox"
           />
           <p class="sb-panel__micro">This is the name on the front cover. Leave it blank and we’ll use a title from your story.</p>
-          <p class="sb-label sb-label--secondary" style="margin-top:1rem;">Book colour</p>
-          <p class="sb-panel__hint sb-panel__hint--tight">For the cover frame and pages. Auto guesses from the name if you don’t pick one.</p>
-          <div class="sb-chip-row" id="sbBookColors" role="radiogroup" aria-label="Book colour">
-            <button type="button" class="sb-chip is-selected" role="radio" aria-checked="true" data-book-color="">Auto</button>
-            <button type="button" class="sb-chip" role="radio" aria-checked="false" data-book-color="blue">Blue</button>
-            <button type="button" class="sb-chip" role="radio" aria-checked="false" data-book-color="green">Green</button>
-            <button type="button" class="sb-chip" role="radio" aria-checked="false" data-book-color="pink">Pink</button>
+          <p class="sb-label sb-label--secondary" style="margin-top: 1rem;">Book colour</p>
+          <p class="sb-panel__hint sb-panel__hint--tight">
+            For the cover frame and pages. Tap <strong>More colours</strong> for the full palette — auto still guesses from the name if you pick Auto.
+          </p>
+          <div class="sb-book-colors" id="sbBookColorsWrap">
+            <div class="sb-chip-row sb-book-colors__quick" id="sbBookColorsQuick" role="radiogroup" aria-label="Book colour"></div>
+            <button
+              type="button"
+              class="sb-btn sb-btn--ghost sb-btn--small sb-book-colors__toggle"
+              id="sbBookColorToggle"
+              aria-expanded="false"
+              aria-controls="sbBookColorsExtra"
+            >
+              More colours…
+            </button>
+            <div class="sb-book-colors__extra" id="sbBookColorsExtra" hidden>
+              <div class="sb-color-grid" id="sbBookColorsGrid" role="radiogroup" aria-label="More book colours"></div>
+            </div>
           </div>
           <label class="sb-label sb-label--secondary" for="sbAuthor" style="margin-top:1rem;">Author / Illustrator (optional)</label>
           <input
@@ -467,7 +473,7 @@
   <script src="../js/storybook-shelf-store.js" defer></script>
   <!-- Required for cloud shelf sync + upload (same as other games) -->
   <script src="../js/score-cloud.js" defer></script>
-  <script src="storybook.js?v=287" defer></script>
+  <script src="storybook.js?v=289" defer></script>
   <script>
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("../sw.js").catch(function () {});

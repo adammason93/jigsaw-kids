@@ -16,7 +16,36 @@
     { id: "penguin", label: "Penguin" },
     { id: "owl", label: "Owl" },
     { id: "octopus", label: "Octopus" },
+    { id: "giraffe", label: "Giraffe" },
+    { id: "bee", label: "Bumblebee" },
+    { id: "butterfly", label: "Butterfly" },
+    { id: "ladybug", label: "Ladybug" },
+    { id: "frog", label: "Frog" },
+    { id: "hedgehog", label: "Hedgehog" },
+    { id: "mouse", label: "Little mouse" },
+    { id: "hippo", label: "Hippo" },
+    { id: "flamingo", label: "Flamingo" },
+    { id: "turtle", label: "Turtle" },
+    { id: "koala", label: "Koala" },
+    { id: "llama", label: "Llama" },
     { id: "nobuddy", label: "No buddy" },
+  ];
+
+  /** Must match clever-service `BOOK_COLOR_KEYS` / `coerceBookColor`. */
+  var BOOK_COLOR_OPTIONS = [
+    { id: "", label: "Auto", swatch: null },
+    { id: "pink", label: "Pink", swatch: "#ec4899" },
+    { id: "blue", label: "Blue", swatch: "#2563eb" },
+    { id: "green", label: "Green", swatch: "#16a34a" },
+    { id: "purple", label: "Purple", swatch: "#9333ea" },
+    { id: "orange", label: "Orange", swatch: "#ea580c" },
+    { id: "teal", label: "Teal", swatch: "#0d9488" },
+    { id: "red", label: "Red", swatch: "#dc2626" },
+    { id: "yellow", label: "Yellow", swatch: "#ca8a04" },
+    { id: "lilac", label: "Lilac", swatch: "#a78bfa" },
+    { id: "mint", label: "Mint", swatch: "#34d399" },
+    { id: "coral", label: "Coral", swatch: "#fb7185" },
+    { id: "navy", label: "Navy", swatch: "#1e3a8a" },
   ];
 
   /** Max characters for "What happens?" — keep in sync with clever-service `STORYBOOK_PLOT_HINT_MAX`. */
@@ -62,10 +91,12 @@
   var authorInput = document.getElementById("sbAuthor");
   var plotInput = document.getElementById("sbPlot");
   var charRow = document.getElementById("sbCharacters");
-  var gamePeopleRow = document.getElementById("sbGamePeople");
-  var gamePeopleBlock = document.getElementById("sbGamePeopleBlock");
   var placeRow = document.getElementById("sbPlaces");
-  var bookColorRow = document.getElementById("sbBookColors");
+  var bookColorsWrap = document.getElementById("sbBookColorsWrap");
+  var bookColorsQuick = document.getElementById("sbBookColorsQuick");
+  var bookColorsGrid = document.getElementById("sbBookColorsGrid");
+  var bookColorsExtra = document.getElementById("sbBookColorsExtra");
+  var bookColorToggle = document.getElementById("sbBookColorToggle");
   var errEl = document.getElementById("sbError");
   var modalErr = document.getElementById("sbModalError");
   var progressEl = document.getElementById("sbProgress");
@@ -74,6 +105,7 @@
   var btnStart = document.getElementById("sbStartJourney");
   var btnGen = document.getElementById("sbGenerate");
   var heroPhotoInput = document.getElementById("sbHeroPhoto");
+  var heroPhotoPickBtn = document.getElementById("sbHeroPhotoPick");
   var heroPhotoThumbsWrap = document.getElementById("sbHeroPhotoThumbsWrap");
   var heroPhotoThumbsList = document.getElementById("sbHeroPhotoThumbs");
   var heroPhotoErr = document.getElementById("sbHeroPhotoErr");
@@ -778,23 +810,30 @@
 
   function applyBookThemingFromStory() {
     if (!book || !story) return;
-    
-    // Apply book color
+
     var c = story.bookColor ? String(story.bookColor).toLowerCase() : "";
-    if (c === "blue" || c.indexOf("blue") !== -1) {
-      book.style.setProperty("--sb-flip-red", "#2563eb");
-      book.style.setProperty("--sb-flip-light", "#dbeafe");
-      book.style.setProperty("--sb-flip-mid", "#1d4ed8");
-      book.style.setProperty("--sb-flip-dark", "#1e40af");
-      book.style.setProperty("--sb-flip-darker", "#1e3a8a");
-    } else if (c === "green" || c.indexOf("green") !== -1) {
-      book.style.setProperty("--sb-flip-red", "#16a34a");
-      book.style.setProperty("--sb-flip-light", "#dcfce7");
-      book.style.setProperty("--sb-flip-mid", "#15803d");
-      book.style.setProperty("--sb-flip-dark", "#166534");
-      book.style.setProperty("--sb-flip-darker", "#14532d");
+    var themes = {
+      blue: ["#2563eb", "#dbeafe", "#1d4ed8", "#1e40af", "#1e3a8a"],
+      navy: ["#1e3a8a", "#dbeafe", "#1e40af", "#172554", "#0f172a"],
+      green: ["#16a34a", "#dcfce7", "#15803d", "#166534", "#14532d"],
+      mint: ["#10b981", "#d1fae5", "#059669", "#047857", "#065f46"],
+      pink: ["#db2777", "#fce7f3", "#be185d", "#9d174d", "#831843"],
+      coral: ["#f43f5e", "#ffe4e6", "#e11d48", "#be123c", "#9f1239"],
+      lilac: ["#a855f7", "#f3e8ff", "#9333ea", "#7e22ce", "#6b21a8"],
+      purple: ["#7c3aed", "#ede9fe", "#6d28d9", "#5b21b6", "#4c1d95"],
+      orange: ["#ea580c", "#ffedd5", "#c2410c", "#9a3412", "#7c2d12"],
+      red: ["#dc2626", "#fee2e2", "#b91c1c", "#991b1b", "#7f1d1d"],
+      yellow: ["#ca8a04", "#fef9c3", "#a16207", "#854d0e", "#713f12"],
+      teal: ["#0d9488", "#ccfbf1", "#0f766e", "#115e59", "#134e4a"],
+    };
+    var t = themes[c];
+    if (t) {
+      book.style.setProperty("--sb-flip-red", t[0]);
+      book.style.setProperty("--sb-flip-light", t[1]);
+      book.style.setProperty("--sb-flip-mid", t[2]);
+      book.style.setProperty("--sb-flip-dark", t[3]);
+      book.style.setProperty("--sb-flip-darker", t[4]);
     } else {
-      // Default pink
       book.style.setProperty("--sb-flip-red", "#db2777");
       book.style.setProperty("--sb-flip-light", "#fce7f3");
       book.style.setProperty("--sb-flip-mid", "#be185d");
@@ -1412,9 +1451,18 @@
     var h = hashFromString(bookId + ":" + title);
     var hue = h % 360;
     var c = bookColor ? String(bookColor).toLowerCase() : "";
-    if (c.indexOf("blue") !== -1) hue = 200 + (h % 40); // 200-240
-    else if (c.indexOf("green") !== -1) hue = 120 + (h % 40); // 120-160
-    else if (c.indexOf("pink") !== -1) hue = 320 + (h % 30); // 320-350
+    if (c.indexOf("navy") !== -1) hue = 222 + (h % 18);
+    else if (c.indexOf("teal") !== -1) hue = 175 + (h % 20);
+    else if (c.indexOf("mint") !== -1) hue = 145 + (h % 22);
+    else if (c.indexOf("green") !== -1) hue = 120 + (h % 40);
+    else if (c.indexOf("blue") !== -1) hue = 200 + (h % 40);
+    else if (c.indexOf("lilac") !== -1) hue = 265 + (h % 25);
+    else if (c.indexOf("purple") !== -1) hue = 275 + (h % 30);
+    else if (c.indexOf("coral") !== -1) hue = 350 + (h % 12);
+    else if (c.indexOf("pink") !== -1) hue = 320 + (h % 30);
+    else if (c.indexOf("red") !== -1) hue = 5 + (h % 18);
+    else if (c.indexOf("orange") !== -1) hue = 28 + (h % 18);
+    else if (c.indexOf("yellow") !== -1) hue = 48 + (h % 14);
     return {
       hue: hue,
       pat: h % 4,
@@ -1933,7 +1981,11 @@
     for (var i = 0; i < list.length; i++) {
       if (list[i] && list[i].id === who) return list[i].label;
     }
-    return who;
+    if (who && /^[a-z0-9]+$/i.test(String(who))) {
+      var s = String(who);
+      return s.charAt(0).toUpperCase() + s.slice(1);
+    }
+    return who || "Friend";
   }
 
   /** @returns {"hero"|string|null} */
@@ -1966,6 +2018,9 @@
         return item.id;
       }
     }
+    if (tNorm.length >= 2 && tNorm.length <= 24 && /^[a-z0-9]+$/i.test(tNorm)) {
+      return tNorm.toLowerCase();
+    }
     return null;
   }
 
@@ -1976,43 +2031,14 @@
     var r = resolveWhoFromText(inp.value);
     if (r === null) {
       setHeroPhotoError(
-        "Type the hero’s name or a game friend (e.g. Freya) — check spelling.",
+        "Use the hero’s name or a short friend name (letters and numbers only).",
       );
       heroPhotoItems[idx].who = prev;
       inp.value = displayNameForWho(prev);
       return;
     }
     heroPhotoItems[idx].who = r;
-    if (r !== "hero") ensureGamePersonSelected(r);
     inp.value = displayNameForWho(r);
-  }
-
-  function ensureGamePersonSelected(personId) {
-    if (!gamePeopleRow || !personId || personId === "hero") return;
-    var chip = gamePeopleRow.querySelector(
-      '[data-person-id="' + personId + '"]',
-    );
-    if (chip && !chip.classList.contains("is-selected")) {
-      chip.classList.add("is-selected");
-      chip.setAttribute("aria-checked", "true");
-    }
-  }
-
-  /** If a friend chip was unticked, photos tagged to them fall back to hero. */
-  function pruneHeroPhotoWhoToSelection() {
-    var sel = getSelectedFamilyPeople();
-    var allowed = {};
-    sel.forEach(function (p) {
-      allowed[p.id] = true;
-    });
-    var dirty = false;
-    heroPhotoItems.forEach(function (item) {
-      if (item.who !== "hero" && !allowed[item.who]) {
-        item.who = "hero";
-        dirty = true;
-      }
-    });
-    return dirty;
   }
 
   function renderHeroPhotoThumbs() {
@@ -2139,66 +2165,52 @@
   }
 
   function getSelectedFamilyPeople() {
-    var out = [];
-    if (!gamePeopleRow) return out;
-    Array.prototype.forEach.call(
-      gamePeopleRow.querySelectorAll(".sb-chip.is-selected"),
-      function (el) {
-        var id = el.getAttribute("data-person-id");
-        var lab = el.getAttribute("data-person-label");
-        if (id && lab) out.push({ id: id, label: lab });
-      }
-    );
-    return out;
+    return [];
   }
 
-  function clearGamePeopleChips() {
-    if (!gamePeopleRow) return;
-    Array.prototype.forEach.call(gamePeopleRow.querySelectorAll(".sb-chip"), function (el) {
-      el.classList.remove("is-selected");
-      el.setAttribute("aria-checked", "false");
-    });
-  }
-
-  function buildGamePeopleChips() {
-    if (!gamePeopleRow) return;
-    var list =
-      typeof window.KidsGameCharacters !== "undefined" &&
-      Array.isArray(window.KidsGameCharacters)
-        ? window.KidsGameCharacters
-        : [];
-    gamePeopleRow.textContent = "";
-    if (gamePeopleBlock) {
-      if (!list.length) {
-        gamePeopleBlock.hidden = true;
-        return;
-      }
-      gamePeopleBlock.hidden = false;
-    }
-    list.forEach(function (item) {
+  function buildBookColorUI() {
+    if (!bookColorsQuick || !bookColorsGrid) return;
+    var quickN = 4;
+    bookColorsQuick.textContent = "";
+    bookColorsGrid.textContent = "";
+    BOOK_COLOR_OPTIONS.slice(0, quickN).forEach(function (item) {
       var b = document.createElement("button");
       b.type = "button";
       b.className = "sb-chip";
       b.textContent = item.label;
-      b.setAttribute("role", "checkbox");
-      b.setAttribute("aria-checked", "false");
-      b.setAttribute("data-person-label", item.label);
-      b.setAttribute("data-person-id", item.id);
-      b.addEventListener("click", function () {
-        var on = !b.classList.contains("is-selected");
-        b.classList.toggle("is-selected", on);
-        b.setAttribute("aria-checked", on ? "true" : "false");
-      });
-      gamePeopleRow.appendChild(b);
+      b.setAttribute("role", "radio");
+      b.setAttribute("data-book-color", item.id);
+      b.setAttribute("aria-label", item.label);
+      bookColorsQuick.appendChild(b);
     });
+    BOOK_COLOR_OPTIONS.slice(quickN).forEach(function (item) {
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "sb-color-swatch";
+      b.setAttribute("role", "radio");
+      b.setAttribute("data-book-color", item.id);
+      b.setAttribute("aria-label", item.label);
+      var dot = document.createElement("span");
+      dot.className = "sb-color-swatch__dot";
+      if (item.swatch) dot.style.background = item.swatch;
+      else dot.classList.add("sb-color-swatch__dot--auto");
+      b.appendChild(dot);
+      var lab = document.createElement("span");
+      lab.className = "sb-color-swatch__label";
+      lab.textContent = item.label;
+      b.appendChild(lab);
+      bookColorsGrid.appendChild(b);
+    });
+    refreshBookColorChips();
   }
 
   function refreshBookColorChips() {
-    if (!bookColorRow) return;
+    if (!bookColorsWrap) return;
     Array.prototype.forEach.call(
-      bookColorRow.querySelectorAll("[data-book-color]"),
+      bookColorsWrap.querySelectorAll("[data-book-color]"),
       function (btn) {
-        var v = btn.getAttribute("data-book-color") || "";
+        var v = btn.getAttribute("data-book-color");
+        if (v === null) v = "";
         var on = v === selectedBookCoverColor;
         btn.classList.toggle("is-selected", on);
         btn.setAttribute("aria-checked", on ? "true" : "false");
@@ -2207,13 +2219,23 @@
   }
 
   function wireBookColorChips() {
-    if (!bookColorRow) return;
-    Array.prototype.forEach.call(bookColorRow.querySelectorAll("[data-book-color]"), function (btn) {
-      btn.addEventListener("click", function () {
-        selectedBookCoverColor = btn.getAttribute("data-book-color") || "";
-        refreshBookColorChips();
-      });
+    if (!bookColorsWrap) return;
+    bookColorsWrap.addEventListener("click", function (e) {
+      var t = e.target;
+      if (!t || !t.closest) return;
+      var btn = t.closest("[data-book-color]");
+      if (!btn || !bookColorsWrap.contains(btn)) return;
+      var raw = btn.getAttribute("data-book-color");
+      selectedBookCoverColor = raw === null || raw === "" ? "" : raw;
+      refreshBookColorChips();
     });
+    if (bookColorToggle && bookColorsExtra) {
+      bookColorToggle.addEventListener("click", function () {
+        var show = bookColorsExtra.hidden;
+        bookColorsExtra.hidden = !show;
+        bookColorToggle.setAttribute("aria-expanded", show ? "true" : "false");
+      });
+    }
     refreshBookColorChips();
   }
 
@@ -2268,7 +2290,7 @@
       });
       refreshPlaceChips();
     }
-    buildGamePeopleChips();
+    buildBookColorUI();
     wireBookColorChips();
   }
 
@@ -2319,6 +2341,8 @@
     }
     document.body.classList.add("sb-modal-open");
     setError("");
+    if (bookColorsExtra) bookColorsExtra.hidden = true;
+    if (bookColorToggle) bookColorToggle.setAttribute("aria-expanded", "false");
     goToStep(0);
     if (stepHeading) {
       try {
@@ -2408,7 +2432,6 @@
     if (bookTitleInput) bookTitleInput.value = "";
     if (plotInput) plotInput.value = "";
     clearHeroPhoto();
-    clearGamePeopleChips();
     goToStep(0);
     setError("");
     renderShelf();
@@ -2852,12 +2875,9 @@
       renderHeroPhotoThumbs();
     });
   }
-  if (gamePeopleRow) {
-    gamePeopleRow.addEventListener("click", function () {
-      window.setTimeout(function () {
-        pruneHeroPhotoWhoToSelection();
-        renderHeroPhotoThumbs();
-      }, 0);
+  if (heroPhotoPickBtn && heroPhotoInput) {
+    heroPhotoPickBtn.addEventListener("click", function () {
+      heroPhotoInput.click();
     });
   }
 

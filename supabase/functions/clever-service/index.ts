@@ -23,6 +23,27 @@ const CHARACTERS: Record<string, string> = {
   owl: "a small wide-eyed cartoon owl with soft feather tufts and rounded wings — can appear as a gentle fuzzy mascot with big friendly eyes, simple blue-and-white stripes or a soft scarf, plush toy style (no logos or readable text), never scary or hyper-realistic",
   octopus:
     "a small cheerful cartoon octopus with a round body and curly tentacles — soft colours, big friendly eyes, rounded suckers",
+  giraffe:
+    "a gentle cartoon giraffe with soft biscuit-yellow fur, cocoa spots, a friendly long neck, and big kind eyes — toy-clay style",
+  bee: "a tiny friendly cartoon bumblebee with fuzzy amber-and-inky stripes, translucent round wings, and a sweet smile — never scary",
+  butterfly:
+    "a bright storybook butterfly with big rounded patterned wings (soft spots, no logos), tiny smiley face, and gentle antennae",
+  ladybug:
+    "a round cherry-red cartoon ladybug with soft black spots, shiny friendly eyes, and tiny dots for feet",
+  frog: "a bouncy cartoon frog in fresh leaf-green with a wide happy grin, big golden eyes, and rounded toe-pads — pond-pal energy",
+  hedgehog:
+    "a small fluffy hedgehog with soft caramel spines, fuzzy cream tummy, pink nose, and shy happy eyes",
+  mouse: "a tiny friendly cartoon mouse with big ears, pink nose, soft grey fur, and a curly tail — storybook cute",
+  hippo:
+    "a round lavender-grey cartoon hippo with a huge friendly smile, tiny ears, and tubby toy proportions — bath-time buddy",
+  flamingo:
+    "a tall sweet cartoon flamingo with soft coral-pink feathers, one leg tucked, big kind eyes, and a curved beak smile",
+  turtle:
+    "a little cheerful turtle with a rounded mossy-green shell, bright belly, and stubby legs scrambling along happily",
+  koala:
+    "a cuddly grey koala with fluffy ears, button nose, and gentle black eyes — holding a sprig of round leaves, plush toy style",
+  llama:
+    "a fluffy cream-and-tan cartoon llama with a tasselled blanket, gentle smile, and big friendly eyes — silly and sweet",
   /** Human-only books: no imaginary creature companion. */
   nobuddy:
     "NONE — no imaginary creature buddy; humans only unless the plot explicitly requires a specific creature.",
@@ -71,10 +92,25 @@ const FAMILY_PORTRAIT_PATHS: Record<string, string> = {
 type FamilyPerson = { id: string; label: string };
 
 type StoryPage = { text: string; illustrationBrief: string | null };
+/** Cover / reader accent — keep in sync with storybook wizard `BOOK_COLOR_OPTIONS`. */
+type BookColorKey =
+  | "pink"
+  | "blue"
+  | "green"
+  | "purple"
+  | "orange"
+  | "teal"
+  | "red"
+  | "yellow"
+  | "lilac"
+  | "mint"
+  | "coral"
+  | "navy";
+
 type StoryJson = {
   title: string;
   characterDesign?: string;
-  bookColor?: "pink" | "blue" | "green";
+  bookColor?: BookColorKey;
   pages: StoryPage[];
 };
 
@@ -88,19 +124,34 @@ const MAX_HERO_REFERENCE_IMAGES = 3;
 /** Total decoded bytes across all hero reference images (keeps Edge request size safe). */
 const MAX_HERO_REFERENCES_TOTAL_BYTES = 2_800_000;
 
+const BOOK_COLOR_KEYS = new Set<BookColorKey>([
+  "pink",
+  "blue",
+  "green",
+  "purple",
+  "orange",
+  "teal",
+  "red",
+  "yellow",
+  "lilac",
+  "mint",
+  "coral",
+  "navy",
+]);
+
 function coerceBookColor(
   requested: string | undefined,
   modelRaw: unknown,
   childName: string,
-): "pink" | "blue" | "green" {
+): BookColorKey {
   const r = String(requested ?? "")
     .trim()
     .toLowerCase();
-  if (r === "pink" || r === "blue" || r === "green") return r;
+  if (BOOK_COLOR_KEYS.has(r as BookColorKey)) return r as BookColorKey;
   const m = String(modelRaw ?? "")
     .trim()
     .toLowerCase();
-  if (m === "pink" || m === "blue" || m === "green") return m;
+  if (BOOK_COLOR_KEYS.has(m as BookColorKey)) return m as BookColorKey;
   const n = (childName.trim().toLowerCase().split(/\s+/)[0] ?? "").replace(/[^a-z]/gu, "");
   const boyNames = new Set([
     "isaac", "noah", "oliver", "george", "harry", "jack", "leo", "arthur",
@@ -112,6 +163,9 @@ function coerceBookColor(
   if (boyNames.has(n)) return "blue";
   return "pink";
 }
+
+const BOOK_COLOR_MODEL_HINT =
+  'MUST be exactly one of: "pink", "blue", "green", "purple", "orange", "teal", "red", "yellow", "lilac", "mint", "coral", "navy"';
 
 function composeDallePrompt(parts: {
   preamble: string;
@@ -740,6 +794,29 @@ async function appearanceNotesFromReferences(
       if (dataUrl) batchItems.push({ label: p.label, dataUrl });
     }
   }
+
+  const knownIds = new Set(people.map((p) => p.id));
+  for (const [friendId, urls] of Object.entries(customByFriendId)) {
+    if (!urls || urls.length === 0) continue;
+    if (friendId === "hero") continue;
+    if (knownIds.has(friendId)) continue;
+    const label =
+      friendId.length > 0
+        ? friendId.charAt(0).toUpperCase() + friendId.slice(1)
+        : "Friend";
+    try {
+      const line = await openaiVisionSummarizeHeroFromRefs(
+        apiKey,
+        label,
+        urls,
+        "character",
+      );
+      if (line.trim()) chunks.push(line.trim());
+    } catch (e) {
+      console.warn("[clever-service] tagged ref vision failed", friendId, e);
+    }
+  }
+
   if (batchItems.length > 0) {
     const familyText = await openaiVisionDescribePortraits(apiKey, batchItems);
     if (familyText.trim()) chunks.push(familyText.trim());
@@ -866,6 +943,9 @@ function sanitizeCharacterReferencePhotos(
     );
     if (byLabel && allowedFriend.has(byLabel.id)) return byLabel.id;
 
+    if (whoNorm.length >= 2 && whoNorm.length <= 24 && /^[a-z0-9]+$/u.test(whoNorm)) {
+      return whoNorm;
+    }
     return null;
   };
 
@@ -887,12 +967,11 @@ function sanitizeCharacterReferencePhotos(
     const target = resolveWho(whoR);
     if (target === null) {
       console.warn(
-        "[clever-service] characterReferencePhotos skipped unknown who (hero name or selected friend only)",
+        "[clever-service] characterReferencePhotos skipped unknown who (hero name, game friend, or simple name token)",
         whoR,
       );
       continue;
     }
-    if (target !== "hero" && !allowedFriend.has(target)) continue;
     const m =
       /^data:image\/(?:png|jpeg|jpg|webp);base64,([A-Za-z0-9+/=]+)$/i.exec(
         url.replace(/\s+/gu, "").replace(/\r|\n/gu, ""),
@@ -1009,12 +1088,12 @@ function normalizeStoryJson(raw: unknown): StoryJson {
   }
 
   const characterDesign = obj.characterDesign ? String(obj.characterDesign).trim() : undefined;
-  let bookColor: "pink" | "blue" | "green" | undefined;
+  let bookColor: BookColorKey | undefined;
   const bcRaw = String((obj as StoryJson).bookColor ?? "")
     .trim()
     .toLowerCase();
-  if (bcRaw === "pink" || bcRaw === "blue" || bcRaw === "green") {
-    bookColor = bcRaw;
+  if (BOOK_COLOR_KEYS.has(bcRaw as BookColorKey)) {
+    bookColor = bcRaw as BookColorKey;
   }
 
   return { title, characterDesign, bookColor, pages };
@@ -1921,7 +2000,7 @@ ${noBuddyBook ? `BOOK MODE — NO IMAGINARY BUDDY: The reader chose "No buddy". 
       ? " If appearance lines are given for the hero or game people, stay consistent with those visual details when you naturally describe them."
       : ""
   }
-- Include fields title (string), characterDesign (string), bookColor (string: MUST be exactly "blue", "green", or "pink". If the child's name is typically male (e.g. Isaac, Leo), use "blue" or "green". If female, use "pink"), and pages (array of 12 objects).
+- Include fields title (string), characterDesign (string), bookColor (string: ${BOOK_COLOR_MODEL_HINT}. If unsure, pick a tint that fits the child's name — cooler tones for many boy names, warmer for many girl names), and pages (array of 12 objects).
   For "characterDesign": describe the hero, the one main buddy creature, EVERY human child named in the plot idea (e.g. a brother or sister) who appears in the story, and any named game people who actually appear. If the plot names only ${childName} plus the buddy, characterDesign has exactly those two rich descriptions. If the plot names an extra child (e.g. Isaac), add a full third block for that child — never fold them into the buddy description. Never lions, bears, or unnamed critters. For each included character you MUST define their EXACT gender (e.g. boy/girl), age, height, body shape, skin/surface tone, eye color, facial features, hair color, hair style, AND exact texture/material (e.g. "smooth sculpted clay hair", "fuzzy felt fur", "shiny plastic"). For the buddy creature, explicitly define anatomy (horse-like unicorn with hooves and horn; or winged dragon; etc.). Plus ONE specific, unchanging outfit or set of accessories with exact colors and materials. If an animal or creature wears nothing, explicitly state "in natural animal form (no human outfits)". CRITICAL: Keep clothing solid-colored and simple. DO NOT put logos, graphics, patterns, or text on clothing (DALL-E hallucinates these). DO NOT give them multiple outfits or changing colors. You MUST use the exact same clothing description for the hero in EVERY single illustrationBrief. That locks their look for the book; the illustrator still shows different faces and poses per spread from the story beats — your prose should not force the same generic smile line into every brief.
 - Each page: { "text": string, "illustrationBrief": string | null }.
 - DOUBLE-PAGE SPREADS: pair pages as (1,2), (3,4), (5,6), (7,8), (9,10), (11,12).
@@ -1988,7 +2067,7 @@ ${
       : `Picture cast rule: only people/creatures **named in each verse** may appear on that spread's illustration — usually ${childName} and the buddy. Do not name anyone in a brief who is not in the paired text.\n`
     : `Main human cast for this book (must appear in the verses whenever they are in the scene together — use these exact names): ${storyHumanNames.join(", ")}. Picture rule: only names that appear in each verse may be in that spread's illustration; match the plot's who-is-hiding logic with the VISIBLE line.\n`
   }
-Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "pink" | "blue" | "green", "pages": [ { "text": string, "illustrationBrief": string | null }, ... 12 items ] }`;
+Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "pink" | "blue" | "green" | "purple" | "orange" | "teal" | "red" | "yellow" | "lilac" | "mint" | "coral" | "navy", "pages": [ { "text": string, "illustrationBrief": string | null }, ... 12 items ] }`;
 
   const bookCoverColorReq = String(body.bookCoverColor ?? "").trim();
 
