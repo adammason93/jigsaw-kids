@@ -1895,10 +1895,44 @@
       ? nameInput.value.trim()
       : "Hero";
     opts.push({ v: "hero", t: heroLab + " (hero in this book)" });
-    getSelectedFamilyPeople().forEach(function (p) {
-      opts.push({ v: p.id, t: p.label });
+    var list =
+      typeof window.KidsGameCharacters !== "undefined" &&
+      Array.isArray(window.KidsGameCharacters)
+        ? window.KidsGameCharacters
+        : [];
+    list.forEach(function (item) {
+      if (!item || !item.id) return;
+      opts.push({ v: item.id, t: item.label });
     });
     return opts;
+  }
+
+  function ensureGamePersonSelected(personId) {
+    if (!gamePeopleRow || !personId || personId === "hero") return;
+    var chip = gamePeopleRow.querySelector(
+      '[data-person-id="' + personId + '"]',
+    );
+    if (chip && !chip.classList.contains("is-selected")) {
+      chip.classList.add("is-selected");
+      chip.setAttribute("aria-checked", "true");
+    }
+  }
+
+  /** If a friend chip was unticked, photos tagged to them fall back to hero. */
+  function pruneHeroPhotoWhoToSelection() {
+    var sel = getSelectedFamilyPeople();
+    var allowed = {};
+    sel.forEach(function (p) {
+      allowed[p.id] = true;
+    });
+    var dirty = false;
+    heroPhotoItems.forEach(function (item) {
+      if (item.who !== "hero" && !allowed[item.who]) {
+        item.who = "hero";
+        dirty = true;
+      }
+    });
+    return dirty;
   }
 
   function buildWhoSelect(currentWho) {
@@ -2724,6 +2758,7 @@
       var idx = parseInt(li.getAttribute("data-idx") || "-1", 10);
       if (idx >= 0 && idx < heroPhotoItems.length) {
         heroPhotoItems[idx].who = t.value;
+        ensureGamePersonSelected(t.value);
       }
     });
     heroPhotoThumbsList.addEventListener("click", function (e) {
@@ -2751,7 +2786,10 @@
   }
   if (gamePeopleRow) {
     gamePeopleRow.addEventListener("click", function () {
-      window.setTimeout(renderHeroPhotoThumbs, 0);
+      window.setTimeout(function () {
+        pruneHeroPhotoWhoToSelection();
+        renderHeroPhotoThumbs();
+      }, 0);
     });
   }
 

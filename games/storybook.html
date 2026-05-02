@@ -9,7 +9,7 @@
   <link rel="manifest" href="../manifest.json" />
   <link rel="stylesheet" href="../js/kids-core.css" />
   <!-- storybook-app.css = renamed file so CDN/browser cache cannot keep old storybook.css -->
-  <link rel="stylesheet" href="storybook-app.css?v=62" />
+  <link rel="stylesheet" href="storybook-app.css?v=63" />
   <link rel="stylesheet" href="../tablet-ipad.css" />
   <!-- Last wins: guarantees new background even if a proxy cached an ancient stylesheet elsewhere -->
   <style>
@@ -156,10 +156,22 @@
             </button>
           </div>
           <p class="sb-voice-hint" id="sbVoiceNameHint" aria-live="polite"></p>
+          <div class="sb-game-people-block" id="sbGamePeopleBlock" hidden>
+          <p class="sb-label sb-label--secondary">Friends from your games (optional)</p>
+          <p class="sb-panel__hint sb-panel__hint--tight">
+            Tap anyone who might appear in the story — or choose them from a photo&rsquo;s menu and we&rsquo;ll tick them for you.
+          </p>
+          <div
+            class="sb-chip-row sb-chip-row--family"
+            id="sbGamePeople"
+            role="group"
+            aria-label="People from your games to include in the story"
+          ></div>
+          </div>
           <div class="sb-hero-ref" id="sbHeroRefBlock">
             <label class="sb-label sb-label--secondary" for="sbHeroPhoto">Photos for the book (optional, up to 3)</label>
             <p class="sb-panel__hint sb-panel__hint--tight">
-              After you add a picture, choose who it is — the hero or a friend you tick below. Freya only appears if you select her under &ldquo;Friends from your games&rdquo;.
+              For each picture, pick who it is &mdash; the hero or a game friend (everyone from your games is in the menu).
             </p>
             <input
               class="sb-hero-ref__input"
@@ -202,18 +214,6 @@
             autocomplete="off"
             placeholder="e.g. Written by Sofia"
           />
-          <div class="sb-game-people-block" id="sbGamePeopleBlock" hidden>
-          <p class="sb-label sb-label--secondary">Friends from your games (optional)</p>
-          <p class="sb-panel__hint sb-panel__hint--tight">
-            Tap anyone you play as in other games — they can show up in the story too.
-          </p>
-          <div
-            class="sb-chip-row sb-chip-row--family"
-            id="sbGamePeople"
-            role="group"
-            aria-label="People from your games to include in the story"
-          ></div>
-          </div>
           <div class="sb-modal__actions sb-modal__actions--split">
             <button type="button" class="sb-btn sb-btn--ghost sb-btn--modal" id="sbBack1">Back</button>
             <button type="button" class="sb-btn sb-btn--primary sb-btn--modal" id="sbNext1">Next</button>
@@ -466,7 +466,7 @@
   <script src="../js/storybook-shelf-store.js" defer></script>
   <!-- Required for cloud shelf sync + upload (same as other games) -->
   <script src="../js/score-cloud.js" defer></script>
-  <script src="storybook.js?v=283" defer></script>
+  <script src="storybook.js?v=285" defer></script>
   <script>
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("../sw.js").catch(function () {});
