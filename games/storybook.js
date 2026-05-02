@@ -2105,7 +2105,7 @@
       return;
     }
     
-    var itemsPerPage = 9;
+    var itemsPerPage = 8;
     for (var i = 0; i < list.length; i += itemsPerPage) {
       var pageDiv = document.createElement("div");
       pageDiv.className = "sb-library-page";
