@@ -642,6 +642,10 @@
     }
     var rightP = story.pages[si * 2 + 1];
     var raw = rightP && rightP.imageUrl ? String(rightP.imageUrl) : "";
+    if (!raw) {
+      var leftP = story.pages[si * 2];
+      if (leftP && leftP.imageUrl) raw = String(leftP.imageUrl);
+    }
     return storyImageDisplayUrl(raw);
   }
 
@@ -968,8 +972,7 @@
     updatePagerHints();
 
     function paintOpenSpread() {
-      syncSpreadIllustrationFromStory();
-      writeSpreadTextMetaFromStory(spreadIndex);
+      applySpreadContent();
     }
     paintOpenSpread();
     if (typeof window.requestAnimationFrame === "function") {
@@ -1324,6 +1327,25 @@
     }
   }
 
+  /** WebKit/Safari sometimes composites the duplex cover one frame late after flyleaf → first art; nudge after decode. */
+  function nudgeDuplexArtComposite() {
+    if (!spreadArtCover || !spreadArtCover.src) return;
+    var el = spreadArtCover;
+    var rafTwice = function () {
+      if (typeof window.requestAnimationFrame !== "function") return;
+      window.requestAnimationFrame(function () {
+        window.requestAnimationFrame(function () {
+          if (el && el.src) void el.offsetWidth;
+        });
+      });
+    };
+    if (typeof el.decode === "function") {
+      el.decode().then(rafTwice, rafTwice);
+    } else {
+      rafTwice();
+    }
+  }
+
   function syncSpreadIllustrationFromStory() {
     if (!story) return;
     var n = numSpreads();
@@ -1332,6 +1354,7 @@
     si = Math.max(0, Math.min(si, n - 1));
     var isTheEnd = si * 2 >= story.pages.length;
     var rightP = isTheEnd ? null : story.pages[si * 2 + 1];
+    var leftP = isTheEnd ? null : story.pages[si * 2];
     var pLo = isTheEnd ? story.pages.length : (si * 2 + 1);
     var pHi = isTheEnd ? story.pages.length : (si * 2 + 2);
     var rawU = isTheEnd
@@ -1339,10 +1362,16 @@
       : rightP && rightP.imageUrl
         ? String(rightP.imageUrl)
         : "";
+    if (!rawU && !isTheEnd && leftP && leftP.imageUrl) {
+      rawU = String(leftP.imageUrl);
+    }
     var u = storyImageDisplayUrl(rawU);
 
     if (u) {
       clearArtFlyleaf();
+      if (spreadInnerEl) {
+        spreadInnerEl.classList.add("sb-flip-spread__inner--has-art");
+      }
       if (spreadArtImg) {
         spreadArtImg.src = u;
         spreadArtImg.alt = isTheEnd ? "The End" : "Illustration for pages " + pLo + "–" + pHi;
@@ -1359,12 +1388,10 @@
       if (spreadInnerEl && spreadInnerEl.dataset) {
         spreadInnerEl.dataset.sbArtUrl = u;
       }
-      if (spreadInnerEl) {
-        spreadInnerEl.classList.add("sb-flip-spread__inner--has-art");
-      }
       if (spreadArtNum) {
         spreadArtNum.textContent = isTheEnd ? "The End" : "Pages " + pLo + "–" + pHi + " of " + story.pages.length;
       }
+      nudgeDuplexArtComposite();
     } else {
       var flyTxt =
         si === 0 &&
@@ -1380,6 +1407,8 @@
         if (spreadArtCover) {
           spreadArtCover.removeAttribute("src");
           spreadArtCover.alt = "";
+          spreadArtCover.style.opacity = "";
+          spreadArtCover.style.visibility = "";
         }
         if (spreadInnerEl && spreadInnerEl.dataset && spreadInnerEl.dataset.sbArtUrl) {
           delete spreadInnerEl.dataset.sbArtUrl;
@@ -1406,6 +1435,8 @@
         if (spreadArtCover) {
           spreadArtCover.removeAttribute("src");
           spreadArtCover.alt = "";
+          spreadArtCover.style.opacity = "";
+          spreadArtCover.style.visibility = "";
         }
         if (spreadInnerEl && spreadInnerEl.dataset && spreadInnerEl.dataset.sbArtUrl) {
           delete spreadInnerEl.dataset.sbArtUrl;

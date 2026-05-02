@@ -2959,6 +2959,11 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   transform-style: preserve-3d;
 }
 
+/* Empty right column must not paint paper over the full-bleed duplex (#sbSpreadArtCover). */
+.sb-flip-right-shell.sb-flip-right-shell--flip {
+  background: transparent;
+}
+
 .sb-flip-left-shell > .sb-flip-page,
 .sb-flip-right-shell > .sb-flip-page {
   position: relative;

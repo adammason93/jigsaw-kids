@@ -349,7 +349,7 @@
                           class="sb-flip-spread__art-cover"
                           id="sbSpreadArtCover"
                           alt=""
-                          decoding="async"
+                          decoding="sync"
                         />
                         <div
                           class="sb-flip-spread__art-flyleaf"
@@ -505,7 +505,7 @@
   <script src="../js/storybook-shelf-store.js" defer></script>
   <!-- Required for cloud shelf sync + upload (same as other games) -->
   <script src="../js/score-cloud.js" defer></script>
-  <script src="storybook.js?v=307" defer></script>
+  <script src="storybook.js?v=308" defer></script>
   <script>
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("../sw.js").catch(function () {});
