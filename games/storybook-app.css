@@ -597,10 +597,9 @@ body.sb-portal-welcome-open {
     inset 0 1px 0 rgba(255, 255, 255, 0.92);
   background: transparent;
   overflow: visible;
-  isolation: isolate;
 }
 
-/* Frosted glass on a ::before layer so WebKit still composites 3D-style shelf covers (backdrop on parent hid them). */
+/* Frosted glass on a ::before layer. Omit isolation: isolate so shelf 3D (preserve-3d) is not flattened in WebKit. */
 .sb-landing__right .sb-library::before {
   content: "";
   position: absolute;
@@ -787,12 +786,28 @@ body.sb-portal-welcome-open {
   z-index: 2;
   transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), z-index 0s linear;
   width: 100%;
+  perspective: min(1100px, 160vw);
+  perspective-origin: 50% 42%;
+  padding-bottom: 0.45rem;
+  box-sizing: border-box;
 }
 
 .sb-cover-card-wrap:hover,
 .sb-cover-card-wrap:focus-within {
   z-index: 8;
   transform: translateY(-8px) scale(1.05);
+}
+
+.sb-cover-card-wrap:hover .sb-cover-card__book,
+.sb-cover-card-wrap:focus-within .sb-cover-card__book {
+  transform: rotateX(5deg) rotateY(-46deg);
+  -webkit-transform: rotateX(5deg) rotateY(-46deg);
+}
+
+.sb-cover-card-wrap:hover .sb-cover-card__book-shadow,
+.sb-cover-card-wrap:focus-within .sb-cover-card__book-shadow {
+  transform: translateX(-50%) rotateX(90deg) rotateZ(38deg);
+  opacity: 0.55;
 }
 
 .sb-cover-card {
@@ -809,31 +824,153 @@ body.sb-portal-welcome-open {
   touch-action: manipulation;
   overflow: visible;
   transition: transform 0.18s ease, box-shadow 0.18s ease;
+  --sb-book-thickness: clamp(7px, 0.48rem, 12px);
+}
+
+.sb-cover-card__scene {
+  position: absolute;
+  inset: 0;
+}
+
+.sb-cover-card__book {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
+  transform: rotateX(1.5deg) rotateY(-28deg);
+  -webkit-transform: rotateX(1.5deg) rotateY(-28deg);
+  transform-origin: 50% 88%;
+  transition: transform 0.85s ease;
+}
+
+.sb-cover-card__book-front {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  overflow: hidden;
+  transform: translateZ(var(--sb-book-thickness));
+  -webkit-transform: translateZ(var(--sb-book-thickness));
+  transform-style: flat;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+.sb-cover-card__book-back {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  transform: translateZ(calc(-1 * var(--sb-book-thickness)));
+  -webkit-transform: translateZ(calc(-1 * var(--sb-book-thickness)));
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+.sb-cover-card--has-art .sb-cover-card__book-back {
+  background: linear-gradient(
+    135deg,
+    hsl(var(--sb-h), 44%, 26%) 0%,
+    hsl(var(--sb-h), 38%, 18%) 55%,
+    hsl(var(--sb-h), 42%, 14%) 100%
+  );
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.18);
+}
+
+.sb-cover-card--placeholder .sb-cover-card__book-back {
+  background: linear-gradient(145deg, #353234 0%, #2a2829 50%, #1f1d1e 100%);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+.sb-cover-card__book-paper {
+  height: 98%;
+  width: calc(var(--sb-book-thickness) * 2);
+  position: absolute;
+  top: 1%;
+  right: 0;
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, 0.28), rgba(255, 255, 255, 0)),
+    repeating-linear-gradient(
+      90deg,
+      #f7f4ef 0,
+      #ebe6dc 1px,
+      #faf8f4 3px,
+      #b0a79c 1px
+    );
+  border-radius: 0 2px 2px 0;
+  transform: rotateY(90deg) translateX(calc(var(--sb-book-thickness) / 7))
+    translateZ(calc(var(--sb-book-thickness) / 1.2));
+  -webkit-transform: rotateY(90deg) translateX(calc(var(--sb-book-thickness) / 7))
+    translateZ(calc(var(--sb-book-thickness) / 1.2));
+  transform-origin: right center;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  box-shadow: inset -2px 0 5px rgba(0, 0, 0, 0.12);
+}
+
+.sb-cover-card__book-shadow {
+  position: absolute;
+  z-index: 0;
+  left: 50%;
+  bottom: -6%;
+  width: 118%;
+  height: 32%;
+  margin: 0;
+  pointer-events: none;
+  border-radius: 40%;
+  background: radial-gradient(
+    ellipse 72% 80% at 50% 45%,
+    rgba(35, 22, 40, 0.32) 0%,
+    rgba(35, 22, 40, 0) 72%
+  );
+  filter: blur(14px);
+  transform: translateX(-50%) rotateX(90deg) rotateZ(30deg);
+  transform-origin: 50% 50%;
+  opacity: 0.42;
+  transition:
+    transform 0.85s ease,
+    opacity 0.85s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sb-cover-card__book {
+    transition: none;
+    transform: rotateX(0deg) rotateY(-22deg);
+    -webkit-transform: rotateX(0deg) rotateY(-22deg);
+  }
+
+  .sb-cover-card-wrap:hover .sb-cover-card__book,
+  .sb-cover-card-wrap:focus-within .sb-cover-card__book {
+    transform: rotateX(0deg) rotateY(-22deg);
+    -webkit-transform: rotateX(0deg) rotateY(-22deg);
+  }
+
+  .sb-cover-card__book-shadow {
+    transition: none;
+    transform: translateX(-50%) rotateX(90deg) rotateZ(30deg);
+    opacity: 0.4;
+  }
+
+  .sb-cover-card-wrap:hover .sb-cover-card__book-shadow,
+  .sb-cover-card-wrap:focus-within .sb-cover-card__book-shadow {
+    transform: translateX(-50%) rotateX(90deg) rotateZ(30deg);
+    opacity: 0.4;
+  }
 }
 
 /* Shelf books with artwork: show cover photo — soft paper edge + coloured spine (no black frame) */
 .sb-cover-card--has-art {
   --sb-cover-photo-opacity: 1;
-  background: linear-gradient(
-    90deg,
-    hsl(var(--sb-h), 48%, 40%) 0%,
-    hsl(var(--sb-h), 40%, 28%) 5px,
-    #faf7f2 5px,
-    #f3ece4 100%
-  );
+  background: transparent;
   box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.45),
-    inset -2px 0 3px rgba(255, 255, 255, 0.35),
-    2px 3px 0 rgba(160, 140, 130, 0.25),
-    0 12px 26px rgba(45, 32, 42, 0.16);
+    0 2px 0 rgba(160, 140, 130, 0.12),
+    0 14px 28px rgba(45, 32, 42, 0.18);
 }
 
 .sb-cover-card--placeholder {
-  background: linear-gradient(90deg, #4a4548 0%, #5c5659 52%, #403c3e 100%);
+  background: transparent;
   box-shadow:
-    0 2px 0 rgba(255, 255, 255, 0.1),
-    0 12px 28px rgba(25, 15, 32, 0.28),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.22);
+    0 2px 0 rgba(255, 255, 255, 0.08),
+    0 14px 30px rgba(25, 15, 32, 0.26);
 }
 
 .sb-cover-card--hardback:active {

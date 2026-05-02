@@ -1786,6 +1786,35 @@
 
   var SHELF_COVERS_PER_TIER = 4;
 
+  /**
+   * CodePen-style 3D volume: front (cover) + paper block + back — fewer faces than a full cube,
+   * works better with dynamic cover art.
+   */
+  function wrapShelfCoverInBook3d(face) {
+    var scene = document.createElement("span");
+    scene.className = "sb-cover-card__scene";
+    var shadow = document.createElement("span");
+    shadow.className = "sb-cover-card__book-shadow";
+    shadow.setAttribute("aria-hidden", "true");
+    var book = document.createElement("span");
+    book.className = "sb-cover-card__book";
+    var front = document.createElement("span");
+    front.className = "sb-cover-card__book-front";
+    front.appendChild(face);
+    var paper = document.createElement("span");
+    paper.className = "sb-cover-card__book-paper";
+    paper.setAttribute("aria-hidden", "true");
+    var back = document.createElement("span");
+    back.className = "sb-cover-card__book-back";
+    back.setAttribute("aria-hidden", "true");
+    book.appendChild(front);
+    book.appendChild(paper);
+    book.appendChild(back);
+    scene.appendChild(shadow);
+    scene.appendChild(book);
+    return scene;
+  }
+
   function composeHardbackShelfFace(face, meta, rawTitle, imgElOpt) {
     var titleShown = spineLabel(rawTitle);
     face.textContent = "";
@@ -1880,7 +1909,7 @@
       composeHardbackShelfFace(face, meta, item.title, null);
     }
 
-    openBtn.appendChild(face);
+    openBtn.appendChild(wrapShelfCoverInBook3d(face));
     openBtn.addEventListener("click", function () {
       openShelfBook(item.id);
     });
