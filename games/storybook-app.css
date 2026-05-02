@@ -1244,7 +1244,7 @@ body.sb-portal-welcome-open {
   background: rgba(185, 28, 28, 0.9);
 }
 
-/* Shelf → reader: clone grows and rotates toward the viewer before showBook */
+/* Shelf → reader: journal-style isometric tilt + scale + hinged cover (library click only) */
 .sb-shelf-open-flyout {
   position: fixed;
   inset: 0;
@@ -1270,7 +1270,7 @@ body.sb-shelf-open-flyout-active .sb-shelf-open-flyout {
   -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
   opacity: 0;
-  transition: opacity 0.4s ease;
+  transition: opacity 0.45s ease;
   pointer-events: auto;
 }
 
@@ -1287,41 +1287,91 @@ body.sb-shelf-open-flyout-active .sb-shelf-open-flyout {
   min-height: min(72vh, 520px);
   width: 100%;
   padding: 1rem;
-  perspective: min(1100px, 160vw);
-  perspective-origin: 50% 44%;
+  perspective: min(1400px, 200vw);
+  perspective-origin: 48% 42%;
   pointer-events: none;
 }
 
+/* “Journal” stage: tabletop isometric → eases toward the reader (like the CodePen demo) */
 .sb-shelf-open-flyout .sb-shelf-open-flyout__clone.sb-cover-card-wrap {
+  pointer-events: none;
   width: min(42vw, 11rem) !important;
   max-width: 11.5rem !important;
   flex: 0 0 auto !important;
   padding-bottom: 0.35rem;
-  transform: scale(0.66);
-  transition: transform 0.64s cubic-bezier(0.33, 1, 0.48, 1);
+  transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
+  transform: rotateX(45deg) rotateY(0deg) rotateZ(-45deg) scale(0.52);
+  -webkit-transform: rotateX(45deg) rotateY(0deg) rotateZ(-45deg) scale(0.52);
+  transition: transform 1.2s cubic-bezier(0.33, 1, 0.48, 1);
   z-index: 3;
 }
 
 .sb-shelf-open-flyout--open .sb-shelf-open-flyout__clone.sb-cover-card-wrap {
-  transform: scale(1.06);
+  transform: rotateZ(-4deg) rotateX(13deg) rotateY(0deg) scale(1.06);
+  -webkit-transform: rotateZ(-4deg) rotateX(13deg) rotateY(0deg) scale(1.06);
 }
 
 .sb-shelf-open-flyout .sb-shelf-open-flyout__clone .sb-cover-card {
   max-width: none;
   width: 100%;
   cursor: default;
+  transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
 }
 
 .sb-shelf-open-flyout .sb-shelf-open-flyout__clone .sb-cover-card__book {
   animation: none !important;
-  transition: transform 0.64s cubic-bezier(0.33, 1, 0.48, 1);
+  transition: transform 1.05s cubic-bezier(0.33, 1, 0.48, 1) 0.06s;
   transform: translate3d(0, 0, 0) rotateX(2deg) rotateY(-34deg);
   -webkit-transform: translate3d(0, 0, 0) rotateX(2deg) rotateY(-34deg);
 }
 
 .sb-shelf-open-flyout--open .sb-shelf-open-flyout__clone .sb-cover-card__book {
-  transform: translate3d(0, 0, 0) rotateX(0.5deg) rotateY(-5deg);
-  -webkit-transform: translate3d(0, 0, 0) rotateX(0.5deg) rotateY(-5deg);
+  transform: translate3d(0, 0, 0) rotateX(0deg) rotateY(-8deg);
+  -webkit-transform: translate3d(0, 0, 0) rotateX(0deg) rotateY(-8deg);
+}
+
+/* Hinged cover: spine at left; inside face is ::after so art stays on .face */
+.sb-shelf-open-flyout .sb-shelf-open-flyout__clone .sb-cover-card__book-front {
+  transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
+  transform-origin: 0% 50%;
+  -webkit-transform-origin: 0% 50%;
+  overflow: visible;
+  transition:
+    transform 1s cubic-bezier(0.33, 1, 0.48, 1) 0.42s,
+    box-shadow 1s cubic-bezier(0.33, 1, 0.48, 1) 0.42s;
+  transform: translateZ(calc(var(--sb-book-thickness) + 0.75px)) rotateY(0deg);
+  -webkit-transform: translateZ(calc(var(--sb-book-thickness) + 0.75px)) rotateY(0deg);
+  box-shadow: none;
+}
+
+.sb-shelf-open-flyout--open .sb-shelf-open-flyout__clone .sb-cover-card__book-front {
+  transform: translateZ(calc(var(--sb-book-thickness) + 0.75px)) rotateY(-172deg);
+  -webkit-transform: translateZ(calc(var(--sb-book-thickness) + 0.75px)) rotateY(-172deg);
+  box-shadow: -8px 12px 18px rgba(0, 0, 0, 0.3);
+}
+
+.sb-shelf-open-flyout .sb-shelf-open-flyout__clone .sb-cover-card__book-front::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(145deg, #faf7f2 0%, #ebe4d8 100%);
+  box-shadow: inset 0 0 0 1px rgba(75, 56, 76, 0.1);
+  transform: rotateY(180deg) translateZ(0.55px);
+  -webkit-transform: rotateY(180deg) translateZ(0.55px);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  pointer-events: none;
+}
+
+.sb-shelf-open-flyout .sb-shelf-open-flyout__clone .sb-cover-card__face {
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  transform: translateZ(0.65px);
+  -webkit-transform: translateZ(0.65px);
 }
 
 body.page-storybook.sb-shelf-open-flyout-active {
@@ -1338,6 +1388,10 @@ body.page-storybook.sb-shelf-open-flyout-active {
   }
 
   .sb-shelf-open-flyout .sb-shelf-open-flyout__clone .sb-cover-card__book {
+    transition: none;
+  }
+
+  .sb-shelf-open-flyout .sb-shelf-open-flyout__clone .sb-cover-card__book-front {
     transition: none;
   }
 }

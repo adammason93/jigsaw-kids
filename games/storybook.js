@@ -1808,7 +1808,7 @@
       });
     });
 
-    window.setTimeout(finishFlyout, 700);
+    window.setTimeout(finishFlyout, 2100);
   }
 
   /**
