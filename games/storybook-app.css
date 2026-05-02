@@ -758,38 +758,6 @@ body.sb-portal-welcome-open {
   justify-items: center;
   align-items: end;
   scroll-snap-align: start;
-  overflow: visible;
-  padding-top: 0.55rem;
-  padding-bottom: 1.1rem;
-  perspective: min(1200px, 165vw);
-  -webkit-perspective: min(1200px, 165vw);
-  perspective-origin: 50% 42%;
-  -webkit-perspective-origin: 50% 42%;
-}
-
-/* My library: match reader cover isometric tilt (rotateX/rotateZ); no tap “opening” animation. */
-.sb-library-page > .sb-cover-card-wrap {
-  transform: rotateX(45deg) rotateY(0deg) rotateZ(-45deg);
-  -webkit-transform: rotateX(45deg) rotateY(0deg) rotateZ(-45deg);
-  transform-style: preserve-3d;
-  -webkit-transform-style: preserve-3d;
-}
-
-.sb-library-page > .sb-cover-card-wrap:hover,
-.sb-library-page > .sb-cover-card-wrap:focus-within {
-  transform: translateY(-10px) rotateX(45deg) rotateY(0deg) rotateZ(-45deg) scale(1.05);
-  -webkit-transform: translateY(-10px) rotateX(45deg) rotateY(0deg) rotateZ(-45deg)
-    scale(1.05);
-}
-
-.sb-library-page .sb-cover-card__book {
-  transform: translate3d(0, 0, 0) rotateX(0deg) rotateY(-18deg);
-  -webkit-transform: translate3d(0, 0, 0) rotateX(0deg) rotateY(-18deg);
-}
-
-.sb-library-page .sb-cover-card-wrap:hover .sb-cover-card__book,
-.sb-library-page .sb-cover-card-wrap:focus-within .sb-cover-card__book {
-  animation: none !important;
 }
 
 .sb-library__empty {
@@ -1029,27 +997,6 @@ body.sb-portal-welcome-open {
   .sb-cover-card-wrap:hover .sb-cover-card__book,
   .sb-cover-card-wrap:focus-within .sb-cover-card__book {
     animation: none !important;
-  }
-
-  .sb-library-page > .sb-cover-card-wrap {
-    transform: none;
-    -webkit-transform: none;
-  }
-
-  .sb-library-page {
-    perspective: none;
-    -webkit-perspective: none;
-  }
-
-  .sb-library-page > .sb-cover-card-wrap:hover,
-  .sb-library-page > .sb-cover-card-wrap:focus-within {
-    transform: translateY(-6px) scale(1.03);
-    -webkit-transform: translateY(-6px) scale(1.03);
-  }
-
-  .sb-library-page .sb-cover-card__book {
-    transform: translate3d(0, 0, 0) rotateX(2deg) rotateY(-34deg);
-    -webkit-transform: translate3d(0, 0, 0) rotateX(2deg) rotateY(-34deg);
   }
 }
 
