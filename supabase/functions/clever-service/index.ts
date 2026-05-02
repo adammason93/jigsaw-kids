@@ -1513,8 +1513,28 @@ async function falFluxProTextToImageUrl(
  * ────────────────────────────────────────────────────────────────────────── */
 
 const GPT_IMAGE_BUCKET = "storybook_images";
-const GPT_IMAGE_SIZE_LANDSCAPE = "1536x1024";
 const GPT_IMAGE_PROMPT_MAX = 4000;
+
+/** Whitelisted GPT Image `size` values (API rejects unknown strings). */
+const GPT_IMAGE_SIZES: ReadonlySet<string> = new Set([
+  "1024x1024",
+  "1536x1024",
+  "1024x1536",
+]);
+
+/**
+ * Default `1024x1024` for lower cost (fewer image tokens per anchor + 6 edits).
+ * Set `STORYBOOK_GPTIMAGE_SIZE=1536x1024` for landscape spreads that match the reader better (costs more).
+ */
+function gptImageSizeParam(): string {
+  const raw = (Deno.env.get("STORYBOOK_GPTIMAGE_SIZE") ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/\s/g, "")
+    .replace("×", "x");
+  if (raw && GPT_IMAGE_SIZES.has(raw)) return raw;
+  return "1024x1024";
+}
 
 function gptImageDefaultModel(): string {
   return (Deno.env.get("STORYBOOK_GPTIMAGE_MODEL") ?? "").trim() || "gpt-image-1.5";
@@ -1527,9 +1547,9 @@ function gptImageModerationParam(): "low" | "auto" {
     : "low";
 }
 
-/** Default `medium` — between cheap `low` (soft) and pricey `high`; pair with low input_fidelity on edits. Set `STORYBOOK_GPTIMAGE_QUALITY=low` if timeouts/429s; `high` only if budget allows. */
+/** Default `low` — budget tier (target lower £/book); `medium` / `high` cost more. */
 function gptImageQualityParam(): "low" | "medium" | "high" | "auto" {
-  const q = (Deno.env.get("STORYBOOK_GPTIMAGE_QUALITY") ?? "medium").trim().toLowerCase();
+  const q = (Deno.env.get("STORYBOOK_GPTIMAGE_QUALITY") ?? "low").trim().toLowerCase();
   if (q === "medium" || q === "high" || q === "auto") return q;
   return "low";
 }
@@ -1616,7 +1636,7 @@ async function gptImageBytesFromImagesResponse(raw: string): Promise<Uint8Array>
 async function gptImageGenerate(
   apiKey: string,
   prompt: string,
-  size: string = GPT_IMAGE_SIZE_LANDSCAPE,
+  size: string = gptImageSizeParam(),
   retryCount = 0,
 ): Promise<{ url: string; bytes: Uint8Array }> {
   const model = gptImageDefaultModel();
@@ -1685,7 +1705,7 @@ async function gptImageEdit(
   apiKey: string,
   prompt: string,
   referenceBytes: Uint8Array[],
-  size: string = GPT_IMAGE_SIZE_LANDSCAPE,
+  size: string = gptImageSizeParam(),
   retryCount = 0,
 ): Promise<{ url: string; bytes: Uint8Array }> {
   const model = gptImageDefaultModel();
@@ -2336,8 +2356,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
         // play for the Fal / DALL·E paths below.
         const refBytes = anchorOut.bytes;
         // Stay under Supabase/Cloudflare wall-clock (~150s): quality defaults to
-        // Cost/quality balance: medium render quality + low edit input_fidelity (high
-        // on both was ~£0.33/book — too high). Override via STORYBOOK_GPTIMAGE_* secrets.
+        // Budget defaults: quality low + size 1024x1024 + input_fidelity low (override via secrets).
         // Tier-1 OpenAI image RPM is 5 — chunk 4 edits, brief wait, then 2 edits. Raise wait or
         // shrink chunk size if you see 429s; raise OpenAI tier or lower wait if 546.
         const chunkSize = (() => {
