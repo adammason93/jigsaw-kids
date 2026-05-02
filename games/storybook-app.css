@@ -776,11 +776,11 @@ body.sb-portal-welcome-open {
   justify-content: center;
 }
 
-/* Spine toward viewer: positive rotateY (page block sits on the right in local space) */
+/* Sway only on hover; 0%/100% must match idle .sb-cover-card__book transform (no jump) */
 @keyframes sb-shelf-book-sway {
   0%,
   100% {
-    transform: translate3d(0, 0, 0) rotateX(0.8deg) rotateY(14deg);
+    transform: translate3d(0, 0, 0) rotateX(1.1deg) rotateY(20deg);
   }
   50% {
     transform: translate3d(0, 0, 0) rotateX(5deg) rotateY(38deg);
@@ -851,6 +851,12 @@ body.sb-portal-welcome-open {
   transform: translateY(-8px) scale(1.05);
 }
 
+.sb-cover-card-wrap:hover .sb-cover-card__book,
+.sb-cover-card-wrap:focus-within .sb-cover-card__book {
+  animation: sb-shelf-book-sway var(--sb-shelf-anim-dur, 7.5s) cubic-bezier(0.42, 0, 0.58, 1) infinite;
+  animation-delay: var(--sb-shelf-stagger, 0s);
+}
+
 .sb-cover-card {
   position: relative;
   display: block;
@@ -879,9 +885,11 @@ body.sb-portal-welcome-open {
   z-index: 1;
   transform-style: preserve-3d;
   -webkit-transform-style: preserve-3d;
+  transform: translate3d(0, 0, 0) rotateX(1.1deg) rotateY(20deg);
+  -webkit-transform: translate3d(0, 0, 0) rotateX(1.1deg) rotateY(20deg);
   transform-origin: 42% 88%;
-  animation: sb-shelf-book-sway var(--sb-shelf-anim-dur, 7.5s) cubic-bezier(0.42, 0, 0.58, 1) infinite;
-  animation-delay: var(--sb-shelf-stagger, 0s);
+  animation: none;
+  transition: transform 0.4s cubic-bezier(0.42, 0, 0.58, 1);
 }
 
 .sb-cover-card__book-front {
@@ -976,9 +984,15 @@ body.sb-portal-welcome-open {
   }
 
   .sb-cover-card__book {
-    animation: none;
-    transform: translate3d(0, 0, 0) rotateX(2.2deg) rotateY(22deg);
-    -webkit-transform: translate3d(0, 0, 0) rotateX(2.2deg) rotateY(22deg);
+    transform: translate3d(0, 0, 0) rotateX(1.1deg) rotateY(20deg);
+    -webkit-transform: translate3d(0, 0, 0) rotateX(1.1deg) rotateY(20deg);
+    animation: none !important;
+    transition: none;
+  }
+
+  .sb-cover-card-wrap:hover .sb-cover-card__book,
+  .sb-cover-card-wrap:focus-within .sb-cover-card__book {
+    animation: none !important;
   }
 }
 
