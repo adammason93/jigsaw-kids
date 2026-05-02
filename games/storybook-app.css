@@ -2392,17 +2392,14 @@ body.sb-portal-welcome-open {
   background: transparent;
   box-shadow: none;
   margin: 0;
-  /* dvh + safe-area: tablets in portrait/edge-to-edge browsers were clipping the verse on the left */
-  padding: clamp(8px, 1.8dvh, 18px) clamp(12px, 4vw, 22px);
-  padding-top: clamp(0.55rem, 2.5dvh, 1.85rem);
-  padding-bottom: clamp(0.45rem, 1.4dvh, 1rem);
-  padding-left: max(0.85rem, 3.5vw, env(safe-area-inset-left, 0px));
-  padding-right: max(0.5rem, 2vw, env(safe-area-inset-right, 0px));
+  padding: max(0.45rem, env(safe-area-inset-top, 0px))
+    max(0.65rem, env(safe-area-inset-right, 0px)) max(0.45rem, env(safe-area-inset-bottom, 0px))
+    max(0.65rem, env(safe-area-inset-left, 0px));
   align-self: stretch;
   width: 100%;
   max-width: none;
-  justify-content: flex-start;
-  align-items: flex-start;
+  justify-content: center;
+  align-items: center;
   min-height: 0;
   /* Avoid pairing clip-path reveal with overflow:auto — WebKit clips the left edge of lines mid-turn. */
   overflow: visible;
@@ -2640,7 +2637,7 @@ body.sb-portal-welcome-open {
   letter-spacing: 0.02em;
   line-height: 1.55;
   color: #fff;
-  text-align: left;
+  text-align: center;
   padding: 0;
   background: none;
   border-radius: 0;
@@ -2658,10 +2655,9 @@ body.sb-portal-welcome-open {
 .sb-flip-spread__inner--has-art .sb-flip-text {
   position: relative;
   z-index: 0;
-  max-width: min(32rem, 95%);
-  text-align: left;
-  padding: clamp(0.35rem, 1.5vw, 0.65rem) clamp(0.5rem, 2vw, 1rem) clamp(0.35rem, 1.5vw, 0.65rem)
-    clamp(0.75rem, 3vw, 2.2rem);
+  max-width: min(32rem, 92%);
+  text-align: center;
+  padding: clamp(0.35rem, 1.5vw, 0.65rem) clamp(0.5rem, 3vw, 1.25rem);
   border-radius: 0;
 }
 
