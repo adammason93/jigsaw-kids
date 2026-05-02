@@ -1548,9 +1548,10 @@ function gptImageModerationParam(): "low" | "auto" {
 }
 
 /**
- * Split defaults when `STORYBOOK_GPTIMAGE_QUALITY` is unset: **`medium`** for the single
- * anchor generation, **`low`** for the six spread edits (where most image cost sits).
- * Set `STORYBOOK_GPTIMAGE_QUALITY=low|medium|high|auto` to use one value for both.
+ * Split defaults when `STORYBOOK_GPTIMAGE_QUALITY` is unset: **`high`** for the single
+ * anchor (rich cast reference for six edits), **`medium`** for spread edits — sharper than
+ * `low` edits without paying `high` on all seven calls. Set `STORYBOOK_GPTIMAGE_QUALITY`
+ * to `low|medium|high|auto` to use one tier for both anchor and edits.
  */
 function gptImageQualityParam(
   scope: "generation" | "edit",
@@ -1559,7 +1560,7 @@ function gptImageQualityParam(
   if (raw === "medium" || raw === "high" || raw === "auto" || raw === "low") {
     return raw;
   }
-  return scope === "generation" ? "medium" : "low";
+  return scope === "generation" ? "high" : "medium";
 }
 
 function decodeB64ToBytes(b64: string): Uint8Array {
@@ -2364,7 +2365,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
         // play for the Fal / DALL·E paths below.
         const refBytes = anchorOut.bytes;
         // Stay under Supabase/Cloudflare wall-clock (~150s): quality defaults to
-        // Cost-aware defaults: anchor quality medium, spread edits low + size 1024x1024 + input_fidelity low (override via secrets).
+        // Cost-aware defaults: anchor high + spread edits medium + size 1024x1024 + input_fidelity low (override via secrets).
         // Tier-1 OpenAI image RPM is 5 — chunk 4 edits, brief wait, then 2 edits. Raise wait or
         // shrink chunk size if you see 429s; raise OpenAI tier or lower wait if 546.
         const chunkSize = (() => {
