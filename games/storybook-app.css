@@ -1798,7 +1798,7 @@ body.sb-portal-welcome-open {
 .sb-book-side-actions {
   position: absolute;
   right: max(0.35rem, env(safe-area-inset-right, 0px));
-  bottom: max(0.35rem, env(safe-area-inset-bottom, 0px));
+  bottom: max(0.55rem, env(safe-area-inset-bottom, 0px));
   z-index: 25;
   display: none;
   flex-direction: column;
@@ -1806,6 +1806,24 @@ body.sb-portal-welcome-open {
   align-items: flex-end;
   gap: 0.45rem;
   pointer-events: none;
+}
+
+/* Immersive reader: fixed 📚 FAB + kids bar sit on the screen — lift controls so they aren’t covered */
+body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
+  bottom: calc(max(0.55rem, env(safe-area-inset-bottom, 0px)) + 4.75rem);
+  z-index: 56;
+}
+
+/* Touch devices: extra clearance above global bottom chrome */
+@media (hover: none) and (pointer: coarse) {
+  .sb-book-side-actions {
+    bottom: calc(max(0.55rem, env(safe-area-inset-bottom, 0px)) + 3.25rem);
+    z-index: 56;
+  }
+
+  body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
+    bottom: calc(max(0.55rem, env(safe-area-inset-bottom, 0px)) + 5rem);
+  }
 }
 
 .sb-book-side-actions > * {
