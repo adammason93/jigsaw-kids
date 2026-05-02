@@ -2161,8 +2161,8 @@ body.sb-portal-welcome-open {
   max-width: none;
   width: 100%;
   /* Single zoom only on .sb-flip-spread__art-cover — never also on .sb-flip-spread__art-bg (would compound ~scale² and crop casts).
-   * Slightly <1 “zooms out” cover-cropped art so heads/feet/tails are less often clipped at the spread edges. */
-  --sb-spread-art-scale: 0.9;
+   * 1 = true edge-to-edge cover inside the spread; <1 left visible margins (was 0.9 for character inset). */
+  --sb-spread-art-scale: 1;
   /* Soft paper tint so transparency never reveals two-tone “desk” bands under the shells */
   background: radial-gradient(
     ellipse 130% 88% at 50% 42%,
@@ -2581,7 +2581,7 @@ body.sb-portal-welcome-open {
   box-shadow: 0 1px 3px rgba(42, 10, 31, 0.08);
 }
 
-/* Picture-book text over art: no background panels — light outline + shadow so type reads on busy colour */
+/* Picture-book text over art: white type + black shadow for legibility on illustrations */
 .sb-flip-spread__inner--has-art .sb-flip-text__highlight {
   display: inline;
   font-family: var(--sb-reader-font-over-art);
@@ -2589,7 +2589,7 @@ body.sb-portal-welcome-open {
   font-weight: 500;
   letter-spacing: 0.02em;
   line-height: 1.55;
-  color: #2a1814;
+  color: #fff;
   text-align: left;
   padding: 0;
   background: none;
@@ -2598,10 +2598,9 @@ body.sb-portal-welcome-open {
   -webkit-box-decoration-break: clone;
   box-shadow: none;
   text-shadow:
-    0 0 1px rgba(255, 255, 255, 0.95),
-    0 1px 0 rgba(255, 255, 255, 0.88),
-    0 2px 8px rgba(255, 255, 255, 0.55),
-    0 1px 3px rgba(0, 0, 0, 0.14);
+    0 1px 2px rgba(0, 0, 0, 0.92),
+    0 2px 10px rgba(0, 0, 0, 0.65),
+    0 0 2px rgba(0, 0, 0, 0.9);
   -webkit-text-stroke: 0;
   -webkit-font-smoothing: antialiased;
 }
@@ -2623,7 +2622,7 @@ body.sb-portal-welcome-open {
 }
 
 .sb-flip-spread__inner--has-art .sb-readable-word:hover {
-  background: rgba(219, 39, 119, 0.12);
+  background: rgba(0, 0, 0, 0.22);
 }
 
 .sb-flip-spread__inner--has-art .sb-big-word {
@@ -2632,23 +2631,25 @@ body.sb-portal-welcome-open {
   font-weight: 800;
   letter-spacing: 0.04em;
   line-height: 1.15;
-  color: #b45309;
+  color: #fff;
   transform: rotate(-3deg) skewX(-4deg);
   display: inline-block;
   margin: 0.1em 0.05em 0 0.02em;
   -webkit-text-stroke: 0;
   text-shadow:
-    0 0 1px rgba(255, 255, 255, 0.95),
-    0 1px 0 rgba(255, 255, 255, 0.75),
-    0 2px 6px rgba(0, 0, 0, 0.12);
+    0 1px 2px rgba(0, 0, 0, 0.92),
+    0 2px 10px rgba(0, 0, 0, 0.65),
+    0 0 2px rgba(0, 0, 0, 0.9);
 }
 
 .sb-flip-spread__inner--has-art .sb-word-reading {
-  outline: 2px solid rgba(217, 119, 6, 0.95);
+  outline: 2px solid rgba(255, 255, 255, 0.95);
   outline-offset: 2px;
-  background: rgba(254, 243, 199, 0.85);
+  background: rgba(0, 0, 0, 0.35);
   border-radius: 0.24em;
-  box-shadow: 0 0 0 1px rgba(180, 83, 9, 0.2);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.5),
+    0 1px 4px rgba(0, 0, 0, 0.45);
 }
 
 .sb-the-end-wrap {
@@ -2676,21 +2677,19 @@ body.sb-portal-welcome-open {
 }
 
 .sb-flip-spread__inner--has-art .sb-the-end-title {
-  color: #831843;
+  color: #fff;
   text-shadow:
-    0 0 1px rgba(255, 255, 255, 0.95),
-    0 1px 0 rgba(255, 255, 255, 0.85),
-    0 2px 8px rgba(255, 255, 255, 0.5),
-    0 1px 3px rgba(0, 0, 0, 0.12);
+    0 1px 2px rgba(0, 0, 0, 0.92),
+    0 2px 10px rgba(0, 0, 0, 0.65),
+    0 0 2px rgba(0, 0, 0, 0.9);
 }
 
 .sb-flip-spread__inner--has-art .sb-the-end-lead {
-  color: #5c1835;
+  color: #fff;
   text-shadow:
-    0 0 1px rgba(255, 255, 255, 0.95),
-    0 1px 0 rgba(255, 255, 255, 0.85),
-    0 2px 8px rgba(255, 255, 255, 0.5),
-    0 1px 3px rgba(0, 0, 0, 0.12);
+    0 1px 2px rgba(0, 0, 0, 0.92),
+    0 2px 10px rgba(0, 0, 0, 0.65),
+    0 0 2px rgba(0, 0, 0, 0.9);
 }
 
 .sb-flip-spread__inner--has-art .sb-the-end-wrap {
