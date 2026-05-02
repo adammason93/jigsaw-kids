@@ -3051,6 +3051,9 @@ body.sb-portal-welcome-open {
     left: max(0.65rem, env(safe-area-inset-left, 10px));
     z-index: 54;
     pointer-events: none;
+    /* Leave room for global .kids-fbar (2× 3rem + gap) so 📚 isn’t under ⚙️ */
+    padding-right: calc(3rem + 0.35rem + 3rem + 0.75rem);
+    box-sizing: border-box;
   }
 
   .sb-book.sb-book--immersive .sb-book__actions-dock > * {
