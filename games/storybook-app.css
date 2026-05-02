@@ -2204,7 +2204,9 @@ body.sb-portal-welcome-open {
   object-position: center center;
   pointer-events: none;
   z-index: 1;
-  transform: scale(var(--sb-spread-art-scale, 1));
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  transform: translateZ(0) scale(var(--sb-spread-art-scale, 1));
   transform-origin: center center;
 }
 

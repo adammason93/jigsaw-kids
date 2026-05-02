@@ -1527,9 +1527,9 @@ function gptImageModerationParam(): "low" | "auto" {
     : "low";
 }
 
-/** Default `low` — faster and helps stay under Supabase ~150s edge limit; set `medium` / `high` / `auto` for nicer art. */
+/** Default `medium` — sharper than `low` (old default); set `STORYBOOK_GPTIMAGE_QUALITY=low` if edge timeouts (546) or 429s increase. */
 function gptImageQualityParam(): "low" | "medium" | "high" | "auto" {
-  const q = (Deno.env.get("STORYBOOK_GPTIMAGE_QUALITY") ?? "low").trim().toLowerCase();
+  const q = (Deno.env.get("STORYBOOK_GPTIMAGE_QUALITY") ?? "medium").trim().toLowerCase();
   if (q === "medium" || q === "high" || q === "auto") return q;
   return "low";
 }
@@ -1692,7 +1692,7 @@ async function gptImageEdit(
   const moderation = gptImageModerationParam();
   const quality = gptImageQualityParam();
   const trimmed = prompt.slice(0, GPT_IMAGE_PROMPT_MAX);
-  const fidRaw = (Deno.env.get("STORYBOOK_GPTIMAGE_INPUT_FIDELITY") ?? "low")
+  const fidRaw = (Deno.env.get("STORYBOOK_GPTIMAGE_INPUT_FIDELITY") ?? "high")
     .trim()
     .toLowerCase();
 
@@ -2335,9 +2335,10 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
         // timeout. Identity is already locked by pixels. Visual lock stays in
         // play for the Fal / DALL·E paths below.
         const refBytes = anchorOut.bytes;
-        // Stay under Supabase/Cloudflare wall-clock (~150s): default LOW quality,
-        // LOW input_fidelity, and a shorter inter-chunk pause. Tier-1 OpenAI
-        // image RPM is 5 — chunk 4 edits, brief wait, then 2 edits. Raise wait or
+        // Stay under Supabase/Cloudflare wall-clock (~150s): quality defaults to
+        // medium + input_fidelity high (see gptImageQualityParam); override with
+        // STORYBOOK_GPTIMAGE_QUALITY=low and STORYBOOK_GPTIMAGE_INPUT_FIDELITY=low if needed.
+        // Tier-1 OpenAI image RPM is 5 — chunk 4 edits, brief wait, then 2 edits. Raise wait or
         // shrink chunk size if you see 429s; raise OpenAI tier or lower wait if 546.
         const chunkSize = (() => {
           const raw = Number(Deno.env.get("STORYBOOK_GPTIMAGE_CHUNK_SIZE"));
