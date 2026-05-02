@@ -1547,9 +1547,9 @@ function gptImageModerationParam(): "low" | "auto" {
     : "low";
 }
 
-/** Default `low` — budget tier (target lower £/book); `medium` / `high` cost more. */
+/** Default `medium` — acceptable art without `high` pricing; set `low` via secret to shave £/book. */
 function gptImageQualityParam(): "low" | "medium" | "high" | "auto" {
-  const q = (Deno.env.get("STORYBOOK_GPTIMAGE_QUALITY") ?? "low").trim().toLowerCase();
+  const q = (Deno.env.get("STORYBOOK_GPTIMAGE_QUALITY") ?? "medium").trim().toLowerCase();
   if (q === "medium" || q === "high" || q === "auto") return q;
   return "low";
 }
@@ -2356,7 +2356,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
         // play for the Fal / DALL·E paths below.
         const refBytes = anchorOut.bytes;
         // Stay under Supabase/Cloudflare wall-clock (~150s): quality defaults to
-        // Budget defaults: quality low + size 1024x1024 + input_fidelity low (override via secrets).
+        // Cost-aware defaults: quality medium + size 1024x1024 + input_fidelity low (override via secrets).
         // Tier-1 OpenAI image RPM is 5 — chunk 4 edits, brief wait, then 2 edits. Raise wait or
         // shrink chunk size if you see 429s; raise OpenAI tier or lower wait if 546.
         const chunkSize = (() => {
