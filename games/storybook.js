@@ -339,6 +339,7 @@
   /** Outgoing duplex on #sbSpreadArtPeel rotates away above it. */
   var spreadArtPeelShell = document.getElementById("sbSpreadArtPeel");
   var spreadArtPeelImg = document.getElementById("sbSpreadArtPeelImg");
+  var spreadPeelBackText = document.getElementById("sbSpreadPeelBackText");
   var readerStack = document.getElementById("sbReaderStack");
   var readerPages = document.getElementById("sbReaderPages");
   var btnOpenCover = document.getElementById("sbOpenCover");
@@ -676,11 +677,13 @@
         "sb-flip-spread__inner--turn-in-next",
         "sb-flip-spread__inner--turn-in-prev",
         "sb-flip-spread__inner--fade-out",
-        "sb-flip-spread__inner--fade-in"
+        "sb-flip-spread__inner--fade-in",
+        "sb-flip-spread__inner--peel-turning"
       );
     }
     clearSpreadPeelTurnClasses();
     clearSpreadTurnRevealFx();
+    clearPeelBackTextColumn();
   }
 
   function bindCpShellTurnEnd(shell, cb) {
@@ -720,28 +723,40 @@
       return;
     }
 
-    var fromSi = spreadIndex;
-    spreadIndex += delta;
     var nSpr = numSpreads();
-    spreadIndex = Math.max(0, Math.min(spreadIndex, nSpr - 1));
+    var fromSi = spreadIndex;
+    var toSi = Math.max(0, Math.min(spreadIndex + delta, nSpr - 1));
+    if (toSi === fromSi) return;
+
+    var outgoingUrl = illustrationUrlAtSpreadIndex(fromSi);
+    var incomingUrl = illustrationUrlAtSpreadIndex(toSi);
+    /* Full-bleed peel needs art on both sides; otherwise a blank half covers the text (white “flap”). */
+    if (!outgoingUrl || !incomingUrl) {
+      navigateSpreadInstant(delta);
+      return;
+    }
+
+    spreadIndex = toSi;
 
     spreadAnimLock = true;
     setSpreadNavBusy(true);
     clearSpreadPeelTurnClasses();
     clearSpreadTurnRevealFx();
+    if (spreadInnerEl) {
+      spreadInnerEl.classList.add("sb-flip-spread__inner--peel-turning");
+    }
 
-    /* Destination prose + incoming duplex on base (#sbSpreadArtCover); peel rotates away over it */
-    applySpreadContent({ skipArt: true });
+    /* Duplex under peel shows incoming spread; recto = outgoing illustration, verso = incoming illustration + left-column copy. */
     syncSpreadIllustrationFromStory();
+    writeSpreadTextMetaFromStory(fromSi);
+    fillPeelBackTextColumn(spreadIndex);
+    updatePagerHints();
 
     var peelImg =
       spreadArtPeelImg || document.getElementById("sbSpreadArtPeelImg");
     var peelBackImg = document.getElementById("sbSpreadArtPeelBackImg");
     var outgoingLeftShell = document.getElementById("sbSpreadArtOutgoingLeft");
     var outgoingLeftImg = document.getElementById("sbSpreadArtOutgoingLeftImg");
-
-    var outgoingUrl = illustrationUrlAtSpreadIndex(fromSi);
-    var incomingUrl = illustrationUrlAtSpreadIndex(spreadIndex);
 
     if (peelImg) {
       peelImg.alt = "";
@@ -776,9 +791,14 @@
     peelShell.hidden = false;
     peelShell.removeAttribute("hidden");
     if (outgoingLeftShell) {
-      outgoingLeftShell.hidden = false;
-      outgoingLeftShell.removeAttribute("hidden");
-      outgoingLeftShell.style.display = "block";
+      if (outgoingUrl) {
+        outgoingLeftShell.hidden = false;
+        outgoingLeftShell.removeAttribute("hidden");
+        outgoingLeftShell.style.display = "block";
+      } else {
+        outgoingLeftShell.hidden = true;
+        outgoingLeftShell.style.display = "none";
+      }
     }
 
     var isNext = delta > 0;
@@ -788,22 +808,24 @@
 
     window.requestAnimationFrame(function () {
       peelShell.classList.add(cls1);
-      if (spreadTextClip) {
-        spreadTextClip.classList.add("sb-flip-text__clip--reveal-turn");
-      }
 
       bindCpShellTurnEnd(peelShell, function peelTurnDone() {
         clearSpreadPeelTurnClasses();
         clearSpreadTurnRevealFx();
+        if (spreadInnerEl) {
+          spreadInnerEl.classList.remove("sb-flip-spread__inner--peel-turning");
+        }
+        clearPeelBackTextColumn();
         if (peelImg) peelImg.removeAttribute("src");
         if (peelBackImg) peelBackImg.removeAttribute("src");
         if (outgoingLeftImg) outgoingLeftImg.removeAttribute("src");
-        
+
         peelShell.hidden = true;
         if (outgoingLeftShell) {
           outgoingLeftShell.hidden = true;
           outgoingLeftShell.style.display = "none";
         }
+        writeSpreadTextMetaFromStory();
         spreadAnimLock = false;
         setSpreadNavBusy(false);
       });
@@ -840,20 +862,13 @@
 
   function syncCloseBookButton() {
     if (!btnCloseBook) return;
-    var opening =
-      readerStack &&
-      readerStack.classList.contains("sb-reader-stack--opening");
     var readerOpen =
       readerStack &&
       readerStack.classList.contains("sb-reader-stack--open");
     var coverShowing =
       book && book.classList.contains("sb-book--cover-visible");
     var show =
-      book &&
-      story &&
-      readerOpen &&
-      !coverShowing &&
-      !opening;
+      book && story && readerOpen && !coverShowing;
     if (show) {
       btnCloseBook.hidden = false;
       btnCloseBook.removeAttribute("aria-hidden");
@@ -867,10 +882,7 @@
     stopReading();
     if (!book || !readerStack) return;
     if (book.classList.contains("sb-book--cover-visible")) return;
-    if (
-      !readerStack.classList.contains("sb-reader-stack--open") &&
-      !readerStack.classList.contains("sb-reader-stack--opening")
-    ) {
+    if (!readerStack.classList.contains("sb-reader-stack--open")) {
       return;
     }
 
@@ -880,10 +892,7 @@
     clearSpreadTurnClasses();
     setSpreadNavBusy(false);
 
-    readerStack.classList.remove(
-      "sb-reader-stack--open",
-      "sb-reader-stack--opening"
-    );
+    readerStack.classList.remove("sb-reader-stack--open");
     book.classList.add("sb-book--cover-visible");
     if (readerPages) readerPages.setAttribute("aria-hidden", "true");
     if (btnOpenCover) {
@@ -898,58 +907,26 @@
     if (!book || !book.classList.contains("sb-book--cover-visible")) return;
     if (!readerStack) return;
 
-    function finishOpen() {
-      readerStack.classList.add("sb-reader-stack--open");
-      readerStack.classList.remove("sb-reader-stack--opening");
-      book.classList.remove("sb-book--cover-visible");
-      if (readerPages) readerPages.removeAttribute("aria-hidden");
-      if (btnOpenCover) {
-        btnOpenCover.setAttribute("aria-hidden", "true");
-        btnOpenCover.tabIndex = -1;
-      }
-      syncCloseBookButton();
-      updatePagerHints();
-    }
-
-    if (prefersReducedSpreadMotion() || (story && story.isSample)) {
-      finishOpen();
-      return;
-    }
+    spreadIndex = 0;
+    syncSpreadIllustrationFromStory();
+    writeSpreadTextMetaFromStory(0);
 
     coverOpenGeneration += 1;
-    var myGen = coverOpenGeneration;
-    var pivotEl = document.getElementById("sbCoverPivot");
-    var finished = false;
-
-    function done() {
-      if (myGen !== coverOpenGeneration || finished) return;
-      finished = true;
-      if (pivotEl) {
-        pivotEl.removeEventListener("transitionend", onPivotEnd);
-      }
-      finishOpen();
+    readerStack.classList.add("sb-reader-stack--open");
+    book.classList.remove("sb-book--cover-visible");
+    if (readerPages) readerPages.removeAttribute("aria-hidden");
+    if (btnOpenCover) {
+      btnOpenCover.setAttribute("aria-hidden", "true");
+      btnOpenCover.tabIndex = -1;
     }
-
-    function onPivotEnd(ev) {
-      if (!pivotEl || ev.target !== pivotEl) return;
-      if (!isTransformTransitionProperty(ev.propertyName || "")) return;
-      done();
-    }
-
-    readerStack.classList.add("sb-reader-stack--opening");
-    if (pivotEl) {
-      pivotEl.addEventListener("transitionend", onPivotEnd);
-    }
-    window.setTimeout(done, 1350);
+    syncCloseBookButton();
+    updatePagerHints();
   }
 
   function resetBookCoverForWizard() {
     coverOpenGeneration += 1;
     if (readerStack) {
-      readerStack.classList.remove(
-        "sb-reader-stack--open",
-        "sb-reader-stack--opening"
-      );
+      readerStack.classList.remove("sb-reader-stack--open");
     }
     if (book) book.classList.remove("sb-book--cover-visible");
     if (readerPages) readerPages.setAttribute("aria-hidden", "true");
@@ -1031,6 +1008,7 @@
     book.style.removeProperty("--sb-reader-font-emphasis");
     book.classList.remove("sb-book--themed");
     book.style.backgroundImage = "";
+    book.style.removeProperty("--sb-cover-inside-art");
     if (coverPanel) {
       coverPanel.classList.remove("sb-cover__panel--themed");
       coverPanel.style.removeProperty("--sb-cover-photo");
@@ -1170,33 +1148,86 @@
     return htmlLines.join("<br/>");
   }
 
+  function clearPeelBackTextColumn() {
+    if (spreadPeelBackText) spreadPeelBackText.innerHTML = "";
+  }
+
+  /**
+   * Left column content for one spread (prose words HTML, The End block, or empty).
+   * @param {number} si
+   * @returns {{ kind: "empty"|"theend"|"prose", html?: string }}
+   */
+  function spreadLeftColumnBlockAtSi(si) {
+    if (!story || !story.pages || !story.pages.length) {
+      return { kind: "empty" };
+    }
+    var n = numSpreads();
+    if (n < 1) return { kind: "empty" };
+    si = Math.max(0, Math.min(Number(si), n - 1));
+    if (si * 2 >= story.pages.length) {
+      return {
+        kind: "theend",
+        html:
+          '<div class="sb-the-end-wrap" role="status">' +
+          '<h2 class="sb-the-end-title">The End</h2>' +
+          '<p class="sb-the-end-lead">We hope you enjoyed the story!</p>' +
+          "</div>",
+      };
+    }
+    var leftP = story.pages[si * 2];
+    if (leftP && leftP.text) {
+      return { kind: "prose", html: storyPageTextToReadableHtml(leftP.text) };
+    }
+    return { kind: "empty" };
+  }
+
+  function fillPeelBackTextColumn(si) {
+    if (!spreadPeelBackText) return;
+    var block = spreadLeftColumnBlockAtSi(si);
+    if (block.kind === "prose" && block.html) {
+      spreadPeelBackText.innerHTML =
+        '<p class="sb-flip-text"><span class="sb-flip-text__highlight">' +
+        block.html +
+        "</span></p>";
+    } else if (block.kind === "theend" && block.html) {
+      spreadPeelBackText.innerHTML = block.html;
+    } else {
+      spreadPeelBackText.innerHTML = "";
+    }
+  }
+
   function openSampleBook() {
     story = buildSampleStory();
     spreadIndex = 0;
     showBook();
   }
 
-  function writeSpreadTextMetaFromStory() {
+  /** @param {number} [textSiOverride]  During peel: show left-page copy for this spread index (caller keeps global spreadIndex at destination). */
+  function writeSpreadTextMetaFromStory(textSiOverride) {
     if (!story || !spreadText) return;
     var n = numSpreads();
     if (n < 1) return;
-    spreadIndex = Math.max(0, Math.min(spreadIndex, n - 1));
-    
-    stopReading(); // Stop any playing audio when page turns
-    
-    if (spreadIndex * 2 >= story.pages.length) {
-      spreadText.innerHTML =
-        '<div class="sb-the-end-wrap" role="status">' +
-        '<h2 class="sb-the-end-title">The End</h2>' +
-        '<p class="sb-the-end-lead">We hope you enjoyed the story!</p>' +
-        "</div>";
-      if (spreadTextActions) spreadTextActions.hidden = true;
+    var si;
+    if (textSiOverride !== undefined && textSiOverride !== null) {
+      si = Math.max(0, Math.min(Number(textSiOverride), n - 1));
+    } else {
+      spreadIndex = Math.max(0, Math.min(spreadIndex, n - 1));
+      si = spreadIndex;
+    }
+
+    stopReading();
+
+    var block = spreadLeftColumnBlockAtSi(si);
+    if (block.kind === "theend" && block.html) {
+      spreadText.innerHTML = block.html;
+      if (spreadTextActions) {
+        spreadTextActions.hidden = true;
+        spreadTextActions.style.display = "none";
+      }
       return;
     }
-    var i = spreadIndex * 2;
-    var leftP = story.pages[i];
-    if (leftP && leftP.text) {
-      spreadText.innerHTML = storyPageTextToReadableHtml(leftP.text);
+    if (block.kind === "prose" && block.html) {
+      spreadText.innerHTML = block.html;
 
       var wordSpans = spreadText.querySelectorAll(".sb-readable-word");
       for (var w = 0; w < wordSpans.length; w++) {
@@ -1209,17 +1240,16 @@
           }
         });
       }
-    } else {
-      spreadText.innerHTML = "";
-    }
-    if (spreadTextActions) {
-      if (!leftP || !leftP.text) {
-        spreadTextActions.hidden = true;
-        spreadTextActions.style.display = "none";
-      } else {
+      if (spreadTextActions) {
         spreadTextActions.hidden = false;
         spreadTextActions.style.display = "flex";
       }
+      return;
+    }
+    spreadText.innerHTML = "";
+    if (spreadTextActions) {
+      spreadTextActions.hidden = true;
+      spreadTextActions.style.display = "none";
     }
   }
 
@@ -1282,7 +1312,7 @@
   }
 
   /**
-   * @param {{ skipArt?: boolean }} opt  — skipArt while anim: text updated, base art set via `syncSpreadIllustrationFromStory` in navigator
+   * @param {{ skipArt?: boolean }} opt  — skipArt defers `syncSpreadIllustrationFromStory` (page-turn path syncs art separately)
    */
   function applySpreadContent(opt) {
     opt = opt || {};
@@ -2772,10 +2802,7 @@
       );
     }
     if (readerStack) {
-      readerStack.classList.remove(
-        "sb-reader-stack--open",
-        "sb-reader-stack--opening"
-      );
+      readerStack.classList.remove("sb-reader-stack--open");
     }
     if (readerPages) readerPages.setAttribute("aria-hidden", "true");
     if (btnOpenCover) {
@@ -2783,6 +2810,15 @@
       btnOpenCover.removeAttribute("tabindex");
     }
     if (book) book.classList.add("sb-book--cover-visible");
+    if (book) {
+      var inArt = illustrationUrlAtSpreadIndex(0);
+      if (inArt) {
+        var esc = String(inArt).replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+        book.style.setProperty("--sb-cover-inside-art", 'url("' + esc + '")');
+      } else {
+        book.style.removeProperty("--sb-cover-inside-art");
+      }
+    }
     applyBookThemingFromStory();
     renderSpread();
     syncCloseBookButton();

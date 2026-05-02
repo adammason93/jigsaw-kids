@@ -20,8 +20,10 @@
   --sb-flip-darker: #831843;
   --sb-flip-paper: #ffffff;
   --sb-flip-desk: #cbc0e6;
-  /* Matches .sb-flip-spread__inner height so cover and first spread line up */
-  --sb-book-inner-h: clamp(240px, min(52vw, 54vh), 460px);
+  /* Open spread height; width follows aspect-ratio on .sb-flip-spread__inner (portrait book, crease centered) */
+  --sb-book-inner-h: clamp(288px, min(70dvh, 82vh), 640px);
+  /* width ≈ height × this (7/10 → taller than wide); kept for cover / reader width calcs */
+  --sb-book-spread-w-factor: 0.7;
 }
 
 /* Landing: magical room art edge-to-edge; hidden during immersive reader */
@@ -57,50 +59,47 @@ body.page-storybook.sb-route-story .sb-landing__left {
 
 @media (min-width: 640px) {
   .page-storybook {
-    --sb-book-inner-h: clamp(268px, min(48vw, 52vh), 480px);
+    --sb-book-inner-h: clamp(300px, min(72dvh, 84vh), 660px);
   }
 }
 
-/* Portrait: viewport width is the short edge — min(vw, vh) formulas wrongly pick vw and squash the spread. */
 @media (min-width: 640px) and (orientation: portrait) {
   .page-storybook {
-    --sb-book-inner-h: clamp(268px, min(58dvh, 56vh, 92vw), 520px);
+    --sb-book-inner-h: clamp(300px, min(68dvh, 78vh), 640px);
   }
 
   .sb-reader-stack {
-    min-height: clamp(280px, min(60dvh, 62vh, 94vw), 540px);
+    min-height: clamp(320px, min(72dvh, 80vh), 680px);
   }
 }
 
-/* Compact / tablet / short landscape: avoid laptop-sized vw with tiny vh (book looked wide but vertically crushed; text clipped). */
 @media (max-width: 1200px) {
   .page-storybook {
-    --sb-book-inner-h: clamp(252px, min(48vw, 58dvh, 56vh), 548px);
+    --sb-book-inner-h: clamp(280px, min(66dvh, 80vh), 620px);
   }
 
   .sb-reader-stack {
-    min-height: clamp(265px, min(50vw, 60dvh, 58vh), 568px);
+    min-height: clamp(300px, min(70dvh, 82vh), 640px);
   }
 }
 
 @media (max-width: 1200px) and (orientation: landscape) and (max-height: 900px) {
   .page-storybook {
-    /* Height was often driven by 52vh or vw — too squat vs full spread width; bias dvh so the book scales with viewport height. */
-    --sb-book-inner-h: clamp(280px, min(68dvh, 65vh, 50vw), 548px);
+    --sb-book-inner-h: clamp(292px, min(72dvh, 74vh), 580px);
   }
 
   .sb-reader-stack {
-    min-height: clamp(292px, min(70dvh, 67vh, 52vw), 568px);
+    min-height: clamp(308px, min(74dvh, 76vh), 600px);
   }
 }
 
 @media (max-width: 1200px) and (orientation: portrait) {
   .page-storybook {
-    --sb-book-inner-h: clamp(276px, min(54dvh, 52vh, 88vw), 580px);
+    --sb-book-inner-h: clamp(292px, min(64dvh, 76vh), 620px);
   }
 
   .sb-reader-stack {
-    min-height: clamp(290px, min(56dvh, 54vh, 90vw), 600px);
+    min-height: clamp(308px, min(68dvh, 78vh), 640px);
   }
 }
 
@@ -2175,14 +2174,19 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  min-height: clamp(260px, min(56vw, 58vh), 500px);
+  min-height: clamp(300px, min(72dvh, 84vh), 680px);
+  container-type: inline-size;
+  container-name: sb-reader;
 }
 
 /* Book plate: perspective + preserve-3d so cover hinge reads as real rotation, not a flat fade. */
 .sb-reader-book {
   position: relative;
   width: 100%;
-  max-width: calc(920px + 0.9rem);
+  max-width: min(
+    calc(100% - 1rem),
+    calc(var(--sb-book-inner-h) * var(--sb-book-spread-w-factor) + 3.75rem)
+  );
   margin-left: auto;
   margin-right: auto;
   border-radius: 14px;
@@ -2190,15 +2194,31 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   perspective: min(1400px, 160vw);
   perspective-origin: center center;
   transform-style: preserve-3d;
+  transform: translate3d(0, 0, 0);
+  /* Match simple book-open demo: plate widens in step with the cover hinge */
+  transition: max-width 0.8s ease;
 }
 
-/* Cover width matches spread; preserve-3d on button so child rotateY is visible. */
+/* Open: plate width matches two-page .sb-flip-spread__inner; bias perspective toward hinge (left). */
+.sb-reader-stack--open .sb-reader-book {
+  perspective-origin: 18% 50%;
+  max-width: min(
+    calc(100% - 1rem),
+    calc(var(--sb-book-inner-h) * var(--sb-book-spread-w-factor) * 2),
+    calc(100vw - 2rem)
+  );
+}
+
+/* Cover hinge is transform-origin left on .sb-cover__pivot; anchor the element to the left edge of the plate. */
 .sb-cover {
   position: absolute;
   z-index: 3;
   top: 0.45rem;
-  left: 50%;
-  width: min(920px, calc(100% - 1.25rem));
+  left: 0;
+  width: min(
+    calc(var(--sb-book-inner-h) * var(--sb-book-spread-w-factor)),
+    calc(100% - 1.25rem)
+  );
   height: var(--sb-book-inner-h);
   padding: 0;
   margin: 0;
@@ -2206,24 +2226,9 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   background: transparent;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  transform: translate3d(-50%, 0, 0);
+  transform: translate3d(0, 0, 0);
   transform-style: preserve-3d;
-}
-
-.sb-book.sb-book--cover-visible:not(.sb-reader--sample)
-  .sb-reader-stack.sb-reader-stack--opening
-  .sb-cover {
-  transform: translate3d(-50%, 0, 0);
-  -webkit-transform: translate3d(-50%, 0, 0);
-  transition: transform 1.12s cubic-bezier(0.28, 0.85, 0.32, 1);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .sb-book.sb-book--cover-visible .sb-reader-stack:not(.sb-reader-stack--opening) .sb-cover {
-    transform: translate3d(-50%, 0, 0);
-    -webkit-transform: translate3d(-50%, 0, 0);
-    transition: transform 0.2s ease;
-  }
+  /* Hinge at plate left (spine); closed-book spine centration is .sb-reader-book translateX, not this layer. */
 }
 
 .sb-cover__pivot {
@@ -2233,13 +2238,8 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   position: relative;
   transform-style: preserve-3d;
   transform-origin: left center;
-  transition: transform 1.12s cubic-bezier(0.28, 0.85, 0.32, 1);
+  transition: transform 0.8s ease;
   will-change: transform;
-}
-
-.sb-reader-stack--opening .sb-cover__pivot {
-  transform: rotateY(-180deg);
-  box-shadow: 2px 2px 14px rgba(0, 0, 0, 0.12);
 }
 
 .sb-cover__outside,
@@ -2259,6 +2259,7 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
 
 .sb-cover__inside {
   display: block;
+  position: relative;
   background: linear-gradient(
     155deg,
     #fffdf8 0%,
@@ -2271,17 +2272,17 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   transform: rotateY(180deg);
 }
 
-.sb-reader-stack--opening .sb-cover__outside::after {
+.sb-cover__inside::before {
   content: "";
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background: rgba(0, 0, 0, 0.07);
+  background-image: var(--sb-cover-inside-art, none);
+  background-size: cover;
+  background-position: center center;
+  opacity: 0.42;
   pointer-events: none;
-}
-
-.sb-reader-stack--opening .sb-cover__deco {
-  filter: none;
+  z-index: 0;
 }
 
 .sb-cover__face {
@@ -2409,36 +2410,33 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   transform: translateY(4px);
   pointer-events: none;
   transition:
-    opacity 0.35s ease,
-    transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+    opacity 0.8s ease,
+    transform 0.8s ease;
 }
 
-/* Pages sit behind cover at full opacity — opening reads as a 3D swing, not a cross-fade. */
-.sb-reader-stack--opening .sb-reader-pages {
-  position: relative;
-  z-index: 1;
-  opacity: 1;
-  transform: translateY(0);
-  pointer-events: none;
-  transition: none;
-}
-
+/* Open book: plate fits two-page spread */
 .sb-reader-stack--open .sb-reader-pages {
   position: relative;
   z-index: 4;
   opacity: 1;
   transform: translateY(0);
   pointer-events: auto;
+  margin-left: 0;
+  width: 100%;
+  max-width: none;
+  box-sizing: border-box;
 }
 
-/* Once open, remove cover from paint/layout */
+/* Open: hinge cover aside (same idea as a simple CSS book: translate plate + rotateY on transform-origin left). */
 .sb-reader-stack--open .sb-cover {
-  display: none;
+  z-index: 2;
+  pointer-events: none;
+  cursor: default;
 }
 
-.sb-reader-stack--opening .sb-cover {
-  z-index: 10;
-  pointer-events: none;
+.sb-reader-stack--open .sb-cover__pivot {
+  transform: rotateY(-165deg);
+  box-shadow: 2px 2px 14px rgba(0, 0, 0, 0.12);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -2450,8 +2448,13 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
     transition: none;
   }
 
-  .sb-reader-stack--opening .sb-cover__pivot {
-    transform: none;
+  .sb-reader-book,
+  .sb-book.sb-book--immersive .sb-reader-book {
+    transition: none;
+  }
+
+  .sb-flip-spread__inner {
+    transition: none;
   }
 
   .sb-turn-leaf {
@@ -2470,6 +2473,11 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
     animation: none !important;
     clip-path: none !important;
     -webkit-clip-path: none !important;
+  }
+
+  .sb-flip-spread__inner--peel-turning .sb-flip-left-shell .sb-flip-page--text {
+    animation: none !important;
+    opacity: 1 !important;
   }
 
   .sb-flip-spread {
@@ -2506,7 +2514,10 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
 
 /* Open-book spread: shelf-like depth (subtle tilt) + red frame + gutter */
 .sb-flip-spread {
-  width: 100%;
+  width: fit-content;
+  max-width: 100%;
+  margin-left: auto;
+  margin-right: auto;
   padding: 0;
   background: var(--sb-flip-desk);
   border-radius: 6px;
@@ -2535,22 +2546,36 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   position: relative;
   display: flex;
   align-items: stretch;
-  width: 100%;
-  max-width: 920px;
-  margin: 0 auto;
+  width: min(
+    calc(var(--sb-book-inner-h) * var(--sb-book-spread-w-factor)),
+    calc(100vw - 2rem)
+  );
+  max-width: min(100%, calc(100vw - 2rem));
   height: var(--sb-book-inner-h);
+  margin: 0 auto;
   border: 0;
   border-radius: 6px;
   background: var(--sb-flip-paper);
   box-sizing: border-box;
   box-shadow: none;
   overflow: hidden;
+  transition: width 0.8s ease;
   /* Required for gutter 3D page turns; `flat` flattens descendants and breaks rotateY peels on Safari/WebKit */
   transform-style: preserve-3d;
-  perspective: min(135vw, 2400px);
-  -webkit-perspective: min(135vw, 2400px);
+  perspective: min(720px, max(52vw, 380px));
+  -webkit-perspective: min(720px, max(52vw, 380px));
   perspective-origin: center center;
   -webkit-perspective-origin: center center;
+}
+
+/* Two-page spread: 2× the closed cover width, same height */
+.sb-reader-stack--open .sb-flip-spread__inner {
+  width: min(
+    calc(var(--sb-book-inner-h) * var(--sb-book-spread-w-factor) * 2),
+    calc(100vw - 2rem)
+  );
+  perspective: min(1200px, max(72vw, 420px));
+  -webkit-perspective: min(1200px, max(72vw, 420px));
 }
 
 .sb-flip-spread__inner.sb-flip-spread__inner--fade-out {
@@ -2592,12 +2617,9 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
 }
 
 .sb-flip-spread__inner--has-art {
-  /* Fill the full spread width (immersive reader-book can be >920px; else desk colour shows as side bars) */
-  max-width: none;
-  width: 100%;
-  /* Single zoom only on .sb-flip-spread__art-cover — never also on .sb-flip-spread__art-bg (would compound ~scale² and crop casts).
-   * >1 cropsinto the bitmap — GPT/DALL·E squares often include white matting; ~1.1 hides most of it while staying full-bleed on the paper. */
-  --sb-spread-art-scale: 1.1;
+  max-width: min(100%, calc(100vw - 2rem));
+  /* Keep 1: opening from a narrow plate to a double spread no longer jumps perceived “zoom”; slight crop tradeoff vs matting. */
+  --sb-spread-art-scale: 1;
   /* Soft paper tint so transparency never reveals two-tone “desk” bands under the shells */
   background: radial-gradient(
     ellipse 130% 88% at 50% 42%,
@@ -2643,6 +2665,27 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   backface-visibility: hidden;
   transform: translateZ(0) scale(var(--sb-spread-art-scale, 1));
   transform-origin: center center;
+}
+
+/* While the peel animates, stack it above static left-column type so the verso (art + copy) sweeps over outgoing text */
+.sb-flip-spread__inner.sb-flip-spread__inner--peel-turning .sb-flip-spread__art-peel {
+  z-index: 6;
+}
+
+/* Drop outgoing left-column copy early so it does not overlap incoming verso type mid-turn */
+@keyframes sb-peel-fade-outgoing-text {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
+
+.sb-flip-spread__inner--peel-turning .sb-flip-left-shell .sb-flip-page--text {
+  animation: sb-peel-fade-outgoing-text 0.18s cubic-bezier(0.45, 0, 0.75, 1) forwards;
+  pointer-events: none;
 }
 
 /* One leaf turns: right-hand page only, hinged at the gutter (normative book forward turn) */
@@ -2708,6 +2751,35 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   left: 0;
   top: 0;
   position: absolute;
+  z-index: 0;
+}
+
+/* Incoming left-page copy on the verso — same legibility treatment as .sb-flip-page--text */
+.sb-flip-spread__peel-back-text {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  padding: max(0.45rem, env(safe-area-inset-top, 0px))
+    max(0.65rem, env(safe-area-inset-right, 0px)) max(0.45rem, env(safe-area-inset-bottom, 0px))
+    max(0.65rem, env(safe-area-inset-left, 0px));
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.sb-flip-spread__peel-back-text .sb-flip-text {
+  margin: 0;
+  width: 100%;
+  max-width: min(32rem, 92%);
+  text-align: center;
+}
+
+.sb-flip-spread__inner--has-art .sb-flip-spread__peel-back-text .sb-flip-text {
+  max-width: min(32rem, 92%);
 }
 
 .sb-flip-spread__art-outgoing-left {
@@ -3436,8 +3508,8 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   }
 
   .sb-book.sb-book--immersive {
-    /* Avoid min(58dvh, 58vw): in landscape vw is huge but dvh is the real limit; in portrait vw is the narrow edge and wrongly caps height → letterboxing. */
-    --sb-book-inner-h: clamp(300px, min(76dvh, 74vh, 56vw), 640px);
+    /* Bias height (dvh) for a portrait spread; width comes from aspect-ratio on the spread */
+    --sb-book-inner-h: clamp(300px, min(78dvh, 86vh), 660px);
     position: fixed;
     inset: 0;
     z-index: 40;
@@ -3569,7 +3641,21 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   }
 
   .sb-book.sb-book--immersive .sb-reader-book {
-    max-width: min(980px, 98vw);
+    max-width: min(
+      calc(100% - 1rem),
+      calc(var(--sb-book-inner-h) * var(--sb-book-spread-w-factor) + 3.75rem),
+      720px
+    );
+    transition: max-width 0.8s ease;
+  }
+
+  .sb-book.sb-book--immersive .sb-reader-stack--open .sb-reader-book {
+    max-width: min(
+      calc(100% - 1rem),
+      calc(var(--sb-book-inner-h) * var(--sb-book-spread-w-factor) * 2),
+      calc(100vw - 2rem),
+      min(960px, 98vw)
+    );
   }
 
   .sb-book.sb-book--immersive .sb-book__actions-dock {
@@ -3701,7 +3787,7 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
 
 @media (min-width: 768px) and (orientation: portrait) {
   .sb-book.sb-book--immersive {
-    --sb-book-inner-h: clamp(320px, min(82dvh, 94vw), 680px);
+    --sb-book-inner-h: clamp(320px, min(84dvh, 90vh), 700px);
   }
 
   .sb-book.sb-book--immersive .sb-reader-stack {
@@ -3736,7 +3822,7 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
 /* Touch tablets / phones: slightly less art zoom — still full-bleed cover, less aggressive crop on short viewports. */
 @media (max-width: 1100px) and (hover: none) and (pointer: coarse) {
   .sb-flip-spread__inner--has-art {
-    --sb-spread-art-scale: 1.05;
+    --sb-spread-art-scale: 1;
   }
 }
 
