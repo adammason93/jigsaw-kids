@@ -1127,8 +1127,38 @@ body.sb-portal-welcome-open {
 .sb-modal__progress {
   display: flex;
   justify-content: center;
-  gap: 0.35rem;
+  gap: 0.2rem;
   margin-bottom: 0.85rem;
+  flex-wrap: wrap;
+}
+
+.sb-progress-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.22rem;
+  min-width: 2.85rem;
+}
+
+.sb-progress-step__label {
+  font-size: 0.6rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #be185d;
+  opacity: 0.72;
+  line-height: 1.1;
+  text-align: center;
+  max-width: 4.2rem;
+}
+
+.sb-progress-step.is-current .sb-progress-step__label {
+  opacity: 1;
+  color: #9d174d;
+}
+
+.sb-progress-step.is-done .sb-progress-step__label {
+  opacity: 0.85;
 }
 
 .sb-dot {
@@ -1139,11 +1169,11 @@ body.sb-portal-welcome-open {
   transition: transform 0.15s, background 0.15s;
 }
 
-.sb-dot.is-done {
+.sb-progress-step.is-done .sb-dot {
   background: #f472b6;
 }
 
-.sb-dot.is-current {
+.sb-progress-step.is-current .sb-dot {
   background: #db2777;
   transform: scale(1.2);
 }
@@ -1162,10 +1192,50 @@ body.sb-portal-welcome-open {
   font-family: "Sniglet", "Nunito", sans-serif;
   font-size: clamp(1.45rem, 4.5vw, 1.7rem);
   font-weight: 800;
-  margin: 0 0 1rem;
+  margin: 0 0 0.35rem;
   color: #9d174d;
   text-align: center;
   text-shadow: 0 2px 0 rgba(251, 207, 232, 0.8);
+}
+
+.sb-modal__read-step-wrap {
+  text-align: center;
+  margin: 0 0 0.75rem;
+}
+
+.sb-read-step {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  margin: 0;
+  padding: 0.4rem 0.85rem;
+  border-radius: 999px;
+  border: 2px solid rgba(219, 39, 119, 0.35);
+  background: rgba(252, 231, 243, 0.95);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #9d174d;
+  cursor: pointer;
+  touch-action: manipulation;
+  box-shadow: 0 2px 0 rgba(219, 39, 119, 0.12);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.sb-read-step:active {
+  transform: translateY(1px);
+}
+
+.sb-panel__why {
+  margin: 0 0 0.75rem;
+  font-size: 0.84rem;
+  font-weight: 700;
+  font-style: italic;
+  color: #86143f;
+  line-height: 1.45;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.85);
+  opacity: 0.95;
 }
 
 .sb-panel__text {
@@ -1643,6 +1713,60 @@ body.sb-portal-welcome-open {
   color: #831843;
   transform: translateY(1px);
   box-shadow: 0 1px 0 rgba(219, 39, 119, 0.15);
+}
+
+.sb-chip--with-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.75rem;
+}
+
+.sb-chip__ic {
+  font-size: 1.05rem;
+  line-height: 1;
+}
+
+.sb-chip__lbl {
+  line-height: 1.2;
+}
+
+.sb-plot-starters-label {
+  margin: 0.55rem 0 0.4rem;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #be185d;
+}
+
+.sb-plot-starters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0 0 0.65rem;
+}
+
+.sb-plot-starter {
+  padding: 0.38rem 0.72rem;
+  border-radius: 999px;
+  border: 2px dashed rgba(219, 39, 119, 0.4);
+  background: rgba(255, 255, 255, 0.92);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #701a36;
+  cursor: pointer;
+  touch-action: manipulation;
+  text-align: left;
+  line-height: 1.3;
+  transition: background 0.12s ease, border-color 0.12s ease;
+  max-width: 100%;
+}
+
+.sb-plot-starter:active {
+  background: #fce7f3;
+  border-style: solid;
 }
 
 .sb-note {

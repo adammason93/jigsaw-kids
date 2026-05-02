@@ -9,7 +9,7 @@
   <link rel="manifest" href="../manifest.json" />
   <link rel="stylesheet" href="../js/kids-core.css" />
   <!-- storybook-app.css = renamed file so CDN/browser cache cannot keep old storybook.css -->
-  <link rel="stylesheet" href="storybook-app.css?v=81" />
+  <link rel="stylesheet" href="storybook-app.css?v=82" />
   <link rel="stylesheet" href="../tablet-ipad.css" />
   <!-- Last wins: guarantees new background even if a proxy cached an ancient stylesheet elsewhere -->
   <style>
@@ -135,8 +135,14 @@
         <p class="sb-note sb-note--modal" id="sbModalError" role="alert" hidden></p>
         <p class="sb-modal__kicker" id="sbStepKicker">Step 1 of 5</p>
         <h2 class="sb-modal__heading" id="sbStepHeading">Hello!</h2>
+        <div class="sb-modal__read-step-wrap">
+          <button type="button" class="sb-read-step" id="sbReadStepBtn" aria-label="Read this step out loud">
+            <span aria-hidden="true">🔊</span> Read this to me
+          </button>
+        </div>
 
         <div class="sb-panel is-active" data-panel="0" id="sbPanel0">
+          <p class="sb-panel__why" id="sbPanelWhy0">Every story starts with hello — there are no wrong answers here.</p>
           <p class="sb-panel__text">
             We’ll ask who you are, who your buddy is, where you go, and what happens.
             Grown-ups: turn on story magic in Settings (⚙️) when you’re ready — sign in so books can be saved.
@@ -147,6 +153,7 @@
         </div>
 
         <div class="sb-panel" data-panel="1" id="sbPanel1" hidden>
+          <p class="sb-panel__why" id="sbPanelWhy1">We’ll use this for your hero on every page.</p>
           <label class="sb-label" for="sbName">What’s your name in the story?</label>
           <div class="sb-voice-row">
             <input class="sb-input sb-input--flex" id="sbName" type="text" maxlength="24" autocomplete="given-name" placeholder="Your name or tap Speak" />
@@ -236,6 +243,7 @@
         </div>
 
         <div class="sb-panel" data-panel="2" id="sbPanel2" hidden>
+          <p class="sb-panel__why" id="sbPanelWhy2">A buddy is optional — you can tell a people-only tale.</p>
           <p class="sb-panel__hint">Pick a buddy — or no buddy for a people-only story.</p>
           <div class="sb-chip-row" id="sbCharacters" role="radiogroup" aria-label="Character"></div>
           <div class="sb-modal__actions sb-modal__actions--split">
@@ -245,6 +253,7 @@
         </div>
 
         <div class="sb-panel" data-panel="3" id="sbPanel3" hidden>
+          <p class="sb-panel__why" id="sbPanelWhy3">One tap sets the stage; you can still add more in your story idea.</p>
           <p class="sb-panel__hint">Where should it happen?</p>
           <div class="sb-chip-row" id="sbPlaces" role="radiogroup" aria-label="Place"></div>
           <div class="sb-modal__actions sb-modal__actions--split">
@@ -254,6 +263,7 @@
         </div>
 
         <div class="sb-panel" data-panel="4" id="sbPanel4" hidden>
+          <p class="sb-panel__why" id="sbPanelWhy4">We only need a little idea — one sentence is enough.</p>
           <label class="sb-label" for="sbPlot">What happens? (a little idea is enough)</label>
           <textarea
             class="sb-textarea"
@@ -262,6 +272,8 @@
             maxlength="800"
             placeholder="Type or tap Speak — tell us what happens."
           ></textarea>
+          <p class="sb-plot-starters-label" id="sbPlotStartersLabel">Try an idea:</p>
+          <div class="sb-plot-starters" id="sbPlotStarters" role="group" aria-labelledby="sbPlotStartersLabel"></div>
           <div class="sb-voice-plot-actions">
             <button type="button" class="sb-voice-btn sb-voice-btn--block" id="sbVoicePlot" aria-pressed="false" aria-label="Speak your story idea">
               <span class="sb-voice-btn__ic" aria-hidden="true">🎤</span>
@@ -483,7 +495,7 @@
   <script src="../js/storybook-shelf-store.js" defer></script>
   <!-- Required for cloud shelf sync + upload (same as other games) -->
   <script src="../js/score-cloud.js" defer></script>
-  <script src="storybook.js?v=291" defer></script>
+  <script src="storybook.js?v=292" defer></script>
   <script>
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("../sw.js").catch(function () {});

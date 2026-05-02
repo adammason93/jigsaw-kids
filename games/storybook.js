@@ -4,31 +4,31 @@
  */
 (function () {
   var CHARACTERS = [
-    { id: "unicorn", label: "Unicorn" },
-    { id: "dragon", label: "Little dragon" },
-    { id: "dinosaur", label: "Dinosaur" },
-    { id: "robot", label: "Robot" },
-    { id: "bunny", label: "Bunny" },
-    { id: "teddy", label: "Teddy bear" },
-    { id: "cat", label: "Kitty" },
-    { id: "dog", label: "Puppy" },
-    { id: "fox", label: "Fox" },
-    { id: "penguin", label: "Penguin" },
-    { id: "owl", label: "Owl" },
-    { id: "octopus", label: "Octopus" },
-    { id: "giraffe", label: "Giraffe" },
-    { id: "bee", label: "Bumblebee" },
-    { id: "butterfly", label: "Butterfly" },
-    { id: "ladybug", label: "Ladybug" },
-    { id: "frog", label: "Frog" },
-    { id: "hedgehog", label: "Hedgehog" },
-    { id: "mouse", label: "Little mouse" },
-    { id: "hippo", label: "Hippo" },
-    { id: "flamingo", label: "Flamingo" },
-    { id: "turtle", label: "Turtle" },
-    { id: "koala", label: "Koala" },
-    { id: "llama", label: "Llama" },
-    { id: "nobuddy", label: "No buddy" },
+    { id: "unicorn", label: "Unicorn", icon: "\uD83E\uDD84" },
+    { id: "dragon", label: "Little dragon", icon: "\uD83D\uDC09" },
+    { id: "dinosaur", label: "Dinosaur", icon: "\uD83E\uDD96" },
+    { id: "robot", label: "Robot", icon: "\uD83E\uDD16" },
+    { id: "bunny", label: "Bunny", icon: "\uD83D\uDC30" },
+    { id: "teddy", label: "Teddy bear", icon: "\uD83E\uDDF8" },
+    { id: "cat", label: "Kitty", icon: "\uD83D\uDC31" },
+    { id: "dog", label: "Puppy", icon: "\uD83D\uDC36" },
+    { id: "fox", label: "Fox", icon: "\uD83E\uDD8A" },
+    { id: "penguin", label: "Penguin", icon: "\uD83D\uDC27" },
+    { id: "owl", label: "Owl", icon: "\uD83E\uDD89" },
+    { id: "octopus", label: "Octopus", icon: "\uD83D\uDC19" },
+    { id: "giraffe", label: "Giraffe", icon: "\uD83E\uDD92" },
+    { id: "bee", label: "Bumblebee", icon: "\uD83D\uDC1D" },
+    { id: "butterfly", label: "Butterfly", icon: "\uD83E\uDD8B" },
+    { id: "ladybug", label: "Ladybug", icon: "\uD83D\uDC1E" },
+    { id: "frog", label: "Frog", icon: "\uD83D\uDC38" },
+    { id: "hedgehog", label: "Hedgehog", icon: "\uD83E\uDD94" },
+    { id: "mouse", label: "Little mouse", icon: "\uD83D\uDC2D" },
+    { id: "hippo", label: "Hippo", icon: "\uD83E\uDD9B" },
+    { id: "flamingo", label: "Flamingo", icon: "\uD83E\uDDA9" },
+    { id: "turtle", label: "Turtle", icon: "\uD83D\uDC22" },
+    { id: "koala", label: "Koala", icon: "\uD83D\uDC28" },
+    { id: "llama", label: "Llama", icon: "\uD83E\uDD99" },
+    { id: "nobuddy", label: "No buddy", icon: "\uD83D\uDC64" },
   ];
 
   /** Must match clever-service `BOOK_COLOR_KEYS` / `coerceBookColor`. */
@@ -52,25 +52,25 @@
   var PLOT_INPUT_MAX = 800;
 
   var PLACES = [
-    { id: "beach", label: "Beach" },
-    { id: "woods", label: "Woods" },
-    { id: "castle", label: "Castle" },
-    { id: "garden", label: "Garden" },
-    { id: "space", label: "Space" },
-    { id: "sea", label: "Open sea" },
-    { id: "pirateship", label: "Pirate ship" },
-    { id: "mountain", label: "Mountains" },
-    { id: "zoo", label: "Zoo" },
-    { id: "farm", label: "Farm" },
-    { id: "circus", label: "Circus" },
-    { id: "city", label: "Toy town" },
-    { id: "train", label: "Train ride" },
-    { id: "lake", label: "Lake" },
-    { id: "snow", label: "Snowy land" },
-    { id: "desert", label: "Desert" },
-    { id: "stadium", label: "Football stadium" },
-    { id: "museum", label: "Museum" },
-    { id: "island", label: "Tropical island" },
+    { id: "beach", label: "Beach", icon: "\uD83C\uDFD6" },
+    { id: "woods", label: "Woods", icon: "\uD83C\uDF32" },
+    { id: "castle", label: "Castle", icon: "\uD83C\uDFF0" },
+    { id: "garden", label: "Garden", icon: "\uD83C\uDF37" },
+    { id: "space", label: "Space", icon: "\uD83D\uDE80" },
+    { id: "sea", label: "Open sea", icon: "\uD83C\uDF0A" },
+    { id: "pirateship", label: "Pirate ship", icon: "\uD83D\uDEA2" },
+    { id: "mountain", label: "Mountains", icon: "\u26F0" },
+    { id: "zoo", label: "Zoo", icon: "\uD83E\uDD81" },
+    { id: "farm", label: "Farm", icon: "\uD83D\uDC04" },
+    { id: "circus", label: "Circus", icon: "\uD83C\uDFAA" },
+    { id: "city", label: "Toy town", icon: "\uD83C\uDFD7" },
+    { id: "train", label: "Train ride", icon: "\uD83D\uDE82" },
+    { id: "lake", label: "Lake", icon: "\uD83D\uDEF6" },
+    { id: "snow", label: "Snowy land", icon: "\u2744" },
+    { id: "desert", label: "Desert", icon: "\uD83C\uDFDC" },
+    { id: "stadium", label: "Football stadium", icon: "\u26BD" },
+    { id: "museum", label: "Museum", icon: "\uD83C\uDFDB" },
+    { id: "island", label: "Tropical island", icon: "\uD83C\uDFDD" },
   ];
 
   var STEP_HEADINGS = [
@@ -79,6 +79,25 @@
     "Pick a buddy",
     "Where are we?",
     "What happens?",
+  ];
+
+  var STEP_PROGRESS_LABELS = ["Hello", "You", "Friend", "Where", "Story"];
+
+  /** Short lines read aloud per wizard step (pre-readers). */
+  var STEP_GUIDE_TEXT = [
+    "Welcome. We will ask who you are, who your friend is, where you go, and what happens. Press Let’s go when you are ready.",
+    "Who is the hero? This is your name in the story. You can type or tap Speak. You can add photos and pick a book title and colours.",
+    "Pick a buddy for your story, or no buddy for a people-only story.",
+    "Where should the story happen? Tap one place.",
+    "What happens? We only need a little idea. One sentence is enough. You can tap Speak or try a starter below.",
+  ];
+
+  var PLOT_STARTERS = [
+    "We found a magic door…",
+    "My friend got lost and we helped…",
+    "We built a secret clubhouse…",
+    "Something glowed under my bed…",
+    "We followed a trail of sparkles…",
   ];
 
   var landing = document.getElementById("sbLanding");
@@ -102,6 +121,7 @@
   var progressEl = document.getElementById("sbProgress");
   var stepKicker = document.getElementById("sbStepKicker");
   var stepHeading = document.getElementById("sbStepHeading");
+  var readStepBtn = document.getElementById("sbReadStepBtn");
   var btnStart = document.getElementById("sbStartJourney");
   var btnGen = document.getElementById("sbGenerate");
   var heroPhotoInput = document.getElementById("sbHeroPhoto");
@@ -124,12 +144,102 @@
   var spreadArt = document.getElementById("sbSpreadArt");
 
   var currentAudio = null;
+  var stepGuideAudio = null;
+  var stepGuidePlaying = false;
+
+  function refreshReadStepBtn() {
+    if (!readStepBtn) return;
+    if (stepGuidePlaying) {
+      readStepBtn.textContent = "Stop";
+      readStepBtn.setAttribute("aria-label", "Stop reading this step");
+    } else {
+      readStepBtn.innerHTML =
+        '<span aria-hidden="true">\uD83D\uDD0A</span> Read this to me';
+      readStepBtn.setAttribute(
+        "aria-label",
+        "Read this step out loud",
+      );
+    }
+  }
+
+  function stopStepGuideAudio() {
+    if (stepGuideAudio) {
+      try {
+        stepGuideAudio.pause();
+        stepGuideAudio.src = "";
+      } catch (eSg) {}
+      stepGuideAudio = null;
+    }
+    if (window.speechSynthesis) {
+      try {
+        window.speechSynthesis.cancel();
+      } catch (eSy) {}
+    }
+    stepGuidePlaying = false;
+    refreshReadStepBtn();
+  }
+
+  function speakStepGuideFallback(text) {
+    if (!window.speechSynthesis) return;
+    stepGuidePlaying = true;
+    refreshReadStepBtn();
+    var u = new SpeechSynthesisUtterance(text);
+    u.lang = "en-GB";
+    u.rate = 0.92;
+    u.onend = function () {
+      stepGuidePlaying = false;
+      refreshReadStepBtn();
+    };
+    u.onerror = function () {
+      stepGuidePlaying = false;
+      refreshReadStepBtn();
+    };
+    window.speechSynthesis.speak(u);
+  }
+
+  function toggleStepGuide() {
+    stopSpeech();
+    if (stepGuidePlaying) {
+      stopStepGuideAudio();
+      return;
+    }
+    stopReading();
+    stopStepGuideAudio();
+    var text = STEP_GUIDE_TEXT[journeyStep];
+    if (!text) return;
+    var fUrl = functionUrl();
+    if (fUrl) {
+      stepGuideAudio = new Audio(
+        fUrl + "?ttsText=" + encodeURIComponent(text),
+      );
+      stepGuidePlaying = true;
+      refreshReadStepBtn();
+      stepGuideAudio.onended = function () {
+        stepGuidePlaying = false;
+        refreshReadStepBtn();
+      };
+      stepGuideAudio.onerror = function () {
+        stopStepGuideAudio();
+        speakStepGuideFallback(text);
+      };
+      var gp = stepGuideAudio.play();
+      if (gp !== undefined) {
+        gp.catch(function () {
+          stopStepGuideAudio();
+          speakStepGuideFallback(text);
+        });
+      }
+    } else {
+      speakStepGuideFallback(text);
+    }
+  }
 
   function readWordOutLoud(word, element) {
+    stopStepGuideAudio();
     if (currentAudio) {
       stopReading();
     }
-    
+
     var fUrl = functionUrl();
     if (!fUrl) return;
     
@@ -184,6 +294,7 @@
         stopReading();
         return;
       }
+      stopStepGuideAudio();
       var n = numSpreads();
       if (n < 1 || spreadIndex * 2 >= story.pages.length) return;
       var leftP = story.pages[spreadIndex * 2];
@@ -326,6 +437,7 @@
       return;
     }
     stopSpeech();
+    stopStepGuideAudio();
     speechTarget = "name";
     var rec = new Rec();
     rec.lang = "en-GB";
@@ -376,6 +488,7 @@
       return;
     }
     stopSpeech();
+    stopStepGuideAudio();
     speechTarget = "plot";
     plotSpeechPrefix = plotInput.value;
     plotSpeechAccum = "";
@@ -2370,9 +2483,18 @@
       CHARACTERS.forEach(function (item) {
         var b = document.createElement("button");
         b.type = "button";
-        b.className = "sb-chip";
-        b.textContent = item.label;
+        b.className = "sb-chip sb-chip--with-icon";
         b.setAttribute("role", "radio");
+        b.setAttribute("aria-label", item.label);
+        var ic = document.createElement("span");
+        ic.className = "sb-chip__ic";
+        ic.setAttribute("aria-hidden", "true");
+        ic.textContent = item.icon || "";
+        var lbl = document.createElement("span");
+        lbl.className = "sb-chip__lbl";
+        lbl.textContent = item.label;
+        b.appendChild(ic);
+        b.appendChild(lbl);
         b.addEventListener("click", function () {
           selectedChar = item.id;
           refreshCharacterChips();
@@ -2386,9 +2508,18 @@
       PLACES.forEach(function (item) {
         var b = document.createElement("button");
         b.type = "button";
-        b.className = "sb-chip";
-        b.textContent = item.label;
+        b.className = "sb-chip sb-chip--with-icon";
         b.setAttribute("role", "radio");
+        b.setAttribute("aria-label", item.label);
+        var ic = document.createElement("span");
+        ic.className = "sb-chip__ic";
+        ic.setAttribute("aria-hidden", "true");
+        ic.textContent = item.icon || "";
+        var lbl = document.createElement("span");
+        lbl.className = "sb-chip__lbl";
+        lbl.textContent = item.label;
+        b.appendChild(ic);
+        b.appendChild(lbl);
         b.addEventListener("click", function () {
           selectedPlace = item.id;
           refreshPlaceChips();
@@ -2405,16 +2536,53 @@
     if (!progressEl) return;
     progressEl.textContent = "";
     for (var i = 0; i < 5; i++) {
+      var cell = document.createElement("span");
+      cell.className = "sb-progress-step";
+      if (i < journeyStep) cell.classList.add("is-done");
+      if (i === journeyStep) cell.classList.add("is-current");
       var d = document.createElement("span");
       d.className = "sb-dot";
-      if (i < journeyStep) d.classList.add("is-done");
-      if (i === journeyStep) d.classList.add("is-current");
-      progressEl.appendChild(d);
+      cell.appendChild(d);
+      var pl = document.createElement("span");
+      pl.className = "sb-progress-step__label";
+      pl.textContent = STEP_PROGRESS_LABELS[i] || "";
+      cell.appendChild(pl);
+      progressEl.appendChild(cell);
     }
   }
 
+  function wirePlotStarters() {
+    var wrap = document.getElementById("sbPlotStarters");
+    if (!wrap || !plotInput) return;
+    wrap.textContent = "";
+    PLOT_STARTERS.forEach(function (line) {
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "sb-plot-starter";
+      b.textContent = line;
+      b.setAttribute("aria-label", "Use idea: " + line);
+      b.addEventListener("click", function () {
+        var cur = String(plotInput.value || "").trim();
+        if (!cur) {
+          plotInput.value = line.slice(0, PLOT_INPUT_MAX);
+        } else {
+          plotInput.value = (cur + " " + line)
+            .trim()
+            .slice(0, PLOT_INPUT_MAX);
+        }
+        try {
+          plotInput.dispatchEvent(new Event("input", { bubbles: true }));
+        } catch (eIn) {}
+      });
+      wrap.appendChild(b);
+    });
+  }
+
   function goToStep(n) {
-    if (n !== journeyStep) stopSpeech();
+    if (n !== journeyStep) {
+      stopSpeech();
+      stopStepGuideAudio();
+    }
     journeyStep = Math.max(0, Math.min(4, n));
     if (stepKicker) stepKicker.textContent = "Step " + (journeyStep + 1) + " of 5";
     if (stepHeading) stepHeading.textContent = STEP_HEADINGS[journeyStep] || "";
@@ -2439,6 +2607,7 @@
   }
 
   function openJourney() {
+    stopStepGuideAudio();
     var m = modal || document.getElementById("sbModal");
     if (m) {
       m.classList.remove("is-hidden");
@@ -2460,6 +2629,7 @@
 
   function closeJourney() {
     stopSpeech();
+    stopStepGuideAudio();
     var m = modal || document.getElementById("sbModal");
     if (m) {
       m.classList.add("is-hidden");
@@ -2697,6 +2867,11 @@
 
   function startStorybookApp() {
   buildChipRows();
+  wirePlotStarters();
+  if (readStepBtn) {
+    readStepBtn.addEventListener("click", toggleStepGuide);
+    refreshReadStepBtn();
+  }
   initVoiceUi();
 
     function runAfterShelfHydrate() {
