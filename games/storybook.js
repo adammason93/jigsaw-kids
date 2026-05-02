@@ -774,13 +774,20 @@
     var toSi = Math.max(0, Math.min(spreadIndex + delta, nSpr - 1));
     if (toSi === fromSi) return;
 
-    var outgoingUrl = illustrationUrlAtSpreadIndex(fromSi);
-    var incomingUrl = illustrationUrlAtSpreadIndex(toSi);
-    /* Full-bleed peel needs art on both sides; otherwise a blank half covers the text (white “flap”). */
-    if (!outgoingUrl || !incomingUrl) {
+    var outArt = illustrationUrlAtSpreadIndex(fromSi);
+    var inArt = illustrationUrlAtSpreadIndex(toSi);
+    /* Flyleaf / dedication spreads have no illustration URL; use a white tile so the peel still runs (matches old books where spread 0 already had art). */
+    if (!outArt && !inArt) {
       navigateSpreadInstant(delta);
       return;
     }
+    var peelBlank =
+      "data:image/svg+xml," +
+      encodeURIComponent(
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2 2"><rect width="2" height="2" fill="#ffffff"/></svg>'
+      );
+    var peelOut = outArt || peelBlank;
+    var peelIn = inArt || peelBlank;
 
     spreadIndex = toSi;
 
@@ -792,7 +799,7 @@
       spreadInnerEl.classList.add("sb-flip-spread__inner--peel-turning");
     }
 
-    /* Duplex under peel shows incoming spread; recto = outgoing illustration, verso = incoming illustration + left-column copy. */
+    /* Duplex under peel shows incoming spread; recto = outgoing illustration (or white tile), verso = incoming + left-column copy. */
     syncSpreadIllustrationFromStory();
     writeSpreadTextMetaFromStory(fromSi);
     fillPeelBackTextColumn(spreadIndex);
@@ -806,45 +813,28 @@
 
     if (peelImg) {
       peelImg.alt = "";
-      if (outgoingUrl) {
-        peelImg.referrerPolicy = "no-referrer";
-        peelImg.src = outgoingUrl;
-      } else {
-        peelImg.removeAttribute("src");
-      }
+      peelImg.referrerPolicy = "no-referrer";
+      peelImg.src = peelOut;
     }
-    
+
     if (peelBackImg) {
       peelBackImg.alt = "";
-      if (incomingUrl) {
-        peelBackImg.referrerPolicy = "no-referrer";
-        peelBackImg.src = incomingUrl;
-      } else {
-        peelBackImg.removeAttribute("src");
-      }
+      peelBackImg.referrerPolicy = "no-referrer";
+      peelBackImg.src = peelIn;
     }
 
     if (outgoingLeftImg) {
       outgoingLeftImg.alt = "";
-      if (outgoingUrl) {
-        outgoingLeftImg.referrerPolicy = "no-referrer";
-        outgoingLeftImg.src = outgoingUrl;
-      } else {
-        outgoingLeftImg.removeAttribute("src");
-      }
+      outgoingLeftImg.referrerPolicy = "no-referrer";
+      outgoingLeftImg.src = peelOut;
     }
 
     peelShell.hidden = false;
     peelShell.removeAttribute("hidden");
     if (outgoingLeftShell) {
-      if (outgoingUrl) {
-        outgoingLeftShell.hidden = false;
-        outgoingLeftShell.removeAttribute("hidden");
-        outgoingLeftShell.style.display = "block";
-      } else {
-        outgoingLeftShell.hidden = true;
-        outgoingLeftShell.style.display = "none";
-      }
+      outgoingLeftShell.hidden = false;
+      outgoingLeftShell.removeAttribute("hidden");
+      outgoingLeftShell.style.display = "block";
     }
 
     var isNext = delta > 0;
@@ -2863,7 +2853,9 @@
     }
   }
 
-  function showWizard() {
+  /** Leave the reader and show the story hub (landing + shelf). Does not reset the journey form. */
+  function returnToStoryLanding() {
+    stopReading();
     story = null;
     spreadIndex = 0;
     spreadAnimLock = false;
@@ -2897,6 +2889,10 @@
     document.body.classList.remove("sb-reader-immersive");
     if (book) {
       book.classList.remove("sb-book--immersive");
+      book.classList.remove("sb-book--actions-open");
+    }
+    if (actionsFab) {
+      actionsFab.setAttribute("aria-expanded", "false");
     }
     if (landing) {
       landing.classList.remove("is-hidden");
@@ -2908,13 +2904,17 @@
       book.hidden = true;
     }
     clearBookTheming();
+    setError("");
+    renderShelf();
+  }
+
+  function showWizard() {
+    returnToStoryLanding();
     if (nameInput) nameInput.value = "";
     if (bookTitleInput) bookTitleInput.value = "";
     if (plotInput) plotInput.value = "";
     clearHeroPhoto();
     goToStep(0);
-    setError("");
-    renderShelf();
   }
 
   function showBook() {
@@ -3260,6 +3260,16 @@
         if (e.target.closest("#sbCloseBook")) {
           e.preventDefault();
           closeBookCover();
+        }
+        if (e.target.closest("a.sb-back.back-btn")) {
+          if (
+            book &&
+            !book.classList.contains("is-hidden") &&
+            !book.hidden
+          ) {
+            e.preventDefault();
+            returnToStoryLanding();
+          }
         }
       },
       false
