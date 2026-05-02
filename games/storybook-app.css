@@ -776,14 +776,14 @@ body.sb-portal-welcome-open {
   justify-content: center;
 }
 
-/* Sway only on hover; 0%/100% must match idle .sb-cover-card__book transform (no jump) */
+/* Fore-edge visible at rest (CSS-book style); hover swings deeper. Idle == keyframe 0%/100%. */
 @keyframes sb-shelf-book-sway {
   0%,
   100% {
-    transform: translate3d(0, 0, 0) rotateX(1.1deg) rotateY(20deg);
+    transform: translate3d(0, 0, 0) rotateX(2deg) rotateY(-34deg);
   }
   50% {
-    transform: translate3d(0, 0, 0) rotateX(5deg) rotateY(38deg);
+    transform: translate3d(0, 0, 0) rotateX(5.5deg) rotateY(-48deg);
   }
 }
 
@@ -839,8 +839,8 @@ body.sb-portal-welcome-open {
     transform 0.62s cubic-bezier(0.33, 1, 0.48, 1),
     z-index 0s linear;
   width: 100%;
-  perspective: min(920px, 145vw);
-  perspective-origin: 56% 42%;
+  perspective: min(880px, 138vw);
+  perspective-origin: 40% 40%;
   padding-bottom: 0.45rem;
   box-sizing: border-box;
 }
@@ -871,7 +871,7 @@ body.sb-portal-welcome-open {
   touch-action: manipulation;
   overflow: visible;
   transition: transform 0.18s ease, box-shadow 0.18s ease;
-  --sb-book-thickness: clamp(8px, 0.52rem, 13px);
+  --sb-book-thickness: clamp(9px, 0.56rem, 14px);
 }
 
 .sb-cover-card__scene {
@@ -885,9 +885,9 @@ body.sb-portal-welcome-open {
   z-index: 1;
   transform-style: preserve-3d;
   -webkit-transform-style: preserve-3d;
-  transform: translate3d(0, 0, 0) rotateX(1.1deg) rotateY(20deg);
-  -webkit-transform: translate3d(0, 0, 0) rotateX(1.1deg) rotateY(20deg);
-  transform-origin: 42% 88%;
+  transform: translate3d(0, 0, 0) rotateX(2deg) rotateY(-34deg);
+  -webkit-transform: translate3d(0, 0, 0) rotateX(2deg) rotateY(-34deg);
+  transform-origin: 52% 90%;
   animation: none;
   transition: transform 0.4s cubic-bezier(0.42, 0, 0.58, 1);
 }
@@ -984,8 +984,8 @@ body.sb-portal-welcome-open {
   }
 
   .sb-cover-card__book {
-    transform: translate3d(0, 0, 0) rotateX(1.1deg) rotateY(20deg);
-    -webkit-transform: translate3d(0, 0, 0) rotateX(1.1deg) rotateY(20deg);
+    transform: translate3d(0, 0, 0) rotateX(2deg) rotateY(-34deg);
+    -webkit-transform: translate3d(0, 0, 0) rotateX(2deg) rotateY(-34deg);
     animation: none !important;
     transition: none;
   }
