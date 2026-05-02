@@ -2332,6 +2332,35 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   transform-style: preserve-3d;
 }
 
+/* Reader cover: CodePen “journal” isometric when closed → eases forward while cover hinge opens */
+.sb-book.sb-book--cover-visible:not(.sb-reader--sample)
+  .sb-reader-stack:not(.sb-reader-stack--open):not(.sb-reader-stack--opening)
+  .sb-cover {
+  transform: translate3d(-50%, 0, 0) rotateX(45deg) rotateY(0deg) rotateZ(-45deg);
+  -webkit-transform: translate3d(-50%, 0, 0) rotateX(45deg) rotateY(0deg) rotateZ(-45deg);
+  transform-origin: 50% 55%;
+  -webkit-transform-origin: 50% 55%;
+  transition: transform 0.9s cubic-bezier(0.33, 1, 0.48, 1);
+}
+
+.sb-book.sb-book--cover-visible:not(.sb-reader--sample)
+  .sb-reader-stack.sb-reader-stack--opening
+  .sb-cover {
+  transform: translate3d(-50%, 0, 0) rotateZ(-4deg) rotateX(13deg) rotateY(0deg);
+  -webkit-transform: translate3d(-50%, 0, 0) rotateZ(-4deg) rotateX(13deg) rotateY(0deg);
+  transform-origin: 50% 55%;
+  -webkit-transform-origin: 50% 55%;
+  transition: transform 1.12s cubic-bezier(0.28, 0.85, 0.32, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sb-book.sb-book--cover-visible .sb-reader-stack:not(.sb-reader-stack--opening) .sb-cover {
+    transform: translate3d(-50%, 0, 0);
+    -webkit-transform: translate3d(-50%, 0, 0);
+    transition: transform 0.2s ease;
+  }
+}
+
 .sb-cover__pivot {
   display: block;
   width: 100%;

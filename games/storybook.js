@@ -913,7 +913,7 @@
       updatePagerHints();
     }
 
-    if (prefersReducedSpreadMotion()) {
+    if (prefersReducedSpreadMotion() || (story && story.isSample)) {
       finishOpen();
       return;
     }
@@ -1074,6 +1074,7 @@
       readerFont: rfPick,
       sceneImageUrl: null,
       pages: pages,
+      isSample: true,
     };
   }
 
@@ -2750,6 +2751,7 @@
       landing.hidden = false;
     }
     if (book) {
+      book.classList.remove("sb-reader--sample");
       book.classList.add("is-hidden");
       book.hidden = true;
     }
@@ -2775,6 +2777,11 @@
     if (book) {
       book.classList.remove("is-hidden");
       book.hidden = false;
+      if (story && story.isSample) {
+        book.classList.add("sb-reader--sample");
+      } else {
+        book.classList.remove("sb-reader--sample");
+      }
     }
     if (readerHeading) readerHeading.textContent = story.title;
     if (coverTitle && story) coverTitle.textContent = story.title;
