@@ -6,6 +6,12 @@ Generates a **12-page** story (6 double-page spreads) with **GPT-4o-mini** JSON.
 
 ```bash
 supabase secrets set OPENAI_API_KEY=sk-...
+# Optional — story read-aloud voice (default **ballad** if unset). Full list: alloy, ash, ballad, cedar, coral, echo, fable, marin, nova, onyx, sage, shimmer, verse. Requires **gpt-4o-mini-tts** (default model).
+# supabase secrets set OPENAI_TTS_VOICE=ballad
+# Optional — faster/cheaper legacy TTS (no ballad/cedar/marin/verse): `tts-1` or `tts-1-hd` (voices outside the 9-voice subset are remapped).
+# supabase secrets set OPENAI_TTS_MODEL=tts-1
+# Optional — only for gpt-4o-mini-tts; overrides the built-in kid-friendly instruction line
+# supabase secrets set OPENAI_TTS_INSTRUCTIONS=Speak in a cheerful storyteller voice.
 # Public HTTPS origin where your static site serves files (no trailing slash).
 # Used to fetch portrait PNGs (e.g. games/images/character-freya.png) for vision → DALL·E prompts.
 supabase secrets set BOOK_ASSETS_BASE_URL=https://your-site.example
@@ -47,6 +53,38 @@ supabase functions deploy clever-service --no-verify-jwt
 ```
 
 (`verify_jwt` is off in `config.toml` for `[functions.clever-service]` so the static kids’ site can call with the **anon** key; use **Dashboard rate limits** and billing alerts.)
+
+### Read-aloud voice (OpenAI TTS)
+
+The storybook uses **`GET …/clever-service?ttsText=…`** (optional **`&ttsVoice=…`**) for MP3 playback.
+
+**Auto voice from the book (browser):** When `STORYBOOK_TTS_VOICE` in `games/storybook.js` is empty, the client picks **`ttsVoice=ballad`** for boy-leaning first names and **`ttsVoice=sage`** for girl-leaning (and common unisex) names. It reads the first “title-ish” token from **generated book title → custom title field → hero name** (skips words like “The”, “My”). Names not in the local lists omit `ttsVoice`, so the **server default** applies. Override by setting **`STORYBOOK_TTS_VOICE`** to any allowed voice id.
+
+**Default:** model **`gpt-4o-mini-tts`**, voice **`ballad`** (warm male-presenting storyteller). Override with secret **`OPENAI_TTS_VOICE`** or query **`ttsVoice=`**.
+
+**All built-in voices** (for **`gpt-4o-mini-tts`** — try them on [OpenAI.fm](https://openai.fm/)):
+
+| Voice | Notes (informal) |
+|-------|------------------|
+| `ballad` | **Default** — warm, male-presenting, story-friendly |
+| `verse` | Dynamic |
+| `marin` | Bright |
+| `cedar` | Deep, warm |
+| `coral` | Lively |
+| `sage` | Calm |
+| `fable` | Expressive |
+| `nova` | Youthful |
+| `shimmer` | Gentle |
+| `alloy` | Neutral |
+| `ash` | Soft |
+| `echo` | Male |
+| `onyx` | Deep male |
+
+**Legacy models:** set **`OPENAI_TTS_MODEL=tts-1`** or **`tts-1-hd`** for lower latency/cost. Only these voices work then: `alloy`, `ash`, `coral`, `echo`, `fable`, `onyx`, `nova`, `sage`, `shimmer`. If you ask for `ballad` while on legacy, the function uses **`echo`** instead.
+
+**Instructions** (optional, **`gpt-4o-mini-tts` only):** secret **`OPENAI_TTS_INSTRUCTIONS`** overrides the default “read to children” line.
+
+Allowlist: **`OPENAI_TTS_VOICE_IDS`** in `supabase/functions/clever-service/index.ts`.
 
 The browser calls `…/functions/v1/clever-service` — set **`storybookEdgeSlug`** in `js/score-config.js` if you ever use a different slug. **`character`** and **`place`** in the JSON body must be keys from `CHARACTERS` and `PLACES` in `supabase/functions/clever-service/index.ts` (the storybook UI lists the same ids in `games/storybook.js`). **`plotHint`** is trimmed to **800** characters server-side (same cap as the storybook textarea).
 

@@ -7,6 +7,94 @@ const corsHeaders: Record<string, string> = {
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
 };
 
+/**
+ * OpenAI speech built-in voices for `gpt-4o-mini-tts` (full set).
+ * `tts-1` / `tts-1-hd` only support: alloy, ash, coral, echo, fable, onyx, nova, sage, shimmer.
+ * @see https://platform.openai.com/docs/guides/text-to-speech#voice-options
+ *
+ * Choose one via `OPENAI_TTS_VOICE`, `?ttsVoice=`, or `STORYBOOK_TTS_VOICE` in storybook.js.
+ * Default voice is **ballad** (warm male-presenting; good for story read-aloud).
+ */
+const OPENAI_TTS_VOICE_IDS = [
+  "alloy",
+  "ash",
+  "ballad",
+  "cedar",
+  "coral",
+  "echo",
+  "fable",
+  "marin",
+  "nova",
+  "onyx",
+  "sage",
+  "shimmer",
+  "verse",
+] as const;
+
+type OpenAiTtsVoiceId = (typeof OPENAI_TTS_VOICE_IDS)[number];
+
+const OPENAI_TTS_VOICE_SET: Set<string> = new Set(
+  OPENAI_TTS_VOICE_IDS as unknown as string[],
+);
+
+/** Subset supported by `tts-1` and `tts-1-hd` only. */
+const OPENAI_TTS_LEGACY_VOICE_SET: Set<string> = new Set([
+  "alloy",
+  "ash",
+  "coral",
+  "echo",
+  "fable",
+  "onyx",
+  "nova",
+  "sage",
+  "shimmer",
+]);
+
+const DEFAULT_TTS_VOICE: OpenAiTtsVoiceId = "ballad";
+
+const DEFAULT_TTS_MODEL = "gpt-4o-mini-tts";
+const LEGACY_TTS_MODELS = new Set(["tts-1", "tts-1-hd"]);
+
+function resolveOpenAiTtsModel(): "gpt-4o-mini-tts" | "tts-1" | "tts-1-hd" {
+  const m = Deno.env.get("OPENAI_TTS_MODEL")?.trim().toLowerCase() ?? "";
+  if (LEGACY_TTS_MODELS.has(m)) {
+    return m as "tts-1" | "tts-1-hd";
+  }
+  return DEFAULT_TTS_MODEL;
+}
+
+function resolveOpenAiTtsVoice(requestedQuery: string | null): OpenAiTtsVoiceId {
+  const q = requestedQuery?.trim().toLowerCase() ?? "";
+  if (q && OPENAI_TTS_VOICE_SET.has(q)) {
+    return q as OpenAiTtsVoiceId;
+  }
+  const fromEnv = Deno.env.get("OPENAI_TTS_VOICE")?.trim().toLowerCase() ?? "";
+  if (fromEnv && OPENAI_TTS_VOICE_SET.has(fromEnv)) {
+    return fromEnv as OpenAiTtsVoiceId;
+  }
+  return DEFAULT_TTS_VOICE;
+}
+
+/** If using `tts-1` / `tts-1-hd`, coerce to a supported voice (ballad → echo: upbeat male). */
+function coerceVoiceForTtsModel(
+  voice: OpenAiTtsVoiceId,
+  model: string,
+): OpenAiTtsVoiceId {
+  if (model === DEFAULT_TTS_MODEL) {
+    return voice;
+  }
+  if (OPENAI_TTS_LEGACY_VOICE_SET.has(voice)) {
+    return voice;
+  }
+  if (voice === "ballad" || voice === "verse") {
+    return "echo";
+  }
+  if (voice === "cedar" || voice === "marin") {
+    return "onyx";
+  }
+  return "nova";
+}
+
 const CHARACTERS: Record<string, string> = {
   unicorn:
     "a friendly horse-like unicorn with four hooves, equine face and body, single spiral horn on forehead, sparkly mane and tail",
@@ -2019,7 +2107,22 @@ Deno.serve(async (req) => {
     if (ttsText) {
       const apiKey = Deno.env.get("OPENAI_API_KEY");
       if (!apiKey) return jsonResponse({ error: "server_missing_openai" }, 500);
-      
+      const ttsModel = resolveOpenAiTtsModel();
+      let ttsVoice = resolveOpenAiTtsVoice(searchParams.get("ttsVoice"));
+      ttsVoice = coerceVoiceForTtsModel(ttsVoice, ttsModel);
+
+      const payload: Record<string, string> = {
+        model: ttsModel,
+        voice: ttsVoice,
+        input: ttsText,
+      };
+      if (ttsModel === DEFAULT_TTS_MODEL) {
+        const ins = Deno.env.get("OPENAI_TTS_INSTRUCTIONS")?.trim();
+        payload.instructions =
+          ins ||
+          "Speak in a warm, upbeat, clear tone suitable for reading a children's story aloud.";
+      }
+
       try {
         const r = await fetch("https://api.openai.com/v1/audio/speech", {
           method: "POST",
@@ -2027,11 +2130,7 @@ Deno.serve(async (req) => {
             Authorization: `Bearer ${apiKey}`,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            model: "tts-1",
-            voice: "shimmer", // Soft, upbeat, warm female voice
-            input: ttsText,
-          }),
+          body: JSON.stringify(payload),
         });
         
         if (!r.ok) {

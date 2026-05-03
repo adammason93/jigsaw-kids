@@ -156,6 +156,125 @@
     }
   };
 
+  /** Cleared when the browser finishes loading voices (often async). */
+  var _kidFriendlyVoiceCache = { langKey: "", voice: null };
+
+  function resetKidFriendlyVoiceCache() {
+    _kidFriendlyVoiceCache.langKey = "";
+    _kidFriendlyVoiceCache.voice = null;
+  }
+
+  if (global.speechSynthesis && global.speechSynthesis.addEventListener) {
+    global.speechSynthesis.addEventListener("voiceschanged", resetKidFriendlyVoiceCache);
+  }
+
+  /**
+   * Best-effort pick of a bright, friendly English voice (local names vary by OS).
+   * @param {string} lang BCP 47 tag, e.g. en-GB
+   * @returns {SpeechSynthesisVoice|null}
+   */
+  K.pickKidFriendlyVoice = function (lang) {
+    if (!global.speechSynthesis || !global.speechSynthesis.getVoices) {
+      return null;
+    }
+    var L = (lang || "en-GB").toLowerCase();
+    var short = L.slice(0, 2);
+    if (_kidFriendlyVoiceCache.voice && _kidFriendlyVoiceCache.langKey === L) {
+      return _kidFriendlyVoiceCache.voice;
+    }
+    var voices = global.speechSynthesis.getVoices();
+    if (!voices || !voices.length) {
+      return null;
+    }
+    var pool = [];
+    var i;
+    for (i = 0; i < voices.length; i++) {
+      if (voices[i].lang && voices[i].lang.toLowerCase().indexOf(short) === 0) {
+        pool.push(voices[i]);
+      }
+    }
+    if (!pool.length) {
+      pool = voices.slice();
+    }
+    var hints = [
+      "samantha",
+      "karen",
+      "moira",
+      "tessa",
+      "fiona",
+      "kate",
+      "martha",
+      "victoria",
+      "zira",
+      "hazel",
+      "susan",
+      "flo",
+      "serena",
+      "zoe",
+      "female",
+      "girl",
+      "child",
+      "kids",
+      "aria",
+    ];
+    var best = null;
+    var bestScore = -1;
+    for (i = 0; i < pool.length; i++) {
+      var v = pool[i];
+      var n = (v.name || "").toLowerCase();
+      var score = 0;
+      if (v.localService) {
+        score += 1;
+      }
+      var h;
+      for (h = 0; h < hints.length; h++) {
+        if (n.indexOf(hints[h]) !== -1) {
+          score += 4;
+        }
+      }
+      if (score > bestScore) {
+        bestScore = score;
+        best = v;
+      }
+    }
+    if (bestScore < 4) {
+      for (i = 0; i < pool.length; i++) {
+        if (pool[i].localService) {
+          best = pool[i];
+          break;
+        }
+      }
+    }
+    if (best) {
+      _kidFriendlyVoiceCache.langKey = L;
+      _kidFriendlyVoiceCache.voice = best;
+    }
+    return best;
+  };
+
+  /**
+   * Brighter, slightly quicker read-aloud for children (browser Web Speech).
+   * @param {SpeechSynthesisUtterance} utterance
+   * @param {string} [lang] BCP 47; defaults to utterance.lang or document
+   */
+  K.applyKidFriendlySpeech = function (utterance, lang) {
+    if (!utterance) {
+      return;
+    }
+    var L =
+      lang ||
+      utterance.lang ||
+      (document.documentElement && document.documentElement.lang) ||
+      "en-GB";
+    utterance.lang = L;
+    utterance.rate = 1.08;
+    utterance.pitch = 1.18;
+    var voice = K.pickKidFriendlyVoice(L);
+    if (voice) {
+      utterance.voice = voice;
+    }
+  };
+
   K.speak = function (text) {
     if (!K.isReadAloudOn() || !text || !global.speechSynthesis) {
       return;
@@ -163,9 +282,10 @@
     try {
       global.speechSynthesis.cancel();
       var u = new SpeechSynthesisUtterance(text);
-      u.rate = 0.92;
-      u.pitch = 1.05;
-      u.lang = document.documentElement.lang || "en-GB";
+      K.applyKidFriendlySpeech(
+        u,
+        (document.documentElement && document.documentElement.lang) || "en-GB",
+      );
       global.speechSynthesis.speak(u);
     } catch (e) {}
   };

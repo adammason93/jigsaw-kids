@@ -51,6 +51,113 @@
   /** Max characters for "What happens?" — keep in sync with clever-service `STORYBOOK_PLOT_HINT_MAX`. */
   var PLOT_INPUT_MAX = 800;
 
+  /**
+   * OpenAI TTS voice for story read-aloud. If **empty**, we pick **ballad** (boy-leaning) or **sage**
+   * (girl-leaning) from the book title and hero name — see `firstNameForReadAloud`.
+   * Set to any clever-service voice id to lock a voice (e.g. "coral").
+   */
+  var STORYBOOK_TTS_VOICE = "";
+
+  /**
+   * Common first names (lowercase → 1). Hero/title tokens are matched here for read-aloud voice.
+   * Unisex → we use **sage**. Missing names omit `ttsVoice` so the server default applies.
+   */
+  var TTS_BOY_NAMES = {
+    adam: 1, adrian: 1, aiden: 1, aj: 1, albert: 1, alexander: 1, alfie: 1, andrew: 1,
+    angus: 1, archie: 1, arlo: 1, arthur: 1, austin: 1, axel: 1, bear: 1, beau: 1, ben: 1, benjamin: 1,
+    billy: 1, blake: 1, bodhi: 1, bobby: 1, bradley: 1, brody: 1, bryan: 1, bryce: 1, buster: 1,
+    caden: 1, caleb: 1, callum: 1, calvin: 1, cameron: 1, carter: 1, charles: 1, chase: 1, chester: 1, christian: 1, christopher: 1, clark: 1, colin: 1, colton: 1, connor: 1,
+    cooper: 1, cyrus: 1, damian: 1, daniel: 1, danny: 1, darren: 1, dave: 1, david: 1, dean: 1,
+    declan: 1, dexter: 1, dominic: 1, dougie: 1, douglas: 1, drake: 1, dylan: 1, easton: 1,
+    eddie: 1, edgar: 1, edward: 1, elliot: 1, elliott: 1, eli: 1, elias: 1, emil: 1, eric: 1, ethan: 1,
+    evan: 1, ewan: 1, ezra: 1, felix: 1, finn: 1, fletcher: 1, flynn: 1, ford: 1, frank: 1,
+    frankie: 1, freddie: 1, frederick: 1, gabriel: 1, garrett: 1, gary: 1, gavin: 1, gareth: 1, george: 1,
+    gideon: 1, grayson: 1, greg: 1, greyson: 1, griffin: 1, guy: 1, harold: 1, harrison: 1,
+    harry: 1, harvey: 1, henry: 1, hudson: 1, hugh: 1, hugo: 1, hunter: 1, ian: 1, igor: 1, isaac: 1,
+    isaiah: 1, ivan: 1, jack: 1, jackson: 1, jacob: 1, jake: 1, james: 1, jared: 1, jarrett: 1,
+    jason: 1, jasper: 1, jax: 1, jaxson: 1, jay: 1, jayden: 1, jed: 1, jeff: 1, jeremiah: 1, jesse: 1,
+    joey: 1, john: 1, johnny: 1, jonah: 1, jonathan: 1, jonny: 1, joseph: 1, josh: 1, joshua: 1,
+    josiah: 1, jude: 1, judah: 1, julian: 1, julius: 1, junior: 1, justin: 1, kai: 1, kane: 1, karl: 1,
+    kayden: 1, keenan: 1, keith: 1, ken: 1, kenneth: 1, kevin: 1, kian: 1, kieran: 1, kit: 1, kobe: 1,
+    kyle: 1, kyrie: 1, lance: 1, lawrence: 1, lee: 1, legend: 1, lennox: 1, leo: 1, leon: 1, leonard: 1,
+    levi: 1, liam: 1, lincoln: 1, logan: 1, louie: 1, louis: 1, luca: 1, lucas: 1, lucian: 1, lucius: 1,
+    luis: 1, luke: 1, magnus: 1, malachi: 1, marcus: 1, mario: 1, mark: 1, marshall: 1, martin: 1, marvin: 1,
+    mason: 1, mateo: 1, matt: 1, matthew: 1, maurice: 1, max: 1, maximilian: 1, micah: 1, michael: 1,
+    mick: 1, miguel: 1, milo: 1, mitchell: 1, mohamed: 1, muhammad: 1, mohammed: 1, monty: 1, myles: 1,
+    nate: 1, nathan: 1, nathaniel: 1, neil: 1, nelson: 1, nico: 1, noah: 1, nolan: 1, norman: 1,
+    oakley: 1, odin: 1, oliver: 1, ollie: 1, orlando: 1, oscar: 1, otto: 1, owen: 1, parker: 1, patrick: 1,
+    paul: 1, pedro: 1, peter: 1, phil: 1, philip: 1, pierce: 1, preston: 1, quentin: 1, rafael: 1,
+    ralph: 1, randall: 1, randy: 1, raul: 1, ray: 1, raymond: 1, reggie: 1, remy: 1, rex: 1, reuben: 1,
+    rhys: 1, richard: 1, ricky: 1, rob: 1, robbie: 1, robert: 1, rocco: 1, rocky: 1,
+    rodney: 1, roger: 1, roman: 1, ronan: 1, ronnie: 1, rory: 1, ross: 1, roy: 1, ruben: 1,
+    rudy: 1, russell: 1, rusty: 1, ryan: 1, ryder: 1, samson: 1, samuel: 1, santino: 1,
+    sascha: 1, sawyer: 1, scott: 1, sean: 1, sebastian: 1, sergio: 1, seth: 1, shaun: 1, shawn: 1, silas: 1,
+    simon: 1, sonny: 1, stanley: 1, stefan: 1, stephen: 1, steve: 1, steven: 1, sullivan: 1, teddy: 1,
+    terry: 1, theo: 1, theodore: 1, thomas: 1, tim: 1, timothy: 1, tobias: 1, toby: 1, todd: 1, tommy: 1,
+    tony: 1, travis: 1, trent: 1, trevor: 1, tristan: 1, troy: 1, tucker: 1, tyler: 1, tyson: 1, vance: 1,
+    vaughn: 1, vernon: 1, victor: 1, vincent: 1, vinnie: 1, walter: 1, warren: 1, wayne: 1, wesley: 1,
+    will: 1, william: 1, willie: 1, wilson: 1, xander: 1, xavier: 1, zach: 1, zachary: 1, zain: 1, zander: 1,
+    zane: 1, zeke: 1,
+  };
+
+  var TTS_GIRL_NAMES = {
+    abby: 1, abigail: 1, ada: 1, addison: 1, adelaide: 1, adele: 1, adeline: 1, agnes: 1, aileen: 1,
+    aisha: 1, alana: 1, alexa: 1, alexandra: 1, alexis: 1, alice: 1, alicia: 1, alina: 1, alison: 1, alyssa: 1,
+    amanda: 1, amara: 1, amber: 1, amelia: 1, amy: 1, ana: 1, anastasia: 1, andrea: 1, angel: 1, angela: 1,
+    angelica: 1, anna: 1, annabelle: 1, annabel: 1, anne: 1, annie: 1, arabella: 1, aria: 1, ariana: 1,
+    arianna: 1, arwen: 1, ashley: 1, astrid: 1, athena: 1, audrey: 1, aurora: 1, autumn: 1, ava: 1,
+    ayla: 1, barbara: 1, beatrice: 1, beatrix: 1, bella: 1, belle: 1, beth: 1, betsy: 1, betty: 1,
+    bianca: 1, bonnie: 1, braelyn: 1, brenda: 1, brianna: 1, bridget: 1, brooke: 1, brooklyn: 1, callie: 1,
+    camilla: 1, camille: 1, candy: 1, carly: 1, carmen: 1, caroline: 1, carrie: 1, cassandra: 1,
+    cassidy: 1, cassie: 1, catherine: 1, cecilia: 1, celeste: 1, charlotte: 1, chloe: 1, christina: 1,
+    claire: 1, clara: 1, clarissa: 1, clementine: 1, colleen: 1, connie: 1, cora: 1, courtney: 1, crystal: 1,
+    daisy: 1, dana: 1, danica: 1, danielle: 1, darla: 1, darcy: 1, dawn: 1, deb: 1, debra: 1,
+    delia: 1, delilah: 1, destiny: 1, diana: 1, dolly: 1, dolores: 1, donna: 1, dora: 1, doris: 1, dorothy: 1,
+    eden: 1, edith: 1, edna: 1, eileen: 1, elaine: 1, eleanor: 1, elena: 1, eliana: 1, elise: 1, eliza: 1,
+    elizabeth: 1, ella: 1, elle: 1, ellen: 1, ellie: 1, elsie: 1, eloise: 1, ember: 1, emilia: 1,
+    emily: 1, emma: 1, erica: 1, erika: 1, erin: 1, esther: 1, etta: 1, eva: 1, eve: 1, evelyn: 1, everly: 1,
+    faith: 1, fatima: 1, faye: 1, felicity: 1, fenella: 1, fiona: 1, flora: 1, florence: 1, frances: 1,
+    francesca: 1, freya: 1, gabriella: 1, gabrielle: 1, gemma: 1, georgia: 1, georgina: 1, geraldine: 1,
+    gianna: 1, gillian: 1, ginny: 1, giselle: 1, grace: 1, gracie: 1, greta: 1, gwen: 1, gwendolyn: 1, hadley: 1,
+    hailey: 1, haley: 1, hana: 1, hannah: 1, harlow: 1, harper: 1, harriet: 1, hattie: 1, hazel: 1, heather: 1,
+    heidi: 1, helen: 1, holly: 1, hope: 1, imogen: 1, ines: 1, inez: 1, ingrid: 1, irene: 1, iris: 1, isabel: 1,
+    isabella: 1, isla: 1, ivy: 1, izzy: 1, jacqueline: 1, jade: 1, jane: 1, janet: 1, janice: 1,
+    jasmine: 1, jean: 1, jeanette: 1, jeannie: 1, jenna: 1, jennifer: 1, jess: 1, jessica: 1, jill: 1, jillian: 1,
+    joan: 1, joanna: 1, jocelyn: 1, jodie: 1, johanna: 1, josephine: 1, joy: 1, joyce: 1, judith: 1, julia: 1,
+    julianna: 1, julie: 1, juliet: 1, june: 1, junko: 1, kali: 1, karen: 1, kate: 1, katelyn: 1, katherine: 1,
+    kathleen: 1, kathryn: 1, katie: 1, kayla: 1, keira: 1, kelly: 1, kendra: 1, kerri: 1, kiara: 1, kim: 1,
+    kimberly: 1, kira: 1, kirsten: 1, kitty: 1, kylie: 1, lainey: 1, lana: 1, lara: 1, laura: 1, lauren: 1,
+    layla: 1, leah: 1, leela: 1, leia: 1, lena: 1, leona: 1, lexie: 1, lia: 1, lila: 1, lilah: 1,
+    lillian: 1, lily: 1, lina: 1, linda: 1, lindsay: 1, lisa: 1, liv: 1, lola: 1, lottie: 1, louisa: 1, louise: 1,
+    lucia: 1, lucille: 1, lucy: 1, luna: 1, lydia: 1, lyla: 1, lyra: 1, mabel: 1, madeleine: 1, mae: 1, maeve: 1,
+    maggie: 1, magnolia: 1, mandy: 1, mara: 1, marcie: 1, margaret: 1, margot: 1, maria: 1, marian: 1,
+    marie: 1, marilyn: 1, marina: 1, marion: 1, marissa: 1, martha: 1, mary: 1, maryam: 1, matilda: 1, maureen: 1,
+    maxine: 1, may: 1, maya: 1, megan: 1, melanie: 1, melissa: 1, mia: 1, michelle: 1, millie: 1, minnie: 1,
+    miranda: 1, molly: 1, monica: 1, muriel: 1, myra: 1, nadine: 1, nancy: 1, naomi: 1, natalie: 1,
+    natasha: 1, nell: 1, nellie: 1, nia: 1, nicole: 1, nikki: 1, nina: 1, noelle: 1, nora: 1, norah: 1, nova: 1,
+    octavia: 1, olive: 1, olivia: 1, opal: 1, ophelia: 1, paige: 1, pam: 1, pamela: 1, patricia: 1,
+    paula: 1, pearl: 1, peggy: 1, penny: 1, pepper: 1, phoebe: 1, piper: 1, pippa: 1, polly: 1, poppy: 1, priya: 1,
+    queenie: 1, rachel: 1, raina: 1, rebecca: 1, regina: 1, renee: 1, rhiannon: 1, rita: 1,
+    roberta: 1, romy: 1, ronda: 1, rosa: 1, rose: 1, rosemary: 1, rosie: 1,
+    ruby: 1, ruth: 1, rylee: 1, sadie: 1, sally: 1, samantha: 1, sandra: 1, sara: 1, sarah: 1, savannah: 1,
+    scarlett: 1, selena: 1, serena: 1, shannon: 1, sharon: 1, sheila: 1, shelby: 1, shelly: 1, shirley: 1,
+    sierra: 1, sienna: 1, silvia: 1, skye: 1, sophia: 1, sophie: 1, stacey: 1,
+    stacy: 1, stella: 1, summer: 1, susan: 1, susie: 1, sutton: 1, sydney: 1, sylvia: 1, tabitha: 1, tamara: 1,
+    tammy: 1, tanya: 1, tara: 1, teresa: 1, tess: 1, tessa: 1, thea: 1, theresa: 1, tiffany: 1, tilly: 1,
+    tina: 1, tracy: 1, trinity: 1, trudy: 1, valentina: 1, valerie: 1, vanessa: 1, vera: 1, veronica: 1,
+    vicki: 1, victoria: 1, violet: 1, virginia: 1, vivian: 1, vivienne: 1, whitney: 1, willa: 1, willow: 1,
+    winifred: 1, winnie: 1, winter: 1, xara: 1, yasmin: 1, yvette: 1, zara: 1, zelda: 1, zoe: 1, zola: 1, zoey: 1,
+  };
+
+  /** Names often used for any gender — read-aloud uses **sage**. */
+  var TTS_UNISEX_NAMES = {
+    alex: 1, avery: 1, bailey: 1, blair: 1, casey: 1, charlie: 1, dakota: 1, devon: 1, drew: 1, ellis: 1,
+    emerson: 1, finley: 1, francis: 1, gray: 1, harley: 1, jaden: 1, jamie: 1, jordan: 1, kendall: 1,
+    kennedy: 1, kit: 1, lane: 1, lee: 1, leslie: 1, logan: 1, max: 1, morgan: 1, noel: 1, paris: 1,
+    pat: 1, peyton: 1, phoenix: 1, quinn: 1, reese: 1, remy: 1, riley: 1, river: 1, robin: 1, rowan: 1, ryan: 1,
+    sam: 1, skylar: 1, skyler: 1, stevie: 1, taylor: 1, terry: 1, val: 1,
+  };
+
   var PLACES = [
     { id: "beach", label: "Beach", icon: "\uD83C\uDFD6" },
     { id: "woods", label: "Woods", icon: "\uD83C\uDF32" },
@@ -184,8 +291,13 @@
     stepGuidePlaying = true;
     refreshReadStepBtn();
     var u = new SpeechSynthesisUtterance(text);
-    u.lang = "en-GB";
-    u.rate = 0.92;
+    if (typeof KidsCore !== "undefined" && KidsCore.applyKidFriendlySpeech) {
+      KidsCore.applyKidFriendlySpeech(u, "en-GB");
+    } else {
+      u.lang = "en-GB";
+      u.rate = 1.08;
+      u.pitch = 1.18;
+    }
     u.onend = function () {
       stepGuidePlaying = false;
       refreshReadStepBtn();
@@ -207,11 +319,9 @@
     stopStepGuideAudio();
     var text = STEP_GUIDE_TEXT[journeyStep];
     if (!text) return;
-    var fUrl = functionUrl();
-    if (fUrl) {
-      stepGuideAudio = new Audio(
-        fUrl + "?ttsText=" + encodeURIComponent(text),
-      );
+    var ttsUrl = cleverServiceTtsUrl(text);
+    if (ttsUrl) {
+      stepGuideAudio = new Audio(ttsUrl);
       stepGuidePlaying = true;
       refreshReadStepBtn();
       stepGuideAudio.onended = function () {
@@ -248,7 +358,8 @@
       element.classList.add("sb-word-reading");
     }
     
-    var audioUrl = fUrl + "?ttsText=" + encodeURIComponent(word);
+    var audioUrl = cleverServiceTtsUrl(word);
+    if (!audioUrl) return;
     currentAudio = new Audio(audioUrl);
     
     var playPromise = currentAudio.play();
@@ -306,7 +417,11 @@
       btnReadToMe.innerHTML = '<span aria-hidden="true" style="margin: 0;">⏳</span>';
       btnReadToMe.disabled = true;
       
-      var audioUrl = fUrl + "?ttsText=" + encodeURIComponent(leftP.text);
+      var audioUrl = cleverServiceTtsUrl(leftP.text);
+      if (!audioUrl) {
+        stopReading();
+        return;
+      }
       currentAudio = new Audio(audioUrl);
       
       // On iOS, play() must be called synchronously in the click handler
@@ -2569,6 +2684,75 @@
     var base = c && c.supabaseUrl ? String(c.supabaseUrl).replace(/\/$/, "") : "";
     if (!base) return "";
     return base + "/functions/v1/" + storybookSlug(c);
+  }
+
+  /** Skip these as “first word” when guessing narrator voice from book title. */
+  var TTS_TITLE_SKIP = {
+    the: 1, a: 1, an: 1, my: 1, our: 1, your: 1, little: 1, big: 1, great: 1, dear: 1, tiny: 1,
+    brave: 1, wonderful: 1, amazing: 1, first: 1, last: 1, super: 1, happy: 1, silly: 1, true: 1,
+    another: 1, some: 1,
+  };
+
+  function firstTokenFromTitleish(raw) {
+    var s = String(raw || "").trim();
+    if (!s) return "";
+    var head = s.split(/[''']/)[0].trim();
+    var parts = head.replace(/-/g, " ").split(/\s+/);
+    for (var i = 0; i < parts.length; i++) {
+      var w = parts[i].replace(/[^a-zA-Z]/g, "");
+      if (w.length < 2) continue;
+      var low = w.toLowerCase();
+      if (TTS_TITLE_SKIP[low]) continue;
+      return w;
+    }
+    return "";
+  }
+
+  /** First plausible name: **story title** (e.g. “Freya’s moon”), else book title field, else hero name. */
+  function firstNameForReadAloud() {
+    var t;
+    if (typeof story !== "undefined" && story && story.title) {
+      t = firstTokenFromTitleish(story.title);
+      if (t) return t;
+    }
+    if (bookTitleInput && bookTitleInput.value.trim()) {
+      t = firstTokenFromTitleish(bookTitleInput.value);
+      if (t) return t;
+    }
+    if (nameInput && nameInput.value.trim()) {
+      return firstTokenFromTitleish(nameInput.value);
+    }
+    return "";
+  }
+
+  /**
+   * `ballad` for boy-leaning names, `sage` for girl- or unisex-leaning (see name lists).
+   * Manual `STORYBOOK_TTS_VOICE` wins. Unknown names omit voice (server default).
+   */
+  function inferStorybookTtsVoiceId() {
+    var manual =
+      typeof STORYBOOK_TTS_VOICE === "string" ? STORYBOOK_TTS_VOICE.trim().toLowerCase() : "";
+    if (manual) return manual;
+    var nm = firstNameForReadAloud();
+    if (!nm) return "";
+    var k = nm.toLowerCase().replace(/[^a-z]/g, "");
+    if (!k) return "";
+    if (TTS_GIRL_NAMES[k]) return "sage";
+    if (TTS_BOY_NAMES[k]) return "ballad";
+    if (TTS_UNISEX_NAMES[k]) return "sage";
+    return "";
+  }
+
+  /** GET clever-service MP3: `?ttsText=` and optional `&ttsVoice=` (manual or inferred). */
+  function cleverServiceTtsUrl(plainText) {
+    var base = functionUrl();
+    if (!base || plainText == null || plainText === "") return "";
+    var q = "?ttsText=" + encodeURIComponent(String(plainText));
+    var v = inferStorybookTtsVoiceId();
+    if (v) {
+      q += "&ttsVoice=" + encodeURIComponent(v);
+    }
+    return base + q;
   }
 
   function anonKey() {
