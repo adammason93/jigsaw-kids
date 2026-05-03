@@ -410,19 +410,25 @@ async function compileCharacterLockForImages(
     draftDesign: string;
     briefsSummary: string;
     plotNamedHumans: string[];
+    /** Vision summary from uploaded reference photos — must win over vague draft prose for HERO / named kids. */
+    portraitAppearance?: string;
   },
 ): Promise<string> {
   const co = input.plotNamedHumans.length > 0
     ? input.plotNamedHumans.join(", ")
     : "(none)";
+  const photoBlock = String(input.portraitAppearance ?? "").trim();
   const user =
     `Hero first name: ${input.childName}\n` +
     `Main buddy type (${input.buddyKey}): ${input.buddyDesc}\n` +
     `Setting: ${input.placeDesc}\n` +
     `Plot: ${input.plotHint || "cozy adventure"}\n` +
     `Human co-stars named in the plot (each is a REAL CHILD — NOT the imaginary buddy; give each their own NAME: line if they appear in the draft): ${co}\n` +
-    `Who appears in pictures (beats): ${input.briefsSummary}\n\n` +
-    `Storywriter draft (may be messy):\n${input.draftDesign || "(none)"}\n\n` +
+    `Who appears in pictures (beats): ${input.briefsSummary}\n` +
+    (photoBlock
+      ? `\nREFERENCE PHOTOS (vision summary — HERO and any named line MUST match hair, eyes, skin, age here; do not invent a different child):\n${photoBlock}\n`
+      : "") +
+    `\nStorywriter draft (may be messy):\n${input.draftDesign || "(none)"}\n\n` +
     `Rewrite into LOCKED CAST only — plain text, no JSON.\n` +
     `Use labeled lines: HERO:, BUDDY:, then one line per other named recurring HUMAN child from the plot or draft (e.g. ISAAC:) — same detail as HERO (gender, hair, eyes, skin, outfit). Never add MONKEY:, BEAR:, LION:, or random extras.\n` +
     `Each line: exact colours, relative size vs hero, silhouette, distinctive marks, wings/tail yes/no.\n` +
@@ -667,7 +673,8 @@ async function openaiVisionDescribePortraits(
       text:
         `These ${items.length} images are reference photos for named characters in a kids' picture book, in order: ${ordered}.\n` +
         `Reply with exactly ${items.length} lines, one per character, format:\n` +
-        `NAME: neutral appearance for an illustrator only — hair, skin tone, clothing colours and cut, approximate age; max 28 words; no art-style words; match the reference. CRITICAL: Ignore and omit any logos, graphics, or patterns on clothing.\n` +
+        `NAME: illustrator-facing appearance — keep the SAME person as the photo. Priority order: (1) hair colour, length, style, fringe/bangs, and accessories (scrunchies, clips, bands); (2) eye colour; (3) skin tone; (4) approximate age; (5) clothing as silhouette + main colours.\n` +
+        `Do not transcribe readable logos, brand names, or small text on clothes. If a top has a large decorative print, say "light top with a colourful front graphic" (or similar) — still name hair and eyes precisely. max 32 words per line; no art-style words.\n` +
         `Use each NAME exactly as spelled above. No other text.`,
     },
   ];
@@ -726,7 +733,7 @@ async function openaiVisionSummarizeHeroFromRefs(
       text:
         `This image is a reference photo of ${name} (${role === "hero" ? "story hero" : "story character"}).\n` +
         `Reply with exactly one line:\n` +
-        `${name}: neutral appearance for an illustrator only — hair, skin tone, clothing colours and cut, approximate age; max 34 words; no art-style words; match the reference. CRITICAL: Ignore and omit any logos, graphics, or patterns on clothing.\n` +
+        `${name}: illustrator-facing appearance — same person as the photo. Priority: hair (colour, style, fringe, pigtails, scrunchies, clips), eye colour, skin tone, age, then clothing silhouette and colours. Do not copy logos or readable text on shirts; if there is a big print, say "top with a bold front graphic" — never skip hair/eyes. max 38 words; no art-style words.\n` +
         `Use the NAME exactly as spelled above. No other text.`,
     });
     content.push({ type: "image_url", image_url: { url: dataUrls[0] } });
@@ -736,7 +743,7 @@ async function openaiVisionSummarizeHeroFromRefs(
       text:
         `These ${dataUrls.length} images are all of the SAME person: ${rolePhrase} (different angles or moments).\n` +
         `Reply with exactly ONE line:\n` +
-        `${name}: neutral appearance for an illustrator only — combine what you see across the photos — hair, skin tone, clothing colours and cut, approximate age; max 44 words; no art-style words. CRITICAL: Ignore and omit any logos, graphics, or patterns on clothing.\n` +
+        `${name}: illustrator-facing appearance — one consistent child across all photos. Combine: hair (colour, cut, fringe, pigtails, scrunchies), eye colour, skin tone, age, clothing silhouette/colours. Ignore logos and tiny text; if two tops differ, describe the common vibe plus hair/eyes so the child is recognisable. max 52 words; no art-style words.\n` +
         `Use the NAME exactly as spelled above. No other text.`,
     });
     for (const u of dataUrls) {
@@ -1608,6 +1615,19 @@ function gptImageQualityForRequest(
   return scope === "generation" ? "medium" : "low";
 }
 
+/** When env unset: high tier or user-uploaded reference photos → stricter edit lock to the anchor. */
+function gptImageInputFidelityForRequest(
+  bookTier: PictureBookQuality,
+  hasUserPortraitRefs: boolean,
+): "low" | "high" {
+  const env = (Deno.env.get("STORYBOOK_GPTIMAGE_INPUT_FIDELITY") ?? "").trim().toLowerCase();
+  if (env === "high") return "high";
+  if (env === "low") return "low";
+  if (bookTier === "high") return "high";
+  if (hasUserPortraitRefs) return "high";
+  return "low";
+}
+
 function decodeB64ToBytes(b64: string): Uint8Array {
   const clean = b64.replace(/^data:image\/[a-z]+;base64,/i, "").trim();
   const bin = atob(clean);
@@ -1762,15 +1782,14 @@ async function gptImageEdit(
   referenceBytes: Uint8Array[],
   bookTier: PictureBookQuality,
   retryCount = 0,
+  hasUserPortraitRefs = false,
 ): Promise<{ url: string; bytes: Uint8Array }> {
   const model = gptImageDefaultModel();
   const moderation = gptImageModerationParam();
   const size = gptImageSizeForRequest(bookTier);
   const quality = gptImageQualityForRequest("edit", bookTier);
   const trimmed = prompt.slice(0, GPT_IMAGE_PROMPT_MAX);
-  const fidRaw = (Deno.env.get("STORYBOOK_GPTIMAGE_INPUT_FIDELITY") ?? "low")
-    .trim()
-    .toLowerCase();
+  const fidelity = gptImageInputFidelityForRequest(bookTier, hasUserPortraitRefs);
 
   const buildForm = (withQuality: boolean): FormData => {
     const form = new FormData();
@@ -1784,9 +1803,7 @@ async function gptImageEdit(
     form.append("output_format", "png");
     form.append("stream", "false");
     form.append("moderation", moderation);
-    if (fidRaw === "high" || fidRaw === "low") {
-      form.append("input_fidelity", fidRaw);
-    }
+    form.append("input_fidelity", fidelity);
     for (let i = 0; i < referenceBytes.length; i++) {
       const blob = new Blob([referenceBytes[i]] as unknown as BlobPart[], {
         type: "image/png",
@@ -1823,7 +1840,14 @@ async function gptImageEdit(
         `[gpt-image] 429 edits — wait ${Math.round(waitMs / 1000)}s, retry ${retryCount + 1}`,
       );
       await delay(waitMs);
-      return gptImageEdit(apiKey, prompt, referenceBytes, bookTier, retryCount + 1);
+      return gptImageEdit(
+        apiKey,
+        prompt,
+        referenceBytes,
+        bookTier,
+        retryCount + 1,
+        hasUserPortraitRefs,
+      );
     }
     console.error("[gpt-image] edits error", r.status, raw.slice(0, 700));
     throw new Error(openaiImageErrorDetail(r.status, raw));
@@ -2163,8 +2187,17 @@ ${noBuddyBook ? `BOOK MODE — NO IMAGINARY BUDDY: The reader chose "No buddy". 
       ? " If appearance lines are given for the hero or game people, stay consistent with those visual details when you naturally describe them."
       : ""
   }
+${
+  portraitAppearance
+    ? `\nPHOTO-MATCH (reference photos were uploaded): The "Appearance from reference photos" block in the user message was produced from real family pictures. For every person named there, characterDesign and every spread must preserve that identity — hair (including accessories), eye colour, skin tone, approximate age, and gender presentation — never swap in a different-looking child. If a photo line conflicts with generic "plain solid tee" boilerplate, follow the photo summary (you may describe a busy real-life top as one short neutral phrase such as "cream sweatshirt with a colourful front" rather than inventing a different outfit).\n`
+    : ""
+}
 - Include fields title (string), characterDesign (string), bookColor (string: ${BOOK_COLOR_MODEL_HINT}. If unsure, pick a tint that fits the child's name — cooler tones for many boy names, warmer for many girl names), and pages (array of 12 objects).
-  For "characterDesign": describe the hero, the one main buddy creature, EVERY human child named in the plot idea (e.g. a brother or sister) who appears in the story, and any named game people who actually appear. If the plot names only ${childName} plus the buddy, characterDesign has exactly those two rich descriptions. If the plot names an extra child (e.g. Isaac), add a full third block for that child — never fold them into the buddy description. Never lions, bears, or unnamed critters. For each included character you MUST define their EXACT gender (e.g. boy/girl), age, height in words or feet without inch marks (e.g. about four feet tall, or 4 ft), body shape, skin/surface tone, eye color, facial features, hair color, hair style, AND exact texture/material (e.g. smooth sculpted clay hair, fuzzy felt fur, shiny plastic — never use the double-quote character anywhere in this field). For the buddy creature, explicitly define anatomy (horse-like unicorn with hooves and horn; or winged dragon; etc.). Plus ONE specific, unchanging outfit or set of accessories with exact colors and materials. If an animal or creature wears nothing, say they are in natural animal form with no human outfits. CRITICAL: Keep clothing solid-colored and simple. DO NOT put logos, graphics, patterns, or text on clothing (DALL-E hallucinates these). DO NOT give them multiple outfits or changing colors. You MUST use the exact same clothing description for the hero in EVERY single illustrationBrief. That locks their look for the book; the illustrator still shows different faces and poses per spread from the story beats — your prose should not force the same generic smile line into every brief.
+  For "characterDesign": describe the hero, the one main buddy creature, EVERY human child named in the plot idea (e.g. a brother or sister) who appears in the story, and any named game people who actually appear. If the plot names only ${childName} plus the buddy, characterDesign has exactly those two rich descriptions. If the plot names an extra child (e.g. Isaac), add a full third block for that child — never fold them into the buddy description. Never lions, bears, or unnamed critters. For each included character you MUST define their EXACT gender (e.g. boy/girl), age, height in words or feet without inch marks (e.g. about four feet tall, or 4 ft), body shape, skin/surface tone, eye color, facial features, hair color, hair style, AND exact texture/material (e.g. smooth sculpted clay hair, fuzzy felt fur, shiny plastic — never use the double-quote character anywhere in this field). For the buddy creature, explicitly define anatomy (horse-like unicorn with hooves and horn; or winged dragon; etc.). Plus ONE specific, unchanging outfit or set of accessories with exact colors and materials. If an animal or creature wears nothing, say they are in natural animal form with no human outfits.${
+    portraitAppearance
+      ? " When reference-photo appearance lines exist for a person, treat those as authoritative for hair, eyes, skin, and outfit vibe for that person — do not overwrite with a generic description."
+      : ""
+  } CRITICAL: Keep clothing solid-colored and simple. DO NOT put logos, graphics, patterns, or text on clothing (DALL-E hallucinates these). DO NOT give them multiple outfits or changing colors. You MUST use the exact same clothing description for the hero in EVERY single illustrationBrief. That locks their look for the book; the illustrator still shows different faces and poses per spread from the story beats — your prose should not force the same generic smile line into every brief.
 - Each page: { "text": string, "illustrationBrief": string | null }.
 - DOUBLE-PAGE SPREADS: pair pages as (1,2), (3,4), (5,6), (7,8), (9,10), (11,12).
   Odd-numbered pages (1,3,5,7,9,11) are TEXT-FIRST pages only — use "illustrationBrief": null.
@@ -2264,6 +2297,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
       draftDesign: story.characterDesign || "",
       briefsSummary,
       plotNamedHumans,
+      portraitAppearance,
     });
   } catch (e) {
     console.warn("[clever-service] compileCharacterLock failed", e);
@@ -2415,6 +2449,9 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
         // timeout. Identity is already locked by pixels. Visual lock stays in
         // play for the Fal / DALL·E paths below.
         const refBytes = anchorOut.bytes;
+        const gptHasPortraitRefs =
+          refPack.heroUrls.length > 0 ||
+          Object.keys(refPack.customByFriendId).length > 0;
         // Stay under Supabase/Cloudflare wall-clock (~150s).
         // Cost-aware defaults: tier from `pictureBookQuality` + env overrides for size/quality/input_fidelity.
         // Tier-1 OpenAI image RPM is 5 — chunk 4 edits, brief wait, then 2 edits. Raise wait or
@@ -2602,7 +2639,14 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
               const idx = chunkStart + localIdx;
               const editPrompt = buildEditPrompt(b, idx);
               try {
-                const out = await gptImageEdit(apiKey, editPrompt, [refBytes], pictureBookQuality);
+                const out = await gptImageEdit(
+                  apiKey,
+                  editPrompt,
+                  [refBytes],
+                  pictureBookQuality,
+                  0,
+                  gptHasPortraitRefs,
+                );
                 return { idx, url: out.url };
               } catch (e) {
                 console.warn(

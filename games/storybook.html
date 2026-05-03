@@ -3,6 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <link rel="preload" href="images/storybook-landing-room-bg.jpg" as="image" />
   <meta name="theme-color" content="#db2777" />
   <title>Your story — Sofia's Game Room</title>
@@ -285,21 +288,21 @@
           <fieldset class="sb-picture-quality">
             <legend class="sb-label sb-label--secondary">Pictures</legend>
             <p class="sb-panel__micro sb-picture-quality__hint" id="sbPictureQualityHint">
-              We start you on Standard (default) — economy pictures, about 15p each, lovely on a tablet. High is a wider, sharper pass if you might print later (it costs more).
+              We start you on Standard (default) — lovely on a tablet. Choose high quality when you want art that’s ready to print.
             </p>
             <div class="sb-quality-row" role="radiogroup" aria-labelledby="sbPictureQualityHint">
               <label class="sb-quality-opt">
                 <input type="radio" name="sbPictureQuality" value="standard" checked />
                 <span class="sb-quality-opt__body">
                   <span class="sb-quality-opt__title">Standard (default)</span>
-                  <span class="sb-quality-opt__sub">~15p per picture · best on screen</span>
+                  <span class="sb-quality-opt__sub">Great on screen</span>
                 </span>
               </label>
               <label class="sb-quality-opt">
                 <input type="radio" name="sbPictureQuality" value="high" />
                 <span class="sb-quality-opt__body">
-                  <span class="sb-quality-opt__title">High</span>
-                  <span class="sb-quality-opt__sub">Sharper, print-friendly</span>
+                  <span class="sb-quality-opt__title">High quality</span>
+                  <span class="sb-quality-opt__sub">Ready to print</span>
                 </span>
               </label>
             </div>
@@ -523,6 +526,12 @@
   <script src="../js/kids-game-characters.js"></script>
   <script src="../js/score-config.js"></script>
   <script src="../js/kids-core.js"></script>
+  <script>
+    /* Fullscreen on first tap (where allowed) hides browser chrome; PWA meta helps “Add to Home Screen”. */
+    if (window.K && typeof K.init === "function") {
+      K.init();
+    }
+  </script>
   <!-- IndexedDB shelf (mobile); must load before score-cloud + storybook -->
   <script src="../js/storybook-shelf-store.js" defer></script>
   <!-- Required for cloud shelf sync + upload (same as other games) -->
