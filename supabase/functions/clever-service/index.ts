@@ -436,6 +436,7 @@ async function compileCharacterLockForImages(
     `Use labeled lines: HERO:, BUDDY:, then one line per other named recurring HUMAN child from the plot or draft (e.g. ISAAC:) — same detail as HERO (gender, hair, eyes, skin, outfit). Never add MONKEY:, BEAR:, LION:, or random extras.\n` +
     `When REFERENCE PHOTOS are present above, every human line MUST quote the same Hair: colour, length, and style words from those lines (you may add clay-style texture words after). Wrong hair = failure.\n` +
     `If reference lines include **Gender: girl** or **Gender: boy**, each LOCKED CAST human must use that gender — do not swap to the opposite because a name "sounds" masculine or feminine.\n` +
+    `Never assign one child dark brown short hair and the other long blonde for cast "variety" when references show both blonde — match each line's hair literally.\n` +
     `Each line: exact colours, relative size vs hero, silhouette, distinctive marks, wings/tail yes/no.\n` +
     `Art style words allowed ONLY: "soft matte clay toy, rounded limbs, gentle toy plastic sheen" — never "realistic" or "Pixar skin".\n` +
     `Max 2100 characters. No scenery. No actions.`;
@@ -2310,7 +2311,7 @@ ${noBuddyBook ? `BOOK MODE — NO IMAGINARY BUDDY: The reader chose "No buddy". 
   }
 ${
   portraitAppearance
-    ? `\nPHOTO-MATCH (reference photos were uploaded): The "Appearance from reference photos" block in the user message was produced from real family pictures. For every person named there, characterDesign and every spread must preserve that identity — **hair colour, hair length, and style (including accessories)**, eye colour, skin tone, approximate age, and gender presentation — never swap in a different-looking child. If a photo line conflicts with generic "plain solid tee" boilerplate, follow the photo summary (you may describe a busy real-life top as one short neutral phrase such as "cream sweatshirt with a colourful front" rather than inventing a different outfit).\n`
+    ? `\nPHOTO-MATCH (reference photos were uploaded): The "Appearance from reference photos" block in the user message was produced from real family pictures. For every person named there, characterDesign and every spread must preserve that identity — **hair colour, hair length, and style (including accessories)**, eye colour, skin tone, approximate age, and gender presentation — never swap in a different-looking child. If a photo line conflicts with generic "plain solid tee" boilerplate, follow the photo summary (you may describe a busy real-life top as one short neutral phrase such as "cream sweatshirt with a colourful front" rather than inventing a different outfit).\n**NO HAIR CONTRAST:** If two (or more) lines all describe long blonde hair (or the same family of colouring), **every** named child must keep that — do **not** make one child brunette, auburn, or short-haired so they "look different" next to the hero. Differentiate co-stars with outfit, face shape, or small style details only, not opposite hair colours.\n`
     : ""
 }
 ${
@@ -2379,7 +2380,11 @@ ${
 People from the child's games to include by name (friends/family — use them warmly when listed; each may have a portrait note above): ${
     familyNames.length > 0 ? familyNames.join(", ") : "(none)"
   }
-Other human children named ONLY in the plot idea below (they are REAL KIDS in the story — NOT the imaginary buddy; give each a clear role; if not listed above, invent a simple distinct look): ${
+Other human children named ONLY in the plot idea below (they are REAL KIDS in the story — NOT the imaginary buddy; give each a clear role; ${
+    portraitBlockForText
+      ? `each MUST match their appearance line above if present — never give opposite hair colour or length for 'visual contrast' with ${childName}.`
+      : "if not listed above, invent a simple distinct look"
+  }): ${
     plotOnlyHumans.length > 0 ? plotOnlyHumans.join(", ") : "(none)"
   }${portraitBlockForText}
 Plot idea from the child (CRITICAL: make this the core focus of the story and pictures): ${
@@ -2434,27 +2439,18 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
     console.warn("[clever-service] compileCharacterLock failed", e);
   }
 
+  const coStarFallbackLine = (n: string) =>
+    `${n.toUpperCase()}: human child co-star from the plot — match reference-photo hair and skin when storywriter draft lists them; distinguish from ${childName} by **outfit and face shape only**, not by flipping blonde→brown or long→short unless the written draft explicitly says so. Soft matte clay toy 3D whenever this child appears.`;
+
   const duoImageCastFallback = noBuddyBook
     ? `HERO: ${childName}, young child, friendly rounded face, simple solid-colour top and trousers, soft matte clay toy 3D — always the same human hero in every spread.` +
       (plotNamedHumans.length > 0
-        ? " " +
-          plotNamedHumans
-            .map(
-              (n) =>
-                `${n.toUpperCase()}: human child co-star named in the plot — distinct face, hair, and outfit colours from ${childName}, same soft matte clay toy 3D whenever this child appears.`,
-            )
-            .join(" ")
+        ? " " + plotNamedHumans.map((n) => coStarFallbackLine(n)).join(" ")
         : "")
     : `HERO: ${childName}, young child, friendly rounded face, simple solid-colour top and trousers, soft matte clay toy 3D — always the same human hero in every spread. ` +
       `BUDDY: ${characterDesc}, exactly ONE individual of this species in every image — never duplicate, never parent+baby pair, same toy-clay style on every page.` +
       (plotNamedHumans.length > 0
-        ? " " +
-          plotNamedHumans
-            .map(
-              (n) =>
-                `${n.toUpperCase()}: human child co-star named in the plot — distinct face, hair, and outfit colours from ${childName}, same soft matte clay toy 3D whenever this child appears.`,
-            )
-            .join(" ")
+        ? " " + plotNamedHumans.map((n) => coStarFallbackLine(n)).join(" ")
         : "");
 
   const castBible =
@@ -2546,7 +2542,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
 
     const photoRefHairLock =
       portraitAppearance.trim().length > 0
-        ? "Reference photos were supplied: for every HUMAN in LOCKED CAST, match written **Gender girl/boy**, hair colour, hair LENGTH, and arrangement — never turn a written **girl** with long blonde into a boy with short brown hair because of her name. "
+        ? "Reference photos were supplied: for every HUMAN in LOCKED CAST, match written **Gender girl/boy**, hair colour, hair LENGTH, and arrangement — never turn a written **girl** with long blonde into a boy with short brown hair because of her name. **If every line is long blonde, both children are long blonde** — no brunette co-star for contrast. "
         : "";
 
     const anchorPreamble =
@@ -2742,7 +2738,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
 
           if (portraitAppearance.trim().length > 0) {
             blocks.push(
-              "HAIR FIDELITY: Each named child must keep the exact hair colour, length, and arrangement from the reference lineup and lines above (e.g. long blonde stays long blonde; pigtails stay pigtails). Do not revert to a default boy crew cut or generic brown bob unless the cast explicitly describes that. **GENDER:** If the cast bible says a named child is a girl (or reference had Gender: girl), illustrate a girl — do not draw them as a boy with short brown hair.",
+              "HAIR FIDELITY: Each named child must keep the exact hair colour, length, and arrangement from the reference lineup and lines above (e.g. long blonde stays long blonde; pigtails stay pigtails). **Never** give one girl dark brown ponytail and the other long blonde for contrast — if both lines say blonde, both are blonde. Do not revert to a default boy crew cut or generic brown bob unless the cast explicitly describes that. **GENDER:** If the cast bible says a named child is a girl (or reference had Gender: girl), illustrate a girl — do not draw them as a boy with short brown hair.",
             );
           }
 
