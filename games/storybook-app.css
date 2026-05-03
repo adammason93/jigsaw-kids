@@ -1820,6 +1820,86 @@ body.sb-portal-welcome-open {
   color: #631f3b;
 }
 
+.sb-picture-quality {
+  border: none;
+  margin: 0.35rem 0 0.25rem;
+  padding: 0;
+}
+
+.sb-picture-quality .sb-label--secondary {
+  margin-bottom: 0.25rem;
+}
+
+.sb-picture-quality__hint {
+  margin-top: 0.2rem;
+  margin-bottom: 0.55rem;
+}
+
+.sb-quality-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+@media (min-width: 420px) {
+  .sb-quality-row {
+    flex-direction: row;
+    gap: 0.5rem;
+  }
+}
+
+.sb-quality-opt {
+  flex: 1;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.45rem;
+  cursor: pointer;
+  padding: 0.55rem 0.6rem;
+  border-radius: 12px;
+  border: 2px solid rgba(157, 23, 77, 0.22);
+  background: rgba(255, 255, 255, 0.65);
+  box-sizing: border-box;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+
+.sb-quality-opt:has(input:focus-visible) {
+  outline: 3px solid #f9a8d4;
+  outline-offset: 2px;
+}
+
+.sb-quality-opt:has(input:checked) {
+  border-color: rgba(157, 23, 77, 0.55);
+  background: rgba(252, 231, 243, 0.85);
+}
+
+.sb-quality-opt input {
+  margin-top: 0.2rem;
+  flex-shrink: 0;
+}
+
+.sb-quality-opt__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.08rem;
+  min-width: 0;
+}
+
+.sb-quality-opt__title {
+  font-family: "Nunito", "Segoe UI", system-ui, sans-serif;
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: #831843;
+}
+
+.sb-quality-opt__sub {
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: rgba(91, 39, 68, 0.78);
+  line-height: 1.25;
+}
+
 .sb-modal__actions {
   margin-top: 1.1rem;
 }

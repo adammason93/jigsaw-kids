@@ -1553,17 +1553,28 @@ const GPT_IMAGE_SIZES: ReadonlySet<string> = new Set([
   "1024x1536",
 ]);
 
+/** User-chosen tier from JSON `pictureBookQuality` (GPT Image path only; Fal unchanged). */
+type PictureBookQuality = "standard" | "high";
+
 /**
- * Default `1024x1024` for lower cost (fewer image tokens per anchor + 6 edits).
- * Set `STORYBOOK_GPTIMAGE_SIZE=1536x1024` for landscape spreads that match the reader better (costs more).
+ * `standard` = economy (screen): 1024² anchor + edits, quality medium/low when env unset.
+ * `high` = print-oriented: 1536×1024 when env size unset, quality high/medium when env unset.
+ * `STORYBOOK_GPTIMAGE_SIZE` / `STORYBOOK_GPTIMAGE_QUALITY` secrets still override per tier.
  */
-function gptImageSizeParam(): string {
+function coercePictureBookQuality(raw: unknown): PictureBookQuality {
+  const s = String(raw ?? "").trim().toLowerCase();
+  if (s === "high" || s === "print" || s === "premium") return "high";
+  return "standard";
+}
+
+function gptImageSizeForRequest(bookTier: PictureBookQuality): string {
   const raw = (Deno.env.get("STORYBOOK_GPTIMAGE_SIZE") ?? "")
     .trim()
     .toLowerCase()
     .replace(/\s/g, "")
     .replace("×", "x");
   if (raw && GPT_IMAGE_SIZES.has(raw)) return raw;
+  if (bookTier === "high") return "1536x1024";
   return "1024x1024";
 }
 
@@ -1578,18 +1589,21 @@ function gptImageModerationParam(): "low" | "auto" {
     : "low";
 }
 
-/**
- * Split defaults when `STORYBOOK_GPTIMAGE_QUALITY` is unset: **`medium`** for the anchor
- * (cast reference) and **`low`** for spread edits — ~half the image-token cost vs the old
- * `high` + `medium` combo, with the same prompts and model. For maximum fidelity set
- * `STORYBOOK_GPTIMAGE_QUALITY=high` (single tier for both) or tune per-deployment via secrets.
- */
-function gptImageQualityParam(
+function gptImageQualityForRequest(
   scope: "generation" | "edit",
+  bookTier: PictureBookQuality,
 ): "low" | "medium" | "high" | "auto" {
-  const raw = (Deno.env.get("STORYBOOK_GPTIMAGE_QUALITY") ?? "").trim().toLowerCase();
-  if (raw === "medium" || raw === "high" || raw === "auto" || raw === "low") {
-    return raw;
+  const envRaw = (Deno.env.get("STORYBOOK_GPTIMAGE_QUALITY") ?? "").trim().toLowerCase();
+  if (
+    envRaw === "medium" ||
+    envRaw === "high" ||
+    envRaw === "auto" ||
+    envRaw === "low"
+  ) {
+    return envRaw;
+  }
+  if (bookTier === "high") {
+    return scope === "generation" ? "high" : "medium";
   }
   return scope === "generation" ? "medium" : "low";
 }
@@ -1676,12 +1690,13 @@ async function gptImageBytesFromImagesResponse(raw: string): Promise<Uint8Array>
 async function gptImageGenerate(
   apiKey: string,
   prompt: string,
-  size: string = gptImageSizeParam(),
+  bookTier: PictureBookQuality,
   retryCount = 0,
 ): Promise<{ url: string; bytes: Uint8Array }> {
   const model = gptImageDefaultModel();
   const moderation = gptImageModerationParam();
-  const quality = gptImageQualityParam("generation");
+  const size = gptImageSizeForRequest(bookTier);
+  const quality = gptImageQualityForRequest("generation", bookTier);
   const trimmed = prompt.slice(0, GPT_IMAGE_PROMPT_MAX);
 
   const post = (body: Record<string, unknown>) =>
@@ -1730,7 +1745,7 @@ async function gptImageGenerate(
         `[gpt-image] 429 generations — wait ${Math.round(waitMs / 1000)}s, retry ${retryCount + 1}`,
       );
       await delay(waitMs);
-      return gptImageGenerate(apiKey, prompt, size, retryCount + 1);
+      return gptImageGenerate(apiKey, prompt, bookTier, retryCount + 1);
     }
     console.error("[gpt-image] generations error", r.status, raw.slice(0, 700));
     throw new Error(openaiImageErrorDetail(r.status, raw));
@@ -1745,12 +1760,13 @@ async function gptImageEdit(
   apiKey: string,
   prompt: string,
   referenceBytes: Uint8Array[],
-  size: string = gptImageSizeParam(),
+  bookTier: PictureBookQuality,
   retryCount = 0,
 ): Promise<{ url: string; bytes: Uint8Array }> {
   const model = gptImageDefaultModel();
   const moderation = gptImageModerationParam();
-  const quality = gptImageQualityParam("edit");
+  const size = gptImageSizeForRequest(bookTier);
+  const quality = gptImageQualityForRequest("edit", bookTier);
   const trimmed = prompt.slice(0, GPT_IMAGE_PROMPT_MAX);
   const fidRaw = (Deno.env.get("STORYBOOK_GPTIMAGE_INPUT_FIDELITY") ?? "low")
     .trim()
@@ -1807,7 +1823,7 @@ async function gptImageEdit(
         `[gpt-image] 429 edits — wait ${Math.round(waitMs / 1000)}s, retry ${retryCount + 1}`,
       );
       await delay(waitMs);
-      return gptImageEdit(apiKey, prompt, referenceBytes, size, retryCount + 1);
+      return gptImageEdit(apiKey, prompt, referenceBytes, bookTier, retryCount + 1);
     }
     console.error("[gpt-image] edits error", r.status, raw.slice(0, 700));
     throw new Error(openaiImageErrorDetail(r.status, raw));
@@ -1930,6 +1946,8 @@ Deno.serve(async (req) => {
     heroReferenceImages?: string[];
     /** Tagged refs: `who` = "hero", hero's first name, friend id, or friend label (friend must be in `familyPeople`). */
     characterReferencePhotos?: unknown;
+    /** GPT Image only: `"standard"` (economy, screen) or `"high"` (print-oriented size + quality when secrets unset). */
+    pictureBookQuality?: string;
   };
   try {
     body = await req.json();
@@ -1952,6 +1970,7 @@ Deno.serve(async (req) => {
   const noBuddyBook = characterKey === "nobuddy";
 
   const plotHint = sanitizePlotHint(String(body.plotHint ?? ""));
+  const pictureBookQuality = coercePictureBookQuality(body.pictureBookQuality);
 
   // If the child's plot prompt clearly names a different setting than the one
   // they tapped on (e.g. picker = "woods" but plot says "in a castle"), the
@@ -2382,7 +2401,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
       // imageless 200 or a mixed-style book).
       let anchorOut: { url: string; bytes: Uint8Array };
       try {
-        anchorOut = await gptImageGenerate(apiKey, anchorPrompt);
+        anchorOut = await gptImageGenerate(apiKey, anchorPrompt, pictureBookQuality);
       } catch (e) {
         const detail = e instanceof Error ? e.message : String(e);
         throw new Error(`gpt_image_anchor_failed: ${detail}`);
@@ -2397,7 +2416,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
         // play for the Fal / DALL·E paths below.
         const refBytes = anchorOut.bytes;
         // Stay under Supabase/Cloudflare wall-clock (~150s).
-        // Cost-aware defaults: anchor medium + spread edits low + size 1024x1024 + input_fidelity low (override via STORYBOOK_GPTIMAGE_* secrets).
+        // Cost-aware defaults: tier from `pictureBookQuality` + env overrides for size/quality/input_fidelity.
         // Tier-1 OpenAI image RPM is 5 — chunk 4 edits, brief wait, then 2 edits. Raise wait or
         // shrink chunk size if you see 429s; raise OpenAI tier or lower wait if 546.
         const chunkSize = (() => {
@@ -2583,7 +2602,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
               const idx = chunkStart + localIdx;
               const editPrompt = buildEditPrompt(b, idx);
               try {
-                const out = await gptImageEdit(apiKey, editPrompt, [refBytes]);
+                const out = await gptImageEdit(apiKey, editPrompt, [refBytes], pictureBookQuality);
                 return { idx, url: out.url };
               } catch (e) {
                 console.warn(
@@ -2841,6 +2860,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
         ? (Deno.env.get("STORYBOOK_GPTIMAGE_MODEL") ?? "").trim() || "gpt-image-1.5"
         : null,
       gptImageSpreads: useGptImage ? gptImageSpreadCount : 0,
+      pictureBookQuality,
       reuseFirstIllustrationOnLast:
         Deno.env.get("STORYBOOK_REUSE_FIRST_ON_LAST") === "1",
     },

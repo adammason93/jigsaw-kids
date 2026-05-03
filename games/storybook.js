@@ -2775,6 +2775,15 @@
     });
   }
 
+  function resetPictureQualityToStandard() {
+    var std = document.querySelector(
+      'input[name="sbPictureQuality"][value="standard"]'
+    );
+    var hi = document.querySelector('input[name="sbPictureQuality"][value="high"]');
+    if (std) std.checked = true;
+    if (hi) hi.checked = false;
+  }
+
   function goToStep(n) {
     if (n !== journeyStep) {
       stopSpeech();
@@ -2817,6 +2826,7 @@
     if (bookColorsExtra) bookColorsExtra.hidden = true;
     if (bookColorToggle) bookColorToggle.setAttribute("aria-expanded", "false");
     goToStep(0);
+    resetPictureQualityToStandard();
     if (stepHeading) {
       try {
         stepHeading.focus();
@@ -2973,6 +2983,12 @@
     syncCloseBookButton();
     setBookActionsOpen(false);
     setReaderImmersiveFromLayout();
+  }
+
+  function selectedPictureBookQuality() {
+    var el = document.querySelector('input[name="sbPictureQuality"]:checked');
+    if (el && String(el.value).toLowerCase() === "high") return "high";
+    return "standard";
   }
 
   function setBusy(on) {
@@ -3458,6 +3474,7 @@
           character: selectedChar,
           place: selectedPlace,
           plotHint: plotHint,
+          pictureBookQuality: selectedPictureBookQuality(),
           author: customAuthor || undefined,
           familyNames: familyPeople.map(function (p) {
             return p.label;

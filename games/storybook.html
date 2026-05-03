@@ -9,7 +9,7 @@
   <link rel="manifest" href="../manifest.json" />
   <link rel="stylesheet" href="../js/kids-core.css" />
   <!-- storybook-app.css = renamed file so CDN/browser cache cannot keep old storybook.css -->
-  <link rel="stylesheet" href="storybook-app.css?v=137" />
+  <link rel="stylesheet" href="storybook-app.css?v=138" />
   <link rel="stylesheet" href="../tablet-ipad.css" />
   <!-- Last wins: guarantees new background even if a proxy cached an ancient stylesheet elsewhere -->
   <style>
@@ -282,6 +282,28 @@
           </div>
           <p class="sb-voice-hint" id="sbVoicePlotHint" aria-live="polite"></p>
           <p class="sb-panel__micro">We’ll keep it gentle and happy for little readers.</p>
+          <fieldset class="sb-picture-quality">
+            <legend class="sb-label sb-label--secondary">Pictures</legend>
+            <p class="sb-panel__micro sb-picture-quality__hint" id="sbPictureQualityHint">
+              We start you on Standard (default) — economy pictures, about 15p each, lovely on a tablet. High is a wider, sharper pass if you might print later (it costs more).
+            </p>
+            <div class="sb-quality-row" role="radiogroup" aria-labelledby="sbPictureQualityHint">
+              <label class="sb-quality-opt">
+                <input type="radio" name="sbPictureQuality" value="standard" checked />
+                <span class="sb-quality-opt__body">
+                  <span class="sb-quality-opt__title">Standard (default)</span>
+                  <span class="sb-quality-opt__sub">~15p per picture · best on screen</span>
+                </span>
+              </label>
+              <label class="sb-quality-opt">
+                <input type="radio" name="sbPictureQuality" value="high" />
+                <span class="sb-quality-opt__body">
+                  <span class="sb-quality-opt__title">High</span>
+                  <span class="sb-quality-opt__sub">Sharper, print-friendly</span>
+                </span>
+              </label>
+            </div>
+          </fieldset>
           <div class="sb-modal__actions sb-modal__actions--split">
             <button type="button" class="sb-btn sb-btn--ghost sb-btn--modal" id="sbBack4">Back</button>
             <button type="button" class="sb-btn sb-btn--primary sb-btn--modal" id="sbGenerate">
@@ -505,7 +527,7 @@
   <script src="../js/storybook-shelf-store.js" defer></script>
   <!-- Required for cloud shelf sync + upload (same as other games) -->
   <script src="../js/score-cloud.js" defer></script>
-  <script src="storybook.js?v=314" defer></script>
+  <script src="storybook.js?v=316" defer></script>
   <script>
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("../sw.js").catch(function () {});
