@@ -1,0 +1,53 @@
+<!-- Ultimate Game Stash file -->
+<!-- For the regularly updating doc go to https://docs.google.com/document/d/1_FmH3BlSBQI7FGgAQL59-ZPe8eCxs35wel6JUyVaG8Q/ -->
+<!-- made by genizy — embedded build: https://cdn.jsdelivr.net/gh/genizy/dmad-poki@49b5ab6b987f5f3be58f9dae59c92e8fc1aab9b0/ -->
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f172a" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="description" content="Drive Mad — physics driving mini-game (Fancade) in Sofia's Game Room." />
+  <title>Drive Mad — Sofia's Game Room</title>
+  <link rel="manifest" href="../manifest.json" />
+  <link rel="stylesheet" href="../js/kids-core.css" />
+  <link rel="stylesheet" href="drive-mad.css" />
+  <link rel="stylesheet" href="../tablet-ipad.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+</head>
+<body class="page-drive-mad">
+  <div class="drive-mad-app" id="app">
+    <nav class="drive-mad-nav" aria-label="Breadcrumb">
+      <a class="drive-mad-back back-btn" href="../index.html" aria-label="Back to all games">
+        <span class="back-btn__icon" aria-hidden="true">&#8592;</span><span class="back-btn__text">Back</span>
+      </a>
+    </nav>
+    <div class="drive-mad-frame-wrap">
+      <iframe
+        id="driveMadFrame"
+        class="drive-mad-frame"
+        title="Drive Mad"
+        allow="fullscreen; autoplay; gamepad; accelerometer; gyroscope"
+        referrerpolicy="origin"
+        src="https://cdn.jsdelivr.net/gh/genizy/dmad-poki@49b5ab6b987f5f3be58f9dae59c92e8fc1aab9b0/index.html"
+      ></iframe>
+    </div>
+    <p class="drive-mad-note">
+      Game loads from the public build above — needs internet. Original <strong>Drive Mad</strong> by Fancade; this page is a portal wrapper only.
+    </p>
+  </div>
+  <script src="../js/kids-core.js"></script>
+  <script>
+    if (typeof KidsCore !== "undefined") {
+      KidsCore.init();
+      KidsCore.bindTapSound(document.getElementById("app"));
+    }
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("../sw.js").catch(function () {});
+    }
+  </script>
+</body>
+</html>

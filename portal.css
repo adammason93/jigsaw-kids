@@ -45,6 +45,12 @@
   --theme-zuma-soft: #d1fae5;
   --theme-marble-tilt: #7d82b8;
   --theme-marble-tilt-soft: #ede6e3;
+  --theme-link-grid: #0d9488;
+  --theme-link-grid-soft: #ccfbf1;
+  --theme-drive-mad: #f59e0b;
+  --theme-drive-mad-soft: #fef3c7;
+  --theme-block-stack: #5c6d3e;
+  --theme-block-stack-soft: #c4d6a7;
   --theme-storybook: #db2777;
   --theme-storybook-soft: #fce7f3;
   --theme-prompt-game: #7c3aed;
@@ -979,6 +985,21 @@ a.game-card--story-magic .game-card__thumb {
 .game-card--marble-tilt {
   --card-accent: var(--theme-marble-tilt);
   --card-soft: var(--theme-marble-tilt-soft);
+}
+
+.game-card--link-grid {
+  --card-accent: var(--theme-link-grid);
+  --card-soft: var(--theme-link-grid-soft);
+}
+
+.game-card--drive-mad {
+  --card-accent: var(--theme-drive-mad);
+  --card-soft: var(--theme-drive-mad-soft);
+}
+
+.game-card--block-stack {
+  --card-accent: var(--theme-block-stack);
+  --card-soft: var(--theme-block-stack-soft);
 }
 
 .game-card--storybook {

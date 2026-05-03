@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0ea5e9" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>Link grid — Sofia's Game Room</title>
+  <link rel="manifest" href="../manifest.json" />
+  <link rel="stylesheet" href="../js/kids-core.css" />
+  <link rel="stylesheet" href="link-grid.css" />
+  <link rel="stylesheet" href="../tablet-ipad.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+</head>
+<body class="page-link-grid">
+  <div class="link-grid-app" id="app">
+    <nav class="link-grid-nav" aria-label="Breadcrumb">
+      <a class="link-grid-back back-btn" href="../index.html" aria-label="Back to all games">
+        <span class="back-btn__icon" aria-hidden="true">&#8592;</span><span class="back-btn__text">Back</span>
+      </a>
+    </nav>
+    <div class="link-grid-playfield">
+      <div class="top-bar">
+        <button type="button" class="button level-select-button">Levels</button>
+      </div>
+      <ol class="level-list"></ol>
+      <canvas width="800" height="1200" aria-label="Puzzle grid"></canvas>
+      <p class="instruction"></p>
+      <button type="button" class="button next-level-button">Next level</button>
+      <div class="levels" hidden aria-hidden="true"></div>
+    </div>
+  </div>
+  <script src="../js/kids-core.js"></script>
+  <script src="link-grid-part-a.js"></script>
+  <script src="link-grid-shapes.js"></script>
+  <script src="link-grid-maze.js"></script>
+  <script defer src="link-grid-bootstrap.js"></script>
+  <script>
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("../sw.js").catch(function () {});
+    }
+  </script>
+</body>
+</html>
