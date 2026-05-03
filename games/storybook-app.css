@@ -541,13 +541,15 @@ body.sb-portal-welcome-open {
 @media (min-width: 900px) {
   .sb-landing__split {
     flex-direction: row;
-    align-items: flex-start;
+    /* Stretch row height so .sb-landing__right gets a definite height for the library flex chain */
+    align-items: stretch;
     gap: clamp(1.5rem, 3vw, 2.25rem);
     text-align: left;
   }
 
-  /* Narrower “Build your book”; library uses the rest of the row */
+  /* Left card stays content-height — does not grow with the library column */
   .sb-landing__left {
+    align-self: flex-start;
     flex: 0 1 min(320px, 36%);
     min-width: min(240px, 100%);
     max-width: 38%;
@@ -671,7 +673,7 @@ body.sb-portal-welcome-open {
   body.page-storybook.sb-route-story:not(.sb-modal-open)
     .sb-app:has(#sbLanding:not(.is-hidden))
     .sb-landing__left {
-    align-self: stretch;
+    align-self: flex-start;
     max-height: 100%;
     min-height: 0;
     overflow-y: auto;
