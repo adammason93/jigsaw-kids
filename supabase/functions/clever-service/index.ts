@@ -426,7 +426,10 @@ async function compileCharacterLockForImages(
     `Human co-stars named in the plot (each is a REAL CHILD — NOT the imaginary buddy; give each their own NAME: line if they appear in the draft): ${co}\n` +
     `Who appears in pictures (beats): ${input.briefsSummary}\n` +
     (photoBlock
-      ? `\nREFERENCE PHOTOS (vision summary — HERO and any named line MUST match hair, eyes, skin, age here; do not invent a different child):\n${photoBlock}\n`
+      ? `\nREFERENCE PHOTOS (vision summary — HERO and any named line MUST match hair, eyes, skin, age here; do not invent a different child):\n${photoBlock}\n` +
+        (/\bCo_star_ref\s*:/i.test(photoBlock)
+          ? "Co_star_ref must become its own LOCKED CAST line for the human co-star using their real story name (e.g. REMY:), with the same Hair:/Eyes: facts — not a second hero line.\n"
+          : "")
       : "") +
     `\nStorywriter draft (may be messy):\n${input.draftDesign || "(none)"}\n\n` +
     `Rewrite into LOCKED CAST only — plain text, no JSON.\n` +
@@ -780,6 +783,51 @@ async function openaiVisionSummarizeHeroFromRefs(
 }
 
 /**
+ * Compare two hero-tagged reference photos. If they look like two different
+ * children, we emit two appearance lines so the story co-star is not invented
+ * as a generic "short brown hair" kid. Defaults to **same** on failure (old merge).
+ */
+async function openaiVisionTwoHeroPhotosSameChild(
+  apiKey: string,
+  urlA: string,
+  urlB: string,
+): Promise<boolean> {
+  const content: Record<string, unknown>[] = [
+    {
+      type: "text",
+      text:
+        "Two photos for a picture book (attached). Are they the SAME individual child (same person, different day/outfit/angle), or TWO DIFFERENT children?\n" +
+        "Reply with exactly one word: SAME or TWO",
+    },
+    { type: "image_url", image_url: { url: urlA } },
+    { type: "image_url", image_url: { url: urlB } },
+  ];
+  const r = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: storybookPortraitVisionModel(),
+      temperature: 0,
+      max_tokens: 16,
+      messages: [{ role: "user", content }],
+    }),
+  });
+  if (!r.ok) {
+    console.warn("[clever-service] two-photo same/two vision skipped", r.status);
+    return true;
+  }
+  const data = await r.json();
+  const text = String(data.choices?.[0]?.message?.content ?? "")
+    .trim()
+    .toUpperCase();
+  if (/\bTWO\b/.test(text)) return false;
+  return true;
+}
+
+/**
  * Vision pass: optional tagged photos for hero + selected game friends; then default game portraits.
  */
 async function appearanceNotesFromReferences(
@@ -791,7 +839,49 @@ async function appearanceNotesFromReferences(
   customByFriendId: Record<string, string[]>,
 ): Promise<string> {
   const chunks: string[] = [];
-  if (heroUrls.length > 0) {
+  if (heroUrls.length === 2) {
+    try {
+      const sameChild = await openaiVisionTwoHeroPhotosSameChild(
+        apiKey,
+        heroUrls[0],
+        heroUrls[1],
+      );
+      if (!sameChild) {
+        const nm = sanitizeName(childName) || "Hero";
+        const dual = await openaiVisionDescribePortraits(apiKey, [
+          { label: nm, dataUrl: heroUrls[0] },
+          { label: "Co_star_ref", dataUrl: heroUrls[1] },
+        ]);
+        if (dual.trim()) {
+          chunks.push(
+            "(Two photos: two different children. First line matches the hero; Co_star_ref matches the other named human in the story — not the imaginary buddy.)\n" +
+              dual.trim(),
+          );
+        }
+      } else {
+        const heroLine = await openaiVisionSummarizeHeroFromRefs(
+          apiKey,
+          childName,
+          heroUrls,
+          "hero",
+        );
+        if (heroLine.trim()) chunks.push(heroLine.trim());
+      }
+    } catch (e) {
+      console.warn("[clever-service] hero ref (two-photo path) failed", e);
+      try {
+        const heroLine = await openaiVisionSummarizeHeroFromRefs(
+          apiKey,
+          childName,
+          heroUrls,
+          "hero",
+        );
+        if (heroLine.trim()) chunks.push(heroLine.trim());
+      } catch (e2) {
+        console.warn("[clever-service] hero ref vision failed", e2);
+      }
+    }
+  } else if (heroUrls.length > 0) {
     try {
       const heroLine = await openaiVisionSummarizeHeroFromRefs(
         apiKey,
@@ -2219,6 +2309,16 @@ ${noBuddyBook ? `BOOK MODE — NO IMAGINARY BUDDY: The reader chose "No buddy". 
 ${
   portraitAppearance
     ? `\nPHOTO-MATCH (reference photos were uploaded): The "Appearance from reference photos" block in the user message was produced from real family pictures. For every person named there, characterDesign and every spread must preserve that identity — **hair colour, hair length, and style (including accessories)**, eye colour, skin tone, approximate age, and gender presentation — never swap in a different-looking child. If a photo line conflicts with generic "plain solid tee" boilerplate, follow the photo summary (you may describe a busy real-life top as one short neutral phrase such as "cream sweatshirt with a colourful front" rather than inventing a different outfit).\n`
+    : ""
+}
+${
+  /\bCo_star_ref\s*:/i.test(portraitAppearance)
+    ? `\nCo_star_ref: That line describes the second uploaded **human** reference. Map it in characterDesign and illustrations to the other named child in the story (the human co-star from the plot or games) — not ${childName} when two kids are in the book, and never the imaginary buddy creature.\n`
+    : ""
+}
+${
+  portraitAppearance
+    ? `\nCO-STAR HAIR (when two kids, one merged photo line): If the appearance block only fully describes ${childName} but the plot names a second human child and there is NO Co_star_ref line, give that second child hair/skin colouring **consistent with the references** (e.g. long blonde references → do not invent short brown hair for the sibling/friend unless the plot says they look different).\n`
     : ""
 }
 - Include fields title (string), characterDesign (string), bookColor (string: ${BOOK_COLOR_MODEL_HINT}. If unsure, pick a tint that fits the child's name — cooler tones for many boy names, warmer for many girl names), and pages (array of 12 objects).

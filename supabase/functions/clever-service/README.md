@@ -59,6 +59,8 @@ The JSON response **`meta`** includes **`imageMode`** (`fal` or `gptimage`), **`
 
 Portrait images are **not** sent to DALL·E (it only accepts text). The function downloads PNGs from your deployed site, summarises looks with vision, and injects that text into story + image prompts.
 
+**Two photos both tagged for the hero:** the function runs a quick vision check (same child vs two different children). If they look like **two** kids, it produces two appearance lines (`Co_star_ref` for the second) so the illustrated co-star is not a random generic. First photo = hero, second = other named child when split. If it decides **same** child but your story has two human characters, prompts still nudge the co-star’s hair toward the reference family look.
+
 The static **storybook** page loads illustration URLs through the same **`clever-service?url=`** image proxy as DALL·E for **Fal** CDN links (`fal.media`, etc.) so spreads don’t randomly show a black picture pane when the browser can’t fetch the remote file directly.
 
 ## Troubleshooting
