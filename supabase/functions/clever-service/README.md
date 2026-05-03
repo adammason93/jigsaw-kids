@@ -56,6 +56,8 @@ The browser calls `…/functions/v1/clever-service` — set **`storybookEdgeSlug
 
 Rough order: With Fal, typically **1** text-to-image (anchor) **+ 6** Redux image→image calls, or legacy **7** calls (1 T2I + 6 Redux), plus DALL·E-only paths **+** story chat **+** character-bible chat **+** optional **vision** (portraits + first-panel lock) **+** **Fal** latency. Check [OpenAI](https://openai.com/pricing) and [Fal pricing](https://fal.ai/pricing) for current rates.
 
+**GPT Image, standard tier, ref-photo boost off:** in practice often **~25p per book** (UK order-of-magnitude for images + a bit of vision + story) — **verify** against your account and current OpenAI pricing; turn **`STORYBOOK_REF_PHOTO_IMAGE_BOOST=1`** on for stronger likeness at higher image cost.
+
 The JSON response **`meta`** includes **`imageMode`** (`fal` or `gptimage`), **`falCastAnchorUsed`**, **`falTextSpreads`**, **`falReduxSpreads`**, **`falTextModel`** / **`falReduxModel`** when Fal is enabled, and **`gptImageModel`** / **`gptImageSpreads`** when GPT Image is enabled.
 
 Portrait images are **not** sent to DALL·E (it only accepts text). The function downloads PNGs from your deployed site, summarises looks with vision, and injects that text into story + image prompts.
