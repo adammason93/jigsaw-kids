@@ -435,6 +435,7 @@ async function compileCharacterLockForImages(
     `Rewrite into LOCKED CAST only — plain text, no JSON.\n` +
     `Use labeled lines: HERO:, BUDDY:, then one line per other named recurring HUMAN child from the plot or draft (e.g. ISAAC:) — same detail as HERO (gender, hair, eyes, skin, outfit). Never add MONKEY:, BEAR:, LION:, or random extras.\n` +
     `When REFERENCE PHOTOS are present above, every human line MUST quote the same Hair: colour, length, and style words from those lines (you may add clay-style texture words after). Wrong hair = failure.\n` +
+    `If reference lines include **Gender: girl** or **Gender: boy**, each LOCKED CAST human must use that gender — do not swap to the opposite because a name "sounds" masculine or feminine.\n` +
     `Each line: exact colours, relative size vs hero, silhouette, distinctive marks, wings/tail yes/no.\n` +
     `Art style words allowed ONLY: "soft matte clay toy, rounded limbs, gentle toy plastic sheen" — never "realistic" or "Pixar skin".\n` +
     `Max 2100 characters. No scenery. No actions.`;
@@ -676,9 +677,9 @@ async function openaiVisionDescribePortraits(
       type: "text",
       text:
         `These ${items.length} images are reference photos for named characters in a kids' picture book, in order: ${ordered}.\n` +
-        `Reply with exactly ${items.length} lines. Each line MUST use this exact template (fill in from the photo only; keep the labels Hair:/Eyes:/etc.):\n` +
-        `NAME: Hair: [colour — be specific, e.g. platinum blonde / light brown], [length — e.g. very short / chin / shoulder / mid-back / long past shoulders], [style — e.g. high pigtails with pink bands, centre part, full fringe]; Eyes: [colour]; Skin: [tone]; Age: [e.g. about 5]; Clothes: [silhouette + colours — if the shirt has a big print, say "graphic tee" without copying the art].\n` +
-        `Be literal: if hair is long in the photo, say long; if blonde, say blonde — never omit hair or guess a different colour. Do not transcribe logos or tiny text. max 45 words per line; no art-style words.\n` +
+        `Reply with exactly ${items.length} lines. Each line MUST use this exact template (fill in from the photo only; keep the labels):\n` +
+        `NAME: Gender (photo only — ignore whether the NAME sounds male or female): girl | boy; Hair: [colour — be specific, e.g. platinum blonde / light brown], [length — e.g. very short / chin / shoulder / mid-back / long past shoulders], [style — e.g. high pigtails with pink bands, centre part, full fringe]; Eyes: [colour]; Skin: [tone]; Age: [e.g. about 5]; Clothes: [silhouette + colours — if the shirt has a big print, say "graphic tee" without copying the art].\n` +
+        `Be literal: if the photo shows a girl, you MUST write Gender: girl even if the name is often used for boys. If hair is long in the photo, say long; if blonde, say blonde. Do not transcribe logos or tiny text. max 48 words per line; no art-style words.\n` +
         `Use each NAME exactly as spelled above. No other text.`,
     },
   ];
@@ -737,8 +738,8 @@ async function openaiVisionSummarizeHeroFromRefs(
       text:
         `This image is a reference photo of ${name} (${role === "hero" ? "story hero" : "story character"}).\n` +
         `Reply with exactly one line using this template ONLY:\n` +
-        `${name}: Hair: [colour — specific], [length], [style including fringe/pigtails/accessories]; Eyes: [colour]; Skin: [tone]; Age: [approx]; Clothes: [silhouette + colours, or graphic tee/jeans].\n` +
-        `Look carefully at the photo: state the real hair length (short / chin / shoulder / long / very long) and real colour (blonde, brown, red, black, etc.). Do not substitute a generic style. Do not copy logos. max 48 words; no art-style words.\n` +
+        `${name}: Gender (photo only — ignore whether the name "${name}" is usually a boy or girl name): girl | boy; Hair: [colour — specific], [length], [style including fringe/pigtails/accessories]; Eyes: [colour]; Skin: [tone]; Age: [approx]; Clothes: [silhouette + colours, or graphic tee/jeans].\n` +
+        `If the photo shows a young girl (long hair, dress, typical presentation), you MUST write Gender: girl even for names like Remy, Alex, or Sam. State real hair length and colour. Do not copy logos. max 52 words; no art-style words.\n` +
         `Use the NAME exactly as spelled above. No other text.`,
     });
     content.push({ type: "image_url", image_url: { url: dataUrls[0] } });
@@ -748,8 +749,8 @@ async function openaiVisionSummarizeHeroFromRefs(
       text:
         `These ${dataUrls.length} images are all of the SAME person: ${rolePhrase} (different angles or moments).\n` +
         `Reply with exactly ONE line using this template ONLY:\n` +
-        `${name}: Hair: [colour — specific], [length], [style across photos — e.g. pigtails with pink scrunchies]; Eyes: [colour]; Skin: [tone]; Age: [approx]; Clothes: [common vibe or two outfits].\n` +
-        `Combine: hair must reflect the LONGEST / clearest view — do not shorten length. Keep exact colour words from the photos. Ignore logos and tiny text. max 58 words; no art-style words.\n` +
+        `${name}: Gender (photo only, ignore name stereotypes): girl | boy; Hair: [colour — specific], [length], [style across photos — e.g. pigtails with pink scrunchies]; Eyes: [colour]; Skin: [tone]; Age: [approx]; Clothes: [common vibe or two outfits].\n` +
+        `Combine: hair must reflect the LONGEST / clearest view — do not shorten length. Keep exact colour words from the photos. Ignore logos and tiny text. max 60 words; no art-style words.\n` +
         `Use the NAME exactly as spelled above. No other text.`,
     });
     for (const u of dataUrls) {
@@ -2298,8 +2299,9 @@ ${noBuddyBook ? `BOOK MODE — NO IMAGINARY BUDDY: The reader chose "No buddy". 
 - No romance, no weapons, no villains that frighten.
 - Exactly 12 pages (six double-page spreads). The text on every page MUST be exactly 4 lines long, written as a fun, rhythmic poem that rhymes perfectly (e.g., AABB or ABCB). Format the text with actual line breaks (\n) after each line so the rhyming words are at the end of each line. Use simple words.
 - Odd-numbered (text-first) pages: end on a normal rhyming line — do NOT tack on a random ALL CAPS sound effect (SPLASH! SNORE! ZOOM!) after the verse; those often feel disconnected from the lines above. Keep the whole page in normal sentence case. Only use a short capped word if it is genuinely the punchline of that beat (rare); most pages should have no ALL CAPS word at all.
+- NAMES VS GENDER (critical): Do **not** choose boy/girl from how a first name "usually" sounds. Names like Remy, Riley, Alex, Sam, Jordan, Charlie can be girls or boys. **The appearance-from-photos lines are ground truth:** if a line says **Gender: girl** and long blonde hair, that named child is a **girl** in the story — use **she/her** pronouns in verses, and characterDesign must say **girl** with that exact hair — never give her a boy's short brown haircut or **he/him** unless the line explicitly says **Gender: boy**. Never override a photo-derived girl line with a masculine default.
 - The hero's name is given — use it often. The hero IS ${childName} — this exact first name must appear in the story text on every page where the main child acts. Whenever ${childName} is in a spread's scene, that spread's illustrationBrief must name ${childName} (you may list other named friends first if the verse introduces them that way). Never substitute a different child, wrong name, or wrong gender as the hero. The art paints only who you name — do not imply an unnamed generic kid.
-- HUMAN CO-STARS vs IMAGINARY BUDDY (critical): The "Main friend character" below is always ONE imaginary creature (unicorn, dragon, dinosaur, etc.). If the plot idea also names another child (e.g. a brother or sister), that child is a REAL HUMAN — not the buddy, not a shape-shifted version of the buddy, and never given the buddy's role in the plot. NEVER merge names: do not write that the human sibling flies as the dragon, or that the dragon "is" the sibling. When the plot says the children cannot find the DINOSAUR / DRAGON, the verses must ask where the DINOSAUR or DRAGON is — do not substitute the sibling's name as the thing that is lost unless the plot literally says the sibling is hiding.
+- HUMAN CO-STARS vs IMAGINARY BUDDY (critical): The "Main friend character" below is always ONE imaginary creature (unicorn, dragon, dinosaur, etc.). If the plot idea also names another child, that child is a REAL HUMAN — not the buddy, not a shape-shifted version of the buddy, and never given the buddy's role in the plot. NEVER merge names: do not write that the human co-star flies as the dragon, or that the dragon "is" that child. When the plot says the children cannot find the DINOSAUR / DRAGON, the verses must ask where the DINOSAUR or DRAGON is — do not substitute a child's name as the thing that is lost unless the plot literally says that child is hiding.
 - CAST vs TEXT (strict): Each illustrationBrief may include ONLY characters who appear **by name** on that spread's paired text page (the odd page before it), or the one imaginary buddy when the text clearly means them ("the dinosaur", "their friend") after names were established. If the verse names ${childName} plus a human co-star (e.g. Isaac) plus the buddy, all three may appear when the verse puts them in the scene. If the verse only mentions ${childName} and the buddy, the picture has only those two. If the verse also names game people who are in that scene, they may appear — list everyone the text actually puts in the moment. Never add lions, bears, random pals, villagers, crowds, or background "silhouette people" that the text does not mention. A few characters is fine **only** when the text names them all for that beat.
 - If "People from the child's games" are listed, include them in the story by name as extra friends or family. They should feel like the same friendly faces the child picks in other games (e.g. Tilly, Baby). They are separate from the one imaginary "main friend character" (unicorn, dragon, etc.) — both can appear.${
     portraitAppearance
@@ -2322,7 +2324,7 @@ ${
     : ""
 }
 - Include fields title (string), characterDesign (string), bookColor (string: ${BOOK_COLOR_MODEL_HINT}. If unsure, pick a tint that fits the child's name — cooler tones for many boy names, warmer for many girl names), and pages (array of 12 objects).
-  For "characterDesign": describe the hero, the one main buddy creature, EVERY human child named in the plot idea (e.g. a brother or sister) who appears in the story, and any named game people who actually appear. If the plot names only ${childName} plus the buddy, characterDesign has exactly those two rich descriptions. If the plot names an extra child (e.g. Isaac), add a full third block for that child — never fold them into the buddy description. Never lions, bears, or unnamed critters. For each included character you MUST define their EXACT gender (e.g. boy/girl), age, height in words or feet without inch marks (e.g. about four feet tall, or 4 ft), body shape, skin/surface tone, eye color, facial features, hair color, hair style, AND exact texture/material (e.g. smooth sculpted clay hair, fuzzy felt fur, shiny plastic — never use the double-quote character anywhere in this field). For the buddy creature, explicitly define anatomy (horse-like unicorn with hooves and horn; or winged dragon; etc.). Plus ONE specific, unchanging outfit or set of accessories with exact colors and materials. If an animal or creature wears nothing, say they are in natural animal form with no human outfits.${
+  For "characterDesign": describe the hero, the one main buddy creature, EVERY human child named in the plot idea who appears in the story, and any named game people who actually appear. If the plot names only ${childName} plus the buddy, characterDesign has exactly those two rich descriptions. If the plot names an extra child (e.g. Isaac), add a full third block for that child — never fold them into the buddy description. Never lions, bears, or unnamed critters. For each included character you MUST define their EXACT gender (e.g. boy/girl) **from the appearance-from-photos lines when present — those Gender: girl/boy tokens override any guess from the spelling of the child's name.** Then age, height in words or feet without inch marks (e.g. about four feet tall, or 4 ft), body shape, skin/surface tone, eye color, facial features, hair color, hair style, AND exact texture/material (e.g. smooth sculpted clay hair, fuzzy felt fur, shiny plastic — never use the double-quote character anywhere in this field). For the buddy creature, explicitly define anatomy (horse-like unicorn with hooves and horn; or winged dragon; etc.). Plus ONE specific, unchanging outfit or set of accessories with exact colors and materials. If an animal or creature wears nothing, say they are in natural animal form with no human outfits.${
     portraitAppearance
       ? " When reference-photo appearance lines exist for a person, treat those as authoritative for hair, eyes, skin, and outfit vibe for that person — do not overwrite with a generic description."
       : ""
@@ -2544,7 +2546,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
 
     const photoRefHairLock =
       portraitAppearance.trim().length > 0
-        ? "Reference photos were supplied: for every HUMAN in LOCKED CAST, paint the SAME hair colour, hair LENGTH (how far it falls — short, chin, shoulder, long), and arrangement (fringes, pigtails, bunches, part) as written — never substitute generic brown hair or a shorter cut. "
+        ? "Reference photos were supplied: for every HUMAN in LOCKED CAST, match written **Gender girl/boy**, hair colour, hair LENGTH, and arrangement — never turn a written **girl** with long blonde into a boy with short brown hair because of her name. "
         : "";
 
     const anchorPreamble =
@@ -2740,7 +2742,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
 
           if (portraitAppearance.trim().length > 0) {
             blocks.push(
-              "HAIR FIDELITY: Each named child must keep the exact hair colour, length, and arrangement from the reference lineup and lines above (e.g. long blonde stays long blonde; pigtails stay pigtails). Do not revert to a default boy crew cut or generic brown bob unless the cast explicitly describes that.",
+              "HAIR FIDELITY: Each named child must keep the exact hair colour, length, and arrangement from the reference lineup and lines above (e.g. long blonde stays long blonde; pigtails stay pigtails). Do not revert to a default boy crew cut or generic brown bob unless the cast explicitly describes that. **GENDER:** If the cast bible says a named child is a girl (or reference had Gender: girl), illustrate a girl — do not draw them as a boy with short brown hair.",
             );
           }
 
