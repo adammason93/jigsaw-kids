@@ -58,6 +58,8 @@ Rough order: With Fal, typically **1** text-to-image (anchor) **+ 6** Redux imag
 
 **GPT Image, standard tier, ref-photo boost off:** in practice often **~25p per book** (UK order-of-magnitude for images + a bit of vision + story) — **verify** against your account and current OpenAI pricing; turn **`STORYBOOK_REF_PHOTO_IMAGE_BOOST=1`** on for stronger likeness at higher image cost.
 
+**Micro savings (no change to image size, quality, fidelity, or story prompts):** the **two-hero-photo** “same child vs two children” vision check uses **`gpt-4o-mini`** with **`detail: low`** so those two thumbnails bill at the low fixed image-token rate. Portrait **hair/appearance** vision still uses **`STORYBOOK_VISION_MODEL`** (default `gpt-4o`) so summarised cues stay as before.
+
 The JSON response **`meta`** includes **`imageMode`** (`fal` or `gptimage`), **`falCastAnchorUsed`**, **`falTextSpreads`**, **`falReduxSpreads`**, **`falTextModel`** / **`falReduxModel`** when Fal is enabled, and **`gptImageModel`** / **`gptImageSpreads`** when GPT Image is enabled.
 
 Portrait images are **not** sent to DALL·E (it only accepts text). The function downloads PNGs from your deployed site, summarises looks with vision, and injects that text into story + image prompts.

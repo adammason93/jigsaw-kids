@@ -789,6 +789,11 @@ async function openaiVisionSummarizeHeroFromRefs(
  * children, we emit two appearance lines so the story co-star is not invented
  * as a generic "short brown hair" kid. Defaults to **same** on failure (old merge).
  */
+/**
+ * Quick same-person check for two hero-tagged uploads. Uses mini + low image
+ * detail — cheap (fixed token budget per image) and sufficient for SAME vs TWO;
+ * does not affect illustration model or prompts.
+ */
 async function openaiVisionTwoHeroPhotosSameChild(
   apiKey: string,
   urlA: string,
@@ -801,8 +806,8 @@ async function openaiVisionTwoHeroPhotosSameChild(
         "Two photos for a picture book (attached). Are they the SAME individual child (same person, different day/outfit/angle), or TWO DIFFERENT children?\n" +
         "Reply with exactly one word: SAME or TWO",
     },
-    { type: "image_url", image_url: { url: urlA } },
-    { type: "image_url", image_url: { url: urlB } },
+    { type: "image_url", image_url: { url: urlA, detail: "low" } },
+    { type: "image_url", image_url: { url: urlB, detail: "low" } },
   ];
   const r = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
@@ -811,7 +816,7 @@ async function openaiVisionTwoHeroPhotosSameChild(
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: storybookPortraitVisionModel(),
+      model: "gpt-4o-mini",
       temperature: 0,
       max_tokens: 16,
       messages: [{ role: "user", content }],
