@@ -1660,9 +1660,10 @@ type PictureBookQuality = "standard" | "high";
 
 /**
  * `standard` = economy (screen): 1024² anchor + edits; when env quality unset,
- * defaults are medium/low — **unless** the child uploaded reference photos, in
- * which case we use a **high** cast anchor once + **medium** edits so basics
- * (hair, face, outfit colours) still read.
+ * defaults are medium/low — **unless** the child uploaded reference photos and
+ * **`STORYBOOK_REF_PHOTO_IMAGE_BOOST=1`** (or `true` / `on` / `yes`), in which case we use a
+ * **high** cast anchor once + **medium** edits so likeness reads better (costs more).
+ * Default (unset): economy image quality with refs — same as no uploads on standard tier.
  * `high` = print-oriented: 1536×1024 when env size unset, quality high/medium when env unset.
  * `STORYBOOK_GPTIMAGE_SIZE` / `STORYBOOK_GPTIMAGE_QUALITY` secrets still override per tier.
  */
@@ -1670,6 +1671,12 @@ function coercePictureBookQuality(raw: unknown): PictureBookQuality {
   const s = String(raw ?? "").trim().toLowerCase();
   if (s === "high" || s === "print" || s === "premium") return "high";
   return "standard";
+}
+
+/** When true (opt-in only): standard tier bumps GPT Image quality if user uploaded ref photos. Unset = economy tier even with refs (~standard cost); uploads + vision text still steer likeness. */
+function gptImageRefPhotoQualityBoostEnabled(): boolean {
+  const v = (Deno.env.get("STORYBOOK_REF_PHOTO_IMAGE_BOOST") ?? "").trim().toLowerCase();
+  return v === "1" || v === "true" || v === "on" || v === "yes";
 }
 
 function gptImageSizeForRequest(bookTier: PictureBookQuality): string {
@@ -1711,14 +1718,14 @@ function gptImageQualityForRequest(
   if (bookTier === "high") {
     return scope === "generation" ? "high" : "medium";
   }
-  // Standard tier — economy, but uploaded refs need readable identity on the lineup + spreads
-  if (hasUserPortraitRefs) {
+  // Standard tier — optional bump when ref photos (costly; enable with STORYBOOK_REF_PHOTO_IMAGE_BOOST=1)
+  if (hasUserPortraitRefs && gptImageRefPhotoQualityBoostEnabled()) {
     return scope === "generation" ? "high" : "medium";
   }
   return scope === "generation" ? "medium" : "low";
 }
 
-/** When env unset: high tier or user-uploaded reference photos → stricter edit lock to the anchor. */
+/** When env unset: high book tier or (ref photos + quality boost on) → stricter edit lock. */
 function gptImageInputFidelityForRequest(
   bookTier: PictureBookQuality,
   hasUserPortraitRefs: boolean,
@@ -1727,7 +1734,7 @@ function gptImageInputFidelityForRequest(
   if (env === "high") return "high";
   if (env === "low") return "low";
   if (bookTier === "high") return "high";
-  if (hasUserPortraitRefs) return "high";
+  if (hasUserPortraitRefs && gptImageRefPhotoQualityBoostEnabled()) return "high";
   return "low";
 }
 
