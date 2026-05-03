@@ -1579,10 +1579,10 @@ function gptImageModerationParam(): "low" | "auto" {
 }
 
 /**
- * Split defaults when `STORYBOOK_GPTIMAGE_QUALITY` is unset: **`high`** for the single
- * anchor (rich cast reference for six edits), **`medium`** for spread edits — sharper than
- * `low` edits without paying `high` on all seven calls. Set `STORYBOOK_GPTIMAGE_QUALITY`
- * to `low|medium|high|auto` to use one tier for both anchor and edits.
+ * Split defaults when `STORYBOOK_GPTIMAGE_QUALITY` is unset: **`medium`** for the anchor
+ * (cast reference) and **`low`** for spread edits — ~half the image-token cost vs the old
+ * `high` + `medium` combo, with the same prompts and model. For maximum fidelity set
+ * `STORYBOOK_GPTIMAGE_QUALITY=high` (single tier for both) or tune per-deployment via secrets.
  */
 function gptImageQualityParam(
   scope: "generation" | "edit",
@@ -1591,7 +1591,7 @@ function gptImageQualityParam(
   if (raw === "medium" || raw === "high" || raw === "auto" || raw === "low") {
     return raw;
   }
-  return scope === "generation" ? "high" : "medium";
+  return scope === "generation" ? "medium" : "low";
 }
 
 function decodeB64ToBytes(b64: string): Uint8Array {
@@ -2396,8 +2396,8 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
         // timeout. Identity is already locked by pixels. Visual lock stays in
         // play for the Fal / DALL·E paths below.
         const refBytes = anchorOut.bytes;
-        // Stay under Supabase/Cloudflare wall-clock (~150s): quality defaults to
-        // Cost-aware defaults: anchor high + spread edits medium + size 1024x1024 + input_fidelity low (override via secrets).
+        // Stay under Supabase/Cloudflare wall-clock (~150s).
+        // Cost-aware defaults: anchor medium + spread edits low + size 1024x1024 + input_fidelity low (override via STORYBOOK_GPTIMAGE_* secrets).
         // Tier-1 OpenAI image RPM is 5 — chunk 4 edits, brief wait, then 2 edits. Raise wait or
         // shrink chunk size if you see 429s; raise OpenAI tier or lower wait if 546.
         const chunkSize = (() => {
