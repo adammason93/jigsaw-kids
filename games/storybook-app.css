@@ -527,10 +527,21 @@ body.sb-portal-welcome-open {
   transform: translateY(2px);
 }
 
+/* Stacked layout: keep the frosted “Build your book” card compact (~40% viewport height). */
+@media (max-width: 899px) {
+  body.page-storybook.sb-route-story .sb-landing__left {
+    max-height: 40dvh;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+}
+
 @media (min-width: 900px) {
   .sb-landing__split {
     flex-direction: row;
-    align-items: stretch;
+    align-items: flex-start;
     gap: clamp(1.5rem, 3vw, 2.25rem);
     text-align: left;
   }
@@ -616,16 +627,17 @@ body.sb-portal-welcome-open {
     min-height: 0;
   }
 
-  /* Landing visible: keep the hub in one viewport — no body scroll; scroll inside columns if needed. */
+  /* Landing visible: hub fits viewport; ~80% for nav+story block, ~10% breathing room top/bottom. */
   body.page-storybook.sb-route-story:not(.sb-modal-open)
     .sb-app:has(#sbLanding:not(.is-hidden)) {
+    box-sizing: border-box;
     min-height: 100dvh;
     max-height: 100dvh;
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    padding-top: max(0.4rem, env(safe-area-inset-top, 0px));
-    padding-bottom: max(0.4rem, env(safe-area-inset-bottom, 0px));
+    padding-top: max(0.4rem, env(safe-area-inset-top, 0px), 10dvh);
+    padding-bottom: max(0.4rem, env(safe-area-inset-bottom, 0px), 10dvh);
     padding-left: max(0.65rem, env(safe-area-inset-left, 0px));
     padding-right: max(0.65rem, env(safe-area-inset-right, 0px));
   }
@@ -712,6 +724,7 @@ body.sb-portal-welcome-open {
     flex: 1 1 0;
     min-height: 0;
     padding: 0.35rem 0.35rem;
+    align-items: center;
   }
 
   body.page-storybook.sb-route-story:not(.sb-modal-open)
@@ -843,27 +856,70 @@ body.sb-portal-welcome-open {
   gap: 0.5rem;
 }
 
-/* Carousel arrows hidden — all books use one grid (no horizontal paging or scroll). */
 .sb-carousel__btn {
-  display: none !important;
+  flex: 0 0 2rem;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  border: none;
+  background: var(--sb-flip-red);
+  color: white;
+  font-size: 1.5rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(157, 23, 77, 0.25);
+  transition: transform 0.15s ease, opacity 0.2s ease, background 0.15s;
+  padding-bottom: 2px;
+}
+
+.sb-carousel__btn:hover:not(:disabled) {
+  background: #be185d;
+  transform: scale(1.1);
+}
+
+.sb-carousel__btn:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+.sb-carousel__btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  box-shadow: none;
 }
 
 .sb-carousel__track {
   flex: 1;
   min-width: 0;
   min-height: 0;
-  display: block;
-  overflow-x: hidden;
-  overflow-y: visible;
+  display: flex;
+  align-items: flex-start;
+  gap: 1.25rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-behavior: smooth;
   padding: 1rem 0.5rem;
-  scroll-snap-type: none;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x mandatory;
+}
+
+.sb-carousel__track::-webkit-scrollbar {
+  display: none;
+}
+
+.sb-carousel__track {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
 }
 
 .sb-carousel__track > * {
-  scroll-snap-align: unset;
+  scroll-snap-align: center;
 }
 
 .sb-library-page {
+  flex: 0 0 100%;
   width: 100%;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -872,6 +928,7 @@ body.sb-portal-welcome-open {
   gap: 0.9rem 0.65rem;
   justify-items: center;
   align-items: end;
+  scroll-snap-align: start;
 }
 
 @media (min-width: 520px) {

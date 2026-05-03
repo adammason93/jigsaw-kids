@@ -2112,12 +2112,15 @@
       return;
     }
     
-    var pageDiv = document.createElement("div");
-    pageDiv.className = "sb-library-page";
-    for (var i = 0; i < list.length; i++) {
-      pageDiv.appendChild(createCoverCardWrap(list[i]));
+    var itemsPerPage = 8;
+    for (var i = 0; i < list.length; i += itemsPerPage) {
+      var pageDiv = document.createElement("div");
+      pageDiv.className = "sb-library-page";
+      for (var j = i; j < i + itemsPerPage && j < list.length; j++) {
+        pageDiv.appendChild(createCoverCardWrap(list[j]));
+      }
+      shelfEl.appendChild(pageDiv);
     }
-    shelfEl.appendChild(pageDiv);
     updateCarouselButtons();
   }
 
