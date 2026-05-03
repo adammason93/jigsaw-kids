@@ -9,6 +9,8 @@ supabase secrets set OPENAI_API_KEY=sk-...
 # Public HTTPS origin where your static site serves files (no trailing slash).
 # Used to fetch portrait PNGs (e.g. games/images/character-freya.png) for vision → DALL·E prompts.
 supabase secrets set BOOK_ASSETS_BASE_URL=https://your-site.example
+# Optional — model for summarising **uploaded** hero/friend reference photos (default gpt-4o for better hair/colour accuracy; use mini to save cost):
+# supabase secrets set STORYBOOK_VISION_MODEL=gpt-4o-mini
 
 # Optional — cast anchor T2I + 6× image→image Redux (strongest consistency). If a Fal image step errors, the request fails with **`fal_failed`** (no DALL·E fallback — avoids mixed-style books). Without **`FAL_KEY`**, all pictures use DALL·E as before.
 supabase secrets set FAL_KEY=...
@@ -29,7 +31,7 @@ supabase secrets set FAL_KEY=...
 # supabase secrets set STORYBOOK_GPTIMAGE_QUALITY=high    # optional: high on anchor AND all six spread edits (priciest; restores old “max detail” tier)
 # supabase secrets set STORYBOOK_GPTIMAGE_QUALITY=medium  # optional: one tier for anchor + all edits (between economy and high)
 # supabase secrets set STORYBOOK_GPTIMAGE_QUALITY=low       # optional: cheapest — low on anchor + edits
-# # If you omit STORYBOOK_GPTIMAGE_QUALITY: anchor = medium, six spread edits = low (~half the image-token cost vs former high+medium defaults).
+# # If you omit STORYBOOK_GPTIMAGE_QUALITY: no uploaded photos — anchor medium, edits low; **with** uploaded reference photos — anchor high (one cast sheet) + edits medium on **standard** tier so basics read; **high** tier unchanged (high/medium). Setting this secret forces that quality for anchor and edits.
 # supabase secrets set STORYBOOK_GPTIMAGE_SIZE=1536x1024    # optional: default 1024x1024 (cheapest); 1536x1024 = wider spread, costs more
 # supabase secrets set STORYBOOK_GPTIMAGE_INPUT_FIDELITY=low    # edits: force low | high; if OMITTED: high when `pictureBookQuality` is high OR the child uploaded reference photos, else low (stricter lock helps photo likeness)
 # supabase secrets set STORYBOOK_GPTIMAGE_CHUNK_SIZE=4         # how many spread edits to run in parallel per chunk (default 4 — anchor+4=5/min, the tier-1 ceiling)
@@ -47,7 +49,7 @@ supabase functions deploy clever-service --no-verify-jwt
 
 The browser calls `…/functions/v1/clever-service` — set **`storybookEdgeSlug`** in `js/score-config.js` if you ever use a different slug. **`character`** and **`place`** in the JSON body must be keys from `CHARACTERS` and `PLACES` in `supabase/functions/clever-service/index.ts` (the storybook UI lists the same ids in `games/storybook.js`). **`plotHint`** is trimmed to **800** characters server-side (same cap as the storybook textarea).
 
-**`pictureBookQuality`** (optional, GPT Image mode only): **`"standard"`** (default if omitted) — economy pass: **1024×1024** art and **medium/low** quality when `STORYBOOK_GPTIMAGE_QUALITY` is unset. **`"high"`** — print-oriented defaults when secrets are unset: **1536×1024** spreads and **high/medium** quality on anchor vs edits. Fal / DALL·E paths ignore this field. Global secrets **`STORYBOOK_GPTIMAGE_SIZE`** and **`STORYBOOK_GPTIMAGE_QUALITY`** still override both tiers when set.
+**`pictureBookQuality`** (optional, GPT Image mode only): **`"standard"`** (default if omitted) — **1024×1024** when size secret unset; if **`STORYBOOK_GPTIMAGE_QUALITY`** is unset and the child **did not** upload reference photos: **medium** anchor + **low** edits; if they **did** upload photos: **high** anchor + **medium** edits so hair/outfit basics survive without picking **high** tier. **`"high"`** — print-oriented defaults when secrets are unset: **1536×1024** spreads and **high/medium** quality on anchor vs edits. Fal / DALL·E paths ignore this field. Global secrets **`STORYBOOK_GPTIMAGE_SIZE`** and **`STORYBOOK_GPTIMAGE_QUALITY`** still override both tiers when set.
 
 ## Cost (indicative)
 

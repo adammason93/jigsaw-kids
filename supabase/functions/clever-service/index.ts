@@ -431,6 +431,7 @@ async function compileCharacterLockForImages(
     `\nStorywriter draft (may be messy):\n${input.draftDesign || "(none)"}\n\n` +
     `Rewrite into LOCKED CAST only — plain text, no JSON.\n` +
     `Use labeled lines: HERO:, BUDDY:, then one line per other named recurring HUMAN child from the plot or draft (e.g. ISAAC:) — same detail as HERO (gender, hair, eyes, skin, outfit). Never add MONKEY:, BEAR:, LION:, or random extras.\n` +
+    `When REFERENCE PHOTOS are present above, every human line MUST quote the same Hair: colour, length, and style words from those lines (you may add clay-style texture words after). Wrong hair = failure.\n` +
     `Each line: exact colours, relative size vs hero, silhouette, distinctive marks, wings/tail yes/no.\n` +
     `Art style words allowed ONLY: "soft matte clay toy, rounded limbs, gentle toy plastic sheen" — never "realistic" or "Pixar skin".\n` +
     `Max 2100 characters. No scenery. No actions.`;
@@ -672,9 +673,9 @@ async function openaiVisionDescribePortraits(
       type: "text",
       text:
         `These ${items.length} images are reference photos for named characters in a kids' picture book, in order: ${ordered}.\n` +
-        `Reply with exactly ${items.length} lines, one per character, format:\n` +
-        `NAME: illustrator-facing appearance — keep the SAME person as the photo. Priority order: (1) hair colour, length, style, fringe/bangs, and accessories (scrunchies, clips, bands); (2) eye colour; (3) skin tone; (4) approximate age; (5) clothing as silhouette + main colours.\n` +
-        `Do not transcribe readable logos, brand names, or small text on clothes. If a top has a large decorative print, say "light top with a colourful front graphic" (or similar) — still name hair and eyes precisely. max 32 words per line; no art-style words.\n` +
+        `Reply with exactly ${items.length} lines. Each line MUST use this exact template (fill in from the photo only; keep the labels Hair:/Eyes:/etc.):\n` +
+        `NAME: Hair: [colour — be specific, e.g. platinum blonde / light brown], [length — e.g. very short / chin / shoulder / mid-back / long past shoulders], [style — e.g. high pigtails with pink bands, centre part, full fringe]; Eyes: [colour]; Skin: [tone]; Age: [e.g. about 5]; Clothes: [silhouette + colours — if the shirt has a big print, say "graphic tee" without copying the art].\n` +
+        `Be literal: if hair is long in the photo, say long; if blonde, say blonde — never omit hair or guess a different colour. Do not transcribe logos or tiny text. max 45 words per line; no art-style words.\n` +
         `Use each NAME exactly as spelled above. No other text.`,
     },
   ];
@@ -692,9 +693,9 @@ async function openaiVisionDescribePortraits(
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: "gpt-4o-mini",
-      temperature: 0.15,
-      max_tokens: 450,
+      model: storybookPortraitVisionModel(),
+      temperature: 0.05,
+      max_tokens: 550,
       messages: [{ role: "user", content }],
     }),
   });
@@ -707,7 +708,7 @@ async function openaiVisionDescribePortraits(
 
   const data = await r.json();
   const text = String(data.choices?.[0]?.message?.content ?? "").trim();
-  return text.slice(0, 1200);
+  return text.slice(0, 1600);
 }
 
 /**
@@ -732,8 +733,9 @@ async function openaiVisionSummarizeHeroFromRefs(
       type: "text",
       text:
         `This image is a reference photo of ${name} (${role === "hero" ? "story hero" : "story character"}).\n` +
-        `Reply with exactly one line:\n` +
-        `${name}: illustrator-facing appearance — same person as the photo. Priority: hair (colour, style, fringe, pigtails, scrunchies, clips), eye colour, skin tone, age, then clothing silhouette and colours. Do not copy logos or readable text on shirts; if there is a big print, say "top with a bold front graphic" — never skip hair/eyes. max 38 words; no art-style words.\n` +
+        `Reply with exactly one line using this template ONLY:\n` +
+        `${name}: Hair: [colour — specific], [length], [style including fringe/pigtails/accessories]; Eyes: [colour]; Skin: [tone]; Age: [approx]; Clothes: [silhouette + colours, or graphic tee/jeans].\n` +
+        `Look carefully at the photo: state the real hair length (short / chin / shoulder / long / very long) and real colour (blonde, brown, red, black, etc.). Do not substitute a generic style. Do not copy logos. max 48 words; no art-style words.\n` +
         `Use the NAME exactly as spelled above. No other text.`,
     });
     content.push({ type: "image_url", image_url: { url: dataUrls[0] } });
@@ -742,8 +744,9 @@ async function openaiVisionSummarizeHeroFromRefs(
       type: "text",
       text:
         `These ${dataUrls.length} images are all of the SAME person: ${rolePhrase} (different angles or moments).\n` +
-        `Reply with exactly ONE line:\n` +
-        `${name}: illustrator-facing appearance — one consistent child across all photos. Combine: hair (colour, cut, fringe, pigtails, scrunchies), eye colour, skin tone, age, clothing silhouette/colours. Ignore logos and tiny text; if two tops differ, describe the common vibe plus hair/eyes so the child is recognisable. max 52 words; no art-style words.\n` +
+        `Reply with exactly ONE line using this template ONLY:\n` +
+        `${name}: Hair: [colour — specific], [length], [style across photos — e.g. pigtails with pink scrunchies]; Eyes: [colour]; Skin: [tone]; Age: [approx]; Clothes: [common vibe or two outfits].\n` +
+        `Combine: hair must reflect the LONGEST / clearest view — do not shorten length. Keep exact colour words from the photos. Ignore logos and tiny text. max 58 words; no art-style words.\n` +
         `Use the NAME exactly as spelled above. No other text.`,
     });
     for (const u of dataUrls) {
@@ -758,9 +761,9 @@ async function openaiVisionSummarizeHeroFromRefs(
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: "gpt-4o-mini",
-      temperature: 0.15,
-      max_tokens: 500,
+      model: storybookPortraitVisionModel(),
+      temperature: 0.05,
+      max_tokens: 600,
       messages: [{ role: "user", content }],
     }),
   });
@@ -773,7 +776,7 @@ async function openaiVisionSummarizeHeroFromRefs(
 
   const data = await r.json();
   const text = String(data.choices?.[0]?.message?.content ?? "").trim();
-  return text.slice(0, 1200);
+  return text.slice(0, 1600);
 }
 
 /**
@@ -1564,7 +1567,10 @@ const GPT_IMAGE_SIZES: ReadonlySet<string> = new Set([
 type PictureBookQuality = "standard" | "high";
 
 /**
- * `standard` = economy (screen): 1024² anchor + edits, quality medium/low when env unset.
+ * `standard` = economy (screen): 1024² anchor + edits; when env quality unset,
+ * defaults are medium/low — **unless** the child uploaded reference photos, in
+ * which case we use a **high** cast anchor once + **medium** edits so basics
+ * (hair, face, outfit colours) still read.
  * `high` = print-oriented: 1536×1024 when env size unset, quality high/medium when env unset.
  * `STORYBOOK_GPTIMAGE_SIZE` / `STORYBOOK_GPTIMAGE_QUALITY` secrets still override per tier.
  */
@@ -1599,6 +1605,7 @@ function gptImageModerationParam(): "low" | "auto" {
 function gptImageQualityForRequest(
   scope: "generation" | "edit",
   bookTier: PictureBookQuality,
+  hasUserPortraitRefs = false,
 ): "low" | "medium" | "high" | "auto" {
   const envRaw = (Deno.env.get("STORYBOOK_GPTIMAGE_QUALITY") ?? "").trim().toLowerCase();
   if (
@@ -1610,6 +1617,10 @@ function gptImageQualityForRequest(
     return envRaw;
   }
   if (bookTier === "high") {
+    return scope === "generation" ? "high" : "medium";
+  }
+  // Standard tier — economy, but uploaded refs need readable identity on the lineup + spreads
+  if (hasUserPortraitRefs) {
     return scope === "generation" ? "high" : "medium";
   }
   return scope === "generation" ? "medium" : "low";
@@ -1626,6 +1637,17 @@ function gptImageInputFidelityForRequest(
   if (bookTier === "high") return "high";
   if (hasUserPortraitRefs) return "high";
   return "low";
+}
+
+/**
+ * Vision model for summarising **uploaded** reference photos (hero/friend/custom).
+ * Default `gpt-4o` reads hair colour/length more reliably than mini; override with
+ * `STORYBOOK_VISION_MODEL=gpt-4o-mini` to save cost.
+ */
+function storybookPortraitVisionModel(): string {
+  const m = (Deno.env.get("STORYBOOK_VISION_MODEL") ?? "").trim();
+  if (m) return m;
+  return "gpt-4o";
 }
 
 function decodeB64ToBytes(b64: string): Uint8Array {
@@ -1712,11 +1734,12 @@ async function gptImageGenerate(
   prompt: string,
   bookTier: PictureBookQuality,
   retryCount = 0,
+  hasUserPortraitRefs = false,
 ): Promise<{ url: string; bytes: Uint8Array }> {
   const model = gptImageDefaultModel();
   const moderation = gptImageModerationParam();
   const size = gptImageSizeForRequest(bookTier);
-  const quality = gptImageQualityForRequest("generation", bookTier);
+  const quality = gptImageQualityForRequest("generation", bookTier, hasUserPortraitRefs);
   const trimmed = prompt.slice(0, GPT_IMAGE_PROMPT_MAX);
 
   const post = (body: Record<string, unknown>) =>
@@ -1765,7 +1788,13 @@ async function gptImageGenerate(
         `[gpt-image] 429 generations — wait ${Math.round(waitMs / 1000)}s, retry ${retryCount + 1}`,
       );
       await delay(waitMs);
-      return gptImageGenerate(apiKey, prompt, bookTier, retryCount + 1);
+      return gptImageGenerate(
+        apiKey,
+        prompt,
+        bookTier,
+        retryCount + 1,
+        hasUserPortraitRefs,
+      );
     }
     console.error("[gpt-image] generations error", r.status, raw.slice(0, 700));
     throw new Error(openaiImageErrorDetail(r.status, raw));
@@ -1787,7 +1816,7 @@ async function gptImageEdit(
   const model = gptImageDefaultModel();
   const moderation = gptImageModerationParam();
   const size = gptImageSizeForRequest(bookTier);
-  const quality = gptImageQualityForRequest("edit", bookTier);
+  const quality = gptImageQualityForRequest("edit", bookTier, hasUserPortraitRefs);
   const trimmed = prompt.slice(0, GPT_IMAGE_PROMPT_MAX);
   const fidelity = gptImageInputFidelityForRequest(bookTier, hasUserPortraitRefs);
 
@@ -2189,7 +2218,7 @@ ${noBuddyBook ? `BOOK MODE — NO IMAGINARY BUDDY: The reader chose "No buddy". 
   }
 ${
   portraitAppearance
-    ? `\nPHOTO-MATCH (reference photos were uploaded): The "Appearance from reference photos" block in the user message was produced from real family pictures. For every person named there, characterDesign and every spread must preserve that identity — hair (including accessories), eye colour, skin tone, approximate age, and gender presentation — never swap in a different-looking child. If a photo line conflicts with generic "plain solid tee" boilerplate, follow the photo summary (you may describe a busy real-life top as one short neutral phrase such as "cream sweatshirt with a colourful front" rather than inventing a different outfit).\n`
+    ? `\nPHOTO-MATCH (reference photos were uploaded): The "Appearance from reference photos" block in the user message was produced from real family pictures. For every person named there, characterDesign and every spread must preserve that identity — **hair colour, hair length, and style (including accessories)**, eye colour, skin tone, approximate age, and gender presentation — never swap in a different-looking child. If a photo line conflicts with generic "plain solid tee" boilerplate, follow the photo summary (you may describe a busy real-life top as one short neutral phrase such as "cream sweatshirt with a colourful front" rather than inventing a different outfit).\n`
     : ""
 }
 - Include fields title (string), characterDesign (string), bookColor (string: ${BOOK_COLOR_MODEL_HINT}. If unsure, pick a tint that fits the child's name — cooler tones for many boy names, warmer for many girl names), and pages (array of 12 objects).
@@ -2413,11 +2442,17 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
     const useCastAnchor =
       !useGptImage && useFalRedux && Deno.env.get("STORYBOOK_FAL_CAST_ANCHOR") !== "0";
 
+    const photoRefHairLock =
+      portraitAppearance.trim().length > 0
+        ? "Reference photos were supplied: for every HUMAN in LOCKED CAST, paint the SAME hair colour, hair LENGTH (how far it falls — short, chin, shoulder, long), and arrangement (fringes, pigtails, bunches, part) as written — never substitute generic brown hair or a shorter cut. "
+        : "";
+
     const anchorPreamble =
       "A completely textless illustration. NO letters, words, typography, labels, speech bubbles, signs with text, book pages with writing, loose papers, scrolls, glyph noise, watermarks, or fake paragraph texture anywhere. Plain smooth background regions only — no pseudo-text. " +
       (noBuddyBook
         ? "CAST LINEUP / MODEL SHEET for a kids picture book: every character line in LOCKED CAST below (human hero and any named human co-stars or game people ONLY — no creature buddy in the lineup). Together in ONE frame, calm neutral expressions and friendly standing poses for identity reference only — story illustrations later will change faces and poses per scene. "
         : "CAST LINEUP / MODEL SHEET for a kids picture book: every character line in LOCKED CAST below (hero, buddy, and any named human co-stars or game people) — no one else, no third mascot or crowd, no duplicate unicorns. Together in ONE frame, calm neutral expressions and friendly standing poses for identity reference only — story illustrations later will change faces and poses per scene. ") +
+      photoRefHairLock +
       "full bodies on a plain soft background that still fills the canvas edge-to-edge — modest inset so hair, feet, wings, and tails do not touch the border; figures roughly ~50–68% of frame height so each design reads clearly with a bit more breathing room around the lineup, soft matte clay and toy-plastic 3D, gentle pastel light. " +
       "Edge-to-edge, wholesome for toddlers. ";
 
@@ -2428,6 +2463,9 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
     let panelLock = "";
 
     if (useGptImage) {
+      const gptHasPortraitRefs =
+        refPack.heroUrls.length > 0 ||
+        Object.keys(refPack.customByFriendId).length > 0;
       // STRICT MODE — when STORYBOOK_IMAGE_MODE=gptimage is set, this is the
       // ONLY pipeline we want to run. No silent fallback to Fal or DALL-E.
       // If anything fails, we throw with a clear, actionable error so the
@@ -2435,7 +2473,13 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
       // imageless 200 or a mixed-style book).
       let anchorOut: { url: string; bytes: Uint8Array };
       try {
-        anchorOut = await gptImageGenerate(apiKey, anchorPrompt, pictureBookQuality);
+        anchorOut = await gptImageGenerate(
+          apiKey,
+          anchorPrompt,
+          pictureBookQuality,
+          0,
+          gptHasPortraitRefs,
+        );
       } catch (e) {
         const detail = e instanceof Error ? e.message : String(e);
         throw new Error(`gpt_image_anchor_failed: ${detail}`);
@@ -2449,9 +2493,6 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
         // timeout. Identity is already locked by pixels. Visual lock stays in
         // play for the Fal / DALL·E paths below.
         const refBytes = anchorOut.bytes;
-        const gptHasPortraitRefs =
-          refPack.heroUrls.length > 0 ||
-          Object.keys(refPack.customByFriendId).length > 0;
         // Stay under Supabase/Cloudflare wall-clock (~150s).
         // Cost-aware defaults: tier from `pictureBookQuality` + env overrides for size/quality/input_fidelity.
         // Tier-1 OpenAI image RPM is 5 — chunk 4 edits, brief wait, then 2 edits. Raise wait or
@@ -2565,7 +2606,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
           }
 
           blocks.push(
-            "EXPRESSION & POSE: Keep each character's IDENTITY locked to the reference — same face shape, hair, skin tone, outfit colours, species, proportions. Change pose, body language, and facial expression to match THIS SPREAD'S MOMENT (e.g. surprised brows, belly laugh, anxious side-glance, sleepy smile, focused pout). Do not give every spread the same neutral grin unless the verse is neutral; buddy creatures should emote in species-appropriate ways too.",
+            "EXPRESSION & POSE: Keep each character's IDENTITY locked to the reference — same face shape, hair COLOUR, hair LENGTH, hair STYLE, skin tone, outfit colours, species, proportions. Change pose, body language, and facial expression to match THIS SPREAD'S MOMENT (e.g. surprised brows, belly laugh, anxious side-glance, sleepy smile, focused pout). Do not give every spread the same neutral grin unless the verse is neutral; buddy creatures should emote in species-appropriate ways too.",
           );
 
           // 5. Visible cast for THIS spread (the part that fixes the
@@ -2590,11 +2631,18 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
           // 6. Scene note (free description from the LLM)
           blocks.push(`SCENE NOTE: ${b.brief}`);
 
-          // 7. Cast bible (compact)
-          const castSnippet = castBible.trim().slice(0, 800);
+          // 7. Cast bible (compact; longer when photo refs so Hair: lines survive truncation)
+          const castCap = portraitAppearance.trim().length > 0 ? 1400 : 800;
+          const castSnippet = castBible.trim().slice(0, castCap);
           blocks.push(
             `CAST IDENTITIES (only draw the ones listed in WHO IS IN THIS PICTURE — match the reference for each):\n${castSnippet}`,
           );
+
+          if (portraitAppearance.trim().length > 0) {
+            blocks.push(
+              "HAIR FIDELITY: Each named child must keep the exact hair colour, length, and arrangement from the reference lineup and lines above (e.g. long blonde stays long blonde; pigtails stay pigtails). Do not revert to a default boy crew cut or generic brown bob unless the cast explicitly describes that.",
+            );
+          }
 
           // 8. Final constraint
           blocks.push(
