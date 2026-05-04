@@ -1769,6 +1769,15 @@ function coercePictureBookQuality(raw: unknown): PictureBookQuality {
   return "standard";
 }
 
+/** Reader layout: duplex = one wide image with HTML text overlaid; facing = art alone on one page. */
+type ReaderArtLayoutKey = "duplex" | "facing";
+
+function coerceReaderArtLayout(raw: unknown): ReaderArtLayoutKey {
+  const s = String(raw ?? "").trim().toLowerCase();
+  if (s === "facing" || s === "single" || s === "one_page") return "facing";
+  return "duplex";
+}
+
 /** Visual style for storybook illustrations (JSON `illustrationStyle`). */
 type IllustrationStyleKey =
   | "clay3d"
@@ -2368,6 +2377,8 @@ Deno.serve(async (req) => {
     pictureBookQuality?: string;
     /** Illustration look: clay3d | vector_flat | watercolor | papercut | soft_3d */
     illustrationStyle?: string;
+    /** Reader layout: duplex (text overlaid on art) vs facing (art alone on one page). */
+    readerArtLayout?: string;
   };
   try {
     body = await req.json();
@@ -2392,6 +2403,7 @@ Deno.serve(async (req) => {
   const plotHint = sanitizePlotHint(String(body.plotHint ?? ""));
   const pictureBookQuality = coercePictureBookQuality(body.pictureBookQuality);
   const illustrationStyleKey = coerceIllustrationStyle(body.illustrationStyle);
+  const readerArtLayoutKey = coerceReaderArtLayout(body.readerArtLayout);
   const artStyleSpec = ART_STYLE_SPECS[illustrationStyleKey];
 
   // If the child's plot prompt clearly names a different setting than the one
@@ -2571,13 +2583,17 @@ Deno.serve(async (req) => {
       ? `\n\nAppearance from reference photos (each line is one person — hero and any friends you tagged with a photo, or default game portraits; match when describing these people in the story):\n${portraitAppearance}\n`
       : "";
 
-  const system = `You write very short picture-book stories for UK English-speaking children about age 5.
+  const system = `You write warm picture-book stories for UK English-speaking children about age 5.
 Rules:
 - ${artStyleSpec.storyBrief}
 ${noBuddyBook ? `BOOK MODE — NO IMAGINARY BUDDY: The reader chose "No buddy". For this entire book: (1) Do NOT add a recurring fantasy creature companion (unicorn, dragon, robot, etc.) in story text, characterDesign, or illustrationBriefs unless the child's plot idea explicitly requires that creature. (2) characterDesign must describe ONLY humans — the hero, any plot-named children, and game people. (3) Each illustrationBrief VISIBLE line lists only people (humans) named in that verse. (4) Page 1 must not introduce a creature buddy. Invent gentle human-centred adventures when the plot is open-ended.\n\n` : ""}- Warm, gentle, silly — never scary, violent, or mean.
 - No romance, no weapons, no villains that frighten.
-- Exactly 12 pages (six double-page spreads). The text on every page MUST be exactly **5** lines long, written as a fun, rhythmic poem that rhymes perfectly (e.g., AABB or ABCB). Each line may be **slightly longer** than a single short phrase — pack in a little extra detail so each spread feels full, but keep vocabulary simple for age ~5. Format the text with actual line breaks (\n) after each line so the rhyming words are at the end of each line.
-- Odd-numbered (text-first) pages: end on a normal rhyming line — do NOT tack on a random ALL CAPS sound effect (SPLASH! SNORE! ZOOM!) after the verse; those often feel disconnected from the lines above. Keep the whole page in normal sentence case. Only use a short capped word if it is genuinely the punchline of that beat (rare); most pages should have no ALL CAPS word at all.
+${
+  readerArtLayoutKey === "facing"
+    ? `- Exactly 12 pages (six double-page spreads). **Facing-page layout** (one full-page picture + one dedicated text page): each **odd** text page is shown alone on a cream text page in the app — not overlaid on art. Write **2–4 short paragraphs** per odd page (~**150–190 words** total on that page), warm read-aloud prose for age ~5, with natural dialogue and sensory detail. Separate paragraphs with **two newlines** (\\n\\n) in the JSON string. **Do not** force ten single-line rhyming rows; light rhythm or occasional rhyme is fine — **clarity and story flow come first**.`
+    : `- Exactly 12 pages (six double-page spreads). The text on every page MUST be exactly **10** lines long (~**double** the words of a tight five-line verse — aim for noticeably fuller pages), written as a fun, rhythmic poem that rhymes perfectly across the page (e.g., AABBCCDDEE, ABCB repeated, or two blocks of five lines with a clear rhyme scheme). Each line should be a **moderate phrase or short sentence** — richer detail, small dialogue beats, and sensory touches so each spread feels full, but keep vocabulary simple for age ~5. Format the text with actual line breaks (\\n) after each line so the rhyming words fall at the ends of lines.`
+}
+- Odd-numbered (text-first) pages: end calmly — do NOT tack on a random ALL CAPS sound effect (SPLASH! SNORE! ZOOM!) after the text; those often feel disconnected. Keep the whole page in normal sentence case. Only use a short capped word if it is genuinely the punchline of that beat (rare); most pages should have no ALL CAPS word at all.
 - NAMES VS GENDER (critical): Do **not** choose boy/girl from how a first name "usually" sounds. Names like Remy, Riley, Alex, Sam, Jordan, Charlie can be girls or boys. **The appearance-from-photos lines are ground truth:** if a line says **Gender: girl** and long blonde hair, that named child is a **girl** in the story — use **she/her** pronouns in verses, and characterDesign must say **girl** with that exact hair — never give her a boy's short brown haircut or **he/him** unless the line explicitly says **Gender: boy**. Never override a photo-derived girl line with a masculine default.
 - The hero's name is given — use it often. The hero IS ${childName} — this exact first name must appear in the story text on every page where the main child acts. Whenever ${childName} is in a spread's scene, that spread's illustrationBrief must name ${childName} (you may list other named friends first if the verse introduces them that way). Never substitute a different child, wrong name, or wrong gender as the hero. The art paints only who you name — do not imply an unnamed generic kid.
 - HUMAN CO-STARS vs IMAGINARY BUDDY (critical): The "Main friend character" below is always ONE imaginary creature (unicorn, dragon, dinosaur, etc.). If the plot idea also names another child, that child is a REAL HUMAN — not the buddy, not a shape-shifted version of the buddy, and never given the buddy's role in the plot. NEVER merge names: do not write that the human co-star flies as the dragon, or that the dragon "is" that child. When the plot says the children cannot find the DINOSAUR / DRAGON, the verses must ask where the DINOSAUR or DRAGON is — do not substitute a child's name as the thing that is lost unless the plot literally says that child is hiding.
@@ -2636,7 +2652,11 @@ ${
       • MOUNTAIN plot: "${childName} hikes a flower-lined mountain path, rocky peaks and soft clouds above, a wooden bridge crossing a tiny stream."
     Vary the *place* between spreads in line with the plot's beats — e.g. CASTLE: gates → corridor → great hall → spiral tower → rooftop → courtyard with the dragon flying overhead. Don't repeat the same backdrop. State a different camera angle / shot type for each (wide establishing shot, mid shot, low-angle hero kneeling, over-the-shoulder peering, etc).
     Background details ARE allowed (in fact required) — what is NOT allowed is faced extras the verse doesn't mention.
-    COMPOSITION / SCALE FOR THE ILLUSTRATOR: Full-bleed spreads — the setting and atmosphere fill the double-page edge-to-edge. **Camera pulled back** — picture-book *wide* or *medium-wide* framing, not tight hero close-ups: the **environment** (walls, sky, terrain, props) must be a major part of every illustration so readers can “see the place”, not just faces. Typical group shots: the whole cast together only **~30–45% of frame height** (single-figure beats a bit less); avoid filling most of the canvas with heads and torsos. Keep a modest inset so every listed character fits without edge-clipping (full heads and feet on wide shots; on closer emotional beats, still show plenty of background, not a portrait zoom). The tallest features (unicorn horn, ears, hair, wing tips) must sit fully inside the frame with visible margin — never cropped. If tight, **widen the shot** or shrink the characters. **GUTTER:** Do not place a main character’s face or body on the exact vertical centre — bias the group slightly left or right of the fold so the book spine does not cut a child in half. When the verse describes jumping, bouncing, trampolines, soaring, flying, or reaching high in the air, the illustrationBrief MUST specify a wide or full shot with every visible named figure shown completely head-to-toe — never a tight mid-shot that crops at the neck, waist, or knees.
+    ${
+      readerArtLayoutKey === "facing"
+        ? "COMPOSITION / SCALE FOR THE ILLUSTRATOR (single-page pictures — rhyming text is on the facing HTML page, not painted on this image): Each illustration reads as ONE standalone page. **No empty half, blank strip, or soft dead zone reserved for captions** in the art — paint a **balanced full-bleed** scene edge-to-edge. **Centre the cast and focal action** — keep the group's visual mass roughly **~45–55% from the left** (near the picture's horizontal middle), **not** parked on the far right or far left. **Camera pulled back** — picture-book *wide* or *medium-wide* framing: the **environment** must stay a major part of every illustration. Typical group shots: the whole cast together only **~30–45% of frame height** (single-figure beats a bit less). Modest inset — horns, ears, wing tips fully inside the frame. When the verse describes jumping, bouncing, trampolines, soaring, flying, or reaching high in the air, the illustrationBrief MUST specify a wide or full shot with every visible named figure shown completely head-to-toe — never a tight mid-shot that crops at the neck, waist, or knees."
+        : "COMPOSITION / SCALE FOR THE ILLUSTRATOR: Full-bleed spreads — the setting and atmosphere fill the double-page edge-to-edge. **Camera pulled back** — picture-book *wide* or *medium-wide* framing, not tight hero close-ups: the **environment** (walls, sky, terrain, props) must be a major part of every illustration so readers can “see the place”, not just faces. Typical group shots: the whole cast together only **~30–45% of frame height** (single-figure beats a bit less); avoid filling most of the canvas with heads and torsos. Keep a modest inset so every listed character fits without edge-clipping (full heads and feet on wide shots; on closer emotional beats, still show plenty of background, not a portrait zoom). The tallest features (unicorn horn, ears, hair, wing tips) must sit fully inside the frame with visible margin — never cropped. If tight, **widen the shot** or shrink the characters. **GUTTER:** Do not place a main character’s face or body on the exact vertical centre — bias the group slightly left or right of the fold so the book spine does not cut a child in half. When the verse describes jumping, bouncing, trampolines, soaring, flying, or reaching high in the air, the illustrationBrief MUST specify a wide or full shot with every visible named figure shown completely head-to-toe — never a tight mid-shot that crops at the neck, waist, or knees."
+    }
   OPENING SPREAD (page 2 only — the first illustrationBrief): MUST match page 1 text and the child's plot, AND establish the actual SETTING (castle / woods / cave / beach / space / zoo / farm / mountain / sea / ship / train / city / circus / lake / snow / desert / museum / island / etc. — whichever the plot calls for). Page 1 text must name every main character the plot introduces (${childName}, any sibling/friend named in the plot idea, and the buddy creature by type — e.g. dinosaur). Only characters named on page 1 may appear on page 2's illustration. Example: if the plot is "hide and seek in a castle", the opening establishes castle gates / courtyard / great hall — NOT a forest. No unwritten extras.
   When game people with portrait notes appear on a picture page, the brief should mention them looking like those notes (hair, outfit colours, age vibe).
 - If a "plot idea" is given, you MUST make it the central theme of the story and feature it heavily in EVERY illustration brief. If it is empty, invent a short happy outing that fits the setting.
@@ -2678,6 +2698,11 @@ ${
       : `Picture cast rule: only people/creatures **named in each verse** may appear on that spread's illustration — usually ${childName} and the buddy. Do not name anyone in a brief who is not in the paired text.\n`
     : `Main human cast for this book (must appear in the verses whenever they are in the scene together — use these exact names): ${storyHumanNames.join(", ")}. Picture rule: only names that appear in each verse may be in that spread's illustration; match the plot's who-is-hiding logic with the VISIBLE line.\n`
   }
+Every odd text page: ${
+  readerArtLayoutKey === "facing"
+    ? "**2–4 paragraphs** in each \"text\" string, paragraphs separated by two newline characters (\\n\\n), **~150–190 words** per page, warm read-aloud prose (not strict ten-line rhyme)."
+    : "exactly **10** lines, separated by newline characters (\\n) in each \"text\" string — full, rhyming, about twice as wordy as a five-line verse."
+}
 Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "pink" | "blue" | "green" | "purple" | "orange" | "teal" | "red" | "yellow" | "lilac" | "mint" | "coral" | "navy", "pages": [ { "text": string, "illustrationBrief": string | null }, ... 12 items ] }`;
 
   const bookCoverColorReq = String(body.bookCoverColor ?? "").trim();
@@ -2741,12 +2766,24 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
           ? story.characterDesign
           : duoImageCastFallback;
 
+  const stylePreambleLayoutDuplex =
+    "The left third must be only smooth colour, soft sky, plain wall, or gentle gradient — zero pseudo-text texture there (the app draws real text in HTML). " +
+    "CRITICAL LAYOUT RULE: Leave the left half of the image mostly uncluttered with a simple, soft, darker background so that WHITE storybook text can be printed over it clearly. Place the main characters and action on the right half or center-right of the image. ";
+
+  const stylePreambleLayoutFacing =
+    "LAYOUT (single-page art in the reader — rhyming text is on the facing HTML page, NOT overlaid on this image): **Do not** reserve an empty left third, empty side strip, or blank half for captions. Paint a **balanced full-bleed** picture. **Centre the main characters and focal action** — aim the group's visual mass near **~45–55% from the left** (horizontal middle of the canvas), **not** flattened to one edge. ";
+
+  const stylePreambleFramingDuplex =
+    "FRAMING / CHARACTER SCALE (critical): FULL-BLEED SCENE — paint walls, sky, ground, props, and atmosphere so the artwork fills the entire canvas edge-to-edge (rich picture-book spread, not a tiny scene floating in empty space). **Pull the camera back** — **medium-wide** framing by default: the **background and setting** must read clearly in every spread, not just the characters’ faces. The cast together should typically occupy only **~28–42% of frame height** (single heroes or duos **~22–36%**) so caves, skies, rooms, and landscapes have room to breathe — never a tight bust or “zoomed-in” portrait unless the verse is purely a tight reaction beat (and even then keep architecture/sky visible). Keep modest inset — full heads, hair, hands, feet, tail, and wings inside the frame — never cropped or jammed against the border. Never crop a child or buddy at the neck or waist when the moment shows their whole body standing, jumping, or bouncing — use a wider shot instead. For jumping, trampolines, bouncing, soaring, or flying beats, default to a wide shot with the group using only **~30–42%** of frame height so heads, feet, and hooves stay clear of the top and bottom edges. **GUTTER / SPINE:** do not center a main character on the vertical midline — bias the group slightly **left or right** so the book fold does not slice through a face or torso. Unicorn horns, tall ears, hair poofs, wing tips, and raised hooves/paws must be fully visible with clear air above and beside them — never clipped. If a figure still feels tight, shrink only the cast and pull the camera back; keep the environment rich. Never line up the whole cast as a tiny strip along the bottom like stickers; show comfortable ground and body. ";
+
+  const stylePreambleFramingFacing =
+    "FRAMING / CHARACTER SCALE (critical): FULL-BLEED SCENE — paint walls, sky, ground, props, and atmosphere so the artwork fills the entire canvas edge-to-edge (rich single-page picture, not a tiny scene floating in empty space). **Pull the camera back** — **medium-wide** framing by default: the **background and setting** must read clearly in every spread, not just the characters’ faces. The cast together should typically occupy only **~28–42% of frame height** (single heroes or duos **~22–36%**) so caves, skies, rooms, and landscapes have room to breathe — never a tight bust or “zoomed-in” portrait unless the verse is purely a tight reaction beat (and even then keep architecture/sky visible). Keep modest inset — full heads, hair, hands, feet, tail, and wings inside the frame — never cropped or jammed against the border. Never crop a child or buddy at the neck or waist when the moment shows their whole body standing, jumping, or bouncing — use a wider shot instead. For jumping, trampolines, bouncing, soaring, or flying beats, default to a wide shot with the group using only **~30–42%** of frame height so heads, feet, and hooves stay clear of the top and bottom edges. **CENTRE COMPOSITION (standalone page):** keep the cast's visual weight near the **horizontal middle** (~45–55% from the left) — **do not** shove everyone to the far right or far left as if saving space for overlaid text; slight left/right asymmetry is fine. Unicorn horns, tall ears, hair poofs, wing tips, and raised hooves/paws must be fully visible with clear air above and beside them — never clipped. If a figure still feels tight, shrink only the cast and pull the camera back; keep the environment rich. Never line up the whole cast as a tiny strip along the bottom like stickers; show comfortable ground and body. ";
+
   const stylePreamble =
     "A completely textless illustration. DO NOT include any writing, letters, words, typography, labels, speech bubbles, newspapers, stone runes, book pages with text, loose paper sheets, scrolls, receipts, notebooks, stationery, litter, or ground clutter that looks like fake writing — no blurry shapes that look like fake paragraphs or gibberish anywhere. " +
     "No logos, social-media marks, app icons, or brand symbols. " +
-    "The left third must be only smooth colour, soft sky, plain wall, or gentle gradient — zero pseudo-text texture there (the app draws real text in HTML). " +
-    "CRITICAL LAYOUT RULE: Leave the left half of the image mostly uncluttered with a simple, soft, darker background so that WHITE storybook text can be printed over it clearly. Place the main characters and action on the right half or center-right of the image. " +
-    "FRAMING / CHARACTER SCALE (critical): FULL-BLEED SCENE — paint walls, sky, ground, props, and atmosphere so the artwork fills the entire canvas edge-to-edge (rich picture-book spread, not a tiny scene floating in empty space). **Pull the camera back** — **medium-wide** framing by default: the **background and setting** must read clearly in every spread, not just the characters’ faces. The cast together should typically occupy only **~28–42% of frame height** (single heroes or duos **~22–36%**) so caves, skies, rooms, and landscapes have room to breathe — never a tight bust or “zoomed-in” portrait unless the verse is purely a tight reaction beat (and even then keep architecture/sky visible). Keep modest inset — full heads, hair, hands, feet, tail, and wings inside the frame — never cropped or jammed against the border. Never crop a child or buddy at the neck or waist when the moment shows their whole body standing, jumping, or bouncing — use a wider shot instead. For jumping, trampolines, bouncing, soaring, or flying beats, default to a wide shot with the group using only **~30–42%** of frame height so heads, feet, and hooves stay clear of the top and bottom edges. **GUTTER / SPINE:** do not center a main character on the vertical midline — bias the group slightly **left or right** so the book fold does not slice through a face or torso. Unicorn horns, tall ears, hair poofs, wing tips, and raised hooves/paws must be fully visible with clear air above and beside them — never clipped. If a figure still feels tight, shrink only the cast and pull the camera back; keep the environment rich. Never line up the whole cast as a tiny strip along the bottom like stickers; show comfortable ground and body. " +
+    (readerArtLayoutKey === "facing" ? stylePreambleLayoutFacing : stylePreambleLayoutDuplex) +
+    (readerArtLayoutKey === "facing" ? stylePreambleFramingFacing : stylePreambleFramingDuplex) +
     artStyleSpec.preambleStyleSentence +
     `HERO VISIBILITY: When "${childName}" appears in SCENE ACTION, they must be clearly visible (face on, not swapped for another kid). ` +
     (noBuddyBook
@@ -2786,6 +2823,16 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
     "fal-ai/flux-pro/v1.1";
   const falStrengthRaw = Number(Deno.env.get("STORYBOOK_FAL_REFERENCE_STRENGTH") ?? "0.35");
   const falStrength = Number.isFinite(falStrengthRaw) ? falStrengthRaw : 0.35;
+
+  const falLegacyFrameClause =
+    readerArtLayoutKey === "facing"
+      ? "FRAME / SCALE: full-bleed edge-to-edge; **pulled-back camera** — cast **~28–40% of frame height** typically, **setting prominent**, not zoomed portrait; modest inset — full heads, feet, hands, wings inside canvas; **centre-weighted composition** (~45–55% horizontal), not squeezed to one edge; do not squash everyone along the bottom edge. "
+      : "FRAME / SCALE: full-bleed edge-to-edge; **pulled-back camera** — cast **~28–40% of frame height** typically, **setting prominent**, not zoomed portrait; modest inset — full heads, feet, hands, wings inside canvas; bias off centre gutter; do not squash everyone along the bottom edge. ";
+
+  const falReduxLayoutHint =
+    readerArtLayoutKey === "facing"
+      ? "Standalone picture page — rhyming text is on the facing page in the app; **centre the cast** (~45–55% horizontal), balanced composition. "
+      : "";
 
   try {
     const briefs: { index: number; brief: string; verse: string }[] = [];
@@ -2893,7 +2940,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
         // intentionally generic — no example props (no "treasure", no
         // "glowing flower"), because mentioning those words even in negation
         // primes gpt-image-1 to render them.
-        const shotPlan = [
+        const shotPlanDuplex = [
           {
             label: "WIDE ESTABLISHING SHOT",
             note:
@@ -2926,6 +2973,41 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
           },
         ];
 
+        const shotPlanFacing = [
+          {
+            label: "WIDE ESTABLISHING SHOT",
+            note:
+              "Wide establishing shot — camera well back. Full-bleed environment — sky, architecture, terrain, and foreground paint to every edge; **setting is the star as much as the cast**. Full bodies head to toe: the whole cast together roughly **~32–42% of frame height** (not a hero poster crop), fully inside the frame with generous breathing room — silhouettes never touch or clip the border. **Centre-weighted composition:** the cast's visual mass near **~45–55% horizontal** — balanced for a standalone page (story text is on the facing page).",
+          },
+          {
+            label: "MID SHOT",
+            note:
+              "Medium-wide shot — **not** a tight knees-up portrait: show **waist-up or full-body at a comfortable distance** so walls, cave, or sky stay prominent. Cast roughly **~34–45% of frame height** together. Full-bleed setting behind and around them; entire heads (hair included) and hands inside the frame with modest inset. **Balanced framing** — near the horizontal middle (~45–55%), not parked on one edge. If the verse implies jumping, bouncing, trampoline, soaring, or flying, override: wide full-body (same inset as spread 1).",
+          },
+          {
+            label: "OVER-THE-SHOULDER / DISCOVERY ANGLE",
+            note:
+              "Three-quarter or over-the-shoulder angle — **camera still pulled back** so the discovery and the **environment** both read. Full-bleed world. Foreground character fully inside canvas (no cropped ears or elbows at edges). Cast **~32–44% of frame height**; setting fills surrounding space to the edges. Keep important faces **off the extreme left/right** edges with modest inset.",
+          },
+          {
+            label: "FOCAL MOMENT — MEDIUM FRAMING (NOT FACE FILL)",
+            note:
+              "**Medium** framing on the verse's focal action — **not** an extreme facial close-up: prefer **mid-thigh up, waist-up, or wider** so cave, room, or landscape stays visible. Cast **≤~40% of frame height**; background and atmosphere run edge-to-edge. Every face, hand, and prop that matters fully inside the frame with modest inset — **centre the moment** in the frame (~45–55% horizontal). If jumping, bouncing, or airborne, override to wide full-body — no tight crop on leaping bodies.",
+          },
+          {
+            label: "WIDE JOURNEY SHOT — DIFFERENT PART OF THE SETTING",
+            note:
+              "A second wide shot in a DIFFERENT corner of the same setting. Full-bleed world — **environment dominates**. Cast smaller on the canvas (**~20–32% of frame height**), full figures readable, never cropped; **balanced centre-friendly placement**.",
+          },
+          {
+            label: "WARM FINALE — MEDIUM (NOT TIGHT PORTRAIT)",
+            note:
+              "Finale warmth — **medium three-quarter or waist-up**, not stacked tight face fill: show celebratory **background** (same setting) clearly. Cast **~35–45% of frame height**; entire heads with hair and ears inside frame with modest inset; **group near horizontal centre**. If the verse still describes jumping, bouncing, or flying, use wide full-body instead.",
+          },
+        ];
+
+        const shotPlan = readerArtLayoutKey === "facing" ? shotPlanFacing : shotPlanDuplex;
+
         // Clean, POSITIVE-ONLY edit prompt builder. We attach the anchor PNG as
         // the character reference; everything else describes ONLY what to
         // paint, not what to avoid. Negative lists were paradoxically nudging
@@ -2956,7 +3038,9 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
           // 1. Style + reference instruction
           blocks.push(
             artStyleSpec.gptEditStyleOpener +
-              "SAFE SCALE: Full-bleed scene — environment fills the entire canvas edge-to-edge. **Pull the camera back:** the cast together should use only **~28–42% of frame height** (typically) so **walls, sky, cave, or landscape read clearly** — not a zoomed portrait. Full heads, hair, feet, hands, wings, and tails inside the frame with modest inset — never edge-clipped. Never crop standing or jumping children at the neck, waist, or knees — if the moment is full-body, show full-body. **Book gutter:** bias the group slightly left or right of frame centre — never put a main child's face on the vertical midline. Do not leave empty margins around the whole painting. " +
+              (readerArtLayoutKey === "facing"
+                ? "SAFE SCALE: Full-bleed scene — environment fills the entire canvas edge-to-edge. **Pull the camera back:** the cast together should use only **~28–42% of frame height** (typically) so **walls, sky, cave, or landscape read clearly** — not a zoomed portrait. Full heads, hair, feet, hands, wings, and tails inside the frame with modest inset — never edge-clipped. Never crop standing or jumping children at the neck, waist, or knees — if the moment is full-body, show full-body. **Single-page layout:** centre the cast — keep the focal group's visual mass near **~45–55% horizontal** (balanced; **not** squeezed to one side as if saving space for overlaid text). Do not leave empty margins around the whole painting. "
+                : "SAFE SCALE: Full-bleed scene — environment fills the entire canvas edge-to-edge. **Pull the camera back:** the cast together should use only **~28–42% of frame height** (typically) so **walls, sky, cave, or landscape read clearly** — not a zoomed portrait. Full heads, hair, feet, hands, wings, and tails inside the frame with modest inset — never edge-clipped. Never crop standing or jumping children at the neck, waist, or knees — if the moment is full-body, show full-body. **Book gutter:** bias the group slightly left or right of frame centre — never put a main child's face on the vertical midline. Do not leave empty margins around the whole painting. ") +
               "The attached reference image shows the cast on a neutral backdrop — use it ONLY to lock each character's identity (face shapes, hair, outfit colours, species, body shape). Ignore the lineup's neutral expressions and poses for this sheet — on THIS spread, show expressions and poses that fit the story moment. Repaint the world fresh.",
           );
 
@@ -3144,6 +3228,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
             : "";
           try {
             const falPrompt =
+              falReduxLayoutHint +
               wideBeatClause +
               "PICTURE BOOK SPREAD — illustrate THIS story beat literally. " +
               "VERSE (must match mood, action, props): " +
@@ -3228,11 +3313,12 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
                     ? "WIDE FULL-BODY CAM: jumping/bouncing/airborne — pull camera back; head-to-toe for every named figure; buddy tail/horn in frame. "
                     : "";
                   const falPrompt =
+                    falReduxLayoutHint +
                     wideBeatClause +
                     "New story moment — change poses, action, and background to match the scene. " +
                     "Keep the same hero face shape, hair, outfit colours, and the same buddy and named creatures as the reference — only beings named in SCENE ACTION, no new animals or people. Shift facial expressions and body language to match the story beat — not the same static expression every time. " +
                     artStyleSpec.falLegacyStyleTag +
-                    "FRAME / SCALE: full-bleed edge-to-edge; **pulled-back camera** — cast **~28–40% of frame height** typically, **setting prominent**, not zoomed portrait; modest inset — full heads, feet, hands, wings inside canvas; bias off centre gutter; do not squash everyone along the bottom edge. " +
+                    falLegacyFrameClause +
                     composed.slice(0, FAL_REDUX_PROMPT_MAX - 220);
                   const u = await falFluxReduxImageUrl(
                     falKey,

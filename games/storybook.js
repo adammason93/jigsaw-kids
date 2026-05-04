@@ -474,6 +474,16 @@
     return "duplex";
   }
 
+  /**
+   * Spread layout for the **open** book. Legacy books default to duplex (full two-page art).
+   * @returns {'duplex' | 'facing'}
+   */
+  function getEffectiveReaderArtLayout() {
+    if (story && story.readerArtLayout === "facing") return "facing";
+    if (story && story.readerArtLayout === "duplex") return "duplex";
+    return "duplex";
+  }
+
   function setReaderArtLayout(mode) {
     try {
       localStorage.setItem(K_READER_ART_LAYOUT, mode === "facing" ? "facing" : "duplex");
@@ -545,7 +555,7 @@
 
   function syncReaderFacingLayoutClasses() {
     if (!spreadInnerEl) return;
-    var wantFacing = getReaderArtLayout() === "facing";
+    var wantFacing = getEffectiveReaderArtLayout() === "facing";
     var flyleaf = spreadInnerEl.classList.contains("sb-flip-spread__inner--flyleaf-pane");
     var hasArt = spreadInnerEl.classList.contains("sb-flip-spread__inner--has-art");
     var effective = wantFacing && hasArt && !flyleaf;
@@ -619,7 +629,7 @@
   }
 
   function readerUsesFacingPageTurn() {
-    return getReaderArtLayout() === "facing";
+    return getEffectiveReaderArtLayout() === "facing";
   }
 
   var btnOpenCover = document.getElementById("sbOpenCover");
@@ -853,7 +863,7 @@
   var selectedPlace = "beach";
   /** @type {string} book frame colour: "" = Auto, or "blue"|"green"|"pink" */
   var selectedBookCoverColor = "";
-  /** @type {{ title: string, author?: string, readerFont?: string|null, sceneImageUrl?: string|null, pages: { text: string, imageUrl: string|null }[] } | null} */
+  /** @type {{ title: string, author?: string, readerFont?: string|null, readerArtLayout?: 'duplex'|'facing', sceneImageUrl?: string|null, pages: { text: string, imageUrl: string|null }[] } | null} */
   var story = null;
 
   /** Matches clever-service STORY_READER_FONT_KEYS — body / tape-over-art / splash word stack per book. */
@@ -1406,6 +1416,7 @@
       title: "Mira and the fallen star (sample)",
       bookColor: "blue",
       readerFont: rfPick,
+      readerArtLayout: "duplex",
       sceneImageUrl: null,
       pages: pages,
       isSample: true,
@@ -2134,6 +2145,7 @@
     sceneUrlFallback,
     bookColor,
     readerFont,
+    readerArtLayout,
     cloudDone,
     onWritten
   ) {
@@ -2152,6 +2164,7 @@
       author: author || "",
       bookColor: bookColor || null,
       readerFont: readerFont || null,
+      readerArtLayout: readerArtLayout === "facing" ? "facing" : "duplex",
       savedAt: new Date().toISOString(),
       pages: storedPages,
       sceneDataUrl: sceneDataUrl || null,
@@ -2187,6 +2200,8 @@
       author: item.author || "",
       bookColor: item.bookColor || null,
       readerFont: item.readerFont || null,
+      readerArtLayout:
+        item.readerArtLayout === "facing" ? "facing" : "duplex",
       /* Prefer remote asset when present so reopen matches stored PNG (not shelf JPEG). */
       sceneImageUrl: item.sceneUrlFallback || item.sceneDataUrl || null,
       pages: item.pages.map(function (p) {
@@ -2453,6 +2468,7 @@
             story.sceneImageUrl || null,
             story.bookColor || null,
             story.readerFont || null,
+            story.readerArtLayout || "duplex",
             function (cloudErr) {
               if (
                 !window.KidsScoreCloud ||
@@ -3837,6 +3853,7 @@
           plotHint: plotHint,
           pictureBookQuality: selectedPictureBookQuality(),
           illustrationStyle: readIllustrationStyleFromWizard(),
+          readerArtLayout: readBookSpreadLayoutFromWizard(),
           author: customAuthor || undefined,
           familyNames: familyPeople.map(function (p) {
             return p.label;
@@ -3909,6 +3926,7 @@
             author: customAuthor,
             bookColor: out.body.bookColor || null,
             readerFont: out.body.readerFont || null,
+            readerArtLayout: readBookSpreadLayoutFromWizard(),
             pages: out.body.pages || [],
             sceneImageUrl: out.body.sceneImageUrl || null,
           };

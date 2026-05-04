@@ -3317,7 +3317,7 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   transform-origin: center center;
 }
 
-/* --- One-page pictures: art fills the whole picture page (cover); position biased so duplex-style art keeps the cast in frame --- */
+/* --- One-page pictures: art fills the whole picture page (cover) --- */
 .sb-flip-spread__inner--art-facing.sb-flip-spread__inner--facing-art-right .sb-flip-spread__art-base {
   left: calc(50% + 1.75px);
   right: 0;
@@ -3334,6 +3334,7 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   background: #ede8df;
 }
 
+/* New facing-page art is prompted centred; crop with horizontal centre so the cast stays in frame. */
 .sb-flip-spread__inner--art-facing .sb-flip-spread__art-cover {
   position: absolute;
   inset: 0;
@@ -3341,16 +3342,15 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   height: 100%;
   max-width: none;
   object-fit: cover;
-  object-position: 64% 45%;
+  object-position: center 45%;
 }
 
-/* Illustrations are composed for a wide spread with cast often center–right; slight horizontal bias keeps people on-screen when we crop to one page. */
 .sb-flip-spread__inner--art-facing.sb-flip-spread__inner--facing-art-left .sb-flip-spread__art-cover {
-  object-position: 70% 45%;
+  object-position: center 45%;
 }
 
 .sb-flip-spread__inner--art-facing.sb-flip-spread__inner--facing-art-right .sb-flip-spread__art-cover {
-  object-position: 58% 45%;
+  object-position: center 45%;
 }
 
 .sb-page-num:empty {
@@ -3369,20 +3369,30 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   pointer-events: none;
 }
 
-.sb-flip-spread__inner--art-facing.sb-facing-text-on-left .sb-page-num {
-  left: 0.55rem;
-  padding: 0.32rem 0.65rem 0.36rem;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 2px 12px rgba(42, 10, 31, 0.1);
+.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art.sb-facing-text-on-left .sb-page-num {
+  left: auto;
+  right: max(0.65rem, env(safe-area-inset-right, 0px));
+  bottom: max(0.55rem, env(safe-area-inset-bottom, 0px));
+  padding: 0.2rem 0.45rem;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  font-size: 0.92rem;
+  font-weight: 650;
+  color: #1a1a1a;
 }
 
-.sb-flip-spread__inner--art-facing.sb-facing-text-on-right .sb-page-num {
-  right: 0.55rem;
-  padding: 0.32rem 0.65rem 0.36rem;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 2px 12px rgba(42, 10, 31, 0.1);
+.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art.sb-facing-text-on-right .sb-page-num {
+  right: auto;
+  left: max(0.65rem, env(safe-area-inset-left, 0px));
+  bottom: max(0.55rem, env(safe-area-inset-bottom, 0px));
+  padding: 0.2rem 0.45rem;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  font-size: 0.92rem;
+  font-weight: 650;
+  color: #1a1a1a;
 }
 
 .sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-flip-page--text .sb-flip-page__sheet {
@@ -3393,17 +3403,16 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   overflow: hidden;
 }
 
-/* Cream “paper” + soft white corner blobs (outer corners of the text page). */
+/* Cream paper + soft white blobs along the **gutter** edge (beside the picture), #f7f4eb field */
 .sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art.sb-facing-text-on-left .sb-flip-page--text .sb-flip-page__sheet::before {
   content: "";
   position: absolute;
   inset: 0;
   z-index: 0;
   background:
-    radial-gradient(ellipse 100% 88% at 2% 5%, rgba(255, 255, 255, 0.99) 0%, rgba(255, 255, 255, 0.45) 42%, transparent 68%),
-    radial-gradient(ellipse 95% 82% at 4% 96%, rgba(255, 255, 255, 0.97) 0%, rgba(255, 252, 248, 0.55) 46%, transparent 72%),
-    radial-gradient(ellipse 55% 40% at 88% 48%, rgba(255, 253, 248, 0.4) 0%, transparent 62%),
-    #f4eee4;
+    radial-gradient(ellipse 92% 70% at 108% 2%, #ffffff 0%, rgba(255, 255, 255, 0.82) 45%, transparent 72%),
+    radial-gradient(ellipse 95% 74% at 104% 102%, #ffffff 0%, rgba(255, 255, 255, 0.8) 48%, transparent 75%),
+    #f7f4eb;
   pointer-events: none;
 }
 
@@ -3413,10 +3422,9 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   inset: 0;
   z-index: 0;
   background:
-    radial-gradient(ellipse 100% 88% at 98% 5%, rgba(255, 255, 255, 0.99) 0%, rgba(255, 255, 255, 0.45) 42%, transparent 68%),
-    radial-gradient(ellipse 95% 82% at 96% 96%, rgba(255, 255, 255, 0.97) 0%, rgba(255, 252, 248, 0.55) 46%, transparent 72%),
-    radial-gradient(ellipse 55% 40% at 12% 48%, rgba(255, 253, 248, 0.4) 0%, transparent 62%),
-    #f4eee4;
+    radial-gradient(ellipse 92% 70% at -8% 2%, #ffffff 0%, rgba(255, 255, 255, 0.82) 45%, transparent 72%),
+    radial-gradient(ellipse 95% 74% at -4% 102%, #ffffff 0%, rgba(255, 255, 255, 0.8) 48%, transparent 75%),
+    #f7f4eb;
   pointer-events: none;
 }
 
@@ -3437,6 +3445,7 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   line-height: 1.72;
   color: #25141c;
   text-align: center;
+  white-space: pre-line;
   padding: 0;
   margin: 0;
   background: transparent;
@@ -3669,6 +3678,11 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   min-height: 0;
   /* Avoid pairing clip-path reveal with overflow:auto — WebKit clips the left edge of lines mid-turn. */
   overflow: visible;
+}
+
+/* Facing text page: clip decorative blobs flush to the half-page edge */
+.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-flip-page--text .sb-flip-page__sheet {
+  overflow: hidden;
 }
 
 .sb-flip-spread__inner--has-art .sb-flip-page--art .sb-flip-page__sheet {
