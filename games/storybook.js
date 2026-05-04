@@ -744,10 +744,6 @@
     spreadPageNumEl.textContent = String(pageNum);
   }
 
-  function readerUsesFacingPageTurn() {
-    return getEffectiveReaderArtLayout() === "facing";
-  }
-
   var btnOpenCover = document.getElementById("sbOpenCover");
   var btnCloseBook = document.getElementById("sbCloseBook");
   var coverTitle = document.getElementById("sbCoverTitle");
@@ -1183,8 +1179,6 @@
     var toSi = Math.max(0, Math.min(spreadIndex + delta, nSpr - 1));
     if (toSi === fromSi) return;
 
-    var isFacingBook = readerUsesFacingPageTurn();
-
     var outArt = illustrationUrlAtSpreadIndex(fromSi);
     var inArt = illustrationUrlAtSpreadIndex(toSi);
     /* Flyleaf / dedication spreads have no illustration URL; use a white tile so the peel still runs (matches old books where spread 0 already had art). */
@@ -1208,24 +1202,17 @@
     clearSpreadTurnRevealFx();
     if (spreadInnerEl) {
       spreadInnerEl.classList.add("sb-flip-spread__inner--peel-turning");
-      if (isFacingBook) {
-        spreadInnerEl.classList.add("sb-flip-spread__inner--facing-peel-turn");
-      }
     }
     if (flipSpreadEl) {
       flipSpreadEl.classList.add("sb-flip-spread--peel-active");
     }
 
     syncSpreadIllustrationFromStory();
-    if (isFacingBook) {
-      syncReaderFacingLayoutClasses();
-      placeTextPageForFacingLayout();
-    }
+    syncReaderFacingLayoutClasses();
+    placeTextPageForFacingLayout();
 
     writeSpreadTextMetaFromStory(fromSi);
-    if (isFacingBook) {
-      updateSpreadPageNumberDisplay(fromSi);
-    }
+    updateSpreadPageNumberDisplay(fromSi);
     fillPeelBackTextColumn(spreadIndex);
     updatePagerHints();
 
@@ -1244,19 +1231,13 @@
     if (peelBackImg) {
       peelBackImg.alt = "";
       peelBackImg.referrerPolicy = "no-referrer";
-      if (isFacingBook) {
-        peelBackImg.src = peelBlank;
-      } else {
-        peelBackImg.src = peelIn;
-      }
+      peelBackImg.src = peelIn;
     }
 
-    if (outgoingLeftImg && !isFacingBook) {
+    if (outgoingLeftImg) {
       outgoingLeftImg.alt = "";
       outgoingLeftImg.referrerPolicy = "no-referrer";
       outgoingLeftImg.src = peelOut;
-    } else if (outgoingLeftImg && isFacingBook) {
-      outgoingLeftImg.removeAttribute("src");
     }
 
     var peelFrontRoot = peelShell.querySelector(".sb-flip-spread__peel-front");
@@ -1271,22 +1252,13 @@
 
     var peelBackEl = peelShell.querySelector(".sb-flip-spread__peel-back");
     if (peelBackEl) {
-      if (isFacingBook) {
-        peelBackEl.classList.add("sb-flip-spread__peel-back--verso-text");
-      } else {
-        peelBackEl.classList.remove("sb-flip-spread__peel-back--verso-text");
-      }
+      peelBackEl.classList.remove("sb-flip-spread__peel-back--verso-text");
     }
 
     if (outgoingLeftShell) {
-      if (isFacingBook) {
-        outgoingLeftShell.hidden = true;
-        outgoingLeftShell.style.display = "none";
-      } else {
-        outgoingLeftShell.hidden = false;
-        outgoingLeftShell.removeAttribute("hidden");
-        outgoingLeftShell.style.display = "block";
-      }
+      outgoingLeftShell.hidden = false;
+      outgoingLeftShell.removeAttribute("hidden");
+      outgoingLeftShell.style.display = "block";
     }
 
     var isNext = delta > 0;
@@ -1803,16 +1775,12 @@
   }
 
   /**
-   * Back of the turning leaf during peel: incoming facing reader text or duplex left column.
+   * Back of the turning leaf during peel: same verso-copy path as duplex (left-column text).
    * @param {number} si  Incoming spread index (spreadIndex / toSi during peel).
    */
   function fillPeelBackTextColumn(si) {
     if (!spreadPeelBackText) return;
-    var block =
-      spreadInnerEl &&
-      spreadInnerEl.classList.contains("sb-flip-spread__inner--art-facing")
-        ? spreadFacingReaderTextBlockAtSi(si)
-        : spreadLeftColumnBlockAtSi(si);
+    var block = spreadLeftColumnBlockAtSi(si);
     if (block.kind === "prose" && block.html) {
       spreadPeelBackText.innerHTML =
         '<p class="sb-flip-text"><span class="sb-flip-text__highlight">' +
