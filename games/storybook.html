@@ -289,13 +289,23 @@
           <fieldset class="sb-illustration-styles" id="sbIllustrationStyles" aria-describedby="sbIllustrationStylesHint">
             <legend class="sb-label sb-label--secondary">Art style</legend>
             <p class="sb-panel__micro sb-illustration-styles__hint" id="sbIllustrationStylesHint">
-              Choose how the pictures should look. Thumbnails are a mood guide — your book uses the style you pick on every page.
+              Choose how the pictures should look. Each card shows the same cosy scene in that style — your whole book will match what you pick.
             </p>
             <div class="sb-style-picks" role="radiogroup" aria-labelledby="sbIllustrationStylesHint">
               <label class="sb-style-pick">
                 <input type="radio" name="sbIllustrationStyle" value="clay3d" checked />
                 <span class="sb-style-pick__card">
-                  <span class="sb-style-pick__thumb sb-style-pick__thumb--clay" aria-hidden="true"></span>
+                  <span class="sb-style-pick__thumb">
+                    <img
+                      class="sb-style-pick__thumb-img"
+                      src="storybook-illustration-clay3d.png"
+                      alt=""
+                      width="320"
+                      height="240"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  </span>
                   <span class="sb-style-pick__text">
                     <span class="sb-style-pick__title">Clay &amp; toy plastic</span>
                     <span class="sb-style-pick__sub">Rounded 3D — default</span>
@@ -305,7 +315,17 @@
               <label class="sb-style-pick">
                 <input type="radio" name="sbIllustrationStyle" value="vector_flat" />
                 <span class="sb-style-pick__card">
-                  <span class="sb-style-pick__thumb sb-style-pick__thumb--vector" aria-hidden="true"></span>
+                  <span class="sb-style-pick__thumb">
+                    <img
+                      class="sb-style-pick__thumb-img"
+                      src="storybook-illustration-vector-flat.png"
+                      alt=""
+                      width="320"
+                      height="240"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  </span>
                   <span class="sb-style-pick__text">
                     <span class="sb-style-pick__title">Flat vector</span>
                     <span class="sb-style-pick__sub">Bold shapes &amp; colours</span>
@@ -315,7 +335,17 @@
               <label class="sb-style-pick">
                 <input type="radio" name="sbIllustrationStyle" value="watercolor" />
                 <span class="sb-style-pick__card">
-                  <span class="sb-style-pick__thumb sb-style-pick__thumb--watercolor" aria-hidden="true"></span>
+                  <span class="sb-style-pick__thumb">
+                    <img
+                      class="sb-style-pick__thumb-img"
+                      src="storybook-illustration-watercolor.png"
+                      alt=""
+                      width="320"
+                      height="240"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  </span>
                   <span class="sb-style-pick__text">
                     <span class="sb-style-pick__title">Watercolour</span>
                     <span class="sb-style-pick__sub">Soft painted washes</span>
@@ -325,7 +355,17 @@
               <label class="sb-style-pick">
                 <input type="radio" name="sbIllustrationStyle" value="papercut" />
                 <span class="sb-style-pick__card">
-                  <span class="sb-style-pick__thumb sb-style-pick__thumb--papercut" aria-hidden="true"></span>
+                  <span class="sb-style-pick__thumb">
+                    <img
+                      class="sb-style-pick__thumb-img"
+                      src="storybook-illustration-papercut.png"
+                      alt=""
+                      width="320"
+                      height="240"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  </span>
                   <span class="sb-style-pick__text">
                     <span class="sb-style-pick__title">Paper collage</span>
                     <span class="sb-style-pick__sub">Cut-paper layers</span>
@@ -335,7 +375,17 @@
               <label class="sb-style-pick">
                 <input type="radio" name="sbIllustrationStyle" value="soft_3d" />
                 <span class="sb-style-pick__card">
-                  <span class="sb-style-pick__thumb sb-style-pick__thumb--soft3d" aria-hidden="true"></span>
+                  <span class="sb-style-pick__thumb">
+                    <img
+                      class="sb-style-pick__thumb-img"
+                      src="storybook-illustration-soft-3d.png"
+                      alt=""
+                      width="320"
+                      height="240"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  </span>
                   <span class="sb-style-pick__text">
                     <span class="sb-style-pick__title">Soft 3D animation</span>
                     <span class="sb-style-pick__sub">Film-style, still gentle</span>
@@ -384,6 +434,57 @@
                 <span class="sb-quality-opt__body">
                   <span class="sb-quality-opt__title">One page only</span>
                   <span class="sb-quality-opt__sub">Full picture on one side, story text on the other — sides alternate each spread</span>
+                </span>
+              </label>
+            </div>
+          </fieldset>
+          <fieldset class="sb-story-text-mode" id="sbStoryTextMode" aria-describedby="sbStoryTextModeHint">
+            <legend class="sb-label sb-label--secondary">Story words</legend>
+            <p class="sb-panel__micro sb-story-text-mode__hint" id="sbStoryTextModeHint">
+              Pick how the story reads on each text page — normal sentences or a rhyming poem.
+            </p>
+            <div class="sb-quality-row" role="radiogroup" aria-labelledby="sbStoryTextModeHint">
+              <label class="sb-quality-opt">
+                <input type="radio" name="sbStoryTextMode" value="rhyme" checked />
+                <span class="sb-quality-opt__body">
+                  <span class="sb-quality-opt__title">Rhyming poem</span>
+                  <span class="sb-quality-opt__sub">Rhythm and rhyme — line count follows “Story length” below</span>
+                </span>
+              </label>
+              <label class="sb-quality-opt">
+                <input type="radio" name="sbStoryTextMode" value="prose" />
+                <span class="sb-quality-opt__body">
+                  <span class="sb-quality-opt__title">Normal story</span>
+                  <span class="sb-quality-opt__sub">Short paragraphs — easier to read aloud</span>
+                </span>
+              </label>
+            </div>
+          </fieldset>
+          <fieldset class="sb-story-length" id="sbStoryLength" aria-describedby="sbStoryLengthHint">
+            <legend class="sb-label sb-label--secondary">Story length</legend>
+            <p class="sb-panel__micro sb-story-length__hint" id="sbStoryLengthHint">
+              How much text on each story page — the book still has twelve pages; this only changes how full each page feels.
+            </p>
+            <div class="sb-quality-row" role="radiogroup" aria-labelledby="sbStoryLengthHint">
+              <label class="sb-quality-opt">
+                <input type="radio" name="sbStoryLength" value="short" />
+                <span class="sb-quality-opt__body">
+                  <span class="sb-quality-opt__title">Short</span>
+                  <span class="sb-quality-opt__sub">Quicker read — lighter pages</span>
+                </span>
+              </label>
+              <label class="sb-quality-opt">
+                <input type="radio" name="sbStoryLength" value="medium" checked />
+                <span class="sb-quality-opt__body">
+                  <span class="sb-quality-opt__title">Medium</span>
+                  <span class="sb-quality-opt__sub">Balanced — default</span>
+                </span>
+              </label>
+              <label class="sb-quality-opt">
+                <input type="radio" name="sbStoryLength" value="long" />
+                <span class="sb-quality-opt__body">
+                  <span class="sb-quality-opt__title">Long</span>
+                  <span class="sb-quality-opt__sub">Richer detail on every page</span>
                 </span>
               </label>
             </div>

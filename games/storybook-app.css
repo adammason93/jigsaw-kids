@@ -1850,6 +1850,36 @@ body.sb-portal-welcome-open {
   margin-bottom: 0.55rem;
 }
 
+.sb-story-text-mode {
+  border: none;
+  margin: 1.1rem 0 0.25rem;
+  padding: 0;
+}
+
+.sb-story-text-mode .sb-label--secondary {
+  margin-bottom: 0.25rem;
+}
+
+.sb-story-text-mode__hint {
+  margin-top: 0.2rem;
+  margin-bottom: 0.55rem;
+}
+
+.sb-story-length {
+  border: none;
+  margin: 1.1rem 0 0.25rem;
+  padding: 0;
+}
+
+.sb-story-length .sb-label--secondary {
+  margin-bottom: 0.25rem;
+}
+
+.sb-story-length__hint {
+  margin-top: 0.2rem;
+  margin-bottom: 0.55rem;
+}
+
 .sb-illustration-styles {
   border: none;
   margin: 1rem 0 0.35rem;
@@ -1917,49 +1947,18 @@ body.sb-portal-welcome-open {
   width: 100%;
   aspect-ratio: 4 / 3;
   border-radius: 8px;
+  overflow: hidden;
+  position: relative;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
+  background: rgba(247, 244, 235, 0.9);
 }
 
-.sb-style-pick__thumb--clay {
-  background:
-    radial-gradient(circle at 28% 32%, rgba(255, 255, 255, 0.65) 0%, transparent 42%),
-    radial-gradient(ellipse 80% 70% at 70% 60%, #c4b5fd 0%, #a78bfa 42%, #7c3aed 100%);
-  border-radius: 42% 58% 48% 52% / 45% 48% 52% 55%;
-}
-
-.sb-style-pick__thumb--vector {
-  background:
-    linear-gradient(135deg, #f472b6 0%, #f472b6 35%, transparent 35%),
-    linear-gradient(145deg, transparent 40%, #38bdf8 40%, #38bdf8 65%, transparent 65%),
-    linear-gradient(#fde047, #eab308);
-  background-size: 100% 100%, 100% 100%, 100% 100%;
-  border-radius: 6px;
-}
-
-.sb-style-pick__thumb--watercolor {
-  background:
-    radial-gradient(ellipse 120% 90% at 50% 40%, rgba(255, 255, 255, 0.5) 0%, transparent 55%),
-    radial-gradient(ellipse 80% 70% at 30% 70%, rgba(56, 189, 248, 0.45) 0%, transparent 50%),
-    radial-gradient(ellipse 70% 60% at 72% 55%, rgba(244, 114, 182, 0.4) 0%, transparent 45%),
-    linear-gradient(165deg, #fef9c3 0%, #a5f3fc 100%);
-}
-
-.sb-style-pick__thumb--papercut {
-  background:
-    linear-gradient(125deg, #fecdd3 12%, #fecdd3 35%, transparent 35%),
-    linear-gradient(115deg, transparent 38%, #bbf7d0 38%, #bbf7d0 62%, transparent 62%),
-    linear-gradient(108deg, transparent 55%, #bfdbfe 55%, #bfdbfe 82%, transparent 82%);
-  background-color: #fff7ed;
-  box-shadow:
-    inset 0 0 0 1px rgba(42, 10, 31, 0.06),
-    2px 3px 0 rgba(42, 10, 31, 0.07);
-}
-
-.sb-style-pick__thumb--soft3d {
-  background:
-    radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0) 38%),
-    radial-gradient(ellipse 90% 85% at 50% 55%, #93c5fd 0%, #60a5fa 45%, #3b82f6 100%);
-  border-radius: 50% 50% 48% 52% / 42% 42% 58% 58%;
+.sb-style-pick__thumb-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center center;
 }
 
 .sb-style-pick__text {
@@ -3494,7 +3493,8 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   }
 }
 
-.sb-flip-spread__inner--peel-turning .sb-flip-left-shell .sb-flip-page--text {
+.sb-flip-spread__inner--peel-turning .sb-flip-left-shell .sb-flip-page--text,
+.sb-flip-spread__inner--peel-turning .sb-flip-right-shell .sb-flip-page--text {
   animation: sb-peel-fade-outgoing-text 0.18s cubic-bezier(0.45, 0, 0.75, 1) forwards;
   pointer-events: none;
 }
@@ -3521,6 +3521,50 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   transform: rotateY(0deg);
   transition: transform 0.62s cubic-bezier(0.45, 0, 0.32, 1);
   -webkit-transition: -webkit-transform 0.62s cubic-bezier(0.45, 0, 0.32, 1);
+}
+
+/* Facing layout: peel uses full half-page art (not half of a duplex strip) */
+.sb-flip-spread__inner--art-facing .sb-flip-spread__peel-front .sb-flip-spread__art-cover,
+.sb-flip-spread__inner--art-facing .sb-flip-spread__peel-back .sb-flip-spread__art-cover {
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  left: 0;
+}
+
+.sb-flip-spread__inner--art-facing .sb-flip-spread__art-outgoing-left .sb-flip-spread__art-cover {
+  width: 100%;
+  max-width: none;
+  left: 0;
+}
+
+.sb-flip-spread__inner--art-facing .sb-flip-spread__peel-back-text {
+  display: none;
+}
+
+/* Outgoing illustration was on the left; hinge peel on the gutter at the right edge of this column */
+.sb-flip-spread__inner--art-facing.sb-facing-peel--mirror .sb-flip-spread__art-peel {
+  left: 0;
+  right: auto;
+  width: calc(50% + 0.5px);
+  border-radius: 6px 0 0 6px;
+  transform-origin: right center;
+  -webkit-transform-origin: right center;
+}
+
+.sb-flip-spread__inner--art-facing.sb-facing-peel--mirror .sb-flip-spread__peel-front,
+.sb-flip-spread__inner--art-facing.sb-facing-peel--mirror .sb-flip-spread__peel-back {
+  border-radius: 6px 0 0 6px;
+}
+
+.sb-flip-spread__inner--art-facing.sb-facing-peel--mirror .sb-flip-spread__art-peel.sb-story-pageflip--turn-next-1 {
+  transform: rotateY(180deg);
+  -webkit-transform: rotateY(180deg);
+}
+
+.sb-flip-spread__inner--art-facing.sb-facing-peel--mirror .sb-flip-spread__art-peel.sb-story-pageflip--turn-prev-1 {
+  transform: rotateY(-180deg);
+  -webkit-transform: rotateY(-180deg);
 }
 
 .sb-flip-spread__peel-front,

@@ -463,8 +463,12 @@
   var spreadPageNumEl = document.getElementById("sbSpreadPageNum");
   var bookSpreadLayoutFieldset = document.getElementById("sbBookSpreadLayout");
   var illustrationStyleFieldset = document.getElementById("sbIllustrationStyles");
+  var storyTextModeFieldset = document.getElementById("sbStoryTextMode");
+  var storyLengthFieldset = document.getElementById("sbStoryLength");
   var K_READER_ART_LAYOUT = "sbReaderArtLayout";
   var K_ILLUSTRATION_STYLE = "sbIllustrationStyle";
+  var K_STORY_TEXT_MODE = "sbStoryTextMode";
+  var K_STORY_LENGTH = "sbStoryLength";
 
   function getReaderArtLayout() {
     try {
@@ -507,6 +511,99 @@
     );
     if (!c) return getReaderArtLayout();
     return String(c.value) === "facing" ? "facing" : "duplex";
+  }
+
+  function getStoryTextMode() {
+    try {
+      var v = localStorage.getItem(K_STORY_TEXT_MODE);
+      if (v === "prose" || v === "rhyme") return v;
+    } catch (eStoryMode) {}
+    return "rhyme";
+  }
+
+  function setStoryTextMode(mode) {
+    try {
+      localStorage.setItem(K_STORY_TEXT_MODE, mode === "prose" ? "prose" : "rhyme");
+    } catch (eSetStoryMode) {}
+  }
+
+  function syncStoryTextModeRadios() {
+    if (!storyTextModeFieldset) return;
+    var m = getStoryTextMode();
+    var inp = storyTextModeFieldset.querySelector(
+      'input[name="sbStoryTextMode"][value="' + m + '"]'
+    );
+    if (inp) inp.checked = true;
+  }
+
+  /** @returns {'prose' | 'rhyme'} */
+  function readStoryTextModeFromWizard() {
+    if (!storyTextModeFieldset) return getStoryTextMode();
+    var c = storyTextModeFieldset.querySelector(
+      'input[name="sbStoryTextMode"]:checked'
+    );
+    if (!c) return getStoryTextMode();
+    return String(c.value) === "prose" ? "prose" : "rhyme";
+  }
+
+  /** Shelf / legacy: infer mode when not stored. */
+  function storyTextModeFromShelfItem(item, layout) {
+    var lay = layout === "facing" ? "facing" : "duplex";
+    if (item && (item.storyTextMode === "prose" || item.storyTextMode === "rhyme")) {
+      return item.storyTextMode;
+    }
+    return lay === "facing" ? "prose" : "rhyme";
+  }
+
+  function coerceStoryLengthKey(v) {
+    var s = String(v || "").trim().toLowerCase();
+    if (s === "short" || s === "medium" || s === "long") return s;
+    return "medium";
+  }
+
+  function getStoryLength() {
+    try {
+      var v = localStorage.getItem(K_STORY_LENGTH);
+      return coerceStoryLengthKey(v);
+    } catch (eLen) {}
+    return "medium";
+  }
+
+  function setStoryLength(mode) {
+    try {
+      localStorage.setItem(K_STORY_LENGTH, coerceStoryLengthKey(mode));
+    } catch (eSetLen) {}
+  }
+
+  function syncStoryLengthRadios() {
+    if (!storyLengthFieldset) return;
+    var m = getStoryLength();
+    var inp = storyLengthFieldset.querySelector(
+      'input[name="sbStoryLength"][value="' + m + '"]'
+    );
+    if (inp) inp.checked = true;
+  }
+
+  /** @returns {'short' | 'medium' | 'long'} */
+  function readStoryLengthFromWizard() {
+    if (!storyLengthFieldset) return getStoryLength();
+    var c = storyLengthFieldset.querySelector(
+      'input[name="sbStoryLength"]:checked'
+    );
+    if (!c) return getStoryLength();
+    return coerceStoryLengthKey(c.value);
+  }
+
+  function storyLengthFromShelfItem(item) {
+    if (
+      item &&
+      (item.storyLength === "short" ||
+        item.storyLength === "medium" ||
+        item.storyLength === "long")
+    ) {
+      return item.storyLength;
+    }
+    return "medium";
   }
 
   var ILLUSTRATION_STYLE_KEYS = {
@@ -553,7 +650,7 @@
     return c ? coerceIllustrationStyleKey(c.value) : getIllustrationStyle();
   }
 
-  function syncReaderFacingLayoutClasses() {
+  function syncReaderFacingLayoutClasses(options) {
     if (!spreadInnerEl) return;
     var wantFacing = getEffectiveReaderArtLayout() === "facing";
     var flyleaf = spreadInnerEl.classList.contains("sb-flip-spread__inner--flyleaf-pane");
@@ -563,11 +660,22 @@
     spreadInnerEl.classList.toggle("sb-flip-spread__inner--art-facing", effective);
 
     if (effective) {
-      var artRight = spreadIndex % 2 === 0;
+      var artSi = spreadIndex;
+      var textSi = spreadIndex;
+      if (options && typeof options === "object") {
+        if (options.artSpreadIndex !== undefined && options.artSpreadIndex !== null) {
+          artSi = Math.max(0, Math.floor(Number(options.artSpreadIndex)));
+        }
+        if (options.textSpreadIndex !== undefined && options.textSpreadIndex !== null) {
+          textSi = Math.max(0, Math.floor(Number(options.textSpreadIndex)));
+        }
+      }
+      var artRight = artSi % 2 === 0;
+      var textOnLeft = textSi % 2 === 0;
       spreadInnerEl.classList.toggle("sb-flip-spread__inner--facing-art-right", artRight);
       spreadInnerEl.classList.toggle("sb-flip-spread__inner--facing-art-left", !artRight);
-      spreadInnerEl.classList.toggle("sb-facing-text-on-left", artRight);
-      spreadInnerEl.classList.toggle("sb-facing-text-on-right", !artRight);
+      spreadInnerEl.classList.toggle("sb-facing-text-on-left", textOnLeft);
+      spreadInnerEl.classList.toggle("sb-facing-text-on-right", !textOnLeft);
     } else {
       spreadInnerEl.classList.remove(
         "sb-flip-spread__inner--facing-art-right",
@@ -578,7 +686,7 @@
     }
   }
 
-  function placeTextPageForFacingLayout() {
+  function placeTextPageForFacingLayout(layoutSpreadIndex) {
     if (!flipLeftShell || !flipRightShell || !spreadText) return;
     var textPage = spreadText.closest(".sb-flip-page--text");
     if (!textPage) return;
@@ -595,7 +703,11 @@
       return;
     }
 
-    var artRight = spreadIndex % 2 === 0;
+    var si =
+      layoutSpreadIndex !== undefined && layoutSpreadIndex !== null
+        ? Math.max(0, Math.floor(Number(layoutSpreadIndex)))
+        : spreadIndex;
+    var artRight = si % 2 === 0;
     if (artRight) {
       if (!flipLeftShell.contains(textPage)) {
         flipLeftShell.appendChild(textPage);
@@ -609,7 +721,7 @@
     }
   }
 
-  function updateSpreadPageNumberDisplay() {
+  function updateSpreadPageNumberDisplay(siOverride) {
     if (!spreadPageNumEl || !spreadInnerEl) return;
     if (!spreadInnerEl.classList.contains("sb-flip-spread__inner--art-facing")) {
       spreadPageNumEl.textContent = "";
@@ -619,7 +731,11 @@
       spreadPageNumEl.textContent = "";
       return;
     }
+    var nSpr = numSpreads();
     var si = spreadIndex;
+    if (siOverride !== undefined && siOverride !== null) {
+      si = Math.max(0, Math.min(Math.floor(Number(siOverride)), Math.max(0, nSpr - 1)));
+    }
     if (si * 2 >= story.pages.length) {
       spreadPageNumEl.textContent = "";
       return;
@@ -863,7 +979,7 @@
   var selectedPlace = "beach";
   /** @type {string} book frame colour: "" = Auto, or "blue"|"green"|"pink" */
   var selectedBookCoverColor = "";
-  /** @type {{ title: string, author?: string, readerFont?: string|null, readerArtLayout?: 'duplex'|'facing', sceneImageUrl?: string|null, pages: { text: string, imageUrl: string|null }[] } | null} */
+  /** @type {{ title: string, author?: string, readerFont?: string|null, readerArtLayout?: 'duplex'|'facing', storyTextMode?: 'prose'|'rhyme', storyLength?: 'short'|'medium'|'long', sceneImageUrl?: string|null, pages: { text: string, imageUrl: string|null }[] } | null} */
   var story = null;
 
   /** Matches clever-service STORY_READER_FONT_KEYS — body / tape-over-art / splash word stack per book. */
@@ -1013,7 +1129,8 @@
         "sb-flip-spread__inner--turn-in-prev",
         "sb-flip-spread__inner--fade-out",
         "sb-flip-spread__inner--fade-in",
-        "sb-flip-spread__inner--peel-turning"
+        "sb-flip-spread__inner--peel-turning",
+        "sb-facing-peel--mirror"
       );
     }
     clearSpreadPeelTurnClasses();
@@ -1084,13 +1201,27 @@
     setSpreadNavBusy(true);
     clearSpreadPeelTurnClasses();
     clearSpreadTurnRevealFx();
+    var isFacingBook = readerUsesFacingPageTurn();
     if (spreadInnerEl) {
       spreadInnerEl.classList.add("sb-flip-spread__inner--peel-turning");
+      if (isFacingBook) {
+        spreadInnerEl.classList.toggle("sb-facing-peel--mirror", fromSi % 2 === 1);
+      }
     }
 
-    /* Duplex under peel shows incoming spread; recto = outgoing illustration (or white tile), verso = incoming + left-column copy. */
     syncSpreadIllustrationFromStory();
+    if (isFacingBook) {
+      syncReaderFacingLayoutClasses({
+        artSpreadIndex: toSi,
+        textSpreadIndex: fromSi,
+      });
+      placeTextPageForFacingLayout(fromSi);
+    }
+
     writeSpreadTextMetaFromStory(fromSi);
+    if (isFacingBook) {
+      updateSpreadPageNumberDisplay(fromSi);
+    }
     fillPeelBackTextColumn(spreadIndex);
     updatePagerHints();
 
@@ -1099,6 +1230,8 @@
     var peelBackImg = document.getElementById("sbSpreadArtPeelBackImg");
     var outgoingLeftShell = document.getElementById("sbSpreadArtOutgoingLeft");
     var outgoingLeftImg = document.getElementById("sbSpreadArtOutgoingLeftImg");
+    var fromArtRight = fromSi % 2 === 0;
+    var useDuplexOutgoingLeft = !isFacingBook || !fromArtRight;
 
     if (peelImg) {
       peelImg.alt = "";
@@ -1113,17 +1246,26 @@
     }
 
     if (outgoingLeftImg) {
-      outgoingLeftImg.alt = "";
-      outgoingLeftImg.referrerPolicy = "no-referrer";
-      outgoingLeftImg.src = peelOut;
+      if (useDuplexOutgoingLeft) {
+        outgoingLeftImg.alt = "";
+        outgoingLeftImg.referrerPolicy = "no-referrer";
+        outgoingLeftImg.src = peelOut;
+      } else {
+        outgoingLeftImg.removeAttribute("src");
+      }
     }
 
     peelShell.hidden = false;
     peelShell.removeAttribute("hidden");
     if (outgoingLeftShell) {
-      outgoingLeftShell.hidden = false;
-      outgoingLeftShell.removeAttribute("hidden");
-      outgoingLeftShell.style.display = "block";
+      if (useDuplexOutgoingLeft) {
+        outgoingLeftShell.hidden = false;
+        outgoingLeftShell.removeAttribute("hidden");
+        outgoingLeftShell.style.display = "block";
+      } else {
+        outgoingLeftShell.hidden = true;
+        outgoingLeftShell.style.display = "none";
+      }
     }
 
     var isNext = delta > 0;
@@ -1139,6 +1281,7 @@
         clearSpreadTurnRevealFx();
         if (spreadInnerEl) {
           spreadInnerEl.classList.remove("sb-flip-spread__inner--peel-turning");
+          spreadInnerEl.classList.remove("sb-facing-peel--mirror");
         }
         clearPeelBackTextColumn();
         if (peelImg) peelImg.removeAttribute("src");
@@ -1152,6 +1295,10 @@
         }
         writeSpreadTextMetaFromStory();
         syncSpreadIllustrationFromStory();
+        syncReaderFacingLayoutClasses();
+        placeTextPageForFacingLayout();
+        updateSpreadPageNumberDisplay();
+        updatePagerHints();
         spreadAnimLock = false;
         setSpreadNavBusy(false);
       });
@@ -1178,10 +1325,6 @@
       return;
     }
     if (spreadAnimLock) return;
-    if (readerUsesFacingPageTurn()) {
-      navigateSpreadInstant(delta);
-      return;
-    }
     navigateSpreadWithRightPageTurn(delta);
   }
 
@@ -1417,6 +1560,8 @@
       bookColor: "blue",
       readerFont: rfPick,
       readerArtLayout: "duplex",
+      storyTextMode: "rhyme",
+      storyLength: "medium",
       sceneImageUrl: null,
       pages: pages,
       isSample: true,
@@ -1552,6 +1697,10 @@
 
   function fillPeelBackTextColumn(si) {
     if (!spreadPeelBackText) return;
+    if (getEffectiveReaderArtLayout() === "facing") {
+      spreadPeelBackText.innerHTML = "";
+      return;
+    }
     var block = spreadLeftColumnBlockAtSi(si);
     if (block.kind === "prose" && block.html) {
       spreadPeelBackText.innerHTML =
@@ -2146,6 +2295,8 @@
     bookColor,
     readerFont,
     readerArtLayout,
+    storyTextMode,
+    storyLength,
     cloudDone,
     onWritten
   ) {
@@ -2165,6 +2316,8 @@
       bookColor: bookColor || null,
       readerFont: readerFont || null,
       readerArtLayout: readerArtLayout === "facing" ? "facing" : "duplex",
+      storyTextMode: storyTextMode === "prose" ? "prose" : "rhyme",
+      storyLength: coerceStoryLengthKey(storyLength),
       savedAt: new Date().toISOString(),
       pages: storedPages,
       sceneDataUrl: sceneDataUrl || null,
@@ -2202,6 +2355,11 @@
       readerFont: item.readerFont || null,
       readerArtLayout:
         item.readerArtLayout === "facing" ? "facing" : "duplex",
+      storyTextMode: storyTextModeFromShelfItem(
+        item,
+        item.readerArtLayout === "facing" ? "facing" : "duplex"
+      ),
+      storyLength: storyLengthFromShelfItem(item),
       /* Prefer remote asset when present so reopen matches stored PNG (not shelf JPEG). */
       sceneImageUrl: item.sceneUrlFallback || item.sceneDataUrl || null,
       pages: item.pages.map(function (p) {
@@ -2469,6 +2627,16 @@
             story.bookColor || null,
             story.readerFont || null,
             story.readerArtLayout || "duplex",
+            story.storyTextMode === "prose" || story.storyTextMode === "rhyme"
+              ? story.storyTextMode
+              : story.readerArtLayout === "facing"
+                ? "prose"
+                : "rhyme",
+            story.storyLength === "short" ||
+            story.storyLength === "medium" ||
+            story.storyLength === "long"
+              ? story.storyLength
+              : "medium",
             function (cloudErr) {
               if (
                 !window.KidsScoreCloud ||
@@ -3200,6 +3368,8 @@
     resetPictureQualityToStandard();
     syncBookSpreadLayoutRadios();
     syncIllustrationStyleRadios();
+    syncStoryTextModeRadios();
+    syncStoryLengthRadios();
     if (stepHeading) {
       try {
         stepHeading.focus();
@@ -3307,6 +3477,8 @@
     goToStep(0);
     syncBookSpreadLayoutRadios();
     syncIllustrationStyleRadios();
+    syncStoryTextModeRadios();
+    syncStoryLengthRadios();
   }
 
   function showBook() {
@@ -3828,6 +4000,8 @@
       setError("");
       setReaderArtLayout(readBookSpreadLayoutFromWizard());
       setIllustrationStyle(readIllustrationStyleFromWizard());
+      setStoryTextMode(readStoryTextModeFromWizard());
+      setStoryLength(readStoryLengthFromWizard());
       var url = functionUrl();
       var key = anonKey();
       if (!url || !key) {
@@ -3854,6 +4028,8 @@
           pictureBookQuality: selectedPictureBookQuality(),
           illustrationStyle: readIllustrationStyleFromWizard(),
           readerArtLayout: readBookSpreadLayoutFromWizard(),
+          storyTextMode: readStoryTextModeFromWizard(),
+          storyLength: readStoryLengthFromWizard(),
           author: customAuthor || undefined,
           familyNames: familyPeople.map(function (p) {
             return p.label;
@@ -3927,6 +4103,8 @@
             bookColor: out.body.bookColor || null,
             readerFont: out.body.readerFont || null,
             readerArtLayout: readBookSpreadLayoutFromWizard(),
+            storyTextMode: readStoryTextModeFromWizard(),
+            storyLength: readStoryLengthFromWizard(),
             pages: out.body.pages || [],
             sceneImageUrl: out.body.sceneImageUrl || null,
           };
@@ -4010,4 +4188,6 @@
 
   syncBookSpreadLayoutRadios();
   syncIllustrationStyleRadios();
+  syncStoryTextModeRadios();
+  syncStoryLengthRadios();
 })();

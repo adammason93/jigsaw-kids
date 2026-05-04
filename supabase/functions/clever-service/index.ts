@@ -1778,6 +1778,108 @@ function coerceReaderArtLayout(raw: unknown): ReaderArtLayoutKey {
   return "duplex";
 }
 
+/** Prose paragraphs vs strict rhyming lines — independent of reader layout. */
+type StoryTextModeKey = "prose" | "rhyme";
+
+function coerceStoryTextMode(
+  raw: unknown,
+  layout: ReaderArtLayoutKey,
+): StoryTextModeKey {
+  const s = String(raw ?? "").trim().toLowerCase();
+  if (
+    s === "prose" ||
+    s === "normal" ||
+    s === "story" ||
+    s === "paragraph" ||
+    s === "paragraphs"
+  ) {
+    return "prose";
+  }
+  if (s === "rhyme" || s === "rhyming" || s === "poem" || s === "verse") {
+    return "rhyme";
+  }
+  return layout === "facing" ? "prose" : "rhyme";
+}
+
+/** Per-page verbosity: short / medium / long — same 12 pages, different word or line budgets. */
+type StoryLengthKey = "short" | "medium" | "long";
+
+function coerceStoryLength(raw: unknown): StoryLengthKey {
+  const s = String(raw ?? "").trim().toLowerCase();
+  if (s === "short" || s === "brief" || s === "quick" || s === "small") {
+    return "short";
+  }
+  if (s === "long" || s === "longer" || s === "epic" || s === "extra") {
+    return "long";
+  }
+  return "medium";
+}
+
+type StoryLengthSpec = {
+  proseParagraphLead: string;
+  proseWordRange: string;
+  proseAntiRhymeHint: string;
+  rhymeLines: number;
+  rhymeLinesHint: string;
+  rhymeSchemeExamples: string;
+  rhymeLineShape: string;
+  rhymeOddPageTail: string;
+};
+
+function storyLengthSpec(key: StoryLengthKey): StoryLengthSpec {
+  switch (key) {
+    case "short":
+      return {
+        proseParagraphLead: "**1–2 short paragraphs**",
+        proseWordRange:
+          "~**85–115 words** total on that page",
+        proseAntiRhymeHint: "many stacked single-line rhyming rows",
+        rhymeLines: 6,
+        rhymeLinesHint:
+          "snappy, read-aloud beats — **tighter** than a medium book",
+        rhymeSchemeExamples:
+          "e.g. AABBCC or two ABCB triplets with a clear rhyme scheme",
+        rhymeLineShape:
+          "a **short, snappy phrase** — keep vocabulary simple for age ~5",
+        rhymeOddPageTail:
+          "light and quick — fewer lines than medium, still strong rhyme",
+      };
+    case "long":
+      return {
+        proseParagraphLead: "**3–5 short or medium paragraphs**",
+        proseWordRange:
+          "~**220–280 words** total on that page",
+        proseAntiRhymeHint:
+          "ten forced single-line rhyming rows",
+        rhymeLines: 12,
+        rhymeLinesHint:
+          "aim for **full** pages — noticeably wordier than medium",
+        rhymeSchemeExamples:
+          "e.g. AABBCCDDEEFF, or three blocks of four lines with a clear rhyme scheme",
+        rhymeLineShape:
+          "a **moderate phrase or short sentence** with room for dialogue beats and sensory detail — vocabulary still simple for age ~5",
+        rhymeOddPageTail:
+          "full, rhyming — stretch each line with detail while staying readable aloud",
+      };
+    default:
+      return {
+        proseParagraphLead: "**2–4 short paragraphs**",
+        proseWordRange:
+          "~**150–190 words** total on that page",
+        proseAntiRhymeHint: "ten single-line rhyming rows",
+        rhymeLines: 10,
+        rhymeLinesHint:
+          "~**double** the words of a tight five-line verse — aim for noticeably fuller pages",
+        rhymeSchemeExamples:
+          "e.g. AABBCCDDEE, ABCB repeated, or two blocks of five lines with a clear rhyme scheme",
+        rhymeLineShape:
+          "a **moderate phrase or short sentence** — richer detail, small dialogue beats, and sensory touches so each spread feels full, but keep vocabulary simple for age ~5",
+        rhymeOddPageTail:
+          "full, rhyming, about twice as wordy as a five-line verse",
+      };
+  }
+}
+
 /** Visual style for storybook illustrations (JSON `illustrationStyle`). */
 type IllustrationStyleKey =
   | "clay3d"
@@ -2379,6 +2481,10 @@ Deno.serve(async (req) => {
     illustrationStyle?: string;
     /** Reader layout: duplex (text overlaid on art) vs facing (art alone on one page). */
     readerArtLayout?: string;
+    /** Story shape: prose (`normal`) vs rhyming poem. Omitted → prose for facing, rhyme for duplex. */
+    storyTextMode?: string;
+    /** Per-page length: short | medium | long. Omitted → medium. */
+    storyLength?: string;
   };
   try {
     body = await req.json();
@@ -2404,6 +2510,9 @@ Deno.serve(async (req) => {
   const pictureBookQuality = coercePictureBookQuality(body.pictureBookQuality);
   const illustrationStyleKey = coerceIllustrationStyle(body.illustrationStyle);
   const readerArtLayoutKey = coerceReaderArtLayout(body.readerArtLayout);
+  const storyTextModeKey = coerceStoryTextMode(body.storyTextMode, readerArtLayoutKey);
+  const storyLengthKey = coerceStoryLength(body.storyLength);
+  const lenSpec = storyLengthSpec(storyLengthKey);
   const artStyleSpec = ART_STYLE_SPECS[illustrationStyleKey];
 
   // If the child's plot prompt clearly names a different setting than the one
@@ -2583,16 +2692,28 @@ Deno.serve(async (req) => {
       ? `\n\nAppearance from reference photos (each line is one person — hero and any friends you tagged with a photo, or default game portraits; match when describing these people in the story):\n${portraitAppearance}\n`
       : "";
 
+  const storyLengthAndFormatRule =
+    storyTextModeKey === "prose"
+      ? readerArtLayoutKey === "facing"
+        ? `- Exactly 12 pages (six double-page spreads). **Facing-page layout** (one full-page picture + one dedicated text page): each **odd** text page is shown alone on a cream text page in the app — not overlaid on art. Write ${lenSpec.proseParagraphLead} per odd page (${lenSpec.proseWordRange}), warm read-aloud prose for age ~5, with natural dialogue and sensory detail. Separate paragraphs with **two newlines** (\\n\\n) in the JSON string. **Do not** force ${lenSpec.proseAntiRhymeHint}; light rhythm or occasional rhyme is fine — **clarity and story flow come first**.`
+        : `- Exactly 12 pages (six double-page spreads). **Duplex layout** (one wide picture with read-aloud text overlaid on the spread in the app): each **odd** text page pairs with the illustration — write ${lenSpec.proseParagraphLead} per odd page (${lenSpec.proseWordRange}), warm read-aloud prose for age ~5, with natural dialogue and sensory detail. Separate paragraphs with **two newlines** (\\n\\n) in the JSON string. **Do not** force ${lenSpec.proseAntiRhymeHint}; light rhythm or occasional rhyme is fine — **clarity and story flow come first**.`
+      : readerArtLayoutKey === "facing"
+      ? `- Exactly 12 pages (six double-page spreads). **Facing-page layout** (one full-page picture + one dedicated text page): each **odd** text page is shown alone on a cream text page in the app — not overlaid on art. The text on every such page MUST be exactly **${lenSpec.rhymeLines}** lines long (${lenSpec.rhymeLinesHint}), written as a fun, rhythmic poem that rhymes perfectly across the page (${lenSpec.rhymeSchemeExamples}). Each line should be ${lenSpec.rhymeLineShape}. Format the text with actual line breaks (\\n) after each line so the rhyming words fall at the ends of lines.`
+      : `- Exactly 12 pages (six double-page spreads). The text on every page MUST be exactly **${lenSpec.rhymeLines}** lines long (${lenSpec.rhymeLinesHint}), written as a fun, rhythmic poem that rhymes perfectly across the page (${lenSpec.rhymeSchemeExamples}). Each line should be ${lenSpec.rhymeLineShape}. Format the text with actual line breaks (\\n) after each line so the rhyming words fall at the ends of lines.`;
+
+  const oddPageTextFormatHint =
+    storyTextModeKey === "prose"
+      ? readerArtLayoutKey === "facing"
+        ? `${lenSpec.proseParagraphLead} in each \"text\" string, paragraphs separated by two newline characters (\\n\\n), ${lenSpec.proseWordRange.replace("total on that page", "per page")}, warm read-aloud prose (not strict line-by-line rhyme).`
+        : `${lenSpec.proseParagraphLead} in each \"text\" string, paragraphs separated by two newline characters (\\n\\n), ${lenSpec.proseWordRange.replace("total on that page", "per page")}, warm read-aloud prose for text shown with the wide illustration (not strict line-by-line rhyme).`
+      : `exactly **${lenSpec.rhymeLines}** lines, separated by newline characters (\\n) in each \"text\" string — ${lenSpec.rhymeOddPageTail}.`;
+
   const system = `You write warm picture-book stories for UK English-speaking children about age 5.
 Rules:
 - ${artStyleSpec.storyBrief}
 ${noBuddyBook ? `BOOK MODE — NO IMAGINARY BUDDY: The reader chose "No buddy". For this entire book: (1) Do NOT add a recurring fantasy creature companion (unicorn, dragon, robot, etc.) in story text, characterDesign, or illustrationBriefs unless the child's plot idea explicitly requires that creature. (2) characterDesign must describe ONLY humans — the hero, any plot-named children, and game people. (3) Each illustrationBrief VISIBLE line lists only people (humans) named in that verse. (4) Page 1 must not introduce a creature buddy. Invent gentle human-centred adventures when the plot is open-ended.\n\n` : ""}- Warm, gentle, silly — never scary, violent, or mean.
 - No romance, no weapons, no villains that frighten.
-${
-  readerArtLayoutKey === "facing"
-    ? `- Exactly 12 pages (six double-page spreads). **Facing-page layout** (one full-page picture + one dedicated text page): each **odd** text page is shown alone on a cream text page in the app — not overlaid on art. Write **2–4 short paragraphs** per odd page (~**150–190 words** total on that page), warm read-aloud prose for age ~5, with natural dialogue and sensory detail. Separate paragraphs with **two newlines** (\\n\\n) in the JSON string. **Do not** force ten single-line rhyming rows; light rhythm or occasional rhyme is fine — **clarity and story flow come first**.`
-    : `- Exactly 12 pages (six double-page spreads). The text on every page MUST be exactly **10** lines long (~**double** the words of a tight five-line verse — aim for noticeably fuller pages), written as a fun, rhythmic poem that rhymes perfectly across the page (e.g., AABBCCDDEE, ABCB repeated, or two blocks of five lines with a clear rhyme scheme). Each line should be a **moderate phrase or short sentence** — richer detail, small dialogue beats, and sensory touches so each spread feels full, but keep vocabulary simple for age ~5. Format the text with actual line breaks (\\n) after each line so the rhyming words fall at the ends of lines.`
-}
+${storyLengthAndFormatRule}
 - Odd-numbered (text-first) pages: end calmly — do NOT tack on a random ALL CAPS sound effect (SPLASH! SNORE! ZOOM!) after the text; those often feel disconnected. Keep the whole page in normal sentence case. Only use a short capped word if it is genuinely the punchline of that beat (rare); most pages should have no ALL CAPS word at all.
 - NAMES VS GENDER (critical): Do **not** choose boy/girl from how a first name "usually" sounds. Names like Remy, Riley, Alex, Sam, Jordan, Charlie can be girls or boys. **The appearance-from-photos lines are ground truth:** if a line says **Gender: girl** and long blonde hair, that named child is a **girl** in the story — use **she/her** pronouns in verses, and characterDesign must say **girl** with that exact hair — never give her a boy's short brown haircut or **he/him** unless the line explicitly says **Gender: boy**. Never override a photo-derived girl line with a masculine default.
 - The hero's name is given — use it often. The hero IS ${childName} — this exact first name must appear in the story text on every page where the main child acts. Whenever ${childName} is in a spread's scene, that spread's illustrationBrief must name ${childName} (you may list other named friends first if the verse introduces them that way). Never substitute a different child, wrong name, or wrong gender as the hero. The art paints only who you name — do not imply an unnamed generic kid.
@@ -2654,7 +2775,7 @@ ${
     Background details ARE allowed (in fact required) — what is NOT allowed is faced extras the verse doesn't mention.
     ${
       readerArtLayoutKey === "facing"
-        ? "COMPOSITION / SCALE FOR THE ILLUSTRATOR (single-page pictures — rhyming text is on the facing HTML page, not painted on this image): Each illustration reads as ONE standalone page. **No empty half, blank strip, or soft dead zone reserved for captions** in the art — paint a **balanced full-bleed** scene edge-to-edge. **Centre the cast and focal action** — keep the group's visual mass roughly **~45–55% from the left** (near the picture's horizontal middle), **not** parked on the far right or far left. **Camera pulled back** — picture-book *wide* or *medium-wide* framing: the **environment** must stay a major part of every illustration. Typical group shots: the whole cast together only **~30–45% of frame height** (single-figure beats a bit less). Modest inset — horns, ears, wing tips fully inside the frame. When the verse describes jumping, bouncing, trampolines, soaring, flying, or reaching high in the air, the illustrationBrief MUST specify a wide or full shot with every visible named figure shown completely head-to-toe — never a tight mid-shot that crops at the neck, waist, or knees."
+        ? "COMPOSITION / SCALE FOR THE ILLUSTRATOR (single-page pictures — story text is on the facing HTML page, not painted on this image): Each illustration reads as ONE standalone page. **No empty half, blank strip, or soft dead zone reserved for captions** in the art — paint a **balanced full-bleed** scene edge-to-edge. **Centre the cast and focal action** — keep the group's visual mass roughly **~45–55% from the left** (near the picture's horizontal middle), **not** parked on the far right or far left. **Camera pulled back** — picture-book *wide* or *medium-wide* framing: the **environment** must stay a major part of every illustration. Typical group shots: the whole cast together only **~30–45% of frame height** (single-figure beats a bit less). Modest inset — horns, ears, wing tips fully inside the frame. When the verse describes jumping, bouncing, trampolines, soaring, flying, or reaching high in the air, the illustrationBrief MUST specify a wide or full shot with every visible named figure shown completely head-to-toe — never a tight mid-shot that crops at the neck, waist, or knees."
         : "COMPOSITION / SCALE FOR THE ILLUSTRATOR: Full-bleed spreads — the setting and atmosphere fill the double-page edge-to-edge. **Camera pulled back** — picture-book *wide* or *medium-wide* framing, not tight hero close-ups: the **environment** (walls, sky, terrain, props) must be a major part of every illustration so readers can “see the place”, not just faces. Typical group shots: the whole cast together only **~30–45% of frame height** (single-figure beats a bit less); avoid filling most of the canvas with heads and torsos. Keep a modest inset so every listed character fits without edge-clipping (full heads and feet on wide shots; on closer emotional beats, still show plenty of background, not a portrait zoom). The tallest features (unicorn horn, ears, hair, wing tips) must sit fully inside the frame with visible margin — never cropped. If tight, **widen the shot** or shrink the characters. **GUTTER:** Do not place a main character’s face or body on the exact vertical centre — bias the group slightly left or right of the fold so the book spine does not cut a child in half. When the verse describes jumping, bouncing, trampolines, soaring, flying, or reaching high in the air, the illustrationBrief MUST specify a wide or full shot with every visible named figure shown completely head-to-toe — never a tight mid-shot that crops at the neck, waist, or knees."
     }
   OPENING SPREAD (page 2 only — the first illustrationBrief): MUST match page 1 text and the child's plot, AND establish the actual SETTING (castle / woods / cave / beach / space / zoo / farm / mountain / sea / ship / train / city / circus / lake / snow / desert / museum / island / etc. — whichever the plot calls for). Page 1 text must name every main character the plot introduces (${childName}, any sibling/friend named in the plot idea, and the buddy creature by type — e.g. dinosaur). Only characters named on page 1 may appear on page 2's illustration. Example: if the plot is "hide and seek in a castle", the opening establishes castle gates / courtyard / great hall — NOT a forest. No unwritten extras.
@@ -2698,11 +2819,7 @@ ${
       : `Picture cast rule: only people/creatures **named in each verse** may appear on that spread's illustration — usually ${childName} and the buddy. Do not name anyone in a brief who is not in the paired text.\n`
     : `Main human cast for this book (must appear in the verses whenever they are in the scene together — use these exact names): ${storyHumanNames.join(", ")}. Picture rule: only names that appear in each verse may be in that spread's illustration; match the plot's who-is-hiding logic with the VISIBLE line.\n`
   }
-Every odd text page: ${
-  readerArtLayoutKey === "facing"
-    ? "**2–4 paragraphs** in each \"text\" string, paragraphs separated by two newline characters (\\n\\n), **~150–190 words** per page, warm read-aloud prose (not strict ten-line rhyme)."
-    : "exactly **10** lines, separated by newline characters (\\n) in each \"text\" string — full, rhyming, about twice as wordy as a five-line verse."
-}
+Every odd text page: ${oddPageTextFormatHint}
 Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "pink" | "blue" | "green" | "purple" | "orange" | "teal" | "red" | "yellow" | "lilac" | "mint" | "coral" | "navy", "pages": [ { "text": string, "illustrationBrief": string | null }, ... 12 items ] }`;
 
   const bookCoverColorReq = String(body.bookCoverColor ?? "").trim();
@@ -2771,7 +2888,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
     "CRITICAL LAYOUT RULE: Leave the left half of the image mostly uncluttered with a simple, soft, darker background so that WHITE storybook text can be printed over it clearly. Place the main characters and action on the right half or center-right of the image. ";
 
   const stylePreambleLayoutFacing =
-    "LAYOUT (single-page art in the reader — rhyming text is on the facing HTML page, NOT overlaid on this image): **Do not** reserve an empty left third, empty side strip, or blank half for captions. Paint a **balanced full-bleed** picture. **Centre the main characters and focal action** — aim the group's visual mass near **~45–55% from the left** (horizontal middle of the canvas), **not** flattened to one edge. ";
+    "LAYOUT (single-page art in the reader — story text is on the facing HTML page, NOT overlaid on this image): **Do not** reserve an empty left third, empty side strip, or blank half for captions. Paint a **balanced full-bleed** picture. **Centre the main characters and focal action** — aim the group's visual mass near **~45–55% from the left** (horizontal middle of the canvas), **not** flattened to one edge. ";
 
   const stylePreambleFramingDuplex =
     "FRAMING / CHARACTER SCALE (critical): FULL-BLEED SCENE — paint walls, sky, ground, props, and atmosphere so the artwork fills the entire canvas edge-to-edge (rich picture-book spread, not a tiny scene floating in empty space). **Pull the camera back** — **medium-wide** framing by default: the **background and setting** must read clearly in every spread, not just the characters’ faces. The cast together should typically occupy only **~28–42% of frame height** (single heroes or duos **~22–36%**) so caves, skies, rooms, and landscapes have room to breathe — never a tight bust or “zoomed-in” portrait unless the verse is purely a tight reaction beat (and even then keep architecture/sky visible). Keep modest inset — full heads, hair, hands, feet, tail, and wings inside the frame — never cropped or jammed against the border. Never crop a child or buddy at the neck or waist when the moment shows their whole body standing, jumping, or bouncing — use a wider shot instead. For jumping, trampolines, bouncing, soaring, or flying beats, default to a wide shot with the group using only **~30–42%** of frame height so heads, feet, and hooves stay clear of the top and bottom edges. **GUTTER / SPINE:** do not center a main character on the vertical midline — bias the group slightly **left or right** so the book fold does not slice through a face or torso. Unicorn horns, tall ears, hair poofs, wing tips, and raised hooves/paws must be fully visible with clear air above and beside them — never clipped. If a figure still feels tight, shrink only the cast and pull the camera back; keep the environment rich. Never line up the whole cast as a tiny strip along the bottom like stickers; show comfortable ground and body. ";
@@ -2831,7 +2948,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
 
   const falReduxLayoutHint =
     readerArtLayoutKey === "facing"
-      ? "Standalone picture page — rhyming text is on the facing page in the app; **centre the cast** (~45–55% horizontal), balanced composition. "
+      ? "Standalone picture page — story text is on the facing page in the app; **centre the cast** (~45–55% horizontal), balanced composition. "
       : "";
 
   try {
@@ -3032,6 +3149,10 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
           const shot = shotPlan[idx] ?? shotPlan[shotPlan.length - 1];
           const verseLines = b.verse.trim().slice(0, 500);
           const { visibleLine, buddyMissing } = parseVisibleCast(b.brief, verseLines);
+          const pairedMomentLead =
+            storyTextModeKey === "rhyme"
+              ? "from the rhyming verse on the paired text page"
+              : "from the story text on the paired text page";
 
           const blocks: string[] = [];
 
@@ -3062,7 +3183,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
           // 4. The exact moment, from the verse
           if (verseLines) {
             blocks.push(
-              `THIS SPREAD'S MOMENT (from the rhyming verse on the facing page — show every action literally):\n"""\n${verseLines}\n"""`,
+              `THIS SPREAD'S MOMENT (${pairedMomentLead} — show every action literally):\n"""\n${verseLines}\n"""`,
             );
             blocks.push(
               "VISUAL MATCHING: Paint the SAME setting, time of day, and activity as the verse — if it says bouncy castle under the sky, show padded inflatable bounce-house walls and open sky; if it says kitchen or courtyard, show that. Do not substitute a different scene (e.g. woods and bicycle) unless the verse names those.",
