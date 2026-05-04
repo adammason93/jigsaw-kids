@@ -1,0 +1,51 @@
+# Reliable deploys: GitHub Actions (this file). Cloudflare’s “Git integration” often
+# sticks on Queued — that is a Cloudflare build worker issue, not this repo. After
+# Actions works, disconnect Workers → Settings → Builds → Git to avoid duplicate
+# deploys and ignoring the stuck Queued UI.
+#
+# Secrets: Settings → Secrets → Actions
+#   CLOUDFLARE_API_TOKEN — Workers deploy token
+#   CLOUDFLARE_ACCOUNT_ID — Workers & Pages sidebar “Account ID”
+#
+# https://developers.cloudflare.com/workers/ci-cd/builds/troubleshoot/
+
+name: Deploy Cloudflare Worker
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Check Cloudflare Actions secrets
+        env:
+          CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CF_ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          if [ -z "$CF_ACCOUNT" ]; then
+            echo "::error title=Missing CLOUDFLARE_ACCOUNT_ID::Add secret CLOUDFLARE_ACCOUNT_ID (Dashboard → Workers & Pages → Account ID)."
+            exit 1
+          fi
+          if [ -z "$CF_TOKEN" ]; then
+            echo "::error title=Missing CLOUDFLARE_API_TOKEN::Add secret CLOUDFLARE_API_TOKEN (API token with Worker deploy)."
+            exit 1
+          fi
+
+      - name: Publish
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          wranglerVersion: "4.87.0"
