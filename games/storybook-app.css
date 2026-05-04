@@ -3215,6 +3215,18 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   overflow: visible;
 }
 
+/*
+ * Fallback when :has() is missing or flaky: navigateSpread adds .sb-book-spread--peel-overflow on #sbBookSpread
+ * during the hinge so rotated geometry is not clipped by flex ancestors (Safari/WebKit peel “vanished” mid-turn).
+ */
+.sb-book-spread.sb-book-spread--peel-overflow,
+.sb-book-spread.sb-book-spread--peel-overflow .sb-read-stage,
+.sb-book-spread.sb-book-spread--peel-overflow .sb-reader-stack,
+.sb-book-spread.sb-book-spread--peel-overflow .sb-reader-book,
+.sb-book-spread.sb-book-spread--peel-overflow .sb-reader-pages {
+  overflow: visible !important;
+}
+
 /* Two-page spread: 2× the closed cover width, same height */
 .sb-reader-stack--open .sb-flip-spread__inner {
   width: min(

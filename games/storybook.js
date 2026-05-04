@@ -210,6 +210,7 @@
   var landing = document.getElementById("sbLanding");
   var modal = document.getElementById("sbModal");
   var book = document.getElementById("sbBook");
+  var bookSpreadEl = document.getElementById("sbBookSpread");
   var busy = document.getElementById("sbBusy");
   var appEl = document.getElementById("app");
   var nameInput = document.getElementById("sbName");
@@ -1132,6 +1133,9 @@
     if (flipSpreadEl) {
       flipSpreadEl.classList.remove("sb-flip-spread--peel-active");
     }
+    if (bookSpreadEl) {
+      bookSpreadEl.classList.remove("sb-book-spread--peel-overflow");
+    }
     clearSpreadPeelTurnClasses();
     clearSpreadTurnRevealFx();
     clearPeelBackTextColumn();
@@ -1155,7 +1159,7 @@
     }
     shell.addEventListener("transitionend", onTe);
     shell.addEventListener("webkitTransitionEnd", onTe);
-    var tid = window.setTimeout(finish, 750);
+    var tid = window.setTimeout(finish, 950);
   }
 
   function bumpSpreadIndex(delta) {
@@ -1205,6 +1209,9 @@
     }
     if (flipSpreadEl) {
       flipSpreadEl.classList.add("sb-flip-spread--peel-active");
+    }
+    if (bookSpreadEl) {
+      bookSpreadEl.classList.add("sb-book-spread--peel-overflow");
     }
 
     syncSpreadIllustrationFromStory();
@@ -1272,12 +1279,15 @@
       bindCpShellTurnEnd(peelShell, function peelTurnDone() {
         clearSpreadPeelTurnClasses();
         clearSpreadTurnRevealFx();
+        if (flipSpreadEl) {
+          flipSpreadEl.classList.remove("sb-flip-spread--peel-active");
+        }
+        if (bookSpreadEl) {
+          bookSpreadEl.classList.remove("sb-book-spread--peel-overflow");
+        }
         if (spreadInnerEl) {
           spreadInnerEl.classList.remove("sb-flip-spread__inner--peel-turning");
           spreadInnerEl.classList.remove("sb-flip-spread__inner--facing-peel-turn");
-          if (flipSpreadEl) {
-            flipSpreadEl.classList.remove("sb-flip-spread--peel-active");
-          }
           var textPages = spreadInnerEl.querySelectorAll(".sb-flip-page--text");
           for (var ti = 0; ti < textPages.length; ti++) {
             textPages[ti].style.animation = "";
