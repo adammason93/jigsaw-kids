@@ -650,11 +650,35 @@
     return c ? coerceIllustrationStyleKey(c.value) : getIllustrationStyle();
   }
 
+  /** True when this spread index has an illustration URL in story data (matches syncSpreadIllustrationFromStory). */
+  function spreadRowHasIllustration(si) {
+    if (!story || !story.pages) return false;
+    var n = numSpreads();
+    if (n < 1) return false;
+    si = Math.max(0, Math.min(Math.floor(Number(si)), n - 1));
+    if (si * 2 >= story.pages.length) {
+      return !!(story.sceneImageUrl && String(story.sceneImageUrl).trim());
+    }
+    var rightP = story.pages[si * 2 + 1];
+    var leftP = story.pages[si * 2];
+    if (rightP && rightP.imageUrl && String(rightP.imageUrl).trim()) return true;
+    if (leftP && leftP.imageUrl && String(leftP.imageUrl).trim()) return true;
+    return false;
+  }
+
   function syncReaderFacingLayoutClasses(options) {
     if (!spreadInnerEl) return;
     var wantFacing = getEffectiveReaderArtLayout() === "facing";
+    var dataHasIll = !!(story && spreadRowHasIllustration(spreadIndex));
+    var flyleafDom = spreadInnerEl.classList.contains("sb-flip-spread__inner--flyleaf-pane");
+    /* Opening spread: flyleaf class can linger after the first real picture loads — facing stays off and type looks like duplex over art. */
+    if (wantFacing && dataHasIll && flyleafDom) {
+      clearArtFlyleaf();
+      syncSpreadIllustrationFromStory();
+    }
     var flyleaf = spreadInnerEl.classList.contains("sb-flip-spread__inner--flyleaf-pane");
-    var hasArt = spreadInnerEl.classList.contains("sb-flip-spread__inner--has-art");
+    var hasArt =
+      spreadInnerEl.classList.contains("sb-flip-spread__inner--has-art") || dataHasIll;
     var effective = wantFacing && hasArt && !flyleaf;
 
     spreadInnerEl.classList.toggle("sb-flip-spread__inner--art-facing", effective);
@@ -1230,6 +1254,9 @@
     var peelBackImg = document.getElementById("sbSpreadArtPeelBackImg");
     var outgoingLeftShell = document.getElementById("sbSpreadArtOutgoingLeft");
     var outgoingLeftImg = document.getElementById("sbSpreadArtOutgoingLeftImg");
+    /* Duplex: always show outgoing-left (left half of wide art). Facing + art on right: text lives on the left — do not paint half the pic there or it mashups with the peel. */
+    var fromArtRight = fromSi % 2 === 0;
+    var useDuplexOutgoingLeft = !isFacingBook || !fromArtRight;
 
     if (peelImg) {
       peelImg.alt = "";
@@ -1244,17 +1271,26 @@
     }
 
     if (outgoingLeftImg) {
-      outgoingLeftImg.alt = "";
-      outgoingLeftImg.referrerPolicy = "no-referrer";
-      outgoingLeftImg.src = peelOut;
+      if (useDuplexOutgoingLeft) {
+        outgoingLeftImg.alt = "";
+        outgoingLeftImg.referrerPolicy = "no-referrer";
+        outgoingLeftImg.src = peelOut;
+      } else {
+        outgoingLeftImg.removeAttribute("src");
+      }
     }
 
     peelShell.hidden = false;
     peelShell.removeAttribute("hidden");
     if (outgoingLeftShell) {
-      outgoingLeftShell.hidden = false;
-      outgoingLeftShell.removeAttribute("hidden");
-      outgoingLeftShell.style.display = "block";
+      if (useDuplexOutgoingLeft) {
+        outgoingLeftShell.hidden = false;
+        outgoingLeftShell.removeAttribute("hidden");
+        outgoingLeftShell.style.display = "block";
+      } else {
+        outgoingLeftShell.hidden = true;
+        outgoingLeftShell.style.display = "none";
+      }
     }
 
     var isNext = delta > 0;
@@ -1686,6 +1722,11 @@
 
   function fillPeelBackTextColumn(si) {
     if (!spreadPeelBackText) return;
+    /* Facing: verso is art-only; duplex-style text here ghosts over the next illustration mid-turn. */
+    if (getEffectiveReaderArtLayout() === "facing") {
+      spreadPeelBackText.innerHTML = "";
+      return;
+    }
     var block = spreadLeftColumnBlockAtSi(si);
     if (block.kind === "prose" && block.html) {
       spreadPeelBackText.innerHTML =
