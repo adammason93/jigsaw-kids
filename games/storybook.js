@@ -1230,8 +1230,6 @@
     var peelBackImg = document.getElementById("sbSpreadArtPeelBackImg");
     var outgoingLeftShell = document.getElementById("sbSpreadArtOutgoingLeft");
     var outgoingLeftImg = document.getElementById("sbSpreadArtOutgoingLeftImg");
-    var fromArtRight = fromSi % 2 === 0;
-    var useDuplexOutgoingLeft = !isFacingBook || !fromArtRight;
 
     if (peelImg) {
       peelImg.alt = "";
@@ -1246,26 +1244,17 @@
     }
 
     if (outgoingLeftImg) {
-      if (useDuplexOutgoingLeft) {
-        outgoingLeftImg.alt = "";
-        outgoingLeftImg.referrerPolicy = "no-referrer";
-        outgoingLeftImg.src = peelOut;
-      } else {
-        outgoingLeftImg.removeAttribute("src");
-      }
+      outgoingLeftImg.alt = "";
+      outgoingLeftImg.referrerPolicy = "no-referrer";
+      outgoingLeftImg.src = peelOut;
     }
 
     peelShell.hidden = false;
     peelShell.removeAttribute("hidden");
     if (outgoingLeftShell) {
-      if (useDuplexOutgoingLeft) {
-        outgoingLeftShell.hidden = false;
-        outgoingLeftShell.removeAttribute("hidden");
-        outgoingLeftShell.style.display = "block";
-      } else {
-        outgoingLeftShell.hidden = true;
-        outgoingLeftShell.style.display = "none";
-      }
+      outgoingLeftShell.hidden = false;
+      outgoingLeftShell.removeAttribute("hidden");
+      outgoingLeftShell.style.display = "block";
     }
 
     var isNext = delta > 0;
@@ -1697,10 +1686,6 @@
 
   function fillPeelBackTextColumn(si) {
     if (!spreadPeelBackText) return;
-    if (getEffectiveReaderArtLayout() === "facing") {
-      spreadPeelBackText.innerHTML = "";
-      return;
-    }
     var block = spreadLeftColumnBlockAtSi(si);
     if (block.kind === "prose" && block.html) {
       spreadPeelBackText.innerHTML =
