@@ -3185,6 +3185,15 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   overflow: visible;
 }
 
+/* Flex / reader plate can clip 3D leaf past the nominal spread bounds */
+.sb-read-stage:has(.sb-flip-spread__inner--peel-turning),
+.sb-book-spread:has(.sb-flip-spread__inner--peel-turning),
+.sb-reader-pages:has(.sb-flip-spread__inner--peel-turning),
+.sb-reader-book:has(.sb-flip-spread__inner--peel-turning),
+.sb-reader-stack:has(.sb-flip-spread__inner--peel-turning) {
+  overflow: visible;
+}
+
 /* Two-page spread: 2× the closed cover width, same height */
 .sb-reader-stack--open .sb-flip-spread__inner {
   width: min(
@@ -3761,6 +3770,18 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   left: 0;
   top: 0;
   position: absolute;
+}
+
+/* Facing: duplex left-half crop is empty/wrong — paint full illustration in-strip so the leaf crosses the gutter solidly */
+.sb-flip-spread__inner--art-facing .sb-flip-spread__art-outgoing-left .sb-flip-spread__art-cover {
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  left: 0;
+  top: 0;
+  position: absolute;
+  object-fit: cover;
+  object-position: center 45%;
 }
 
 .sb-flip-spread__art-peel.sb-story-pageflip--turn-next-1 .sb-flip-spread__art-peel__img,
