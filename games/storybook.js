@@ -2080,6 +2080,24 @@
     return false;
   }
 
+  /**
+   * When true, persist only remote URL per page/scene — skip base64 blobs (IndexedDB quota).
+   * Supabase public or signed URLs work in `<img>`; ephemeral hosts still encode via proxy.
+   */
+  function shelfPreferStoredUrlWithoutBlob(url) {
+    if (shelfKeepOriginalRemoteUrl(url)) return true;
+    var u = String(url || "").trim().toLowerCase();
+    if (!u || u.indexOf("data:") === 0) return false;
+    if (storyImageNeedsEdgeProxy(url)) return false;
+    if (
+      u.indexOf(".supabase.co/") !== -1 &&
+      u.indexOf("/storage/v1/object/sign/") !== -1
+    ) {
+      return true;
+    }
+    return false;
+  }
+
   function storyImageDisplayUrl(remoteUrl) {
     var u = String(remoteUrl || "").trim();
     if (!u) return u;
@@ -2165,9 +2183,9 @@
             img.onload = function () {
               try {
                 var canvas = document.createElement("canvas");
-                /* Shelf: smaller files so dozens of books fit IndexedDB (~50MB/site). Reader still prefers remote imageUrlFallback. */
-                var maxDim = opts.shelfCompress ? 720 : 1280;
-                var jpegQuality = opts.shelfCompress ? 0.72 : 0.85;
+                /* Shelf blobs: minimise size — reader prefers imageUrlFallback when present. */
+                var maxDim = opts.shelfCompress ? 520 : 1280;
+                var jpegQuality = opts.shelfCompress ? 0.65 : 0.85;
                 var w = img.width;
                 var h = img.height;
                 if (w > maxDim || h > maxDim) {
@@ -2220,7 +2238,7 @@
     return Promise.all(
       story.pages.map(function (p) {
         var u = p.imageUrl || "";
-        if (shelfKeepOriginalRemoteUrl(u)) return Promise.resolve(null);
+        if (shelfPreferStoredUrlWithoutBlob(u)) return Promise.resolve(null);
         return tryFetchImageDataUrl(u, { shelfCompress: true });
       })
     );
@@ -2228,7 +2246,7 @@
 
   function fetchSceneDataUrlForShelf(sceneUrl) {
     if (!sceneUrl) return Promise.resolve(null);
-    if (shelfKeepOriginalRemoteUrl(sceneUrl)) return Promise.resolve(null);
+    if (shelfPreferStoredUrlWithoutBlob(sceneUrl)) return Promise.resolve(null);
     return tryFetchImageDataUrl(sceneUrl, { shelfCompress: true });
   }
 
@@ -2323,7 +2341,12 @@
           },
           function (e) {
             if (tryList.length > 1) {
-              console.warn("Shelf storage tight — removing oldest book and retrying.", e);
+              console.warn(
+                "[storybook shelf] Save too large for browser storage — removing oldest saved book (" +
+                  (tryList.length - 1) +
+                  " will remain after retry). Prefer ⚙️ Sync & ☁️ / cloud backups. Underlying error:",
+                e
+              );
               tryList.pop();
               attempt();
             } else {
@@ -2417,12 +2440,18 @@
     var list = loadShelf();
     var id = "b" + Date.now() + "-" + ((Math.random() * 1e6) | 0);
     var storedPages = pages.map(function (p, i) {
+      var fb = String(p.imageUrl || "").trim();
+      var inline = dataUrls[i] || null;
+      if (fb && shelfPreferStoredUrlWithoutBlob(fb)) inline = null;
       return {
         text: p.text,
-        imageDataUrl: dataUrls[i] || null,
+        imageDataUrl: inline,
         imageUrlFallback: p.imageUrl || null,
       };
     });
+    var storedSceneData = sceneDataUrl || null;
+    var sf = String(sceneUrlFallback || "").trim();
+    if (sf && shelfPreferStoredUrlWithoutBlob(sf)) storedSceneData = null;
     list.unshift({
       id: id,
       title: title,
@@ -2434,7 +2463,7 @@
       storyLength: coerceStoryLengthKey(storyLength),
       savedAt: new Date().toISOString(),
       pages: storedPages,
-      sceneDataUrl: sceneDataUrl || null,
+      sceneDataUrl: storedSceneData,
       sceneUrlFallback: sceneUrlFallback || null,
     });
     while (list.length > SHELF_MAX_BOOKS) {
