@@ -12,7 +12,7 @@
   <link rel="manifest" href="../manifest.json" />
   <link rel="stylesheet" href="../js/kids-core.css" />
   <!-- storybook-app.css = renamed file so CDN/browser cache cannot keep old storybook.css -->
-  <link rel="stylesheet" href="storybook-app.css?v=151" />
+  <link rel="stylesheet" href="storybook-app.css?v=152" />
   <link rel="stylesheet" href="../tablet-ipad.css" />
   <!-- Last wins: guarantees new background even if a proxy cached an ancient stylesheet elsewhere -->
   <style>
@@ -574,45 +574,46 @@
                           decoding="async"
                         />
                       </div>
+                    </div>
 
-                      <!-- The turning page (Peel) -->
-                      <div
-                        id="sbSpreadArtPeel"
-                        class="sb-flip-spread__art-peel sb-story-pageflip"
-                        aria-hidden="true"
-                        hidden
-                      >
-                        <!-- Wrapper required: backface-visibility + rotateY(180deg) on back only (raw imgs broke 3D book fold). -->
-                        <div class="sb-flip-spread__peel-front">
-                          <img
-                            class="sb-flip-spread__art-cover sb-flip-spread__art-peel__img"
-                            id="sbSpreadArtPeelImg"
-                            alt=""
-                            decoding="async"
-                            referrerpolicy="no-referrer"
-                          />
-                          <div
-                            class="sb-flip-spread__peel-front-text"
-                            id="sbSpreadPeelFrontText"
-                            aria-hidden="true"
-                          ></div>
-                        </div>
-                        <div class="sb-flip-spread__peel-back">
-                          <img
-                            class="sb-flip-spread__art-cover sb-flip-spread__art-peel__back-img"
-                            id="sbSpreadArtPeelBackImg"
-                            alt=""
-                            decoding="async"
-                            referrerpolicy="no-referrer"
-                          />
-                          <div
-                            class="sb-flip-spread__peel-back-text"
-                            id="sbSpreadPeelBackText"
-                            aria-hidden="true"
-                          ></div>
-                        </div>
+                    <!-- Turning leaf: sibling of art-bg — inside art-bg it stacked under gutter (z5) / prose shells (z4). -->
+                    <div
+                      id="sbSpreadArtPeel"
+                      class="sb-flip-spread__art-peel sb-story-pageflip"
+                      aria-hidden="true"
+                      hidden
+                    >
+                      <!-- Wrapper required: backface-visibility + rotateY(180deg) on back only (raw imgs broke 3D book fold). -->
+                      <div class="sb-flip-spread__peel-front">
+                        <img
+                          class="sb-flip-spread__art-cover sb-flip-spread__art-peel__img"
+                          id="sbSpreadArtPeelImg"
+                          alt=""
+                          decoding="async"
+                          referrerpolicy="no-referrer"
+                        />
+                        <div
+                          class="sb-flip-spread__peel-front-text"
+                          id="sbSpreadPeelFrontText"
+                          aria-hidden="true"
+                        ></div>
+                      </div>
+                      <div class="sb-flip-spread__peel-back">
+                        <img
+                          class="sb-flip-spread__art-cover sb-flip-spread__art-peel__back-img"
+                          id="sbSpreadArtPeelBackImg"
+                          alt=""
+                          decoding="async"
+                          referrerpolicy="no-referrer"
+                        />
+                        <div
+                          class="sb-flip-spread__peel-back-text"
+                          id="sbSpreadPeelBackText"
+                          aria-hidden="true"
+                        ></div>
                       </div>
                     </div>
+
                     <div class="sb-flip-left-shell" id="sbFlipLeftShell">
                       <div class="sb-flip-page sb-flip-page--text">
                         <div class="sb-flip-page__sheet">
@@ -728,7 +729,7 @@
   <script src="../js/storybook-shelf-store.js" defer></script>
   <!-- Required for cloud shelf sync + upload (same as other games) -->
   <script src="../js/score-cloud.js" defer></script>
-  <script src="storybook.js?v=320" defer></script>
+  <script src="storybook.js?v=321" defer></script>
   <script>
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("../sw.js").catch(function () {});

@@ -3526,9 +3526,12 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   -webkit-transition: -webkit-transform 0.62s cubic-bezier(0.45, 0, 0.32, 1);
 }
 
-/* While the peel animates, stack it above static left-column type so the verso (art + copy) sweeps over outgoing text */
+/*
+ * Peel is a sibling of .sb-flip-spread__art-bg (z2), left/right shells (4), gutter (5).
+ * Needs a real stacking win over the gutter mid-rotation — inside art-bg it could never escape z2.
+ */
 .sb-flip-spread__inner.sb-flip-spread__inner--peel-turning .sb-flip-spread__art-peel {
-  z-index: 6;
+  z-index: 22;
 }
 
 /* Keep overflow visible — clipping here hid the turning leaf halfway through hinge rotation */
