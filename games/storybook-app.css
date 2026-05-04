@@ -3317,7 +3317,7 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   transform-origin: center center;
 }
 
-/* --- One-page pictures: full illustration scaled to fit one side; text on cream paper (wizard: Picture spread → One page only) --- */
+/* --- One-page pictures: art fills the whole picture page (cover); position biased so duplex-style art keeps the cast in frame --- */
 .sb-flip-spread__inner--art-facing.sb-flip-spread__inner--facing-art-right .sb-flip-spread__art-base {
   left: calc(50% + 1.75px);
   right: 0;
@@ -3340,8 +3340,17 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   width: 100%;
   height: 100%;
   max-width: none;
-  object-fit: contain;
-  object-position: center center;
+  object-fit: cover;
+  object-position: 64% 45%;
+}
+
+/* Illustrations are composed for a wide spread with cast often center–right; slight horizontal bias keeps people on-screen when we crop to one page. */
+.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--facing-art-left .sb-flip-spread__art-cover {
+  object-position: 70% 45%;
+}
+
+.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--facing-art-right .sb-flip-spread__art-cover {
+  object-position: 58% 45%;
 }
 
 .sb-page-num:empty {
@@ -3350,22 +3359,30 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
 
 .sb-page-num {
   position: absolute;
-  bottom: 0.55rem;
+  bottom: 0.65rem;
   font-family: var(--sb-reader-font-body, "Fredoka", "Nunito", sans-serif);
-  font-size: 0.82rem;
+  font-size: 0.88rem;
   font-weight: 700;
-  color: rgba(42, 10, 31, 0.42);
+  color: rgba(42, 10, 31, 0.52);
   line-height: 1;
   z-index: 2;
   pointer-events: none;
 }
 
 .sb-flip-spread__inner--art-facing.sb-facing-text-on-left .sb-page-num {
-  left: 0.65rem;
+  left: 0.55rem;
+  padding: 0.32rem 0.65rem 0.36rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 2px 12px rgba(42, 10, 31, 0.1);
 }
 
 .sb-flip-spread__inner--art-facing.sb-facing-text-on-right .sb-page-num {
-  right: 0.65rem;
+  right: 0.55rem;
+  padding: 0.32rem 0.65rem 0.36rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 2px 12px rgba(42, 10, 31, 0.1);
 }
 
 .sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-flip-page--text .sb-flip-page__sheet {
@@ -3376,49 +3393,70 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   overflow: hidden;
 }
 
-.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-flip-page--text .sb-flip-page__sheet::before {
+/* Cream “paper” + soft white corner blobs (outer corners of the text page). */
+.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art.sb-facing-text-on-left .sb-flip-page--text .sb-flip-page__sheet::before {
   content: "";
   position: absolute;
   inset: 0;
   z-index: 0;
   background:
-    radial-gradient(ellipse 92% 72% at 2% 4%, rgba(255, 255, 255, 0.97) 0%, transparent 58%),
-    radial-gradient(ellipse 88% 68% at 96% 96%, rgba(255, 252, 245, 0.95) 0%, transparent 52%),
-    #f7f2e8;
+    radial-gradient(ellipse 100% 88% at 2% 5%, rgba(255, 255, 255, 0.99) 0%, rgba(255, 255, 255, 0.45) 42%, transparent 68%),
+    radial-gradient(ellipse 95% 82% at 4% 96%, rgba(255, 255, 255, 0.97) 0%, rgba(255, 252, 248, 0.55) 46%, transparent 72%),
+    radial-gradient(ellipse 55% 40% at 88% 48%, rgba(255, 253, 248, 0.4) 0%, transparent 62%),
+    #f4eee4;
   pointer-events: none;
 }
 
-.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-flip-page--text .sb-flip-text,
-.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-page-num {
+.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art.sb-facing-text-on-right .sb-flip-page--text .sb-flip-page__sheet::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background:
+    radial-gradient(ellipse 100% 88% at 98% 5%, rgba(255, 255, 255, 0.99) 0%, rgba(255, 255, 255, 0.45) 42%, transparent 68%),
+    radial-gradient(ellipse 95% 82% at 96% 96%, rgba(255, 255, 255, 0.97) 0%, rgba(255, 252, 248, 0.55) 46%, transparent 72%),
+    radial-gradient(ellipse 55% 40% at 12% 48%, rgba(255, 253, 248, 0.4) 0%, transparent 62%),
+    #f4eee4;
+  pointer-events: none;
+}
+
+.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-flip-page--text .sb-flip-text {
   position: relative;
   z-index: 1;
+}
+
+.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-page-num {
+  z-index: 2;
 }
 
 .sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-flip-text__highlight {
   display: inline;
   font-family: var(--sb-reader-font-body);
-  font-size: clamp(0.92rem, 2.7vw, 1.14rem);
-  font-weight: 500;
-  line-height: 1.65;
-  color: #2a0a1f;
+  font-size: clamp(0.9rem, 2.65vw, 1.1rem);
+  font-weight: 550;
+  line-height: 1.72;
+  color: #25141c;
   text-align: center;
-  padding: 0.12em 0.42em;
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: 0.38em;
-  box-decoration-break: clone;
-  -webkit-box-decoration-break: clone;
-  box-shadow: 0 1px 3px rgba(42, 10, 31, 0.09);
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  border-radius: 0;
+  box-decoration-break: initial;
+  -webkit-box-decoration-break: initial;
+  box-shadow: none;
   text-shadow: none;
   -webkit-text-stroke: 0;
 }
 
 .sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-big-word {
   color: #5b21b6;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
+  text-shadow: none;
 }
 
 .sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-flip-text {
-  max-width: min(28rem, 94%);
+  max-width: min(31rem, 96%);
+  margin: 0 auto;
+  padding: 0.35rem 0.5rem 2.25rem;
 }
 
 .sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-readable-word:hover {
@@ -3978,8 +4016,13 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   box-shadow: none;
 }
 
-/* Tablet band: slightly smaller story type so prose fits the half-spread (desktops >1200px use defaults above). */
+/* Tablet band: duplex over-art type shrinks; facing text page stays readable (no sticker boxes). */
 @media (min-width: 600px) and (max-width: 1200px) {
+  .sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-flip-text__highlight {
+    font-size: clamp(0.86rem, 2.45vw, 1.04rem);
+    line-height: 1.68;
+  }
+
   .sb-flip-spread__inner--has-art .sb-flip-text__highlight {
     font-size: clamp(1.05rem, 3.35vw, 1.48rem);
     line-height: 1.5;

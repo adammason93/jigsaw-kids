@@ -1338,7 +1338,7 @@ function normalizeStoryJson(raw: unknown): StoryJson {
 
   for (const p of pages) {
     if (!p.text) p.text = "They smiled and looked around.";
-    if (p.text.length > 600) p.text = p.text.slice(0, 597) + "…";
+    if (p.text.length > 920) p.text = p.text.slice(0, 917) + "…";
   }
 
   for (let i = 0; i < pages.length; i++) {
@@ -2576,7 +2576,7 @@ Rules:
 - ${artStyleSpec.storyBrief}
 ${noBuddyBook ? `BOOK MODE — NO IMAGINARY BUDDY: The reader chose "No buddy". For this entire book: (1) Do NOT add a recurring fantasy creature companion (unicorn, dragon, robot, etc.) in story text, characterDesign, or illustrationBriefs unless the child's plot idea explicitly requires that creature. (2) characterDesign must describe ONLY humans — the hero, any plot-named children, and game people. (3) Each illustrationBrief VISIBLE line lists only people (humans) named in that verse. (4) Page 1 must not introduce a creature buddy. Invent gentle human-centred adventures when the plot is open-ended.\n\n` : ""}- Warm, gentle, silly — never scary, violent, or mean.
 - No romance, no weapons, no villains that frighten.
-- Exactly 12 pages (six double-page spreads). The text on every page MUST be exactly 4 lines long, written as a fun, rhythmic poem that rhymes perfectly (e.g., AABB or ABCB). Format the text with actual line breaks (\n) after each line so the rhyming words are at the end of each line. Use simple words.
+- Exactly 12 pages (six double-page spreads). The text on every page MUST be exactly **5** lines long, written as a fun, rhythmic poem that rhymes perfectly (e.g., AABB or ABCB). Each line may be **slightly longer** than a single short phrase — pack in a little extra detail so each spread feels full, but keep vocabulary simple for age ~5. Format the text with actual line breaks (\n) after each line so the rhyming words are at the end of each line.
 - Odd-numbered (text-first) pages: end on a normal rhyming line — do NOT tack on a random ALL CAPS sound effect (SPLASH! SNORE! ZOOM!) after the verse; those often feel disconnected from the lines above. Keep the whole page in normal sentence case. Only use a short capped word if it is genuinely the punchline of that beat (rare); most pages should have no ALL CAPS word at all.
 - NAMES VS GENDER (critical): Do **not** choose boy/girl from how a first name "usually" sounds. Names like Remy, Riley, Alex, Sam, Jordan, Charlie can be girls or boys. **The appearance-from-photos lines are ground truth:** if a line says **Gender: girl** and long blonde hair, that named child is a **girl** in the story — use **she/her** pronouns in verses, and characterDesign must say **girl** with that exact hair — never give her a boy's short brown haircut or **he/him** unless the line explicitly says **Gender: boy**. Never override a photo-derived girl line with a masculine default.
 - The hero's name is given — use it often. The hero IS ${childName} — this exact first name must appear in the story text on every page where the main child acts. Whenever ${childName} is in a spread's scene, that spread's illustrationBrief must name ${childName} (you may list other named friends first if the verse introduces them that way). Never substitute a different child, wrong name, or wrong gender as the hero. The art paints only who you name — do not imply an unnamed generic kid.
