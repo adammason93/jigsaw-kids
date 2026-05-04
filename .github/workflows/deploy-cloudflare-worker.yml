@@ -1,0 +1,27 @@
+# Deploy when Cloudflare Workers "Git builds" stays stuck on Queued.
+# 1. Create an API Token: Workers Builds / Edit Workers / Account Workers Scripts (deploy)
+#    https://developers.cloudflare.com/fundamentals/api/get-started/create-token/
+# 2. Repo → Settings → Secrets → Actions → New: CLOUDFLARE_API_TOKEN
+# 3. Workers dashboard → jigsaw-kids → Settings → Builds: disconnect Git builds or pause auto-deploy,
+#    or every push runs both this workflow and Workers Builds (duplicate).
+
+name: Deploy Cloudflare Worker
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Publish
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
