@@ -278,6 +278,7 @@ function composeDallePrompt(parts: {
   castBible: string;
   firstPanelLock: string;
   heroFirstName: string;
+  mandatoryCastLine: string;
 }): string {
   const lockChunk = parts.firstPanelLock.trim()
     ? `MATCH FIRST SPREAD — copy these exact looks (faces, hair, outfits, creatures): ${parts.firstPanelLock.trim()}\n\n`
@@ -288,7 +289,7 @@ function composeDallePrompt(parts: {
     `Only ONE imaginary buddy individual from the BUDDY line (e.g. one unicorn), not a duplicate big+small pair, unless SCENE ACTION explicitly names two distinct buddies. ` +
     `NO unnamed villagers, torch-bearer extras, silhouettes with faces, mascots, or filler crowd. NO logos or brand marks. Background = whatever PLACE/ENVIRONMENT specifies (castle, woods, cave, beach, garden, space, sea, ship, mountain, zoo, farm, circus, city, train, lake, snow, desert, museum, island, etc.) without extra faced characters beyond SCENE ACTION.\n\n`;
   const mid =
-    `SCENE ACTION: ${parts.sceneBrief}\n\n${identity}${lockChunk}MANDATORY CAST (same toy-clay 3D models on every page — identical proportions, colours, species; do not redesign or swap styles):\n`;
+    `SCENE ACTION: ${parts.sceneBrief}\n\n${identity}${lockChunk}MANDATORY CAST (${parts.mandatoryCastLine}):\n`;
   const head = `${parts.preamble}${parts.envTheme}`;
   const room = DALLE3_PROMPT_MAX - head.length - mid.length;
   let cast = parts.castBible.trim();
@@ -500,6 +501,8 @@ async function compileCharacterLockForImages(
     plotNamedHumans: string[];
     /** Vision summary from uploaded reference photos — must win over vague draft prose for HERO / named kids. */
     portraitAppearance?: string;
+    /** Single line for compile lock: allowed art vocabulary (matches illustration style). */
+    compileLockArtWords: string;
   },
 ): Promise<string> {
   const co = input.plotNamedHumans.length > 0
@@ -522,11 +525,11 @@ async function compileCharacterLockForImages(
     `\nStorywriter draft (may be messy):\n${input.draftDesign || "(none)"}\n\n` +
     `Rewrite into LOCKED CAST only — plain text, no JSON.\n` +
     `Use labeled lines: HERO:, BUDDY:, then one line per other named recurring HUMAN child from the plot or draft (e.g. ISAAC:) — same detail as HERO (gender, hair, eyes, skin, outfit). Never add MONKEY:, BEAR:, LION:, or random extras.\n` +
-    `When REFERENCE PHOTOS are present above, every human line MUST quote the same Hair: colour, length, and style words from those lines (you may add clay-style texture words after). Wrong hair = failure.\n` +
+    `When REFERENCE PHOTOS are present above, every human line MUST quote the same Hair: colour, length, and style words from those lines (you may add short style-appropriate texture words after). Wrong hair = failure.\n` +
     `If reference lines include **Gender: girl** or **Gender: boy**, each LOCKED CAST human must use that gender — do not swap to the opposite because a name "sounds" masculine or feminine.\n` +
     `Never assign one child dark brown short hair and the other long blonde for cast "variety" when references show both blonde — match each line's hair literally.\n` +
     `Each line: exact colours, relative size vs hero, silhouette, distinctive marks, wings/tail yes/no.\n` +
-    `Art style words allowed ONLY: "soft matte clay toy, rounded limbs, gentle toy plastic sheen" — never "realistic" or "Pixar skin".\n` +
+    `${input.compileLockArtWords}\n` +
     `Max 2100 characters. No scenery. No actions.`;
 
   const noBuddyLock = input.buddyKey === "nobuddy";
@@ -1766,6 +1769,165 @@ function coercePictureBookQuality(raw: unknown): PictureBookQuality {
   return "standard";
 }
 
+/** Visual style for storybook illustrations (JSON `illustrationStyle`). */
+type IllustrationStyleKey =
+  | "clay3d"
+  | "vector_flat"
+  | "watercolor"
+  | "papercut"
+  | "soft_3d";
+
+type ArtStyleSpec = {
+  /** Injected into storywriter system rules — guides characterDesign wording. */
+  storyBrief: string;
+  /** compileCharacterLock user prompt — allowed vocabulary for cast lines. */
+  compileLockArtWords: string;
+  /** Fallback HERO line segment before " — always the same..." */
+  castHeroSurface: string;
+  /** After BUDDY description: continuity phrase. */
+  buddyFollowStyle: string;
+  /** End of co-star fallback line. */
+  coStarLineEnd: string;
+  /** Full STYLE sentence in image preamble (ends with space). */
+  preambleStyleSentence: string;
+  /** Phrase in cast anchor T2I (after photo lock). */
+  anchorMaterialClause: string;
+  /** GPT Image edit blocks — opening phrase. */
+  gptEditStyleOpener: string;
+  /** Fal Redux short tag after "Textless; ". */
+  falReduxStyleTag: string;
+  /** Fal legacy chain tag after TEXTLESS. */
+  falLegacyStyleTag: string;
+  /** composeDallePrompt MANDATORY CAST middle line. */
+  composeMandatoryCast: string;
+};
+
+const ART_STYLE_SPECS: Record<IllustrationStyleKey, ArtStyleSpec> = {
+  clay3d: {
+    storyBrief:
+      "Illustration look: soft matte clay and toy-plastic 3D — rounded limbs, gentle pastel light, not photoreal skin. In characterDesign use clay-appropriate texture words (e.g. smooth sculpted clay hair, fuzzy felt fur, gentle plastic sheen).",
+    compileLockArtWords:
+      "Art style words allowed ONLY: \"soft matte clay toy, rounded limbs, gentle toy plastic sheen\" — never \"realistic\" or \"Pixar skin\".",
+    castHeroSurface:
+      "young child, friendly rounded face, simple solid-colour top and trousers, soft matte clay toy 3D",
+    buddyFollowStyle: "same toy-clay style on every page",
+    coStarLineEnd: "Soft matte clay toy 3D whenever this child appears.",
+    preambleStyleSentence:
+      "STYLE: soft matte clay and toy-plastic 3D ONLY — rounded limbs, gentle pastel lighting, not realistic human skin, not glossy CGI. Edge-to-edge scene, no frames or borders. Wholesome and safe for toddlers. ",
+    anchorMaterialClause: "soft matte clay and toy-plastic 3D, gentle pastel light",
+    gptEditStyleOpener:
+      "Children's picture-book illustration, soft matte clay and toy-plastic 3D, gentle pastel light, edge-to-edge with no borders or text. ",
+    falReduxStyleTag: "Textless; soft matte clay toy 3D. ",
+    falLegacyStyleTag:
+      "TEXTLESS — no words, signs, book pages with text, logos, paper scraps with writing, or gibberish texture; soft matte clay toy 3D only. ",
+    composeMandatoryCast:
+      "same toy-clay 3D models on every page — identical proportions, colours, species; do not redesign or swap styles",
+  },
+  vector_flat: {
+    storyBrief:
+      "Illustration look: bold flat vector children's book art — clean shapes, limited harmonious palette, crisp edges, minimal gradients, no clay or 3D toy look. In characterDesign use flat-colour language (solid fills, simple graphic shadows).",
+    compileLockArtWords:
+      "Art style words allowed ONLY: \"flat vector illustration, clean shapes, limited flat colours\" — never clay, photoreal skin, or glossy 3D CGI.",
+    castHeroSurface:
+      "young child, friendly simplified face, simple outfit blocks of solid colour, bold flat vector kid-lit style",
+    buddyFollowStyle: "same flat vector style on every page",
+    coStarLineEnd: "Flat vector kid illustration whenever this child appears.",
+    preambleStyleSentence:
+      "STYLE: bold flat vector children's illustration ONLY — geometric shapes, crisp edges, flat colour fills, no 3D clay, no photoreal skin, no heavy airbrush. Edge-to-edge scene. Wholesome and safe for toddlers. ",
+    anchorMaterialClause: "bold flat vector children's art, gentle bright palette",
+    gptEditStyleOpener:
+      "Children's picture-book illustration, bold flat vector style with clean shapes and flat colours, edge-to-edge with no borders or text. ",
+    falReduxStyleTag: "Textless; bold flat vector kid book style. ",
+    falLegacyStyleTag:
+      "TEXTLESS — no words, signs, logos, or gibberish texture; bold flat vector children's style only. ",
+    composeMandatoryCast:
+      "same flat vector character designs on every page — identical proportions, colours, species; do not redesign or swap styles",
+  },
+  watercolor: {
+    storyBrief:
+      "Illustration look: soft watercolor picture-book art — gentle washes, slight paper texture feel, soft edges, luminous but not photoreal. In characterDesign mention watercolor-friendly cues (soft pigments, flowing hair colour washes).",
+    compileLockArtWords:
+      "Art style words allowed ONLY: \"soft watercolor, gentle washes, picture-book painterly\" — never clay, never sharp vector flats, never photoreal.",
+    castHeroSurface:
+      "young child, gentle friendly features, simple outfit, soft watercolor picture-book rendering",
+    buddyFollowStyle: "same watercolor storybook style on every page",
+    coStarLineEnd: "Soft watercolor kid-book style whenever this child appears.",
+    preambleStyleSentence:
+      "STYLE: traditional watercolor children's book illustration ONLY — soft washes, gentle paper texture feeling, luminous pastel palette, NOT clay, NOT flat vector, NOT photoreal. Edge-to-edge scene. Wholesome and safe for toddlers. ",
+    anchorMaterialClause: "soft watercolor children's book illustration, gentle light",
+    gptEditStyleOpener:
+      "Children's picture-book illustration, soft watercolor washes and gentle picture-book color, edge-to-edge with no borders or text. ",
+    falReduxStyleTag: "Textless; soft watercolor children's book style. ",
+    falLegacyStyleTag:
+      "TEXTLESS — no words, signs, logos, or gibberish texture; soft watercolor picture-book style only. ",
+    composeMandatoryCast:
+      "same watercolor-rendered character designs on every page — identical proportions, colours, species; do not redesign or swap styles",
+  },
+  papercut: {
+    storyBrief:
+      "Illustration look: layered cut-paper / collage children's art — crisp paper edges, subtle drop shadows between layers, craft texture, no clay. In characterDesign use paper-craft wording (cut-paper shapes, layered colour blocks).",
+    compileLockArtWords:
+      "Art style words allowed ONLY: \"cut-paper collage, layered shapes, craft paper texture\" — never clay, never airbrushed CGI.",
+    castHeroSurface:
+      "young child, simplified friendly face, outfit as layered cut-paper shapes, collage picture-book style",
+    buddyFollowStyle: "same cut-paper collage style on every page",
+    coStarLineEnd: "Cut-paper collage kid style whenever this child appears.",
+    preambleStyleSentence:
+      "STYLE: cut-paper collage children's illustration ONLY — layered coloured shapes, slight shadow between layers, craft textures, NO clay, NO photoreal skin. Edge-to-edge scene. Wholesome and safe for toddlers. ",
+    anchorMaterialClause: "cut-paper layered collage children's book style",
+    gptEditStyleOpener:
+      "Children's picture-book illustration, cut-paper collage with layered shapes and soft craft shadows, edge-to-edge with no borders or text. ",
+    falReduxStyleTag: "Textless; cut-paper collage children's book style. ",
+    falLegacyStyleTag:
+      "TEXTLESS — no words, signs, logos, or gibberish texture; cut-paper collage style only. ",
+    composeMandatoryCast:
+      "same cut-paper collage models on every page — identical proportions, colours, species; do not redesign or swap styles",
+  },
+  soft_3d: {
+    storyBrief:
+      "Illustration look: soft rounded 3D animation — like a gentle family feature film still: smooth forms, pastel lighting, appealing exaggeration, NOT gritty photoreal. In characterDesign use smooth stylized 3D wording (rounded forms, soft subsurface feel) but never hyperreal pores.",
+    compileLockArtWords:
+      "Art style words allowed ONLY: \"soft rounded 3D animation style, gentle pastel cinematic light, stylized not photoreal\" — never stop-motion clay lumps unless asked.",
+    castHeroSurface:
+      "young child, appealing rounded face, simple outfit, soft rounded 3D animation style",
+    buddyFollowStyle: "same soft 3D animation style on every page",
+    coStarLineEnd: "Soft rounded 3D animation style whenever this child appears.",
+    preambleStyleSentence:
+      "STYLE: soft rounded 3D animated film look ONLY — appealing exaggerated proportions, gentle pastel cinematic lighting, smooth stylized surfaces, NOT photoreal humans, NOT gritty CGI. Edge-to-edge scene. Wholesome and safe for toddlers. ",
+    anchorMaterialClause: "soft rounded 3D animation style, gentle pastel cinematic light",
+    gptEditStyleOpener:
+      "Children's picture-book illustration, soft rounded 3D animation style with gentle pastel light, edge-to-edge with no borders or text. ",
+    falReduxStyleTag: "Textless; soft rounded 3D animation kid-book style. ",
+    falLegacyStyleTag:
+      "TEXTLESS — no words, signs, logos, or gibberish texture; soft rounded 3D animation style only. ",
+    composeMandatoryCast:
+      "same soft 3D animated character designs on every page — identical proportions, colours, species; do not redesign or swap styles",
+  },
+};
+
+function coerceIllustrationStyle(raw: unknown): IllustrationStyleKey {
+  const s = String(raw ?? "").trim().toLowerCase().replace(/-/g, "_");
+  const map: Record<string, IllustrationStyleKey> = {
+    clay3d: "clay3d",
+    clay: "clay3d",
+    toy_clay: "clay3d",
+    vector_flat: "vector_flat",
+    vector: "vector_flat",
+    flat: "vector_flat",
+    watercolor: "watercolor",
+    watercolour: "watercolor",
+    papercut: "papercut",
+    paper_cut: "papercut",
+    collage: "papercut",
+    soft_3d: "soft_3d",
+    soft3d: "soft_3d",
+    pixar: "soft_3d",
+  };
+  const k = map[s];
+  if (k) return k;
+  return "clay3d";
+}
+
 /** When true (opt-in only): standard tier bumps GPT Image quality if user uploaded ref photos. Unset = economy tier even with refs (~standard cost); uploads + vision text still steer likeness. */
 function gptImageRefPhotoQualityBoostEnabled(): boolean {
   const v = (Deno.env.get("STORYBOOK_REF_PHOTO_IMAGE_BOOST") ?? "").trim().toLowerCase();
@@ -2204,6 +2366,8 @@ Deno.serve(async (req) => {
     characterReferencePhotos?: unknown;
     /** GPT Image only: `"standard"` (economy, screen) or `"high"` (print-oriented size + quality when secrets unset). */
     pictureBookQuality?: string;
+    /** Illustration look: clay3d | vector_flat | watercolor | papercut | soft_3d */
+    illustrationStyle?: string;
   };
   try {
     body = await req.json();
@@ -2227,6 +2391,8 @@ Deno.serve(async (req) => {
 
   const plotHint = sanitizePlotHint(String(body.plotHint ?? ""));
   const pictureBookQuality = coercePictureBookQuality(body.pictureBookQuality);
+  const illustrationStyleKey = coerceIllustrationStyle(body.illustrationStyle);
+  const artStyleSpec = ART_STYLE_SPECS[illustrationStyleKey];
 
   // If the child's plot prompt clearly names a different setting than the one
   // they tapped on (e.g. picker = "woods" but plot says "in a castle"), the
@@ -2407,6 +2573,7 @@ Deno.serve(async (req) => {
 
   const system = `You write very short picture-book stories for UK English-speaking children about age 5.
 Rules:
+- ${artStyleSpec.storyBrief}
 ${noBuddyBook ? `BOOK MODE — NO IMAGINARY BUDDY: The reader chose "No buddy". For this entire book: (1) Do NOT add a recurring fantasy creature companion (unicorn, dragon, robot, etc.) in story text, characterDesign, or illustrationBriefs unless the child's plot idea explicitly requires that creature. (2) characterDesign must describe ONLY humans — the hero, any plot-named children, and game people. (3) Each illustrationBrief VISIBLE line lists only people (humans) named in that verse. (4) Page 1 must not introduce a creature buddy. Invent gentle human-centred adventures when the plot is open-ended.\n\n` : ""}- Warm, gentle, silly — never scary, violent, or mean.
 - No romance, no weapons, no villains that frighten.
 - Exactly 12 pages (six double-page spreads). The text on every page MUST be exactly 4 lines long, written as a fun, rhythmic poem that rhymes perfectly (e.g., AABB or ABCB). Format the text with actual line breaks (\n) after each line so the rhyming words are at the end of each line. Use simple words.
@@ -2545,21 +2712,22 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
       briefsSummary,
       plotNamedHumans,
       portraitAppearance,
+      compileLockArtWords: artStyleSpec.compileLockArtWords,
     });
   } catch (e) {
     console.warn("[clever-service] compileCharacterLock failed", e);
   }
 
   const coStarFallbackLine = (n: string) =>
-    `${n.toUpperCase()}: human child co-star from the plot — match reference-photo hair and skin when storywriter draft lists them; distinguish from ${childName} by **outfit and face shape only**, not by flipping blonde→brown or long→short unless the written draft explicitly says so. Soft matte clay toy 3D whenever this child appears.`;
+    `${n.toUpperCase()}: human child co-star from the plot — match reference-photo hair and skin when storywriter draft lists them; distinguish from ${childName} by **outfit and face shape only**, not by flipping blonde→brown or long→short unless the written draft explicitly says so. ${artStyleSpec.coStarLineEnd}`;
 
   const duoImageCastFallback = noBuddyBook
-    ? `HERO: ${childName}, young child, friendly rounded face, simple solid-colour top and trousers, soft matte clay toy 3D — always the same human hero in every spread.` +
+    ? `HERO: ${childName}, ${artStyleSpec.castHeroSurface} — always the same human hero in every spread.` +
       (plotNamedHumans.length > 0
         ? " " + plotNamedHumans.map((n) => coStarFallbackLine(n)).join(" ")
         : "")
-    : `HERO: ${childName}, young child, friendly rounded face, simple solid-colour top and trousers, soft matte clay toy 3D — always the same human hero in every spread. ` +
-      `BUDDY: ${characterDesc}, exactly ONE individual of this species in every image — never duplicate, never parent+baby pair, same toy-clay style on every page.` +
+    : `HERO: ${childName}, ${artStyleSpec.castHeroSurface} — always the same human hero in every spread. ` +
+      `BUDDY: ${characterDesc}, exactly ONE individual of this species in every image — never duplicate, never parent+baby pair, ${artStyleSpec.buddyFollowStyle}.` +
       (plotNamedHumans.length > 0
         ? " " + plotNamedHumans.map((n) => coStarFallbackLine(n)).join(" ")
         : "");
@@ -2579,7 +2747,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
     "The left third must be only smooth colour, soft sky, plain wall, or gentle gradient — zero pseudo-text texture there (the app draws real text in HTML). " +
     "CRITICAL LAYOUT RULE: Leave the left half of the image mostly uncluttered with a simple, soft, darker background so that WHITE storybook text can be printed over it clearly. Place the main characters and action on the right half or center-right of the image. " +
     "FRAMING / CHARACTER SCALE (critical): FULL-BLEED SCENE — paint walls, sky, ground, props, and atmosphere so the artwork fills the entire canvas edge-to-edge (rich picture-book spread, not a tiny scene floating in empty space). **Pull the camera back** — **medium-wide** framing by default: the **background and setting** must read clearly in every spread, not just the characters’ faces. The cast together should typically occupy only **~28–42% of frame height** (single heroes or duos **~22–36%**) so caves, skies, rooms, and landscapes have room to breathe — never a tight bust or “zoomed-in” portrait unless the verse is purely a tight reaction beat (and even then keep architecture/sky visible). Keep modest inset — full heads, hair, hands, feet, tail, and wings inside the frame — never cropped or jammed against the border. Never crop a child or buddy at the neck or waist when the moment shows their whole body standing, jumping, or bouncing — use a wider shot instead. For jumping, trampolines, bouncing, soaring, or flying beats, default to a wide shot with the group using only **~30–42%** of frame height so heads, feet, and hooves stay clear of the top and bottom edges. **GUTTER / SPINE:** do not center a main character on the vertical midline — bias the group slightly **left or right** so the book fold does not slice through a face or torso. Unicorn horns, tall ears, hair poofs, wing tips, and raised hooves/paws must be fully visible with clear air above and beside them — never clipped. If a figure still feels tight, shrink only the cast and pull the camera back; keep the environment rich. Never line up the whole cast as a tiny strip along the bottom like stickers; show comfortable ground and body. " +
-    "STYLE: soft matte clay and toy-plastic 3D ONLY — rounded limbs, gentle pastel lighting, not realistic human skin, not glossy CGI. Edge-to-edge scene, no frames or borders. Wholesome and safe for toddlers. " +
+    artStyleSpec.preambleStyleSentence +
     `HERO VISIBILITY: When "${childName}" appears in SCENE ACTION, they must be clearly visible (face on, not swapped for another kid). ` +
     (noBuddyBook
       ? "NO STANDING CREATURE BUDDY: Illustrate only humans named in SCENE ACTION — do not add a unicorn, dragon, robot, or animal mascot unless SCENE ACTION explicitly names that element from the plot. "
@@ -2645,6 +2813,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
       castBible,
       firstPanelLock: "",
       heroFirstName: childName,
+      mandatoryCastLine: artStyleSpec.composeMandatoryCast,
     });
 
     /** When set (default): one T2I “cast lineup”, then all 6 spreads = Fal image→image (Redux) from that anchor — strongest consistency. */
@@ -2662,7 +2831,9 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
         ? "CAST LINEUP / MODEL SHEET for a kids picture book: every character line in LOCKED CAST below (human hero and any named human co-stars or game people ONLY — no creature buddy in the lineup). Together in ONE frame, calm neutral expressions and friendly standing poses for identity reference only — story illustrations later will change faces and poses per scene. "
         : "CAST LINEUP / MODEL SHEET for a kids picture book: every character line in LOCKED CAST below (hero, buddy, and any named human co-stars or game people) — no one else, no third mascot or crowd, no duplicate unicorns. Together in ONE frame, calm neutral expressions and friendly standing poses for identity reference only — story illustrations later will change faces and poses per scene. ") +
       photoRefHairLock +
-      "full bodies on a plain soft background that still fills the canvas edge-to-edge — modest inset so hair, feet, wings, and tails do not touch the border; figures roughly ~50–68% of frame height so each design reads clearly with a bit more breathing room around the lineup, soft matte clay and toy-plastic 3D, gentle pastel light. " +
+      "full bodies on a plain soft background that still fills the canvas edge-to-edge — modest inset so hair, feet, wings, and tails do not touch the border; figures roughly ~50–68% of frame height so each design reads clearly with a bit more breathing room around the lineup, " +
+      artStyleSpec.anchorMaterialClause +
+      ". " +
       "Edge-to-edge, wholesome for toddlers. ";
 
     const anchorPrompt = (
@@ -2784,7 +2955,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
 
           // 1. Style + reference instruction
           blocks.push(
-            "Children's picture-book illustration, soft matte clay and toy-plastic 3D, gentle pastel light, edge-to-edge with no borders or text. " +
+            artStyleSpec.gptEditStyleOpener +
               "SAFE SCALE: Full-bleed scene — environment fills the entire canvas edge-to-edge. **Pull the camera back:** the cast together should use only **~28–42% of frame height** (typically) so **walls, sky, cave, or landscape read clearly** — not a zoomed portrait. Full heads, hair, feet, hands, wings, and tails inside the frame with modest inset — never edge-clipped. Never crop standing or jumping children at the neck, waist, or knees — if the moment is full-body, show full-body. **Book gutter:** bias the group slightly left or right of frame centre — never put a main child's face on the vertical midline. Do not leave empty margins around the whole painting. " +
               "The attached reference image shows the cast on a neutral backdrop — use it ONLY to lock each character's identity (face shapes, hair, outfit colours, species, body shape). Ignore the lineup's neutral expressions and poses for this sheet — on THIS spread, show expressions and poses that fit the story moment. Repaint the world fresh.",
           );
@@ -2965,6 +3136,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
             castBible,
             firstPanelLock: panelLock,
             heroFirstName: childName,
+            mandatoryCastLine: artStyleSpec.composeMandatoryCast,
           });
           const verseBeat = spreadTextForPicturePage(b.index, story.pages).slice(0, 360);
           const wideBeatClause = needsFullBodyWideFraming(`${verseBeat} ${b.brief}`)
@@ -2979,7 +3151,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
               ". " +
               "SCENE: change layout, camera, and environment completely vs the reference. Show the action and setting in the brief — rockets, trampolines, castles, planets, etc. must appear visibly if the story calls for them. " +
               "Keep character IDENTITY only from the reference (face shape, species, hair/outfit colours, sizes)—vary expressions and poses to match the verse's emotion; do not recycle the same neutral smile on every spread. Do not recreate neutral lineup poses or plain backdrop. " +
-              "Textless; soft matte clay toy 3D. " +
+              artStyleSpec.falReduxStyleTag +
               composed.slice(0, FAL_REDUX_PROMPT_MAX - 420);
             const u = await falFluxReduxImageUrl(
               falKey,
@@ -3045,6 +3217,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
                 castBible,
                 firstPanelLock: panelLock,
                 heroFirstName: childName,
+                mandatoryCastLine: artStyleSpec.composeMandatoryCast,
               });
               if (useFalRedux) {
                 if (!referenceStillUrl) {
@@ -3058,7 +3231,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
                     wideBeatClause +
                     "New story moment — change poses, action, and background to match the scene. " +
                     "Keep the same hero face shape, hair, outfit colours, and the same buddy and named creatures as the reference — only beings named in SCENE ACTION, no new animals or people. Shift facial expressions and body language to match the story beat — not the same static expression every time. " +
-                    "TEXTLESS — no words, signs, book pages with text, logos, paper scraps with writing, or gibberish texture; soft matte clay toy 3D only. " +
+                    artStyleSpec.falLegacyStyleTag +
                     "FRAME / SCALE: full-bleed edge-to-edge; **pulled-back camera** — cast **~28–40% of frame height** typically, **setting prominent**, not zoomed portrait; modest inset — full heads, feet, hands, wings inside canvas; bias off centre gutter; do not squash everyone along the bottom edge. " +
                     composed.slice(0, FAL_REDUX_PROMPT_MAX - 220);
                   const u = await falFluxReduxImageUrl(
@@ -3162,6 +3335,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
         : null,
       gptImageSpreads: useGptImage ? gptImageSpreadCount : 0,
       pictureBookQuality,
+      illustrationStyle: illustrationStyleKey,
       reuseFirstIllustrationOnLast:
         Deno.env.get("STORYBOOK_REUSE_FIRST_ON_LAST") === "1",
     },

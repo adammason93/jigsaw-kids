@@ -12,7 +12,7 @@
   <link rel="manifest" href="../manifest.json" />
   <link rel="stylesheet" href="../js/kids-core.css" />
   <!-- storybook-app.css = renamed file so CDN/browser cache cannot keep old storybook.css -->
-  <link rel="stylesheet" href="storybook-app.css?v=139" />
+  <link rel="stylesheet" href="storybook-app.css?v=141" />
   <link rel="stylesheet" href="../tablet-ipad.css" />
   <!-- Last wins: guarantees new background even if a proxy cached an ancient stylesheet elsewhere -->
   <style>
@@ -286,6 +286,64 @@
           </div>
           <p class="sb-voice-hint" id="sbVoicePlotHint" aria-live="polite"></p>
           <p class="sb-panel__micro">We’ll keep it gentle and happy for little readers.</p>
+          <fieldset class="sb-illustration-styles" id="sbIllustrationStyles" aria-describedby="sbIllustrationStylesHint">
+            <legend class="sb-label sb-label--secondary">Art style</legend>
+            <p class="sb-panel__micro sb-illustration-styles__hint" id="sbIllustrationStylesHint">
+              Choose how the pictures should look. Thumbnails are a mood guide — your book uses the style you pick on every page.
+            </p>
+            <div class="sb-style-picks" role="radiogroup" aria-labelledby="sbIllustrationStylesHint">
+              <label class="sb-style-pick">
+                <input type="radio" name="sbIllustrationStyle" value="clay3d" checked />
+                <span class="sb-style-pick__card">
+                  <span class="sb-style-pick__thumb sb-style-pick__thumb--clay" aria-hidden="true"></span>
+                  <span class="sb-style-pick__text">
+                    <span class="sb-style-pick__title">Clay &amp; toy plastic</span>
+                    <span class="sb-style-pick__sub">Rounded 3D — default</span>
+                  </span>
+                </span>
+              </label>
+              <label class="sb-style-pick">
+                <input type="radio" name="sbIllustrationStyle" value="vector_flat" />
+                <span class="sb-style-pick__card">
+                  <span class="sb-style-pick__thumb sb-style-pick__thumb--vector" aria-hidden="true"></span>
+                  <span class="sb-style-pick__text">
+                    <span class="sb-style-pick__title">Flat vector</span>
+                    <span class="sb-style-pick__sub">Bold shapes &amp; colours</span>
+                  </span>
+                </span>
+              </label>
+              <label class="sb-style-pick">
+                <input type="radio" name="sbIllustrationStyle" value="watercolor" />
+                <span class="sb-style-pick__card">
+                  <span class="sb-style-pick__thumb sb-style-pick__thumb--watercolor" aria-hidden="true"></span>
+                  <span class="sb-style-pick__text">
+                    <span class="sb-style-pick__title">Watercolour</span>
+                    <span class="sb-style-pick__sub">Soft painted washes</span>
+                  </span>
+                </span>
+              </label>
+              <label class="sb-style-pick">
+                <input type="radio" name="sbIllustrationStyle" value="papercut" />
+                <span class="sb-style-pick__card">
+                  <span class="sb-style-pick__thumb sb-style-pick__thumb--papercut" aria-hidden="true"></span>
+                  <span class="sb-style-pick__text">
+                    <span class="sb-style-pick__title">Paper collage</span>
+                    <span class="sb-style-pick__sub">Cut-paper layers</span>
+                  </span>
+                </span>
+              </label>
+              <label class="sb-style-pick">
+                <input type="radio" name="sbIllustrationStyle" value="soft_3d" />
+                <span class="sb-style-pick__card">
+                  <span class="sb-style-pick__thumb sb-style-pick__thumb--soft3d" aria-hidden="true"></span>
+                  <span class="sb-style-pick__text">
+                    <span class="sb-style-pick__title">Soft 3D animation</span>
+                    <span class="sb-style-pick__sub">Film-style, still gentle</span>
+                  </span>
+                </span>
+              </label>
+            </div>
+          </fieldset>
           <fieldset class="sb-picture-quality">
             <legend class="sb-label sb-label--secondary">Pictures</legend>
             <p class="sb-panel__micro sb-picture-quality__hint" id="sbPictureQualityHint">
@@ -304,6 +362,28 @@
                 <span class="sb-quality-opt__body">
                   <span class="sb-quality-opt__title">High quality</span>
                   <span class="sb-quality-opt__sub">Ready to print</span>
+                </span>
+              </label>
+            </div>
+          </fieldset>
+          <fieldset class="sb-book-spread-layout" id="sbBookSpreadLayout" aria-describedby="sbBookSpreadLayoutHint">
+            <legend class="sb-label sb-label--secondary">Picture spread</legend>
+            <p class="sb-panel__micro sb-book-spread-layout__hint" id="sbBookSpreadLayoutHint">
+              Choose how each illustration appears when you read. <strong>One page</strong> fits the <em>whole</em> picture on a single side (same image file — scaled to fit, not stretched across both pages).
+            </p>
+            <div class="sb-quality-row" role="radiogroup" aria-labelledby="sbBookSpreadLayoutHint">
+              <label class="sb-quality-opt">
+                <input type="radio" name="sbBookSpreadLayout" value="duplex" checked />
+                <span class="sb-quality-opt__body">
+                  <span class="sb-quality-opt__title">Across both pages</span>
+                  <span class="sb-quality-opt__sub">One wide picture behind the spread — like an open poster</span>
+                </span>
+              </label>
+              <label class="sb-quality-opt">
+                <input type="radio" name="sbBookSpreadLayout" value="facing" />
+                <span class="sb-quality-opt__body">
+                  <span class="sb-quality-opt__title">One page only</span>
+                  <span class="sb-quality-opt__sub">Full picture on one side, story text on the other — sides alternate each spread</span>
                 </span>
               </label>
             </div>
@@ -341,22 +421,6 @@
           ◀
         </button>
         <div class="sb-read-stage">
-          <fieldset
-            class="sb-art-layout-opts"
-            id="sbArtLayoutOpts"
-            aria-label="Picture layout"
-            hidden
-          >
-            <legend class="sb-art-layout-opts__legend">Pictures</legend>
-            <label class="sb-art-layout-opts__opt">
-              <input type="radio" name="sbArtLayout" value="duplex" checked />
-              <span>Across both pages</span>
-            </label>
-            <label class="sb-art-layout-opts__opt">
-              <input type="radio" name="sbArtLayout" value="facing" />
-              <span>One page — alternates sides</span>
-            </label>
-          </fieldset>
           <div class="sb-reader-stack" id="sbReaderStack">
             <div class="sb-reader-book">
               <button

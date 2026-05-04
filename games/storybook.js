@@ -461,8 +461,10 @@
   var flipLeftShell = document.getElementById("sbFlipLeftShell");
   var flipRightShell = document.getElementById("sbFlipRightShell");
   var spreadPageNumEl = document.getElementById("sbSpreadPageNum");
-  var artLayoutOpts = document.getElementById("sbArtLayoutOpts");
+  var bookSpreadLayoutFieldset = document.getElementById("sbBookSpreadLayout");
+  var illustrationStyleFieldset = document.getElementById("sbIllustrationStyles");
   var K_READER_ART_LAYOUT = "sbReaderArtLayout";
+  var K_ILLUSTRATION_STYLE = "sbIllustrationStyle";
 
   function getReaderArtLayout() {
     try {
@@ -478,25 +480,67 @@
     } catch (eSetLayout) {}
   }
 
-  function syncArtLayoutRadios() {
-    if (!artLayoutOpts) return;
+  function syncBookSpreadLayoutRadios() {
+    if (!bookSpreadLayoutFieldset) return;
     var m = getReaderArtLayout();
-    var inp = artLayoutOpts.querySelector('input[name="sbArtLayout"][value="' + m + '"]');
+    var inp = bookSpreadLayoutFieldset.querySelector(
+      'input[name="sbBookSpreadLayout"][value="' + m + '"]'
+    );
     if (inp) inp.checked = true;
   }
 
-  function syncArtLayoutOptsVisibility() {
-    if (!artLayoutOpts || !readerStack || !book) return;
-    var open =
-      readerStack.classList.contains("sb-reader-stack--open") &&
-      !book.classList.contains("sb-book--cover-visible");
-    if (open) {
-      artLayoutOpts.removeAttribute("hidden");
-      artLayoutOpts.hidden = false;
-    } else {
-      artLayoutOpts.setAttribute("hidden", "");
-      artLayoutOpts.hidden = true;
-    }
+  /** @returns {'duplex' | 'facing'} */
+  function readBookSpreadLayoutFromWizard() {
+    if (!bookSpreadLayoutFieldset) return getReaderArtLayout();
+    var c = bookSpreadLayoutFieldset.querySelector(
+      'input[name="sbBookSpreadLayout"]:checked'
+    );
+    if (!c) return getReaderArtLayout();
+    return String(c.value) === "facing" ? "facing" : "duplex";
+  }
+
+  var ILLUSTRATION_STYLE_KEYS = {
+    clay3d: 1,
+    vector_flat: 1,
+    watercolor: 1,
+    papercut: 1,
+    soft_3d: 1,
+  };
+
+  function coerceIllustrationStyleKey(v) {
+    var s = String(v || "").trim();
+    return ILLUSTRATION_STYLE_KEYS[s] ? s : "clay3d";
+  }
+
+  function getIllustrationStyle() {
+    try {
+      var v = localStorage.getItem(K_ILLUSTRATION_STYLE);
+      if (v) return coerceIllustrationStyleKey(v);
+    } catch (eSt) {}
+    return "clay3d";
+  }
+
+  function setIllustrationStyle(mode) {
+    try {
+      localStorage.setItem(K_ILLUSTRATION_STYLE, coerceIllustrationStyleKey(mode));
+    } catch (eSetSt) {}
+  }
+
+  function syncIllustrationStyleRadios() {
+    if (!illustrationStyleFieldset) return;
+    var m = getIllustrationStyle();
+    var inp = illustrationStyleFieldset.querySelector(
+      'input[name="sbIllustrationStyle"][value="' + m + '"]'
+    );
+    if (inp) inp.checked = true;
+  }
+
+  function readIllustrationStyleFromWizard() {
+    if (!illustrationStyleFieldset) return getIllustrationStyle();
+    var c = illustrationStyleFieldset.querySelector(
+      'input[name="sbIllustrationStyle"]:checked'
+    );
+    return c ? coerceIllustrationStyleKey(c.value) : getIllustrationStyle();
   }
 
   function syncReaderFacingLayoutClasses() {
@@ -1157,7 +1201,6 @@
       btnCloseBook.hidden = true;
       btnCloseBook.setAttribute("aria-hidden", "true");
     }
-    syncArtLayoutOptsVisibility();
   }
 
   function closeBookCover() {
@@ -1183,7 +1226,6 @@
     }
     syncCloseBookButton();
     updatePagerHints();
-    syncArtLayoutOptsVisibility();
   }
 
   function openBookCover() {
@@ -1201,7 +1243,6 @@
     }
     syncCloseBookButton();
     updatePagerHints();
-    syncArtLayoutOptsVisibility();
 
     function paintOpenSpread() {
       applySpreadContent();
@@ -1245,7 +1286,6 @@
       btnOpenCover.removeAttribute("tabindex");
     }
     syncCloseBookButton();
-    syncArtLayoutOptsVisibility();
   }
 
   function applyBookThemingFromStory() {
@@ -3142,6 +3182,8 @@
     if (bookColorToggle) bookColorToggle.setAttribute("aria-expanded", "false");
     goToStep(0);
     resetPictureQualityToStandard();
+    syncBookSpreadLayoutRadios();
+    syncIllustrationStyleRadios();
     if (stepHeading) {
       try {
         stepHeading.focus();
@@ -3247,6 +3289,8 @@
     if (plotInput) plotInput.value = "";
     clearHeroPhoto();
     goToStep(0);
+    syncBookSpreadLayoutRadios();
+    syncIllustrationStyleRadios();
   }
 
   function showBook() {
@@ -3766,6 +3810,8 @@
   if (btnGen) {
     btnGen.addEventListener("click", function () {
       setError("");
+      setReaderArtLayout(readBookSpreadLayoutFromWizard());
+      setIllustrationStyle(readIllustrationStyleFromWizard());
       var url = functionUrl();
       var key = anonKey();
       if (!url || !key) {
@@ -3790,6 +3836,7 @@
           place: selectedPlace,
           plotHint: plotHint,
           pictureBookQuality: selectedPictureBookQuality(),
+          illustrationStyle: readIllustrationStyleFromWizard(),
           author: customAuthor || undefined,
           familyNames: familyPeople.map(function (p) {
             return p.label;
@@ -3943,15 +3990,6 @@
     KidsCore.bindTapSound(document.getElementById("app"));
   }
 
-  syncArtLayoutRadios();
-  if (artLayoutOpts) {
-    artLayoutOpts.addEventListener("change", function (e) {
-      var t = e.target;
-      if (!t || t.name !== "sbArtLayout") return;
-      setReaderArtLayout(String(t.value) === "facing" ? "facing" : "duplex");
-      if (story) {
-        applySpreadContent();
-      }
-    });
-  }
+  syncBookSpreadLayoutRadios();
+  syncIllustrationStyleRadios();
 })();
