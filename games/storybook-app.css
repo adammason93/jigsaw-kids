@@ -3327,19 +3327,10 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
 }
 
 /* --- One-page pictures: art fills the whole picture page (cover) --- */
-.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--facing-art-right .sb-flip-spread__art-base {
+.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-flip-spread__art-base {
   left: calc(50% + 1.75px);
   right: 0;
   width: auto;
-}
-
-.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--facing-art-left .sb-flip-spread__art-base {
-  left: 0;
-  right: calc(50% + 1.75px);
-  width: auto;
-}
-
-.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-flip-spread__art-base {
   background: #ede8df;
 }
 
@@ -3353,14 +3344,6 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   height: 100%;
   max-width: none;
   object-fit: cover;
-  object-position: center 45%;
-}
-
-.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--facing-art-left .sb-flip-spread__art-cover {
-  object-position: center 45%;
-}
-
-.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--facing-art-right .sb-flip-spread__art-cover {
   object-position: center 45%;
 }
 
@@ -3380,22 +3363,9 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   pointer-events: none;
 }
 
-.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art.sb-facing-text-on-left .sb-page-num {
+.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-page-num {
   left: auto;
   right: max(0.65rem, env(safe-area-inset-right, 0px));
-  bottom: max(0.55rem, env(safe-area-inset-bottom, 0px));
-  padding: 0.2rem 0.45rem;
-  border-radius: 0;
-  background: transparent;
-  box-shadow: none;
-  font-size: 0.92rem;
-  font-weight: 650;
-  color: #1a1a1a;
-}
-
-.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art.sb-facing-text-on-right .sb-page-num {
-  right: auto;
-  left: max(0.65rem, env(safe-area-inset-left, 0px));
   bottom: max(0.55rem, env(safe-area-inset-bottom, 0px));
   padding: 0.2rem 0.45rem;
   border-radius: 0;
@@ -3415,7 +3385,7 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
 }
 
 /* Cream paper + soft white blobs along the **gutter** edge (beside the picture), #f7f4eb field */
-.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art.sb-facing-text-on-left .sb-flip-page--text .sb-flip-page__sheet::before {
+.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-flip-page--text .sb-flip-page__sheet::before {
   content: "";
   position: absolute;
   inset: 0;
@@ -3423,18 +3393,6 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   background:
     radial-gradient(ellipse 92% 70% at 108% 2%, #ffffff 0%, rgba(255, 255, 255, 0.82) 45%, transparent 72%),
     radial-gradient(ellipse 95% 74% at 104% 102%, #ffffff 0%, rgba(255, 255, 255, 0.8) 48%, transparent 75%),
-    #f7f4eb;
-  pointer-events: none;
-}
-
-.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art.sb-facing-text-on-right .sb-flip-page--text .sb-flip-page__sheet::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  background:
-    radial-gradient(ellipse 92% 70% at -8% 2%, #ffffff 0%, rgba(255, 255, 255, 0.82) 45%, transparent 72%),
-    radial-gradient(ellipse 95% 74% at -4% 102%, #ffffff 0%, rgba(255, 255, 255, 0.8) 48%, transparent 75%),
     #f7f4eb;
   pointer-events: none;
 }
@@ -3677,7 +3635,7 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   transform-origin: center center;
 }
 
-/* Verso prose (facing): parent .sb-flip-spread__peel-back uses rotateY(180deg); counter-rotate so type is not mirrored. */
+/* Facing: back face mirrors glyphs in X; flip horizontally so verso reads normally. */
 .sb-flip-spread__peel-back-text {
   position: absolute;
   inset: 0;
@@ -3695,8 +3653,8 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
 }
 
 .sb-flip-spread__inner--art-facing .sb-flip-spread__peel-back-text {
-  transform: rotateY(180deg) translateZ(2px);
-  -webkit-transform: rotateY(180deg) translateZ(2px);
+  transform: scaleX(-1) translateZ(3px);
+  -webkit-transform: scaleX(-1) translateZ(3px);
   transform-style: preserve-3d;
   -webkit-transform-style: preserve-3d;
 }

@@ -668,7 +668,7 @@
     return false;
   }
 
-  function syncReaderFacingLayoutClasses(options) {
+  function syncReaderFacingLayoutClasses() {
     if (!spreadInnerEl) return;
     var wantFacing = getEffectiveReaderArtLayout() === "facing";
     var dataHasIll = !!(story && spreadRowHasIllustration(spreadIndex));
@@ -686,33 +686,18 @@
     spreadInnerEl.classList.toggle("sb-flip-spread__inner--art-facing", effective);
 
     if (effective) {
-      var artSi = spreadIndex;
-      var textSi = spreadIndex;
-      if (options && typeof options === "object") {
-        if (options.artSpreadIndex !== undefined && options.artSpreadIndex !== null) {
-          artSi = Math.max(0, Math.floor(Number(options.artSpreadIndex)));
-        }
-        if (options.textSpreadIndex !== undefined && options.textSpreadIndex !== null) {
-          textSi = Math.max(0, Math.floor(Number(options.textSpreadIndex)));
-        }
-      }
-      var artRight = artSi % 2 === 0;
-      var textOnLeft = textSi % 2 === 0;
-      spreadInnerEl.classList.toggle("sb-flip-spread__inner--facing-art-right", artRight);
-      spreadInnerEl.classList.toggle("sb-flip-spread__inner--facing-art-left", !artRight);
-      spreadInnerEl.classList.toggle("sb-facing-text-on-left", textOnLeft);
-      spreadInnerEl.classList.toggle("sb-facing-text-on-right", !textOnLeft);
+      /* Fixed facing: prose always on the left leaf, art always on the right (no alternating shells per spread). */
+      spreadInnerEl.classList.add("sb-facing-text-on-left");
+      spreadInnerEl.classList.remove("sb-facing-text-on-right");
     } else {
       spreadInnerEl.classList.remove(
-        "sb-flip-spread__inner--facing-art-right",
-        "sb-flip-spread__inner--facing-art-left",
         "sb-facing-text-on-left",
         "sb-facing-text-on-right"
       );
     }
   }
 
-  function placeTextPageForFacingLayout(layoutSpreadIndex) {
+  function placeTextPageForFacingLayout() {
     if (!flipLeftShell || !flipRightShell || !spreadText) return;
     var textPage = spreadText.closest(".sb-flip-page--text");
     if (!textPage) return;
@@ -729,22 +714,10 @@
       return;
     }
 
-    var si =
-      layoutSpreadIndex !== undefined && layoutSpreadIndex !== null
-        ? Math.max(0, Math.floor(Number(layoutSpreadIndex)))
-        : spreadIndex;
-    var artRight = si % 2 === 0;
-    if (artRight) {
-      if (!flipLeftShell.contains(textPage)) {
-        flipLeftShell.appendChild(textPage);
-      }
-      flipRightShell.setAttribute("aria-hidden", "true");
-    } else {
-      if (!flipRightShell.contains(textPage)) {
-        flipRightShell.appendChild(textPage);
-      }
-      flipRightShell.removeAttribute("aria-hidden");
+    if (!flipLeftShell.contains(textPage)) {
+      flipLeftShell.appendChild(textPage);
     }
+    flipRightShell.setAttribute("aria-hidden", "true");
   }
 
   function updateSpreadPageNumberDisplay(siOverride) {
@@ -1178,14 +1151,14 @@
       cb();
     }
     function onTe(ev) {
-      if (!ev || !ev.target || !shell.contains(ev.target)) return;
+      if (!ev || ev.target !== shell) return;
       var pn = ev.propertyName || "";
       if (pn !== "" && !isTransformTransitionProperty(pn)) return;
       finish();
     }
     shell.addEventListener("transitionend", onTe);
     shell.addEventListener("webkitTransitionEnd", onTe);
-    var tid = window.setTimeout(finish, 900);
+    var tid = window.setTimeout(finish, 750);
   }
 
   function bumpSpreadIndex(delta) {
@@ -1226,9 +1199,6 @@
     var peelOut = outArt || peelBlank;
     var peelIn = inArt || peelBlank;
 
-    var rectoFacingArt = isFacingBook && fromSi % 2 === 0;
-    var versoFacingArt = isFacingBook && toSi % 2 === 1;
-
     spreadIndex = toSi;
 
     spreadAnimLock = true;
@@ -1247,11 +1217,8 @@
 
     syncSpreadIllustrationFromStory();
     if (isFacingBook) {
-      syncReaderFacingLayoutClasses({
-        artSpreadIndex: toSi,
-        textSpreadIndex: fromSi,
-      });
-      placeTextPageForFacingLayout(fromSi);
+      syncReaderFacingLayoutClasses();
+      placeTextPageForFacingLayout();
     }
 
     writeSpreadTextMetaFromStory(fromSi);
@@ -1270,17 +1237,13 @@
     if (peelImg) {
       peelImg.alt = "";
       peelImg.referrerPolicy = "no-referrer";
-      if (isFacingBook && !rectoFacingArt) {
-        peelImg.src = peelBlank;
-      } else {
-        peelImg.src = peelOut;
-      }
+      peelImg.src = peelOut;
     }
 
     if (peelBackImg) {
       peelBackImg.alt = "";
       peelBackImg.referrerPolicy = "no-referrer";
-      if (isFacingBook && !versoFacingArt) {
+      if (isFacingBook) {
         peelBackImg.src = peelBlank;
       } else {
         peelBackImg.src = peelIn;
@@ -1296,24 +1259,18 @@
     }
 
     var peelFrontRoot = peelShell.querySelector(".sb-flip-spread__peel-front");
-    if (isFacingBook && !rectoFacingArt) {
-      fillPeelFrontTextColumn(fromSi);
-      if (peelFrontRoot) {
-        peelFrontRoot.classList.add("sb-flip-spread__peel-front--recto-prose");
-      }
-    } else {
-      if (spreadPeelFrontText) spreadPeelFrontText.innerHTML = "";
-      if (peelFrontRoot) {
-        peelFrontRoot.classList.remove("sb-flip-spread__peel-front--recto-prose");
-      }
+    if (spreadPeelFrontText) spreadPeelFrontText.innerHTML = "";
+    if (peelFrontRoot) {
+      peelFrontRoot.classList.remove("sb-flip-spread__peel-front--recto-prose");
     }
 
     peelShell.hidden = false;
     peelShell.removeAttribute("hidden");
+    peelShell.style.removeProperty("display");
 
     var peelBackEl = peelShell.querySelector(".sb-flip-spread__peel-back");
     if (peelBackEl) {
-      if (isFacingBook && !versoFacingArt) {
+      if (isFacingBook) {
         peelBackEl.classList.add("sb-flip-spread__peel-back--verso-text");
       } else {
         peelBackEl.classList.remove("sb-flip-spread__peel-back--verso-text");
@@ -1366,6 +1323,7 @@
         if (peelBackImg) peelBackImg.removeAttribute("src");
         if (outgoingLeftImg) outgoingLeftImg.removeAttribute("src");
 
+        peelShell.style.display = "none";
         peelShell.hidden = true;
         if (outgoingLeftShell) {
           outgoingLeftShell.hidden = true;
@@ -1757,26 +1715,6 @@
   }
 
   /**
-   * Outgoing right page on peel recto when facing spread uses prose on the right (that leaf turns forward).
-   * @param {number} fromSi
-   */
-  function fillPeelFrontTextColumn(fromSi) {
-    if (!spreadPeelFrontText) return;
-    var block = spreadRightColumnBlockAtSi(fromSi);
-    if (block.kind === "prose" && block.html) {
-      spreadPeelFrontText.innerHTML =
-        '<p class="sb-flip-text"><span class="sb-flip-text__highlight">' +
-        block.html +
-        "</span></p>";
-      bindReadableWordSpans(spreadPeelFrontText);
-    } else if (block.kind === "theend" && block.html) {
-      spreadPeelFrontText.innerHTML = block.html;
-    } else {
-      spreadPeelFrontText.innerHTML = "";
-    }
-  }
-
-  /**
    * Left column content for one spread (prose words HTML, The End block, or empty).
    * @param {number} si
    * @returns {{ kind: "empty"|"theend"|"prose", html?: string }}
@@ -1806,9 +1744,9 @@
   }
 
   /**
-   * Right column for one spread (prose HTML for facing verso on a right-hand peel).
+   * Right column of a spread’s story pages (prose HTML).
    * @param {number} si
-   * @returns {{ kind: "empty"|"prose", html?: string }}
+   * @returns {{ kind: "empty"|"theend"|"prose", html?: string }}
    */
   function spreadRightColumnBlockAtSi(si) {
     if (!story || !story.pages || !story.pages.length) {
@@ -1818,7 +1756,14 @@
     if (n < 1) return { kind: "empty" };
     si = Math.max(0, Math.min(Number(si), n - 1));
     if (si * 2 >= story.pages.length) {
-      return { kind: "empty" };
+      return {
+        kind: "theend",
+        html:
+          '<div class="sb-the-end-wrap" role="status">' +
+          '<h2 class="sb-the-end-title">The End</h2>' +
+          '<p class="sb-the-end-lead">We hope you enjoyed the story!</p>' +
+          "</div>",
+      };
     }
     var ri = si * 2 + 1;
     if (ri >= story.pages.length) {
@@ -1832,12 +1777,39 @@
   }
 
   /**
-   * Incoming **left** page on peel verso (back of the right-hand leaf) — matches physical page turn.
+   * Prose shown in the **left** text column in facing layout: even si → left story page of the spread,
+   * odd si → right story page. (Physical column stays left; only the story page alternates.)
+   * Duplex / non-facing falls back to the left-column behaviour.
+   * @param {number} si
+   * @returns {{ kind: "empty"|"theend"|"prose", html?: string }}
+   */
+  function spreadFacingReaderTextBlockAtSi(si) {
+    if (!story || !story.pages || !story.pages.length) {
+      return { kind: "empty" };
+    }
+    if (
+      !spreadInnerEl ||
+      !spreadInnerEl.classList.contains("sb-flip-spread__inner--art-facing")
+    ) {
+      return spreadLeftColumnBlockAtSi(si);
+    }
+    if (si % 2 === 0) {
+      return spreadLeftColumnBlockAtSi(si);
+    }
+    return spreadRightColumnBlockAtSi(si);
+  }
+
+  /**
+   * Back of the turning leaf during peel: incoming reader text (facing parity) or duplex left column.
    * @param {number} si  Incoming spread index (spreadIndex / toSi during peel).
    */
   function fillPeelBackTextColumn(si) {
     if (!spreadPeelBackText) return;
-    var block = spreadLeftColumnBlockAtSi(si);
+    var block =
+      spreadInnerEl &&
+      spreadInnerEl.classList.contains("sb-flip-spread__inner--art-facing")
+        ? spreadFacingReaderTextBlockAtSi(si)
+        : spreadLeftColumnBlockAtSi(si);
     if (block.kind === "prose" && block.html) {
       spreadPeelBackText.innerHTML =
         '<p class="sb-flip-text"><span class="sb-flip-text__highlight">' +
@@ -1857,7 +1829,7 @@
     showBook();
   }
 
-  /** @param {number} [textSiOverride]  During peel: show left-page copy for this spread index (caller keeps global spreadIndex at destination). */
+  /** @param {number} [textSiOverride]  Spread index for prose (visible text column follows facing parity). */
   function writeSpreadTextMetaFromStory(textSiOverride) {
     if (!story || !spreadText) return;
     var n = numSpreads();
@@ -1872,7 +1844,7 @@
 
     stopReading();
 
-    var block = spreadLeftColumnBlockAtSi(si);
+    var block = spreadFacingReaderTextBlockAtSi(si);
     if (block.kind === "theend" && block.html) {
       spreadText.innerHTML = block.html;
       if (spreadTextActions) {
