@@ -1228,6 +1228,14 @@
     var isFacingBook = readerUsesFacingPageTurn();
     if (spreadInnerEl) {
       spreadInnerEl.classList.add("sb-flip-spread__inner--peel-turning");
+      if (isFacingBook) {
+        spreadInnerEl.classList.toggle(
+          "sb-facing-peel--mirror",
+          fromSi % 2 === 1
+        );
+      } else {
+        spreadInnerEl.classList.remove("sb-facing-peel--mirror");
+      }
     }
 
     syncSpreadIllustrationFromStory();
@@ -1302,6 +1310,7 @@
         clearSpreadTurnRevealFx();
         if (spreadInnerEl) {
           spreadInnerEl.classList.remove("sb-flip-spread__inner--peel-turning");
+          spreadInnerEl.classList.remove("sb-facing-peel--mirror");
           var textPages = spreadInnerEl.querySelectorAll(".sb-flip-page--text");
           for (var ti = 0; ti < textPages.length; ti++) {
             textPages[ti].style.animation = "";
