@@ -1228,9 +1228,6 @@
     var isFacingBook = readerUsesFacingPageTurn();
     if (spreadInnerEl) {
       spreadInnerEl.classList.add("sb-flip-spread__inner--peel-turning");
-      if (isFacingBook) {
-        spreadInnerEl.classList.toggle("sb-facing-peel--mirror", fromSi % 2 === 1);
-      }
     }
 
     syncSpreadIllustrationFromStory();
@@ -1254,10 +1251,6 @@
     var peelBackImg = document.getElementById("sbSpreadArtPeelBackImg");
     var outgoingLeftShell = document.getElementById("sbSpreadArtOutgoingLeft");
     var outgoingLeftImg = document.getElementById("sbSpreadArtOutgoingLeftImg");
-    /* Duplex: always show outgoing-left (left half of wide art). Facing + art on right: text lives on the left — do not paint half the pic there or it mashups with the peel. */
-    var fromArtRight = fromSi % 2 === 0;
-    var useDuplexOutgoingLeft = !isFacingBook || !fromArtRight;
-
     if (peelImg) {
       peelImg.alt = "";
       peelImg.referrerPolicy = "no-referrer";
@@ -1271,26 +1264,17 @@
     }
 
     if (outgoingLeftImg) {
-      if (useDuplexOutgoingLeft) {
-        outgoingLeftImg.alt = "";
-        outgoingLeftImg.referrerPolicy = "no-referrer";
-        outgoingLeftImg.src = peelOut;
-      } else {
-        outgoingLeftImg.removeAttribute("src");
-      }
+      outgoingLeftImg.alt = "";
+      outgoingLeftImg.referrerPolicy = "no-referrer";
+      outgoingLeftImg.src = peelOut;
     }
 
     peelShell.hidden = false;
     peelShell.removeAttribute("hidden");
     if (outgoingLeftShell) {
-      if (useDuplexOutgoingLeft) {
-        outgoingLeftShell.hidden = false;
-        outgoingLeftShell.removeAttribute("hidden");
-        outgoingLeftShell.style.display = "block";
-      } else {
-        outgoingLeftShell.hidden = true;
-        outgoingLeftShell.style.display = "none";
-      }
+      outgoingLeftShell.hidden = false;
+      outgoingLeftShell.removeAttribute("hidden");
+      outgoingLeftShell.style.display = "block";
     }
 
     var isNext = delta > 0;
@@ -1306,7 +1290,6 @@
         clearSpreadTurnRevealFx();
         if (spreadInnerEl) {
           spreadInnerEl.classList.remove("sb-flip-spread__inner--peel-turning");
-          spreadInnerEl.classList.remove("sb-facing-peel--mirror");
         }
         clearPeelBackTextColumn();
         if (peelImg) peelImg.removeAttribute("src");
@@ -1722,11 +1705,6 @@
 
   function fillPeelBackTextColumn(si) {
     if (!spreadPeelBackText) return;
-    /* Facing: verso is art-only; duplex-style text here ghosts over the next illustration mid-turn. */
-    if (getEffectiveReaderArtLayout() === "facing") {
-      spreadPeelBackText.innerHTML = "";
-      return;
-    }
     var block = spreadLeftColumnBlockAtSi(si);
     if (block.kind === "prose" && block.html) {
       spreadPeelBackText.innerHTML =
