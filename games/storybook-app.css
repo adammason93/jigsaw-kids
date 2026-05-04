@@ -732,7 +732,8 @@ body.sb-portal-welcome-open {
   body.page-storybook.sb-route-story:not(.sb-modal-open)
     .sb-app:has(#sbLanding:not(.is-hidden))
     .sb-landing__right
-    .sb-library-page
+    #sbShelf
+    > .sb-cover-card-wrap
     .sb-cover-card {
     --sb-book-thickness: clamp(5px, 0.38rem, 9px);
   }
@@ -740,8 +741,8 @@ body.sb-portal-welcome-open {
   body.page-storybook.sb-route-story:not(.sb-modal-open)
     .sb-app:has(#sbLanding:not(.is-hidden))
     .sb-landing__right
-    .sb-library-page
-    .sb-cover-card-wrap {
+    #sbShelf
+    > .sb-cover-card-wrap {
     padding-bottom: 0.2rem;
   }
 }
@@ -920,47 +921,66 @@ body.sb-portal-welcome-open {
   scroll-snap-align: center;
 }
 
-.sb-library-page {
-  flex: 0 0 100%;
-  width: 100%;
+/* My library: all covers visible in one vertical-scroll grid (#sbShelf is the carousel track). */
+#sbShelf:has(> .sb-cover-card-wrap) {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  justify-content: center;
-  grid-auto-rows: max-content;
-  gap: 0.9rem 0.65rem;
   justify-items: center;
   align-items: end;
-  scroll-snap-align: start;
+  grid-auto-rows: max-content;
+  gap: 0.9rem 0.65rem;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scroll-behavior: auto;
+  scroll-snap-type: none;
+  max-height: min(62vh, 620px);
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(157, 23, 77, 0.45) rgba(255, 255, 255, 0.2);
+}
+
+#sbShelf:has(> .sb-cover-card-wrap)::-webkit-scrollbar {
+  width: 8px;
+  display: block;
+}
+
+#sbShelf:has(> .sb-cover-card-wrap)::-webkit-scrollbar-thumb {
+  background: rgba(157, 23, 77, 0.4);
+  border-radius: 999px;
 }
 
 @media (min-width: 520px) {
-  .sb-library-page {
+  #sbShelf:has(> .sb-cover-card-wrap) {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 1rem 0.75rem;
   }
 }
 
 @media (min-width: 900px) {
-  .sb-library-page {
+  #sbShelf:has(> .sb-cover-card-wrap) {
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 0.85rem 0.6rem;
   }
 }
 
+#sbShelf:has(> .sb-cover-card-wrap) > .sb-cover-card-wrap {
+  scroll-snap-align: none;
+}
+
 /* Covers fill grid cells (drop the 10.5rem cap inside the shelf grid). */
-.sb-library-page .sb-cover-card {
+#sbShelf > .sb-cover-card-wrap .sb-cover-card {
   max-width: 100%;
 }
 
 /* My library: flat portrait “app cover” tiles (see .sb-cover-card--library-preview). */
-.sb-library-page .sb-cover-card-wrap {
+#sbShelf > .sb-cover-card-wrap {
   perspective: none;
   align-items: center;
   padding-bottom: 0.35rem;
 }
 
-.sb-library-page .sb-cover-card-wrap:hover,
-.sb-library-page .sb-cover-card-wrap:focus-within {
+#sbShelf > .sb-cover-card-wrap:hover,
+#sbShelf > .sb-cover-card-wrap:focus-within {
   transform: translateY(-4px) scale(1.03);
 }
 
@@ -1116,9 +1136,9 @@ body.sb-portal-welcome-open {
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
 }
 
-.sb-library-page .sb-cover-card--library-preview.sb-cover-card--has-art:hover .sb-cover-card__thumb-bg,
-.sb-library-page
-  .sb-cover-card-wrap:focus-within
+#sbShelf > .sb-cover-card-wrap .sb-cover-card--library-preview.sb-cover-card--has-art:hover .sb-cover-card__thumb-bg,
+#sbShelf
+  > .sb-cover-card-wrap:focus-within
   .sb-cover-card--library-preview.sb-cover-card--has-art
   .sb-cover-card__thumb-bg {
   filter: saturate(1.07) brightness(1.02);
@@ -1151,41 +1171,41 @@ body.sb-portal-welcome-open {
   }
 }
 
-.sb-library-page .sb-cover-card-wrap:nth-child(1) {
+#sbShelf > .sb-cover-card-wrap:nth-child(1) {
   --sb-shelf-stagger: 0s;
 }
-.sb-library-page .sb-cover-card-wrap:nth-child(2) {
+#sbShelf > .sb-cover-card-wrap:nth-child(2) {
   --sb-shelf-stagger: 0.83s;
 }
-.sb-library-page .sb-cover-card-wrap:nth-child(3) {
+#sbShelf > .sb-cover-card-wrap:nth-child(3) {
   --sb-shelf-stagger: 1.67s;
 }
-.sb-library-page .sb-cover-card-wrap:nth-child(4) {
+#sbShelf > .sb-cover-card-wrap:nth-child(4) {
   --sb-shelf-stagger: 2.5s;
 }
-.sb-library-page .sb-cover-card-wrap:nth-child(5) {
+#sbShelf > .sb-cover-card-wrap:nth-child(5) {
   --sb-shelf-stagger: 3.33s;
 }
-.sb-library-page .sb-cover-card-wrap:nth-child(6) {
+#sbShelf > .sb-cover-card-wrap:nth-child(6) {
   --sb-shelf-stagger: 4.17s;
 }
-.sb-library-page .sb-cover-card-wrap:nth-child(7) {
+#sbShelf > .sb-cover-card-wrap:nth-child(7) {
   --sb-shelf-stagger: 5s;
 }
-.sb-library-page .sb-cover-card-wrap:nth-child(8) {
+#sbShelf > .sb-cover-card-wrap:nth-child(8) {
   --sb-shelf-stagger: 5.83s;
 }
-.sb-library-page .sb-cover-card-wrap:nth-child(9) {
+#sbShelf > .sb-cover-card-wrap:nth-child(9) {
   --sb-shelf-stagger: 6.67s;
 }
 
-.sb-library-page .sb-cover-card-wrap:nth-child(10) {
+#sbShelf > .sb-cover-card-wrap:nth-child(10) {
   --sb-shelf-stagger: 0.35s;
 }
-.sb-library-page .sb-cover-card-wrap:nth-child(11) {
+#sbShelf > .sb-cover-card-wrap:nth-child(11) {
   --sb-shelf-stagger: 2.1s;
 }
-.sb-library-page .sb-cover-card-wrap:nth-child(12) {
+#sbShelf > .sb-cover-card-wrap:nth-child(12) {
   --sb-shelf-stagger: 4.85s;
 }
 

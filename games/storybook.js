@@ -2212,7 +2212,7 @@
 
   var SHELF_STORAGE_KEY = "jigsawKids_storybookShelf_v1";
   /** Max books on shelf (unshift newest; pop oldest when over). Keep in sync with js/score-cloud.js STORYBOOK_SHELF_MAX. */
-  var SHELF_MAX_BOOKS = 200;
+  var SHELF_MAX_BOOKS = 999;
   /** @type {Array|null} null until first hydrate from IndexedDB / localStorage */
   var shelfCache = null;
 
@@ -2652,14 +2652,8 @@
       return;
     }
     
-    var itemsPerPage = 8;
-    for (var i = 0; i < list.length; i += itemsPerPage) {
-      var pageDiv = document.createElement("div");
-      pageDiv.className = "sb-library-page";
-      for (var j = i; j < i + itemsPerPage && j < list.length; j++) {
-        pageDiv.appendChild(createCoverCardWrap(list[j]));
-      }
-      shelfEl.appendChild(pageDiv);
+    for (var i = 0; i < list.length; i++) {
+      shelfEl.appendChild(createCoverCardWrap(list[i]));
     }
     updateCarouselButtons();
   }
@@ -2668,12 +2662,12 @@
     var prevBtn = document.getElementById("sbCarouselPrev");
     var nextBtn = document.getElementById("sbCarouselNext");
     if (!prevBtn || !nextBtn || !shelfEl) return;
-    
-    var scrollLeft = shelfEl.scrollLeft;
-    var maxScroll = shelfEl.scrollWidth - shelfEl.clientWidth;
-    
-    prevBtn.disabled = scrollLeft <= 0;
-    nextBtn.disabled = scrollLeft >= maxScroll - 1; // -1 for rounding
+
+    /* My library is a vertical scroll grid — carousel arrows unused. */
+    prevBtn.hidden = true;
+    nextBtn.hidden = true;
+    prevBtn.setAttribute("aria-hidden", "true");
+    nextBtn.setAttribute("aria-hidden", "true");
   }
 
   function scrollCarousel(dir) {
