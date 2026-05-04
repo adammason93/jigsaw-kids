@@ -3333,17 +3333,6 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   background: #ede8df;
 }
 
-/* While the page turns, layer like duplex: full spread under the hinged leaf (outgoing-left + peel stack). */
-.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--peel-turning .sb-flip-spread__art-base {
-  left: 0;
-  right: 0;
-  width: 100%;
-}
-
-.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--peel-turning .sb-flip-spread__art-cover {
-  object-position: center center;
-}
-
 /* New facing-page art is prompted centred; crop with horizontal centre so the cast stays in frame. */
 .sb-flip-spread__inner--art-facing .sb-flip-spread__art-cover {
   position: absolute;
@@ -3488,11 +3477,6 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   text-shadow: none;
 }
 
-/* While the peel animates, stack it above static left-column type so the verso (art + copy) sweeps over outgoing text */
-.sb-flip-spread__inner.sb-flip-spread__inner--peel-turning .sb-flip-spread__art-peel {
-  z-index: 6;
-}
-
 /* Drop outgoing left-column copy early so it does not overlap incoming verso type mid-turn */
 @keyframes sb-peel-fade-outgoing-text {
   from {
@@ -3508,6 +3492,13 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
 .sb-flip-spread__inner--peel-turning .sb-flip-right-shell .sb-flip-page--text {
   animation: sb-peel-fade-outgoing-text 0.18s cubic-bezier(0.45, 0, 0.75, 1) forwards;
   pointer-events: none;
+}
+
+/* Reset peel text fade: forwards fill can stick across WebKit until animation is cleared. */
+.sb-flip-spread__inner:not(.sb-flip-spread__inner--peel-turning) .sb-flip-left-shell .sb-flip-page--text,
+.sb-flip-spread__inner:not(.sb-flip-spread__inner--peel-turning) .sb-flip-right-shell .sb-flip-page--text {
+  opacity: 1;
+  animation: none;
 }
 
 /* One leaf turns: right-hand page only, hinged at the gutter (normative book forward turn) */
@@ -3578,6 +3569,23 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   top: 0;
   position: absolute;
   z-index: 0;
+}
+
+/* Facing: one bitmap per picture page — duplex 200%-width positioning would slice the art at the gutter. */
+.sb-flip-spread__inner--art-facing .sb-flip-spread__peel-front .sb-flip-spread__art-cover,
+.sb-flip-spread__inner--art-facing .sb-flip-spread__peel-front .sb-flip-spread__art-peel__img {
+  width: 100%;
+  max-width: none;
+  left: 0;
+  object-position: center 45%;
+}
+
+.sb-flip-spread__inner--art-facing .sb-flip-spread__peel-back .sb-flip-spread__art-cover,
+.sb-flip-spread__inner--art-facing .sb-flip-spread__peel-back .sb-flip-spread__art-peel__back-img {
+  width: 100%;
+  max-width: none;
+  left: 0;
+  object-position: center 45%;
 }
 
 /* Incoming left-page copy on the verso — same legibility treatment as .sb-flip-page--text */
@@ -3675,47 +3683,6 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
 .sb-flip-spread__art-peel.sb-story-pageflip--turn-prev-1 {
   transform: rotateY(180deg);
   -webkit-transform: rotateY(180deg);
-}
-
-/* Facing peel-back copy: same white-over-art treatment as duplex (facing normally uses cream-page type on the text column). */
-.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--peel-turning .sb-flip-spread__peel-back-text .sb-flip-text__highlight {
-  display: inline;
-  font-family: var(--sb-reader-font-over-art);
-  font-size: clamp(1.35rem, 4.2vw, 1.75rem);
-  font-weight: 500;
-  letter-spacing: 0.02em;
-  line-height: 1.55;
-  color: #fff;
-  text-align: center;
-  padding: 0;
-  background: none;
-  border-radius: 0;
-  box-decoration-break: clone;
-  -webkit-box-decoration-break: clone;
-  box-shadow: none;
-  text-shadow:
-    0 1px 2px rgba(0, 0, 0, 0.92),
-    0 2px 10px rgba(0, 0, 0, 0.65),
-    0 0 2px rgba(0, 0, 0, 0.9);
-  -webkit-text-stroke: 0;
-  -webkit-font-smoothing: antialiased;
-}
-
-.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--peel-turning .sb-flip-spread__peel-back-text .sb-big-word {
-  color: #fff;
-  text-shadow:
-    0 1px 2px rgba(0, 0, 0, 0.92),
-    0 2px 10px rgba(0, 0, 0, 0.65),
-    0 0 2px rgba(0, 0, 0, 0.9);
-}
-
-.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--peel-turning .sb-flip-spread__peel-back-text .sb-the-end-title,
-.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--peel-turning .sb-flip-spread__peel-back-text .sb-the-end-lead {
-  color: #fff;
-  text-shadow:
-    0 1px 2px rgba(0, 0, 0, 0.92),
-    0 2px 10px rgba(0, 0, 0, 0.65),
-    0 0 2px rgba(0, 0, 0, 0.9);
 }
 
 /* Text over full-bleed art: plain type + soft shadow for legibility (no per-line tape) */

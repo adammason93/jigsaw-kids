@@ -1251,6 +1251,9 @@
     var peelBackImg = document.getElementById("sbSpreadArtPeelBackImg");
     var outgoingLeftShell = document.getElementById("sbSpreadArtOutgoingLeft");
     var outgoingLeftImg = document.getElementById("sbSpreadArtOutgoingLeftImg");
+    /* Duplex: outgoing-left + 200%-wide crops. Facing: one bitmap per picture page — slicing it in half misaligns the seam. */
+    var useDuplexOutgoingLeft = !isFacingBook;
+
     if (peelImg) {
       peelImg.alt = "";
       peelImg.referrerPolicy = "no-referrer";
@@ -1264,17 +1267,26 @@
     }
 
     if (outgoingLeftImg) {
-      outgoingLeftImg.alt = "";
-      outgoingLeftImg.referrerPolicy = "no-referrer";
-      outgoingLeftImg.src = peelOut;
+      if (useDuplexOutgoingLeft) {
+        outgoingLeftImg.alt = "";
+        outgoingLeftImg.referrerPolicy = "no-referrer";
+        outgoingLeftImg.src = peelOut;
+      } else {
+        outgoingLeftImg.removeAttribute("src");
+      }
     }
 
     peelShell.hidden = false;
     peelShell.removeAttribute("hidden");
     if (outgoingLeftShell) {
-      outgoingLeftShell.hidden = false;
-      outgoingLeftShell.removeAttribute("hidden");
-      outgoingLeftShell.style.display = "block";
+      if (useDuplexOutgoingLeft) {
+        outgoingLeftShell.hidden = false;
+        outgoingLeftShell.removeAttribute("hidden");
+        outgoingLeftShell.style.display = "block";
+      } else {
+        outgoingLeftShell.hidden = true;
+        outgoingLeftShell.style.display = "none";
+      }
     }
 
     var isNext = delta > 0;
@@ -1290,6 +1302,11 @@
         clearSpreadTurnRevealFx();
         if (spreadInnerEl) {
           spreadInnerEl.classList.remove("sb-flip-spread__inner--peel-turning");
+          var textPages = spreadInnerEl.querySelectorAll(".sb-flip-page--text");
+          for (var ti = 0; ti < textPages.length; ti++) {
+            textPages[ti].style.animation = "";
+            textPages[ti].style.opacity = "";
+          }
         }
         clearPeelBackTextColumn();
         if (peelImg) peelImg.removeAttribute("src");
@@ -1705,6 +1722,11 @@
 
   function fillPeelBackTextColumn(si) {
     if (!spreadPeelBackText) return;
+    /* Facing: verso copy dupes the cream-page column and misaligns mid-turn; duplex still ghosts prose over art. */
+    if (getEffectiveReaderArtLayout() === "facing") {
+      spreadPeelBackText.innerHTML = "";
+      return;
+    }
     var block = spreadLeftColumnBlockAtSi(si);
     if (block.kind === "prose" && block.html) {
       spreadPeelBackText.innerHTML =
