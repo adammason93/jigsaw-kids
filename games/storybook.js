@@ -1775,11 +1775,20 @@
   }
 
   /**
-   * Back of the turning leaf during peel: same verso-copy path as duplex (left-column text).
+   * Back of the turning leaf during peel: duplex uses left-column text on the verso.
+   * Facing (picture-page) layouts must leave this empty: duplicating prose on the peel paints a
+   * mirrored glyph layer over the static left sheet mid-rotate on WebKit (“ghost” type swap).
    * @param {number} si  Incoming spread index (spreadIndex / toSi during peel).
    */
   function fillPeelBackTextColumn(si) {
     if (!spreadPeelBackText) return;
+    if (
+      spreadInnerEl &&
+      spreadInnerEl.classList.contains("sb-flip-spread__inner--art-facing")
+    ) {
+      spreadPeelBackText.innerHTML = "";
+      return;
+    }
     var block = spreadLeftColumnBlockAtSi(si);
     if (block.kind === "prose" && block.html) {
       spreadPeelBackText.innerHTML =
