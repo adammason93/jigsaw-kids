@@ -3077,7 +3077,8 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
     -webkit-clip-path: none !important;
   }
 
-  .sb-flip-spread__inner--peel-turning .sb-flip-left-shell .sb-flip-page--text {
+  .sb-flip-spread__inner--peel-turning .sb-flip-left-shell .sb-flip-page--text .sb-flip-page__sheet > *,
+  .sb-flip-spread__inner--peel-turning .sb-flip-right-shell .sb-flip-page--text .sb-flip-page__sheet > * {
     animation: none !important;
     opacity: 1 !important;
   }
@@ -3499,15 +3500,23 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   }
 }
 
-.sb-flip-spread__inner--peel-turning .sb-flip-left-shell .sb-flip-page--text,
-.sb-flip-spread__inner--peel-turning .sb-flip-right-shell .sb-flip-page--text {
+.sb-flip-spread__inner--peel-turning .sb-flip-left-shell .sb-flip-page--text .sb-flip-page__sheet > *,
+.sb-flip-spread__inner--peel-turning .sb-flip-right-shell .sb-flip-page--text .sb-flip-page__sheet > * {
   animation: sb-peel-fade-outgoing-text 0.18s cubic-bezier(0.45, 0, 0.75, 1) forwards;
   pointer-events: none;
 }
 
 /* Reset peel text fade: forwards fill can stick across WebKit until animation is cleared. */
-.sb-flip-spread__inner:not(.sb-flip-spread__inner--peel-turning) .sb-flip-left-shell .sb-flip-page--text,
-.sb-flip-spread__inner:not(.sb-flip-spread__inner--peel-turning) .sb-flip-right-shell .sb-flip-page--text {
+.sb-flip-spread__inner:not(.sb-flip-spread__inner--peel-turning)
+  .sb-flip-left-shell
+  .sb-flip-page--text
+  .sb-flip-page__sheet
+  > *,
+.sb-flip-spread__inner:not(.sb-flip-spread__inner--peel-turning)
+  .sb-flip-right-shell
+  .sb-flip-page--text
+  .sb-flip-page__sheet
+  > * {
   opacity: 1;
   animation: none;
 }
@@ -3636,16 +3645,29 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
 }
 
 /* Facing: single-page art fills the leaf (not panoramic half of one wide texture). */
-.sb-flip-spread__inner--art-facing .sb-flip-spread__peel-front .sb-flip-spread__art-cover,
+.sb-flip-spread__inner--art-facing .sb-flip-spread__peel-front .sb-flip-spread__art-cover {
+  width: 100%;
+  max-width: none;
+  left: 0;
+  object-fit: cover;
+  object-position: center 45%;
+  transform: translateZ(0) scale(var(--sb-spread-art-scale, 1));
+  -webkit-transform: translateZ(0) scale(var(--sb-spread-art-scale, 1));
+  transform-origin: center center;
+}
+
 .sb-flip-spread__inner--art-facing .sb-flip-spread__peel-back .sb-flip-spread__art-cover {
   width: 100%;
   max-width: none;
   left: 0;
   object-fit: cover;
   object-position: center 45%;
+  transform: rotateY(180deg) translateZ(0) scale(var(--sb-spread-art-scale, 1));
+  -webkit-transform: rotateY(180deg) translateZ(0) scale(var(--sb-spread-art-scale, 1));
+  transform-origin: center center;
 }
 
-/* Incoming left-page copy on the verso — same legibility treatment as .sb-flip-page--text */
+/* Verso prose (facing): parent .sb-flip-spread__peel-back uses rotateY(180deg); counter-rotate so type is not mirrored. */
 .sb-flip-spread__peel-back-text {
   position: absolute;
   inset: 0;
@@ -3660,6 +3682,13 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
     max(0.65rem, env(safe-area-inset-left, 0px));
   pointer-events: none;
   overflow: hidden;
+}
+
+.sb-flip-spread__inner--art-facing .sb-flip-spread__peel-back-text {
+  transform: rotateY(180deg) translateZ(2px);
+  -webkit-transform: rotateY(180deg) translateZ(2px);
+  transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
 }
 
 .sb-flip-spread__peel-back-text .sb-flip-text {

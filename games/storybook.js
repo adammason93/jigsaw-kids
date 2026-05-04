@@ -1347,6 +1347,13 @@
           for (var ti = 0; ti < textPages.length; ti++) {
             textPages[ti].style.animation = "";
             textPages[ti].style.opacity = "";
+            var sheetKids = textPages[ti].querySelectorAll(
+              ".sb-flip-page__sheet > *"
+            );
+            for (var kj = 0; kj < sheetKids.length; kj++) {
+              sheetKids[kj].style.animation = "";
+              sheetKids[kj].style.opacity = "";
+            }
           }
         }
         clearPeelBackTextColumn();
