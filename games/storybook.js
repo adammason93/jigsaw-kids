@@ -457,6 +457,7 @@
   var spreadArtPeelShell = document.getElementById("sbSpreadArtPeel");
   var spreadArtPeelImg = document.getElementById("sbSpreadArtPeelImg");
   var spreadPeelBackText = document.getElementById("sbSpreadPeelBackText");
+  var spreadPeelFrontText = document.getElementById("sbSpreadPeelFrontText");
   var readerStack = document.getElementById("sbReaderStack");
   var readerPages = document.getElementById("sbReaderPages");
   var flipLeftShell = document.getElementById("sbFlipLeftShell");
@@ -1207,6 +1208,8 @@
     var toSi = Math.max(0, Math.min(spreadIndex + delta, nSpr - 1));
     if (toSi === fromSi) return;
 
+    var isFacingBook = readerUsesFacingPageTurn();
+
     var outArt = illustrationUrlAtSpreadIndex(fromSi);
     var inArt = illustrationUrlAtSpreadIndex(toSi);
     /* Flyleaf / dedication spreads have no illustration URL; use a white tile so the peel still runs (matches old books where spread 0 already had art). */
@@ -1222,13 +1225,15 @@
     var peelOut = outArt || peelBlank;
     var peelIn = inArt || peelBlank;
 
+    var rectoFacingArt = isFacingBook && fromSi % 2 === 0;
+    var versoFacingArt = isFacingBook && toSi % 2 === 1;
+
     spreadIndex = toSi;
 
     spreadAnimLock = true;
     setSpreadNavBusy(true);
     clearSpreadPeelTurnClasses();
     clearSpreadTurnRevealFx();
-    var isFacingBook = readerUsesFacingPageTurn();
     if (spreadInnerEl) {
       spreadInnerEl.classList.add("sb-flip-spread__inner--peel-turning");
     }
@@ -1261,27 +1266,65 @@
     if (peelImg) {
       peelImg.alt = "";
       peelImg.referrerPolicy = "no-referrer";
-      peelImg.src = peelOut;
+      if (isFacingBook && !rectoFacingArt) {
+        peelImg.src = peelBlank;
+      } else {
+        peelImg.src = peelOut;
+      }
     }
 
     if (peelBackImg) {
       peelBackImg.alt = "";
       peelBackImg.referrerPolicy = "no-referrer";
-      peelBackImg.src = peelIn;
+      if (isFacingBook && !versoFacingArt) {
+        peelBackImg.src = peelBlank;
+      } else {
+        peelBackImg.src = peelIn;
+      }
     }
 
-    if (outgoingLeftImg) {
+    if (outgoingLeftImg && !isFacingBook) {
       outgoingLeftImg.alt = "";
       outgoingLeftImg.referrerPolicy = "no-referrer";
       outgoingLeftImg.src = peelOut;
+    } else if (outgoingLeftImg && isFacingBook) {
+      outgoingLeftImg.removeAttribute("src");
+    }
+
+    var peelFrontRoot = peelShell.querySelector(".sb-flip-spread__peel-front");
+    if (isFacingBook && !rectoFacingArt) {
+      fillPeelFrontTextColumn(fromSi);
+      if (peelFrontRoot) {
+        peelFrontRoot.classList.add("sb-flip-spread__peel-front--recto-prose");
+      }
+    } else {
+      if (spreadPeelFrontText) spreadPeelFrontText.innerHTML = "";
+      if (peelFrontRoot) {
+        peelFrontRoot.classList.remove("sb-flip-spread__peel-front--recto-prose");
+      }
     }
 
     peelShell.hidden = false;
     peelShell.removeAttribute("hidden");
+
+    var peelBackEl = peelShell.querySelector(".sb-flip-spread__peel-back");
+    if (peelBackEl) {
+      if (isFacingBook && !versoFacingArt) {
+        peelBackEl.classList.add("sb-flip-spread__peel-back--verso-text");
+      } else {
+        peelBackEl.classList.remove("sb-flip-spread__peel-back--verso-text");
+      }
+    }
+
     if (outgoingLeftShell) {
-      outgoingLeftShell.hidden = false;
-      outgoingLeftShell.removeAttribute("hidden");
-      outgoingLeftShell.style.display = "block";
+      if (isFacingBook) {
+        outgoingLeftShell.hidden = true;
+        outgoingLeftShell.style.display = "none";
+      } else {
+        outgoingLeftShell.hidden = false;
+        outgoingLeftShell.removeAttribute("hidden");
+        outgoingLeftShell.style.display = "block";
+      }
     }
 
     var isNext = delta > 0;
@@ -1687,6 +1730,38 @@
 
   function clearPeelBackTextColumn() {
     if (spreadPeelBackText) spreadPeelBackText.innerHTML = "";
+    var peelShell = spreadArtPeelShell || document.getElementById("sbSpreadArtPeel");
+    if (peelShell) {
+      var peelBack = peelShell.querySelector(".sb-flip-spread__peel-back");
+      if (peelBack) {
+        peelBack.classList.remove("sb-flip-spread__peel-back--verso-text");
+      }
+      var peelFront = peelShell.querySelector(".sb-flip-spread__peel-front");
+      if (peelFront) {
+        peelFront.classList.remove("sb-flip-spread__peel-front--recto-prose");
+      }
+    }
+    if (spreadPeelFrontText) spreadPeelFrontText.innerHTML = "";
+  }
+
+  /**
+   * Outgoing right page on peel recto when facing spread uses prose on the right (that leaf turns forward).
+   * @param {number} fromSi
+   */
+  function fillPeelFrontTextColumn(fromSi) {
+    if (!spreadPeelFrontText) return;
+    var block = spreadRightColumnBlockAtSi(fromSi);
+    if (block.kind === "prose" && block.html) {
+      spreadPeelFrontText.innerHTML =
+        '<p class="sb-flip-text"><span class="sb-flip-text__highlight">' +
+        block.html +
+        "</span></p>";
+      bindReadableWordSpans(spreadPeelFrontText);
+    } else if (block.kind === "theend" && block.html) {
+      spreadPeelFrontText.innerHTML = block.html;
+    } else {
+      spreadPeelFrontText.innerHTML = "";
+    }
   }
 
   /**
@@ -1718,6 +1793,36 @@
     return { kind: "empty" };
   }
 
+  /**
+   * Right column for one spread (prose HTML for facing verso on a right-hand peel).
+   * @param {number} si
+   * @returns {{ kind: "empty"|"prose", html?: string }}
+   */
+  function spreadRightColumnBlockAtSi(si) {
+    if (!story || !story.pages || !story.pages.length) {
+      return { kind: "empty" };
+    }
+    var n = numSpreads();
+    if (n < 1) return { kind: "empty" };
+    si = Math.max(0, Math.min(Number(si), n - 1));
+    if (si * 2 >= story.pages.length) {
+      return { kind: "empty" };
+    }
+    var ri = si * 2 + 1;
+    if (ri >= story.pages.length) {
+      return { kind: "empty" };
+    }
+    var rightP = story.pages[ri];
+    if (rightP && rightP.text) {
+      return { kind: "prose", html: storyPageTextToReadableHtml(rightP.text) };
+    }
+    return { kind: "empty" };
+  }
+
+  /**
+   * Incoming **left** page on peel verso (back of the right-hand leaf) — matches physical page turn.
+   * @param {number} si  Incoming spread index (spreadIndex / toSi during peel).
+   */
   function fillPeelBackTextColumn(si) {
     if (!spreadPeelBackText) return;
     var block = spreadLeftColumnBlockAtSi(si);
@@ -1726,6 +1831,7 @@
         '<p class="sb-flip-text"><span class="sb-flip-text__highlight">' +
         block.html +
         "</span></p>";
+      bindReadableWordSpans(spreadPeelBackText);
     } else if (block.kind === "theend" && block.html) {
       spreadPeelBackText.innerHTML = block.html;
     } else {
