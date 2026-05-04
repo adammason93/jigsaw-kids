@@ -1,0 +1,2 @@
+# Worker entry source must not ship as browseable static files with assets.directory="."
+workers-site/
