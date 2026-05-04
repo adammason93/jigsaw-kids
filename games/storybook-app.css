@@ -922,7 +922,8 @@ body.sb-portal-welcome-open {
 }
 
 /* My library: all covers visible in one vertical-scroll grid (#sbShelf is the carousel track). */
-#sbShelf:has(> .sb-cover-card-wrap) {
+/* Class from JS (.sb-shelf-has-books): avoid relying only on :has() for shelf grid/scrolling. */
+#sbShelf.sb-shelf-has-books {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   justify-items: center;
@@ -939,31 +940,31 @@ body.sb-portal-welcome-open {
   scrollbar-color: rgba(157, 23, 77, 0.45) rgba(255, 255, 255, 0.2);
 }
 
-#sbShelf:has(> .sb-cover-card-wrap)::-webkit-scrollbar {
+#sbShelf.sb-shelf-has-books::-webkit-scrollbar {
   width: 8px;
   display: block;
 }
 
-#sbShelf:has(> .sb-cover-card-wrap)::-webkit-scrollbar-thumb {
+#sbShelf.sb-shelf-has-books::-webkit-scrollbar-thumb {
   background: rgba(157, 23, 77, 0.4);
   border-radius: 999px;
 }
 
 @media (min-width: 520px) {
-  #sbShelf:has(> .sb-cover-card-wrap) {
+  #sbShelf.sb-shelf-has-books {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 1rem 0.75rem;
   }
 }
 
 @media (min-width: 900px) {
-  #sbShelf:has(> .sb-cover-card-wrap) {
+  #sbShelf.sb-shelf-has-books {
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 0.85rem 0.6rem;
   }
 }
 
-#sbShelf:has(> .sb-cover-card-wrap) > .sb-cover-card-wrap {
+#sbShelf.sb-shelf-has-books > .sb-cover-card-wrap {
   scroll-snap-align: none;
 }
 

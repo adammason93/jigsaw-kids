@@ -2095,8 +2095,10 @@
     return s || "my-story-book";
   }
 
-  function tryFetchImageDataUrl(url) {
-    return Promise.resolve().then(function() {
+  /** @param {{ shelfCompress?: boolean }} [opts] — smaller JPEG for “Put on shelf” (keeps reopen via imageUrlFallback). */
+  function tryFetchImageDataUrl(url, opts) {
+    opts = opts || {};
+    return Promise.resolve().then(function () {
       if (!url) return null;
       if (url.indexOf("data:") === 0) return url;
       
@@ -2153,8 +2155,9 @@
             img.onload = function () {
               try {
                 var canvas = document.createElement("canvas");
-                /* Match ~1024px+ story art: 720 was visibly soft when reopening from shelf. */
-                var maxDim = 1280;
+                /* Shelf: smaller files so dozens of books fit IndexedDB (~50MB/site). Reader still prefers remote imageUrlFallback. */
+                var maxDim = opts.shelfCompress ? 720 : 1280;
+                var jpegQuality = opts.shelfCompress ? 0.72 : 0.85;
                 var w = img.width;
                 var h = img.height;
                 if (w > maxDim || h > maxDim) {
@@ -2173,7 +2176,7 @@
                 if (!ctx) throw new Error("No 2d context");
                 ctx.drawImage(img, 0, 0, w, h);
                 /* Higher than 0.55 — shelf reopen looked muddy; still JPEG for quota vs PNG */
-                resolve(canvas.toDataURL("image/jpeg", 0.85));
+                resolve(canvas.toDataURL("image/jpeg", jpegQuality));
               } catch (e) {
                 console.warn("Canvas compression failed, falling back to original URL", e);
                 resolve(url); // Fallback to original URL if compression fails
@@ -2208,7 +2211,7 @@
       story.pages.map(function (p) {
         var u = p.imageUrl || "";
         if (shelfKeepOriginalRemoteUrl(u)) return Promise.resolve(null);
-        return tryFetchImageDataUrl(u);
+        return tryFetchImageDataUrl(u, { shelfCompress: true });
       })
     );
   }
@@ -2216,7 +2219,7 @@
   function fetchSceneDataUrlForShelf(sceneUrl) {
     if (!sceneUrl) return Promise.resolve(null);
     if (shelfKeepOriginalRemoteUrl(sceneUrl)) return Promise.resolve(null);
-    return tryFetchImageDataUrl(sceneUrl);
+    return tryFetchImageDataUrl(sceneUrl, { shelfCompress: true });
   }
 
   var SHELF_STORAGE_KEY = "jigsawKids_storybookShelf_v1";
@@ -2277,13 +2280,24 @@
     cloudDone = typeof cloudDone === "function" ? cloudDone : null;
     onWritten = typeof onWritten === "function" ? onWritten : null;
     var tryList = list.slice();
+    var requestedBookCount = tryList.length;
 
     function afterPersistOk(raw) {
       shelfCache = tryList;
+      if (requestedBookCount > tryList.length) {
+        var trimmed = requestedBookCount - tryList.length;
+        try {
+          window.dispatchEvent(
+            new CustomEvent("kids-storybook-shelf-storage-trimmed", {
+              detail: { removed: trimmed, remaining: tryList.length },
+            })
+          );
+        } catch (e) {}
+      }
       if (onWritten) {
         onWritten();
       }
-        if (window.KidsScoreCloud && window.KidsScoreCloud.scheduleStorybookUpload) {
+      if (window.KidsScoreCloud && window.KidsScoreCloud.scheduleStorybookUpload) {
         window.KidsScoreCloud.scheduleStorybookUpload(raw, cloudDone);
       } else if (cloudDone) {
         cloudDone(null);
@@ -2605,7 +2619,7 @@
 
         if (!retriedCover && pg && remoteFallback && /^https?:\/\//i.test(remoteFallback)) {
           retriedCover = true;
-          tryFetchImageDataUrl(remoteFallback)
+            tryFetchImageDataUrl(remoteFallback, { shelfCompress: true })
             .then(function (dataUrl) {
               if (dataUrl && String(dataUrl).indexOf("data:") === 0) {
                 persistShelfPageDataUrl(item.id, pageIdxCover, dataUrl);
@@ -2652,6 +2666,7 @@
     shelfEl.textContent = "";
     var list = loadShelf();
     if (!list.length) {
+      shelfEl.classList.remove("sb-shelf-has-books");
       var empty = document.createElement("p");
       empty.className = "sb-library__empty";
       empty.textContent =
@@ -2660,7 +2675,8 @@
       updateCarouselButtons();
       return;
     }
-    
+
+    shelfEl.classList.add("sb-shelf-has-books");
     for (var i = 0; i < list.length; i++) {
       shelfEl.appendChild(createCoverCardWrap(list[i]));
     }
@@ -3741,6 +3757,31 @@
     refreshReadStepBtn();
   }
   initVoiceUi();
+
+    window.addEventListener("kids-storybook-shelf-storage-trimmed", function (ev) {
+      var det = (ev && ev.detail) || {};
+      var rm = Number(det.removed);
+      if (!(rm >= 1) || rm !== rm) return;
+      var hintEl = document.getElementById("sbLibraryHint");
+      var defaultHint =
+        (hintEl && hintEl.getAttribute("data-default-hint")) ||
+        "Put a book on the shelf after you read it — tap a cover to open it again.";
+      if (hintEl && !hintEl.getAttribute("data-default-hint")) {
+        hintEl.setAttribute(
+          "data-default-hint",
+          String(hintEl.textContent || "").trim() || defaultHint
+        );
+      }
+      if (hintEl) {
+        hintEl.textContent =
+          "This device ran out of room for saved books (“Put on my shelf”). " +
+          String(rm) +
+          " older " +
+          (rm === 1 ? "story" : "stories") +
+          " had to drop off here only. Turn on ⚙️ Sync & tap ☁️ to reload from cloud, or delete a few copies and save smaller books.";
+      }
+      renderShelf();
+    });
 
     function runAfterShelfHydrate() {
   renderShelf();
