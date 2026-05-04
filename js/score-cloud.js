@@ -658,6 +658,7 @@
         }
         var uid = String(sess.user.id);
         var folder = uid + "/storybook";
+        var path = storybookObjectPath(uid);
         sb.storage
           .from(STORYBOOK_BUCKET)
           .list(folder, { limit: 40 })
@@ -666,18 +667,79 @@
               cb(listRes.error, { userId: uid, files: null });
               return;
             }
-            downloadStorybookLibrary(function (derr, data) {
-              var books = null;
-              if (!derr && data != null) {
-                books = normalizedCloudShelf(data);
-              }
-              cb(null, {
-                userId: uid,
-                files: listRes.data || [],
-                bookCount: Array.isArray(books) ? books.length : null,
-                downloadError: derr ? formatStorageErr(derr) : null,
+            sb.storage
+              .from(STORYBOOK_BUCKET)
+              .download(path)
+              .then(function (downRes) {
+                function fallbackDownload() {
+                  downloadStorybookLibrary(function (derr, data) {
+                    var books = null;
+                    if (!derr && data != null) {
+                      books = normalizedCloudShelf(data);
+                    }
+                    cb(null, {
+                      userId: uid,
+                      files: listRes.data || [],
+                      bookCount: Array.isArray(books) ? books.length : null,
+                      shelfJsonUtf8BytesApprox: null,
+                      downloadError: derr ? formatStorageErr(derr) : null,
+                    });
+                  });
+                }
+                if (downRes.error || !downRes.data) {
+                  fallbackDownload();
+                  return;
+                }
+                var blob = downRes.data;
+                if (blob.text && typeof blob.text === "function") {
+                  blob
+                    .text()
+                    .then(function (text) {
+                      var t = String(text || "");
+                      var books = [];
+                      try {
+                        books = normalizedCloudShelf(JSON.parse(t.trim() || "[]"));
+                      } catch (e) {
+                        cb(null, {
+                          userId: uid,
+                          files: listRes.data || [],
+                          bookCount: null,
+                          shelfJsonUtf8BytesApprox: t.length,
+                          parseError: formatStorageErr(e),
+                          downloadError: null,
+                        });
+                        return;
+                      }
+                      cb(null, {
+                        userId: uid,
+                        files: listRes.data || [],
+                        bookCount: Array.isArray(books) ? books.length : 0,
+                        shelfJsonUtf8BytesApprox: t.length,
+                        downloadError: null,
+                      });
+                    })
+                    .catch(function () {
+                      fallbackDownload();
+                    });
+                  return;
+                }
+                fallbackDownload();
+              })
+              .catch(function () {
+                downloadStorybookLibrary(function (derr, data) {
+                  var books = null;
+                  if (!derr && data != null) {
+                    books = normalizedCloudShelf(data);
+                  }
+                  cb(null, {
+                    userId: uid,
+                    files: listRes.data || [],
+                    bookCount: Array.isArray(books) ? books.length : null,
+                    shelfJsonUtf8BytesApprox: null,
+                    downloadError: derr ? formatStorageErr(derr) : null,
+                  });
+                });
               });
-            });
           });
       });
     });
@@ -1282,6 +1344,15 @@
               .join(", ");
             var dl = info.downloadError ? "\nDownload / parse error: " + info.downloadError : "";
             var bc = info.bookCount;
+            var bytes = info.shelfJsonUtf8BytesApprox;
+            var parseErr = info.parseError;
+            var sizeLine =
+              bytes != null
+                ? "\n\nShelf file length (~JavaScript characters / UTF-16 code units):\n" +
+                  String(bytes) +
+                  "\nThere’s no dashboard “limit of 14” — shelf.json holds one JSON array, and uploads repeat whatever last fit device storage (heavy images → fewer books)."
+                : "";
+            var parseLine = parseErr ? "\nParse error (cloud file may be truncated): " + parseErr : "";
             setStatus(statusEl, "Story library test finished — see alert.");
             global.alert(
               "Story library cloud check\n\n" +
@@ -1292,7 +1363,9 @@
                 "\n\nBooks parsed from shelf.json: " +
                 (bc == null ? "?" : String(bc)) +
                 dl +
-                "\n\nIf two tablets show different user ids, they are using different accounts.",
+                sizeLine +
+                parseLine +
+                "\n\nIf this count barely grows after “Put on my shelf”, the browser IndexedDB quota is deleting the oldest book before upload — slim shelf updates (URLs without huge images) reduce that.\n\nIf two tablets show different user ids, they are different accounts.",
             );
           });
         });
