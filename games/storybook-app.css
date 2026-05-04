@@ -3560,11 +3560,22 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
 }
 
 /*
- * Peel is a sibling of .sb-flip-spread__art-bg (z2), left/right shells (4), gutter (5).
- * Needs a real stacking win over the gutter mid-rotation — inside art-bg it could never escape z2.
+ * Peel stacks above gutters/shells while turning (`z-index: 22`; default peel is lower).
+ * Rotation is already a full ±180deg (`sb-story-pageflip--turn-next-1` / `turn-prev-1`): near 90deg
+ * both textured faces sit edge-on with `backface-visibility:hidden`, so this paints a paper-ish matte,
+ * plus `will-change` for compositing. JS pins duplex `#sbSpreadArtCover` on the outgoing frame until idle.
  */
 .sb-flip-spread__inner.sb-flip-spread__inner--peel-turning .sb-flip-spread__art-peel {
   z-index: 22;
+  will-change: transform;
+  /* Page edge / matte when the folded leaf has near-zero projected width mid-way */
+  background: linear-gradient(
+    92deg,
+    rgba(237, 232, 223, 0.98) 0%,
+    rgba(255, 252, 248, 1) 50%,
+    rgba(237, 232, 223, 0.96) 100%
+  );
+  background-color: #ede8df;
 }
 
 /* Keep overflow visible — clipping here hid the turning leaf halfway through hinge rotation */
