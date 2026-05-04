@@ -3500,8 +3500,18 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   }
 }
 
-.sb-flip-spread__inner--peel-turning .sb-flip-left-shell .sb-flip-page--text .sb-flip-page__sheet > *,
-.sb-flip-spread__inner--peel-turning .sb-flip-right-shell .sb-flip-page--text .sb-flip-page__sheet > * {
+/* Duplex only: fade outgoing type so it does not clash with verso copy. Facing books must not fade —
+   the peel already sits above the column; fading duplicates the peel’s text and causes ghosting. */
+.sb-flip-spread__inner--peel-turning:not(.sb-flip-spread__inner--facing-peel-turn)
+  .sb-flip-left-shell
+  .sb-flip-page--text
+  .sb-flip-page__sheet
+  > *,
+.sb-flip-spread__inner--peel-turning:not(.sb-flip-spread__inner--facing-peel-turn)
+  .sb-flip-right-shell
+  .sb-flip-page--text
+  .sb-flip-page__sheet
+  > * {
   animation: sb-peel-fade-outgoing-text 0.18s cubic-bezier(0.45, 0, 0.75, 1) forwards;
   pointer-events: none;
 }

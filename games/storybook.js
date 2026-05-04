@@ -1155,7 +1155,8 @@
         "sb-flip-spread__inner--turn-in-prev",
         "sb-flip-spread__inner--fade-out",
         "sb-flip-spread__inner--fade-in",
-        "sb-flip-spread__inner--peel-turning"
+        "sb-flip-spread__inner--peel-turning",
+        "sb-flip-spread__inner--facing-peel-turn"
       );
     }
     if (flipSpreadEl) {
@@ -1177,14 +1178,14 @@
       cb();
     }
     function onTe(ev) {
-      if (!ev || ev.target !== shell) return;
+      if (!ev || !ev.target || !shell.contains(ev.target)) return;
       var pn = ev.propertyName || "";
       if (pn !== "" && !isTransformTransitionProperty(pn)) return;
       finish();
     }
     shell.addEventListener("transitionend", onTe);
     shell.addEventListener("webkitTransitionEnd", onTe);
-    var tid = window.setTimeout(finish, 1400);
+    var tid = window.setTimeout(finish, 900);
   }
 
   function bumpSpreadIndex(delta) {
@@ -1236,6 +1237,9 @@
     clearSpreadTurnRevealFx();
     if (spreadInnerEl) {
       spreadInnerEl.classList.add("sb-flip-spread__inner--peel-turning");
+      if (isFacingBook) {
+        spreadInnerEl.classList.add("sb-flip-spread__inner--facing-peel-turn");
+      }
     }
     if (flipSpreadEl) {
       flipSpreadEl.classList.add("sb-flip-spread--peel-active");
@@ -1340,6 +1344,7 @@
         clearSpreadTurnRevealFx();
         if (spreadInnerEl) {
           spreadInnerEl.classList.remove("sb-flip-spread__inner--peel-turning");
+          spreadInnerEl.classList.remove("sb-flip-spread__inner--facing-peel-turn");
           if (flipSpreadEl) {
             flipSpreadEl.classList.remove("sb-flip-spread--peel-active");
           }
