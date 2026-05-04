@@ -3133,6 +3133,15 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
     0 12px 24px rgba(25, 18, 32, 0.1);
 }
 
+/* Outer shelf tilt + inner peel both use 3D; combined they cause gutter seams, wrong half-bleed, and text “ghosting” on some GPUs. */
+.sb-flip-spread.sb-flip-spread--peel-active {
+  transform: none;
+  box-shadow:
+    0 4px 0 rgba(255, 255, 255, 0.35),
+    0 18px 40px rgba(25, 18, 32, 0.18),
+    0 8px 20px rgba(25, 18, 32, 0.1);
+}
+
 /* Touch / tablet: parent rotateX + inner 3D peel misaligns the gutter and art on WebKit (hairline seam, shifted duplex). */
 @media (hover: none) and (pointer: coarse) {
   .sb-flip-spread {
@@ -3559,13 +3568,13 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
 }
 
 .sb-flip-spread__peel-front {
-  transform: rotateY(0deg) translateZ(0.5px);
-  -webkit-transform: rotateY(0deg) translateZ(0.5px);
+  transform: rotateY(0deg) translateZ(2px);
+  -webkit-transform: rotateY(0deg) translateZ(2px);
 }
 
 .sb-flip-spread__peel-back {
-  transform: rotateY(180deg) translateZ(0.5px);
-  -webkit-transform: rotateY(180deg) translateZ(0.5px);
+  transform: rotateY(180deg) translateZ(2px);
+  -webkit-transform: rotateY(180deg) translateZ(2px);
 }
 
 /* Recto (front of leaf): right half of OUTGOING duplex. Verso (back): left half of INCOMING duplex — not the same crop. */

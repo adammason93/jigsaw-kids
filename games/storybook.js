@@ -447,6 +447,7 @@
   var spreadArtImg = document.getElementById("sbSpreadArtImg");
   var spreadArtNum = document.getElementById("sbSpreadArtNum");
   var spreadInnerEl = document.getElementById("sbFlipSpreadInner");
+  var flipSpreadEl = document.getElementById("sbFlipSpread");
   var spreadArtBg = document.getElementById("sbSpreadArtBg");
   var spreadArtBase = document.getElementById("sbSpreadArtBase");
   var spreadArtCover = document.getElementById("sbSpreadArtCover");
@@ -1156,6 +1157,9 @@
         "sb-flip-spread__inner--peel-turning"
       );
     }
+    if (flipSpreadEl) {
+      flipSpreadEl.classList.remove("sb-flip-spread--peel-active");
+    }
     clearSpreadPeelTurnClasses();
     clearSpreadTurnRevealFx();
     clearPeelBackTextColumn();
@@ -1228,6 +1232,9 @@
     if (spreadInnerEl) {
       spreadInnerEl.classList.add("sb-flip-spread__inner--peel-turning");
     }
+    if (flipSpreadEl) {
+      flipSpreadEl.classList.add("sb-flip-spread--peel-active");
+    }
 
     syncSpreadIllustrationFromStory();
     if (isFacingBook) {
@@ -1290,6 +1297,9 @@
         clearSpreadTurnRevealFx();
         if (spreadInnerEl) {
           spreadInnerEl.classList.remove("sb-flip-spread__inner--peel-turning");
+          if (flipSpreadEl) {
+            flipSpreadEl.classList.remove("sb-flip-spread--peel-active");
+          }
           var textPages = spreadInnerEl.querySelectorAll(".sb-flip-page--text");
           for (var ti = 0; ti < textPages.length; ti++) {
             textPages[ti].style.animation = "";
