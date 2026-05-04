@@ -106,7 +106,7 @@
           <div class="sb-library" id="sbLibrary">
             <h2 class="sb-library__h" id="sbLibraryHeading">My library</h2>
             <p class="sb-library__hint" id="sbLibraryHint">
-              Put a book on the shelf after you read it — tap a cover to open it again. Saving many books fills this tablet’s browser storage (oldest titles can drop unless there’s room). Use ⚙️ Sync & ☁️ to keep backups in the cloud.
+              Put a book on the shelf after you read it — tap a cover to open it again. Many large books fill this tablet’s browser storage; if there’s no room left, save will stop until you delete some titles yourself (nothing is removed automatically). Use ⚙️ Sync & ☁️ for cloud backups.
             </p>
             <div class="sb-carousel" aria-label="Saved books library">
               <button type="button" class="sb-carousel__btn sb-carousel__btn--prev" id="sbCarouselPrev" aria-label="Scroll left">
@@ -729,7 +729,7 @@
   <script src="../js/storybook-shelf-store.js" defer></script>
   <!-- Required for cloud shelf sync + upload (same as other games) -->
   <script src="../js/score-cloud.js" defer></script>
-  <script src="storybook.js?v=326" defer></script>
+  <script src="storybook.js?v=328" defer></script>
   <script>
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("../sw.js").catch(function () {});

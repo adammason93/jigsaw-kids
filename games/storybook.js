@@ -1162,6 +1162,64 @@
     var tid = window.setTimeout(finish, 950);
   }
 
+  /**
+   * Mid–page-turn (~90deg) WebKit composites both peel faces edge-on (`backface-visibility:hidden`),
+   * exposing the stationary duplex cover. Keeping that cover on **outgoing** art avoids a decoding
+   * gap; `peelImg`/`peelBack` already carry outgoing + incoming paints for the hinge.
+   * @param {HTMLImageElement | null | undefined} a
+   * @param {HTMLImageElement | null | undefined} b
+   * @param {() => void} run
+   */
+  function decodePeelImagesThenAnimate(a, b, run) {
+    var imgs = [];
+    if (a && a.src) imgs.push(a);
+    if (b && b.src) imgs.push(b);
+    if (imgs.length === 0) {
+      window.requestAnimationFrame(run);
+      return;
+    }
+
+    /** @returns {Promise<void>} */
+    function decodeImg(img) {
+      return new Promise(function (resolve) {
+        try {
+          if (!img.complete) {
+            img.addEventListener("load", function onLoad() {
+              img.removeEventListener("load", onLoad);
+              img.removeEventListener("error", onErr);
+              tryDecode();
+            });
+            img.addEventListener(
+              "error",
+              function onErr() {
+                img.removeEventListener("load", onLoad);
+                img.removeEventListener("error", onErr);
+                resolve();
+              },
+              { once: true }
+            );
+            return;
+          }
+          tryDecode();
+        } catch (_e) {
+          resolve();
+        }
+
+        function tryDecode() {
+          if (typeof img.decode === "function") {
+            img.decode().then(resolve, resolve);
+          } else {
+            resolve();
+          }
+        }
+      });
+    }
+
+    Promise.all(imgs.map(decodeImg)).then(function () {
+      window.requestAnimationFrame(run);
+    });
+  }
+
   function bumpSpreadIndex(delta) {
     spreadIndex += delta;
     var nSpr = numSpreads();
@@ -1215,6 +1273,15 @@
     }
 
     syncSpreadIllustrationFromStory();
+    /*
+     * Do not flip the duplex base (#sbSpreadArtCover) to the **incoming** image yet — at ~90deg the
+     * leaf exposes that layer briefly; swapping early shows nothing until decode / wrong frame.
+     */
+    if (spreadArtCover && peelOut) {
+      spreadArtCover.src = peelOut;
+      spreadArtCover.alt = "";
+      spreadArtCover.referrerPolicy = "no-referrer";
+    }
     syncReaderFacingLayoutClasses();
     placeTextPageForFacingLayout();
 
@@ -1273,7 +1340,7 @@
       ? "sb-story-pageflip--turn-next-1"
       : "sb-story-pageflip--turn-prev-1";
 
-    window.requestAnimationFrame(function () {
+    decodePeelImagesThenAnimate(peelImg, peelBackImg, function () {
       peelShell.classList.add(cls1);
 
       bindCpShellTurnEnd(peelShell, function peelTurnDone() {
@@ -2250,9 +2317,8 @@
     return tryFetchImageDataUrl(sceneUrl, { shelfCompress: true });
   }
 
+  /** Shelf size is bounded only by browser/IndexedDB quota — we never auto-delete stories to make room. */
   var SHELF_STORAGE_KEY = "jigsawKids_storybookShelf_v1";
-  /** Max books on shelf (unshift newest; pop oldest when over). Keep in sync with js/score-cloud.js STORYBOOK_SHELF_MAX. */
-  var SHELF_MAX_BOOKS = 999;
   /** @type {Array|null} null until first hydrate from IndexedDB / localStorage */
   var shelfCache = null;
 
@@ -2308,78 +2374,63 @@
     cloudDone = typeof cloudDone === "function" ? cloudDone : null;
     onWritten = typeof onWritten === "function" ? onWritten : null;
     var tryList = list.slice();
-    var requestedBookCount = tryList.length;
+    var raw;
+    try {
+      raw = JSON.stringify(tryList);
+    } catch (stringifyErr) {
+      console.warn("[storybook shelf] Could not serialize library:", stringifyErr);
+      var serErr = new Error("shelf_serialize_failed");
+      if (cloudDone) cloudDone(serErr);
+      try {
+        window.alert(
+          "Could not save your library — the data could not be packed for storage.\n\n" +
+            "Try again, or remove one book and retry.",
+        );
+      } catch (e) {}
+      return;
+    }
 
-    function afterPersistOk(raw) {
+    function persistFail(e) {
+      console.warn("[storybook shelf] Persist failed — no stories were removed automatically:", e);
+      var err =
+        e instanceof Error
+          ? e
+          : new Error(typeof e === "string" ? e : "storage_quota");
+      if (cloudDone) cloudDone(err);
+      try {
+        window.alert(mergeFailedMessage(err.message || String(e)));
+      } catch (e2) {}
+    }
+
+    function afterPersistOk(savedRaw) {
       shelfCache = tryList;
-      if (requestedBookCount > tryList.length) {
-        var trimmed = requestedBookCount - tryList.length;
-        try {
-          window.dispatchEvent(
-            new CustomEvent("kids-storybook-shelf-storage-trimmed", {
-              detail: { removed: trimmed, remaining: tryList.length },
-            })
-          );
-        } catch (e) {}
-      }
       if (onWritten) {
         onWritten();
       }
       if (window.KidsScoreCloud && window.KidsScoreCloud.scheduleStorybookUpload) {
-        window.KidsScoreCloud.scheduleStorybookUpload(raw, cloudDone);
+        window.KidsScoreCloud.scheduleStorybookUpload(savedRaw, cloudDone);
       } else if (cloudDone) {
         cloudDone(null);
       }
     }
 
-    function attempt() {
-      var raw = JSON.stringify(tryList);
-      if (window.StorybookShelfStore && typeof window.StorybookShelfStore.setRaw === "function") {
-        window.StorybookShelfStore.setRaw(raw).then(
-          function () {
-            afterPersistOk(raw);
-          },
-          function (e) {
-            if (tryList.length > 1) {
-              console.warn(
-                "[storybook shelf] Save too large for browser storage — removing oldest saved book (" +
-                  (tryList.length - 1) +
-                  " will remain after retry). Prefer ⚙️ Sync & ☁️ / cloud backups. Underlying error:",
-                e
-              );
-              tryList.pop();
-              attempt();
-            } else {
-              if (cloudDone) {
-                cloudDone(e || new Error("storage_quota"));
-              } else {
-                window.alert("Could not save your library — storage is full on this device.");
-              }
-            }
-          },
-        );
-        return;
-      }
-      while (tryList.length > 0) {
-        try {
-          var r = JSON.stringify(tryList);
-          localStorage.setItem(SHELF_STORAGE_KEY, r);
-          afterPersistOk(r);
-          return;
-      } catch (e) {
-          if (tryList.length > 1) {
-          console.warn("localStorage quota exceeded, removing oldest book to make space.");
-            tryList.pop();
-        } else {
-            if (cloudDone) {
-              cloudDone(e);
-        }
-            throw e;
-      }
+    if (window.StorybookShelfStore && typeof window.StorybookShelfStore.setRaw === "function") {
+      window.StorybookShelfStore.setRaw(raw).then(
+        function () {
+          afterPersistOk(raw);
+        },
+        function (e) {
+          persistFail(e);
+        },
+      );
+      return;
     }
-      }
+    try {
+      localStorage.setItem(SHELF_STORAGE_KEY, raw);
+      afterPersistOk(raw);
+    } catch (e) {
+      persistFail(e);
     }
-    attempt();
   }
 
   function hashFromString(str) {
@@ -2466,9 +2517,6 @@
       sceneDataUrl: storedSceneData,
       sceneUrlFallback: sceneUrlFallback || null,
     });
-    while (list.length > SHELF_MAX_BOOKS) {
-      list.pop();
-    }
     saveShelf(list, cloudDone, onWritten);
   }
 
@@ -2805,6 +2853,15 @@
                 return;
               }
               var msg = cloudErr && cloudErr.message ? String(cloudErr.message) : String(cloudErr);
+              /* Local persist failed — saveShelf already alerted; do not imply “saved on device”. */
+              if (
+                msg === "storage_quota" ||
+                msg === "localStorage_quota" ||
+                msg === "shelf_serialize_failed" ||
+                /quota|QuotaExceeded/i.test(msg)
+              ) {
+                return;
+              }
               if (msg === "no_session") {
                 window.alert(
                   "This tablet saved the book only on itself — it did not reach the cloud.\n\nOpen ⚙️ (bottom corner) → Sign in with your family password → tap “Put on my shelf” again.\n\n(Deploying edge functions does not update shelf sync — the website’s JavaScript does.)",
@@ -3797,31 +3854,6 @@
   }
   initVoiceUi();
 
-    window.addEventListener("kids-storybook-shelf-storage-trimmed", function (ev) {
-      var det = (ev && ev.detail) || {};
-      var rm = Number(det.removed);
-      if (!(rm >= 1) || rm !== rm) return;
-      var hintEl = document.getElementById("sbLibraryHint");
-      var defaultHint =
-        (hintEl && hintEl.getAttribute("data-default-hint")) ||
-        "Put a book on the shelf after you read it — tap a cover to open it again.";
-      if (hintEl && !hintEl.getAttribute("data-default-hint")) {
-        hintEl.setAttribute(
-          "data-default-hint",
-          String(hintEl.textContent || "").trim() || defaultHint
-        );
-      }
-      if (hintEl) {
-        hintEl.textContent =
-          "This device ran out of room for saved books (“Put on my shelf”). " +
-          String(rm) +
-          " older " +
-          (rm === 1 ? "story" : "stories") +
-          " had to drop off here only. Turn on ⚙️ Sync & tap ☁️ to reload from cloud, or delete a few copies and save smaller books.";
-      }
-      renderShelf();
-    });
-
     function runAfterShelfHydrate() {
   renderShelf();
       setupShelfCloudSync();
@@ -3853,8 +3885,9 @@
       /quota|QuotaExceeded/i.test(s)
     ) {
       return (
-        "This phone or tablet ran out of space for this site’s saved data.\n\n" +
-        "Remove a few books from the shelf on this device (tap × on a cover), or clear site data for this website in Safari/Chrome settings, then open Build your book and tap “Get latest books from cloud” again."
+        "Could not save your library — this phone or tablet ran out of browser storage for this site.\n\n" +
+        "None of your stories were removed automatically. The new save did not replace anything.\n\n" +
+        "Remove books yourself (tap × on a shelf cover), or clear site data for this website in Safari/Chrome settings to free space — then try again. Use ⚙️ Sync & ☁️ when you can so backups can upload."
       );
     }
     return s;

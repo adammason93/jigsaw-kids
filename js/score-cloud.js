@@ -218,11 +218,6 @@
 
   var COLOURING_BUCKET = "colouring_room";
   var STORYBOOK_BUCKET = "storybook_room";
-  /** Must match games/storybook.js SHELF_STORAGE_KEY */
-  var STORYBOOK_SHELF_KEY = "jigsawKids_storybookShelf_v1";
-  /** Max books on shelf; trim removes oldest. Keep in sync with games/storybook.js SHELF_MAX_BOOKS. */
-  var STORYBOOK_SHELF_MAX = 999;
-
   function refreshOpenScoreUis() {
     mergeStorybookShelfFromCloud(function (err) {
       if (err) {
@@ -921,11 +916,6 @@
         merged.sort(function (a, c) {
           return shelfBookVersionTime(c) - shelfBookVersionTime(a);
         });
-        while (merged.length > STORYBOOK_SHELF_MAX) {
-          merged.pop();
-          changedLocal = true;
-          needsUpload = true;
-        }
 
         var same =
           JSON.stringify(sortShelfForCompare(merged)) === JSON.stringify(sortShelfForCompare(local));
