@@ -739,7 +739,8 @@
       spreadPageNumEl.textContent = "";
       return;
     }
-    var pageNum = si * 2 + 1 + (si % 2);
+    /* 1-based number of the text page shown (first page of each spread pair). */
+    var pageNum = si * 2 + 1;
     spreadPageNumEl.textContent = String(pageNum);
   }
 
@@ -1777,9 +1778,10 @@
   }
 
   /**
-   * Prose shown in the **left** text column in facing layout: even si → left story page of the spread,
-   * odd si → right story page. (Physical column stays left; only the story page alternates.)
-   * Duplex / non-facing falls back to the left-column behaviour.
+   * Prose for the visible text column in facing layout: the **first** story page of each spread pair
+   * (index 2×si), matching how books are generated (text page, then picture page).
+   * If that page has no body copy, falls back to the paired right page (captions / odd authoring).
+   * Duplex / non-facing uses the left column only, same as before.
    * @param {number} si
    * @returns {{ kind: "empty"|"theend"|"prose", html?: string }}
    */
@@ -1793,14 +1795,15 @@
     ) {
       return spreadLeftColumnBlockAtSi(si);
     }
-    if (si % 2 === 0) {
-      return spreadLeftColumnBlockAtSi(si);
+    var primary = spreadLeftColumnBlockAtSi(si);
+    if (primary.kind !== "empty") {
+      return primary;
     }
     return spreadRightColumnBlockAtSi(si);
   }
 
   /**
-   * Back of the turning leaf during peel: incoming reader text (facing parity) or duplex left column.
+   * Back of the turning leaf during peel: incoming facing reader text or duplex left column.
    * @param {number} si  Incoming spread index (spreadIndex / toSi during peel).
    */
   function fillPeelBackTextColumn(si) {
@@ -1829,7 +1832,7 @@
     showBook();
   }
 
-  /** @param {number} [textSiOverride]  Spread index for prose (visible text column follows facing parity). */
+  /** @param {number} [textSiOverride]  Spread index for prose (facing uses primary text page of the pair). */
   function writeSpreadTextMetaFromStory(textSiOverride) {
     if (!story || !spreadText) return;
     var n = numSpreads();
