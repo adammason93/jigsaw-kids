@@ -1234,10 +1234,18 @@
       peelBackImg.src = peelIn;
     }
 
+    /* Single-page-facing art fills the peeling leaf only; duplex left strip crops the wrong half of that image */
+    var hideOutgoingDuplexStripe =
+      spreadInnerEl &&
+      spreadInnerEl.classList.contains("sb-flip-spread__inner--art-facing");
     if (outgoingLeftImg) {
-      outgoingLeftImg.alt = "";
-      outgoingLeftImg.referrerPolicy = "no-referrer";
-      outgoingLeftImg.src = peelOut;
+      if (hideOutgoingDuplexStripe) {
+        outgoingLeftImg.removeAttribute("src");
+      } else {
+        outgoingLeftImg.alt = "";
+        outgoingLeftImg.referrerPolicy = "no-referrer";
+        outgoingLeftImg.src = peelOut;
+      }
     }
 
     var peelFrontRoot = peelShell.querySelector(".sb-flip-spread__peel-front");
@@ -1256,9 +1264,14 @@
     }
 
     if (outgoingLeftShell) {
-      outgoingLeftShell.hidden = false;
-      outgoingLeftShell.removeAttribute("hidden");
-      outgoingLeftShell.style.display = "block";
+      if (hideOutgoingDuplexStripe) {
+        outgoingLeftShell.hidden = true;
+        outgoingLeftShell.style.display = "none";
+      } else {
+        outgoingLeftShell.hidden = false;
+        outgoingLeftShell.removeAttribute("hidden");
+        outgoingLeftShell.style.display = "block";
+      }
     }
 
     var isNext = delta > 0;

@@ -3180,6 +3180,11 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   -webkit-perspective-origin: center center;
 }
 
+/* Mid-turn hinge rotation extends past spread bounds — parent overflow clipped the leaf halfway */
+.sb-flip-spread__inner.sb-flip-spread__inner--peel-turning {
+  overflow: visible;
+}
+
 /* Two-page spread: 2× the closed cover width, same height */
 .sb-reader-stack--open .sb-flip-spread__inner {
   width: min(
@@ -3458,14 +3463,13 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   }
 }
 
-/* Duplex only: fade outgoing type so it does not clash with verso copy. Facing books must not fade —
-   the peel already sits above the column; fading duplicates the peel’s text and causes ghosting. */
-.sb-flip-spread__inner--peel-turning:not(.sb-flip-spread__inner--facing-peel-turn)
+/* Duplex only: fade outgoing type so it does not clash with verso copy. Facing prose page must not blink out mid-turn */
+.sb-flip-spread__inner--peel-turning:not(.sb-flip-spread__inner--art-facing)
   .sb-flip-left-shell
   .sb-flip-page--text
   .sb-flip-page__sheet
   > *,
-.sb-flip-spread__inner--peel-turning:not(.sb-flip-spread__inner--facing-peel-turn)
+.sb-flip-spread__inner--peel-turning:not(.sb-flip-spread__inner--art-facing)
   .sb-flip-right-shell
   .sb-flip-page--text
   .sb-flip-page__sheet
@@ -3518,9 +3522,9 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   z-index: 6;
 }
 
-/* Facing + active peel: clip the peel viewport so the back-face does not streak at the outer edge */
+/* Keep overflow visible — clipping here hid the turning leaf halfway through hinge rotation */
 .sb-flip-spread__inner--art-facing.sb-flip-spread__inner--peel-turning .sb-flip-spread__art-peel {
-  overflow: hidden;
+  overflow: visible;
 }
 
 .sb-flip-spread__peel-front,
