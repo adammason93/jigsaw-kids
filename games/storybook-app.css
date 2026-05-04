@@ -3550,6 +3550,8 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   border-radius: 6px 0 0 6px;
 }
 
+/* Same rotateY as the default right leaf (turn-next / turn-prev); only hinge position differs so motion does not flip each spread. */
+
 .sb-flip-spread__peel-front,
 .sb-flip-spread__peel-back {
   position: absolute;
@@ -3704,17 +3706,6 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
 .sb-flip-spread__art-peel.sb-story-pageflip--turn-prev-1 {
   transform: rotateY(180deg);
   -webkit-transform: rotateY(180deg);
-}
-
-/* Left-hinged peel: opposite rotateY so “next” still reads as a forward turn */
-.sb-flip-spread__inner--art-facing.sb-facing-peel--mirror .sb-flip-spread__art-peel.sb-story-pageflip--turn-next-1 {
-  transform: rotateY(180deg);
-  -webkit-transform: rotateY(180deg);
-}
-
-.sb-flip-spread__inner--art-facing.sb-facing-peel--mirror .sb-flip-spread__art-peel.sb-story-pageflip--turn-prev-1 {
-  transform: rotateY(-180deg);
-  -webkit-transform: rotateY(-180deg);
 }
 
 /* Text over full-bleed art: plain type + soft shadow for legibility (no per-line tape) */
