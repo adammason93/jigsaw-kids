@@ -2555,6 +2555,45 @@ body.page-storybook .sb-book:not(.sb-reader--sample) .sb-book-title {
   min-width: 0;
 }
 
+.sb-art-layout-opts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 1rem;
+  margin: 0 auto 0.5rem;
+  padding: 0.45rem 0.85rem;
+  border: 1px solid rgba(55, 35, 60, 0.14);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  font-size: 0.78rem;
+  max-width: min(38rem, 94vw);
+  box-sizing: border-box;
+}
+
+.sb-art-layout-opts__legend {
+  padding: 0 0.2rem 0 0;
+  margin: 0;
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: rgba(55, 35, 60, 0.5);
+}
+
+.sb-art-layout-opts__opt {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  cursor: pointer;
+  color: rgba(42, 10, 31, 0.9);
+  font-weight: 600;
+}
+
+.sb-art-layout-opts__opt input {
+  margin: 0;
+  accent-color: #7c3aed;
+}
+
 /* Bottom-right on the spread (over right-hand art) — keeps speaker + hint off verse text */
 .sb-book-side-actions {
   position: absolute;
@@ -3167,6 +3206,128 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   backface-visibility: hidden;
   transform: translateZ(0) scale(var(--sb-spread-art-scale, 1));
   transform-origin: center center;
+}
+
+/* --- One-page pictures: full-bleed on alternating left/right; text on cream paper (saved layout: facing) --- */
+.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--facing-art-right .sb-flip-spread__art-base {
+  left: calc(50% + 1.75px);
+  right: 0;
+  width: auto;
+}
+
+.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--facing-art-left .sb-flip-spread__art-base {
+  left: 0;
+  right: calc(50% + 1.75px);
+  width: auto;
+}
+
+.sb-flip-spread__inner--art-facing .sb-flip-spread__art-cover {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 200%;
+  height: 100%;
+  max-width: none;
+  left: auto;
+  right: auto;
+  inset: unset;
+  object-fit: cover;
+  object-position: center center;
+}
+
+.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--facing-art-right .sb-flip-spread__art-cover {
+  left: -100%;
+}
+
+.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--facing-art-left .sb-flip-spread__art-cover {
+  left: 0;
+}
+
+.sb-page-num:empty {
+  display: none;
+}
+
+.sb-page-num {
+  position: absolute;
+  bottom: 0.55rem;
+  font-family: var(--sb-reader-font-body, "Fredoka", "Nunito", sans-serif);
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: rgba(42, 10, 31, 0.42);
+  line-height: 1;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.sb-flip-spread__inner--art-facing.sb-facing-text-on-left .sb-page-num {
+  left: 0.65rem;
+}
+
+.sb-flip-spread__inner--art-facing.sb-facing-text-on-right .sb-page-num {
+  right: 0.65rem;
+}
+
+.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-flip-page--text .sb-flip-page__sheet {
+  background: transparent;
+  box-shadow: none;
+  margin: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-flip-page--text .sb-flip-page__sheet::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background:
+    radial-gradient(ellipse 92% 72% at 2% 4%, rgba(255, 255, 255, 0.97) 0%, transparent 58%),
+    radial-gradient(ellipse 88% 68% at 96% 96%, rgba(255, 252, 245, 0.95) 0%, transparent 52%),
+    #f7f2e8;
+  pointer-events: none;
+}
+
+.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-flip-page--text .sb-flip-text,
+.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-page-num {
+  position: relative;
+  z-index: 1;
+}
+
+.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-flip-text__highlight {
+  display: inline;
+  font-family: var(--sb-reader-font-body);
+  font-size: clamp(0.92rem, 2.7vw, 1.14rem);
+  font-weight: 500;
+  line-height: 1.65;
+  color: #2a0a1f;
+  text-align: center;
+  padding: 0.12em 0.42em;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 0.38em;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  box-shadow: 0 1px 3px rgba(42, 10, 31, 0.09);
+  text-shadow: none;
+  -webkit-text-stroke: 0;
+}
+
+.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-big-word {
+  color: #5b21b6;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-flip-text {
+  max-width: min(28rem, 94%);
+}
+
+.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-readable-word:hover {
+  background: rgba(91, 33, 182, 0.12);
+}
+
+.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-the-end-title,
+.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-the-end-lead {
+  color: #2a0a1f;
+  text-shadow: none;
 }
 
 /* While the peel animates, stack it above static left-column type so the verso (art + copy) sweeps over outgoing text */

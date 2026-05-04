@@ -12,7 +12,7 @@
   <link rel="manifest" href="../manifest.json" />
   <link rel="stylesheet" href="../js/kids-core.css" />
   <!-- storybook-app.css = renamed file so CDN/browser cache cannot keep old storybook.css -->
-  <link rel="stylesheet" href="storybook-app.css?v=138" />
+  <link rel="stylesheet" href="storybook-app.css?v=139" />
   <link rel="stylesheet" href="../tablet-ipad.css" />
   <!-- Last wins: guarantees new background even if a proxy cached an ancient stylesheet elsewhere -->
   <style>
@@ -341,6 +341,22 @@
           ◀
         </button>
         <div class="sb-read-stage">
+          <fieldset
+            class="sb-art-layout-opts"
+            id="sbArtLayoutOpts"
+            aria-label="Picture layout"
+            hidden
+          >
+            <legend class="sb-art-layout-opts__legend">Pictures</legend>
+            <label class="sb-art-layout-opts__opt">
+              <input type="radio" name="sbArtLayout" value="duplex" checked />
+              <span>Across both pages</span>
+            </label>
+            <label class="sb-art-layout-opts__opt">
+              <input type="radio" name="sbArtLayout" value="facing" />
+              <span>One page — alternates sides</span>
+            </label>
+          </fieldset>
           <div class="sb-reader-stack" id="sbReaderStack">
             <div class="sb-reader-book">
               <button
@@ -427,9 +443,10 @@
                         </div>
                       </div>
                     </div>
-                    <div class="sb-flip-left-shell">
+                    <div class="sb-flip-left-shell" id="sbFlipLeftShell">
                       <div class="sb-flip-page sb-flip-page--text">
                         <div class="sb-flip-page__sheet">
+                          <span class="sb-page-num" id="sbSpreadPageNum" aria-hidden="true"></span>
                           <p class="sb-flip-text">
                             <span class="sb-flip-text__clip" id="sbSpreadTextClip">
                               <span class="sb-flip-text__highlight" id="sbSpreadText"></span>
@@ -439,7 +456,11 @@
                       </div>
                     </div>
                     <div class="sb-flip-gutter" aria-hidden="true"></div>
-                    <div class="sb-flip-right-shell sb-flip-right-shell--flip" aria-hidden="true"></div>
+                    <div
+                      class="sb-flip-right-shell sb-flip-right-shell--flip"
+                      id="sbFlipRightShell"
+                      aria-hidden="true"
+                    ></div>
                     <div class="sb-flip-book-legacy-art" aria-hidden="true" hidden>
                       <div class="sb-flip-art" id="sbSpreadArt">
                         <span class="sb-flip-art__num" id="sbSpreadArtNum"></span>

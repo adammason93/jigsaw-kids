@@ -458,6 +458,126 @@
   var spreadPeelBackText = document.getElementById("sbSpreadPeelBackText");
   var readerStack = document.getElementById("sbReaderStack");
   var readerPages = document.getElementById("sbReaderPages");
+  var flipLeftShell = document.getElementById("sbFlipLeftShell");
+  var flipRightShell = document.getElementById("sbFlipRightShell");
+  var spreadPageNumEl = document.getElementById("sbSpreadPageNum");
+  var artLayoutOpts = document.getElementById("sbArtLayoutOpts");
+  var K_READER_ART_LAYOUT = "sbReaderArtLayout";
+
+  function getReaderArtLayout() {
+    try {
+      var v = localStorage.getItem(K_READER_ART_LAYOUT);
+      if (v === "facing" || v === "duplex") return v;
+    } catch (eReadLayout) {}
+    return "duplex";
+  }
+
+  function setReaderArtLayout(mode) {
+    try {
+      localStorage.setItem(K_READER_ART_LAYOUT, mode === "facing" ? "facing" : "duplex");
+    } catch (eSetLayout) {}
+  }
+
+  function syncArtLayoutRadios() {
+    if (!artLayoutOpts) return;
+    var m = getReaderArtLayout();
+    var inp = artLayoutOpts.querySelector('input[name="sbArtLayout"][value="' + m + '"]');
+    if (inp) inp.checked = true;
+  }
+
+  function syncArtLayoutOptsVisibility() {
+    if (!artLayoutOpts || !readerStack || !book) return;
+    var open =
+      readerStack.classList.contains("sb-reader-stack--open") &&
+      !book.classList.contains("sb-book--cover-visible");
+    if (open) {
+      artLayoutOpts.removeAttribute("hidden");
+      artLayoutOpts.hidden = false;
+    } else {
+      artLayoutOpts.setAttribute("hidden", "");
+      artLayoutOpts.hidden = true;
+    }
+  }
+
+  function syncReaderFacingLayoutClasses() {
+    if (!spreadInnerEl) return;
+    var wantFacing = getReaderArtLayout() === "facing";
+    var flyleaf = spreadInnerEl.classList.contains("sb-flip-spread__inner--flyleaf-pane");
+    var hasArt = spreadInnerEl.classList.contains("sb-flip-spread__inner--has-art");
+    var effective = wantFacing && hasArt && !flyleaf;
+
+    spreadInnerEl.classList.toggle("sb-flip-spread__inner--art-facing", effective);
+
+    if (effective) {
+      var artRight = spreadIndex % 2 === 0;
+      spreadInnerEl.classList.toggle("sb-flip-spread__inner--facing-art-right", artRight);
+      spreadInnerEl.classList.toggle("sb-flip-spread__inner--facing-art-left", !artRight);
+      spreadInnerEl.classList.toggle("sb-facing-text-on-left", artRight);
+      spreadInnerEl.classList.toggle("sb-facing-text-on-right", !artRight);
+    } else {
+      spreadInnerEl.classList.remove(
+        "sb-flip-spread__inner--facing-art-right",
+        "sb-flip-spread__inner--facing-art-left",
+        "sb-facing-text-on-left",
+        "sb-facing-text-on-right"
+      );
+    }
+  }
+
+  function placeTextPageForFacingLayout() {
+    if (!flipLeftShell || !flipRightShell || !spreadText) return;
+    var textPage = spreadText.closest(".sb-flip-page--text");
+    if (!textPage) return;
+
+    var facingEffective =
+      spreadInnerEl &&
+      spreadInnerEl.classList.contains("sb-flip-spread__inner--art-facing");
+
+    if (!facingEffective) {
+      if (!flipLeftShell.contains(textPage)) {
+        flipLeftShell.appendChild(textPage);
+      }
+      flipRightShell.setAttribute("aria-hidden", "true");
+      return;
+    }
+
+    var artRight = spreadIndex % 2 === 0;
+    if (artRight) {
+      if (!flipLeftShell.contains(textPage)) {
+        flipLeftShell.appendChild(textPage);
+      }
+      flipRightShell.setAttribute("aria-hidden", "true");
+    } else {
+      if (!flipRightShell.contains(textPage)) {
+        flipRightShell.appendChild(textPage);
+      }
+      flipRightShell.removeAttribute("aria-hidden");
+    }
+  }
+
+  function updateSpreadPageNumberDisplay() {
+    if (!spreadPageNumEl || !spreadInnerEl) return;
+    if (!spreadInnerEl.classList.contains("sb-flip-spread__inner--art-facing")) {
+      spreadPageNumEl.textContent = "";
+      return;
+    }
+    if (!story || !story.pages || numSpreads() < 1) {
+      spreadPageNumEl.textContent = "";
+      return;
+    }
+    var si = spreadIndex;
+    if (si * 2 >= story.pages.length) {
+      spreadPageNumEl.textContent = "";
+      return;
+    }
+    var pageNum = si * 2 + 1 + (si % 2);
+    spreadPageNumEl.textContent = String(pageNum);
+  }
+
+  function readerUsesFacingPageTurn() {
+    return getReaderArtLayout() === "facing";
+  }
+
   var btnOpenCover = document.getElementById("sbOpenCover");
   var btnCloseBook = document.getElementById("sbCloseBook");
   var coverTitle = document.getElementById("sbCoverTitle");
@@ -1004,6 +1124,10 @@
       return;
     }
     if (spreadAnimLock) return;
+    if (readerUsesFacingPageTurn()) {
+      navigateSpreadInstant(delta);
+      return;
+    }
     navigateSpreadWithRightPageTurn(delta);
   }
 
@@ -1033,6 +1157,7 @@
       btnCloseBook.hidden = true;
       btnCloseBook.setAttribute("aria-hidden", "true");
     }
+    syncArtLayoutOptsVisibility();
   }
 
   function closeBookCover() {
@@ -1058,6 +1183,7 @@
     }
     syncCloseBookButton();
     updatePagerHints();
+    syncArtLayoutOptsVisibility();
   }
 
   function openBookCover() {
@@ -1075,6 +1201,7 @@
     }
     syncCloseBookButton();
     updatePagerHints();
+    syncArtLayoutOptsVisibility();
 
     function paintOpenSpread() {
       applySpreadContent();
@@ -1118,6 +1245,7 @@
       btnOpenCover.removeAttribute("tabindex");
     }
     syncCloseBookButton();
+    syncArtLayoutOptsVisibility();
   }
 
   function applyBookThemingFromStory() {
@@ -1569,6 +1697,9 @@
     if (!opt.skipArt) {
       syncSpreadIllustrationFromStory();
     }
+    syncReaderFacingLayoutClasses();
+    placeTextPageForFacingLayout();
+    updateSpreadPageNumberDisplay();
     updatePagerHints();
   }
 
@@ -3810,5 +3941,17 @@
   if (typeof KidsCore !== "undefined") {
     KidsCore.init();
     KidsCore.bindTapSound(document.getElementById("app"));
+  }
+
+  syncArtLayoutRadios();
+  if (artLayoutOpts) {
+    artLayoutOpts.addEventListener("change", function (e) {
+      var t = e.target;
+      if (!t || t.name !== "sbArtLayout") return;
+      setReaderArtLayout(String(t.value) === "facing" ? "facing" : "duplex");
+      if (story) {
+        applySpreadContent();
+      }
+    });
   }
 })();
