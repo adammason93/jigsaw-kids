@@ -1153,8 +1153,7 @@
         "sb-flip-spread__inner--turn-in-prev",
         "sb-flip-spread__inner--fade-out",
         "sb-flip-spread__inner--fade-in",
-        "sb-flip-spread__inner--peel-turning",
-        "sb-facing-peel--mirror"
+        "sb-flip-spread__inner--peel-turning"
       );
     }
     clearSpreadPeelTurnClasses();
@@ -1228,14 +1227,6 @@
     var isFacingBook = readerUsesFacingPageTurn();
     if (spreadInnerEl) {
       spreadInnerEl.classList.add("sb-flip-spread__inner--peel-turning");
-      if (isFacingBook) {
-        spreadInnerEl.classList.toggle(
-          "sb-facing-peel--mirror",
-          fromSi % 2 === 1
-        );
-      } else {
-        spreadInnerEl.classList.remove("sb-facing-peel--mirror");
-      }
     }
 
     syncSpreadIllustrationFromStory();
@@ -1259,8 +1250,6 @@
     var peelBackImg = document.getElementById("sbSpreadArtPeelBackImg");
     var outgoingLeftShell = document.getElementById("sbSpreadArtOutgoingLeft");
     var outgoingLeftImg = document.getElementById("sbSpreadArtOutgoingLeftImg");
-    /* Duplex: outgoing-left + 200%-wide crops. Facing: one bitmap per picture page — slicing it in half misaligns the seam. */
-    var useDuplexOutgoingLeft = !isFacingBook;
 
     if (peelImg) {
       peelImg.alt = "";
@@ -1275,26 +1264,17 @@
     }
 
     if (outgoingLeftImg) {
-      if (useDuplexOutgoingLeft) {
-        outgoingLeftImg.alt = "";
-        outgoingLeftImg.referrerPolicy = "no-referrer";
-        outgoingLeftImg.src = peelOut;
-      } else {
-        outgoingLeftImg.removeAttribute("src");
-      }
+      outgoingLeftImg.alt = "";
+      outgoingLeftImg.referrerPolicy = "no-referrer";
+      outgoingLeftImg.src = peelOut;
     }
 
     peelShell.hidden = false;
     peelShell.removeAttribute("hidden");
     if (outgoingLeftShell) {
-      if (useDuplexOutgoingLeft) {
-        outgoingLeftShell.hidden = false;
-        outgoingLeftShell.removeAttribute("hidden");
-        outgoingLeftShell.style.display = "block";
-      } else {
-        outgoingLeftShell.hidden = true;
-        outgoingLeftShell.style.display = "none";
-      }
+      outgoingLeftShell.hidden = false;
+      outgoingLeftShell.removeAttribute("hidden");
+      outgoingLeftShell.style.display = "block";
     }
 
     var isNext = delta > 0;
@@ -1310,7 +1290,6 @@
         clearSpreadTurnRevealFx();
         if (spreadInnerEl) {
           spreadInnerEl.classList.remove("sb-flip-spread__inner--peel-turning");
-          spreadInnerEl.classList.remove("sb-facing-peel--mirror");
           var textPages = spreadInnerEl.querySelectorAll(".sb-flip-page--text");
           for (var ti = 0; ti < textPages.length; ti++) {
             textPages[ti].style.animation = "";
@@ -1731,11 +1710,6 @@
 
   function fillPeelBackTextColumn(si) {
     if (!spreadPeelBackText) return;
-    /* Facing: verso copy dupes the cream-page column and misaligns mid-turn; duplex still ghosts prose over art. */
-    if (getEffectiveReaderArtLayout() === "facing") {
-      spreadPeelBackText.innerHTML = "";
-      return;
-    }
     var block = spreadLeftColumnBlockAtSi(si);
     if (block.kind === "prose" && block.html) {
       spreadPeelBackText.innerHTML =
@@ -2166,7 +2140,8 @@
   }
 
   var SHELF_STORAGE_KEY = "jigsawKids_storybookShelf_v1";
-  var SHELF_MAX_BOOKS = 14;
+  /** Max books on shelf (unshift newest; pop oldest when over). Keep in sync with js/score-cloud.js STORYBOOK_SHELF_MAX. */
+  var SHELF_MAX_BOOKS = 200;
   /** @type {Array|null} null until first hydrate from IndexedDB / localStorage */
   var shelfCache = null;
 

@@ -220,7 +220,8 @@
   var STORYBOOK_BUCKET = "storybook_room";
   /** Must match games/storybook.js SHELF_STORAGE_KEY */
   var STORYBOOK_SHELF_KEY = "jigsawKids_storybookShelf_v1";
-  var STORYBOOK_SHELF_MAX = 14;
+  /** Max books on shelf; trim removes oldest. Keep in sync with games/storybook.js SHELF_MAX_BOOKS. */
+  var STORYBOOK_SHELF_MAX = 200;
 
   function refreshOpenScoreUis() {
     mergeStorybookShelfFromCloud(function (err) {
