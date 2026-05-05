@@ -418,6 +418,41 @@ function coerceBookColor(
 const BOOK_COLOR_MODEL_HINT =
   'MUST be exactly one of: "pink", "blue", "green", "purple", "orange", "teal", "red", "yellow", "lilac", "mint", "coral", "navy"';
 
+/** True when prose uses a capitalised first name as a whole word (page-1 / verse checks). */
+function proseNamesFirstName(prose: string, firstName: string): boolean {
+  const n = firstName.trim();
+  if (n.length < 2) return false;
+  const esc = n.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  try {
+    return new RegExp(`\\b${esc}\\b`, "i").test(prose);
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Tighten cast when the beat is clearly a private home / living space — stops random "extra kids".
+ */
+function domesticInteriorCastExtraGuard(
+  plotHint: string,
+  sceneBrief: string,
+  verseOrExtra: string,
+): string {
+  const blob = `${plotHint}\n${sceneBrief}\n${verseOrExtra}`.toLowerCase();
+  const home =
+    /\b(at home|living room|lounge|sitting room|kitchen|bedroom|playroom|family room|hallway|sofa|settee|couch|our house|watching tv|watching television|the telly)\b/.test(
+      blob,
+    ) ||
+    /\binside (the|their|a) (cosy )?(castle[ -])?(home|house|flat|room)\b/.test(blob) ||
+    /\bcosy (castle[ -])?(tv|television) room\b/.test(blob);
+  if (!home) return "";
+  return (
+    "PRIVATE-HOME LOCK: This scene reads as **inside a family home** (cosy living room / TV area / kitchen — even with storybook castle decor). " +
+    "Show **only** humans **named in SCENE ACTION** for this beat — **no unnamed third child**, no mystery school friend, no filler kid in a different shirt colour. " +
+    "The number of visible **human children** must match the names in the text (typically one or two — not three unless the verse names three). Pets appear only if named.\n\n"
+  );
+}
+
 function composeDallePrompt(parts: {
   preamble: string;
   envTheme: string;
@@ -426,6 +461,10 @@ function composeDallePrompt(parts: {
   firstPanelLock: string;
   heroFirstName: string;
   mandatoryCastLine: string;
+  /** Whole-plot idea — helps domestic-interior cast guard. */
+  plotHint?: string;
+  /** Verse or merged text for the same spread — improves home-scene detection. */
+  verseForDomesticGuard?: string;
 }): string {
   const lockChunk = parts.firstPanelLock.trim()
     ? `MATCH FIRST SPREAD — copy these exact looks (faces, hair, outfits, creatures): ${parts.firstPanelLock.trim()}\n\n`
@@ -435,8 +474,13 @@ function composeDallePrompt(parts: {
     `When ${parts.heroFirstName} is named in SCENE ACTION, they must appear clearly in the foreground (full face, correct child). ` +
     `Only ONE imaginary buddy individual from the BUDDY line (e.g. one unicorn), not a duplicate big+small pair, unless SCENE ACTION explicitly names two distinct buddies. ` +
     `NO unnamed villagers, torch-bearer extras, silhouettes with faces, mascots, or filler crowd. NO logos or brand marks. Background = whatever PLACE/ENVIRONMENT specifies (castle, woods, cave, beach, garden, space, sea, ship, mountain, zoo, farm, circus, city, train, lake, snow, desert, museum, island, etc.) without extra faced characters beyond SCENE ACTION.\n\n`;
+  const domestic = domesticInteriorCastExtraGuard(
+    parts.plotHint ?? "",
+    parts.sceneBrief,
+    parts.verseForDomesticGuard ?? "",
+  );
   const mid =
-    `SCENE ACTION: ${parts.sceneBrief}\n\n${identity}${lockChunk}MANDATORY CAST (${parts.mandatoryCastLine}):\n`;
+    `SCENE ACTION: ${parts.sceneBrief}\n\n${identity}${domestic}${lockChunk}MANDATORY CAST (${parts.mandatoryCastLine}):\n`;
   const head = `${parts.preamble}${parts.envTheme}`;
   const room = DALLE3_PROMPT_MAX - head.length - mid.length;
   let cast = parts.castBible.trim();
@@ -1721,11 +1765,30 @@ function spreadTextForPicturePage(pictureIndex: number, pages: StoryPage[]): str
 
 /**
  * Prepended to spread-1 illustration briefs — also referenced for GPT Image edits (first spread).
- * Bookshelf cover thumbnail uses this art — keep foreground to hero ± buddy.
+ * Bookshelf cover thumbnail uses this art — when page-1 prose names a sibling/co-star, they belong in frame too.
  */
-function openingSceneImageConstraints(noBuddyBook: boolean, heroFirstName: string): string {
+function openingSceneImageConstraints(
+  noBuddyBook: boolean,
+  heroFirstName: string,
+  opts?: { plotCoStars?: string[]; page1Prose?: string },
+): string {
   const h = sanitizeName(heroFirstName) || "the hero";
+  const coStars = (opts?.plotCoStars ?? []).map((s) => String(s).trim()).filter(Boolean);
+  const p1 = String(opts?.page1Prose ?? "");
+  const onPage1 = coStars.filter((n) => proseNamesFirstName(p1, n));
+
   if (noBuddyBook) {
+    if (onPage1.length > 0) {
+      const roster = [h, ...onPage1].join(" and ");
+      return (
+        "OPENING PICTURE (also the bookshelf cover thumbnail): **Family opener** — page-1 prose names " +
+        roster +
+        " together, so **every named child must appear clearly in frame** (full faces — not a hero-only cover that drops a sibling). " +
+        "**≤ " +
+        (1 + onPage1.length) +
+        " human children**, uncrowded; if the verse names a **pet** by name, show them as an animal — **no unnamed extra human children** at the edges. "
+      );
+    }
     return (
       "OPENING PICTURE (also the bookshelf cover thumbnail): **Cover-style foreground** — **only " +
       h +
@@ -1734,6 +1797,19 @@ function openingSceneImageConstraints(noBuddyBook: boolean, heroFirstName: strin
       " for that beat, allow **exactly ONE** extra human — still uncrowded (**≤2 humans**). "
     );
   }
+
+  if (onPage1.length > 0) {
+    return (
+      "OPENING PICTURE (also the bookshelf cover thumbnail): Page-1 prose names **" +
+      h +
+      "**, **" +
+      onPage1.join(" and ") +
+      "**, and the imaginary buddy for this opener — **show all of them in frame** (every human named on page 1 clearly visible beside the buddy). **≤ " +
+      (1 + onPage1.length) +
+      " human children** plus the buddy — **no random unnamed human kids**. "
+    );
+  }
+
   return (
     "OPENING PICTURE (also the bookshelf cover thumbnail): **Cover-style foreground** — **ONLY " +
     h +
@@ -3503,8 +3579,8 @@ async function executeStorybookPipeline(
       }
     OPENING SPREAD (page 2 only — the first illustrationBrief; also reused as bookshelf cover thumbnail): MUST match page 1 text and the child's plot, AND establish the actual SETTING (castle / woods / cave / beach / space / zoo / farm / mountain / sea / ship / train / city / circus / lake / snow / desert / museum / island / etc. — whichever the plot calls for).\nOPENING CAST BUDGET — **cover thumbnail (${noBuddyBook ? "hero-focused" : "hero + buddy"}):** Pair page 1 with page 2 so **VISIBLE** ordinarily ${
         noBuddyBook
-          ? `lists **ONLY ${childName}** in the foreground (like a paperback cover — one clear hero). Add **≤1 other named human** only if prose truly needs Mum/Dad/sibling beside ${childName} in that opener — **still ≤2 humans**, uncrowded. **Do NOT** load spread 2 with optional game friends — introduce them **from spread 3 onward** unless page 1 names each one actually with ${childName} in that beat. `
-          : `lists **ONLY ${childName} and the imaginary buddy** (foreground duo). **NO** classmates, cousins, stuffed crowd tables, multi-friend tableau unless prose literally needs **one named human beside ${childName}** (${childName} + buddy + that person **≤3** max). **Do NOT** catalogue every optional game friend on spreads 1–2 — add from spread 3 unless page 1 places everyone together. `
+          ? `lists **ONLY ${childName}** in the foreground **unless** page-1 prose names another plot child (e.g. a sibling) **in the same opening beat** — then **both named children** must appear together (not a solo hero thumbnail). Otherwise keep **≤2 humans**. **Do NOT** load spread 2 with optional game friends — introduce them **from spread 3 onward** unless page 1 names each one with ${childName} in that beat. `
+          : `lists **ONLY ${childName} and the imaginary buddy** (foreground duo) **unless** page-1 prose also names another human child in that opener — then include **${childName}, the buddy, and that named child** together. **NO** extra classmates or cousin crowds unless page 1 names them. **Do NOT** catalogue every optional game friend on spreads 1–2 — add from spread 3 unless page 1 places everyone together. `
       }**VISIBLE** mirrors page 1 only — **no half-visible faces at frame edges**; every pictured person wholly inside.**\n Example: castle hide-and-seek opens at gates or courtyard — not a woods default.** No unwritten extras.\n  When game people with portrait notes appear on a picture page, the brief should mention them looking like those notes (hair, outfit colours, age vibe).
   - If a "plot idea" is given, you MUST make it the central theme of the story and feature it heavily in EVERY illustration brief. If it is empty, invent a short happy outing that fits the setting.
   - PLOT FIDELITY — read the plot idea LITERALLY:
@@ -3512,6 +3588,7 @@ async function executeStorybookPipeline(
     • Resolve the story with whatever the plot actually says is the climax — for example "they realised the dragon could fly", "they finally caught the cheeky dragon", "the cake came out of the oven golden brown". Don't substitute a generic ending.
     • Stay inside the setting the plot names. If the plot says castle, every spread is in the castle. If beach, every spread is on the beach.
     • Use only the named cast (hero + human co-stars from the plot + buddy + any game people the plot uses). Don't add background characters, animals, or family members the plot does not name.
+    • **Home / TV room / kitchen:** When a beat is clearly **indoors at home** (sofa, telly, family lounge — including a fairy-tale **living room**), **VISIBLE** may list **only** humans named in that verse (plus a **named pet** if the verse names them). **Never** invent a third mystery child or unnamed "friend" for background interest — save extra faces for **park, school, party** beats when the verse names them. If only ${childName} and one sibling appear in the text, show **exactly those two** children (not three).
     • If the plot has a narrative twist or reveal, build to that reveal as the climax around spread 4 or 5 — not an off-hand line.
   - OUTPUT MUST BE VALID JSON: In title, characterDesign, and EVERY page "text" and "illustrationBrief" string, do NOT put the double-quote character ("). It ends the string and corrupts the whole file. For heights use words (about four feet tall) or 4 ft / 5 ft — never write 4'0\" or 5'2\" style inch marks. For emphasis use single quotes or nothing — never paste (e.g. \"smooth clay\") with raw \" inside values.
   - JSON only, no markdown.`;
@@ -3744,11 +3821,17 @@ async function executeStorybookPipeline(
         preamble: stylePreamble,
         envTheme,
         sceneBrief:
-          openingSceneImageConstraints(noBuddyBook, childName) + briefs[0].brief,
+          openingSceneImageConstraints(noBuddyBook, childName, {
+            plotCoStars: plotNamedHumans,
+            page1Prose: story.pages[0]?.text ?? "",
+          }) + briefs[0].brief,
         castBible,
         firstPanelLock: "",
         heroFirstName: childName,
         mandatoryCastLine: artStyleSpec.composeMandatoryCast,
+        plotHint,
+        verseForDomesticGuard:
+          `${briefs[0].verse ?? ""}\n${briefs[0].brief ?? ""}`.trim(),
       });
 
       /** When set (default): one T2I “cast lineup”, then all 6 spreads = Fal image→image (Redux) from that anchor — strongest consistency. */
@@ -4013,15 +4096,42 @@ async function executeStorybookPipeline(
               `SETTING — paint exactly this world on every spread:\n${placeDesc}.${plotHint ? `\nThe child's story idea: ${plotHint}` : ""}`,
             );
 
+            const domesticG = domesticInteriorCastExtraGuard(
+              plotHint,
+              b.brief,
+              verseLines,
+            ).trim();
+            if (domesticG.length > 0) {
+              blocks.push(domesticG);
+            }
+
             // 3. Shot framing
             blocks.push(`SHOT TYPE (spread ${idx + 1} of ${shotPlan.length}): ${shot.label}. ${shot.note}`);
 
             if (idx === 0) {
-              blocks.push(
-                noBuddyBook
-                  ? `OPENING / SHELF COVER (${childName}'s first picture): **Hero-only foreground** — just ${childName} dominates like a paperback cover (${childName} alone unless the verse above explicitly names exactly one other person beside them — then **≤2 humans**, uncrowded). No classrooms full of classmates, family breakfast tables, or half-faces at the margins unless the verse demands it — **prefer ${childName} centered in the opening scene.**`
-                  : `OPENING / SHELF COVER (${childName}'s first picture): **Hero + buddy only foreground** — ${childName} AND the imaginary buddy (${childName} plus buddy creature); **≤2 principals** unless the verse explicitly names **one other human** in that beat — then ${childName}, buddy, that human **≤3**. No crowds, no clipped extras at frame edges.`,
+              const page1 = String(story.pages[0]?.text ?? "").trim();
+              const coOnP1 = plotNamedHumans.filter((n) =>
+                proseNamesFirstName(page1, n),
               );
+              if (noBuddyBook) {
+                if (coOnP1.length > 0) {
+                  blocks.push(
+                    `OPENING / SHELF COVER (${childName}'s first picture): Page-1 text names ${[childName, ...coOnP1].join(" and ")} — **show every named child together** in frame (not a hero-only cover that drops a sibling). **≤${1 + coOnP1.length} human children**; no unnamed extra kids at the margins.`,
+                  );
+                } else {
+                  blocks.push(
+                    `OPENING / SHELF COVER (${childName}'s first picture): **Hero-focused** — ${childName} dominates unless the verse above names exactly one other person beside them; **≤2 humans**. No classrooms of strangers.`,
+                  );
+                }
+              } else if (coOnP1.length > 0) {
+                blocks.push(
+                  `OPENING / SHELF COVER: Page-1 names ${childName}, ${coOnP1.join(", ")}, and the imaginary buddy — **all clearly visible** together (not hero+buddy only if a sibling is named on page 1). **≤${1 + coOnP1.length} humans** plus buddy; no unnamed extra children.`,
+                );
+              } else {
+                blocks.push(
+                  `OPENING / SHELF COVER (${childName}'s first picture): **Hero + buddy** — ${childName} and the imaginary buddy; **≤2 principals** unless the verse names **one other human** in that beat, then **≤3**. No crowds, no clipped extras.`,
+                );
+              }
               if (heroPortraitPin?.trim()) {
                 blocks.push(
                   `HERO REFERENCE (cover must match uploaded child): ${heroPortraitPin.trim()} — same kid, hair colour and style as refs; never a generic different-haired substitute.`,
@@ -4068,7 +4178,7 @@ async function executeStorybookPipeline(
             );
 
             blocks.push(
-              "OUTFIT LOCK: Each named child's shirt/top must match CAST IDENTITIES and the reference lineup **exactly** — same named solid colour every spread (**no** orange⇄green or other hue swaps for one person).",
+              "OUTFIT LOCK: Each named child must keep the **exact shirt colour and style** pinned in CAST IDENTITIES (e.g. Isaac's line) — **never** invent a substitute boy in a different solid tee for 'variety'. Same named solid colour every spread (**no** green⇄orange or other hue swaps for one person).",
             );
 
             // 5. Visible cast for THIS spread (the part that fixes the
@@ -4238,12 +4348,18 @@ async function executeStorybookPipeline(
               envTheme,
               sceneBrief:
                 (idx === 0
-                  ? openingSceneImageConstraints(noBuddyBook, childName)
+                  ? openingSceneImageConstraints(noBuddyBook, childName, {
+                      plotCoStars: plotNamedHumans,
+                      page1Prose: story.pages[0]?.text ?? "",
+                    })
                   : "") + b.brief,
               castBible,
               firstPanelLock: panelLock,
               heroFirstName: childName,
               mandatoryCastLine: artStyleSpec.composeMandatoryCast,
+              plotHint,
+              verseForDomesticGuard:
+                `${spreadTextForPicturePage(b.index, story.pages)}\n${b.brief}`.trim(),
             });
             const verseBeat = spreadTextForPicturePage(b.index, story.pages).slice(0, 360);
             const verseTwoParagraphs = /\n\s*\n/.test(verseBeat);
@@ -4337,6 +4453,9 @@ async function executeStorybookPipeline(
                   firstPanelLock: panelLock,
                   heroFirstName: childName,
                   mandatoryCastLine: artStyleSpec.composeMandatoryCast,
+                  plotHint,
+                  verseForDomesticGuard:
+                    `${spreadTextForPicturePage(b.index, story.pages)}\n${b.brief}`.trim(),
                 });
                 if (useFalRedux) {
                   if (!referenceStillUrl) {
