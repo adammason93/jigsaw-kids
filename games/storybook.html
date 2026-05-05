@@ -416,7 +416,7 @@
           <fieldset class="sb-picture-quality">
             <legend class="sb-label sb-label--secondary">Pictures</legend>
             <p class="sb-panel__micro sb-picture-quality__hint" id="sbPictureQualityHint">
-              <strong>Default: Best for print</strong> — strongest match between <strong>story text</strong>, <strong>each picture</strong>, and <strong>uploaded faces</strong> (recommended for keepsakes). <strong>Balanced refs</strong> keeps <strong>GPT Image 2</strong> + photo-grounded cast but attaches your uploads to the <strong>first two</strong> picture spreads only (later spreads lock from the anchor — lower API cost). <strong>Play &amp; screen</strong> is the lowest-cost tier. Total cost varies — check your OpenAI usage.
+              <strong>Default: Best for print</strong> — strongest match between <strong>story text</strong>, <strong>each picture</strong>, and <strong>uploaded faces</strong> (recommended for keepsakes). <strong>Balanced refs</strong> uses the same <strong>GPT Image 2</strong> path as Play &amp; screen and keeps <strong>your photos attached on every picture spread</strong> so children stay recognisable end-to-end; it sits between Play &amp; screen and Best for print on story/art tuning. Total cost varies — check your OpenAI usage.
             </p>
             <div class="sb-quality-row" role="radiogroup" aria-labelledby="sbPictureQualityHint">
               <label class="sb-quality-opt">
@@ -430,7 +430,7 @@
                 <input type="radio" name="sbPictureQuality" value="balanced" />
                 <span class="sb-quality-opt__body">
                   <span class="sb-quality-opt__title">Balanced refs</span>
-                  <span class="sb-quality-opt__sub">Photo-grounded cast; uploads on spreads 1–2 only, then anchor — good likeness with lower spend than every spread</span>
+                  <span class="sb-quality-opt__sub">Same photo attachment every spread as Play &amp; screen — lighter story/vision tier than Best for print; great when you need stable faces across the whole book</span>
                 </span>
               </label>
               <label class="sb-quality-opt">
@@ -865,7 +865,7 @@
   <script src="../js/storybook-shelf-store.js" defer></script>
   <!-- Required for cloud shelf sync + upload (same as other games) -->
   <script src="../js/score-cloud.js" defer></script>
-  <script src="storybook.js?v=348" defer></script>
+  <script src="storybook.js?v=349" defer></script>
   <script>
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("../sw.js").catch(function () {});

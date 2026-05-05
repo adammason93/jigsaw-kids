@@ -2331,7 +2331,7 @@ async function falFluxProTextToImageUrl(
  * lineup + per-spread **edits** (same cast / costume lock) than the older 1.x family.
  * Override via **`STORYBOOK_GPTIMAGE_MODEL`** — only **`gpt-image-2`** (and `gpt-image-2*`) are honoured by default; other ids fall back to **`gpt-image-2`** unless **`STORYBOOK_GPTIMAGE_ALLOW_NON_IMAGE2=1`** (dev only).
  * **Split quality (optional):** **`STORYBOOK_GPTIMAGE_QUALITY_GENERATION`** and **`STORYBOOK_GPTIMAGE_QUALITY_EDIT`** (`low` \| `medium` \| `high` \| `auto`). If unset, **`STORYBOOK_GPTIMAGE_QUALITY`** still applies to **both** scopes (legacy).
- * **User refs on edits:** **`STORYBOOK_GPTIMAGE_USER_REFS_FIRST_N_SPREADS`** = attach hero/friend upload bytes only on spreads with index **0 .. N-1** (`0` = anchor-only on every spread). Tier **`balanced`** defaults **N=2** when unset.
+ * **User refs on edits:** **`STORYBOOK_GPTIMAGE_USER_REFS_FIRST_N_SPREADS`** = attach hero/friend upload bytes only on spreads with index **0 .. N-1** (`0` = anchor-only on every spread). When **unset**, all tiers attach uploads on **every** spread edit (needed for stable child likeness). Set **`N=2`** (etc.) only to shave API cost at the risk of cast drift on later spreads.
  * ────────────────────────────────────────────────────────────────────────── */
 
 const GPT_IMAGE_DEFAULT_MODEL = "gpt-image-2";
@@ -2351,7 +2351,7 @@ type PictureBookQuality = "standard" | "high" | "balanced";
 
 /**
  * `standard` = **play / screen economy**: lighter **gpt-4o-mini** story + lock when unset; **1024²** GPT Image 2. Vision uses **`gpt-4o-mini`** by default (even with photo uploads) — set **`STORYBOOK_BUDGET_VISION_4O=1`** for **`gpt-4o`** on refs only. Image **quality** stays medium/low unless **`STORYBOOK_REF_PHOTO_IMAGE_BOOST=1`**.
- * `balanced` = **refs + spend control** — same story/vision/size defaults as **`standard`**; **GPT Image 2** anchor still **medium** gen + **low** edit; **uploaded face refs attach to the first 2 spread edits only** (later spreads: **anchor PNG only**) unless **`STORYBOOK_GPTIMAGE_USER_REFS_FIRST_N_SPREADS`** overrides. Override split via **`STORYBOOK_GPTIMAGE_QUALITY_*`**.
+ * `balanced` = **middle tier** — same story/vision/size/ref-attachment defaults as **`standard`** (uploads on **every** spread edit when refs exist); use **`STORYBOOK_GPTIMAGE_QUALITY_GENERATION`** / **`_EDIT`** or server env to tune cost vs **high**. Optional **`STORYBOOK_GPTIMAGE_USER_REFS_FIRST_N_SPREADS`** caps ref attachments on any tier if you accept likeness drift later in the book.
  * `high` = **grown-up / keepsake** (~**40–60p** ballpark pictures + sharper text↔briefs — **verify** billing): **gpt-4o** story + lock when unset; **1536×1024** when **`STORYBOOK_GPTIMAGE_LEGACY_BUDGET=0`** OR model is **`gpt-image-1.5`**; **`gpt-image-2`** with **unset legacy flag** defaults to **cost-parity** (**1024²**, softer edit **`quality`** unless env overrides — spread edits do not send **`input_fidelity`** for Image 2). **`gpt-4o`** portrait vision when unset (mini on standard).
  * Omitted **`pictureBookQuality`** defaults to **standard** so casual play stays cheaper.
  */
@@ -2767,17 +2767,14 @@ function gptImageQualityEnvScopeOverride(
   return null;
 }
 
-/** When non-null, attach uploaded hero/friend ref **bytes** only when `spreadIdx < n` (spreads are 0-based). */
-function gptImageUserRefsSpreadExclusiveCap(
-  bookTier: PictureBookQuality,
-): number | null {
+/** When non-null, attach uploaded hero/friend ref **bytes** only when `spreadIdx < n` (spreads are 0-based). Default **null** = every spread gets uploads (avoids “wrong sibling” drift on later pages). */
+function gptImageUserRefsSpreadExclusiveCap(): number | null {
   const raw = (Deno.env.get("STORYBOOK_GPTIMAGE_USER_REFS_FIRST_N_SPREADS") ?? "").trim();
   if (raw !== "") {
     const n = Number.parseInt(raw, 10);
     if (!Number.isFinite(n) || n < 0) return null;
     return n;
   }
-  if (bookTier === "balanced") return 2;
   return null;
 }
 
@@ -3953,7 +3950,7 @@ async function executeStorybookPipeline(
           // timeout. Identity is already locked by pixels. Visual lock stays in
           // play for the Fal / DALL·E paths below.
           const refBytes = anchorOut.bytes;
-          /** Anchor on every spread; optional hero/friend upload bytes (`STORYBOOK_GPTIMAGE_USER_REFS_IN_EDIT`, `STORYBOOK_GPTIMAGE_USER_REFS_FIRST_N_SPREADS`, **`balanced`** tier). */
+          /** Anchor on every spread; optional hero/friend upload bytes (`STORYBOOK_GPTIMAGE_USER_REFS_IN_EDIT`, `STORYBOOK_GPTIMAGE_USER_REFS_FIRST_N_SPREADS`). */
           const rawTot = Deno.env.get("STORYBOOK_GPTIMAGE_EDIT_MAX_IMAGES")?.trim();
           const maxTotalParsed = Number.parseInt(rawTot ?? "", 10);
           const maxTotalImages = Number.isFinite(maxTotalParsed) && maxTotalParsed >= 2
@@ -3969,9 +3966,7 @@ async function executeStorybookPipeline(
               ? Math.min(Math.floor(maxHeroExtrasParsed), 6)
               : 3;
 
-          const userRefsSpreadCap = gptImageUserRefsSpreadExclusiveCap(
-            pictureBookQuality,
-          );
+          const userRefsSpreadCap = gptImageUserRefsSpreadExclusiveCap();
           if (userRefsSpreadCap !== null) {
             console.info(
               userRefsSpreadCap === 0
