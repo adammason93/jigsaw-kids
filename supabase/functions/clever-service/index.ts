@@ -3417,16 +3417,17 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
         // play for the Fal / DALL·E paths below.
         const refBytes = anchorOut.bytes;
         // Stay under Supabase/Cloudflare wall-clock (~150s).
-        // Cost-aware defaults: tier from `pictureBookQuality` + env overrides for size/quality/input_fidelity.
-        // Tier-1 OpenAI image RPM is 5 — chunk 4 edits, brief wait, then 2 edits. Raise wait or
-        // shrink chunk size if you see 429s; raise OpenAI tier or lower wait if 546.
+        // Prefer **one** parallel wave of all spreads (default) so total image time ≈
+        // slowest single edit, not two waves + cooldown. Tier-1 OpenAI image RPM is low —
+        // if you see **429**, set **`STORYBOOK_GPTIMAGE_CHUNK_SIZE=4`** and
+        // **`STORYBOOK_GPTIMAGE_CHUNK_WAIT_MS=12000`** (or raise image throughput tier).
         const chunkSize = (() => {
           const raw = Number(Deno.env.get("STORYBOOK_GPTIMAGE_CHUNK_SIZE"));
-          return Number.isFinite(raw) && raw >= 1 ? Math.floor(raw) : 4;
+          return Number.isFinite(raw) && raw >= 1 ? Math.floor(raw) : 6;
         })();
         const interChunkWaitMs = (() => {
           const raw = Number(Deno.env.get("STORYBOOK_GPTIMAGE_CHUNK_WAIT_MS"));
-          return Number.isFinite(raw) && raw >= 0 ? raw : 12000;
+          return Number.isFinite(raw) && raw >= 0 ? raw : 0;
         })();
         const adaptiveChunkWait =
           Deno.env.get("STORYBOOK_GPTIMAGE_CHUNK_WAIT_ADAPTIVE") !== "0";

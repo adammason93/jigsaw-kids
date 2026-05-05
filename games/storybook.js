@@ -4977,7 +4977,7 @@
             var msg;
             if (isTimeout) {
               msg =
-                "The story maker ran out of time — it was still drawing lots of pictures. Wait a moment and try again, or ask a grown-up for help.";
+                "The story maker ran out of time while drawing pictures (the server has a strict time limit). Wait a moment and try again — pick **Standard** pictures for a faster run, or ask a grown-up for help. Note: if the AI already started work, your account may still have been charged for some of it even though the book didn’t finish.";
             } else if (b.error === "server_missing_openai") {
               msg =
                 "Story drawing isn’t turned on for this game yet. A grown-up needs to finish setup on the server.";
