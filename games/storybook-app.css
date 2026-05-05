@@ -3559,6 +3559,8 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   z-index: 2;
   border-radius: 6px;
   overflow: hidden;
+  /* Isolate duplex paints during 3D peels — reduces one-frame flashes on WebKit tablets (iPad Safari). */
+  isolation: isolate;
 }
 
 /* Readable soft serif used for dedication + facing prose (loaded in storybook.html). */
@@ -4365,10 +4367,6 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   min-height: 0;
   /* Avoid pairing clip-path reveal with overflow:auto — WebKit clips the left edge of lines mid-turn. */
   overflow: visible;
-}
-
-  background: transparent;
-  padding: 0;
 }
 
 .sb-flip-spread__inner--has-art .sb-flip-page--art .sb-flip-art {

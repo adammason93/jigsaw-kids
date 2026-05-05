@@ -1476,16 +1476,11 @@
       bookSpreadEl.classList.add("sb-book-spread--peel-overflow");
     }
 
-    syncSpreadIllustrationFromStory();
     /*
-     * Do not flip the duplex base (#sbSpreadArtCover) to the **incoming** image yet — at ~90deg the
-     * leaf exposes that layer briefly; swapping early shows nothing until decode / wrong frame.
+     * Keep duplex base (#sbSpreadArtCover) on the **outgoing** illustration in one assignment.
+     * Previously we synced incoming then overwrote — two src changes trigger WebKit/iPad decode flicker.
      */
-    if (spreadArtCover && peelOut) {
-      spreadArtCover.src = peelOut;
-      spreadArtCover.alt = "";
-      spreadArtCover.referrerPolicy = "no-referrer";
-    }
+    syncSpreadIllustrationFromStory({ duplexCoverSrc: peelOut });
     syncReaderFacingLayoutClasses();
     placeTextPageForFacingLayout();
 
@@ -1503,19 +1498,25 @@
     if (peelImg) {
       peelImg.alt = "";
       peelImg.referrerPolicy = "no-referrer";
-      peelImg.src = peelOut;
+      if ((peelImg.getAttribute("src") || "") !== peelOut) {
+        peelImg.src = peelOut;
+      }
     }
 
     if (peelBackImg) {
       peelBackImg.alt = "";
       peelBackImg.referrerPolicy = "no-referrer";
-      peelBackImg.src = peelIn;
+      if ((peelBackImg.getAttribute("src") || "") !== peelIn) {
+        peelBackImg.src = peelIn;
+      }
     }
 
     if (outgoingLeftImg) {
       outgoingLeftImg.alt = "";
       outgoingLeftImg.referrerPolicy = "no-referrer";
-      outgoingLeftImg.src = peelOut;
+      if ((outgoingLeftImg.getAttribute("src") || "") !== peelOut) {
+        outgoingLeftImg.src = peelOut;
+      }
     }
 
     var peelFrontRoot = peelShell.querySelector(".sb-flip-spread__peel-front");
@@ -2316,7 +2317,13 @@
     }
   }
 
-  function syncSpreadIllustrationFromStory() {
+  /**
+   * Align reader illustrations with `spreadIndex`.
+   * @param {{ duplexCoverSrc?: string }} opt — When set (page-turn peel), `#sbSpreadArtCover` uses this URL
+   * instead of the spread’s canonical art so Safari/WebKit never briefly paints the incoming image then swaps.
+   */
+  function syncSpreadIllustrationFromStory(opt) {
+    opt = opt || {};
     if (!story) return;
     var n = numSpreads();
     if (n < 1) return;
@@ -2337,20 +2344,36 @@
     }
     var u = storyImageDisplayUrl(rawU);
 
+    function imgAttrSrc(img) {
+      return img ? img.getAttribute("src") || "" : "";
+    }
+
     if (u) {
       clearArtFlyleaf();
       if (spreadInnerEl) {
         spreadInnerEl.classList.add("sb-flip-spread__inner--has-art");
       }
+      var duplexCoverSrc = Object.prototype.hasOwnProperty.call(opt, "duplexCoverSrc")
+        ? opt.duplexCoverSrc
+        : u;
+      var duplexChanged = false;
+      var legacyChanged = false;
       if (spreadArtImg) {
-        spreadArtImg.src = u;
+        if (imgAttrSrc(spreadArtImg) !== u) {
+          spreadArtImg.src = u;
+          legacyChanged = true;
+        }
         spreadArtImg.alt = isTheEnd ? "The End" : "Illustration for pages " + pLo + "–" + pHi;
         spreadArtImg.referrerPolicy = "no-referrer";
       }
       if (spreadArt) spreadArt.classList.remove("is-empty");
-      if (spreadArtCover) {
-        spreadArtCover.src = u;
-        spreadArtCover.alt = isTheEnd ? "The End" : "Illustration for pages " + pLo + "–" + pHi + " of " + story.pages.length;
+      if (spreadArtCover && duplexCoverSrc) {
+        if (imgAttrSrc(spreadArtCover) !== duplexCoverSrc) {
+          spreadArtCover.src = duplexCoverSrc;
+          duplexChanged = true;
+        }
+        spreadArtCover.alt =
+          isTheEnd ? "The End" : "Illustration for pages " + pLo + "–" + pHi + " of " + story.pages.length;
         spreadArtCover.referrerPolicy = "no-referrer";
         spreadArtCover.style.opacity = "";
         spreadArtCover.style.visibility = "";
@@ -2361,7 +2384,9 @@
       if (spreadArtNum) {
         spreadArtNum.textContent = isTheEnd ? "The End" : "Pages " + pLo + "–" + pHi + " of " + story.pages.length;
       }
-      nudgeDuplexArtComposite();
+      if (duplexChanged || legacyChanged) {
+        nudgeDuplexArtComposite();
+      }
     } else {
       var flyTxt =
         si === 0 &&
