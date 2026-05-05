@@ -646,6 +646,8 @@ async function compileCharacterLockForImages(
     portraitAppearance?: string;
     /** Single-appearance line matching `ChildName:` from portrait block — verbatim pin for HERO in LOCK CAST. */
     heroPortraitPinnedLine?: string;
+    /** Full portrait lines for plot human co-stars — verbatim Gender/Hair pins (like hero). */
+    coStarPortraitPins?: string;
     compileLockArtWords: string;
     compileLockChatModel?: string;
   },
@@ -673,6 +675,9 @@ async function compileCharacterLockForImages(
         (heroPin
           ? `\n>>> HERO PHOTO FACTS (AUTHORITATIVE for ${input.childName} — copy Gender/Hair/Eyes/Skin/Clothes into **HERO:** even if draft below contradicts):\n${heroPin}\n\n`
           : "") +
+        (String(input.coStarPortraitPins ?? "").trim()
+          ? `\n>>> NAMED CHILD PHOTO FACTS (AUTHORITATIVE for each co-star — copy Gender/Hair/Eyes/Skin/Clothes into the matching **NAME:** line, e.g. **ISAAC:**; **never** swap gender or invent a different-looking second child; never merge two children into one line):\n${String(input.coStarPortraitPins).trim()}\n\n`
+          : "") +
         (/\bCo_star_ref\s*:/i.test(photoBlock)
           ? `Co_star_ref applies ONLY when two **different human children** were uploaded. Map Co_star_ref to that second child's **human** story name — **never** ${input.childName}, **never** the imaginary buddy creature, **never** a pet's name.\n`
           : "")
@@ -690,9 +695,13 @@ async function compileCharacterLockForImages(
     `Max 2100 characters. No scenery. No actions.`;
 
   const noBuddyLock = input.buddyKey === "nobuddy";
+  const coStarPinTruth = String(input.coStarPortraitPins ?? "").trim().length > 0
+    ? " When **NAMED CHILD PHOTO FACTS** are present, each co-star **NAME:** line MUST match that child's Gender: boy/girl and hair from the photo facts — never substitute a generic opposite-gender child or contrast-haired 'random second kid'."
+    : "";
   const photoTruth =
     photoBlock.length > 0
-      ? " CRITICAL: Uploaded reference summaries (and any HERO PHOTO FACTS line) OVERRIDE the storywriter draft for matching humans — if the draft's hair/skin/eyes contradict a reference line for the hero, treat the draft as WRONG."
+      ? " CRITICAL: Uploaded reference summaries (and any HERO PHOTO FACTS line) OVERRIDE the storywriter draft for matching humans — if the draft's hair/skin/eyes contradict a reference line for the hero, treat the draft as WRONG." +
+        coStarPinTruth
       : "";
   const systemLock = noBuddyLock
     ? "You are an art director for a children's book. Output only the LOCKED CAST block. Be dense and consistent. " +
@@ -855,6 +864,98 @@ function extractPlotNamedHumans(
   return out.slice(0, 4);
 }
 
+/**
+ * After vision, ensure plot-named humans include anyone with a **portrait line whose
+ * label appears as a word in the plot** (e.g. upload tagged `isaac` ↔ "Isaac" in prose).
+ * Also catches `Co_star_ref` mapped to the sole plot co-star when the label differs.
+ */
+function mergePlotNamedHumansWithPortrait(
+  plotHint: string,
+  portraitAppearance: string,
+  extracted: string[],
+  heroFirstName: string,
+  excludeLower: ReadonlySet<string>,
+): string[] {
+  const out = mergeUniqueFirstNames([], extracted);
+  const seen = new Set(out.map((x) => x.toLowerCase()));
+  const heroLo = sanitizeName(heroFirstName).toLowerCase();
+  const plotLower = plotHint.toLowerCase();
+
+  const lines = portraitAppearance.split("\n").map((l) => l.trim()).filter(Boolean);
+  for (const raw of lines) {
+    const m = /^([^:]+):\s*(.+)$/u.exec(raw);
+    if (!m) continue;
+    const labelRaw = m[1].trim();
+    const lowKey = labelRaw.toLowerCase().replace(/[^a-z0-9]/gu, "");
+    if (
+      !lowKey ||
+      lowKey === "hero" ||
+      lowKey.includes("costarref") ||
+      /^co[_\s-]*star[_\s-]*ref$/i.test(labelRaw)
+    ) {
+      continue;
+    }
+    if (lowKey === heroLo) continue;
+    if (excludeLower.has(lowKey)) continue;
+    if (seen.has(lowKey)) continue;
+    const re = new RegExp(`\\b${lowKey}\\b`, "i");
+    if (!re.test(plotLower)) continue;
+    const display =
+      labelRaw.charAt(0).toUpperCase() +
+      labelRaw.slice(1).toLowerCase().replace(/\s+/gu, " ");
+    out.push(display);
+    seen.add(lowKey);
+  }
+
+  return out.slice(0, 6);
+}
+
+/** Lines from the appearance block for each **co-star** (not hero) — compile-lock pin text. */
+function portraitCoStarPinBlock(
+  portraitAppearance: string,
+  plotNamedHumans: string[],
+  childName: string,
+): string {
+  const block = String(portraitAppearance ?? "").trim();
+  if (!block || plotNamedHumans.length === 0) return "";
+  const heroLo = sanitizeName(childName).toLowerCase();
+  const lines = block.split("\n").map((l) => l.trim()).filter(Boolean);
+  const pins: string[] = [];
+
+  for (const plotName of plotNamedHumans) {
+    const want = plotName.trim().toLowerCase().replace(/[^a-z0-9]/gu, "");
+    if (!want || want === heroLo) continue;
+    for (const raw of lines) {
+      const m = /^([^:]+):\s*(.+)$/u.exec(raw);
+      if (!m) continue;
+      const lab = m[1].trim().toLowerCase().replace(/[^a-z0-9]/gu, "");
+      if (lab === want) {
+        pins.push(raw.trim());
+        break;
+      }
+    }
+  }
+
+  const coStarLine = lines.find((t) => /^co_star_ref\s*:/i.test(t.trim()));
+  if (coStarLine) {
+    const missing = plotNamedHumans.filter((n) => {
+      const w = n.toLowerCase().replace(/[^a-z0-9]/gu, "");
+      if (!w || w === heroLo) return false;
+      return !pins.some((p) =>
+        p.toLowerCase().startsWith(n.trim().toLowerCase() + ":"),
+      );
+    });
+    if (missing.length === 1) {
+      pins.push(
+        coStarLine.replace(/^co_star_ref\s*:/i, `${missing[0].trim()}:`),
+      );
+    }
+  }
+
+  if (pins.length === 0) return "";
+  return pins.join("\n\n");
+}
+
 /** Appearance block line whose label matches the hero's first name — used to pin LOCK CAST hair to the uploaded photo. */
 function portraitAppearanceLineMatchingHero(
   portraitAppearance: string,
@@ -978,8 +1079,11 @@ async function openaiVisionDescribePortraits(
   apiKey: string,
   items: { label: string; dataUrl: string }[],
   bookTier: PictureBookQuality,
+  chatModel?: string,
 ): Promise<string> {
   if (items.length === 0) return "";
+  const model =
+    (chatModel ?? "").trim() || storybookPortraitVisionModel(bookTier);
   const ordered = items.map((i) => i.label).join(", ");
   const content: Record<string, unknown>[] = [
     {
@@ -1003,7 +1107,7 @@ async function openaiVisionDescribePortraits(
     method: "POST",
     headers: openAiJsonAuthHeaders(apiKey),
     body: JSON.stringify({
-      model: storybookPortraitVisionModel(bookTier),
+      model: model,
       temperature: 0.05,
       max_tokens: 550,
       messages: [{ role: "user", content }],
@@ -1031,8 +1135,11 @@ async function openaiVisionSummarizeHeroFromRefs(
   dataUrls: string[],
   role: "hero" | "character" = "hero",
   bookTier: PictureBookQuality = "standard",
+  chatModel?: string,
 ): Promise<string> {
   if (dataUrls.length === 0) return "";
+  const model =
+    (chatModel ?? "").trim() || storybookPortraitVisionModel(bookTier);
   const name = sanitizeName(displayName) || "Child";
   const rolePhrase =
     role === "hero"
@@ -1069,7 +1176,7 @@ async function openaiVisionSummarizeHeroFromRefs(
     method: "POST",
     headers: openAiJsonAuthHeaders(apiKey),
     body: JSON.stringify({
-      model: storybookPortraitVisionModel(bookTier),
+      model: model,
       temperature: 0.05,
       max_tokens: 600,
       messages: [{ role: "user", content }],
@@ -1145,7 +1252,11 @@ async function appearanceNotesFromReferences(
   heroUrls: string[],
   customByFriendId: Record<string, string[]>,
   pictureBookQuality: PictureBookQuality,
+  visionChatModel?: string,
 ): Promise<string> {
+  const vm =
+    (visionChatModel ?? "").trim() ||
+    storybookPortraitVisionModel(pictureBookQuality);
   const chunks: string[] = [];
   if (heroUrls.length === 2) {
     try {
@@ -1159,7 +1270,7 @@ async function appearanceNotesFromReferences(
         const dual = await openaiVisionDescribePortraits(apiKey, [
           { label: nm, dataUrl: heroUrls[0] },
           { label: "Co_star_ref", dataUrl: heroUrls[1] },
-        ], pictureBookQuality);
+        ], pictureBookQuality, vm);
         if (dual.trim()) {
           chunks.push(
             "(Two photos: two different children. First line matches the hero; Co_star_ref matches the other named human in the story — not the imaginary buddy.)\n" +
@@ -1173,6 +1284,7 @@ async function appearanceNotesFromReferences(
           heroUrls,
           "hero",
           pictureBookQuality,
+          vm,
         );
         if (heroLine.trim()) chunks.push(heroLine.trim());
       }
@@ -1185,6 +1297,7 @@ async function appearanceNotesFromReferences(
           heroUrls,
           "hero",
           pictureBookQuality,
+          vm,
         );
         if (heroLine.trim()) chunks.push(heroLine.trim());
       } catch (e2) {
@@ -1199,6 +1312,7 @@ async function appearanceNotesFromReferences(
         heroUrls,
         "hero",
         pictureBookQuality,
+        vm,
       );
       if (heroLine.trim()) chunks.push(heroLine.trim());
     } catch (e) {
@@ -1221,6 +1335,7 @@ async function appearanceNotesFromReferences(
           custom,
           "character",
           pictureBookQuality,
+          vm,
         );
         return line.trim();
       } catch (e) {
@@ -1269,6 +1384,7 @@ async function appearanceNotesFromReferences(
           urls as string[],
           "character",
           pictureBookQuality,
+          vm,
         );
         return line.trim();
       } catch (e) {
@@ -1286,6 +1402,7 @@ async function appearanceNotesFromReferences(
       apiKey,
       batchItems,
       pictureBookQuality,
+      vm,
     );
     if (familyText.trim()) chunks.push(familyText.trim());
   }
@@ -2430,14 +2547,16 @@ function coerceIllustrationStyle(raw: unknown): IllustrationStyleKey {
   return "clay3d";
 }
 
-/** Ref-photo image boost: **high** tier enables by default (`STORYBOOK_REF_PHOTO_IMAGE_BOOST=0` to disable); **standard** stays opt-in with `=1`. */
+/** Ref-photo boost: **high** tier on by default; **standard** auto-enables when a **non-hero** ref exists (`STORYBOOK_REF_PHOTO_IMAGE_BOOST=0` disables). */
 function gptImageRefPhotoQualityBoostEnabled(
   bookTier: PictureBookQuality,
+  opts?: { nonHeroPortraitRefs?: boolean },
 ): boolean {
   const v = (Deno.env.get("STORYBOOK_REF_PHOTO_IMAGE_BOOST") ?? "").trim().toLowerCase();
   if (v === "0" || v === "false" || v === "off" || v === "no") return false;
   if (v === "1" || v === "true" || v === "on" || v === "yes") return true;
-  return bookTier === "high";
+  if (bookTier === "high") return true;
+  return opts?.nonHeroPortraitRefs === true;
 }
 
 function gptImageDefaultModel(): string {
@@ -2504,6 +2623,7 @@ function gptImageQualityForRequest(
   scope: "generation" | "edit",
   bookTier: PictureBookQuality,
   hasUserPortraitRefs = false,
+  nonHeroPortraitRefs = false,
 ): "low" | "medium" | "high" | "auto" {
   const envRaw = (Deno.env.get("STORYBOOK_GPTIMAGE_QUALITY") ?? "").trim().toLowerCase();
   if (
@@ -2519,15 +2639,18 @@ function gptImageQualityForRequest(
       gptImageCostParityModeEnabled() &&
       !(Deno.env.get("STORYBOOK_GPTIMAGE_QUALITY") ?? "").trim()
     ) {
-      if (hasUserPortraitRefs && gptImageRefPhotoQualityBoostEnabled(bookTier)) {
+      if (
+        hasUserPortraitRefs &&
+        gptImageRefPhotoQualityBoostEnabled(bookTier, { nonHeroPortraitRefs })
+      ) {
         return scope === "generation" ? "medium" : "medium";
       }
       return scope === "generation" ? "medium" : "low";
     }
     return scope === "generation" ? "high" : "medium";
   }
-  // Standard tier — optional bump when ref photos (costly; enable with STORYBOOK_REF_PHOTO_IMAGE_BOOST=1)
-  if (hasUserPortraitRefs && gptImageRefPhotoQualityBoostEnabled(bookTier)) {
+  // Standard tier — bump when ref photos + boost (incl. auto for co-star uploads)
+  if (hasUserPortraitRefs && gptImageRefPhotoQualityBoostEnabled(bookTier, { nonHeroPortraitRefs })) {
     return scope === "generation" ? "high" : "medium";
   }
   return scope === "generation" ? "medium" : "low";
@@ -2537,6 +2660,7 @@ function gptImageQualityForRequest(
 function gptImageInputFidelityForRequest(
   bookTier: PictureBookQuality,
   hasUserPortraitRefs: boolean,
+  nonHeroPortraitRefs = false,
 ): "low" | "high" {
   const envPlain = (Deno.env.get("STORYBOOK_GPTIMAGE_INPUT_FIDELITY") ?? "").trim().toLowerCase();
   const envUnset = !(Deno.env.get("STORYBOOK_GPTIMAGE_INPUT_FIDELITY") ?? "").trim();
@@ -2547,13 +2671,13 @@ function gptImageInputFidelityForRequest(
     gptImageCostParityModeEnabled() &&
     envUnset
   ) {
-    if (hasUserPortraitRefs && gptImageRefPhotoQualityBoostEnabled(bookTier)) {
+    if (hasUserPortraitRefs && gptImageRefPhotoQualityBoostEnabled(bookTier, { nonHeroPortraitRefs })) {
       return "high";
     }
     return "low";
   }
   if (bookTier === "high") return "high";
-  if (hasUserPortraitRefs && gptImageRefPhotoQualityBoostEnabled(bookTier)) return "high";
+  if (hasUserPortraitRefs && gptImageRefPhotoQualityBoostEnabled(bookTier, { nonHeroPortraitRefs })) return "high";
   return "low";
 }
 
@@ -2653,11 +2777,17 @@ async function gptImageGenerate(
   bookTier: PictureBookQuality,
   retryCount = 0,
   hasUserPortraitRefs = false,
+  nonHeroPortraitRefs = false,
 ): Promise<{ url: string; bytes: Uint8Array }> {
   const model = gptImageDefaultModel();
   const moderation = gptImageModerationParam();
   const size = gptImageSizeForRequest(bookTier);
-  const quality = gptImageQualityForRequest("generation", bookTier, hasUserPortraitRefs);
+  const quality = gptImageQualityForRequest(
+    "generation",
+    bookTier,
+    hasUserPortraitRefs,
+    nonHeroPortraitRefs,
+  );
   const trimmed = prompt.slice(0, GPT_IMAGE_PROMPT_MAX);
 
   const post = (body: Record<string, unknown>) =>
@@ -2709,6 +2839,7 @@ async function gptImageGenerate(
         bookTier,
         retryCount + 1,
         hasUserPortraitRefs,
+        nonHeroPortraitRefs,
       );
     }
     console.error("[gpt-image] generations error", r.status, raw.slice(0, 700));
@@ -2727,13 +2858,23 @@ async function gptImageEdit(
   bookTier: PictureBookQuality,
   retryCount = 0,
   hasUserPortraitRefs = false,
+  nonHeroPortraitRefs = false,
 ): Promise<{ url: string; bytes: Uint8Array }> {
   const model = gptImageDefaultModel();
   const moderation = gptImageModerationParam();
   const size = gptImageSizeForRequest(bookTier);
-  const quality = gptImageQualityForRequest("edit", bookTier, hasUserPortraitRefs);
+  const quality = gptImageQualityForRequest(
+    "edit",
+    bookTier,
+    hasUserPortraitRefs,
+    nonHeroPortraitRefs,
+  );
   const trimmed = prompt.slice(0, GPT_IMAGE_PROMPT_MAX);
-  const fidelity = gptImageInputFidelityForRequest(bookTier, hasUserPortraitRefs);
+  const fidelity = gptImageInputFidelityForRequest(
+    bookTier,
+    hasUserPortraitRefs,
+    nonHeroPortraitRefs,
+  );
 
   const buildForm = (withQuality: boolean): FormData => {
     const form = new FormData();
@@ -2793,6 +2934,7 @@ async function gptImageEdit(
         bookTier,
         retryCount + 1,
         hasUserPortraitRefs,
+        nonHeroPortraitRefs,
       );
     }
     console.error("[gpt-image] edits error", r.status, raw.slice(0, 700));
@@ -3137,14 +3279,7 @@ Deno.serve(async (req) => {
       ? familyPeople.map((p) => p.label)
       : sanitizeFamilyNames(body.familyNames);
   const plotPetLower = plotPetTaggedNames(plotHint);
-  const plotNamedHumans = extractPlotNamedHumans(plotHint, childName, plotPetLower);
-  const storyHumanNames = mergeUniqueFirstNames(
-    [childName],
-    mergeUniqueFirstNames(familyNames, plotNamedHumans),
-  );
-  const plotOnlyHumans = plotNamedHumans.filter(
-    (n) => !familyNames.some((f) => f.toLowerCase() === n.toLowerCase()),
-  );
+  const plotNamesFromPlot = extractPlotNamedHumans(plotHint, childName, plotPetLower);
 
   const bookAssetsBase = (Deno.env.get("BOOK_ASSETS_BASE_URL") ?? "").trim();
   const refPack = sanitizeCharacterReferencePhotos(
@@ -3152,6 +3287,16 @@ Deno.serve(async (req) => {
     familyPeople,
     childName,
   );
+
+  const portraitVisionModelResolved = (() => {
+    const env = (Deno.env.get("STORYBOOK_VISION_MODEL") ?? "").trim();
+    if (env) return env;
+    const multiHuman =
+      Object.keys(refPack.customByFriendId).length > 0 ||
+      refPack.heroUrls.length >= 2;
+    if (multiHuman) return "gpt-4o";
+    return storybookPortraitVisionModel(pictureBookQuality);
+  })();
 
   let portraitAppearance = "";
   const portraitVisionAttempted = Boolean(
@@ -3169,11 +3314,27 @@ Deno.serve(async (req) => {
         refPack.heroUrls,
         refPack.customByFriendId,
         pictureBookQuality,
+        portraitVisionModelResolved,
       );
     } catch (e) {
       console.warn("[clever-service] portrait vision failed", e);
     }
   }
+
+  const plotNamedHumans = mergePlotNamedHumansWithPortrait(
+    plotHint,
+    portraitAppearance,
+    plotNamesFromPlot,
+    childName,
+    plotPetLower,
+  );
+  const storyHumanNames = mergeUniqueFirstNames(
+    [childName],
+    mergeUniqueFirstNames(familyNames, plotNamedHumans),
+  );
+  const plotOnlyHumans = plotNamedHumans.filter(
+    (n) => !familyNames.some((f) => f.toLowerCase() === n.toLowerCase()),
+  );
 
   const portraitBlockForText =
     portraitAppearance.length > 0
@@ -3358,6 +3519,11 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
     portraitAppearance,
     childName,
   );
+  const coStarPortraitPins = portraitCoStarPinBlock(
+    portraitAppearance,
+    plotNamedHumans,
+    childName,
+  );
   try {
     compiledLock = await compileCharacterLockForImages(apiKey, {
       childName,
@@ -3370,6 +3536,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
       plotNamedHumans,
       portraitAppearance,
       heroPortraitPinnedLine: heroPortraitPin ?? undefined,
+      coStarPortraitPins: coStarPortraitPins || undefined,
       compileLockArtWords: artStyleSpec.compileLockArtWords,
       compileLockChatModel: storybookCompileLockChatModel(pictureBookQuality),
     });
@@ -3538,6 +3705,9 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
       const gptHasPortraitRefs =
         refPack.heroUrls.length > 0 ||
         Object.keys(refPack.customByFriendId).length > 0;
+      const nonHeroPortraitRefs =
+        Object.keys(refPack.customByFriendId).length > 0 ||
+        /\bCo_star_ref\s*:/i.test(portraitAppearance);
       // STRICT MODE — when STORYBOOK_IMAGE_MODE=gptimage is set, this is the
       // ONLY pipeline we want to run. No silent fallback to Fal or DALL-E.
       // If anything fails, we throw with a clear, actionable error so the
@@ -3551,6 +3721,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
           pictureBookQuality,
           0,
           gptHasPortraitRefs,
+          nonHeroPortraitRefs,
         );
       } catch (e) {
         const detail = e instanceof Error ? e.message : String(e);
@@ -3792,11 +3963,13 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
 
           if (portraitAppearance.trim().length > 0) {
             blocks.push(
-              "HAIR FIDELITY: Each named child must keep the exact hair colour, length, and arrangement from the reference lineup and lines above (e.g. long blonde stays long blonde; pigtails stay pigtails). **Never** give one girl dark brown ponytail and the other long blonde for contrast — if both lines say blonde, both are blonde. Do not revert to a default boy crew cut or generic brown bob unless the cast explicitly describes that. **GENDER:** If the cast bible says a named child is a girl (or reference had Gender: girl), illustrate a girl — do not draw them as a boy with short brown hair.",
+              "HAIR FIDELITY: Each named child must keep the exact hair colour, length, and arrangement from the reference lineup and lines above (e.g. long blonde stays long blonde; pigtails stay pigtails). **Never** give one girl dark brown ponytail and the other long blonde for contrast — if both lines say blonde, both are blonde. Do not revert to a default boy crew cut or generic brown bob unless the cast explicitly describes that. **GENDER:** If the cast bible says a named child is a girl (or reference had Gender: girl), illustrate a girl — do not draw them as a boy with short brown hair. If the cast bible or paired verse uses **he/him/his** for a named human (e.g. Isaac), illustrate that child as a **boy** — do **not** substitute a generic girl silhouette for 'variety'.",
             );
           }
 
-          // 8. Final constraint
+          blocks.push(
+            "PRONOUN LOCK: If the paired verse uses **he/him/his** for a named child, that child must read as a **boy** in the picture; **she/her** for that name → **girl**. Never swap genders for two-kid contrast.",
+          );
           blocks.push(
             "Paint ONLY what the verse, WHO IS IN THIS PICTURE, and SCENE NOTE describe — no extra props, no extra characters, no background crowd, no signs, speech balloons, or any writing in the picture. **No edge-cropped mystery humans** (no partial stranger arms/legs); only named cast, fully readable.",
           );
@@ -3846,6 +4019,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
                   pictureBookQuality,
                   0,
                   gptHasPortraitRefs,
+                  nonHeroPortraitRefs,
                 );
                 return { idx, url: out.url };
               } catch (e) {

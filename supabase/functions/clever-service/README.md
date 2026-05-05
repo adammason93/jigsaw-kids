@@ -23,6 +23,7 @@ supabase secrets set OPENAI_API_KEY=sk-...
 supabase secrets set BOOK_ASSETS_BASE_URL=https://your-site.example
 # Optional — model for summarising **uploaded** hero/friend reference photos (default gpt-4o for better hair/colour accuracy; use mini to save cost):
 # supabase secrets set STORYBOOK_VISION_MODEL=gpt-4o-mini
+# If **`STORYBOOK_VISION_MODEL`** is **omitted**: **standard** uses **`gpt-4o-mini`** for hero-only refs; **`gpt-4o`** automatically when a **second human** is in play (non-hero tagged upload, two hero-photo slots, or preset+custom mix that needs accuracy). **High** tier defaults **`gpt-4o`** unless you override.
 
 # Illustrations — OpenAI GPT Image (recommended)
 # Anchor = text-to-image, spreads 2–6 = images/edits with the anchor as reference.
@@ -36,8 +37,9 @@ supabase secrets set STORYBOOK_IMAGE_MODE=gptimage
 # supabase secrets set STORYBOOK_GPTIMAGE_QUALITY=high    # optional: high on anchor AND all six spread edits (priciest; restores old “max detail” tier)
 # supabase secrets set STORYBOOK_GPTIMAGE_QUALITY=medium  # optional: one tier for anchor + all edits (between economy and high)
 # supabase secrets set STORYBOOK_GPTIMAGE_QUALITY=low       # optional: cheapest — low on anchor + edits
-# # If you omit STORYBOOK_GPTIMAGE_QUALITY: **standard** tier uses **medium** anchor + **low** edits by default — **including when reference photos are uploaded** (economy; uploads + vision summaries still steer likeness). **`input_fidelity`** on spread **edits**: **low** by default for **`gpt-image-1.x`**; omitted for **`gpt-image-2`**. Opt into pricier likeness with **`STORYBOOK_REF_PHOTO_IMAGE_BOOST=1`** (or `true` / `on` / `yes`): then with uploads you get **high** anchor + **medium** edits + (**`gpt-image-1.x` only**) **high** **`input_fidelity`**. **High** `pictureBookQuality` is unchanged (`high` / `medium`). `STORYBOOK_GPTIMAGE_QUALITY` still overrides everything when set.
-# supabase secrets set STORYBOOK_REF_PHOTO_IMAGE_BOOST=1   # optional: standard + ref photos — bump image quality/fidelity (costs more; better face/hair lock)
+# # If you omit STORYBOOK_GPTIMAGE_QUALITY: **standard** tier uses **medium** anchor + **low** edits by default. With **only hero** reference photos, that stays economy; **tagging a second child** (non-hero upload or two-photo path) **auto-enables** the same ref-photo bump **`high`** uses when **`STORYBOOK_REF_PHOTO_IMAGE_BOOST`** is unset — better match to uploads (slightly higher image cost). Set **`STORYBOOK_REF_PHOTO_IMAGE_BOOST=0`** to force economy even with co-star photos. **`input_fidelity`** on spread **edits**: **low** by default for **`gpt-image-1.x`**; omitted for **`gpt-image-2`**. **High** `pictureBookQuality` is unchanged. `STORYBOOK_GPTIMAGE_QUALITY` still overrides when set.
+# supabase secrets set STORYBOOK_REF_PHOTO_IMAGE_BOOST=0   # disable auto / explicit ref-photo image bump (standard + multi-human refs)
+# supabase secrets set STORYBOOK_REF_PHOTO_IMAGE_BOOST=1   # always bump anchor/edits when any ref photo is present (costs more)
 # supabase secrets set STORYBOOK_GPTIMAGE_SIZE=1536x1024    # optional: default 1024x1024 (cheapest); 1536x1024 = wider spread, costs more
 # supabase secrets set STORYBOOK_GPTIMAGE_INPUT_FIDELITY=low    # **edits** (`gpt-image-1*` / **1.5** only — Image 2 **ignores**, field not sent); force low | high; if OMITTED: tier / parity logic (see source)
 # supabase secrets set STORYBOOK_GPTIMAGE_CHUNK_SIZE=4         # how many spread edits to run in parallel per chunk (default 6 — one wave when possible)
