@@ -1,0 +1,1 @@
+every time we generate a story board i would like to log which prompt are being sent over to the api
