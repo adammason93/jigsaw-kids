@@ -2003,9 +2003,10 @@ function storyLengthSpec(key: StoryLengthKey): StoryLengthSpec {
   switch (key) {
     case "short":
       return {
-        proseParagraphLead: "**1–2 short paragraphs**",
+        proseParagraphLead:
+          "**exactly two short paragraphs** — never one block alone, never three or more",
         proseWordRange:
-          "~**85–115 words** total on that page",
+          "~**75–105 words** total on that page",
         proseAntiRhymeHint: "many stacked single-line rhyming rows",
         rhymeLines: 6,
         rhymeLinesHint:
@@ -2019,9 +2020,10 @@ function storyLengthSpec(key: StoryLengthKey): StoryLengthSpec {
       };
     case "long":
       return {
-        proseParagraphLead: "**3–5 short or medium paragraphs**",
+        proseParagraphLead:
+          "**exactly two paragraphs** — each may be longer and richer than medium (never one block alone, never three or more)",
         proseWordRange:
-          "~**220–280 words** total on that page",
+          "~**165–220 words** total on that page",
         proseAntiRhymeHint:
           "ten forced single-line rhyming rows",
         rhymeLines: 12,
@@ -2036,9 +2038,10 @@ function storyLengthSpec(key: StoryLengthKey): StoryLengthSpec {
       };
     default:
       return {
-        proseParagraphLead: "**1–2 short paragraphs**",
+        proseParagraphLead:
+          "**exactly two paragraphs** — never one block alone, never three or more",
         proseWordRange:
-          "~**95–135 words** total on that page",
+          "~**95–140 words** total on that page",
         proseAntiRhymeHint: "ten single-line rhyming rows",
         rhymeLines: 10,
         rhymeLinesHint:
@@ -2051,125 +2054,6 @@ function storyLengthSpec(key: StoryLengthKey): StoryLengthSpec {
           "full, rhyming, about twice as wordy as a five-line verse",
       };
   }
-}
-
-function countStoryWordsUk(s: string): number {
-  const t = String(s ?? "").trim();
-  if (!t) return 0;
-  return t.split(/\s+/u).filter((w) => w.length > 0).length;
-}
-
-/** Soft minimum words per prose-first page — keeps facing cream sheets from looking empty before “The End”. */
-function proseEvenPageFloorWords(len: StoryLengthKey): number {
-  switch (len) {
-    case "short":
-      return 74;
-    case "long":
-      return 215;
-    default:
-      return 92;
-  }
-}
-
-/** Max generic padding paragraphs per prose page (model text first; pads only if under word floor). */
-function proseMaxPadChunks(len: StoryLengthKey): number {
-  switch (len) {
-    case "long":
-      return 4;
-    case "short":
-      return 3;
-    default:
-      return 1;
-  }
-}
-
-/**
- * When the draft under-fills prose pages (common late spreads), append gentle filler paragraphs.
- * Mirrors read-aloud warmth; rotates chunks by spread slot to dull repetition slightly.
- */
-const PROSE_PAGE_PAD_BY_LENGTH: Record<StoryLengthKey, readonly string[]> = {
-  short: [
-    "They swung their joined hands gently, pretending the pavement was glitter. “Remember that bit?” someone whispered, and noses wrinkled with quiet pride because of course everybody remembered—it had only happened moments ago.",
-    "A pigeon tilted near, cocked its head once, then flapped off as though it had giggled. The air still tasted like sunshine on sleeves; footsteps fell in sleepy little thuds nobody tried to hurry.",
-    "Somebody bumped an elbow on purpose—not hard, only friendly—and the giggles rewound faster than socks could skid. Shadows stretched longer toward home, soft as warm milk before bedtime.",
-    "They counted birds on a fence post, lost track on purpose twice, laughed about forgetting, then tried again sincerely. Evening settled like a duvet—still bright enough to grin, snug enough to feel finished.",
-    "Tiny stones clicked under soles; butterflies flickered orange and teal like loose confetti overhead. Everybody agreed without speaking that staying side-by-side for one more curb felt exactly right.",
-    "Tomorrow could wait politely on the doorstep. Tonight hovered like sugar on tongues—“Same adventure next time?” teased somebody, sparking cheers that floated down the alley like lanterns.",
-    "They replayed mishaps softly, tweaking each punchline warmer than it really was. Windows glowed apricot farther along the street—a promise of toast, socks, sleepy stories still smiling behind closed doors.",
-    "No one hurried the last grin away. It bobbed gently between shoulders, bumped into giggles already half-asleep with joy, lingered anyhow because joy loves company even when slippers are calling.",
-    "When they paused beside a dripping tap, sparkle droplets chased one another—a tiny encore nobody scheduled. Laughs curled smaller, cosier; hearts still marched on tiptoes even if shoes dragged a little.",
-    "They promised exaggerated secret handshakes, broke them immediately laughing, reinvented sillier variants with thumbs and pinkies waving. Shadows pooled friendly as puddles nobody minded stepping through.",
-    "The buddy wriggled a happy shuffle only best friends decipher. Humans copied badly on purpose until everyone twirled once—lightly, breathlessly—as if choreography had been practising all afternoon.",
-    "Home lights blinked hello from down the avenue. Breath drew in sugary-cool dusk; hugs-that-weren’t-quite-yet leaned closer. Every voice kept one last sparkle stocked for pillow-time retellings whispered warmly.",
-  ],
-  medium: [
-    "Hands linked again without anyone announcing it—tiny squeezes spelled “still here” between wrists. Boots scuffed mellow rhythms on path stones while someone retold the best joke, stretching the punchline lovingly because nobody wanted applause to fade just yet.",
-    "Butterflies looped careless loops; a sprinkler hissed sleepy diamonds across lawns that smelled clipped-green and earthy. Voices layered soft questions—“Did YOU see THAT?”—answered by shoulder bumps happier than dictionaries.",
-    "They invented an unnecessary victory lap round a lamppost, leaning into centrifugal giggles till hair flew like holiday flags. The buddy struck a triumphant hoof-pose exaggerated on purpose until everyone applauded politely with nose boops.",
-    "Clouds leaned pink as strawberry milk while someone narrated footsteps like a sleepy sports announcer—“And HERE comes the silliest champ STILL giggling…” Nobody disputed the leaderboard; pride sat comfy as fleeces.",
-    "A dog somewhere woof-cheered—or maybe belly-laughed—they decided it counted same. Shadows stretched sideways, politely making room so last golden light could butter everyone’s elbows equal.",
-    "They replayed calamities sweeter than reality dared—“Remember when…” began each sentence, endings already forgiven into frosting. Friendship hummed a low tune only ribs could harmonise.",
-    "Hearts still cartwheeled softly, though legs pretended exhaustion. Gentle fibs about bravery traded hands; each confession grew warmer, puffing chests outward like marshmallow armour nobody needed shedding yet.",
-    "Evening curled around chimneys humming tea-kettle hymns. Breath drew in spiced-cool air tinged faintly with distant toast; plans for pajamas tickled ankles but nobody surrendered grins hostage first.",
-    "Somebody skimmed fingers along railings purely for sparkly dust motes swirling. The buddy mimicked orchestral swells badly—strings made of giggles—and the audience rewarded effort with melodramatic bows to blades of grass.",
-    "They vowed tomorrow’s silliness quotas must double; contracts sealed with exaggerated pinky locks nobody intended keeping legal. Satisfaction stretched long as lazy cats across the whole walkway home.",
-    "Windows flicked golden rectangles onto pavement quilts. Tiny moths flirted bulb halos politely; chatter settled into sweaters tucked under chins—not sad smaller, happier tighter, like scarves knitted from sunlight.",
-    "Last jokes stacked like sleepy pancakes—sweet, buttery, collapsing gently into hugs waiting on porches imaginary or real. Air itself felt politely proud: another chapter tucked safe where dreams could alphabetise giggles nightly.",
-  ],
-  long: [
-    "Grass-blades tickled sock gaps; elbows brushed on purpose exchanging warmth like trading cards nobody wanted swapped back. Dialogue bloomed anew—little negotiations about who carried the silliest souvenir memory, crowned finally by democratic finger-pointing giggles bouncing like rubber balls downhill.",
-    "Sky lowered friendly lavender rims while windows far off flicked early lamps on, golden as pancake syrup dribbling reassurance. Breath drew deep and everybody tasted faint cinnamon—someone guessed neighbour’s toaster, someone else sworn-saw fairies grilling invisible snacks—truth mattered less than laughter glueing sentences.",
-    "The buddy experimented grand curtain-call hoof flourishes daring physics to intervene; humans countered with clumsy arabesques that wobbled into group spins stopped only by dizziness democracy. Applause came from crows on cables unimpressed-but-participatory; drama coaches inside chests vowed future encores anyhow.",
-    "They mapped homeward quirks like explorers—three cracks to hop, five hydrangeas smelling purple-thoughts, two friendly potholes guarding puddle mirrors. Observation turned competitive kindly: richest detail wins nothing except extra squeeze-hand privileges nobody hoarded stingily.",
-    "Conversation braided threads—memory, prophecy, outrageous fib—into rope sturdy enough for imaginary tug-o-war referee’d by dusk itself. Satisfaction settled thick as custard in veins; adrenaline unspooled into cozy yarn balls kittens might knead happily later.",
-    "Even shadows coordinated choreography, stretching parallel like polite bridge supports under tired shoulders. Silence experimented brief cameos between punchlines—not awkward emptiness, roomy pause letting heartbeats audible-orchestrate next giggles syncing perfectly.",
-    "Windows glow stitched patchwork reassurance down terraces; moth friends auditioned halo spotlight roles, wings trembling sincerity. Socks whispered blister truces—tonight forgiveness unconditional in exchange for hot chocolate rumours allegedly waiting indoors.",
-    "They rehearsed exaggerated tomorrow manifestos—“More glitter jurisdiction!” “Mandatory extra snack tribunals!”—statutes giggled into oblivion beside hydrants spraying memory mist cooling cheeks rose-petal warm still.",
-    "Horizon inked violet signatures approachable as bedtime doodles framing sleepy satisfaction. Backpacks thunked mellow counterpoint rhythms; stray leaf confetti parachuted awarding everyone participation medals braided from chlorophyll ribbons.",
-    "Somebody coined accidental philosophy—“Adventures end but sparkle carries interest overnight.” Heads tilted pondering; unanimous verdict decided interest rates absurdly favourable compounding giggles compounded cuddles compound relief.",
-    "Doorways leaned inviting without rushing—porch lights blinked sleepy Morse promising cocoa thermodynamics favourable. Sock-feet rehearsals telegraphed last communal shoulder lean borrowing strength like library books happily overdue on purpose.",
-    "Final sentences stretched long as lazy summer trains—caboose packed with echoes everyone knew would hitchhike neatly into pillow dialogues stitched under quilts. Satisfaction nested layered as trifle: spongy daylight, custard courage, berry-bright giggles crowned lightly dreaming already.",
-  ],
-};
-
-function enrichProseStoryEvenPages(
-  story: StoryJson,
-  textMode: StoryTextModeKey,
-  lengthKey: StoryLengthKey,
-): StoryJson {
-  if (textMode !== "prose") return story;
-  const floor = proseEvenPageFloorWords(lengthKey);
-  const pads = [...PROSE_PAGE_PAD_BY_LENGTH[lengthKey]];
-  if (!pads.length) return story;
-
-  const maxPad = proseMaxPadChunks(lengthKey);
-
-  const pages = story.pages.map((p, idx) =>
-    idx % 2 === 0 ? { ...p, text: String(p.text ?? "") } : { ...p },
-  );
-
-  for (let i = 0; i < pages.length; i += 2) {
-    const spreadSlot = Math.floor(i / 2);
-    let t = pages[i].text.trim();
-    let added = 0;
-    while (
-      countStoryWordsUk(t) < floor &&
-      added < maxPad &&
-      t.length < STORYBOOK_PROSE_PAGE_TEXT_MAX - 380
-    ) {
-      const chunk = pads[(spreadSlot + added) % pads.length]?.trim();
-      if (!chunk) break;
-      t = t.length ? `${t}\n\n${chunk}` : chunk;
-      added++;
-    }
-    if (t.length > STORYBOOK_PROSE_PAGE_TEXT_MAX) {
-      t =
-        t.slice(0, Math.max(0, STORYBOOK_PROSE_PAGE_TEXT_MAX - 1)) + "…";
-    }
-    pages[i].text = t;
-  }
-
-  return { ...story, pages };
 }
 
 /** Visual style for storybook illustrations (JSON `illustrationStyle`). */
@@ -3024,8 +2908,8 @@ Deno.serve(async (req) => {
   const storyLengthAndFormatRule =
     storyTextModeKey === "prose"
       ? readerArtLayoutKey === "facing"
-        ? `- Exactly 12 pages (six double-page spreads). **Facing-page layout** (one full-page picture + one dedicated text page): each **odd** text page is shown alone on a cream text page in the app — not overlaid on art. Write ${lenSpec.proseParagraphLead} per odd page (${lenSpec.proseWordRange}), warm read-aloud prose for age ~5, with natural dialogue and sensory detail. Separate paragraphs with **two newlines** (\\n\\n) in the JSON string. **Do not** force ${lenSpec.proseAntiRhymeHint}; light rhythm or occasional rhyme is fine — **clarity and story flow come first**.`
-        : `- Exactly 12 pages (six double-page spreads). **Duplex layout** (one wide picture with read-aloud text overlaid on the spread in the app): each **odd** text page pairs with the illustration — write ${lenSpec.proseParagraphLead} per odd page (${lenSpec.proseWordRange}), warm read-aloud prose for age ~5, with natural dialogue and sensory detail. Separate paragraphs with **two newlines** (\\n\\n) in the JSON string. **Do not** force ${lenSpec.proseAntiRhymeHint}; light rhythm or occasional rhyme is fine — **clarity and story flow come first**.`
+        ? `- Exactly 12 pages (six double-page spreads). **Facing-page layout** (one full-page picture + one dedicated text page): each **odd** text page is shown alone on a cream text page in the app — not overlaid on art. Write ${lenSpec.proseParagraphLead} per odd page (${lenSpec.proseWordRange}), warm read-aloud prose for age ~5, with natural dialogue and sensory detail. Use **one** separator between the two paragraphs only: **two newlines** (\\n\\n) in the JSON string — **no** extra blank lines, **no** third paragraph. **Do not** force ${lenSpec.proseAntiRhymeHint}; light rhythm or occasional rhyme is fine — **clarity and story flow come first**.`
+        : `- Exactly 12 pages (six double-page spreads). **Duplex layout** (one wide picture with read-aloud text overlaid on the spread in the app): each **odd** text page pairs with the illustration — write ${lenSpec.proseParagraphLead} per odd page (${lenSpec.proseWordRange}), warm read-aloud prose for age ~5, with natural dialogue and sensory detail. Use **one** separator between the two paragraphs only: **two newlines** (\\n\\n) — **no** extra blank lines, **no** third paragraph. **Do not** force ${lenSpec.proseAntiRhymeHint}; light rhythm or occasional rhyme is fine — **clarity and story flow come first**.`
       : readerArtLayoutKey === "facing"
       ? `- Exactly 12 pages (six double-page spreads). **Facing-page layout** (one full-page picture + one dedicated text page): each **odd** text page is shown alone on a cream text page in the app — not overlaid on art. The text on every such page MUST be exactly **${lenSpec.rhymeLines}** lines long (${lenSpec.rhymeLinesHint}), written as a fun, rhythmic poem that rhymes perfectly across the page (${lenSpec.rhymeSchemeExamples}). Each line should be ${lenSpec.rhymeLineShape}. Format the text with actual line breaks (\\n) after each line so the rhyming words fall at the ends of lines.`
       : `- Exactly 12 pages (six double-page spreads). The text on every page MUST be exactly **${lenSpec.rhymeLines}** lines long (${lenSpec.rhymeLinesHint}), written as a fun, rhythmic poem that rhymes perfectly across the page (${lenSpec.rhymeSchemeExamples}). Each line should be ${lenSpec.rhymeLineShape}. Format the text with actual line breaks (\\n) after each line so the rhyming words fall at the ends of lines.`;
@@ -3033,13 +2917,13 @@ Deno.serve(async (req) => {
   const oddPageTextFormatHint =
     storyTextModeKey === "prose"
       ? readerArtLayoutKey === "facing"
-        ? `${lenSpec.proseParagraphLead} in each \"text\" string, paragraphs separated by two newline characters (\\n\\n), ${lenSpec.proseWordRange.replace("total on that page", "per page")}, warm read-aloud prose (not strict line-by-line rhyme).`
-        : `${lenSpec.proseParagraphLead} in each \"text\" string, paragraphs separated by two newline characters (\\n\\n), ${lenSpec.proseWordRange.replace("total on that page", "per page")}, warm read-aloud prose for text shown with the wide illustration (not strict line-by-line rhyme).`
+        ? `${lenSpec.proseParagraphLead} in each odd \"text\" field — **exactly two paragraphs**, one separator (\\n\\n) between them, ${lenSpec.proseWordRange.replace("total on that page", "per page")}, warm read-aloud prose (not strict line-by-line rhyme).`
+        : `${lenSpec.proseParagraphLead} in each odd \"text\" field — **exactly two paragraphs**, one separator (\\n\\n), ${lenSpec.proseWordRange.replace("total on that page", "per page")}, warm read-aloud prose for text shown with the wide illustration (not strict line-by-line rhyme).`
       : `exactly **${lenSpec.rhymeLines}** lines, separated by newline characters (\\n) in each \"text\" string — ${lenSpec.rhymeOddPageTail}.`;
 
   const proseVolumeParityRule =
     storyTextModeKey === "prose"
-      ? `- **Readable balance:** Every prose-first TEXT page should sit in the same **ballpark** (${lenSpec.proseParagraphLead}; ${lenSpec.proseWordRange.replace("total on that page", "each page alike")}) — comfortable for a single read-aloud pause, not a wall of text. Pages **9** (spread 5 text) and **11** (spread 6 text) must still advance and close THIS plot warmly—never collapse to **one short sentence** alone — but **do not** inflate late pages beyond the paragraph budget above; weave plot-specific dialogue and detail, not extra bulk.`
+      ? `- **Two paragraphs only:** Every prose-first TEXT page MUST be **exactly two paragraphs** (${lenSpec.proseWordRange.replace("total on that page", "each page alike")}) — same rule on pages **9** and **11** as everywhere else. Split the beat across two blocks (e.g. scene + reaction, or dialogue + narrator follow-up); **do not** add a third paragraph, **do not** glue everything into one slab, **do not** use more than one \\n\\n in the string.`
       : "";
 
   const system = `You write warm picture-book stories for UK English-speaking children about age 5.
@@ -3162,7 +3046,6 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
   let story: StoryJson;
   try {
     story = await openaiChatJson(apiKey, system, user);
-    story = enrichProseStoryEvenPages(story, storyTextModeKey, storyLengthKey);
   } catch (e) {
     console.error(e);
     const detail =
