@@ -2131,6 +2131,27 @@ body.sb-portal-welcome-open {
   box-shadow: 0 0 0 4px rgba(244, 114, 182, 0.25), inset 0 2px 4px rgba(0,0,0,0.02);
 }
 
+.sb-textarea.sb-textarea--compact {
+  min-height: 4.75rem;
+  font-weight: 650;
+}
+
+.sb-custom-choice-wrap .sb-label--secondary {
+  margin-top: 0;
+}
+
+.sb-custom-choice-wrap {
+  margin-top: 0.75rem;
+  padding-top: 0.65rem;
+  border-top: 1px dashed rgba(219, 39, 119, 0.22);
+}
+
+.sb-label.sb-label--secondary {
+  font-size: 0.72rem;
+  margin-bottom: 0.35rem;
+  color: #9d174d;
+}
+
 .sb-label {
   display: block;
   font-size: 0.78rem;

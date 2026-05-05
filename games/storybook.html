@@ -12,7 +12,7 @@
   <link rel="manifest" href="../manifest.json" />
   <link rel="stylesheet" href="../js/kids-core.css" />
   <!-- storybook-app.css = renamed file so CDN/browser cache cannot keep old storybook.css -->
-  <link rel="stylesheet" href="storybook-app.css?v=158" />
+  <link rel="stylesheet" href="storybook-app.css?v=159" />
   <link rel="stylesheet" href="../tablet-ipad.css" />
   <!-- Last wins: guarantees new background even if a proxy cached an ancient stylesheet elsewhere -->
   <style>
@@ -250,6 +250,17 @@
           <p class="sb-panel__why" id="sbPanelWhy2">A buddy is optional — you can tell a people-only tale.</p>
           <p class="sb-panel__hint">Pick a buddy — or no buddy for a people-only story.</p>
           <div class="sb-chip-row" id="sbCharacters" role="radiogroup" aria-label="Character"></div>
+          <div class="sb-custom-choice-wrap" id="sbBuddyCustomWrap" hidden aria-hidden="true">
+            <label class="sb-label sb-label--secondary" for="sbBuddyCustom">Describe your buddy</label>
+            <textarea
+              id="sbBuddyCustom"
+              class="sb-textarea sb-textarea--compact"
+              rows="3"
+              maxlength="200"
+              placeholder="e.g. a tiny teal robot with rollers for feet, always humming a song"
+            ></textarea>
+            <p class="sb-panel__micro">Up to 200 characters — silly, kind, and storybook-friendly ideas work best.</p>
+          </div>
           <div class="sb-modal__actions sb-modal__actions--split">
             <button type="button" class="sb-btn sb-btn--ghost sb-btn--modal" id="sbBack2">Back</button>
             <button type="button" class="sb-btn sb-btn--primary sb-btn--modal" id="sbNext2">Next</button>
@@ -260,6 +271,17 @@
           <p class="sb-panel__why" id="sbPanelWhy3">One tap sets the stage; you can still add more in your story idea.</p>
           <p class="sb-panel__hint">Where should it happen?</p>
           <div class="sb-chip-row" id="sbPlaces" role="radiogroup" aria-label="Place"></div>
+          <div class="sb-custom-choice-wrap" id="sbPlaceCustomWrap" hidden aria-hidden="true">
+            <label class="sb-label sb-label--secondary" for="sbPlaceCustom">Describe the place</label>
+            <textarea
+              id="sbPlaceCustom"
+              class="sb-textarea sb-textarea--compact"
+              rows="3"
+              maxlength="200"
+              placeholder="e.g. Grandma’s allotment with a pumpkin patch and a squeaky greenhouse door"
+            ></textarea>
+            <p class="sb-panel__micro">Anything you imagine — castles, playgrounds, rockets, grandma’s sofa — up to 200 characters.</p>
+          </div>
           <div class="sb-modal__actions sb-modal__actions--split">
             <button type="button" class="sb-btn sb-btn--ghost sb-btn--modal" id="sbBack3">Back</button>
             <button type="button" class="sb-btn sb-btn--primary sb-btn--modal" id="sbNext3">Next</button>
@@ -729,7 +751,7 @@
   <script src="../js/storybook-shelf-store.js" defer></script>
   <!-- Required for cloud shelf sync + upload (same as other games) -->
   <script src="../js/score-cloud.js" defer></script>
-  <script src="storybook.js?v=331" defer></script>
+  <script src="storybook.js?v=332" defer></script>
   <script>
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("../sw.js").catch(function () {});

@@ -132,6 +132,66 @@ const CHARACTERS: Record<string, string> = {
     "a cuddly grey koala with fluffy ears, button nose, and gentle black eyes — holding a sprig of round leaves, plush toy style",
   llama:
     "a fluffy cream-and-tan cartoon llama with a tasselled blanket, gentle smile, and big friendly eyes — silly and sweet",
+  raccoon:
+    "a wee bandit-mask raccoon with a fluffy striped tail and curious shiny eyes — soft rounded cartoon proportions",
+  seal:
+    "a smooth friendly cartoon seal with wide dark eyes and a sweet smile — simple flippers and soft grey coat",
+  otter:
+    "a slippery-cute otter with round belly and tiny paws, often floating on its back with a sparkly pebble toy",
+  panda:
+    "a chunky roly-poly panda cub with bold eye patches and tiny rounded ears — clumsy hugs energy",
+  bear:
+    "a round grizzly-brown bear cub with tiny ears and a tummy built for blueberry picnics — soft plush toy vibes",
+  polarbear:
+    "an Arctic-white polar bear cub with soft fur ruff and pink nose peeking through snow dust — cuddly iceberg buddy",
+  lion:
+    "a tiny fuzzy-maned lion cub with oversized paws — brave smile but kitten-soft and never scary",
+  tiger:
+    "a stripy-orange tiger cub with big whisker dots and floppy ears — storybook safari pal, gentle roar optional",
+  monkey:
+    "a small tousle-haired monkey friend with curled tail wrapped around branches — sparkly eyes full of bananas",
+  elephant:
+    "a baby elephant with oversized ears draped like cozy blankets — tiny trunk curled like a telescope",
+  zebra:
+    "a soft zebra foal with wavy monochrome stripes hugging marshmallow fluff — clumsy hoof dance energy",
+  cow:
+    "a friendly Jersey cow calf with dreamy eyes and a daisy-chewing grin — grassy meadow companion",
+  pig:
+    "a pink piglet wearing a tiny knitted vest — sparkly snoot and giggly curls on the tail tip",
+  sheep:
+    "a cloud-fluffy lamb wearing a plaid neck bow — sparkly eyes shining through curls",
+  horse:
+    "a short-legged pony foal with a silky pastel mane and tiny golden horseshoe charm dangling from its forelock",
+  chicken:
+    "a round-cheek hen chick wearing a tiny polka-dot kerchief — puffy fluff and confident waddle energy",
+  duck:
+    "a sunny duckling in soft butter-yellow fluff with sailor kerchief knot — sparkly eye and happy waddle rhythm",
+  parrot:
+    "a petite parrot with candy-coloured plumage and head feathers like party streamers — soft rounded vector friend",
+  deer:
+    "a dappled fawn with velvet antler nubs and tiny white tail flag — woodland shy but brave when needed",
+  dolphin:
+    "a sleek sparkly dolphin calf with giggly dorsal fins that catch rainbows mid-leap — never scary predator vibes",
+  whale:
+    "a sky-blue whale calf with bubbly water-trail curls and shimmering spots — sleepy smile and gentle tides",
+  crab:
+    "a toy-bright crab with rounded claws waving hello — sparkly shell polka dots like candy buttons",
+  snail:
+    "a glossy snail buddy with swirling shell painted like a lollipop swirl — sparkly antenna boops happily",
+  caterpillar:
+    "a chunky storybook caterpillar with rainbow segments and sparkly shoes on every foot — clumsy giggles",
+  lightningbug:
+    "a whimsical glow-buddy made of gentle starlight sparks with a grin — cuddly bedtime firefly sparkle, never buggy-scary",
+  fairy:
+    "a palm-sized sparkly fairy wearing petal armour and ribbon wings — giggly dust trail and leafy crown",
+  alien:
+    "a squishy lavender alien buddy with oversized curious eyes — soft antennas and zero scary tech",
+  ghost:
+    "a friendly drifting bedsheet ghost with rosy-cheek grin — cozy lantern glow tucked under its folds",
+  snowbuddy:
+    "a sparkly snow-character buddy wearing scarf wraps and button eyes — giggly avalanche of hugs warmth",
+  mermaidbuddy:
+    "one mer-kid friend with shimmering tail scales kept soft and chunky — sparkly shell accessories, wholesome sea vibes",
   /** Human-only books: no imaginary creature companion. */
   nobuddy:
     "NONE — no imaginary creature buddy; humans only unless the plot explicitly requires a specific creature.",
@@ -165,8 +225,49 @@ const PLACES: Record<string, string> = {
     "a big friendly storybook football stadium — lush green pitch with soft white line markings and simple goal frames, sweeping curved stands in royal blue and white seats, roof shelter and floodlight rigs overhead, bright open sky; tiny soft-focus crowd blobs only — no readable signs, logos, crests, or sponsor text; hero and buddy can stand on the grass or touchline — pairs beautifully with an owl buddy as a cuddly mascot",
   island:
     "a tiny tropical island — curved beach, palm trees, tide pools, bright lagoon colours, inviting storybook adventure vibe",
+  cave:
+    "a wide glittering storybook cave — rounded rock arches, dangling stalactites, shallow reflective pools, warm lantern glow lining the walls",
+  undersea:
+    "an underwater world — coral terraces, drifting kelp, sandy seabed, friendly distant fish blobs, gentle blue-green shafts of light — age-friendly magical sea",
+  jungle:
+    "a lush jungle trail — dangling vines, big tropical leaves, sleepy river glimpses through mist, chirpy canopy sparkles overhead",
+  school:
+    "a bright cheerful school day — sunflower-yellow halls, lockers with rounded corners, bulletin boards filled with scribbles shapes (no readable text), playground glimpses beyond windows",
+  playground:
+    "a sunny playground park — soft rubber safety surfacing in candy colours, curvy slides, gentle swings without chains looking harsh, merry-go-round blobs, shady trees edging the fence",
+  bedroom:
+    "a cozy kid bedroom — duvet fort possibilities, constellation night-light glow, bedside books with blank spines, toys tidied along shelves as soft shapes only",
+  treehouse:
+    "a lofty wooden treehouse platform wrapped around a chunky friendly tree trunk — rope ladder, lanterns, binoculars dangling, leafy curtains framing sunsets",
+  library:
+    "a cozy round-edged library nook — ladders on rails, overstuffed sofas, towering shelves with softly coloured spine blocks showing no readable titles, warm amber lamps",
+  campsite:
+    "a friendly campsite meadow — zipped pastel tents around a glowing fire ring, telescopes sprawled nearby, constellation charts as abstract shapes atop the picnic blanket",
+  swimmingpool:
+    "a sparkly community pool plaza — aqua lanes with gentle ramps, unicorn-float blobs, umbrellas as candy dots along the deck, cheerful splashes frozen mid-air cartoon style",
+  icerink:
+    "an indoor ice rink with rounded boards and peppermint-striped rail padding — sparkly overhead LEDs and soft-focus crowd lumps with no logos",
+  airport:
+    "a tiny friendly departure lounge — vaulted glass walls showing candy-coloured sunsets, suitcase stacks as rounded toys, skylight skylines with gentle planes looping",
+  fairground:
+    "a luminous fair midway — swirling Ferris wheel lights (no signage), sugary fog from cotton candy machines, merry-go-round animals as plush shapes",
+  village:
+    "a hillside village plaza — pastel cottages clustered around cobble blobs, fountains as gentle stacks of stones with flower buckets, kite tails streaking pastel sky gradients",
+  bakery:
+    "a sweet-smelling bakery front — braided bread mountains, donut towers dripping glaze, apron-clad sill shapes with no logos, sugared-window sparkles",
+  greenhouse:
+    "a steaming glass greenhouse conservatory — dripping vines overhead, succulent shelves with candy-coloured planters, humming mist sparkles drifting through arcs",
+  savannah:
+    "a dreamy savannah plain — buttery golden grass waving, lone acacia umbrella trees, drifting clouds brushing distant pink mesas — warm adventure feeling",
+  volcano:
+    "a distant quiet volcano hillside — soft smoking crown that reads friendly, chunky lava lumps cooling into colourful glass pebbles, wildflowers bordering safe viewing ridge",
+  meadow:
+    "a rolling meadow of wildflowers in rainbow arcs — pollinator sparkles swirling, braided paths of clover hopping stones, picnics hinted at mid-distance without faced extras",
+  petshop:
+    "a gentle pet boutique window — cages showing abstract fluffy silhouettes safely behind bright frames, dangling toy bones and yarn balls sparkling with glitter",
+  workshop:
+    "a messy-creative inventors loft — chunky workbenches, rainbow tool outlines without sharp edges glowing, dangling blueprints scribbled as abstract curls",
 };
-
 /** Paths relative to site root; must match static deploy + `kids-game-characters.js` portrait fields. */
 const FAMILY_PORTRAIT_PATHS: Record<string, string> = {
   babyca: "games/images/character-babyca.png",
@@ -221,6 +322,15 @@ function pickStoryReaderFont(): StoryReaderFontKey {
 const DALLE3_PROMPT_MAX = 3900;
 /** Max length for the child's free-text plot idea (must match storybook UI `maxlength`). */
 const STORYBOOK_PLOT_HINT_MAX = 800;
+const STORYBOOK_CUSTOM_CHOICE_MAX = 200;
+
+function sanitizeCustomChoice(raw: string): string {
+  return String(raw ?? "")
+    .replace(/[^\p{L}\p{N}'\-\s]/gu, " ")
+    .replace(/\s+/gu, " ")
+    .trim()
+    .slice(0, STORYBOOK_CUSTOM_CHOICE_MAX);
+}
 
 /** Optional hero photo(s) from the client (base64 data URL); cap raw size like game portraits. */
 const MAX_HERO_REFERENCE_BYTES = 1_200_000;
@@ -2485,6 +2595,10 @@ Deno.serve(async (req) => {
     storyTextMode?: string;
     /** Per-page length: short | medium | long. Omitted → medium. */
     storyLength?: string;
+    /** When `character` is `custom_buddy`, short free-text from the child (max 200 chars). */
+    buddyCustom?: string;
+    /** When `place` is `custom_place`, short free-text from the child (max 200 chars). */
+    placeCustom?: string;
   };
   try {
     body = await req.json();
@@ -2498,8 +2612,26 @@ Deno.serve(async (req) => {
   const characterKey = String(body.character ?? "");
   const placeKey = String(body.place ?? "");
 
-  const characterDesc = CHARACTERS[characterKey];
+  let characterDesc = CHARACTERS[characterKey];
   let placeDesc = PLACES[placeKey];
+
+  if (characterKey === "custom_buddy") {
+    const c = sanitizeCustomChoice(String(body.buddyCustom ?? ""));
+    if (c.length < 4) {
+      return jsonResponse({ error: "invalid_choices" }, 400);
+    }
+    characterDesc =
+      `One imaginary buddy as described: ${c}. Keep a single consistent friendly storybook design — soft proportions, kind expression, never scary or adult; no realistic weapons, gore, horror, or recognizable licensed characters.`;
+  }
+  if (placeKey === "custom_place") {
+    const p = sanitizeCustomChoice(String(body.placeCustom ?? ""));
+    if (p.length < 4) {
+      return jsonResponse({ error: "invalid_choices" }, 400);
+    }
+    placeDesc =
+      `Setting as described: ${p}. Bright picture-book world for young children — warm and readable, no nightmare horror, disasters, politics, or logos / brand text.`;
+  }
+
   if (!characterDesc || !placeDesc) {
     return jsonResponse({ error: "invalid_choices" }, 400);
   }
@@ -2535,7 +2667,7 @@ Deno.serve(async (req) => {
       {
         pattern: /\b(cave|cavern|tunnel|underground)\b/i,
         key: "cave",
-        desc: "a glittering cave — rough rock walls, stalactites, narrow passages opening into wider chambers, occasional puddles reflecting torchlight",
+        desc: PLACES.cave,
       },
       {
         pattern:
@@ -2606,7 +2738,7 @@ Deno.serve(async (req) => {
       {
         pattern: /\b(underwater|under\s*the\s*sea|ocean\s*floor|coral|reef|mermaid|submarine)\b/i,
         key: "undersea",
-        desc: "an underwater world — coral formations, kelp forests, sandy seabed, fish schools in the mid-distance, soft caustic blue-green light from above",
+        desc: PLACES.undersea,
       },
       {
         pattern: /\b(space|outer\s*space|moon|planet|galaxy|cosmic|rocket|asteroid|comet)\b/i,

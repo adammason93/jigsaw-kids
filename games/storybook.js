@@ -28,6 +28,37 @@
     { id: "turtle", label: "Turtle", icon: "\uD83D\uDC22" },
     { id: "koala", label: "Koala", icon: "\uD83D\uDC28" },
     { id: "llama", label: "Llama", icon: "\uD83E\uDD99" },
+    { id: "raccoon", label: "Raccoon", icon: "\uD83E\uDD9D" },
+    { id: "seal", label: "Seal", icon: "\uD83E\uDDAD" },
+    { id: "otter", label: "Otter", icon: "\uD83E\uDDA6" },
+    { id: "panda", label: "Panda", icon: "\uD83D\uDC3C" },
+    { id: "bear", label: "Bear cub", icon: "\uD83D\uDC3B" },
+    { id: "polarbear", label: "Polar bear", icon: "\uD83D\uDC3B\u200D\u2744\uFE0F" },
+    { id: "lion", label: "Lion cub", icon: "\uD83E\uDD81" },
+    { id: "tiger", label: "Tiger cub", icon: "\uD83D\uDC2F" },
+    { id: "monkey", label: "Monkey friend", icon: "\uD83D\uDC35" },
+    { id: "elephant", label: "Elephant calf", icon: "\uD83D\uDC18" },
+    { id: "zebra", label: "Zebra foal", icon: "\uD83E\uDD93" },
+    { id: "cow", label: "Cow", icon: "\uD83D\uDC04" },
+    { id: "pig", label: "Piglet", icon: "\uD83D\uDC37" },
+    { id: "sheep", label: "Lamb", icon: "\uD83D\uDC11" },
+    { id: "horse", label: "Pony", icon: "\uD83D\uDC34" },
+    { id: "chicken", label: "Chicken", icon: "\uD83D\uDC14" },
+    { id: "duck", label: "Duckling", icon: "\uD83E\uDD86" },
+    { id: "parrot", label: "Parrot", icon: "\uD83E\uDD9C" },
+    { id: "deer", label: "Deer fawn", icon: "\uD83E\uDD8C" },
+    { id: "dolphin", label: "Dolphin", icon: "\uD83D\uDC33" },
+    { id: "whale", label: "Whale", icon: "\uD83D\uDC0B" },
+    { id: "crab", label: "Crab", icon: "\uD83E\uDD80" },
+    { id: "snail", label: "Snail", icon: "\uD83D\uDC0C" },
+    { id: "caterpillar", label: "Caterpillar", icon: "\uD83D\uDC1B" },
+    { id: "lightningbug", label: "Glow-bug buddy", icon: "\u2728" },
+    { id: "fairy", label: "Tiny fairy", icon: "\uD83E\uDDDA" },
+    { id: "alien", label: "Squishy alien", icon: "\uD83D\uDC7D" },
+    { id: "ghost", label: "Friendly ghost", icon: "\uD83D\uDC7B" },
+    { id: "snowbuddy", label: "Snow buddy", icon: "\u26C4" },
+    { id: "mermaidbuddy", label: "Merfriend", icon: "\uD83E\uDDDC" },
+    { id: "custom_buddy", label: "My own buddy\u2026", icon: "\u270F\uFE0F" },
     { id: "nobuddy", label: "No buddy", icon: "\uD83D\uDC64" },
   ];
 
@@ -178,6 +209,28 @@
     { id: "stadium", label: "Football stadium", icon: "\u26BD" },
     { id: "museum", label: "Museum", icon: "\uD83C\uDFDB" },
     { id: "island", label: "Tropical island", icon: "\uD83C\uDFDD" },
+    { id: "cave", label: "Secret cave", icon: "\uD83E\uDEA8" },
+    { id: "undersea", label: "Under the sea", icon: "\uD83D\uDC20" },
+    { id: "jungle", label: "Jungle", icon: "\uD83C\uDF34" },
+    { id: "school", label: "School day", icon: "\uD83C\uDFEB" },
+    { id: "playground", label: "Playground", icon: "\uD83C\uDFDE\uFE0F" },
+    { id: "bedroom", label: "Cozy bedroom", icon: "\uD83D\uDECF" },
+    { id: "treehouse", label: "Tree house", icon: "\uD83C\uDF33" },
+    { id: "library", label: "Library", icon: "\uD83D\uDCDA" },
+    { id: "campsite", label: "Camping", icon: "\u26FA" },
+    { id: "swimmingpool", label: "Swimming pool", icon: "\uD83C\uDFCA" },
+    { id: "icerink", label: "Ice skating", icon: "\u26F8" },
+    { id: "airport", label: "Airport", icon: "\u2708" },
+    { id: "fairground", label: "Fairground", icon: "\uD83C\uDFA1" },
+    { id: "village", label: "Village", icon: "\uD83C\uDFD8" },
+    { id: "bakery", label: "Bakery", icon: "\uD83C\uDF6E" },
+    { id: "greenhouse", label: "Greenhouse", icon: "\uD83E\uDEB4" },
+    { id: "savannah", label: "Savannah sun", icon: "\uD83C\uDF05" },
+    { id: "volcano", label: "Quiet volcano hills", icon: "\uD83C\uDF0B" },
+    { id: "meadow", label: "Wildflower meadow", icon: "\uD83C\uDF3C" },
+    { id: "petshop", label: "Pet nook", icon: "\uD83D\uDC3E" },
+    { id: "workshop", label: "Inventors workshop", icon: "\uD83D\uDD27" },
+    { id: "custom_place", label: "My own place\u2026", icon: "\uD83D\uDDFA" },
   ];
 
   var STEP_HEADINGS = [
@@ -194,8 +247,8 @@
   var STEP_GUIDE_TEXT = [
     "Welcome. We will ask who you are, who your friend is, where you go, and what happens. Press Let’s go when you are ready.",
     "Who is the hero? This is your name in the story. You can type or tap Speak. You can add photos and pick a book title and colours.",
-    "Pick a buddy for your story, or no buddy for a people-only story.",
-    "Where should the story happen? Tap one place.",
+    "Pick a buddy for your story, choose My own buddy to describe any friend, or pick no buddy for people only.",
+    "Where should it happen? Pick a scene — or choose My own place and write anything.",
     "What happens? We only need a little idea. One sentence is enough. You can tap Speak or try a starter below.",
   ];
 
@@ -219,6 +272,10 @@
   var plotInput = document.getElementById("sbPlot");
   var charRow = document.getElementById("sbCharacters");
   var placeRow = document.getElementById("sbPlaces");
+  var buddyCustomWrap = document.getElementById("sbBuddyCustomWrap");
+  var buddyCustomInput = document.getElementById("sbBuddyCustom");
+  var placeCustomWrap = document.getElementById("sbPlaceCustomWrap");
+  var placeCustomInput = document.getElementById("sbPlaceCustom");
   var bookColorsWrap = document.getElementById("sbBookColorsWrap");
   var bookColorsQuick = document.getElementById("sbBookColorsQuick");
   var bookColorsGrid = document.getElementById("sbBookColorsGrid");
@@ -3468,6 +3525,30 @@
     refreshBookColorChips();
   }
 
+  /** Must match clever-service `STORYBOOK_CUSTOM_CHOICE_MAX`. */
+  var STORYBOOK_CUSTOM_CHOICE_MAX = 200;
+
+  function trimCustomWizardText(el) {
+    if (!el) return "";
+    return String(el.value || "")
+      .trim()
+      .slice(0, STORYBOOK_CUSTOM_CHOICE_MAX);
+  }
+
+  function syncBuddyCustomPanel() {
+    if (!buddyCustomWrap) return;
+    var show = selectedChar === "custom_buddy";
+    buddyCustomWrap.hidden = !show;
+    buddyCustomWrap.setAttribute("aria-hidden", show ? "false" : "true");
+  }
+
+  function syncPlaceCustomPanel() {
+    if (!placeCustomWrap) return;
+    var show = selectedPlace === "custom_place";
+    placeCustomWrap.hidden = !show;
+    placeCustomWrap.setAttribute("aria-hidden", show ? "false" : "true");
+  }
+
   function refreshCharacterChips() {
     if (!charRow) return;
     Array.prototype.forEach.call(charRow.querySelectorAll(".sb-chip"), function (el, i) {
@@ -3507,10 +3588,13 @@
         b.addEventListener("click", function () {
           selectedChar = item.id;
           refreshCharacterChips();
+          syncBuddyCustomPanel();
+          setError("");
         });
         charRow.appendChild(b);
       });
       refreshCharacterChips();
+      syncBuddyCustomPanel();
     }
     if (placeRow) {
       placeRow.textContent = "";
@@ -3532,10 +3616,13 @@
         b.addEventListener("click", function () {
           selectedPlace = item.id;
           refreshPlaceChips();
+          syncPlaceCustomPanel();
+          setError("");
         });
         placeRow.appendChild(b);
       });
       refreshPlaceChips();
+      syncPlaceCustomPanel();
     }
     buildBookColorUI();
     wireBookColorChips();
@@ -3616,6 +3703,12 @@
       window.requestAnimationFrame(function () {
         nameInput.focus();
       });
+    }
+    if (journeyStep === 2) {
+      syncBuddyCustomPanel();
+    }
+    if (journeyStep === 3) {
+      syncPlaceCustomPanel();
     }
     if (journeyStep === 4 && plotInput) {
       window.requestAnimationFrame(function () {
@@ -4260,9 +4353,31 @@
     });
   }
   if (btnBack2) btnBack2.addEventListener("click", function () { goToStep(1); });
-  if (btnNext2) btnNext2.addEventListener("click", function () { goToStep(3); });
-  if (btnBack3) btnBack3.addEventListener("click", function () { goToStep(2); });
-  if (btnNext3) btnNext3.addEventListener("click", function () { goToStep(4); });
+  if (btnNext2) btnNext2.addEventListener("click", function () {
+    if (selectedChar === "custom_buddy") {
+      var t = trimCustomWizardText(buddyCustomInput);
+      if (t.length < 4) {
+        setError("Please describe your buddy in a few words (at least 4 letters).");
+        return;
+      }
+    }
+    setError("");
+    goToStep(3);
+  });
+  if (btnBack3) btnBack3.addEventListener("click", function () {
+    goToStep(2);
+  });
+  if (btnNext3) btnNext3.addEventListener("click", function () {
+    if (selectedPlace === "custom_place") {
+      var pt = trimCustomWizardText(placeCustomInput);
+      if (pt.length < 4) {
+        setError("Please describe where the story happens (at least 4 letters).");
+        return;
+      }
+    }
+    setError("");
+    goToStep(4);
+  });
   if (btnBack4) {
     btnBack4.addEventListener("click", function () {
       goToStep(skippedBuddyAndPlace ? 1 : 3);
@@ -4299,6 +4414,14 @@
           character: selectedChar,
           place: selectedPlace,
           plotHint: plotHint,
+          buddyCustom:
+            selectedChar === "custom_buddy"
+              ? trimCustomWizardText(buddyCustomInput) || undefined
+              : undefined,
+          placeCustom:
+            selectedPlace === "custom_place"
+              ? trimCustomWizardText(placeCustomInput) || undefined
+              : undefined,
           pictureBookQuality: selectedPictureBookQuality(),
           illustrationStyle: readIllustrationStyleFromWizard(),
           readerArtLayout: readBookSpreadLayoutFromWizard(),
