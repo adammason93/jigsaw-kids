@@ -5092,11 +5092,6 @@
         });
       }
       runStorybookOnce(useAsync)
-        .then(function (r) {
-          return r.json().then(function (j) {
-            return { ok: r.ok, status: r.status, body: j };
-          });
-        })
         .then(function (out) {
           if (!out.ok) {
             var b =
