@@ -6,6 +6,7 @@
   var CHARACTERS = [
     { id: "unicorn", label: "Unicorn", icon: "\uD83E\uDD84" },
     { id: "dragon", label: "Little dragon", icon: "\uD83D\uDC09" },
+    { id: "custom_buddy", label: "Add your own buddy", icon: "\u270F\uFE0F" },
     { id: "dinosaur", label: "Dinosaur", icon: "\uD83E\uDD96" },
     { id: "robot", label: "Robot", icon: "\uD83E\uDD16" },
     { id: "bunny", label: "Bunny", icon: "\uD83D\uDC30" },
@@ -58,7 +59,6 @@
     { id: "ghost", label: "Friendly ghost", icon: "\uD83D\uDC7B" },
     { id: "snowbuddy", label: "Snow buddy", icon: "\u26C4" },
     { id: "mermaidbuddy", label: "Merfriend", icon: "\uD83E\uDDDC" },
-    { id: "custom_buddy", label: "My own buddy\u2026", icon: "\u270F\uFE0F" },
     { id: "nobuddy", label: "No buddy", icon: "\uD83D\uDC64" },
   ];
 
@@ -192,6 +192,7 @@
   var PLACES = [
     { id: "beach", label: "Beach", icon: "\uD83C\uDFD6" },
     { id: "woods", label: "Woods", icon: "\uD83C\uDF32" },
+    { id: "custom_place", label: "Add your own scene", icon: "\uD83D\uDDFA" },
     { id: "castle", label: "Castle", icon: "\uD83C\uDFF0" },
     { id: "garden", label: "Garden", icon: "\uD83C\uDF37" },
     { id: "space", label: "Space", icon: "\uD83D\uDE80" },
@@ -230,7 +231,6 @@
     { id: "meadow", label: "Wildflower meadow", icon: "\uD83C\uDF3C" },
     { id: "petshop", label: "Pet nook", icon: "\uD83D\uDC3E" },
     { id: "workshop", label: "Inventors workshop", icon: "\uD83D\uDD27" },
-    { id: "custom_place", label: "My own place\u2026", icon: "\uD83D\uDDFA" },
   ];
 
   var STEP_HEADINGS = [
@@ -247,8 +247,8 @@
   var STEP_GUIDE_TEXT = [
     "Welcome. We will ask who you are, who your friend is, where you go, and what happens. Press Let’s go when you are ready.",
     "Who is the hero? This is your name in the story. You can type or tap Speak. You can add photos and pick a book title and colours.",
-    "Pick a buddy for your story, choose My own buddy to describe any friend, or pick no buddy for people only.",
-    "Where should it happen? Pick a scene — or choose My own place and write anything.",
+    "Pick a buddy for your story, tap Add your own buddy to describe anyone you like, or pick no buddy for people only.",
+    "Where should it happen? Tap a scene, or tap Add your own scene and write any place.",
     "What happens? We only need a little idea. One sentence is enough. You can tap Speak or try a starter below.",
   ];
 
