@@ -1392,6 +1392,9 @@ function sanitizeModelJsonForParse(s: string): string {
 const PAGE_COUNT = 12;
 const FRONT_MATTER_PAGE_COUNT = 2;
 
+/** Facing pages can carry longer prose when we pad thin model output — keep under client/JSON comfort. */
+const STORYBOOK_PROSE_PAGE_TEXT_MAX = 2200;
+
 /** Zero-based index of the LAST prose-first page before the finale picture slot (usually page 11 in 1-based terms). */
 const LAST_MODEL_TEXT_PAGE_INDEX = PAGE_COUNT - 2;
 
@@ -1505,7 +1508,10 @@ function normalizeStoryJson(raw: unknown): StoryJson {
     } else {
       p.text = raw;
     }
-    if (p.text.length > 920) p.text = p.text.slice(0, 917) + "…";
+    if (p.text.length > STORYBOOK_PROSE_PAGE_TEXT_MAX) {
+      p.text =
+        p.text.slice(0, Math.max(0, STORYBOOK_PROSE_PAGE_TEXT_MAX - 1)) + "…";
+    }
   }
 
   for (let i = 0; i < pages.length; i++) {
@@ -2045,6 +2051,107 @@ function storyLengthSpec(key: StoryLengthKey): StoryLengthSpec {
           "full, rhyming, about twice as wordy as a five-line verse",
       };
   }
+}
+
+function countStoryWordsUk(s: string): number {
+  const t = String(s ?? "").trim();
+  if (!t) return 0;
+  return t.split(/\s+/u).filter((w) => w.length > 0).length;
+}
+
+/** Soft minimum words per prose-first page — keeps facing cream sheets from looking empty before “The End”. */
+function proseEvenPageFloorWords(len: StoryLengthKey): number {
+  switch (len) {
+    case "short":
+      return 74;
+    case "long":
+      return 215;
+    default:
+      return 130;
+  }
+}
+
+/**
+ * When the draft under-fills prose pages (common late spreads), append gentle filler paragraphs.
+ * Mirrors read-aloud warmth; rotates chunks by spread slot to dull repetition slightly.
+ */
+const PROSE_PAGE_PAD_BY_LENGTH: Record<StoryLengthKey, readonly string[]> = {
+  short: [
+    "They swung their joined hands gently, pretending the pavement was glitter. “Remember that bit?” someone whispered, and noses wrinkled with quiet pride because of course everybody remembered—it had only happened moments ago.",
+    "A pigeon tilted near, cocked its head once, then flapped off as though it had giggled. The air still tasted like sunshine on sleeves; footsteps fell in sleepy little thuds nobody tried to hurry.",
+    "Somebody bumped an elbow on purpose—not hard, only friendly—and the giggles rewound faster than socks could skid. Shadows stretched longer toward home, soft as warm milk before bedtime.",
+    "They counted birds on a fence post, lost track on purpose twice, laughed about forgetting, then tried again sincerely. Evening settled like a duvet—still bright enough to grin, snug enough to feel finished.",
+    "Tiny stones clicked under soles; butterflies flickered orange and teal like loose confetti overhead. Everybody agreed without speaking that staying side-by-side for one more curb felt exactly right.",
+    "Tomorrow could wait politely on the doorstep. Tonight hovered like sugar on tongues—“Same adventure next time?” teased somebody, sparking cheers that floated down the alley like lanterns.",
+    "They replayed mishaps softly, tweaking each punchline warmer than it really was. Windows glowed apricot farther along the street—a promise of toast, socks, sleepy stories still smiling behind closed doors.",
+    "No one hurried the last grin away. It bobbed gently between shoulders, bumped into giggles already half-asleep with joy, lingered anyhow because joy loves company even when slippers are calling.",
+    "When they paused beside a dripping tap, sparkle droplets chased one another—a tiny encore nobody scheduled. Laughs curled smaller, cosier; hearts still marched on tiptoes even if shoes dragged a little.",
+    "They promised exaggerated secret handshakes, broke them immediately laughing, reinvented sillier variants with thumbs and pinkies waving. Shadows pooled friendly as puddles nobody minded stepping through.",
+    "The buddy wriggled a happy shuffle only best friends decipher. Humans copied badly on purpose until everyone twirled once—lightly, breathlessly—as if choreography had been practising all afternoon.",
+    "Home lights blinked hello from down the avenue. Breath drew in sugary-cool dusk; hugs-that-weren’t-quite-yet leaned closer. Every voice kept one last sparkle stocked for pillow-time retellings whispered warmly.",
+  ],
+  medium: [
+    "Hands linked again without anyone announcing it—tiny squeezes spelled “still here” between wrists. Boots scuffed mellow rhythms on path stones while someone retold the best joke, stretching the punchline lovingly because nobody wanted applause to fade just yet.",
+    "Butterflies looped careless loops; a sprinkler hissed sleepy diamonds across lawns that smelled clipped-green and earthy. Voices layered soft questions—“Did YOU see THAT?”—answered by shoulder bumps happier than dictionaries.",
+    "They invented an unnecessary victory lap round a lamppost, leaning into centrifugal giggles till hair flew like holiday flags. The buddy struck a triumphant hoof-pose exaggerated on purpose until everyone applauded politely with nose boops.",
+    "Clouds leaned pink as strawberry milk while someone narrated footsteps like a sleepy sports announcer—“And HERE comes the silliest champ STILL giggling…” Nobody disputed the leaderboard; pride sat comfy as fleeces.",
+    "A dog somewhere woof-cheered—or maybe belly-laughed—they decided it counted same. Shadows stretched sideways, politely making room so last golden light could butter everyone’s elbows equal.",
+    "They replayed calamities sweeter than reality dared—“Remember when…” began each sentence, endings already forgiven into frosting. Friendship hummed a low tune only ribs could harmonise.",
+    "Hearts still cartwheeled softly, though legs pretended exhaustion. Gentle fibs about bravery traded hands; each confession grew warmer, puffing chests outward like marshmallow armour nobody needed shedding yet.",
+    "Evening curled around chimneys humming tea-kettle hymns. Breath drew in spiced-cool air tinged faintly with distant toast; plans for pajamas tickled ankles but nobody surrendered grins hostage first.",
+    "Somebody skimmed fingers along railings purely for sparkly dust motes swirling. The buddy mimicked orchestral swells badly—strings made of giggles—and the audience rewarded effort with melodramatic bows to blades of grass.",
+    "They vowed tomorrow’s silliness quotas must double; contracts sealed with exaggerated pinky locks nobody intended keeping legal. Satisfaction stretched long as lazy cats across the whole walkway home.",
+    "Windows flicked golden rectangles onto pavement quilts. Tiny moths flirted bulb halos politely; chatter settled into sweaters tucked under chins—not sad smaller, happier tighter, like scarves knitted from sunlight.",
+    "Last jokes stacked like sleepy pancakes—sweet, buttery, collapsing gently into hugs waiting on porches imaginary or real. Air itself felt politely proud: another chapter tucked safe where dreams could alphabetise giggles nightly.",
+  ],
+  long: [
+    "Grass-blades tickled sock gaps; elbows brushed on purpose exchanging warmth like trading cards nobody wanted swapped back. Dialogue bloomed anew—little negotiations about who carried the silliest souvenir memory, crowned finally by democratic finger-pointing giggles bouncing like rubber balls downhill.",
+    "Sky lowered friendly lavender rims while windows far off flicked early lamps on, golden as pancake syrup dribbling reassurance. Breath drew deep and everybody tasted faint cinnamon—someone guessed neighbour’s toaster, someone else sworn-saw fairies grilling invisible snacks—truth mattered less than laughter glueing sentences.",
+    "The buddy experimented grand curtain-call hoof flourishes daring physics to intervene; humans countered with clumsy arabesques that wobbled into group spins stopped only by dizziness democracy. Applause came from crows on cables unimpressed-but-participatory; drama coaches inside chests vowed future encores anyhow.",
+    "They mapped homeward quirks like explorers—three cracks to hop, five hydrangeas smelling purple-thoughts, two friendly potholes guarding puddle mirrors. Observation turned competitive kindly: richest detail wins nothing except extra squeeze-hand privileges nobody hoarded stingily.",
+    "Conversation braided threads—memory, prophecy, outrageous fib—into rope sturdy enough for imaginary tug-o-war referee’d by dusk itself. Satisfaction settled thick as custard in veins; adrenaline unspooled into cozy yarn balls kittens might knead happily later.",
+    "Even shadows coordinated choreography, stretching parallel like polite bridge supports under tired shoulders. Silence experimented brief cameos between punchlines—not awkward emptiness, roomy pause letting heartbeats audible-orchestrate next giggles syncing perfectly.",
+    "Windows glow stitched patchwork reassurance down terraces; moth friends auditioned halo spotlight roles, wings trembling sincerity. Socks whispered blister truces—tonight forgiveness unconditional in exchange for hot chocolate rumours allegedly waiting indoors.",
+    "They rehearsed exaggerated tomorrow manifestos—“More glitter jurisdiction!” “Mandatory extra snack tribunals!”—statutes giggled into oblivion beside hydrants spraying memory mist cooling cheeks rose-petal warm still.",
+    "Horizon inked violet signatures approachable as bedtime doodles framing sleepy satisfaction. Backpacks thunked mellow counterpoint rhythms; stray leaf confetti parachuted awarding everyone participation medals braided from chlorophyll ribbons.",
+    "Somebody coined accidental philosophy—“Adventures end but sparkle carries interest overnight.” Heads tilted pondering; unanimous verdict decided interest rates absurdly favourable compounding giggles compounded cuddles compound relief.",
+    "Doorways leaned inviting without rushing—porch lights blinked sleepy Morse promising cocoa thermodynamics favourable. Sock-feet rehearsals telegraphed last communal shoulder lean borrowing strength like library books happily overdue on purpose.",
+    "Final sentences stretched long as lazy summer trains—caboose packed with echoes everyone knew would hitchhike neatly into pillow dialogues stitched under quilts. Satisfaction nested layered as trifle: spongy daylight, custard courage, berry-bright giggles crowned lightly dreaming already.",
+  ],
+};
+
+function enrichProseStoryEvenPages(
+  story: StoryJson,
+  textMode: StoryTextModeKey,
+  lengthKey: StoryLengthKey,
+): StoryJson {
+  if (textMode !== "prose") return story;
+  const floor = proseEvenPageFloorWords(lengthKey);
+  const pads = [...PROSE_PAGE_PAD_BY_LENGTH[lengthKey]];
+  if (!pads.length) return story;
+
+  const pages = story.pages.map((p, idx) =>
+    idx % 2 === 0 ? { ...p, text: String(p.text ?? "") } : { ...p },
+  );
+
+  for (let i = 0; i < pages.length; i += 2) {
+    const spreadSlot = Math.floor(i / 2);
+    let t = pages[i].text.trim();
+    let added = 0;
+    while (countStoryWordsUk(t) < floor && added < 4 && t.length < STORYBOOK_PROSE_PAGE_TEXT_MAX - 380) {
+      const chunk = pads[(spreadSlot + added) % pads.length]?.trim();
+      if (!chunk) break;
+      t = t.length ? `${t}\n\n${chunk}` : chunk;
+      added++;
+    }
+    if (t.length > STORYBOOK_PROSE_PAGE_TEXT_MAX) {
+      t =
+        t.slice(0, Math.max(0, STORYBOOK_PROSE_PAGE_TEXT_MAX - 1)) + "…";
+    }
+    pages[i].text = t;
+  }
+
+  return { ...story, pages };
 }
 
 /** Visual style for storybook illustrations (JSON `illustrationStyle`). */
@@ -2912,13 +3019,18 @@ Deno.serve(async (req) => {
         : `${lenSpec.proseParagraphLead} in each \"text\" string, paragraphs separated by two newline characters (\\n\\n), ${lenSpec.proseWordRange.replace("total on that page", "per page")}, warm read-aloud prose for text shown with the wide illustration (not strict line-by-line rhyme).`
       : `exactly **${lenSpec.rhymeLines}** lines, separated by newline characters (\\n) in each \"text\" string — ${lenSpec.rhymeOddPageTail}.`;
 
+  const proseVolumeParityRule =
+    storyTextModeKey === "prose"
+      ? `- **Even read-aloud heft:** Every prose-first TEXT page should feel **similarly full** (${lenSpec.proseParagraphLead}; ${lenSpec.proseWordRange.replace("total on that page", "each page alike")}). Pages **9** (spread 5 text) and **11** (spread 6 text) are not epilogue scraps—never shrink them to one skinny sentence. Match the cosy weight of spreads 2–4: weave dialogue, tactile detail (path, breeze, hands), sleepy jokes, and reactions among named characters—still advancing THIS plot—so the cream page ahead of the finale reads beautifully aloud.`
+      : "";
+
   const system = `You write warm picture-book stories for UK English-speaking children about age 5.
 Rules:
 - ${artStyleSpec.storyBrief}
 ${noBuddyBook ? `BOOK MODE — NO IMAGINARY BUDDY: The reader chose "No buddy". For this entire book: (1) Do NOT add a recurring fantasy creature companion (unicorn, dragon, robot, etc.) in story text, characterDesign, or illustrationBriefs unless the child's plot idea explicitly requires that creature. (2) characterDesign must describe ONLY humans — the hero, any plot-named children, and game people. (3) Each illustrationBrief VISIBLE line lists only people (humans) named in that verse. (4) Page 1 must not introduce a creature buddy. Invent gentle human-centred adventures when the plot is open-ended.\n\n` : ""}- Warm, gentle, silly — never scary, violent, or mean.
 - No romance, no weapons, no villains that frighten.
 ${storyLengthAndFormatRule}
-- **Where the ending lives (critical):** The \`pages\` array holds **exactly twelve** slots in reading order (**1-indexed aloud:** page **1**, page **2**, … page **12**). Odd slots are prose-first beats; each even slot sits with the illustration for that spread (duplex overlays text *or*, in facing layouts, prose lives on odd slots only). Treat this as **six spreads**: spreads **1–4** introduce and escalate; spread **5 (pages 9–10)** tends to carry the climax; spread **6 (pages 11–12)** **resolves**. The **LAST full prose close** MUST sit on **page 11 only** (**array index \`10\`**, zero-based). Give **two short paragraphs there** tying up THIS plot (celebration, hugs, quiet pride, thanking the buddy) — plot-specific joy, **not vague summary**. **Page 12** (**index \`11\`**) carries **picture only** (\`illustrationBrief\` full; its \`text\` stays minimal by JSON shape). Readers should feel done after page **11**'s words. Do **not** drop a cliché goodbye like "**And that was a lovely day**" on pages **7** or **9** and vanish. If a beat tilts sentimental mid-book you must still invent **fresh, plot-specific prose** on **later odd pages**, especially through **page 11**'s last lines (walking home slower, jokes, squeezing in another little moment). **Never fully wrap the whole adventure** before slot **page 11** — reserve that page for real closure.
+${proseVolumeParityRule ? `${proseVolumeParityRule}\n` : ""}- **Where the ending lives (critical):** The \`pages\` array holds **exactly twelve** slots in reading order (**1-indexed aloud:** page **1**, page **2**, … page **12**). Odd slots are prose-first beats; each even slot sits with the illustration for that spread (duplex overlays text *or*, in facing layouts, prose lives on odd slots only). Treat this as **six spreads**: spreads **1–4** introduce and escalate; spread **5 (pages 9–10)** tends to carry the climax; spread **6 (pages 11–12)** **resolves**. The **LAST full prose close** MUST sit on **page 11 only** (**array index \`10\`**, zero-based). Give **two short paragraphs there** tying up THIS plot (celebration, hugs, quiet pride, thanking the buddy) — plot-specific joy, **not vague summary**. **Page 12** (**index \`11\`**) carries **picture only** (\`illustrationBrief\` full; its \`text\` stays minimal by JSON shape). Readers should feel done after page **11**'s words. Do **not** drop a cliché goodbye like "**And that was a lovely day**" on pages **7** or **9** and vanish. If a beat tilts sentimental mid-book you must still invent **fresh, plot-specific prose** on **later odd pages**, especially through **page 11**'s last lines (walking home slower, jokes, squeezing in another little moment). **Never fully wrap the whole adventure** before slot **page 11** — reserve that page for real closure.
 - Odd-numbered (text-first) pages: end calmly — do NOT tack on a random ALL CAPS sound effect (SPLASH! SNORE! ZOOM!) after the text; those often feel disconnected. Keep the whole page in normal sentence case. Only use a short capped word if it is genuinely the punchline of that beat (rare); most pages should have no ALL CAPS word at all.
 - NAMES VS GENDER (critical): Do **not** choose boy/girl from how a first name "usually" sounds. Names like Remy, Riley, Alex, Sam, Jordan, Charlie can be girls or boys. **The appearance-from-photos lines are ground truth:** if a line says **Gender: girl** and long blonde hair, that named child is a **girl** in the story — use **she/her** pronouns in verses, and characterDesign must say **girl** with that exact hair — never give her a boy's short brown haircut or **he/him** unless the line explicitly says **Gender: boy**. Never override a photo-derived girl line with a masculine default.
 - The hero's name is given — use it often. The hero IS ${childName} — this exact first name must appear in the story text on every page where the main child acts. Whenever ${childName} is in a spread's scene, that spread's illustrationBrief must name ${childName} (you may list other named friends first if the verse introduces them that way). Never substitute a different child, wrong name, or wrong gender as the hero. The art paints only who you name — do not imply an unnamed generic kid.
@@ -3032,6 +3144,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
   let story: StoryJson;
   try {
     story = await openaiChatJson(apiKey, system, user);
+    story = enrichProseStoryEvenPages(story, storyTextModeKey, storyLengthKey);
   } catch (e) {
     console.error(e);
     const detail =
