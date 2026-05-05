@@ -416,14 +416,14 @@
           <fieldset class="sb-picture-quality">
             <legend class="sb-label sb-label--secondary">Pictures</legend>
             <p class="sb-panel__micro sb-picture-quality__hint" id="sbPictureQualityHint">
-              <strong>Default: Best for print</strong> — strongest match between <strong>story text</strong>, <strong>each picture</strong>, and <strong>uploaded faces</strong> (recommended for keepsakes). <strong>Play &amp; screen</strong> uses lighter story + cast-lock models and economy picture settings — <strong>much cheaper</strong>, with more risk that a line or detail drifts. The old “~14p” figure was only a rough guess for the <strong>seven GPT Image calls</strong> without uploads — <strong>not</strong> the full book; vision, story, and lock add more. <strong>Totals around £1+</strong> on API use are plausible — check your OpenAI dashboard.
+              <strong>Default: Best for print</strong> — strongest match between <strong>story text</strong>, <strong>each picture</strong>, and <strong>uploaded faces</strong> (recommended for keepsakes). <strong>Play &amp; screen</strong> uses lighter story + cast-lock, economy <strong>GPT Image 2</strong> settings, and <strong>cheaper photo-understanding</strong> so the API bill drops — uploads may line up with the art a little less tightly than Best for print. Total cost varies — check your OpenAI usage.
             </p>
             <div class="sb-quality-row" role="radiogroup" aria-labelledby="sbPictureQualityHint">
               <label class="sb-quality-opt">
                 <input type="radio" name="sbPictureQuality" value="standard" />
                 <span class="sb-quality-opt__body">
                   <span class="sb-quality-opt__title">Play &amp; screen</span>
-                  <span class="sb-quality-opt__sub">Budget — lighter story + lock; economy images. Pick this to spend less (see hint above).</span>
+                  <span class="sb-quality-opt__sub">Budget — economy image quality; cheaper vision on uploads than Best for print. Same story length.</span>
                 </span>
               </label>
               <label class="sb-quality-opt">
@@ -858,7 +858,7 @@
   <script src="../js/storybook-shelf-store.js" defer></script>
   <!-- Required for cloud shelf sync + upload (same as other games) -->
   <script src="../js/score-cloud.js" defer></script>
-  <script src="storybook.js?v=346" defer></script>
+  <script src="storybook.js?v=347" defer></script>
   <script>
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("../sw.js").catch(function () {});

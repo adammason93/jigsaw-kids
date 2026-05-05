@@ -2348,7 +2348,7 @@ const GPT_IMAGE_SIZES: ReadonlySet<string> = new Set([
 type PictureBookQuality = "standard" | "high";
 
 /**
- * `standard` = **play / screen economy**: lighter **gpt-4o-mini** story + lock when unset; **1024²** images. Old docs quoted a **~14p UK ballpark for GPT Image steps only (7 calls, no ref uploads)** — **not** total book cost; verify live OpenAI pricing. **With uploaded refs**, vision often uses **gpt-4o** and image settings align with likeness — higher than text-only.
+ * `standard` = **play / screen economy**: lighter **gpt-4o-mini** story + lock when unset; **1024²** GPT Image 2. Vision uses **`gpt-4o-mini`** by default (even with photo uploads) — set **`STORYBOOK_BUDGET_VISION_4O=1`** for **`gpt-4o`** on refs only. Image **quality** stays medium/low unless **`STORYBOOK_REF_PHOTO_IMAGE_BOOST=1`**.
  * `high` = **grown-up / keepsake** (~**40–60p** ballpark pictures + sharper text↔briefs — **verify** billing): **gpt-4o** story + lock when unset; **1536×1024** when **`STORYBOOK_GPTIMAGE_LEGACY_BUDGET=0`** OR model is **`gpt-image-1.5`**; **`gpt-image-2`** with **unset legacy flag** defaults to **cost-parity** (**1024²**, softer edit **`quality`** unless env overrides — spread edits do not send **`input_fidelity`** for Image 2). **`gpt-4o`** portrait vision when unset (mini on standard).
  * Omitted **`pictureBookQuality`** defaults to **standard** so casual play stays cheaper.
  */
@@ -2653,18 +2653,13 @@ function coerceIllustrationStyle(raw: unknown): IllustrationStyleKey {
   return "clay3d";
 }
 
-/** Ref-photo boost: **high** tier always; **standard** when any **uploaded** hero or tagged-friend ref exists (same image quality bands as before for co-star-only uploads). `STORYBOOK_REF_PHOTO_IMAGE_BOOST=0` disables. */
-function gptImageRefPhotoQualityBoostEnabled(
-  bookTier: PictureBookQuality,
-  opts?: { nonHeroPortraitRefs?: boolean; hasHeroPortraitRefs?: boolean },
-): boolean {
+/** Ref-photo image quality boost into high/medium bands. **High** tier: always on. **Standard:** off unless **`STORYBOOK_REF_PHOTO_IMAGE_BOOST=1`** — keeps budget runs on medium gen / low edit even with uploads (cheaper; slightly weaker likeness). */
+function gptImageRefPhotoQualityBoostEnabled(bookTier: PictureBookQuality): boolean {
   const v = (Deno.env.get("STORYBOOK_REF_PHOTO_IMAGE_BOOST") ?? "").trim().toLowerCase();
   if (v === "0" || v === "false" || v === "off" || v === "no") return false;
   if (v === "1" || v === "true" || v === "on" || v === "yes") return true;
   if (bookTier === "high") return true;
-  return (
-    opts?.nonHeroPortraitRefs === true || opts?.hasHeroPortraitRefs === true
-  );
+  return false;
 }
 
 function gptImageDefaultModel(): string {
@@ -2758,10 +2753,7 @@ function gptImageQualityForRequest(
     ) {
       if (
         hasUserPortraitRefs &&
-        gptImageRefPhotoQualityBoostEnabled(bookTier, {
-          nonHeroPortraitRefs,
-          hasHeroPortraitRefs,
-        })
+        gptImageRefPhotoQualityBoostEnabled(bookTier)
       ) {
         return scope === "generation" ? "medium" : "medium";
       }
@@ -2769,13 +2761,10 @@ function gptImageQualityForRequest(
     }
     return scope === "generation" ? "high" : "medium";
   }
-  // Standard tier — ref boost (hero and/or friend uploads): match parity-tier image bands
+  // Standard tier — default medium gen + low edit; ref-photo "pro" bands only if STORYBOOK_REF_PHOTO_IMAGE_BOOST=1
   if (
     hasUserPortraitRefs &&
-    gptImageRefPhotoQualityBoostEnabled(bookTier, {
-      nonHeroPortraitRefs,
-      hasHeroPortraitRefs,
-    })
+    gptImageRefPhotoQualityBoostEnabled(bookTier)
   ) {
     return scope === "generation" ? "high" : "medium";
   }
@@ -2800,10 +2789,7 @@ function gptImageInputFidelityForRequest(
   ) {
     if (
       hasUserPortraitRefs &&
-      gptImageRefPhotoQualityBoostEnabled(bookTier, {
-        nonHeroPortraitRefs,
-        hasHeroPortraitRefs,
-      })
+      gptImageRefPhotoQualityBoostEnabled(bookTier)
     ) {
       return "high";
     }
@@ -2812,10 +2798,7 @@ function gptImageInputFidelityForRequest(
   if (bookTier === "high") return "high";
   if (
     hasUserPortraitRefs &&
-    gptImageRefPhotoQualityBoostEnabled(bookTier, {
-      nonHeroPortraitRefs,
-      hasHeroPortraitRefs,
-    })
+    gptImageRefPhotoQualityBoostEnabled(bookTier)
   ) {
     return "high";
   }
@@ -2823,8 +2806,8 @@ function gptImageInputFidelityForRequest(
 }
 
 /**
- * Vision model for summarising **uploaded** reference photos (hero/friend/custom).
- * **High** tier: default **`gpt-4o`**. **Standard** tier: **`gpt-4o-mini`** unless custom uploads exist — then **`gpt-4o`** for the same hair/face accuracy as high when refs are present. **`STORYBOOK_VISION_MODEL`** overrides.
+ * Vision model for summarising **uploaded** reference photos (used when `portraitVisionModelResolved` is not passed). **`STORYBOOK_VISION_MODEL`** overrides.
+ * Note: HTTP handler sets **`portraitVisionModelResolved`** — **Play & screen** uses **`gpt-4o-mini`** for vision by default even with uploads; **high** uses **`gpt-4o`** when uploads exist.
  */
 function storybookPortraitVisionModel(bookTier: PictureBookQuality): string {
   const m = (Deno.env.get("STORYBOOK_VISION_MODEL") ?? "").trim();
@@ -3436,12 +3419,23 @@ async function executeStorybookPipeline(
     const portraitVisionModelResolved = (() => {
       const env = (Deno.env.get("STORYBOOK_VISION_MODEL") ?? "").trim();
       if (env) return env;
+      /** Budget tier: use mini vision even with uploads (major £ save). Set STORYBOOK_BUDGET_VISION_4O=1 to use gpt-4o for ref photos on Play & screen only. Best for print unchanged below. */
+      if (pictureBookQuality === "standard") {
+        const budget4o = (Deno.env.get("STORYBOOK_BUDGET_VISION_4O") ?? "").trim() === "1";
+        return budget4o ? "gpt-4o" : "gpt-4o-mini";
+      }
       const anyUploadedRefs =
         refPack.heroUrls.length > 0 ||
         Object.keys(refPack.customByFriendId).length > 0;
       if (anyUploadedRefs) return "gpt-4o";
       return storybookPortraitVisionModel(pictureBookQuality);
     })();
+
+    if (pictureBookQuality === "standard") {
+      console.info(
+        `[clever-service] budget tier: vision=${portraitVisionModelResolved}; ref image boost=${gptImageRefPhotoQualityBoostEnabled("standard")} (STORYBOOK_REF_PHOTO_IMAGE_BOOST=1 / STORYBOOK_BUDGET_VISION_4O=1 for stronger Play & screen)`,
+      );
+    }
 
     let portraitAppearance = "";
     const portraitVisionAttempted = Boolean(
