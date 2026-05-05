@@ -1209,9 +1209,11 @@ async function appearanceNotesFromReferences(
   const base = (assetsBase ?? "").trim();
   const batchItems: { label: string; dataUrl: string }[] = [];
 
-  for (const p of people) {
-    const custom = customByFriendId[p.id];
-    if (custom && custom.length > 0) {
+  /** Parallel vision — sequential awaits here often stacked 15–45s+ before story chat, pushing past Edge ~150s when paired with GPT Image. */
+  const customFriendLines = await Promise.all(
+    people.map(async (p) => {
+      const custom = customByFriendId[p.id];
+      if (!custom || custom.length === 0) return "";
       try {
         const line = await openaiVisionSummarizeHeroFromRefs(
           apiKey,
@@ -1220,39 +1222,63 @@ async function appearanceNotesFromReferences(
           "character",
           pictureBookQuality,
         );
-        if (line.trim()) chunks.push(line.trim());
+        return line.trim();
       } catch (e) {
         console.warn("[clever-service] friend ref vision failed", p.id, e);
+        return "";
       }
-    } else if (base) {
-      const path = FAMILY_PORTRAIT_PATHS[p.id];
-      if (!path) continue;
-      const dataUrl = await fetchPortraitDataUrl(base, path);
-      if (dataUrl) batchItems.push({ label: p.label, dataUrl });
+    }),
+  );
+  for (const line of customFriendLines) {
+    if (line) chunks.push(line);
+  }
+
+  if (base) {
+    const presetFetched = await Promise.all(
+      people.map(async (p) => {
+        const custom = customByFriendId[p.id];
+        if (custom && custom.length > 0) return null;
+        const path = FAMILY_PORTRAIT_PATHS[p.id];
+        if (!path) return null;
+        const dataUrl = await fetchPortraitDataUrl(base, path);
+        return dataUrl ? { label: p.label, dataUrl } : null;
+      }),
+    );
+    for (const item of presetFetched) {
+      if (item) batchItems.push(item);
     }
   }
 
   const knownIds = new Set(people.map((p) => p.id));
-  for (const [friendId, urls] of Object.entries(customByFriendId)) {
-    if (!urls || urls.length === 0) continue;
-    if (friendId === "hero") continue;
-    if (knownIds.has(friendId)) continue;
-    const label =
-      friendId.length > 0
-        ? friendId.charAt(0).toUpperCase() + friendId.slice(1)
-        : "Friend";
-    try {
-      const line = await openaiVisionSummarizeHeroFromRefs(
-        apiKey,
-        label,
-        urls,
-        "character",
-        pictureBookQuality,
-      );
-      if (line.trim()) chunks.push(line.trim());
-    } catch (e) {
-      console.warn("[clever-service] tagged ref vision failed", friendId, e);
-    }
+  const orphanCustom = Object.entries(customByFriendId).filter(
+    ([friendId, urls]) =>
+      Boolean(urls && urls.length > 0) &&
+      friendId !== "hero" &&
+      !knownIds.has(friendId),
+  );
+  const orphanLines = await Promise.all(
+    orphanCustom.map(async ([friendId, urls]) => {
+      const label =
+        friendId.length > 0
+          ? friendId.charAt(0).toUpperCase() + friendId.slice(1)
+          : "Friend";
+      try {
+        const line = await openaiVisionSummarizeHeroFromRefs(
+          apiKey,
+          label,
+          urls as string[],
+          "character",
+          pictureBookQuality,
+        );
+        return line.trim();
+      } catch (e) {
+        console.warn("[clever-service] tagged ref vision failed", friendId, e);
+        return "";
+      }
+    }),
+  );
+  for (const line of orphanLines) {
+    if (line) chunks.push(line);
   }
 
   if (batchItems.length > 0) {
