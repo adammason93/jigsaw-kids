@@ -956,6 +956,7 @@ async function fetchPortraitDataUrl(
 async function openaiVisionDescribePortraits(
   apiKey: string,
   items: { label: string; dataUrl: string }[],
+  bookTier: PictureBookQuality,
 ): Promise<string> {
   if (items.length === 0) return "";
   const ordered = items.map((i) => i.label).join(", ");
@@ -984,7 +985,7 @@ async function openaiVisionDescribePortraits(
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: storybookPortraitVisionModel(),
+      model: storybookPortraitVisionModel(bookTier),
       temperature: 0.05,
       max_tokens: 550,
       messages: [{ role: "user", content }],
@@ -1011,6 +1012,7 @@ async function openaiVisionSummarizeHeroFromRefs(
   displayName: string,
   dataUrls: string[],
   role: "hero" | "character" = "hero",
+  bookTier: PictureBookQuality = "standard",
 ): Promise<string> {
   if (dataUrls.length === 0) return "";
   const name = sanitizeName(displayName) || "Child";
@@ -1052,7 +1054,7 @@ async function openaiVisionSummarizeHeroFromRefs(
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: storybookPortraitVisionModel(),
+      model: storybookPortraitVisionModel(bookTier),
       temperature: 0.05,
       max_tokens: 600,
       messages: [{ role: "user", content }],
@@ -1130,6 +1132,7 @@ async function appearanceNotesFromReferences(
   childName: string,
   heroUrls: string[],
   customByFriendId: Record<string, string[]>,
+  pictureBookQuality: PictureBookQuality,
 ): Promise<string> {
   const chunks: string[] = [];
   if (heroUrls.length === 2) {
@@ -1144,7 +1147,7 @@ async function appearanceNotesFromReferences(
         const dual = await openaiVisionDescribePortraits(apiKey, [
           { label: nm, dataUrl: heroUrls[0] },
           { label: "Co_star_ref", dataUrl: heroUrls[1] },
-        ]);
+        ], pictureBookQuality);
         if (dual.trim()) {
           chunks.push(
             "(Two photos: two different children. First line matches the hero; Co_star_ref matches the other named human in the story — not the imaginary buddy.)\n" +
@@ -1157,6 +1160,7 @@ async function appearanceNotesFromReferences(
           childName,
           heroUrls,
           "hero",
+          pictureBookQuality,
         );
         if (heroLine.trim()) chunks.push(heroLine.trim());
       }
@@ -1168,6 +1172,7 @@ async function appearanceNotesFromReferences(
           childName,
           heroUrls,
           "hero",
+          pictureBookQuality,
         );
         if (heroLine.trim()) chunks.push(heroLine.trim());
       } catch (e2) {
@@ -1181,6 +1186,7 @@ async function appearanceNotesFromReferences(
         childName,
         heroUrls,
         "hero",
+        pictureBookQuality,
       );
       if (heroLine.trim()) chunks.push(heroLine.trim());
     } catch (e) {
@@ -1200,6 +1206,7 @@ async function appearanceNotesFromReferences(
           p.label,
           custom,
           "character",
+          pictureBookQuality,
         );
         if (line.trim()) chunks.push(line.trim());
       } catch (e) {
@@ -1228,6 +1235,7 @@ async function appearanceNotesFromReferences(
         label,
         urls,
         "character",
+        pictureBookQuality,
       );
       if (line.trim()) chunks.push(line.trim());
     } catch (e) {
@@ -1236,7 +1244,11 @@ async function appearanceNotesFromReferences(
   }
 
   if (batchItems.length > 0) {
-    const familyText = await openaiVisionDescribePortraits(apiKey, batchItems);
+    const familyText = await openaiVisionDescribePortraits(
+      apiKey,
+      batchItems,
+      pictureBookQuality,
+    );
     if (familyText.trim()) chunks.push(familyText.trim());
   }
 
@@ -2037,16 +2049,13 @@ const GPT_IMAGE_SIZES: ReadonlySet<string> = new Set([
 type PictureBookQuality = "standard" | "high";
 
 /**
- * `standard` = economy (screen): 1024² anchor + edits; when env quality unset,
- * defaults are medium/low — **unless** **high** tier enables ref-photo bump (see below) or
- * **`STORYBOOK_REF_PHOTO_IMAGE_BOOST=1`** (or `true` / `on` / `yes`).
- * `high` = print/detail default for this app (~**50–60p UK** typical target with gpt-4o story+lock):
- * 1536×1024 when env size unset; with uploaded refs, anchor quality bump is **on** unless env opts out.
- * `STORYBOOK_GPTIMAGE_SIZE` / `STORYBOOK_GPTIMAGE_QUALITY` secrets still override per tier.
+ * `standard` = **play / screen economy** (~**14p UK** ballpark for the AI picture step when secrets unset — verify on your bill): 1024², gpt-4o-mini story+lock+vision-by-default; optional ref-photo image boost via env only.
+ * `high` = **grown-up / print** (~**40–60p** ballpark pictures + sharper text↔briefs): **gpt-4o** story + lock when unset; 1536×1024 spreads; **`gpt-4o`** portrait vision when unset (mini on standard).
+ * Omitted **`pictureBookQuality`** defaults to **standard** so casual play stays cheaper.
  */
 function coercePictureBookQuality(raw: unknown): PictureBookQuality {
   const s = String(raw ?? "").trim().toLowerCase();
-  if (!s || s === "default" || s === "recommended") return "high";
+  if (!s || s === "default" || s === "recommended") return "standard";
   if (s === "high" || s === "print" || s === "premium") return "high";
   return "standard";
 }
@@ -2416,13 +2425,13 @@ function gptImageInputFidelityForRequest(
 
 /**
  * Vision model for summarising **uploaded** reference photos (hero/friend/custom).
- * Default `gpt-4o` reads hair colour/length more reliably than mini; override with
- * `STORYBOOK_VISION_MODEL=gpt-4o-mini` to save cost.
+ * **High** tier: default **`gpt-4o`** for hair/length accuracy. **Standard** play tier: **`gpt-4o-mini`** to save cost.
+ * **`STORYBOOK_VISION_MODEL`** overrides both.
  */
-function storybookPortraitVisionModel(): string {
+function storybookPortraitVisionModel(bookTier: PictureBookQuality): string {
   const m = (Deno.env.get("STORYBOOK_VISION_MODEL") ?? "").trim();
   if (m) return m;
-  return "gpt-4o";
+  return bookTier === "high" ? "gpt-4o" : "gpt-4o-mini";
 }
 
 function decodeB64ToBytes(b64: string): Uint8Array {
@@ -3029,6 +3038,7 @@ Deno.serve(async (req) => {
         childName,
         refPack.heroUrls,
         refPack.customByFriendId,
+        pictureBookQuality,
       );
     } catch (e) {
       console.warn("[clever-service] portrait vision failed", e);
