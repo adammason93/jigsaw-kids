@@ -2077,6 +2077,217 @@
     }
   }
 
+  var SB_FACING_BLOB_VARS = [
+    "--sb-facing-blob-a",
+    "--sb-facing-blob-b",
+    "--sb-facing-blob-c",
+    "--sb-facing-blob-d",
+    "--sb-facing-blob-accent",
+  ];
+
+  function clearFacingBlobSamplesFromSpread() {
+    if (!spreadInnerEl || !spreadInnerEl.style) return;
+    for (var fb = 0; fb < SB_FACING_BLOB_VARS.length; fb++) {
+      spreadInnerEl.style.removeProperty(SB_FACING_BLOB_VARS[fb]);
+    }
+  }
+
+  function parseHexRgb(h) {
+    var str = String(h || "")
+      .trim()
+      .replace(/^#/, "");
+    if (str.length === 3) {
+      str = str[0] + str[0] + str[1] + str[1] + str[2] + str[2];
+    }
+    if (str.length !== 6 || !/^[0-9a-f]{6}$/i.test(str)) return null;
+    var n = Number.parseInt(str, 16);
+    return {
+      r: (n >> 16) & 255,
+      g: (n >> 8) & 255,
+      b: n & 255,
+    };
+  }
+
+  /** `getComputedStyle` / custom properties resolve to `#rrggbb` or `rgb(,)` in evergreen browsers */
+  function parseCssColorFlexible(s) {
+    var raw = String(s || "").trim();
+    if (!raw) return null;
+    var hx = raw.indexOf("#");
+    if (hx >= 0) {
+      var fromHash = raw.slice(hx).split(/[\s)]/)[0];
+      var ph = parseHexRgb(fromHash);
+      if (ph) return ph;
+    }
+    var m = /^rgba?\(\s*(\d{1,3})\s*[, ]\s*(\d{1,3})\s*[, ]\s*(\d{1,3})/i.exec(raw);
+    if (!m) return null;
+    return {
+      r: Math.min(255, Number(m[1])),
+      g: Math.min(255, Number(m[2])),
+      b: Math.min(255, Number(m[3])),
+    };
+  }
+
+  function bookFacingBlobThemeAccentRgbs() {
+    var out = [];
+    var i;
+    var def = ["#db2777", "#be185d", "#fce7f3", "#9d174d"];
+    if (!book) {
+      for (i = 0; i < def.length; i++) {
+        out.push(parseHexRgb(def[i]) || { r: 219, g: 39, b: 119 });
+      }
+      return out;
+    }
+    var cs = window.getComputedStyle(book);
+    var cols = ["--sb-flip-red", "--sb-flip-mid", "--sb-flip-light", "--sb-flip-dark"];
+    for (i = 0; i < cols.length; i++) {
+      var p = cs.getPropertyValue(cols[i]).trim();
+      var o = parseCssColorFlexible(p) || parseHexRgb(def[i]);
+      out.push(o || { r: 219, g: 39, b: 119 });
+    }
+    return out;
+  }
+
+  function rgbLinearLum(o) {
+    return o.r * 0.299 + o.g * 0.587 + o.b * 0.114;
+  }
+
+  function rgbChromaFrac(o) {
+    var rn = o.r / 255;
+    var gn = o.g / 255;
+    var bn = o.b / 255;
+    var mx = Math.max(rn, gn, bn);
+    var mn = Math.min(rn, gn, bn);
+    return mx <= 0.001 ? 0 : (mx - mn) / mx;
+  }
+
+  function mixRgbs(base, tint, wt) {
+    return {
+      r: Math.round(base.r * (1 - wt) + tint.r * wt),
+      g: Math.round(base.g * (1 - wt) + tint.g * wt),
+      b: Math.round(base.b * (1 - wt) + tint.b * wt),
+    };
+  }
+
+  function rgbCss(o) {
+    return "rgb(" + o.r + "," + o.g + "," + o.b + ")";
+  }
+
+  function regionRgbAverage(data, iw, ih, ix0, iy0, ix1, iy1) {
+    var r = 0;
+    var g = 0;
+    var b = 0;
+    var n = 0;
+    var x;
+    var y;
+    var i;
+    var row;
+    for (y = iy0; y < iy1; y++) {
+      if (y < 0 || y >= ih) continue;
+      row = y * iw * 4;
+      for (x = ix0; x < ix1; x++) {
+        if (x < 0 || x >= iw) continue;
+        i = row + x * 4;
+        var rr = data[i];
+        var gg = data[i + 1];
+        var bb = data[i + 2];
+        if (rgbLinearLum({ r: rr, g: gg, b: bb }) > 246) continue;
+        r += rr;
+        g += gg;
+        b += bb;
+        n++;
+      }
+    }
+    if (n < 6) return null;
+    return { r: Math.round(r / n), g: Math.round(g / n), b: Math.round(b / n) };
+  }
+
+  function enrichFacingBlobRgb(sample, tintPool, poolIndex) {
+    var tint = tintPool[poolIndex % tintPool.length] || tintPool[0];
+    var o =
+      sample || mixRgbs({ r: 250, g: 244, b: 235 }, tint, 0.38);
+    if (rgbLinearLum(o) > 235) o = mixRgbs(o, tint, 0.45);
+    if (rgbChromaFrac(o) < 0.1) o = mixRgbs(o, tint, 0.42);
+    return o;
+  }
+
+  /** Sample #sbSpreadArtCover and expose `--sb-facing-blob-*` on the flip spread inner */
+  function paintFacingBlobPaletteFromCoverImg(imgEl, innerEl) {
+    if (
+      !imgEl ||
+      !innerEl ||
+      !innerEl.style ||
+      !(imgEl.naturalWidth && imgEl.naturalHeight)
+    )
+      return;
+    var nw = imgEl.naturalWidth;
+    var nh = imgEl.naturalHeight;
+    var cw = 56;
+    var ch = 56;
+    var canvas = document.createElement("canvas");
+    canvas.width = cw;
+    canvas.height = ch;
+    var ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    try {
+      ctx.drawImage(imgEl, 0, 0, nw, nh, 0, 0, cw, ch);
+    } catch (_eDrawing) {
+      return;
+    }
+    var pix;
+    try {
+      pix = ctx.getImageData(0, 0, cw, ch);
+    } catch (_eTamper) {
+      return;
+    }
+    var td = pix.data;
+    var w2 = Math.floor(cw * 0.5);
+    var h2 = Math.floor(ch * 0.5);
+    var pool = bookFacingBlobThemeAccentRgbs();
+    var tl = regionRgbAverage(td, cw, ch, 0, 0, w2 + 4, h2 + 4);
+    var tr = regionRgbAverage(td, cw, ch, w2 - 4, 0, cw, h2 + 4);
+    var bl = regionRgbAverage(td, cw, ch, 0, h2 - 4, w2 + 4, ch);
+    var br = regionRgbAverage(td, cw, ch, w2 - 4, h2 - 4, cw, ch);
+    var mx0 = Math.floor(cw * 0.34);
+    var mx1 = Math.ceil(cw * 0.66);
+    var my0 = Math.floor(ch * 0.1);
+    var my1 = Math.ceil(ch * 0.4);
+    var mid = regionRgbAverage(td, cw, ch, mx0, my0, mx1, my1);
+    var a = enrichFacingBlobRgb(tl, pool, 2);
+    var b = enrichFacingBlobRgb(tr, pool, 0);
+    var c = enrichFacingBlobRgb(bl, pool, 0);
+    var d = enrichFacingBlobRgb(br, pool, 3);
+    var ac = enrichFacingBlobRgb(mid, pool, 1);
+    innerEl.style.setProperty("--sb-facing-blob-a", rgbCss(a));
+    innerEl.style.setProperty("--sb-facing-blob-b", rgbCss(b));
+    innerEl.style.setProperty("--sb-facing-blob-c", rgbCss(c));
+    innerEl.style.setProperty("--sb-facing-blob-d", rgbCss(d));
+    innerEl.style.setProperty("--sb-facing-blob-accent", rgbCss(ac));
+  }
+
+  function scheduleFacingBlobPaletteFromSpreadCover() {
+    if (
+      !spreadInnerEl ||
+      !spreadInnerEl.style ||
+      !spreadArtCover ||
+      !spreadArtCover.getAttribute("src")
+    ) {
+      clearFacingBlobSamplesFromSpread();
+      return;
+    }
+    var run = function () {
+      paintFacingBlobPaletteFromCoverImg(spreadArtCover, spreadInnerEl);
+    };
+    if (spreadArtCover.complete && spreadArtCover.naturalWidth) {
+      if (typeof spreadArtCover.decode === "function") {
+        spreadArtCover.decode().then(run, run);
+      } else {
+        window.setTimeout(run, 0);
+      }
+      return;
+    }
+    spreadArtCover.addEventListener("load", run, { once: true });
+  }
+
   function syncSpreadIllustrationFromStory() {
     if (!story) return;
     var n = numSpreads();
@@ -2123,7 +2334,9 @@
         spreadArtNum.textContent = isTheEnd ? "The End" : "Pages " + pLo + "–" + pHi + " of " + story.pages.length;
       }
       nudgeDuplexArtComposite();
+      scheduleFacingBlobPaletteFromSpreadCover();
     } else {
+      clearFacingBlobSamplesFromSpread();
       var flyTxt =
         si === 0 &&
         !isTheEnd &&

@@ -12,7 +12,7 @@
   <link rel="manifest" href="../manifest.json" />
   <link rel="stylesheet" href="../js/kids-core.css" />
   <!-- storybook-app.css = renamed file so CDN/browser cache cannot keep old storybook.css -->
-  <link rel="stylesheet" href="storybook-app.css?v=165" />
+  <link rel="stylesheet" href="storybook-app.css?v=166" />
   <link rel="stylesheet" href="../tablet-ipad.css" />
   <!-- Last wins: guarantees new background even if a proxy cached an ancient stylesheet elsewhere -->
   <style>
@@ -634,6 +634,37 @@
                     <div class="sb-flip-left-shell" id="sbFlipLeftShell">
                       <div class="sb-flip-page sb-flip-page--text">
                         <div class="sb-flip-page__sheet">
+                          <svg
+                            class="sb-flip-facing-blobs"
+                            viewBox="0 0 100 100"
+                            preserveAspectRatio="none"
+                            aria-hidden="true"
+                            focusable="false"
+                          >
+                            <path
+                              fill="var(--sb-facing-blob-c, rgb(237, 125, 170))"
+                              d="M-14 82C-28 6 52-28 88 16c26 28 18 86-20 96-52 14-96-6-82-30z"
+                            />
+                            <path
+                              fill="var(--sb-facing-blob-b, rgb(253, 170, 100))"
+                              d="M116 8c38 52-10 108-62 112-58 4-82-62-38-92 36-28 100-82 100-20z"
+                            />
+                            <path
+                              fill="var(--sb-facing-blob-d, rgb(120, 198, 255))"
+                              d="M-8 108c48-48 78 12 32 52-44 40-88-12-32-52z"
+                            />
+                            <path
+                              fill="var(--sb-facing-blob-a, rgb(160, 220, 130))"
+                              d="M112-10c42 48-22 88-66 56-48-36 8-128 66-56z"
+                            />
+                            <ellipse
+                              cx="74"
+                              cy="28"
+                              rx="16"
+                              ry="14"
+                              fill="var(--sb-facing-blob-accent, rgb(253, 200, 150))"
+                            />
+                          </svg>
                           <span class="sb-page-num" id="sbSpreadPageNum" aria-hidden="true"></span>
                           <p class="sb-flip-text">
                             <span class="sb-flip-text__clip" id="sbSpreadTextClip">
@@ -746,7 +777,7 @@
   <script src="../js/storybook-shelf-store.js" defer></script>
   <!-- Required for cloud shelf sync + upload (same as other games) -->
   <script src="../js/score-cloud.js" defer></script>
-  <script src="storybook.js?v=336" defer></script>
+  <script src="storybook.js?v=337" defer></script>
   <script>
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("../sw.js").catch(function () {});

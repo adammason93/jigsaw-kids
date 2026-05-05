@@ -20,6 +20,14 @@
   --sb-flip-darker: #831843;
   --sb-flip-paper: #ffffff;
   --sb-flip-desk: #cbc0e6;
+  /* Facing text page: cream field + corner blobs (fills come from palette or sampled from art) */
+  --sb-facing-cream: #faf6ec;
+  --sb-facing-blob-layer-opacity: 0.38;
+  --sb-facing-blob-a: color-mix(in srgb, var(--sb-flip-mid) 40%, rgb(185, 226, 155));
+  --sb-facing-blob-b: color-mix(in srgb, var(--sb-flip-red) 50%, rgb(255, 224, 182));
+  --sb-facing-blob-c: color-mix(in srgb, var(--sb-flip-red) 48%, rgb(255, 210, 228));
+  --sb-facing-blob-d: color-mix(in srgb, var(--sb-flip-dark) 32%, rgb(160, 206, 248));
+  --sb-facing-blob-accent: color-mix(in srgb, var(--sb-flip-light) 40%, rgb(255, 206, 172));
   /* Open spread height; width follows aspect-ratio on .sb-flip-spread__inner (portrait book, crease centered) */
   --sb-book-inner-h: clamp(288px, min(70dvh, 82vh), 640px);
   /* width ≈ height × this (7/10 → taller than wide); kept for cover / reader width calcs */
@@ -3514,14 +3522,47 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
 }
 
 .sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-flip-page--text .sb-flip-page__sheet {
-  background: transparent;
+  background: var(--sb-facing-cream, #faf6ec);
   box-shadow: none;
   margin: 0;
   position: relative;
   overflow: hidden;
 }
 
-/* Warm paper + solid SVG paint blobs (readable shapes, not blended radials) + sparkles (::after). */
+.sb-flip-facing-blobs {
+  display: none;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+  opacity: var(--sb-facing-blob-layer-opacity, 0.38);
+  -webkit-mask-image: radial-gradient(
+    ellipse 70% 66% at 50% 54%,
+    rgba(0, 0, 0, 0) 0%,
+    rgba(0, 0, 0, 0.12) 52%,
+    rgba(0, 0, 0, 0.58) 82%,
+    #000 100%
+  );
+  mask-image: radial-gradient(
+    ellipse 70% 66% at 50% 54%,
+    rgba(0, 0, 0, 0) 0%,
+    rgba(0, 0, 0, 0.12) 52%,
+    rgba(0, 0, 0, 0.58) 82%,
+    #000 100%
+  );
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+}
+
+.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-flip-facing-blobs {
+  display: block;
+}
+
+/* Paper tooth + gentle tint on top of cream (no full-bleed colour wash). */
 .sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-flip-page--text .sb-flip-page__sheet::before {
   content: "";
   position: absolute;
@@ -3529,20 +3570,18 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   z-index: 0;
   pointer-events: none;
   background:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath fill='%23ff8fb8' opacity='0.9' d='M-14 82C-28 6 52-28 88 16c26 28 18 86-20 96-52 14-96-6-82-30z'/%3E%3Cpath fill='%23ffa85e' opacity='0.86' d='M116 8c38 52-10 108-62 112-58 4-82-62-38-92 36-28 100-82 100-20z'/%3E%3Cpath fill='%2374c4fa' opacity='0.5' d='M-8 108c48-48 78 12 32 52-44 40-88-12-32-52z'/%3E%3Cpath fill='%2398e089' opacity='0.48' d='M112-10c42 48-22 88-66 56-48-36 8-128 66-56z'/%3E%3Cellipse cx='74' cy='28' rx='16' ry='14' fill='%23ffc090' opacity='0.35'/%3E%3C/svg%3E")
-      no-repeat center / 100% 100%,
     repeating-linear-gradient(
       -13deg,
       transparent 0,
       transparent 15px,
-      rgba(255, 255, 255, 0.05) 15px,
-      rgba(255, 255, 255, 0.05) 16px
+      rgba(255, 255, 255, 0.08) 15px,
+      rgba(255, 255, 255, 0.08) 16px
     ),
     linear-gradient(
       168deg,
-      #fffefb 0%,
-      color-mix(in srgb, var(--sb-flip-light) 18%, #faf7f0) 52%,
-      color-mix(in srgb, var(--sb-flip-light) 12%, #f2ebe2) 100%
+      transparent 0%,
+      color-mix(in srgb, var(--sb-flip-light) 8%, transparent) 52%,
+      color-mix(in srgb, var(--sb-flip-light) 14%, transparent) 100%
     );
 }
 
@@ -3551,7 +3590,7 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   content: "";
   position: absolute;
   inset: 0;
-  z-index: 1;
+  z-index: 2;
   pointer-events: none;
   background:
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='3' fill='%2399b4c9' opacity='0.8'/%3E%3Cpath stroke='%2399b4c9' stroke-width='1.8' stroke-linecap='round' opacity='0.65' d='M12 6v12M6 12h12'/%3E%3C/svg%3E")
@@ -3565,7 +3604,7 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
 
 .sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-flip-page--text .sb-flip-text {
   position: relative;
-  z-index: 2;
+  z-index: 3;
   box-sizing: border-box;
   width: 66%;
   max-width: 66%;
@@ -3934,14 +3973,33 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
 /* Facing verso is prose on cream paper (incoming text column), not art + white type. */
 .sb-flip-spread__inner--art-facing.sb-flip-spread__inner--peel-turning
   .sb-flip-spread__peel-back.sb-flip-spread__peel-back--verso-text {
-  background:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath fill='%23ff8fb8' opacity='0.9' d='M-14 82C-28 6 52-28 88 16c26 28 18 86-20 96-52 14-96-6-82-30z'/%3E%3Cpath fill='%23ffa85e' opacity='0.86' d='M116 8c38 52-10 108-62 112-58 4-82-62-38-92 36-28 100-82 100-20z'/%3E%3Cpath fill='%2374c4fa' opacity='0.5' d='M-8 108c48-48 78 12 32 52-44 40-88-12-32-52z'/%3E%3Cpath fill='%2398e089' opacity='0.48' d='M112-10c42 48-22 88-66 56-48-36 8-128 66-56z'/%3E%3Cellipse cx='74' cy='28' rx='16' ry='14' fill='%23ffc090' opacity='0.35'/%3E%3C/svg%3E")
-      no-repeat center / 100% 100%,
+  background-color: var(--sb-facing-cream, #faf6ec);
+  background-image:
+    radial-gradient(
+      ellipse 118% 118% at -12% -8%,
+      color-mix(in srgb, var(--sb-facing-blob-a, var(--sb-flip-red)) 32%, transparent) 0%,
+      transparent 58%
+    ),
+    radial-gradient(
+      ellipse 120% 120% at 110% -4%,
+      color-mix(in srgb, var(--sb-facing-blob-b, var(--sb-flip-red)) 32%, transparent) 0%,
+      transparent 58%
+    ),
+    radial-gradient(
+      ellipse 110% 110% at -6% 108%,
+      color-mix(in srgb, var(--sb-facing-blob-c, var(--sb-flip-mid)) 30%, transparent) 0%,
+      transparent 58%
+    ),
+    radial-gradient(
+      ellipse 110% 110% at 106% 108%,
+      color-mix(in srgb, var(--sb-facing-blob-d, var(--sb-flip-dark)) 28%, transparent) 0%,
+      transparent 58%
+    ),
     linear-gradient(
       168deg,
-      #fffefb 0%,
-      color-mix(in srgb, var(--sb-flip-light) 18%, #faf7f0) 52%,
-      color-mix(in srgb, var(--sb-flip-light) 12%, #ebe4d8) 100%
+      transparent 0%,
+      color-mix(in srgb, var(--sb-flip-light) 14%, transparent) 55%,
+      color-mix(in srgb, var(--sb-flip-light) 20%, transparent) 100%
     );
 }
 
