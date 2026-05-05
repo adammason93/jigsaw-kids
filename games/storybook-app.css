@@ -20,14 +20,14 @@
   --sb-flip-darker: #831843;
   --sb-flip-paper: #ffffff;
   --sb-flip-desk: #cbc0e6;
-  /* Facing text page: cream field + corner blobs (fills come from palette or sampled from art) */
+  /* Facing text page: cream paper + soft white “paint” corners (CSS only — not sampled from art) */
   --sb-facing-cream: #faf6ec;
-  --sb-facing-blob-layer-opacity: 0.52;
-  --sb-facing-blob-a: color-mix(in srgb, var(--sb-flip-mid) 62%, rgb(150, 200, 100));
-  --sb-facing-blob-b: color-mix(in srgb, var(--sb-flip-red) 72%, rgb(255, 200, 120));
-  --sb-facing-blob-c: color-mix(in srgb, var(--sb-flip-red) 65%, rgb(255, 160, 200));
-  --sb-facing-blob-d: color-mix(in srgb, var(--sb-flip-dark) 48%, rgb(120, 190, 255));
-  --sb-facing-blob-accent: color-mix(in srgb, var(--sb-flip-red) 35%, rgb(255, 210, 150));
+  --sb-facing-blob-layer-opacity: 0.94;
+  /* Slight tonal steps so blobs read as separate white washes on cream */
+  --sb-facing-corner-strong: color-mix(in srgb, #ffffff 96%, var(--sb-facing-cream) 4%);
+  --sb-facing-corner-mid: color-mix(in srgb, #ffffff 90%, var(--sb-facing-cream) 10%);
+  --sb-facing-corner-soft: color-mix(in srgb, #ffffff 84%, var(--sb-facing-cream) 16%);
+  --sb-facing-corner-accent: color-mix(in srgb, #ffffff 78%, var(--sb-facing-cream) 22%);
   /* Open spread height; width follows aspect-ratio on .sb-flip-spread__inner (portrait book, crease centered) */
   --sb-book-inner-h: clamp(288px, min(70dvh, 82vh), 640px);
   /* width ≈ height × this (7/10 → taller than wide); kept for cover / reader width calcs */
@@ -3698,7 +3698,7 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   height: 100%;
   z-index: 0;
   pointer-events: none;
-  opacity: var(--sb-facing-blob-layer-opacity, 0.52);
+  opacity: var(--sb-facing-blob-layer-opacity, 0.94);
   -webkit-mask-image: radial-gradient(
     ellipse 78% 73% at 50% 51%,
     rgba(0, 0, 0, 0) 0%,
@@ -3746,8 +3746,8 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
     linear-gradient(
       168deg,
       transparent 0%,
-      color-mix(in srgb, var(--sb-flip-light) 8%, transparent) 52%,
-      color-mix(in srgb, var(--sb-flip-light) 14%, transparent) 100%
+      rgba(255, 255, 255, 0.14) 52%,
+      rgba(255, 255, 255, 0.22) 100%
     );
 }
 
@@ -4151,29 +4151,29 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   background-image:
     radial-gradient(
       ellipse 118% 118% at -12% -8%,
-      color-mix(in srgb, var(--sb-facing-blob-a, var(--sb-flip-red)) 32%, transparent) 0%,
+      color-mix(in srgb, var(--sb-facing-corner-strong) 72%, transparent) 0%,
       transparent 58%
     ),
     radial-gradient(
       ellipse 120% 120% at 110% -4%,
-      color-mix(in srgb, var(--sb-facing-blob-b, var(--sb-flip-red)) 32%, transparent) 0%,
+      color-mix(in srgb, var(--sb-facing-corner-strong) 70%, transparent) 0%,
       transparent 58%
     ),
     radial-gradient(
       ellipse 110% 110% at -6% 108%,
-      color-mix(in srgb, var(--sb-facing-blob-c, var(--sb-flip-mid)) 30%, transparent) 0%,
+      color-mix(in srgb, var(--sb-facing-corner-mid) 68%, transparent) 0%,
       transparent 58%
     ),
     radial-gradient(
       ellipse 110% 110% at 106% 108%,
-      color-mix(in srgb, var(--sb-facing-blob-d, var(--sb-flip-dark)) 28%, transparent) 0%,
+      color-mix(in srgb, var(--sb-facing-corner-mid) 66%, transparent) 0%,
       transparent 58%
     ),
     linear-gradient(
       168deg,
       transparent 0%,
-      color-mix(in srgb, var(--sb-flip-light) 14%, transparent) 55%,
-      color-mix(in srgb, var(--sb-flip-light) 20%, transparent) 100%
+      rgba(255, 255, 255, 0.18) 55%,
+      rgba(255, 255, 255, 0.26) 100%
     );
 }
 
