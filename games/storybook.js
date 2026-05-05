@@ -1020,7 +1020,7 @@
   var spreadIndex = 0;
   /** @type {boolean} */
   var spreadAnimLock = false;
-  /** @type {number | null} — swap to incoming prose slightly before hinge ends */
+  /** @type {number | null} — paint incoming duplex + prose early in the hinge */
   var midTurnIncomingTimer = null;
   var coverOpenGeneration = 0;
 
@@ -1176,7 +1176,20 @@
     }
     shell.addEventListener("transitionend", onTe);
     shell.addEventListener("webkitTransitionEnd", onTe);
-    var tid = window.setTimeout(finish, 780);
+    var tid = window.setTimeout(finish, 480);
+  }
+
+  /**
+   * Incoming spread is already authoritative in `spreadIndex`; paint it while the hinge runs so
+   * copy + duplex feel ahead of the fold.
+   */
+  function paintIncomingSpreadWhilePeeling() {
+    writeSpreadTextMetaFromStory();
+    syncSpreadIllustrationFromStory();
+    syncReaderFacingLayoutClasses();
+    placeTextPageForFacingLayout();
+    updateSpreadPageNumberDisplay();
+    nudgeDuplexArtComposite();
   }
 
   /**
@@ -1192,10 +1205,10 @@
     function runOnce() {
       if (ran) return;
       ran = true;
-      window.requestAnimationFrame(run);
+      run();
     }
     /* Never strand spreadAnimLock if decode() or load handlers hang (slow network / odd WebKit). */
-    var safetyTid = window.setTimeout(runOnce, 2800);
+    var safetyTid = window.setTimeout(runOnce, 1800);
 
     var imgs = [];
     if (a && a.src) imgs.push(a);
@@ -1242,7 +1255,12 @@
       });
     }
 
-    Promise.all(imgs.map(decodeImg))
+    var decodeRaceMs = 48;
+    var cap = new Promise(function (resolve) {
+      window.setTimeout(resolve, decodeRaceMs);
+    });
+
+    Promise.race([Promise.all(imgs.map(decodeImg)), cap])
       .then(function () {
         window.clearTimeout(safetyTid);
         runOnce();
@@ -1389,9 +1407,8 @@
           ) {
             return;
           }
-          writeSpreadTextMetaFromStory();
-          updateSpreadPageNumberDisplay();
-        }, 220);
+          paintIncomingSpreadWhilePeeling();
+        }, 64);
       });
 
       bindCpShellTurnEnd(peelShell, function peelTurnDone() {
@@ -1403,11 +1420,7 @@
 
           clearPeelBackTextColumn();
 
-          writeSpreadTextMetaFromStory();
-          syncSpreadIllustrationFromStory();
-          syncReaderFacingLayoutClasses();
-          placeTextPageForFacingLayout();
-          updateSpreadPageNumberDisplay();
+          paintIncomingSpreadWhilePeeling();
 
           peelShell.style.display = "none";
           peelShell.hidden = true;
