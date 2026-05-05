@@ -2100,7 +2100,7 @@ type PictureBookQuality = "standard" | "high";
 
 /**
  * `standard` = **play / screen economy** (~**14p UK** ballpark for the AI picture step when secrets unset — verify on your bill): 1024², gpt-4o-mini story+lock+vision-by-default; optional ref-photo image boost via env only.
- * `high` = **grown-up / keepsake** (~**40–60p** ballpark pictures + sharper text↔briefs — **verify** billing): **gpt-4o** story + lock when unset; **1536×1024** when **`STORYBOOK_GPTIMAGE_LEGACY_BUDGET=0`** OR model is **`gpt-image-1.5`**; **`gpt-image-2`** with **unset legacy flag** defaults to **cost-parity** (**1024²**, softer edit quality/fidelity unless env overrides — targets similar spend to pre–Image‑2 **`high`**). **`gpt-4o`** portrait vision when unset (mini on standard).
+ * `high` = **grown-up / keepsake** (~**40–60p** ballpark pictures + sharper text↔briefs — **verify** billing): **gpt-4o** story + lock when unset; **1536×1024** when **`STORYBOOK_GPTIMAGE_LEGACY_BUDGET=0`** OR model is **`gpt-image-1.5`**; **`gpt-image-2`** with **unset legacy flag** defaults to **cost-parity** (**1024²**, softer edit **`quality`** unless env overrides — spread edits do not send **`input_fidelity`** for Image 2). **`gpt-4o`** portrait vision when unset (mini on standard).
  * Omitted **`pictureBookQuality`** defaults to **standard** so casual play stays cheaper.
  */
 function coercePictureBookQuality(raw: unknown): PictureBookQuality {
@@ -2424,9 +2424,17 @@ function gptImageIsGptImage2Family(model: string): boolean {
   return m === "gpt-image-2" || m.startsWith("gpt-image-2");
 }
 
+/** `POST /v1/images/edits` — **`input_fidelity`** is valid for GPT Image **1.x** (`gpt-image-1`, **`gpt-image-1.5`**, dated ids). **Image 2** rejects it (**HTTP 400**); **mini** rejects it — omit entirely. */
+function gptImageEditsSupportsInputFidelity(model: string): boolean {
+  const m = model.trim().toLowerCase();
+  if (gptImageIsGptImage2Family(m)) return false;
+  if (!m.startsWith("gpt-image-1")) return false;
+  return !m.includes("mini");
+}
+
 /**
  * Keeps **`pictureBookQuality === "high"`** near the legacy UK **~40–60p / book** picture band when using
- * **`gpt-image-2`** (Image 2 is pricier per pixel than 1.5 unless we ease size / edit quality / fidelity).
+ * **`gpt-image-2`** (Image 2 is pricier per pixel than 1.5 unless we ease size / edit **quality** — spread edits omit **`input_fidelity`**, unsupported by API).
  *
  * • **Unset** env → parity **ON** when the resolved model id is **`gpt-image-2*`**, **OFF** for **`gpt-image-1.5`** etc.
  * • **`STORYBOOK_GPTIMAGE_LEGACY_BUDGET=1`** → force parity on (any model).
@@ -2499,7 +2507,7 @@ function gptImageQualityForRequest(
   return scope === "generation" ? "medium" : "low";
 }
 
-/** When env unset: high book tier or (ref photos + quality boost on) → stricter edit lock. */
+/** When env unset: high book tier or (ref photos + quality boost on) → stricter edit lock. Sent on **`/images/edits`** only when **`gptImageEditsSupportsInputFidelity`** (Image 2 omits; API default applies). */
 function gptImageInputFidelityForRequest(
   bookTier: PictureBookQuality,
   hasUserPortraitRefs: boolean,
@@ -2713,7 +2721,9 @@ async function gptImageEdit(
     form.append("output_format", "png");
     form.append("stream", "false");
     form.append("moderation", moderation);
-    form.append("input_fidelity", fidelity);
+    if (gptImageEditsSupportsInputFidelity(model)) {
+      form.append("input_fidelity", fidelity);
+    }
     for (let i = 0; i < referenceBytes.length; i++) {
       const blob = new Blob([referenceBytes[i]] as unknown as BlobPart[], {
         type: "image/png",
