@@ -3848,6 +3848,19 @@
     return base + "/functions/v1/" + storybookSlug(c);
   }
 
+  /** Reject config mistakes that fetch a static HTML page (same error body as storybook.html). */
+  function storybookFunctionUrlLooksValid(u) {
+    var s = String(u || "").trim();
+    if (!s) return false;
+    var schemeOk =
+      s.indexOf("https://") === 0 ||
+      s.indexOf("http://127.0.0.1") === 0 ||
+      s.indexOf("http://localhost") === 0;
+    if (!schemeOk) return false;
+    if (s.indexOf("/functions/v1/") === -1) return false;
+    return true;
+  }
+
   /** Skip these as “first word” when guessing narrator voice from book title. */
   var TTS_TITLE_SKIP = {
     the: 1, a: 1, an: 1, my: 1, our: 1, your: 1, little: 1, big: 1, great: 1, dear: 1, tiny: 1,
@@ -5145,6 +5158,12 @@
         setError("Story magic isn’t set up here yet. Ask a grown-up to open ⚙️ and check sign-in / settings.");
         return;
       }
+      if (!storybookFunctionUrlLooksValid(url)) {
+        setError(
+          "Story server address looks wrong. Ask a grown-up to set supabaseUrl in js/score-config.js to your full Supabase project URL (it must look like https://abcdefgh.supabase.co with nothing after .co), save, and publish — not your Cloudflare or game website URL."
+        );
+        return;
+      }
       var childName = nameInput ? nameInput.value.trim() : "";
       var plotHint = plotInput ? plotInput.value.trim() : "";
       var customAuthor = authorInput ? authorInput.value.trim() : "";
@@ -5319,9 +5338,18 @@
               msg =
                 "The story maker hit a snag while finishing your book in the background. Please try again in a moment, or ask a grown-up to check the server.";
             } else if (b.error === "non_json_response" && b.detail) {
-              msg =
-                "The story server replied in an unexpected format (often a gateway error page). Ask a grown-up to check Edge Function logs and redeploy clever-service. " +
-                String(b.detail).slice(0, 220);
+              var rawHtmlCheck = String(b.detail || "");
+              var looksLikeWebPage =
+                /^\s*<!DOCTYPE/i.test(rawHtmlCheck) ||
+                /^\s*<html/i.test(rawHtmlCheck);
+              if (looksLikeWebPage) {
+                msg =
+                  "The app loaded a normal web page instead of the story server. Almost always supabaseUrl in js/score-config.js is your game site — it must be the Supabase project URL shown in the dashboard (Project Settings → API), like https://YOUR_PROJECT.supabase.co. Save, redeploy the site, and try again.";
+              } else {
+                msg =
+                  "The story server replied in an unexpected format (often a gateway error page). Ask a grown-up to check Edge Function logs and redeploy clever-service. " +
+                  rawHtmlCheck.slice(0, 220);
+              }
             } else if (b.error && typeof b.error === "string") {
               msg = "Couldn’t make the book (" + b.error + ").";
             } else {
