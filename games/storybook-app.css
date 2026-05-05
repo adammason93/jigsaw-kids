@@ -3410,8 +3410,8 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
 .sb-flip-spread__art-flyleaf .sb-flip-flyleaf-paragraph {
   margin: 0;
   font-family: var(--sb-story-soft-serif);
-  font-size: clamp(1.06rem, 3vw, 1.42rem);
-  font-weight: 500;
+  font-size: clamp(1.02rem, 2.85vw, 1.36rem);
+  font-weight: 400;
   font-style: italic;
   line-height: 1.7;
   letter-spacing: 0.02em;
@@ -3500,15 +3500,15 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   left: auto;
   right: max(0.65rem, env(safe-area-inset-right, 0px));
   bottom: max(0.55rem, env(safe-area-inset-bottom, 0px));
-  padding: 0.32rem 0.62rem;
+  padding: 0.28rem 0.55rem;
   border-radius: 999px;
   background: color-mix(in srgb, var(--sb-flip-light) 82%, rgba(255, 255, 255, 0.95));
   border: 1px solid color-mix(in srgb, var(--sb-flip-red) 22%, transparent);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.75),
     0 1px 4px rgba(45, 20, 35, 0.08);
-  font-size: 0.85rem;
-  font-weight: 720;
+  font-size: 0.8rem;
+  font-weight: 550;
   font-variant-numeric: tabular-nums;
   color: color-mix(in srgb, var(--sb-flip-darker, #2a1810) 52%, #1a1a1a);
   z-index: 3;
@@ -3522,114 +3522,99 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   overflow: hidden;
 }
 
-/* Warm paper keyed to theme + soft paint-corner splashes (one-page-facing text leaf). */
+/* Warm paper + clear paint-corner shapes (no inner frame border). */
 .sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-flip-page--text .sb-flip-page__sheet::before {
   content: "";
   position: absolute;
   inset: 0;
   z-index: 0;
   background:
-    radial-gradient(ellipse 82% 78% at -10% -6%, rgba(140, 200, 255, 0.28) 0%, transparent 54%),
-    radial-gradient(ellipse 80% 74% at 112% -3%, rgba(185, 235, 160, 0.26) 0%, transparent 52%),
-    radial-gradient(ellipse 86% 80% at -6% 108%, rgba(255, 175, 205, 0.24) 0%, transparent 56%),
-    radial-gradient(ellipse 82% 76% at 106% 105%, rgba(255, 215, 120, 0.28) 0%, transparent 53%),
-    radial-gradient(
-      ellipse 88% 50% at 50% -6%,
-      color-mix(in srgb, var(--sb-flip-light) 70%, #ffffff) 0%,
-      transparent 55%
-    ),
-    radial-gradient(ellipse 92% 70% at 108% 2%, #ffffff 0%, rgba(255, 255, 255, 0.82) 45%, transparent 72%),
-    radial-gradient(ellipse 95% 74% at 104% 102%, #ffffff 0%, rgba(255, 255, 255, 0.8) 48%, transparent 75%),
+    radial-gradient(ellipse 95% 90% at 2% -2%, rgba(255, 170, 200, 0.48) 0%, transparent 58%),
+    radial-gradient(ellipse 92% 88% at 98% 102%, rgba(255, 195, 120, 0.46) 0%, transparent 55%),
+    radial-gradient(ellipse 78% 72% at -6% 88%, rgba(140, 200, 255, 0.38) 0%, transparent 52%),
+    radial-gradient(ellipse 76% 70% at 106% -4%, rgba(185, 235, 160, 0.34) 0%, transparent 50%),
+    radial-gradient(circle at 82% 12%, rgba(160, 200, 230, 0.32) 0%, transparent 7%),
+    radial-gradient(circle at 16% 38%, rgba(255, 190, 210, 0.22) 0%, transparent 6%),
     repeating-linear-gradient(
-      -15deg,
+      -14deg,
       transparent 0,
-      transparent 12px,
-      rgba(255, 255, 255, 0.05) 12px,
-      rgba(255, 255, 255, 0.05) 13px
+      transparent 14px,
+      rgba(255, 255, 255, 0.06) 14px,
+      rgba(255, 255, 255, 0.06) 15px
     ),
     linear-gradient(
       168deg,
-      color-mix(in srgb, var(--sb-flip-light) 42%, #f7f2e8) 0%,
-      #f3ede3 45%,
-      color-mix(in srgb, var(--sb-flip-light) 30%, #ebe3d6) 100%
+      color-mix(in srgb, var(--sb-flip-light) 32%, #fffef9) 0%,
+      #faf7f1 52%,
+      color-mix(in srgb, var(--sb-flip-light) 24%, #f2ebe1) 100%
     );
   pointer-events: none;
-}
-
-.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-flip-page--text .sb-flip-page__sheet::after {
-  content: "";
-  position: absolute;
-  inset: 0.5rem;
-  z-index: 1;
-  border-radius: 12px;
-  pointer-events: none;
-  border: 1.5px solid color-mix(in srgb, var(--sb-flip-red) 26%, rgba(60, 30, 45, 0.14));
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.65),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.045),
-    0 10px 28px rgba(45, 20, 35, 0.06);
 }
 
 .sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-flip-page--text .sb-flip-text {
   position: relative;
   z-index: 2;
-  max-width: min(31rem, 96%);
+  box-sizing: border-box;
+  width: 66%;
+  max-width: 66%;
   margin: 0 auto;
-  padding: 0.48rem 0.6rem 2.35rem;
+  padding: clamp(6%, 2.5dvh, 12%) 0 clamp(8%, 3dvh, 14%);
 }
 
 .sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-flip-text__highlight {
   display: block;
   font-family: var(--sb-story-soft-serif);
-  font-size: clamp(0.95rem, 2.85vw, 1.14rem);
-  font-weight: 500;
+  font-size: clamp(0.78rem, 1.95vw, 0.92rem);
+  font-weight: 400;
   font-style: normal;
-  letter-spacing: 0.03em;
-  line-height: 1.82;
-  color: #2c181f;
+  letter-spacing: 0.02em;
+  line-height: 1.74;
+  color: rgba(42, 28, 35, 0.9);
   text-align: center;
   white-space: pre-line;
   padding: 0;
   margin: 0 auto;
-  max-width: min(26.5rem, 94%);
+  width: 100%;
+  max-width: 100%;
   background: transparent;
   border-radius: 0;
   box-decoration-break: initial;
   -webkit-box-decoration-break: initial;
   box-shadow: none;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.35);
+  text-shadow: none;
   -webkit-text-stroke: 0;
 }
 
 .sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-flip-text__highlight::first-line {
-  font-weight: 650;
+  font-weight: 500;
   font-style: italic;
-  font-size: 1.05em;
-  letter-spacing: 0.035em;
-  color: color-mix(in srgb, var(--sb-flip-darker, #831843) 35%, #2c181f);
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.45);
+  font-size: 1.02em;
+  letter-spacing: 0.03em;
+  color: color-mix(in srgb, var(--sb-flip-dark, #9d174d) 28%, rgba(42, 28, 35, 0.92));
+  text-shadow: none;
 }
 
 .sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-big-word {
   font-family: var(--sb-story-soft-serif);
-  color: color-mix(in srgb, var(--sb-flip-mid, #9333ea) 75%, #5b21b6);
-  font-weight: 700;
+  color: color-mix(in srgb, var(--sb-flip-mid, #9333ea) 72%, #5b21b6);
+  font-weight: 600;
   font-style: italic;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.25);
+  text-shadow: none;
 }
 
 .sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-flip-text::before {
   content: "✦";
   display: block;
   text-align: center;
-  font-size: 0.68rem;
-  letter-spacing: 0.55em;
-  margin: 0 0 0.52rem;
-  padding-right: 0.55em;
-  color: color-mix(in srgb, var(--sb-flip-red, #db2777) 42%, #8b7369);
-  opacity: 0.88;
+  font-size: 0.58rem;
+  letter-spacing: 0.48em;
+  margin: 0 0 0.38rem;
+  padding-right: 0.48em;
+  color: color-mix(in srgb, var(--sb-flip-red, #db2777) 38%, #8b7369);
+  opacity: 0.75;
   font-family: var(--sb-story-soft-serif);
   font-style: italic;
+  font-weight: 400;
 }
 
 .sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-readable-word:hover {
@@ -3643,18 +3628,18 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
 
 .sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-the-end-title {
   font-family: var(--sb-story-soft-serif);
-  font-weight: 700;
+  font-weight: 600;
   font-style: italic;
   color: var(--sb-flip-mid, #be185d);
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
+  text-shadow: none;
 }
 
 .sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-the-end-lead {
   font-family: var(--sb-story-soft-serif);
-  font-weight: 550;
+  font-weight: 400;
   font-style: italic;
   color: color-mix(in srgb, var(--sb-flip-dark, #9d174d) 45%, #2a0a1f);
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.25);
+  text-shadow: none;
 }
 
 /* Drop outgoing left-column copy early so it does not overlap incoming verso type mid-turn */
@@ -3938,11 +3923,13 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
 .sb-flip-spread__inner--art-facing.sb-flip-spread__inner--peel-turning
   .sb-flip-spread__peel-back.sb-flip-spread__peel-back--verso-text {
   background:
-    radial-gradient(ellipse 78% 70% at -8% -4%, rgba(140, 200, 255, 0.2) 0%, transparent 50%),
-    radial-gradient(ellipse 76% 68% at 108% -2%, rgba(185, 235, 160, 0.18) 0%, transparent 48%),
+    radial-gradient(ellipse 92% 82% at 2% -4%, rgba(255, 175, 205, 0.35) 0%, transparent 52%),
+    radial-gradient(ellipse 90% 78% at 100% 104%, rgba(255, 195, 115, 0.32) 0%, transparent 50%),
+    radial-gradient(ellipse 78% 70% at -6% 94%, rgba(140, 200, 255, 0.26) 0%, transparent 48%),
+    radial-gradient(ellipse 76% 68% at 106% -2%, rgba(185, 235, 160, 0.22) 0%, transparent 46%),
     linear-gradient(
       168deg,
-      color-mix(in srgb, var(--sb-flip-light) 38%, #f7f2e8) 0%,
+      color-mix(in srgb, var(--sb-flip-light) 32%, #fffef9) 0%,
       #f0e9df 100%
     );
 }
@@ -3953,13 +3940,13 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   .sb-flip-text__highlight {
   display: block;
   font-family: var(--sb-story-soft-serif);
-  font-size: clamp(0.95rem, 2.85vw, 1.12rem);
-  font-weight: 500;
-  letter-spacing: 0.03em;
-  line-height: 1.8;
+  font-size: clamp(0.78rem, 1.95vw, 0.92rem);
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  line-height: 1.74;
   font-style: normal;
-  color: #2c181f;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.3);
+  color: rgba(42, 28, 35, 0.9);
+  text-shadow: none;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -3969,7 +3956,7 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   .sb-big-word {
   font-family: var(--sb-story-soft-serif);
   font-style: italic;
-  font-weight: 700;
+  font-weight: 600;
   color: color-mix(in srgb, var(--sb-flip-mid, #9333ea) 75%, #5b21b6);
   text-shadow: none;
 }
@@ -4426,8 +4413,8 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
 /* Tablet band: duplex over-art type shrinks; facing text page stays readable (no sticker boxes). */
 @media (min-width: 600px) and (max-width: 1200px) {
   .sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-flip-text__highlight {
-    font-size: clamp(0.92rem, 2.55vw, 1.1rem);
-    line-height: 1.74;
+    font-size: clamp(0.74rem, 1.8vw, 0.88rem);
+    line-height: 1.7;
   }
 
   .sb-flip-spread__inner--has-art .sb-flip-text__highlight {
