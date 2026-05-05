@@ -1117,6 +1117,17 @@
     );
   }
 
+  /** Snap peel to reset without animating back (avoids half-way transform carrying into the next turn). */
+  function snapPeelShellToRest(peelShell) {
+    if (!peelShell) return;
+    peelShell.style.transition = "none";
+    peelShell.style.webkitTransition = "none";
+    clearSpreadPeelTurnClasses();
+    void peelShell.offsetWidth;
+    peelShell.style.removeProperty("transition");
+    peelShell.style.removeProperty("-webkit-transition");
+  }
+
   function clearSpreadTurnClasses() {
     if (spreadInnerEl) {
       spreadInnerEl.classList.remove(
@@ -1171,11 +1182,21 @@
    * @param {() => void} run
    */
   function decodePeelImagesThenAnimate(a, b, run) {
+    var ran = false;
+    function runOnce() {
+      if (ran) return;
+      ran = true;
+      window.requestAnimationFrame(run);
+    }
+    /* Never strand spreadAnimLock if decode() or load handlers hang (slow network / odd WebKit). */
+    var safetyTid = window.setTimeout(runOnce, 2800);
+
     var imgs = [];
     if (a && a.src) imgs.push(a);
     if (b && b.src) imgs.push(b);
     if (imgs.length === 0) {
-      window.requestAnimationFrame(run);
+      window.clearTimeout(safetyTid);
+      runOnce();
       return;
     }
 
@@ -1215,9 +1236,15 @@
       });
     }
 
-    Promise.all(imgs.map(decodeImg)).then(function () {
-      window.requestAnimationFrame(run);
-    });
+    Promise.all(imgs.map(decodeImg))
+      .then(function () {
+        window.clearTimeout(safetyTid);
+        runOnce();
+      })
+      .catch(function () {
+        window.clearTimeout(safetyTid);
+        runOnce();
+      });
   }
 
   function bumpSpreadIndex(delta) {
@@ -1260,7 +1287,7 @@
 
     spreadAnimLock = true;
     setSpreadNavBusy(true);
-    clearSpreadPeelTurnClasses();
+    snapPeelShellToRest(peelShell);
     clearSpreadTurnRevealFx();
     if (spreadInnerEl) {
       spreadInnerEl.classList.add("sb-flip-spread__inner--peel-turning");
@@ -1341,52 +1368,58 @@
       : "sb-story-pageflip--turn-prev-1";
 
     decodePeelImagesThenAnimate(peelImg, peelBackImg, function () {
-      peelShell.classList.add(cls1);
+      void peelShell.offsetWidth;
+      window.requestAnimationFrame(function () {
+        peelShell.classList.add(cls1);
+      });
 
       bindCpShellTurnEnd(peelShell, function peelTurnDone() {
-        clearSpreadPeelTurnClasses();
-        clearSpreadTurnRevealFx();
-        if (flipSpreadEl) {
-          flipSpreadEl.classList.remove("sb-flip-spread--peel-active");
-        }
-        if (bookSpreadEl) {
-          bookSpreadEl.classList.remove("sb-book-spread--peel-overflow");
-        }
-        if (spreadInnerEl) {
-          spreadInnerEl.classList.remove("sb-flip-spread__inner--peel-turning");
-          spreadInnerEl.classList.remove("sb-flip-spread__inner--facing-peel-turn");
-          var textPages = spreadInnerEl.querySelectorAll(".sb-flip-page--text");
-          for (var ti = 0; ti < textPages.length; ti++) {
-            textPages[ti].style.animation = "";
-            textPages[ti].style.opacity = "";
-            var sheetKids = textPages[ti].querySelectorAll(
-              ".sb-flip-page__sheet > *"
-            );
-            for (var kj = 0; kj < sheetKids.length; kj++) {
-              sheetKids[kj].style.animation = "";
-              sheetKids[kj].style.opacity = "";
+        try {
+          snapPeelShellToRest(peelShell);
+          clearSpreadTurnRevealFx();
+          if (flipSpreadEl) {
+            flipSpreadEl.classList.remove("sb-flip-spread--peel-active");
+          }
+          if (bookSpreadEl) {
+            bookSpreadEl.classList.remove("sb-book-spread--peel-overflow");
+          }
+          if (spreadInnerEl) {
+            spreadInnerEl.classList.remove("sb-flip-spread__inner--peel-turning");
+            spreadInnerEl.classList.remove("sb-flip-spread__inner--facing-peel-turn");
+            var textPages = spreadInnerEl.querySelectorAll(".sb-flip-page--text");
+            for (var ti = 0; ti < textPages.length; ti++) {
+              textPages[ti].style.animation = "";
+              textPages[ti].style.opacity = "";
+              var sheetKids = textPages[ti].querySelectorAll(
+                ".sb-flip-page__sheet > *"
+              );
+              for (var kj = 0; kj < sheetKids.length; kj++) {
+                sheetKids[kj].style.animation = "";
+                sheetKids[kj].style.opacity = "";
+              }
             }
           }
-        }
-        clearPeelBackTextColumn();
-        if (peelImg) peelImg.removeAttribute("src");
-        if (peelBackImg) peelBackImg.removeAttribute("src");
-        if (outgoingLeftImg) outgoingLeftImg.removeAttribute("src");
+          clearPeelBackTextColumn();
+          if (peelImg) peelImg.removeAttribute("src");
+          if (peelBackImg) peelBackImg.removeAttribute("src");
+          if (outgoingLeftImg) outgoingLeftImg.removeAttribute("src");
 
-        peelShell.style.display = "none";
-        peelShell.hidden = true;
-        if (outgoingLeftShell) {
-          outgoingLeftShell.hidden = true;
-          outgoingLeftShell.style.display = "none";
+          peelShell.style.display = "none";
+          peelShell.hidden = true;
+          if (outgoingLeftShell) {
+            outgoingLeftShell.hidden = true;
+            outgoingLeftShell.style.display = "none";
+          }
+          writeSpreadTextMetaFromStory();
+          syncSpreadIllustrationFromStory();
+          syncReaderFacingLayoutClasses();
+          placeTextPageForFacingLayout();
+          updateSpreadPageNumberDisplay();
+          updatePagerHints();
+        } finally {
+          spreadAnimLock = false;
+          setSpreadNavBusy(false);
         }
-        writeSpreadTextMetaFromStory();
-        syncSpreadIllustrationFromStory();
-        syncReaderFacingLayoutClasses();
-        placeTextPageForFacingLayout();
-        updateSpreadPageNumberDisplay();
-        updatePagerHints();
-        spreadAnimLock = false;
-        setSpreadNavBusy(false);
       });
     });
   }
