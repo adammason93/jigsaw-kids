@@ -889,6 +889,13 @@ function buddyCreatureHiddenInVerse(verse: string): boolean {
   return creature && seeking;
 }
 
+/** First `HERO:` line body from LOCKED CAST — repeated on GPT Image spread edits to reduce look drift. */
+function lockedCastHeroLooksLine(cast: string): string {
+  const m = /^\s*HERO\s*:\s*(.+)$/im.exec(String(cast ?? "").trim());
+  if (!m) return "";
+  return m[1].trim().slice(0, 480);
+}
+
 /** Selected game people with ids (for portrait lookup). Ignores unknown ids. */
 function sanitizeFamilyPeople(raw: unknown): FamilyPerson[] {
   if (!Array.isArray(raw)) return [];
@@ -3670,7 +3677,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
               (readerArtLayoutKey === "facing"
                 ? "SAFE SCALE: Full-bleed scene — environment fills the entire canvas edge-to-edge. **Pull the camera back:** the cast together should use only **~28–42% of frame height** (typically) so **walls, sky, cave, or landscape read clearly** — not a zoomed portrait. Full heads, hair, feet, hands, wings, and tails inside the frame with modest inset — never edge-clipped. Never crop standing or jumping children at the neck, waist, or knees — if the moment is full-body, show full-body. **Single-page layout:** centre the cast — keep the focal group's visual mass near **~45–55% horizontal** (balanced; **not** squeezed to one side as if saving space for overlaid text). Do not leave empty margins around the whole painting. "
                 : "SAFE SCALE: Full-bleed scene — environment fills the entire canvas edge-to-edge. **Pull the camera back:** the cast together should use only **~28–42% of frame height** (typically) so **walls, sky, cave, or landscape read clearly** — not a zoomed portrait. Full heads, hair, feet, hands, wings, and tails inside the frame with modest inset — never edge-clipped. Never crop standing or jumping children at the neck, waist, or knees — if the moment is full-body, show full-body. **Book gutter:** bias the group slightly left or right of frame centre — never put a main child's face on the vertical midline. Do not leave empty margins around the whole painting. ") +
-              "The attached reference image shows the cast on a neutral backdrop — use it ONLY to lock each character's identity (face shapes, hair, outfit colours, species, body shape). Ignore the lineup's neutral expressions and poses for this sheet — on THIS spread, show expressions and poses that fit the story moment. Repaint the world fresh.",
+              "The attached reference image shows the cast on a neutral backdrop — use it ONLY to lock each character's **identity**: face shape, **hair length and outer silhouette** (fringes, ponytails, volume), **relative heights** between humans (who is taller, how big a baby is next to the hero), skin tone, outfit colours/silhouette, species/body shape. **Do not** treat the lineup as a suggestion you may drift from on later spreads. Ignore neutral expressions and lineup poses — on THIS spread, show emotion and action that fit the verse; **everything else about how each character LOOKS stays the same** as the reference. Repaint the world fresh.",
           );
 
           // 2. Setting (the override-resolved placeDesc + plotHint)
@@ -3707,7 +3714,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
           }
 
           blocks.push(
-            "EXPRESSION & POSE: Keep each character's IDENTITY locked to the reference — same face shape, hair COLOUR, hair LENGTH, hair STYLE, skin tone, outfit colours, species, **age-appropriate body proportions** (infant vs walker — never age a baby up to match a preschool sibling's height). Change pose, body language, and facial expression to match THIS SPREAD'S MOMENT (e.g. surprised brows, belly laugh, anxious side-glance, sleepy smile, focused pout). Do not give every spread the same neutral grin unless the verse is neutral; buddy creatures should emote in species-appropriate ways too.",
+            "EXPRESSION & POSE: Keep **book-wide silhouette continuity** — same face shape and landmark spacing, hair **LENGTH and cut** (not just colour), fringe/pigtail layout, apparent **overall height** / head-to-body for each recurring human (**infant sibling stays visibly shorter/smaller-headed** beside the hero on every spread), outfit blocks, buddy/pet markings. Change **only** limb pose, torso lean, gestures, gaze, brow/mouth emotion to match THIS SPREAD'S MOMENT — no accidental haircuts, no aging the baby up to the hero's scale, no wardrobe redesign. Buddy creatures stay one fixed design.",
           );
 
           // 5. Visible cast for THIS spread (the part that fixes the
@@ -3735,13 +3742,26 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
           // 7. Cast bible (compact; longer when photo refs so Hair: lines survive truncation)
           const castCap = portraitAppearance.trim().length > 0 ? 1400 : 800;
           const castSnippet = castBible.trim().slice(0, castCap);
+          const heroLooksCanon = lockedCastHeroLooksLine(castBible);
           blocks.push(
             `CAST IDENTITIES (only draw the ones listed in WHO IS IN THIS PICTURE — match the reference for each):\n${castSnippet}`,
           );
+          blocks.push(
+            "NO SILHOUETTE DRIFT — **spread 1 matched spread 6**: only environment, choreography, expressions change. Locked for the whole book: each recurring human's **hair length/outline**, **face identity**, **clothing silhouette and colours**, **relative size vs other named humans** (baby stays shorter), and any buddy/pet's species design — copy the lineup PNG and LOCKED CAST, do not freestyle 'variety'.",
+          );
+          if (heroLooksCanon.length > 0) {
+            blocks.push(
+              `HERO (${childName}) CANONICAL LOOK (from LOCKED CAST — never contradict on later spreads): ${heroLooksCanon}`,
+            );
+          }
 
           if (portraitAppearance.trim().length > 0) {
             blocks.push(
               "HAIR FIDELITY: Each named child must keep the exact hair colour, length, and arrangement from the reference lineup and lines above (e.g. long blonde stays long blonde; pigtails stay pigtails). **Never** give one girl dark brown ponytail and the other long blonde for contrast — if both lines say blonde, both are blonde. Do not revert to a default boy crew cut or generic brown bob unless the cast explicitly describes that. **GENDER:** If the cast bible says a named child is a girl (or reference had Gender: girl), illustrate a girl — do not draw them as a boy with short brown hair.",
+            );
+          } else {
+            blocks.push(
+              `HAIR & HEIGHT — NO PHOTO UPLOAD: Still keep ${childName}'s hair **length and style** and **body scale** locked to the **HERO:** line above and the lineup reference image on every spread — no progressive haircut or height creep.`,
             );
           }
 
