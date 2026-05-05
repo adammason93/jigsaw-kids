@@ -12,7 +12,7 @@
   <link rel="manifest" href="../manifest.json" />
   <link rel="stylesheet" href="../js/kids-core.css" />
   <!-- storybook-app.css = renamed file so CDN/browser cache cannot keep old storybook.css -->
-  <link rel="stylesheet" href="storybook-app.css?v=175" />
+  <link rel="stylesheet" href="storybook-app.css?v=178" />
   <link rel="stylesheet" href="../tablet-ipad.css" />
   <!-- Last wins: guarantees new background even if a proxy cached an ancient stylesheet elsewhere -->
   <style>
@@ -106,7 +106,7 @@
           <div class="sb-library" id="sbLibrary">
             <h2 class="sb-library__h" id="sbLibraryHeading">My library</h2>
             <p class="sb-library__hint" id="sbLibraryHint">
-              Put a book on the shelf after you read it — tap a cover to open it again. Many large books fill this tablet’s browser storage; if there’s no room left, save will stop until you delete some titles yourself (nothing is removed automatically). Use ⚙️ Sync & ☁️ for cloud backups.
+              Put a book on the shelf after you read it — tap a cover to open it again. Swipe inside the bookshelf to see older titles — there is no fixed limit to how many you can save. Many large books fill this tablet’s browser storage; if there’s no room left, save will stop until you delete some titles yourself (nothing is removed automatically). Use ⚙️ Sync & ☁️ for cloud backups.
             </p>
             <div class="sb-carousel" aria-label="Saved books library">
               <button type="button" class="sb-carousel__btn sb-carousel__btn--prev" id="sbCarouselPrev" aria-label="Scroll left">
@@ -286,12 +286,12 @@
             <p class="sb-panel__micro">Anything you imagine — castles, playgrounds, rockets, grandma’s sofa — up to 200 characters.</p>
           </div>
           <div class="sb-panel__story-idea-wrap">
-            <label class="sb-label" for="sbPlot">What happens? (a little idea is enough)</label>
+            <label class="sb-label" for="sbPlot">What happens? (a few lines or up to about 1,000 words)</label>
             <textarea
               class="sb-textarea"
               id="sbPlot"
-              rows="5"
-              maxlength="800"
+              rows="10"
+              maxlength="6000"
               placeholder="Type or tap Speak — tell us what happens."
             ></textarea>
             <p class="sb-plot-starters-label" id="sbPlotStartersLabel">Try an idea:</p>
@@ -303,7 +303,7 @@
               </button>
             </div>
             <p class="sb-voice-hint" id="sbVoicePlotHint" aria-live="polite"></p>
-            <p class="sb-panel__micro">We’ll keep it gentle and happy for little readers.</p>
+            <p class="sb-panel__micro">Up to ~1,000 words is fine. We’ll keep it gentle and happy for little readers.</p>
           </div>
           <fieldset class="sb-illustration-styles" id="sbIllustrationStyles" aria-describedby="sbIllustrationStylesHint">
             <legend class="sb-label sb-label--secondary">Art style</legend>
@@ -844,7 +844,7 @@
   <script src="../js/storybook-shelf-store.js" defer></script>
   <!-- Required for cloud shelf sync + upload (same as other games) -->
   <script src="../js/score-cloud.js" defer></script>
-  <script src="storybook.js?v=343" defer></script>
+  <script src="storybook.js?v=345" defer></script>
   <script>
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("../sw.js").catch(function () {});

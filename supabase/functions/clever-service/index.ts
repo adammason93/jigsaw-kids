@@ -320,8 +320,8 @@ function pickStoryReaderFont(): StoryReaderFontKey {
 }
 
 const DALLE3_PROMPT_MAX = 3900;
-/** Max length for the child's free-text plot idea (must match storybook UI `maxlength`). */
-const STORYBOOK_PLOT_HINT_MAX = 800;
+/** Max length for the child's free-text plot idea (~1000 words prose; must match storybook UI `maxlength`). */
+const STORYBOOK_PLOT_HINT_MAX = 6000;
 const STORYBOOK_CUSTOM_CHOICE_MAX = 200;
 
 function sanitizeCustomChoice(raw: string): string {
@@ -1431,6 +1431,20 @@ function spreadTextForPicturePage(pictureIndex: number, pages: StoryPage[]): str
   return merged.replace(/[.!?…]+$/u, "").trim();
 }
 
+/** When the model returns too few entries, synthesise placeholders by spread — avoid repeating the SAME closing line mid-book. */
+function paddingTextForSyntheticTextSlot(index0Based: number): string {
+  const spread1 = Math.floor(index0Based / 2) + 1;
+  const stubs = [
+    "Their shoes pattered onward without stopping — somewhere new waited just ahead.",
+    "They paused mid-path to grin at one another — the day still had room for one more silly idea.",
+    "When the breeze picked up again, laughter carried with it.",
+    "A little wrinkle in the plan only made everyone try harder.",
+    "The best bit was not guessing what would surprise them next.",
+    "Back toward home, sleepy but pleased, everyone agreed it had been exactly the adventure they hoped for.",
+  ];
+  return stubs[(spread1 - 1) % stubs.length] ?? stubs[stubs.length - 1];
+}
+
 /** Normalise model output: 12 pages, exactly 6 illustration briefs on spread "picture" pages only. */
 function normalizeStoryJson(raw: unknown): StoryJson {
   const obj = raw as Partial<StoryJson>;
@@ -1450,7 +1464,16 @@ function normalizeStoryJson(raw: unknown): StoryJson {
   }));
 
   while (pages.length < PAGE_COUNT) {
-    pages.push({ text: "And that was a lovely day.", illustrationBrief: null });
+    const i = pages.length;
+    // Even 0-based index = prose-first beat; odd = picture row (often empty text overlay).
+    if (i % 2 === 0) {
+      pages.push({
+        text: paddingTextForSyntheticTextSlot(i),
+        illustrationBrief: null,
+      });
+    } else {
+      pages.push({ text: "", illustrationBrief: null });
+    }
   }
   pages.length = PAGE_COUNT;
 
@@ -2869,6 +2892,7 @@ Rules:
 ${noBuddyBook ? `BOOK MODE — NO IMAGINARY BUDDY: The reader chose "No buddy". For this entire book: (1) Do NOT add a recurring fantasy creature companion (unicorn, dragon, robot, etc.) in story text, characterDesign, or illustrationBriefs unless the child's plot idea explicitly requires that creature. (2) characterDesign must describe ONLY humans — the hero, any plot-named children, and game people. (3) Each illustrationBrief VISIBLE line lists only people (humans) named in that verse. (4) Page 1 must not introduce a creature buddy. Invent gentle human-centred adventures when the plot is open-ended.\n\n` : ""}- Warm, gentle, silly — never scary, violent, or mean.
 - No romance, no weapons, no villains that frighten.
 ${storyLengthAndFormatRule}
+- **Where the ending lives (critical):** The \`pages\` array holds **exactly twelve** slots in reading order (**1-indexed aloud:** page **1**, page **2**, … page **12**). Odd slots are prose-first beats; each even slot sits with the illustration for that spread (duplex overlays text *or*, in facing layouts, prose lives on odd slots only). Treat this as **six spreads**: spreads **1–4** introduce and escalate; spread **5 (pages 9–10)** tends to carry the climax; spread **6 (pages 11–12)** **resolves**. The **LAST full prose close** MUST sit on **page 11 only** (**array index \`10\`**, zero-based). Give **two short paragraphs there** tying up THIS plot (celebration, hugs, quiet pride, thanking the buddy) — plot-specific joy, **not vague summary**. **Page 12** (**index \`11\`**) carries **picture only** (\`illustrationBrief\` full; its \`text\` stays minimal by JSON shape). Readers should feel done after page **11**'s words. Do **not** drop a cliché goodbye like "**And that was a lovely day**" on pages **7** or **9** and vanish. If a beat tilts sentimental mid-book you must still invent **fresh, plot-specific prose** on **later odd pages**, especially through **page 11**'s last lines (walking home slower, jokes, squeezing in another little moment). **Never fully wrap the whole adventure** before slot **page 11** — reserve that page for real closure.
 - Odd-numbered (text-first) pages: end calmly — do NOT tack on a random ALL CAPS sound effect (SPLASH! SNORE! ZOOM!) after the text; those often feel disconnected. Keep the whole page in normal sentence case. Only use a short capped word if it is genuinely the punchline of that beat (rare); most pages should have no ALL CAPS word at all.
 - NAMES VS GENDER (critical): Do **not** choose boy/girl from how a first name "usually" sounds. Names like Remy, Riley, Alex, Sam, Jordan, Charlie can be girls or boys. **The appearance-from-photos lines are ground truth:** if a line says **Gender: girl** and long blonde hair, that named child is a **girl** in the story — use **she/her** pronouns in verses, and characterDesign must say **girl** with that exact hair — never give her a boy's short brown haircut or **he/him** unless the line explicitly says **Gender: boy**. Never override a photo-derived girl line with a masculine default.
 - The hero's name is given — use it often. The hero IS ${childName} — this exact first name must appear in the story text on every page where the main child acts. Whenever ${childName} is in a spread's scene, that spread's illustrationBrief must name ${childName} (you may list other named friends first if the verse introduces them that way). Never substitute a different child, wrong name, or wrong gender as the hero. The art paints only who you name — do not imply an unnamed generic kid.

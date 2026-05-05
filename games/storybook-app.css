@@ -737,6 +737,15 @@ body.sb-portal-welcome-open {
     align-items: center;
   }
 
+  /* Let the shelf fill the carousel slab; caps like 62vh are shorter than the flex slot → looks like books are missing. */
+  body.page-storybook.sb-route-story:not(.sb-modal-open)
+    .sb-app:has(#sbLanding:not(.is-hidden))
+    .sb-landing__right
+    #sbShelf.sb-shelf-has-books {
+    max-height: none;
+    min-height: 0;
+  }
+
   body.page-storybook.sb-route-story:not(.sb-modal-open)
     .sb-app:has(#sbLanding:not(.is-hidden))
     .sb-landing__right
@@ -938,10 +947,16 @@ body.sb-portal-welcome-open {
   align-items: end;
   grid-auto-rows: max-content;
   gap: 0.9rem 0.65rem;
+  /* .sb-carousel uses align-items: center — shelf would keep intrinsic grid height,
+     overflow .sb-library (overflow:hidden) and hide books below ~ one viewport (~14 in 2 cols). */
+  align-self: stretch;
+  min-height: 0;
   overflow-x: hidden;
   overflow-y: auto;
+  overscroll-behavior-y: contain;
   scroll-behavior: auto;
   scroll-snap-type: none;
+  /* Loose layouts only — landing hub overrides with max-height:none so the flex chain sets the scroll area */
   max-height: min(62vh, 620px);
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
@@ -3733,6 +3748,10 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   z-index: 0;
   pointer-events: none;
   opacity: var(--sb-facing-blob-layer-opacity, 0.94);
+  transform: scale(1.08);
+  transform-origin: center center;
+  -webkit-transform: scale(1.08);
+  -webkit-transform-origin: center center;
   /* Strong at top and bottom edges, softer mid-page so cream shows between white washes */
   -webkit-mask-image: linear-gradient(
     to bottom,

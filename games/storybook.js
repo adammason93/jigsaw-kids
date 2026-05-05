@@ -80,7 +80,7 @@
   ];
 
   /** Max characters for "What happens?" — keep in sync with clever-service `STORYBOOK_PLOT_HINT_MAX`. */
-  var PLOT_INPUT_MAX = 800;
+  var PLOT_INPUT_MAX = 6000;
 
   /**
    * OpenAI TTS voice for story read-aloud. If **empty**, we pick **ballad** (boy-leaning) or **sage**
@@ -2704,6 +2704,40 @@
     }
   }
 
+  /**
+   * If getJson/ready threw but shelf lives only in IndexedDB (localStorage cleared on migrate),
+   * recover from raw string without losing the library.
+   * @returns {Promise<void>}
+   */
+  function recoverShelfAfterStoreFailure(err) {
+    console.warn("[storybook shelf] Store hydrate failed:", err);
+    var lsList = loadShelfSyncFromLocalStorage();
+    if (lsList.length > 0) {
+      shelfCache = lsList;
+      return Promise.resolve();
+    }
+    if (!window.StorybookShelfStore || typeof window.StorybookShelfStore.getRaw !== "function") {
+      shelfCache = [];
+      return Promise.resolve();
+    }
+    return window.StorybookShelfStore.getRaw().then(function (raw) {
+      if (raw == null || !String(raw).length) {
+        shelfCache = [];
+        return;
+      }
+      try {
+        var data = JSON.parse(String(raw));
+        shelfCache = Array.isArray(data) ? data : [];
+      } catch (parseErr) {
+        console.warn("[storybook shelf] recover parse failed:", parseErr);
+        shelfCache = [];
+      }
+    }).catch(function (e2) {
+      console.warn("[storybook shelf] getRaw failed:", e2);
+      shelfCache = [];
+    });
+  }
+
   function loadShelf() {
     if (shelfCache === null) {
       return loadShelfSyncFromLocalStorage();
@@ -2724,11 +2758,10 @@
             done();
           }
         })
-        .catch(function () {
-          shelfCache = loadShelfSyncFromLocalStorage();
-          if (done) {
-            done();
-          }
+        .catch(function (err) {
+          recoverShelfAfterStoreFailure(err).then(function () {
+            if (done) done();
+          });
         });
     } else {
       shelfCache = loadShelfSyncFromLocalStorage();
@@ -4442,9 +4475,7 @@
         .then(function (list) {
           shelfCache = Array.isArray(list) ? list : [];
         })
-        .catch(function () {
-          shelfCache = loadShelfSyncFromLocalStorage();
-        })
+        .catch(recoverShelfAfterStoreFailure)
         .then(runAfterShelfHydrate);
     } else {
       shelfCache = loadShelfSyncFromLocalStorage();
