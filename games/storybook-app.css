@@ -2166,6 +2166,17 @@ body.sb-portal-welcome-open {
   margin-top: 1rem;
 }
 
+/* Scene chips + plot idea share the last wizard step */
+.sb-panel__scene-heading {
+  margin-top: 0;
+}
+
+.sb-panel__story-idea-wrap {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px dashed rgba(219, 39, 119, 0.2);
+}
+
 .sb-input {
   width: 100%;
   padding: 0.75rem 0.85rem;

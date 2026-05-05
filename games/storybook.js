@@ -237,19 +237,17 @@
     "Let’s make your book",
     "Who’s the hero?",
     "Pick a buddy",
-    "Where are we?",
-    "What happens?",
+    "Where & what happens",
   ];
 
-  var STEP_PROGRESS_LABELS = ["Hello", "You", "Friend", "Where", "Story"];
+  var STEP_PROGRESS_LABELS = ["Hello", "You", "Friend", "Story"];
 
   /** Short lines read aloud per wizard step (pre-readers). */
   var STEP_GUIDE_TEXT = [
-    "Welcome. We will ask who you are, who your friend is, where you go, and what happens. Press Let’s go when you are ready.",
+    "Welcome. We will ask who you are, who your friend is, then where the story happens and what happens. Press Let’s go when you are ready.",
     "Who is the hero? This is your name in the story. You can type or tap Speak. You can add photos and pick a book title and colours.",
     "Pick a buddy for your story, tap Add your own buddy to describe anyone you like, or pick no buddy for people only.",
-    "Where should it happen? Tap a scene, or tap Add your own scene and write any place.",
-    "What happens? We only need a little idea. One sentence is enough. You can tap Speak or try a starter below.",
+    "Pick where it happens using the scenes you see, tap Add your own scene if you like, then write what happens below. One sentence is enough — you can tap Speak or try a starter.",
   ];
 
   var PLOT_STARTERS = [
@@ -1025,7 +1023,7 @@
 
   /** @type {number} */
   var journeyStep = 0;
-  /** True when user skipped buddy + place panels; Back from plot returns to name step. */
+  /** True when user skipped buddy (& still picks scene + plot together). Back returns to hero step. */
   var skippedBuddyAndPlace = false;
   /** @type {string} */
   var selectedChar = "unicorn";
@@ -3631,7 +3629,7 @@
   function renderProgress() {
     if (!progressEl) return;
     progressEl.textContent = "";
-    for (var i = 0; i < 5; i++) {
+    for (var i = 0; i < 4; i++) {
       var cell = document.createElement("span");
       cell.className = "sb-progress-step";
       if (i < journeyStep) cell.classList.add("is-done");
@@ -3688,8 +3686,8 @@
       stopSpeech();
       stopStepGuideAudio();
     }
-    journeyStep = Math.max(0, Math.min(4, n));
-    if (stepKicker) stepKicker.textContent = "Step " + (journeyStep + 1) + " of 5";
+    journeyStep = Math.max(0, Math.min(3, n));
+    if (stepKicker) stepKicker.textContent = "Step " + (journeyStep + 1) + " of 4";
     if (stepHeading) stepHeading.textContent = STEP_HEADINGS[journeyStep] || "";
     renderProgress();
     var panelEls = document.querySelectorAll("#sbModal .sb-panel");
@@ -3709,11 +3707,11 @@
     }
     if (journeyStep === 3) {
       syncPlaceCustomPanel();
-    }
-    if (journeyStep === 4 && plotInput) {
-      window.requestAnimationFrame(function () {
-        plotInput.focus();
-      });
+      if (plotInput) {
+        window.requestAnimationFrame(function () {
+          plotInput.focus();
+        });
+      }
     }
   }
 
@@ -4330,8 +4328,6 @@
   var btnSkipToPlot = document.getElementById("sbSkipToPlot");
   var btnBack2 = document.getElementById("sbBack2");
   var btnNext2 = document.getElementById("sbNext2");
-  var btnBack3 = document.getElementById("sbBack3");
-  var btnNext3 = document.getElementById("sbNext3");
   var btnBack4 = document.getElementById("sbBack4");
 
   if (btnNext0) btnNext0.addEventListener("click", function () { goToStep(1); });
@@ -4349,7 +4345,7 @@
       selectedPlace = "beach";
       refreshCharacterChips();
       refreshPlaceChips();
-      goToStep(4);
+      goToStep(3);
     });
   }
   if (btnBack2) btnBack2.addEventListener("click", function () { goToStep(1); });
@@ -4364,23 +4360,9 @@
     setError("");
     goToStep(3);
   });
-  if (btnBack3) btnBack3.addEventListener("click", function () {
-    goToStep(2);
-  });
-  if (btnNext3) btnNext3.addEventListener("click", function () {
-    if (selectedPlace === "custom_place") {
-      var pt = trimCustomWizardText(placeCustomInput);
-      if (pt.length < 4) {
-        setError("Please describe where the story happens (at least 4 letters).");
-        return;
-      }
-    }
-    setError("");
-    goToStep(4);
-  });
   if (btnBack4) {
     btnBack4.addEventListener("click", function () {
-      goToStep(skippedBuddyAndPlace ? 1 : 3);
+      goToStep(skippedBuddyAndPlace ? 1 : 2);
     });
   }
 
@@ -4400,6 +4382,15 @@
       var childName = nameInput ? nameInput.value.trim() : "";
       var plotHint = plotInput ? plotInput.value.trim() : "";
       var customAuthor = authorInput ? authorInput.value.trim() : "";
+      if (selectedPlace === "custom_place") {
+        var placeText = trimCustomWizardText(placeCustomInput);
+        if (placeText.length < 4) {
+          setError(
+            "Please describe where the story happens (at least 4 letters), or pick a scene above."
+          );
+          return;
+        }
+      }
       setBusy(true);
       var familyPeople = getSelectedFamilyPeople();
       fetch(url, {

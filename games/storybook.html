@@ -12,7 +12,7 @@
   <link rel="manifest" href="../manifest.json" />
   <link rel="stylesheet" href="../js/kids-core.css" />
   <!-- storybook-app.css = renamed file so CDN/browser cache cannot keep old storybook.css -->
-  <link rel="stylesheet" href="storybook-app.css?v=159" />
+  <link rel="stylesheet" href="storybook-app.css?v=160" />
   <link rel="stylesheet" href="../tablet-ipad.css" />
   <!-- Last wins: guarantees new background even if a proxy cached an ancient stylesheet elsewhere -->
   <style>
@@ -136,7 +136,7 @@
       <div class="sb-modal__sheet">
         <div class="sb-modal__progress" id="sbProgress" aria-hidden="true"></div>
         <p class="sb-note sb-note--modal" id="sbModalError" role="alert" hidden></p>
-        <p class="sb-modal__kicker" id="sbStepKicker">Step 1 of 5</p>
+        <p class="sb-modal__kicker" id="sbStepKicker">Step 1 of 4</p>
         <h2 class="sb-modal__heading" id="sbStepHeading">Hello!</h2>
         <div class="sb-modal__read-step-wrap">
           <button type="button" class="sb-read-step" id="sbReadStepBtn" aria-label="Read this step out loud">
@@ -238,11 +238,11 @@
           </div>
           <div class="sb-modal__actions sb-modal__actions--full">
             <button type="button" class="sb-btn sb-btn--ghost sb-btn--modal" id="sbSkipToPlot">
-              Skip buddy &amp; place — story idea only
+              Skip buddy — scene &amp; story next
             </button>
           </div>
           <p class="sb-panel__micro sb-panel__micro--skip-hint">
-            Uses a gentle default friend and place; your plot text can say who and where (the server reads it).
+            Starts a gentle default friend; you still pick the scene and write what happens on the next step.
           </p>
         </div>
 
@@ -267,9 +267,10 @@
           </div>
         </div>
 
-        <div class="sb-panel" data-panel="3" id="sbPanel3" hidden>
-          <p class="sb-panel__why" id="sbPanelWhy3">One tap sets the stage; you can still add more in your story idea.</p>
-          <p class="sb-panel__hint">Tap a scene, or tap <strong>Add your own scene</strong> and write where it happens.</p>
+        <div class="sb-panel" data-panel="3" id="sbPanel4" hidden>
+          <p class="sb-panel__why" id="sbPanelWhy4">Pick the scene for your pictures here, then write what happens below — one sentence is plenty.</p>
+          <p class="sb-label sb-label--secondary sb-panel__scene-heading">Where should it happen?</p>
+          <p class="sb-panel__hint sb-panel__hint--tight">Tap a scene, or tap <strong>Add your own scene</strong> and write any place.</p>
           <div class="sb-chip-row" id="sbPlaces" role="radiogroup" aria-label="Place"></div>
           <div class="sb-custom-choice-wrap" id="sbPlaceCustomWrap" hidden aria-hidden="true">
             <label class="sb-label sb-label--secondary" for="sbPlaceCustom">Describe the place</label>
@@ -282,32 +283,26 @@
             ></textarea>
             <p class="sb-panel__micro">Anything you imagine — castles, playgrounds, rockets, grandma’s sofa — up to 200 characters.</p>
           </div>
-          <div class="sb-modal__actions sb-modal__actions--split">
-            <button type="button" class="sb-btn sb-btn--ghost sb-btn--modal" id="sbBack3">Back</button>
-            <button type="button" class="sb-btn sb-btn--primary sb-btn--modal" id="sbNext3">Next</button>
+          <div class="sb-panel__story-idea-wrap">
+            <label class="sb-label" for="sbPlot">What happens? (a little idea is enough)</label>
+            <textarea
+              class="sb-textarea"
+              id="sbPlot"
+              rows="5"
+              maxlength="800"
+              placeholder="Type or tap Speak — tell us what happens."
+            ></textarea>
+            <p class="sb-plot-starters-label" id="sbPlotStartersLabel">Try an idea:</p>
+            <div class="sb-plot-starters" id="sbPlotStarters" role="group" aria-labelledby="sbPlotStartersLabel"></div>
+            <div class="sb-voice-plot-actions">
+              <button type="button" class="sb-voice-btn sb-voice-btn--block" id="sbVoicePlot" aria-pressed="false" aria-label="Speak your story idea">
+                <span class="sb-voice-btn__ic" aria-hidden="true">🎤</span>
+                <span class="sb-voice-btn__txt">Speak your idea</span>
+              </button>
+            </div>
+            <p class="sb-voice-hint" id="sbVoicePlotHint" aria-live="polite"></p>
+            <p class="sb-panel__micro">We’ll keep it gentle and happy for little readers.</p>
           </div>
-        </div>
-
-        <div class="sb-panel" data-panel="4" id="sbPanel4" hidden>
-          <p class="sb-panel__why" id="sbPanelWhy4">We only need a little idea — one sentence is enough.</p>
-          <label class="sb-label" for="sbPlot">What happens? (a little idea is enough)</label>
-          <textarea
-            class="sb-textarea"
-            id="sbPlot"
-            rows="5"
-            maxlength="800"
-            placeholder="Type or tap Speak — tell us what happens."
-          ></textarea>
-          <p class="sb-plot-starters-label" id="sbPlotStartersLabel">Try an idea:</p>
-          <div class="sb-plot-starters" id="sbPlotStarters" role="group" aria-labelledby="sbPlotStartersLabel"></div>
-          <div class="sb-voice-plot-actions">
-            <button type="button" class="sb-voice-btn sb-voice-btn--block" id="sbVoicePlot" aria-pressed="false" aria-label="Speak your story idea">
-              <span class="sb-voice-btn__ic" aria-hidden="true">🎤</span>
-              <span class="sb-voice-btn__txt">Speak your idea</span>
-            </button>
-          </div>
-          <p class="sb-voice-hint" id="sbVoicePlotHint" aria-live="polite"></p>
-          <p class="sb-panel__micro">We’ll keep it gentle and happy for little readers.</p>
           <fieldset class="sb-illustration-styles" id="sbIllustrationStyles" aria-describedby="sbIllustrationStylesHint">
             <legend class="sb-label sb-label--secondary">Art style</legend>
             <p class="sb-panel__micro sb-illustration-styles__hint" id="sbIllustrationStylesHint">
@@ -751,7 +746,7 @@
   <script src="../js/storybook-shelf-store.js" defer></script>
   <!-- Required for cloud shelf sync + upload (same as other games) -->
   <script src="../js/score-cloud.js" defer></script>
-  <script src="storybook.js?v=333" defer></script>
+  <script src="storybook.js?v=334" defer></script>
   <script>
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("../sw.js").catch(function () {});
