@@ -2350,7 +2350,7 @@ const GPT_IMAGE_SIZES: ReadonlySet<string> = new Set([
 type PictureBookQuality = "standard" | "high";
 
 /**
- * `standard` = **play / screen economy** (~**14p UK** ballpark for the AI picture step when **no** custom uploads — verify on your bill): 1024²; **with uploaded hero/friend refs**, vision + GPT Image quality match the ref-boost path (same cast consistency as high’s image tier) while story/lock stay on mini unless you raise them via env.
+ * `standard` = **play / screen economy**: lighter **gpt-4o-mini** story + lock when unset; **1024²** images. Old docs quoted a **~14p UK ballpark for GPT Image steps only (7 calls, no ref uploads)** — **not** total book cost; verify live OpenAI pricing. **With uploaded refs**, vision often uses **gpt-4o** and image settings align with likeness — higher than text-only.
  * `high` = **grown-up / keepsake** (~**40–60p** ballpark pictures + sharper text↔briefs — **verify** billing): **gpt-4o** story + lock when unset; **1536×1024** when **`STORYBOOK_GPTIMAGE_LEGACY_BUDGET=0`** OR model is **`gpt-image-1.5`**; **`gpt-image-2`** with **unset legacy flag** defaults to **cost-parity** (**1024²**, softer edit **`quality`** unless env overrides — spread edits do not send **`input_fidelity`** for Image 2). **`gpt-4o`** portrait vision when unset (mini on standard).
  * Omitted **`pictureBookQuality`** defaults to **standard** so casual play stays cheaper.
  */

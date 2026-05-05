@@ -416,14 +416,14 @@
           <fieldset class="sb-picture-quality">
             <legend class="sb-label sb-label--secondary">Pictures</legend>
             <p class="sb-panel__micro sb-picture-quality__hint" id="sbPictureQualityHint">
-              Want the cheapest run? Stick with <strong>Play &amp; screen</strong> — the AI <strong>picture</strong> step is usually only <strong>about a third</strong> of <strong>Best for print</strong> when you are <em>not</em> adding reference photos (often <strong>~14p</strong> vs <strong>~40–60p</strong> UK-style ballpark for GPT Image anchor + six spreads). If you <strong>do</strong> upload photos, the server uses the same careful vision + picture settings for <strong>character consistency</strong> as the pro image tier — still <strong>1024²</strong> and still <strong>lighter story/lock models</strong> than Best for print, so the book stays cheaper overall. <strong>Best for print</strong> upgrades the writing + lock steps. <strong>STORYBOOK_GPTIMAGE_LEGACY_BUDGET=0</strong> maxes “Best for print” resolution. Exact pence varies with pricing and rate tier.
+              <strong>Play &amp; screen</strong> uses lighter <strong>story + cast-lock</strong> models than <strong>Best for print</strong> and economy picture settings — usually <strong>much cheaper overall</strong>. The old “<strong>~14p</strong>” figure was only a <strong>very rough UK guess for the seven GPT Image calls</strong> (one cast lineup + six spreads) when <strong>no reference photos</strong> are uploaded — it is <strong>not</strong> the price of the whole book. Every run also bills <strong>long story text</strong>, <strong>locked cast</strong>, and (if you add photos) <strong>vision</strong> on those faces. Model choice, resolution, and exchange rates change often — <strong>totals of about £1</strong> or more on the picture pipeline alone are plausible; check your OpenAI usage. <strong>Best for print</strong> upgrades writing + images further.
             </p>
             <div class="sb-quality-row" role="radiogroup" aria-labelledby="sbPictureQualityHint">
               <label class="sb-quality-opt">
                 <input type="radio" name="sbPictureQuality" value="standard" checked />
                 <span class="sb-quality-opt__body">
                   <span class="sb-quality-opt__title">Play &amp; screen (default)</span>
-                  <span class="sb-quality-opt__sub">~14p-style with no uploads; with photos, same likeness-focused picture + vision settings at 1024² (lighter story models than Best for print)</span>
+                  <span class="sb-quality-opt__sub">Lighter story + lock models than Best for print; economy images. “~14p” in old notes meant <strong>picture API only</strong>, not the full book — see hint above.</span>
                 </span>
               </label>
               <label class="sb-quality-opt">
