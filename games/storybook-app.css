@@ -1683,7 +1683,7 @@ body.sb-portal-welcome-open {
   max-height: min(92dvh, 36rem);
   overflow-y: auto;
   margin: 0 auto;
-  padding: 1.5rem 1.25rem 1.65rem;
+  padding: 3.1rem 3.15rem 1.65rem 1.25rem;
   /* Softer dots + cleaner base so body text isn’t fighting pink-on-pink */
   background-color: #fffdfbff;
   background-image: radial-gradient(rgba(219, 39, 119, 0.11) 17%, transparent 18%);
@@ -1701,6 +1701,45 @@ body.sb-portal-welcome-open {
     border: 4px solid #fbcfe8;
     margin: 1rem;
   }
+}
+
+.sb-modal__close {
+  position: absolute;
+  top: max(0.5rem, env(safe-area-inset-top, 0px));
+  right: max(0.5rem, env(safe-area-inset-right, 0px));
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
+  margin: 0;
+  border: 2px solid rgba(219, 39, 119, 0.28);
+  border-radius: 50%;
+  background: rgba(255, 253, 251, 0.95);
+  box-shadow: 0 1px 4px rgba(131, 24, 67, 0.1);
+  font: inherit;
+  line-height: 1;
+  color: #86143f;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: background 0.15s ease, transform 0.12s ease, border-color 0.15s ease;
+}
+
+.sb-modal__close:hover {
+  background: #fff;
+  border-color: rgba(219, 39, 119, 0.45);
+}
+
+.sb-modal__close:active {
+  transform: scale(0.96);
+}
+
+.sb-modal__close-x {
+  font-size: 1.15rem;
+  font-weight: 800;
+  opacity: 0.88;
 }
 
 .sb-modal__progress {
@@ -3678,7 +3717,10 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   box-shadow: none;
   margin: 0;
   position: relative;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-gutter: stable;
   min-height: 0;
 }
 
@@ -3758,7 +3800,7 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='3' fill='%2399b4c9' opacity='0.8'/%3E%3Cpath stroke='%2399b4c9' stroke-width='1.8' stroke-linecap='round' opacity='0.65' d='M12 6v12M6 12h12'/%3E%3C/svg%3E")
       no-repeat 90% 4.5% / 19px 19px,
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 52 38' fill='none'%3E%3Cpath stroke='%2399b4c9' stroke-width='2.2' stroke-linecap='round' opacity='0.78' d='M6 28c10-28 38 4 40-22'/%3E%3C/svg%3E")
-      no-repeat 84% 46% / 48px 32px,
+      no-repeat calc(100% - 8px) 30% / 30px 20px,
     radial-gradient(circle at 22% 70%, rgba(255, 255, 255, 0.4) 0%, transparent 5%),
     radial-gradient(circle at 35% 18%, rgba(255, 255, 255, 0.35) 0%, transparent 4%);
   opacity: 0.92;
@@ -3773,12 +3815,8 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   box-sizing: border-box;
   width: 66%;
   max-width: 66%;
-  max-height: 66.7%;
-  min-height: 0;
   margin: 0 auto;
-  padding: clamp(3%, 1.4dvh, 7%) 0 clamp(3.5%, 1.6dvh, 8%);
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
+  padding: clamp(3%, 1.4dvh, 7%) 0 clamp(3.5%, 1.6dvh, 10%);
 }
 
 .sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art
@@ -3824,7 +3862,16 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   text-shadow: none;
 }
 
-.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-flip-left-shell .sb-flip-text::before {
+/* Proper-name / keyword emphasis (paired with JS .sb-key-word) */
+.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-flip-left-shell .sb-key-word {
+  font-family: "Patrick Hand", "Comic Neue", "Kalam", cursive !important;
+  font-size: 1.12em;
+  font-weight: 700 !important;
+  font-style: normal !important;
+  letter-spacing: 0.06em;
+  color: color-mix(in srgb, var(--sb-flip-dark, #86143f) 55%, #4c0519);
+}
+
   content: "✦";
   display: block;
   text-align: center;
@@ -4300,15 +4347,6 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   overflow: visible;
 }
 
-/* Facing text page: clip decorative blobs flush to the half-page edge */
-.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art
-  .sb-flip-left-shell
-  .sb-flip-page--text
-  .sb-flip-page__sheet {
-  overflow: hidden;
-}
-
-.sb-flip-spread__inner--has-art .sb-flip-page--art .sb-flip-page__sheet {
   background: transparent;
   padding: 0;
 }

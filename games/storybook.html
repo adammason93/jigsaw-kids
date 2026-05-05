@@ -12,7 +12,7 @@
   <link rel="manifest" href="../manifest.json" />
   <link rel="stylesheet" href="../js/kids-core.css" />
   <!-- storybook-app.css = renamed file so CDN/browser cache cannot keep old storybook.css -->
-  <link rel="stylesheet" href="storybook-app.css?v=172" />
+  <link rel="stylesheet" href="storybook-app.css?v=174" />
   <link rel="stylesheet" href="../tablet-ipad.css" />
   <!-- Last wins: guarantees new background even if a proxy cached an ancient stylesheet elsewhere -->
   <style>
@@ -134,6 +134,9 @@
     >
       <div class="sb-modal__backdrop" aria-hidden="true"></div>
       <div class="sb-modal__sheet">
+        <button type="button" class="sb-modal__close" id="sbJourneyClose" aria-label="Close">
+          <span class="sb-modal__close-x" aria-hidden="true">✕</span>
+        </button>
         <div class="sb-modal__progress" id="sbProgress" aria-hidden="true"></div>
         <p class="sb-note sb-note--modal" id="sbModalError" role="alert" hidden></p>
         <p class="sb-modal__kicker" id="sbStepKicker">Step 1 of 4</p>
@@ -835,7 +838,7 @@
   <script src="../js/storybook-shelf-store.js" defer></script>
   <!-- Required for cloud shelf sync + upload (same as other games) -->
   <script src="../js/score-cloud.js" defer></script>
-  <script src="storybook.js?v=341" defer></script>
+  <script src="storybook.js?v=343" defer></script>
   <script>
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("../sw.js").catch(function () {});

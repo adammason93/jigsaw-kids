@@ -1942,6 +1942,149 @@
     return true;
   }
 
+  /** Title-case tokens that aren’t shouty CAPS effects — skips common prose words. Used for playful emphasis on facing pages. */
+  var SB_PROPER_NOUN_SKIP = {
+    THE: true,
+    AND: true,
+    BUT: true,
+    FOR: true,
+    ARE: true,
+    WAS: true,
+    WERE: true,
+    NOT: true,
+    HER: true,
+    HIS: true,
+    HIM: true,
+    SHE: true,
+    HAS: true,
+    HAD: true,
+    YOU: true,
+    YOUR: true,
+    OUR: true,
+    ITS: true,
+    THEY: true,
+    THEM: true,
+    THEIR: true,
+    THERE: true,
+    THESE: true,
+    THOSE: true,
+    THIS: true,
+    THAT: true,
+    THEN: true,
+    THAN: true,
+    THEYRE: true,
+    WITH: true,
+    FROM: true,
+    INTO: true,
+    OVER: true,
+    UPON: true,
+    ALSO: true,
+    VERY: true,
+    JUST: true,
+    ONLY: true,
+    EVEN: true,
+    SUCH: true,
+    SOME: true,
+    MOST: true,
+    MORE: true,
+    EACH: true,
+    EVERY: true,
+    BOTH: true,
+    AFTER: true,
+    BEFORE: true,
+    WHILE: true,
+    WHICH: true,
+    WHOSE: true,
+    WHERE: true,
+    WHAT: true,
+    WHEN: true,
+    WHY: true,
+    HOW: true,
+    WHO: true,
+    COULD: true,
+    WOULD: true,
+    SHOULD: true,
+    MIGHT: true,
+    MUST: true,
+    ABOUT: true,
+    AROUND: true,
+    THROUGH: true,
+    AGAIN: true,
+    STILL: true,
+    ONCE: true,
+    ALREADY: true,
+    SUDDENLY: true,
+    MAYBE: true,
+    PERHAPS: true,
+    QUITE: true,
+    EITHER: true,
+    NEITHER: true,
+    ANOTHER: true,
+    OTHER: true,
+    SOMETHING: true,
+    NOTHING: true,
+    ANYONE: true,
+    SOMEONE: true,
+    EVERYONE: true,
+    ANYTHING: true,
+    EVERYTHING: true,
+    ONE: true,
+    TWO: true,
+    ALL: true,
+    ANY: true,
+    CAN: true,
+    GOT: true,
+    GET: true,
+    GETS: true,
+    WAY: true,
+    OUT: true,
+    DAY: true,
+    NEW: true,
+    NOW: true,
+    SAY: true,
+    SAYS: true,
+    SAID: true,
+    ASKED: true,
+    BACK: true,
+    DOWN: true,
+    MADE: true,
+    MAKE: true,
+    WENT: true,
+    GOES: true,
+    CAME: true,
+    LOOKED: true,
+    WANTED: true,
+    BECAUSE: true,
+    THOUGHT: true,
+    ALTHOUGH: true,
+    MUM: true,
+    DAD: true,
+    MOM: true,
+    SON: true,
+    BOY: true,
+    GIRL: true,
+    MAN: true,
+    MEN: true,
+  };
+
+  /** Single capitalised name / place that should pop (Sophia, Remy — not SHE, WHICH, WHO). */
+  function isStoryKeyWordToken(part) {
+    if (!part || isBigWordToken(part)) {
+      return false;
+    }
+    var t = String(part)
+      .trim()
+      .replace(/^[\u201c\u201d\u2018\u2019"""'`(]+/, "")
+      .replace(/[.,!?;:\u2014\u2013)\u201d"'"…\]]+$/, "")
+      .trim();
+    var m = /^([A-Z][a-z]{2,})(?:'s)?$/.exec(t);
+    var core = m ? m[1] : "";
+    if (!core || core.length < 3 || SB_PROPER_NOUN_SKIP[core.toUpperCase()]) {
+      return false;
+    }
+    return true;
+  }
+
   function storyPageTextToReadableHtml(text) {
     var lines = escapeHtml(String(text || ""))
       .replace(/\r/g, "")
@@ -1958,6 +2101,8 @@
         var cls = "sb-readable-word";
         if (isBigWordToken(word)) {
           cls += " sb-big-word";
+        } else if (isStoryKeyWordToken(word)) {
+          cls += " sb-key-word";
         }
         spans.push(
           '<span class="' +
@@ -4006,6 +4151,16 @@
     document.body.classList.remove("sb-modal-open");
   }
 
+  /** Close the build-your-book journey and return focus to the landing CTA. */
+  function dismissJourneyToLanding() {
+    closeJourney();
+    if (btnStart && typeof btnStart.focus === "function") {
+      try {
+        btnStart.focus();
+      } catch (_eJourneyFocus) {}
+    }
+  }
+
   function setBookActionsOpen(open) {
     if (!book) return;
     book.classList.toggle("sb-book--actions-open", !!open);
@@ -4432,6 +4587,11 @@
       "click",
       function (e) {
         if (!e.target || !e.target.closest) return;
+        if (e.target.closest("#sbJourneyClose")) {
+          e.preventDefault();
+          dismissJourneyToLanding();
+          return;
+        }
         if (e.target.closest("#sbStartJourney")) {
           e.preventDefault();
           openJourney();
@@ -4467,6 +4627,37 @@
       openJourney();
     });
   }
+
+  var btnJourneyClose = document.getElementById("sbJourneyClose");
+  var modalBackdropEl = document.querySelector("#sbModal .sb-modal__backdrop");
+  if (btnJourneyClose && !appEl) {
+    btnJourneyClose.addEventListener("click", function (e) {
+      e.preventDefault();
+      dismissJourneyToLanding();
+    });
+  }
+  if (modalBackdropEl) {
+    modalBackdropEl.addEventListener("click", function () {
+      var m = modal || document.getElementById("sbModal");
+      if (!m || m.hidden || m.classList.contains("is-hidden")) return;
+      dismissJourneyToLanding();
+    });
+  }
+  document.addEventListener("keydown", function (e) {
+    if (e.key !== "Escape") return;
+    var m = modal || document.getElementById("sbModal");
+    if (!m || m.hidden || m.classList.contains("is-hidden")) return;
+    if (
+      heroPhotoNameOverlay &&
+      !heroPhotoNameOverlay.classList.contains("is-hidden")
+    ) {
+      e.preventDefault();
+      abortHeroPhotoNamePrompt();
+      return;
+    }
+    e.preventDefault();
+    dismissJourneyToLanding();
+  });
 
   if (btnPreviewSample && !appEl) {
     btnPreviewSample.addEventListener("click", function (e) {
