@@ -2251,9 +2251,11 @@ async function falFluxProTextToImageUrl(
 /* ──────────────────────────────────────────────────────────────────────────
  * GPT Image pipeline (OpenAI Image API — generations + edits)
  *
- * Default model **`gpt-image-2`** (matches consumer “GPT Image 2” wording; OpenArt
- * and others resell the same capability). Override via **`STORYBOOK_GPTIMAGE_MODEL`**
- * (e.g. `gpt-image-1.5` for lower cost — see billing).
+ * Default model **`gpt-image-2`**: tuned for **stronger continuity** across the anchor
+ * lineup + per-spread **edits** (same cast / costume lock) than the older 1.x family at
+ * the same workflow — keep this default unless you deliberately set a cheaper model.
+ * Override via **`STORYBOOK_GPTIMAGE_MODEL`** (e.g. **`gpt-image-1.5`** for lower list
+ * price; **not** recommended when you care most about cross-spread likeness).
  * ────────────────────────────────────────────────────────────────────────── */
 
 const GPT_IMAGE_DEFAULT_MODEL = "gpt-image-2";
@@ -2272,7 +2274,7 @@ const GPT_IMAGE_SIZES: ReadonlySet<string> = new Set([
 type PictureBookQuality = "standard" | "high";
 
 /**
- * `standard` = **play / screen economy** (~**14p UK** ballpark for the AI picture step when secrets unset — verify on your bill): 1024², gpt-4o-mini story+lock+vision-by-default; optional ref-photo image boost via env only.
+ * `standard` = **play / screen economy** (~**14p UK** ballpark for the AI picture step when **no** custom uploads — verify on your bill): 1024²; **with uploaded hero/friend refs**, vision + GPT Image quality match the ref-boost path (same cast consistency as high’s image tier) while story/lock stay on mini unless you raise them via env.
  * `high` = **grown-up / keepsake** (~**40–60p** ballpark pictures + sharper text↔briefs — **verify** billing): **gpt-4o** story + lock when unset; **1536×1024** when **`STORYBOOK_GPTIMAGE_LEGACY_BUDGET=0`** OR model is **`gpt-image-1.5`**; **`gpt-image-2`** with **unset legacy flag** defaults to **cost-parity** (**1024²**, softer edit **`quality`** unless env overrides — spread edits do not send **`input_fidelity`** for Image 2). **`gpt-4o`** portrait vision when unset (mini on standard).
  * Omitted **`pictureBookQuality`** defaults to **standard** so casual play stays cheaper.
  */
@@ -2577,16 +2579,18 @@ function coerceIllustrationStyle(raw: unknown): IllustrationStyleKey {
   return "clay3d";
 }
 
-/** Ref-photo boost: **high** tier on by default; **standard** auto-enables when a **non-hero** ref exists (`STORYBOOK_REF_PHOTO_IMAGE_BOOST=0` disables). */
+/** Ref-photo boost: **high** tier always; **standard** when any **uploaded** hero or tagged-friend ref exists (same image quality bands as before for co-star-only uploads). `STORYBOOK_REF_PHOTO_IMAGE_BOOST=0` disables. */
 function gptImageRefPhotoQualityBoostEnabled(
   bookTier: PictureBookQuality,
-  opts?: { nonHeroPortraitRefs?: boolean },
+  opts?: { nonHeroPortraitRefs?: boolean; hasHeroPortraitRefs?: boolean },
 ): boolean {
   const v = (Deno.env.get("STORYBOOK_REF_PHOTO_IMAGE_BOOST") ?? "").trim().toLowerCase();
   if (v === "0" || v === "false" || v === "off" || v === "no") return false;
   if (v === "1" || v === "true" || v === "on" || v === "yes") return true;
   if (bookTier === "high") return true;
-  return opts?.nonHeroPortraitRefs === true;
+  return (
+    opts?.nonHeroPortraitRefs === true || opts?.hasHeroPortraitRefs === true
+  );
 }
 
 function gptImageDefaultModel(): string {
@@ -2654,6 +2658,7 @@ function gptImageQualityForRequest(
   bookTier: PictureBookQuality,
   hasUserPortraitRefs = false,
   nonHeroPortraitRefs = false,
+  hasHeroPortraitRefs = false,
 ): "low" | "medium" | "high" | "auto" {
   const envRaw = (Deno.env.get("STORYBOOK_GPTIMAGE_QUALITY") ?? "").trim().toLowerCase();
   if (
@@ -2671,7 +2676,10 @@ function gptImageQualityForRequest(
     ) {
       if (
         hasUserPortraitRefs &&
-        gptImageRefPhotoQualityBoostEnabled(bookTier, { nonHeroPortraitRefs })
+        gptImageRefPhotoQualityBoostEnabled(bookTier, {
+          nonHeroPortraitRefs,
+          hasHeroPortraitRefs,
+        })
       ) {
         return scope === "generation" ? "medium" : "medium";
       }
@@ -2679,8 +2687,14 @@ function gptImageQualityForRequest(
     }
     return scope === "generation" ? "high" : "medium";
   }
-  // Standard tier — bump when ref photos + boost (incl. auto for co-star uploads)
-  if (hasUserPortraitRefs && gptImageRefPhotoQualityBoostEnabled(bookTier, { nonHeroPortraitRefs })) {
+  // Standard tier — ref boost (hero and/or friend uploads): match parity-tier image bands
+  if (
+    hasUserPortraitRefs &&
+    gptImageRefPhotoQualityBoostEnabled(bookTier, {
+      nonHeroPortraitRefs,
+      hasHeroPortraitRefs,
+    })
+  ) {
     return scope === "generation" ? "high" : "medium";
   }
   return scope === "generation" ? "medium" : "low";
@@ -2691,6 +2705,7 @@ function gptImageInputFidelityForRequest(
   bookTier: PictureBookQuality,
   hasUserPortraitRefs: boolean,
   nonHeroPortraitRefs = false,
+  hasHeroPortraitRefs = false,
 ): "low" | "high" {
   const envPlain = (Deno.env.get("STORYBOOK_GPTIMAGE_INPUT_FIDELITY") ?? "").trim().toLowerCase();
   const envUnset = !(Deno.env.get("STORYBOOK_GPTIMAGE_INPUT_FIDELITY") ?? "").trim();
@@ -2701,20 +2716,33 @@ function gptImageInputFidelityForRequest(
     gptImageCostParityModeEnabled() &&
     envUnset
   ) {
-    if (hasUserPortraitRefs && gptImageRefPhotoQualityBoostEnabled(bookTier, { nonHeroPortraitRefs })) {
+    if (
+      hasUserPortraitRefs &&
+      gptImageRefPhotoQualityBoostEnabled(bookTier, {
+        nonHeroPortraitRefs,
+        hasHeroPortraitRefs,
+      })
+    ) {
       return "high";
     }
     return "low";
   }
   if (bookTier === "high") return "high";
-  if (hasUserPortraitRefs && gptImageRefPhotoQualityBoostEnabled(bookTier, { nonHeroPortraitRefs })) return "high";
+  if (
+    hasUserPortraitRefs &&
+    gptImageRefPhotoQualityBoostEnabled(bookTier, {
+      nonHeroPortraitRefs,
+      hasHeroPortraitRefs,
+    })
+  ) {
+    return "high";
+  }
   return "low";
 }
 
 /**
  * Vision model for summarising **uploaded** reference photos (hero/friend/custom).
- * **High** tier: default **`gpt-4o`** for hair/length accuracy. **Standard** play tier: **`gpt-4o-mini`** to save cost.
- * **`STORYBOOK_VISION_MODEL`** overrides both.
+ * **High** tier: default **`gpt-4o`**. **Standard** tier: **`gpt-4o-mini`** unless custom uploads exist — then **`gpt-4o`** for the same hair/face accuracy as high when refs are present. **`STORYBOOK_VISION_MODEL`** overrides.
  */
 function storybookPortraitVisionModel(bookTier: PictureBookQuality): string {
   const m = (Deno.env.get("STORYBOOK_VISION_MODEL") ?? "").trim();
@@ -2730,10 +2758,53 @@ function decodeB64ToBytes(b64: string): Uint8Array {
   return out;
 }
 
+/** Detect image format for OpenAI multipart `image[]` — must match bytes, not hard-coded PNG. */
+function imageMimeForBytes(bytes: Uint8Array): "image/png" | "image/jpeg" | "image/webp" {
+  if (bytes.length >= 2 && bytes[0] === 0xff && bytes[1] === 0xd8) {
+    return "image/jpeg";
+  }
+  if (
+    bytes.length >= 12 &&
+    bytes[0] === 0x52 &&
+    bytes[1] === 0x49 &&
+    bytes[2] === 0x46 &&
+    bytes[3] === 0x46 &&
+    bytes[8] === 0x57 &&
+    bytes[9] === 0x45 &&
+    bytes[10] === 0x42 &&
+    bytes[11] === 0x50
+  ) {
+    return "image/webp";
+  }
+  return "image/png";
+}
+
+function fileExtForImageMime(m: "image/png" | "image/jpeg" | "image/webp"): string {
+  if (m === "image/jpeg") return "jpg";
+  if (m === "image/webp") return "webp";
+  return "png";
+}
+
+/** Load a reference URL (https or data URL) into raw bytes for image edits. */
+async function loadImageBytesForGptEdit(urlRaw: string): Promise<Uint8Array | null> {
+  try {
+    const url = urlRaw.replace(/\s+/gu, "").replace(/\r|\n/gu, "");
+    if (/^data:image\/(?:png|jpeg|jpg|webp);base64,/i.test(url)) {
+      return decodeB64ToBytes(url);
+    }
+    if (/^https?:\/\//i.test(url)) {
+      const r = await fetch(url, { redirect: "follow" });
+      if (!r.ok) return null;
+      return new Uint8Array(await r.arrayBuffer());
+    }
+  } catch (e) {
+    console.warn("[clever-service] loadImageBytesForGptEdit failed", e);
+  }
+  return null;
+}
+
 function randomKey(prefix: string): string {
-  const t = Date.now().toString(36);
-  const r = Math.random().toString(36).slice(2, 10);
-  return `${prefix}-${t}-${r}.png`;
+  return `${prefix}-${crypto.randomUUID()}.png`;
 }
 
 async function uploadPngToStorybookImages(
@@ -2810,6 +2881,7 @@ async function gptImageGenerate(
   retryCount = 0,
   hasUserPortraitRefs = false,
   nonHeroPortraitRefs = false,
+  hasHeroPortraitRefs = false,
 ): Promise<{ url: string; bytes: Uint8Array }> {
   const model = gptImageDefaultModel();
   const moderation = gptImageModerationParam();
@@ -2819,6 +2891,7 @@ async function gptImageGenerate(
     bookTier,
     hasUserPortraitRefs,
     nonHeroPortraitRefs,
+    hasHeroPortraitRefs,
   );
   const trimmed = prompt.slice(0, GPT_IMAGE_PROMPT_MAX);
 
@@ -2872,6 +2945,7 @@ async function gptImageGenerate(
         retryCount + 1,
         hasUserPortraitRefs,
         nonHeroPortraitRefs,
+        hasHeroPortraitRefs,
       );
     }
     console.error("[gpt-image] generations error", r.status, raw.slice(0, 700));
@@ -2891,6 +2965,7 @@ async function gptImageEdit(
   retryCount = 0,
   hasUserPortraitRefs = false,
   nonHeroPortraitRefs = false,
+  hasHeroPortraitRefs = false,
 ): Promise<{ url: string; bytes: Uint8Array }> {
   const model = gptImageDefaultModel();
   const moderation = gptImageModerationParam();
@@ -2900,12 +2975,14 @@ async function gptImageEdit(
     bookTier,
     hasUserPortraitRefs,
     nonHeroPortraitRefs,
+    hasHeroPortraitRefs,
   );
   const trimmed = prompt.slice(0, GPT_IMAGE_PROMPT_MAX);
   const fidelity = gptImageInputFidelityForRequest(
     bookTier,
     hasUserPortraitRefs,
     nonHeroPortraitRefs,
+    hasHeroPortraitRefs,
   );
 
   const buildForm = (withQuality: boolean): FormData => {
@@ -2924,10 +3001,10 @@ async function gptImageEdit(
       form.append("input_fidelity", fidelity);
     }
     for (let i = 0; i < referenceBytes.length; i++) {
-      const blob = new Blob([referenceBytes[i]] as unknown as BlobPart[], {
-        type: "image/png",
-      });
-      form.append("image[]", blob, `ref-${i + 1}.png`);
+      const bytes = referenceBytes[i];
+      const mime = imageMimeForBytes(bytes);
+      const blob = new Blob([bytes as unknown as BlobPart], { type: mime });
+      form.append("image[]", blob, `ref-${i + 1}.${fileExtForImageMime(mime)}`);
     }
     return form;
   };
@@ -2967,6 +3044,7 @@ async function gptImageEdit(
         retryCount + 1,
         hasUserPortraitRefs,
         nonHeroPortraitRefs,
+        hasHeroPortraitRefs,
       );
     }
     console.error("[gpt-image] edits error", r.status, raw.slice(0, 700));
@@ -3042,6 +3120,8 @@ async function insertPendingStorybookJob(
   const { error } = await client.from("storybook_generation_jobs").insert({
     id,
     status: "pending",
+    progress: 0,
+    progress_label: "Queued…",
     request_payload: payload,
     updated_at: new Date().toISOString(),
   });
@@ -3068,6 +3148,7 @@ function wantsStorybookAsync(body: StorybookRequestBody): boolean {
 async function executeStorybookPipeline(
   apiKey: string,
   body: StorybookRequestBody,
+  onJobProgress?: (pct: number, label: string) => void | Promise<void>,
 ): Promise<Response> {
     const childName = sanitizeName(String(body.childName ?? ""));
     const dedicationAuthor =
@@ -3273,10 +3354,10 @@ async function executeStorybookPipeline(
     const portraitVisionModelResolved = (() => {
       const env = (Deno.env.get("STORYBOOK_VISION_MODEL") ?? "").trim();
       if (env) return env;
-      const multiHuman =
-        Object.keys(refPack.customByFriendId).length > 0 ||
-        refPack.heroUrls.length >= 2;
-      if (multiHuman) return "gpt-4o";
+      const anyUploadedRefs =
+        refPack.heroUrls.length > 0 ||
+        Object.keys(refPack.customByFriendId).length > 0;
+      if (anyUploadedRefs) return "gpt-4o";
       return storybookPortraitVisionModel(pictureBookQuality);
     })();
 
@@ -3469,8 +3550,22 @@ async function executeStorybookPipeline(
 
     const bookCoverColorReq = String(body.bookCoverColor ?? "").trim();
 
+    const reportProgress = async (pct: number, label: string) => {
+      try {
+        await onJobProgress?.(
+          Math.max(0, Math.min(100, Math.round(pct))),
+          label.slice(0, 220),
+        );
+      } catch (_e) {
+        /* overlay must not fail the pipeline */
+      }
+    };
+
+    await reportProgress(8, "Preparing your story…");
+
     let story: StoryJson;
     try {
+      await reportProgress(14, "Writing your story…");
       story = await openaiChatJson(
         apiKey,
         system,
@@ -3489,6 +3584,8 @@ async function executeStorybookPipeline(
     }
 
     story.pages = prependFrontMatterPages(story.pages, dedicationAuthor);
+
+    await reportProgress(30, "Story ready — matching faces & outfits…");
 
     const briefsSummary = oddPagesWithIllustrationBriefs(story.pages)
       .map((idx) => story.pages[idx]?.illustrationBrief)
@@ -3525,6 +3622,8 @@ async function executeStorybookPipeline(
     } catch (e) {
       console.warn("[clever-service] compileCharacterLock failed", e);
     }
+
+    await reportProgress(36, "Locking the cast for every picture…");
 
     const coStarFallbackLine = (n: string) =>
       `${n.toUpperCase()}: human child co-star from the plot — match reference-photo hair and skin when storywriter draft lists them; distinguish from ${childName} by **outfit and face shape only**, not by flipping blonde→brown or long→short unless the written draft explicitly says so. ${artStyleSpec.coStarLineEnd}`;
@@ -3623,6 +3722,7 @@ async function executeStorybookPipeline(
 
     try {
       const briefs: { index: number; brief: string; verse: string }[] = [];
+      await reportProgress(40, "Generating illustrations…");
       for (const i of oddPagesWithIllustrationBriefs(story.pages)) {
         const p = story.pages[i];
         if (!p) continue;
@@ -3687,6 +3787,7 @@ async function executeStorybookPipeline(
         const gptHasPortraitRefs =
           refPack.heroUrls.length > 0 ||
           Object.keys(refPack.customByFriendId).length > 0;
+        const hasHeroPortraitRefs = refPack.heroUrls.length > 0;
         const nonHeroPortraitRefs =
           Object.keys(refPack.customByFriendId).length > 0 ||
           /\bCo_star_ref\s*:/i.test(portraitAppearance);
@@ -3697,6 +3798,7 @@ async function executeStorybookPipeline(
         // imageless 200 or a mixed-style book).
         let anchorOut: { url: string; bytes: Uint8Array };
         try {
+          await reportProgress(44, "Drawing the cast lineup…");
           anchorOut = await gptImageGenerate(
             apiKey,
             anchorPrompt,
@@ -3704,11 +3806,14 @@ async function executeStorybookPipeline(
             0,
             gptHasPortraitRefs,
             nonHeroPortraitRefs,
+            hasHeroPortraitRefs,
           );
         } catch (e) {
           const detail = e instanceof Error ? e.message : String(e);
           throw new Error(`gpt_image_anchor_failed: ${detail}`);
         }
+
+        await reportProgress(52, "Illustrating each spread…");
 
         {
           // Skip the text-based visual lock for the GPT Image path — the anchor
@@ -3718,6 +3823,57 @@ async function executeStorybookPipeline(
           // timeout. Identity is already locked by pixels. Visual lock stays in
           // play for the Fal / DALL·E paths below.
           const refBytes = anchorOut.bytes;
+          /** Anchor first; optional uploads as extra `image[]` so likeness is pixel-grounded — not text-only summaries. Disable with **`STORYBOOK_GPTIMAGE_USER_REFS_IN_EDIT=0`. */
+          const editReferenceBytes: Uint8Array[] = [refBytes];
+          if (
+            Deno.env.get("STORYBOOK_GPTIMAGE_USER_REFS_IN_EDIT") !== "0" &&
+            gptHasPortraitRefs
+          ) {
+            const rawTot = Deno.env.get("STORYBOOK_GPTIMAGE_EDIT_MAX_IMAGES")?.trim();
+            const maxTotalParsed = Number.parseInt(rawTot ?? "", 10);
+            const maxTotalImages = Number.isFinite(maxTotalParsed) && maxTotalParsed >= 2
+              ? Math.min(Math.floor(maxTotalParsed), 9)
+              : 6;
+
+            const rawHero = Deno.env.get(
+              "STORYBOOK_GPTIMAGE_EDIT_MAX_USER_HERO_REFS",
+            )?.trim();
+            const maxHeroExtrasParsed = Number.parseInt(rawHero ?? "", 10);
+            const maxHeroExtras =
+              Number.isFinite(maxHeroExtrasParsed) && maxHeroExtrasParsed >= 0
+                ? Math.min(Math.floor(maxHeroExtrasParsed), 6)
+                : 3;
+
+            let heroPhotoCount = 0;
+            for (const hr of refPack.heroUrls) {
+              if (
+                heroPhotoCount >= maxHeroExtras ||
+                editReferenceBytes.length >= maxTotalImages
+              ) break;
+              const b = await loadImageBytesForGptEdit(hr);
+              if (!b?.length) continue;
+              editReferenceBytes.push(b);
+              heroPhotoCount++;
+            }
+            if (heroPhotoCount > 0) {
+              console.info(
+                `[clever-service] gpt-image edit refs: anchor + ${heroPhotoCount} hero photo(s); cap=${maxTotalImages}`,
+              );
+            }
+
+            if (nonHeroPortraitRefs && editReferenceBytes.length < maxTotalImages) {
+              for (const urls of Object.values(refPack.customByFriendId)) {
+                const first = urls?.[0];
+                if (!first) continue;
+                const b = await loadImageBytesForGptEdit(first);
+                if (!b?.length) continue;
+                editReferenceBytes.push(b);
+                console.info("[clever-service] gpt-image edit refs: +1 tagged friend photo");
+                break;
+              }
+            }
+          }
+
           // Stay under Supabase/Cloudflare wall-clock (~150s).
           // Prefer **one** parallel wave of all spreads (default) so total image time ≈
           // slowest single edit, not two waves + cooldown. Tier-1 OpenAI image RPM is low —
@@ -3807,9 +3963,9 @@ async function executeStorybookPipeline(
 
           const shotPlan = readerArtLayoutKey === "facing" ? shotPlanFacing : shotPlanDuplex;
 
-          // Clean, POSITIVE-ONLY edit prompt builder. We attach the anchor PNG as
-          // the character reference; everything else describes ONLY what to
-          // paint, not what to avoid. Negative lists were paradoxically nudging
+          // Clean, POSITIVE-ONLY edit prompt builder. We attach the anchor PNG (and
+          // optional real upload bytes) as references; everything else describes
+          // ONLY what to paint, not what to avoid. Negative lists were paradoxically nudging
           // gpt-image-1 toward stock props (treasure chests, glowing flowers,
           // mossy logs) — every "no treasure" line counts as a treasure mention
           // to the model. So we list nothing to avoid: just the positive scene.
@@ -3839,12 +3995,17 @@ async function executeStorybookPipeline(
             const blocks: string[] = [];
 
             // 1. Style + reference instruction
+            const refIdentityLine =
+              editReferenceBytes.length > 1
+                ? "You have several reference images: **#1** is the neutral cast lineup — use it for **costume colours, buddy species/proportions, hair length/silhouette, and scale vs the buddy**. **#2 onward** are real family photos — for every named child who appears in those photos, match **actual facial structure, eyes, cheek shape, skin tone, and hair** so the painted child is recognisably the same real person (not a generic stock kid). Merge lineup + photos into one consistent likeness per child. Ignore all reference backdrops and snapshot poses; paint environment and action from SETTING and THIS spread's verse only. On THIS spread, choose expressions and body language from the story moment — not pasted neutral grins. Repaint the world fresh. "
+                : "The attached reference image shows the cast on a neutral backdrop — use it ONLY to lock each character's identity (face shapes, hair, outfit colours, species, body shape). Ignore the lineup's neutral expressions and poses for this sheet — on THIS spread, show expressions and poses that fit the story moment. Repaint the world fresh.";
+
             blocks.push(
               artStyleSpec.gptEditStyleOpener +
                 (readerArtLayoutKey === "facing"
                   ? "SAFE SCALE: Full-bleed scene — environment fills the entire canvas edge-to-edge. **Pull the camera back:** the cast together should use only **~28–42% of frame height** (typically) so **walls, sky, cave, or landscape read clearly** — not a zoomed portrait. Full heads, hair, feet, hands, wings, and tails inside the frame with modest inset — never edge-clipped. Never crop standing or jumping children at the neck, waist, or knees — if the moment is full-body, show full-body. **Single-page layout:** centre the cast — keep the focal group's visual mass near **~45–55% horizontal** (balanced; **not** squeezed to one side as if saving space for overlaid text). Do not leave empty margins around the whole painting. "
                   : "SAFE SCALE: Full-bleed scene — environment fills the entire canvas edge-to-edge. **Pull the camera back:** the cast together should use only **~28–42% of frame height** (typically) so **walls, sky, cave, or landscape read clearly** — not a zoomed portrait. Full heads, hair, feet, hands, wings, and tails inside the frame with modest inset — never edge-clipped. Never crop standing or jumping children at the neck, waist, or knees — if the moment is full-body, show full-body. **Book gutter:** bias the group slightly left or right of frame centre — never put a main child's face on the vertical midline. Do not leave empty margins around the whole painting. ") +
-                "The attached reference image shows the cast on a neutral backdrop — use it ONLY to lock each character's identity (face shapes, hair, outfit colours, species, body shape). Ignore the lineup's neutral expressions and poses for this sheet — on THIS spread, show expressions and poses that fit the story moment. Repaint the world fresh.",
+                refIdentityLine,
             );
 
             // 2. Setting (the override-resolved placeDesc + plotHint)
@@ -3997,11 +4158,12 @@ async function executeStorybookPipeline(
                   const out = await gptImageEdit(
                     apiKey,
                     editPrompt,
-                    [refBytes],
+                    editReferenceBytes,
                     pictureBookQuality,
                     0,
                     gptHasPortraitRefs,
                     nonHeroPortraitRefs,
+                    hasHeroPortraitRefs,
                   );
                   return { idx, url: out.url };
                 } catch (e) {
@@ -4019,6 +4181,11 @@ async function executeStorybookPipeline(
               urls[r.idx] = r.url;
               gptImageSpreadCount++;
             }
+            const done = Math.min(chunkStart + slice.length, briefs.length);
+            await reportProgress(
+              52 + Math.round((done / Math.max(1, briefs.length)) * 42),
+              `Picture ${done} of ${briefs.length}…`,
+            );
           }
           // Strict completeness check — if for any reason urls didn't fill,
           // surface a clear error so the UI doesn't render an imageless book.
@@ -4030,11 +4197,20 @@ async function executeStorybookPipeline(
               `gpt_image_incomplete: missing ${missing.length}/${briefs.length} spread(s) at index ${missing.join(",")}`,
             );
           }
+          const uniqUrls = new Set(
+            urls.map((x) => String(x || "").trim()).filter(Boolean),
+          );
+          if (uniqUrls.size === 1 && urls.length > 1) {
+            console.warn(
+              "[clever-service] all GPT-image spread URLs are identical — check storage/provider or prompts",
+            );
+          }
         }
       }
 
       if (!useGptImage && useCastAnchor) {
         let anchorUrl: string | null = null;
+        await reportProgress(44, "Creating reference artwork…");
         try {
           anchorUrl = await falFluxProTextToImageUrl(falKey, falTextModel, anchorPrompt);
           falTextSpreadCount = 1;
@@ -4099,6 +4275,13 @@ async function executeStorybookPipeline(
               urls[idx] = u;
               falReduxSpreadCount++;
               refUrl = u;
+              await reportProgress(
+                44 +
+                  Math.round(
+                    ((idx + 1) / Math.max(1, briefs.length)) * 48,
+                  ),
+                `Picture ${idx + 1} of ${briefs.length}…`,
+              );
             } catch (e) {
               console.warn("[clever-service] Fal Redux (anchor chain) failed for spread", idx, e);
               throwFalImage(`Fal image-to-image failed for spread ${idx + 1} of 6`, e);
@@ -4245,6 +4428,8 @@ async function executeStorybookPipeline(
       );
     }
 
+    await reportProgress(96, "Finishing your book…");
+
     const bookColorOut = coerceBookColor(bookCoverColorReq, story.bookColor, childName);
     const readerFont = pickStoryReaderFont();
 
@@ -4294,6 +4479,8 @@ async function runStorybookGenerationJob(
   if (!client) return;
   await patchStorybookJob(client, jobId, {
     status: "running",
+    progress: 4,
+    progress_label: "Starting your book…",
     updated_at: new Date().toISOString(),
   });
   console.info(`[clever-service] storybook_job start ${jobId}`);
@@ -4308,7 +4495,18 @@ async function runStorybookGenerationJob(
     return;
   }
   try {
-    const res = await executeStorybookPipeline(apiKey, bodySnapshot);
+    const reportProgress = async (pct: number, label: string) => {
+      await patchStorybookJob(client, jobId, {
+        progress: Math.max(0, Math.min(100, Math.round(pct))),
+        progress_label: label.slice(0, 220),
+        updated_at: new Date().toISOString(),
+      });
+    };
+    const res = await executeStorybookPipeline(
+      apiKey,
+      bodySnapshot,
+      reportProgress,
+    );
     const textRes = await res.text();
     let parsed: unknown;
     try {
@@ -4323,6 +4521,12 @@ async function runStorybookGenerationJob(
       status: res.ok ? "complete" : "failed",
       http_status: res.status,
       result_payload: parsed,
+      ...(res.ok
+        ? {
+          progress: 100,
+          progress_label: "Your book is ready!",
+        }
+        : {}),
       updated_at: new Date().toISOString(),
     });
   } catch (e) {
@@ -4356,7 +4560,9 @@ Deno.serve(async (req) => {
       }
       const { data, error } = await client
         .from("storybook_generation_jobs")
-        .select("status,http_status,result_payload,updated_at")
+        .select(
+          "status,http_status,result_payload,updated_at,progress,progress_label",
+        )
         .eq("id", storybookJobId)
         .maybeSingle();
       if (error) {
@@ -4373,6 +4579,12 @@ Deno.serve(async (req) => {
         http_status: data.http_status,
         result: data.result_payload,
         updated_at: data.updated_at,
+        storybook_job_progress:
+          typeof data.progress === "number" ? data.progress : 0,
+        storybook_job_label:
+          typeof data.progress_label === "string" && data.progress_label
+            ? data.progress_label
+            : "",
       });
     }
 

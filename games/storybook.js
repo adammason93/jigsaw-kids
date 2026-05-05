@@ -263,6 +263,12 @@
   var book = document.getElementById("sbBook");
   var bookSpreadEl = document.getElementById("sbBookSpread");
   var busy = document.getElementById("sbBusy");
+  var sbBusyProgressBar = document.getElementById("sbBusyProgressBar");
+  var sbBusyProgressFill = document.getElementById("sbBusyProgressFill");
+  var sbBusyStep = document.getElementById("sbBusyStep");
+  /** Smooth fake progress for synchronous long POST (no job polling). */
+  var sbBuildGuessTimer = null;
+  var sbBuildGuessPct = 0;
   var appEl = document.getElementById("app");
   var nameInput = document.getElementById("sbName");
   var bookTitleInput = document.getElementById("sbBookTitle");
@@ -1207,6 +1213,26 @@
     return storyImageDisplayUrl(raw);
   }
 
+  /** Preload neighbouring spread art so turns don’t linger on the previous decode (large PNG + peel animation exaggerates this). */
+  function prefetchAdjacentSpreadIllustrations() {
+    if (!story || !story.pages || !story.pages.length) return;
+    var nSpr = numSpreads();
+    if (nSpr < 1) return;
+    var si = Math.max(0, Math.min(spreadIndex, nSpr - 1));
+    var seen = {};
+    for (var step = -1; step <= 1; step += 2) {
+      var j = si + step;
+      if (j < 0 || j >= nSpr) continue;
+      var u = illustrationUrlAtSpreadIndex(j);
+      if (!u || Object.prototype.hasOwnProperty.call(seen, u)) continue;
+      seen[u] = true;
+      var preload = new Image();
+      preload.decoding = "async";
+      preload.referrerPolicy = "no-referrer";
+      preload.src = u;
+    }
+  }
+
   /** First duplex art URL for inside-cover preview (skips blank front-matter spreads). */
   function firstSpreadArtUrlForCover() {
     if (!story || !story.pages) return "";
@@ -1344,6 +1370,7 @@
     placeTextPageForFacingLayout();
     updateSpreadPageNumberDisplay();
     nudgeDuplexArtComposite();
+    prefetchAdjacentSpreadIllustrations();
   }
 
   /**
@@ -2468,6 +2495,7 @@
     placeTextPageForFacingLayout();
     updateSpreadPageNumberDisplay();
     updatePagerHints();
+    prefetchAdjacentSpreadIllustrations();
   }
 
   function renderSpread() {
@@ -3953,9 +3981,10 @@
    * @param {string} key
    * @param {string} jobId
    * @param {number} deadlineTs
+   * @param {(info: { progress: number | null, label: string }) => void} [onProgress]
    * @returns {Promise<{ ok: boolean, status: number, body: Record<string, unknown> }>}
    */
-  function pollStorybookJob(baseUrl, key, jobId, deadlineTs) {
+  function pollStorybookJob(baseUrl, key, jobId, deadlineTs, onProgress) {
     var pollMs = 2500;
     return fetch(storybookJobPollUrl(baseUrl, jobId), {
       method: "GET",
@@ -3996,6 +4025,21 @@
           return { ok: false, status: failHttp, body: failBody };
         }
         if (st === "pending" || st === "running") {
+          if (typeof onProgress === "function") {
+            try {
+              var rawPg = b.storybook_job_progress;
+              var pg =
+                typeof rawPg === "number" && !isNaN(rawPg) ? rawPg : null;
+              var lab = b.storybook_job_label;
+              onProgress({
+                progress: pg,
+                label:
+                  typeof lab === "string" && String(lab).trim()
+                    ? String(lab).trim()
+                    : "Working on your book…",
+              });
+            } catch (eProg) {}
+          }
           if (Date.now() > deadlineTs) {
             return {
               ok: false,
@@ -4005,7 +4049,13 @@
           }
           return new Promise(function (resolve) {
             setTimeout(function () {
-              pollStorybookJob(baseUrl, key, jobId, deadlineTs).then(resolve);
+              pollStorybookJob(
+                baseUrl,
+                key,
+                jobId,
+                deadlineTs,
+                onProgress
+              ).then(resolve);
             }, pollMs);
           });
         }
@@ -4490,14 +4540,78 @@
     return "standard";
   }
 
+  function clearStorybookBuildProgressGuessing() {
+    if (sbBuildGuessTimer != null) {
+      window.clearInterval(sbBuildGuessTimer);
+      sbBuildGuessTimer = null;
+    }
+    sbBuildGuessPct = 0;
+  }
+
+  /**
+   * @param {number} pct 0–100
+   * @param {string} label
+   * @param {{ skipDefaultMsg?: boolean }} [opts]
+   */
+  function setStorybookBuildProgressUi(pct, label, opts) {
+    opts = opts || {};
+    var p =
+      typeof pct === "number" && !isNaN(pct)
+        ? Math.max(0, Math.min(100, pct))
+        : 0;
+    if (sbBusyProgressBar) {
+      sbBusyProgressBar.setAttribute("aria-valuenow", String(Math.round(p)));
+    }
+    if (sbBusyProgressFill) {
+      sbBusyProgressFill.style.width = p + "%";
+    }
+    if (sbBusyStep) {
+      sbBusyStep.textContent =
+        label && String(label).trim() ? String(label).trim() : "Working…";
+    }
+    var msgEl = busy && busy.querySelector(".sb-busy__msg");
+    if (msgEl && !opts.skipDefaultMsg) {
+      msgEl.textContent =
+        "This can take a few minutes — please keep this page open. It is still working.";
+    }
+  }
+
+  /** When the server cannot stream progress (sync POST), creep toward ~88% so the bar never looks frozen. */
+  function startStorybookBuildProgressGuessing() {
+    clearStorybookBuildProgressGuessing();
+    setStorybookBuildProgressUi(8, "Writing and illustrating…", {
+      skipDefaultMsg: true,
+    });
+    sbBuildGuessPct = 8;
+    sbBuildGuessTimer = window.setInterval(function () {
+      if (!busy || busy.hidden) return;
+      sbBuildGuessPct = Math.min(
+        88,
+        sbBuildGuessPct + (sbBuildGuessPct < 38 ? 1.9 : 0.75)
+      );
+      if (sbBusyProgressFill) {
+        sbBusyProgressFill.style.width = sbBuildGuessPct + "%";
+      }
+      if (sbBusyProgressBar) {
+        sbBusyProgressBar.setAttribute(
+          "aria-valuenow",
+          String(Math.round(sbBuildGuessPct))
+        );
+      }
+    }, 880);
+  }
+
   function setBusy(on) {
     if (!busy) return;
     if (on) {
       busy.classList.remove("is-hidden");
       busy.hidden = false;
     } else {
+      clearStorybookBuildProgressGuessing();
       busy.classList.add("is-hidden");
       busy.hidden = true;
+      setStorybookBuildProgressUi(0, "", { skipDefaultMsg: true });
+      if (sbBusyStep) sbBusyStep.textContent = "";
     }
   }
 
@@ -5043,10 +5157,19 @@
           return;
         }
       }
+      var useAsync = storybookAsyncJobsEnabled();
       sbGenerateInFlight = true;
       btnGen.disabled = true;
       btnGen.setAttribute("aria-busy", "true");
       setBusy(true);
+      clearStorybookBuildProgressGuessing();
+      if (useAsync) {
+        setStorybookBuildProgressUi(5, "Starting your book…", {
+          skipDefaultMsg: true,
+        });
+      } else {
+        startStorybookBuildProgressGuessing();
+      }
       var familyPeople = getSelectedFamilyPeople();
       var requestBody = {
         childName: childName || "Friend",
@@ -5078,7 +5201,6 @@
             })
           : undefined,
       };
-      var useAsync = storybookAsyncJobsEnabled();
       function postStorybook(asyncFlag) {
         var body = Object.assign({}, requestBody);
         if (asyncFlag) body.storybook_async = true;
@@ -5116,7 +5238,17 @@
               url,
               key,
               String(b.storybook_job_id),
-              deadline
+              deadline,
+              function (info) {
+                clearStorybookBuildProgressGuessing();
+                var pr =
+                  typeof info.progress === "number" && !isNaN(info.progress)
+                    ? info.progress
+                    : 12;
+                setStorybookBuildProgressUi(pr, info.label || "Working…", {
+                  skipDefaultMsg: true,
+                });
+              }
             );
           }
           return out;
@@ -5202,6 +5334,10 @@
             setError(msg);
             return;
           }
+          clearStorybookBuildProgressGuessing();
+          setStorybookBuildProgressUi(100, "Your book is ready!", {
+            skipDefaultMsg: true,
+          });
           var apiTitle =
             out.body && out.body.title ? String(out.body.title).trim() : "";
           var customTitle = bookTitleInput ? bookTitleInput.value.trim() : "";

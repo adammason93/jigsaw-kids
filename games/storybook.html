@@ -12,7 +12,7 @@
   <link rel="manifest" href="../manifest.json" />
   <link rel="stylesheet" href="../js/kids-core.css" />
   <!-- storybook-app.css = renamed file so CDN/browser cache cannot keep old storybook.css -->
-  <link rel="stylesheet" href="storybook-app.css?v=178" />
+  <link rel="stylesheet" href="storybook-app.css?v=179" />
   <link rel="stylesheet" href="../tablet-ipad.css" />
   <!-- Last wins: guarantees new background even if a proxy cached an ancient stylesheet elsewhere -->
   <style>
@@ -416,21 +416,21 @@
           <fieldset class="sb-picture-quality">
             <legend class="sb-label sb-label--secondary">Pictures</legend>
             <p class="sb-panel__micro sb-picture-quality__hint" id="sbPictureQualityHint">
-              <strong>Play &amp; screen</strong> is the default — great when kids are trying ideas (often <strong>~14p total</strong> for the book’s AI pictures, not per image). <strong>Best for print</strong> uses smarter writing + photos — often roughly <strong>~40–60p for that book’s AI pictures only</strong> (anchor + spreads; not counting separate story/chat/vision costs on your OpenAI bill). With the newest GPT Image model the server trims resolution and edit tiers so picture totals stay nearer that band — set <strong>STORYBOOK_GPTIMAGE_LEGACY_BUDGET=0</strong> in Supabase for max-size print. Exact pence moves with pricing and uploads.
+              Want the cheapest run? Stick with <strong>Play &amp; screen</strong> — the AI <strong>picture</strong> step is usually only <strong>about a third</strong> of <strong>Best for print</strong> when you are <em>not</em> adding reference photos (often <strong>~14p</strong> vs <strong>~40–60p</strong> UK-style ballpark for GPT Image anchor + six spreads). If you <strong>do</strong> upload photos, the server uses the same careful vision + picture settings for <strong>character consistency</strong> as the pro image tier — still <strong>1024²</strong> and still <strong>lighter story/lock models</strong> than Best for print, so the book stays cheaper overall. <strong>Best for print</strong> upgrades the writing + lock steps. <strong>STORYBOOK_GPTIMAGE_LEGACY_BUDGET=0</strong> maxes “Best for print” resolution. Exact pence varies with pricing and rate tier.
             </p>
             <div class="sb-quality-row" role="radiogroup" aria-labelledby="sbPictureQualityHint">
               <label class="sb-quality-opt">
                 <input type="radio" name="sbPictureQuality" value="standard" checked />
                 <span class="sb-quality-opt__body">
                   <span class="sb-quality-opt__title">Play &amp; screen (default)</span>
-                  <span class="sb-quality-opt__sub">~14p-style run — quick, fun, fine on a tablet</span>
+                  <span class="sb-quality-opt__sub">~14p-style with no uploads; with photos, same likeness-focused picture + vision settings at 1024² (lighter story models than Best for print)</span>
                 </span>
               </label>
               <label class="sb-quality-opt">
                 <input type="radio" name="sbPictureQuality" value="high" />
                 <span class="sb-quality-opt__body">
                   <span class="sb-quality-opt__title">Best for print</span>
-                  <span class="sb-quality-opt__sub">Sharper story + art match — ~40–60p for pictures (whole book bill is higher)</span>
+                  <span class="sb-quality-opt__sub">Sharper story + art — ~40–60p for pictures alone (about 3× Play &amp; screen)</span>
                 </span>
               </label>
             </div>
@@ -814,7 +814,21 @@
     <div class="sb-busy is-hidden" id="sbBusy" aria-live="polite" aria-busy="true" hidden>
       <div class="sb-busy__card">
         <p class="sb-busy__title">Creating your book…</p>
-        <p class="sb-busy__msg">Writing your story and drawing the pictures — it may take a little while.</p>
+        <p class="sb-busy__msg">
+          This can take a few minutes — please keep this page open. It is still working.
+        </p>
+        <div
+          class="sb-busy__progress-track"
+          id="sbBusyProgressBar"
+          role="progressbar"
+          aria-valuemin="0"
+          aria-valuemax="100"
+          aria-valuenow="0"
+          aria-label="Book creation progress"
+        >
+          <div class="sb-busy__progress-fill" id="sbBusyProgressFill"></div>
+        </div>
+        <p class="sb-busy__step" id="sbBusyStep">Starting…</p>
         <div class="sb-busy__dots" aria-hidden="true"><span></span><span></span><span></span></div>
       </div>
     </div>

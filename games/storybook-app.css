@@ -4984,6 +4984,37 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   line-height: 1.45;
 }
 
+.sb-busy__progress-track {
+  margin-top: 1.15rem;
+  height: 12px;
+  border-radius: 999px;
+  background: rgba(253, 186, 216, 0.72);
+  overflow: hidden;
+  box-shadow: inset 0 1px 3px rgba(157, 23, 77, 0.14);
+}
+
+.sb-busy__progress-fill {
+  height: 100%;
+  width: 0%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #f9a8d4, #f472b6 42%, #db2777);
+  transition: width 0.5s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sb-busy__progress-fill {
+    transition: none;
+  }
+}
+
+.sb-busy__step {
+  margin: 0.65rem 0 0;
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: #be185d;
+  min-height: 1.3em;
+}
+
 .sb-busy__dots {
   display: flex;
   justify-content: center;
