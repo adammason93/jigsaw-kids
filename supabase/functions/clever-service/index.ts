@@ -1392,6 +1392,9 @@ function sanitizeModelJsonForParse(s: string): string {
 const PAGE_COUNT = 12;
 const FRONT_MATTER_PAGE_COUNT = 2;
 
+/** Zero-based index of the LAST prose-first page before the finale picture slot (usually page 11 in 1-based terms). */
+const LAST_MODEL_TEXT_PAGE_INDEX = PAGE_COUNT - 2;
+
 /** 0-based indices of picture pages in the **12-page model** output (normalize + briefs). */
 const MODEL_PICTURE_PAGE_INDICES = [1, 3, 5, 7, 9, 11] as const;
 
@@ -1429,6 +1432,20 @@ function spreadTextForPicturePage(pictureIndex: number, pages: StoryPage[]): str
   const same = pages[pictureIndex]?.text?.trim() ?? "";
   const merged = (left.length >= same.length ? left : same) || left || same;
   return merged.replace(/[.!?…]+$/u, "").trim();
+}
+
+/** Shown on shelf thumbnail + opener — constrain crowding vs cast lineup / storywriter over-listing. */
+const OPENING_SCENE_IMAGE_CONSTRAINTS =
+  "OPENING PICTURE (also the bookshelf cover thumbnail): Prefer a **CLEAR, UN-CROWDED** tableau — ideally **≤3 full-bodied figures visible** (**hero + buddy + at most ONE extra human**, each named on the paired prose page unless the child's plot snippet literally insists on more people gathered for moment one — then **≤4**, still uncrowded). **FORBIDDEN:** clipped or half-visible children or buddies sneaking into frame from extreme left/right — no cropped-only elbows, stray hat rims, or half torsos at the edges; every pictured person is fully framed. EVERY named figure must appear **COMPLETE** inside the margins with roomy setting foreground/background breathing space. ";
+
+function fallbackProseForEmptyEvenTextPage(pageIndexEven0: number): string {
+  if (pageIndexEven0 === LAST_MODEL_TEXT_PAGE_INDEX) {
+    return (
+      "Everything felt still for a heartbeat—then bubbling laughter broke it open again.\n\n" +
+      "They wandered home slowly together, swapping favourite bits aloud and grinning whenever the day's sparkle twinkled back to mind—the kind that keeps bedtime smiles glowing long after the door clicks shut."
+    );
+  }
+  return "Little quiet fell between giggles—but they leaned toward the next idea before it could sneak away.";
 }
 
 /** When the model returns too few entries, synthesise placeholders by spread — avoid repeating the SAME closing line mid-book. */
@@ -1477,8 +1494,17 @@ function normalizeStoryJson(raw: unknown): StoryJson {
   }
   pages.length = PAGE_COUNT;
 
-  for (const p of pages) {
-    if (!p.text) p.text = "They smiled and looked around.";
+  for (let i = 0; i < pages.length; i++) {
+    const p = pages[i];
+    const raw = String(p.text ?? "").replace(/[ \t]+/g, " ").trim();
+    if (i % 2 === 1) {
+      /* Picture-slot rows: duplex may overlay verse sometimes; facing leaves these blank often. Never inject generic prose here — that polluted facing text pages beside "The End". */
+      p.text = raw;
+    } else if (!raw) {
+      p.text = fallbackProseForEmptyEvenTextPage(i);
+    } else {
+      p.text = raw;
+    }
     if (p.text.length > 920) p.text = p.text.slice(0, 917) + "…";
   }
 
@@ -2957,7 +2983,7 @@ ${
         ? "COMPOSITION / SCALE FOR THE ILLUSTRATOR (single-page pictures — story text is on the facing HTML page, not painted on this image): Each illustration reads as ONE standalone page. **No empty half, blank strip, or soft dead zone reserved for captions** in the art — paint a **balanced full-bleed** scene edge-to-edge. **Centre the cast and focal action** — keep the group's visual mass roughly **~45–55% from the left** (near the picture's horizontal middle), **not** parked on the far right or far left. **Camera pulled back** — picture-book *wide* or *medium-wide* framing: the **environment** must stay a major part of every illustration. Typical group shots: the whole cast together only **~30–45% of frame height** (single-figure beats a bit less). Modest inset — horns, ears, wing tips fully inside the frame. When the verse describes jumping, bouncing, trampolines, soaring, flying, or reaching high in the air, the illustrationBrief MUST specify a wide or full shot with every visible named figure shown completely head-to-toe — never a tight mid-shot that crops at the neck, waist, or knees."
         : "COMPOSITION / SCALE FOR THE ILLUSTRATOR: Full-bleed spreads — the setting and atmosphere fill the double-page edge-to-edge. **Camera pulled back** — picture-book *wide* or *medium-wide* framing, not tight hero close-ups: the **environment** (walls, sky, terrain, props) must be a major part of every illustration so readers can “see the place”, not just faces. Typical group shots: the whole cast together only **~30–45% of frame height** (single-figure beats a bit less); avoid filling most of the canvas with heads and torsos. Keep a modest inset so every listed character fits without edge-clipping (full heads and feet on wide shots; on closer emotional beats, still show plenty of background, not a portrait zoom). The tallest features (unicorn horn, ears, hair, wing tips) must sit fully inside the frame with visible margin — never cropped. If tight, **widen the shot** or shrink the characters. **GUTTER:** Do not place a main character’s face or body on the exact vertical centre — bias the group slightly left or right of the fold so the book spine does not cut a child in half. When the verse describes jumping, bouncing, trampolines, soaring, flying, or reaching high in the air, the illustrationBrief MUST specify a wide or full shot with every visible named figure shown completely head-to-toe — never a tight mid-shot that crops at the neck, waist, or knees."
     }
-  OPENING SPREAD (page 2 only — the first illustrationBrief): MUST match page 1 text and the child's plot, AND establish the actual SETTING (castle / woods / cave / beach / space / zoo / farm / mountain / sea / ship / train / city / circus / lake / snow / desert / museum / island / etc. — whichever the plot calls for). Page 1 text must name every main character the plot introduces (${childName}, any sibling/friend named in the plot idea, and the buddy creature by type — e.g. dinosaur). Only characters named on page 1 may appear on page 2's illustration. Example: if the plot is "hide and seek in a castle", the opening establishes castle gates / courtyard / great hall — NOT a forest. No unwritten extras.
+  OPENING SPREAD (page 2 only — the first illustrationBrief; also reused as bookshelf cover thumbnail): MUST match page 1 text and the child's plot, AND establish the actual SETTING (castle / woods / cave / beach / space / zoo / farm / mountain / sea / ship / train / city / circus / lake / snow / desert / museum / island / etc. — whichever the plot calls for).\nOPENING CAST BUDGET — **minimal faces so the cover thumbnail reads clearly:** Pair page 1 text with page 2 so **VISIBLE** ordinarily lists ONLY ${childName}, the imaginary buddy (if any), and **at most one other named human actually in that opening verse**, unless the plot snippet explicitly needs several children together in scene one. **Do NOT put every optional game friend onto spreads 1–2**: introduce extra pals **from spread 3 onward** unless page 1 names each one **on stage together.** **VISIBLE** mirrors page 1 only — **no half-visible bodies creeping from frame edges**; every faced figure wholly inside margins.\n Example: castle hide-and-seek opens at gates or courtyard — not a woods default.** No unwritten extras.
   When game people with portrait notes appear on a picture page, the brief should mention them looking like those notes (hair, outfit colours, age vibe).
 - If a "plot idea" is given, you MUST make it the central theme of the story and feature it heavily in EVERY illustration brief. If it is empty, invent a short happy outing that fits the setting.
 - PLOT FIDELITY — read the plot idea LITERALLY:
@@ -3152,7 +3178,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
     const spread1Prompt = composeDallePrompt({
       preamble: stylePreamble,
       envTheme,
-      sceneBrief: briefs[0].brief,
+      sceneBrief: OPENING_SCENE_IMAGE_CONSTRAINTS + briefs[0].brief,
       castBible,
       firstPanelLock: "",
       heroFirstName: childName,
@@ -3352,6 +3378,12 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
           // 3. Shot framing
           blocks.push(`SHOT TYPE (spread ${idx + 1} of ${shotPlan.length}): ${shot.label}. ${shot.note}`);
 
+          if (idx === 0) {
+            blocks.push(
+              `OPENING / SHELF THUMB (${childName}'s FIRST picture): Compose like a paperback cover — **≤3 cleanly framed figures preferred** (${childName} + buddy ± one named friend from the verse) unless THIS verse deliberately groups more—and then **still ≤4** with wide camera. Absolutely **NO partial people** cropping in from far left/right edges.`,
+            );
+          }
+
           const verseBriefForCam = `${b.verse}\n${b.brief}`;
           if (needsFullBodyWideFraming(verseBriefForCam)) {
             blocks.push(
@@ -3516,7 +3548,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
           const composed = composeDallePrompt({
             preamble: stylePreamble,
             envTheme,
-            sceneBrief: b.brief,
+            sceneBrief: (idx === 0 ? OPENING_SCENE_IMAGE_CONSTRAINTS : "") + b.brief,
             castBible,
             firstPanelLock: panelLock,
             heroFirstName: childName,
