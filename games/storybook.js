@@ -4126,13 +4126,13 @@
     });
   }
 
-  function resetPictureQualityToStandard() {
+  function resetPictureQualityToDefault() {
     var std = document.querySelector(
       'input[name="sbPictureQuality"][value="standard"]'
     );
     var hi = document.querySelector('input[name="sbPictureQuality"][value="high"]');
-    if (std) std.checked = true;
-    if (hi) hi.checked = false;
+    if (std) std.checked = false;
+    if (hi) hi.checked = true;
   }
 
   function goToStep(n) {
@@ -4183,7 +4183,7 @@
     if (bookColorsExtra) bookColorsExtra.hidden = true;
     if (bookColorToggle) bookColorToggle.setAttribute("aria-expanded", "false");
     goToStep(0);
-    resetPictureQualityToStandard();
+    resetPictureQualityToDefault();
     syncBookSpreadLayoutRadios();
     syncIllustrationStyleRadios();
     syncStoryTextModeRadios();

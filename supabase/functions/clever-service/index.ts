@@ -622,6 +622,8 @@ async function compileCharacterLockForImages(
     /** Single-appearance line matching `ChildName:` from portrait block — verbatim pin for HERO in LOCK CAST. */
     heroPortraitPinnedLine?: string;
     compileLockArtWords: string;
+    /** OpenAI chat model for cast lock rewrite (tier-based from caller). */
+    compileLockChatModel: string;
   },
 ): Promise<string> {
   const co = input.plotNamedHumans.length > 0
@@ -689,7 +691,7 @@ async function compileCharacterLockForImages(
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: "gpt-4o-mini",
+      model: input.compileLockChatModel.trim() || "gpt-4o-mini",
       temperature: 0.15,
       max_tokens: 1200,
       messages: [
@@ -1637,10 +1639,25 @@ function normalizeStoryJson(raw: unknown): StoryJson {
   return { title, characterDesign, bookColor, pages };
 }
 
+/** Story JSON — `high` book tier uses a stronger model unless `STORYBOOK_STORY_MODEL` is set. */
+function storybookStoryChatModel(bookTier: PictureBookQuality): string {
+  const o = (Deno.env.get("STORYBOOK_STORY_MODEL") ?? "").trim();
+  if (o) return o;
+  return bookTier === "high" ? "gpt-4o" : "gpt-4o-mini";
+}
+
+/** LOCKED CAST compile — same tier rule; override with `STORYBOOK_COMPILE_LOCK_MODEL`. */
+function storybookCompileLockChatModel(bookTier: PictureBookQuality): string {
+  const o = (Deno.env.get("STORYBOOK_COMPILE_LOCK_MODEL") ?? "").trim();
+  if (o) return o;
+  return bookTier === "high" ? "gpt-4o" : "gpt-4o-mini";
+}
+
 async function openaiChatJsonOnce(
   apiKey: string,
   system: string,
-  user: string
+  user: string,
+  storyModel: string,
 ): Promise<StoryJson> {
   const r = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
@@ -1649,7 +1666,7 @@ async function openaiChatJsonOnce(
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: "gpt-4o-mini",
+      model: storyModel,
       temperature: 0.35,
       max_tokens: 10000,
       response_format: { type: "json_object" },
@@ -1694,7 +1711,8 @@ async function openaiChatJsonOnce(
 async function openaiChatJson(
   apiKey: string,
   system: string,
-  user: string
+  user: string,
+  storyModel: string,
 ): Promise<StoryJson> {
   const maxAttempts = 3;
   let lastErr: Error | null = null;
@@ -1703,7 +1721,7 @@ async function openaiChatJson(
       await delay(600 * attempt + Math.floor(Math.random() * 500));
     }
     try {
-      return await openaiChatJsonOnce(apiKey, system, user);
+      return await openaiChatJsonOnce(apiKey, system, user, storyModel);
     } catch (e) {
       lastErr = e instanceof Error ? e : new Error(String(e));
       const msg = lastErr.message;
@@ -2028,13 +2046,15 @@ type PictureBookQuality = "standard" | "high";
  * **`STORYBOOK_REF_PHOTO_IMAGE_BOOST=1`** (or `true` / `on` / `yes`), in which case we use a
  * **high** cast anchor once + **medium** edits so likeness reads better (costs more).
  * Default (unset): economy image quality with refs — same as no uploads on standard tier.
- * `high` = print-oriented: 1536×1024 when env size unset, quality high/medium when env unset.
+ * `high` = print-oriented: 1536×1024 when env size unset; when `STORYBOOK_GPTIMAGE_*` secrets are unset, anchor and spread edits both use **high** image quality and **high** `input_fidelity` on edits for stronger reference match.
  * `STORYBOOK_GPTIMAGE_SIZE` / `STORYBOOK_GPTIMAGE_QUALITY` secrets still override per tier.
  */
 function coercePictureBookQuality(raw: unknown): PictureBookQuality {
   const s = String(raw ?? "").trim().toLowerCase();
   if (s === "high" || s === "print" || s === "premium") return "high";
-  return "standard";
+  if (s === "standard" || s === "economy" || s === "screen") return "standard";
+  // Omitted / unknown → treat as premium (better likeness + story–picture alignment; higher cost)
+  return "high";
 }
 
 /** Reader layout: duplex = one wide image with HTML text overlaid; facing = art alone on one page. */
@@ -2353,7 +2373,8 @@ function gptImageQualityForRequest(
     return envRaw;
   }
   if (bookTier === "high") {
-    return scope === "generation" ? "high" : "medium";
+    // Premium tier: strong anchor + strong edits so reference identity and scene details stick
+    return "high";
   }
   // Standard tier — optional bump when ref photos (costly; enable with STORYBOOK_REF_PHOTO_IMAGE_BOOST=1)
   if (hasUserPortraitRefs && gptImageRefPhotoQualityBoostEnabled()) {
@@ -3145,7 +3166,12 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
 
   let story: StoryJson;
   try {
-    story = await openaiChatJson(apiKey, system, user);
+    story = await openaiChatJson(
+      apiKey,
+      system,
+      user,
+      storybookStoryChatModel(pictureBookQuality),
+    );
   } catch (e) {
     console.error(e);
     const detail =
@@ -3179,6 +3205,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
       portraitAppearance,
       heroPortraitPinnedLine: heroPortraitPin ?? undefined,
       compileLockArtWords: artStyleSpec.compileLockArtWords,
+      compileLockChatModel: storybookCompileLockChatModel(pictureBookQuality),
     });
   } catch (e) {
     console.warn("[clever-service] compileCharacterLock failed", e);
