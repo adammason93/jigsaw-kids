@@ -2036,9 +2036,9 @@ function storyLengthSpec(key: StoryLengthKey): StoryLengthSpec {
       };
     default:
       return {
-        proseParagraphLead: "**2–4 short paragraphs**",
+        proseParagraphLead: "**1–2 short paragraphs**",
         proseWordRange:
-          "~**150–190 words** total on that page",
+          "~**95–135 words** total on that page",
         proseAntiRhymeHint: "ten single-line rhyming rows",
         rhymeLines: 10,
         rhymeLinesHint:
@@ -2067,7 +2067,19 @@ function proseEvenPageFloorWords(len: StoryLengthKey): number {
     case "long":
       return 215;
     default:
-      return 130;
+      return 92;
+  }
+}
+
+/** Max generic padding paragraphs per prose page (model text first; pads only if under word floor). */
+function proseMaxPadChunks(len: StoryLengthKey): number {
+  switch (len) {
+    case "long":
+      return 4;
+    case "short":
+      return 3;
+    default:
+      return 1;
   }
 }
 
@@ -2130,6 +2142,8 @@ function enrichProseStoryEvenPages(
   const pads = [...PROSE_PAGE_PAD_BY_LENGTH[lengthKey]];
   if (!pads.length) return story;
 
+  const maxPad = proseMaxPadChunks(lengthKey);
+
   const pages = story.pages.map((p, idx) =>
     idx % 2 === 0 ? { ...p, text: String(p.text ?? "") } : { ...p },
   );
@@ -2138,7 +2152,11 @@ function enrichProseStoryEvenPages(
     const spreadSlot = Math.floor(i / 2);
     let t = pages[i].text.trim();
     let added = 0;
-    while (countStoryWordsUk(t) < floor && added < 4 && t.length < STORYBOOK_PROSE_PAGE_TEXT_MAX - 380) {
+    while (
+      countStoryWordsUk(t) < floor &&
+      added < maxPad &&
+      t.length < STORYBOOK_PROSE_PAGE_TEXT_MAX - 380
+    ) {
       const chunk = pads[(spreadSlot + added) % pads.length]?.trim();
       if (!chunk) break;
       t = t.length ? `${t}\n\n${chunk}` : chunk;
@@ -3021,7 +3039,7 @@ Deno.serve(async (req) => {
 
   const proseVolumeParityRule =
     storyTextModeKey === "prose"
-      ? `- **Even read-aloud heft:** Every prose-first TEXT page should feel **similarly full** (${lenSpec.proseParagraphLead}; ${lenSpec.proseWordRange.replace("total on that page", "each page alike")}). Pages **9** (spread 5 text) and **11** (spread 6 text) are not epilogue scraps—never shrink them to one skinny sentence. Match the cosy weight of spreads 2–4: weave dialogue, tactile detail (path, breeze, hands), sleepy jokes, and reactions among named characters—still advancing THIS plot—so the cream page ahead of the finale reads beautifully aloud.`
+      ? `- **Readable balance:** Every prose-first TEXT page should sit in the same **ballpark** (${lenSpec.proseParagraphLead}; ${lenSpec.proseWordRange.replace("total on that page", "each page alike")}) — comfortable for a single read-aloud pause, not a wall of text. Pages **9** (spread 5 text) and **11** (spread 6 text) must still advance and close THIS plot warmly—never collapse to **one short sentence** alone — but **do not** inflate late pages beyond the paragraph budget above; weave plot-specific dialogue and detail, not extra bulk.`
       : "";
 
   const system = `You write warm picture-book stories for UK English-speaking children about age 5.
