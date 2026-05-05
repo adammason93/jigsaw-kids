@@ -10,6 +10,8 @@ Older **non–GPT-Image** pipelines may still exist **in source** for forks; omi
 
 ```bash
 supabase secrets set OPENAI_API_KEY=sk-...
+# Optional — OpenAI **Organization ID** (`org-…` from Dashboard → Settings → Organization). Every OpenAI request sends **`OpenAI-Organization`** so billing / model gates (e.g. **GPT Image 2** “verify organization”) match the org that owns the key — use when the default API-key context is not your verified org.
+# supabase secrets set OPENAI_ORGANIZATION=org-...
 # Optional — story read-aloud voice (default **ballad** if unset). Full list: alloy, ash, ballad, cedar, coral, echo, fable, marin, nova, onyx, sage, shimmer, verse. Requires **gpt-4o-mini-tts** (default model).
 # supabase secrets set OPENAI_TTS_VOICE=ballad
 # Optional — faster/cheaper legacy TTS (no ballad/cedar/marin/verse): `tts-1` or `tts-1-hd` (voices outside the 9-voice subset are remapped).
@@ -109,6 +111,8 @@ Some illustration URLs load through **`clever-service?url=`** when the browser n
 ## Troubleshooting
 
 - **GPT Image (`STORYBOOK_IMAGE_MODE=gptimage`)** — **strict**: the function ONLY uses the configured GPT Image model (**default `gpt-image-2`** if `STORYBOOK_GPTIMAGE_MODEL` is unset). If the anchor or any spread edit fails, the function returns **`gpt_image_failed`** (or **`gpt_image_anchor_failed`**) with the OpenAI **`detail`** and **`imageMode: "gptimage"`**. **`size`**, **`quality`**, **`input_fidelity`** follow tier + **`STORYBOOK_GPTIMAGE_*`** secrets — see Secrets block. **`HTTP 400` fallbacks** may retry minimal payloads inside the GPT Image pipeline only — not a provider switch.
+
+- **HTTP 403 / “organization must be verified” (GPT Image):** finish **organization verification** in the OpenAI dashboard for the org that owns the key, wait for propagation, and ensure **`OPENAI_API_KEY`** is created under that org. If usage still hits the wrong org context, set **`OPENAI_ORGANIZATION=org-…`** (same ID as the verified workspace) and redeploy — all chat, image, and TTS calls send that header.
 
 - **`images_failed` / DALL·E HTTP 400**: only applies if your deployment runs the **legacy OpenAI Images (DALL·E)** path (**no** GPT Image mode). Otherwise ignore if you strictly use GPT Image.
 

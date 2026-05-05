@@ -8,6 +8,31 @@ const corsHeaders: Record<string, string> = {
 };
 
 /**
+ * When **`OPENAI_ORGANIZATION`** or **`OPENAI_ORG_ID`** is set to **`org-…`** (from
+ * Dashboard → Organization settings), all OpenAI API calls send **`OpenAI-Organization`**
+ * so GPT Image etc. resolve to the workspace that shows **Verified** — fixes lingering
+ * `403 Must verify organization` after verify when keys span multiple contexts.
+ */
+function openAiOrgExtraHeaders(): Record<string, string> {
+  const id =
+    (Deno.env.get("OPENAI_ORGANIZATION") ?? Deno.env.get("OPENAI_ORG_ID") ?? "").trim();
+  if (!/^org-[a-zA-Z0-9]+$/.test(id)) return {};
+  return { "OpenAI-Organization": id };
+}
+
+function openAiJsonAuthHeaders(apiKey: string): Record<string, string> {
+  return {
+    Authorization: `Bearer ${apiKey}`,
+    "Content-Type": "application/json",
+    ...openAiOrgExtraHeaders(),
+  };
+}
+
+function openAiBearerOrgHeaders(apiKey: string): Record<string, string> {
+  return { Authorization: `Bearer ${apiKey}`, ...openAiOrgExtraHeaders() };
+}
+
+/**
  * OpenAI speech built-in voices for `gpt-4o-mini-tts` (full set).
  * `tts-1` / `tts-1-hd` only support: alloy, ash, coral, echo, fable, onyx, nova, sage, shimmer.
  * @see https://platform.openai.com/docs/guides/text-to-speech#voice-options
@@ -690,10 +715,7 @@ async function compileCharacterLockForImages(
 
   const r = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
+    headers: openAiJsonAuthHeaders(apiKey),
     body: JSON.stringify({
       model: compileModel,
       temperature: 0.15,
@@ -721,10 +743,7 @@ async function compileCharacterLockForImages(
 async function visualLockFromFirstImage(apiKey: string, imageUrl: string): Promise<string> {
   const r = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
+    headers: openAiJsonAuthHeaders(apiKey),
     body: JSON.stringify({
       model: "gpt-4o-mini",
       temperature: 0.1,
@@ -982,10 +1001,7 @@ async function openaiVisionDescribePortraits(
 
   const r = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
+    headers: openAiJsonAuthHeaders(apiKey),
     body: JSON.stringify({
       model: storybookPortraitVisionModel(bookTier),
       temperature: 0.05,
@@ -1051,10 +1067,7 @@ async function openaiVisionSummarizeHeroFromRefs(
 
   const r = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
+    headers: openAiJsonAuthHeaders(apiKey),
     body: JSON.stringify({
       model: storybookPortraitVisionModel(bookTier),
       temperature: 0.05,
@@ -1101,10 +1114,7 @@ async function openaiVisionTwoHeroPhotosSameChild(
   ];
   const r = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
+    headers: openAiJsonAuthHeaders(apiKey),
     body: JSON.stringify({
       model: "gpt-4o-mini",
       temperature: 0,
@@ -1715,10 +1725,7 @@ async function openaiChatJsonOnce(
 ): Promise<StoryJson> {
   const r = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
+    headers: openAiJsonAuthHeaders(apiKey),
     body: JSON.stringify({
       model: chatModel,
       temperature: 0.35,
@@ -1820,10 +1827,7 @@ async function openaiImageGenerations(
 ): Promise<string> {
   const r = await fetch("https://api.openai.com/v1/images/generations", {
     method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
+    headers: openAiJsonAuthHeaders(apiKey),
     body: JSON.stringify(payload),
   });
 
@@ -2625,10 +2629,7 @@ async function gptImageGenerate(
   const post = (body: Record<string, unknown>) =>
     fetch("https://api.openai.com/v1/images/generations", {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
+      headers: openAiJsonAuthHeaders(apiKey),
       body: JSON.stringify(body),
     });
 
@@ -2724,7 +2725,7 @@ async function gptImageEdit(
 
   let r = await fetch("https://api.openai.com/v1/images/edits", {
     method: "POST",
-    headers: { Authorization: `Bearer ${apiKey}` },
+    headers: openAiBearerOrgHeaders(apiKey),
     body: buildForm(true),
   });
   let raw = await r.text();
@@ -2732,7 +2733,7 @@ async function gptImageEdit(
     console.warn("[gpt-image] edits HTTP 400 — retrying without quality field");
     r = await fetch("https://api.openai.com/v1/images/edits", {
       method: "POST",
-      headers: { Authorization: `Bearer ${apiKey}` },
+      headers: openAiBearerOrgHeaders(apiKey),
       body: buildForm(false),
     });
     raw = await r.text();
@@ -2814,10 +2815,7 @@ Deno.serve(async (req) => {
       try {
         const r = await fetch("https://api.openai.com/v1/audio/speech", {
           method: "POST",
-          headers: {
-            Authorization: `Bearer ${apiKey}`,
-            "Content-Type": "application/json",
-          },
+          headers: openAiJsonAuthHeaders(apiKey),
           body: JSON.stringify(payload),
         });
         
