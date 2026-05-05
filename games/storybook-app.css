@@ -3522,33 +3522,59 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   overflow: hidden;
 }
 
-/* Warm paper + clear paint-corner shapes (no inner frame border). */
+/* Warm paper + bold paint-corner blobs + sparkles (::after SVGs). */
 .sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-flip-page--text .sb-flip-page__sheet::before {
   content: "";
   position: absolute;
   inset: 0;
   z-index: 0;
+  pointer-events: none;
   background:
-    radial-gradient(ellipse 95% 90% at 2% -2%, rgba(255, 170, 200, 0.48) 0%, transparent 58%),
-    radial-gradient(ellipse 92% 88% at 98% 102%, rgba(255, 195, 120, 0.46) 0%, transparent 55%),
-    radial-gradient(ellipse 78% 72% at -6% 88%, rgba(140, 200, 255, 0.38) 0%, transparent 52%),
-    radial-gradient(ellipse 76% 70% at 106% -4%, rgba(185, 235, 160, 0.34) 0%, transparent 50%),
-    radial-gradient(circle at 82% 12%, rgba(160, 200, 230, 0.32) 0%, transparent 7%),
-    radial-gradient(circle at 16% 38%, rgba(255, 190, 210, 0.22) 0%, transparent 6%),
+    radial-gradient(
+      ellipse 130% 115% at -2% -8%,
+      rgba(255, 145, 195, 0.82) 0%,
+      rgba(255, 190, 215, 0.42) 38%,
+      transparent 62%
+    ),
+    radial-gradient(
+      ellipse 125% 110% at 106% 108%,
+      rgba(255, 178, 110, 0.76) 0%,
+      rgba(255, 215, 168, 0.4) 44%,
+      transparent 66%
+    ),
+    radial-gradient(ellipse 58% 52% at 102% -4%, rgba(185, 235, 170, 0.48) 0%, transparent 58%),
+    radial-gradient(ellipse 52% 58% at -8% 102%, rgba(145, 205, 255, 0.45) 0%, transparent 56%),
+    radial-gradient(circle at 74% 30%, rgba(255, 200, 160, 0.22) 0%, transparent 22%),
     repeating-linear-gradient(
-      -14deg,
+      -13deg,
       transparent 0,
-      transparent 14px,
-      rgba(255, 255, 255, 0.06) 14px,
-      rgba(255, 255, 255, 0.06) 15px
+      transparent 15px,
+      rgba(255, 255, 255, 0.05) 15px,
+      rgba(255, 255, 255, 0.05) 16px
     ),
     linear-gradient(
       168deg,
-      color-mix(in srgb, var(--sb-flip-light) 32%, #fffef9) 0%,
-      #faf7f1 52%,
-      color-mix(in srgb, var(--sb-flip-light) 24%, #f2ebe1) 100%
+      #fffefb 0%,
+      color-mix(in srgb, var(--sb-flip-light) 18%, #faf7f0) 52%,
+      color-mix(in srgb, var(--sb-flip-light) 12%, #f2ebe2) 100%
     );
+}
+
+/* Small star + squiggle (muted blue-grey like sample books). */
+.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-flip-page--text .sb-flip-page__sheet::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
   pointer-events: none;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='3' fill='%2399b4c9' opacity='0.8'/%3E%3Cpath stroke='%2399b4c9' stroke-width='1.8' stroke-linecap='round' opacity='0.65' d='M12 6v12M6 12h12'/%3E%3C/svg%3E")
+      no-repeat 90% 4.5% / 19px 19px,
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 52 38' fill='none'%3E%3Cpath stroke='%2399b4c9' stroke-width='2.2' stroke-linecap='round' opacity='0.78' d='M6 28c10-28 38 4 40-22'/%3E%3C/svg%3E")
+      no-repeat 84% 46% / 48px 32px,
+    radial-gradient(circle at 22% 70%, rgba(255, 255, 255, 0.4) 0%, transparent 5%),
+    radial-gradient(circle at 35% 18%, rgba(255, 255, 255, 0.35) 0%, transparent 4%);
+  opacity: 0.92;
 }
 
 .sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-flip-page--text .sb-flip-text {
@@ -3923,14 +3949,25 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
 .sb-flip-spread__inner--art-facing.sb-flip-spread__inner--peel-turning
   .sb-flip-spread__peel-back.sb-flip-spread__peel-back--verso-text {
   background:
-    radial-gradient(ellipse 92% 82% at 2% -4%, rgba(255, 175, 205, 0.35) 0%, transparent 52%),
-    radial-gradient(ellipse 90% 78% at 100% 104%, rgba(255, 195, 115, 0.32) 0%, transparent 50%),
-    radial-gradient(ellipse 78% 70% at -6% 94%, rgba(140, 200, 255, 0.26) 0%, transparent 48%),
-    radial-gradient(ellipse 76% 68% at 106% -2%, rgba(185, 235, 160, 0.22) 0%, transparent 46%),
+    radial-gradient(
+      ellipse 120% 100% at -10% -10%,
+      rgba(255, 145, 195, 0.65) 0%,
+      rgba(255, 195, 220, 0.32) 42%,
+      transparent 62%
+    ),
+    radial-gradient(
+      ellipse 115% 105% at 118% 118%,
+      rgba(255, 172, 100, 0.6) 0%,
+      rgba(255, 210, 160, 0.3) 46%,
+      transparent 62%
+    ),
+    radial-gradient(ellipse 60% 50% at 102% -2%, rgba(185, 235, 170, 0.38) 0%, transparent 55%),
+    radial-gradient(ellipse 55% 55% at -14% 98%, rgba(145, 205, 255, 0.36) 0%, transparent 52%),
     linear-gradient(
       168deg,
-      color-mix(in srgb, var(--sb-flip-light) 32%, #fffef9) 0%,
-      #f0e9df 100%
+      #fffefb 0%,
+      color-mix(in srgb, var(--sb-flip-light) 18%, #faf7f0) 52%,
+      color-mix(in srgb, var(--sb-flip-light) 12%, #ebe4d8) 100%
     );
 }
 
