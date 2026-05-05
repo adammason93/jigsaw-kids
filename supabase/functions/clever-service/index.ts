@@ -1,5 +1,9 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
+import { createClient } from "npm:@supabase/supabase-js@2";
+import type { SupabaseClient } from "npm:@supabase/supabase-js@2";
+
+
 const corsHeaders: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
@@ -1590,6 +1594,32 @@ function jsonResponse(body: unknown, status = 200) {
   });
 }
 
+/**
+ * Secret API key for Storage + service-role DB (bypasses RLS).
+ * Prefers JWT Signing Keys (**`SUPABASE_SECRET_KEYS`**) per Supabase defaults; falls back to legacy **`SUPABASE_SERVICE_ROLE_KEY`**.
+ */
+function supabaseSecretApiKey(): string | undefined {
+  const forkOverride = Deno.env.get("STORYBOOK_SUPABASE_SERVICE_ROLE_KEY")?.trim();
+  if (forkOverride) return forkOverride;
+
+  const raw = Deno.env.get("SUPABASE_SECRET_KEYS")?.trim();
+  if (raw) {
+    try {
+      const dict = JSON.parse(raw) as Record<string, string>;
+      const def = dict["default"]?.trim();
+      if (def) return def;
+      for (const v of Object.values(dict)) {
+        if (typeof v === "string" && v.length > 20) return v.trim();
+      }
+    } catch {
+      console.warn("[clever-service] SUPABASE_SECRET_KEYS JSON parse failed");
+    }
+  }
+
+  const legacy = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")?.trim();
+  return legacy || undefined;
+}
+
 /** When `FAL_KEY` is set, illustration failures must not fall back to DALL·E (avoids mixed-style books). */
 class FalImageError extends Error {
   constructor(message: string) {
@@ -2711,9 +2741,11 @@ async function uploadPngToStorybookImages(
   name: string,
 ): Promise<string> {
   const url = (Deno.env.get("SUPABASE_URL") ?? "").trim();
-  const key = (Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "").trim();
+  const key = supabaseSecretApiKey() ?? "";
   if (!url || !key) {
-    throw new Error("storage_misconfigured: SUPABASE_URL or SERVICE_ROLE_KEY");
+    throw new Error(
+      "storage_misconfigured: SUPABASE_URL or secret key (SUPABASE_SECRET_KEYS / SUPABASE_SERVICE_ROLE_KEY)",
+    );
   }
   const cleanName = name.replace(/[^a-zA-Z0-9._-]/g, "");
   const path = `gptimage/${cleanName}`;
@@ -2958,6 +2990,1352 @@ async function openaiSpreadImageUrl(apiKey: string, prompt: string): Promise<str
   }
 }
 
+
+
+declare const EdgeRuntime: {
+  waitUntil: (promise: Promise<unknown>) => void;
+};
+
+type StorybookRequestBody = Record<string, unknown>;
+
+function storybookJobServiceRoleKey(): string | undefined {
+  return supabaseSecretApiKey();
+}
+
+function storybookJobSupabaseUrl(): string | undefined {
+  const u =
+    Deno.env.get("STORYBOOK_SUPABASE_URL")?.trim() ||
+    Deno.env.get("SUPABASE_URL")?.trim();
+  return u || undefined;
+}
+
+function serviceRoleSupabase(): SupabaseClient | null {
+  const url = storybookJobSupabaseUrl();
+  const key = storybookJobServiceRoleKey();
+  if (!url || !key) return null;
+  return createClient(url, key, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+      detectSessionInUrl: false,
+    },
+  });
+}
+
+async function patchStorybookJob(
+  client: SupabaseClient,
+  id: string,
+  patch: Record<string, unknown>,
+) {
+  const { error } = await client
+    .from("storybook_generation_jobs")
+    .update(patch)
+    .eq("id", id);
+  if (error) console.warn("[storybook_job] patch failed", id, error.message);
+}
+
+async function insertPendingStorybookJob(
+  client: SupabaseClient,
+  id: string,
+  payload: StorybookRequestBody,
+): Promise<string | null> {
+  const { error } = await client.from("storybook_generation_jobs").insert({
+    id,
+    status: "pending",
+    request_payload: payload,
+    updated_at: new Date().toISOString(),
+  });
+  return error ? error.message : null;
+}
+
+function stripStorybookAsyncFields(body: StorybookRequestBody): StorybookRequestBody {
+  const {
+    storybook_async: _a,
+    storybook_poll_hint_ms: _p,
+    ...rest
+  } = body as Record<string, unknown>;
+  return rest as StorybookRequestBody;
+}
+
+function wantsStorybookAsync(body: StorybookRequestBody): boolean {
+  const v = body.storybook_async;
+  if (v === true || v === 1 || v === "true" || v === "1") return true;
+  if (v === false || v === 0 || v === "false" || v === "0") return false;
+  const def = Deno.env.get("STORYBOOK_ASYNC_DEFAULT")?.trim().toLowerCase();
+  return def === "1" || def === "true";
+}
+
+async function executeStorybookPipeline(
+  apiKey: string,
+  body: StorybookRequestBody,
+): Promise<Response> {
+    const childName = sanitizeName(String(body.childName ?? ""));
+    const dedicationAuthor =
+      String(body.author ?? "").trim() || childName;
+    const characterKey = normalizeWizardKey(body.character ?? "");
+    const placeKey = normalizeWizardKey(body.place ?? "");
+
+    let characterDesc = CHARACTERS[characterKey];
+    let placeDesc = PLACES[placeKey];
+
+    if (characterKey === "custom_buddy") {
+      const c = sanitizeCustomChoice(String(body.buddyCustom ?? ""));
+      if (c.length < 4) {
+        return jsonResponse({
+          error: "invalid_choices",
+          detail: "custom_buddy_too_short",
+        }, 400);
+      }
+      characterDesc =
+        `One imaginary buddy as described: ${c}. Keep a single consistent friendly storybook design — soft proportions, kind expression, never scary or adult; no realistic weapons, gore, horror, or recognizable licensed characters.`;
+    }
+    if (placeKey === "custom_place") {
+      const p = sanitizeCustomChoice(String(body.placeCustom ?? ""));
+      if (p.length < 4) {
+        return jsonResponse({
+          error: "invalid_choices",
+          detail: "custom_place_too_short",
+        }, 400);
+      }
+      placeDesc =
+        `Setting as described: ${p}. Bright picture-book world for young children — warm and readable, no nightmare horror, disasters, politics, or logos / brand text.`;
+    }
+
+    if (!characterDesc || !placeDesc) {
+      if (!characterDesc) {
+        return jsonResponse({
+          error: "invalid_choices",
+          detail: `unknown_character:${characterKey}`,
+        }, 400);
+      }
+      return jsonResponse({
+        error: "invalid_choices",
+        detail: `unknown_place:${placeKey}`,
+      }, 400);
+    }
+
+    const noBuddyBook = characterKey === "nobuddy";
+
+    const plotHint = sanitizePlotHint(String(body.plotHint ?? ""));
+    const pictureBookQuality = coercePictureBookQuality(body.pictureBookQuality);
+    const illustrationStyleKey = coerceIllustrationStyle(body.illustrationStyle);
+    const readerArtLayoutKey = coerceReaderArtLayout(body.readerArtLayout);
+    const storyTextModeKey = coerceStoryTextMode(body.storyTextMode, readerArtLayoutKey);
+    const storyLengthKey = coerceStoryLength(body.storyLength);
+    const lenSpec = storyLengthSpec(storyLengthKey);
+    const artStyleSpec = ART_STYLE_SPECS[illustrationStyleKey];
+
+    // If the child's plot prompt clearly names a different setting than the one
+    // they tapped on (e.g. picker = "woods" but plot says "in a castle"), the
+    // PLOT wins. Otherwise the LLM gets a conflicting "ENVIRONMENT: forest"
+    // alongside "THEME: castle hide and seek" and the model averages them.
+    // Detect the most specific setting word in the plot and swap.
+    let placeOverridden: { from: string; to: string } | null = null;
+    if (plotHint) {
+      const settingMap: Array<{
+        pattern: RegExp;
+        key: string;
+        desc: string;
+      }> = [
+        {
+          pattern: /\b(castle|fortress|palace|throne\s*room|drawbridge|turret|keep|battlement)\b/i,
+          key: "castle",
+          desc: "a fairy-tale castle — stone walls and corridors with arched doorways, hanging tapestries and banners, flagstone floors, courtyards with crenellated walls, narrow turret windows",
+        },
+        {
+          pattern: /\b(cave|cavern|tunnel|underground)\b/i,
+          key: "cave",
+          desc: PLACES.cave,
+        },
+        {
+          pattern:
+            /\b(football\s*stadium|soccer\s*stadium|football\s*ground|football\s*pitch|soccer\s*pitch|soccer\s*field|at\s+the\s+stadium|in\s+the\s+stadium|stadium\s+stands?)\b/i,
+          key: "stadium",
+          desc: PLACES.stadium,
+        },
+        {
+          pattern: /\b(museum|gallery)\b/i,
+          key: "museum",
+          desc: PLACES.museum,
+        },
+        {
+          pattern: /\b(train|railway|locomotive|carriage|station\s+platform)\b/i,
+          key: "train",
+          desc: PLACES.train,
+        },
+        {
+          pattern: /\b(circus|big\s*top|under\s+the\s+circus\s+tent)\b/i,
+          key: "circus",
+          desc: PLACES.circus,
+        },
+        {
+          pattern: /\b(pirate\s*ship|galleon|shipwreck|aboard\s+a\s+ship|on\s+a\s+pirate\s+ship)\b/i,
+          key: "pirateship",
+          desc: PLACES.pirateship,
+        },
+        {
+          pattern: /\b(zoo|safari\s*park|petting\s+zoo|animal\s*park|aquarium)\b/i,
+          key: "zoo",
+          desc: PLACES.zoo,
+        },
+        {
+          pattern: /\b(farm|barn|tractor|hayloft|farmland)\b/i,
+          key: "farm",
+          desc: PLACES.farm,
+        },
+        {
+          pattern: /\b(mountain|mountains|alpine|summit|peak|hillside|hilltop)\b/i,
+          key: "mountain",
+          desc: PLACES.mountain,
+        },
+        {
+          pattern: /\b(desert|sand\s*dunes|oasis)\b/i,
+          key: "desert",
+          desc: PLACES.desert,
+        },
+        {
+          pattern: /\b(snow|snowy|igloo|ski\s+slope|winter\s+wonderland)\b/i,
+          key: "snow",
+          desc: PLACES.snow,
+        },
+        {
+          pattern: /\b(town|city|market\s+square|high\s*street)\b/i,
+          key: "city",
+          desc: PLACES.city,
+        },
+        {
+          pattern: /\b(lake|lakeside|riverbank|rowing\s+boat)\b/i,
+          key: "lake",
+          desc: PLACES.lake,
+        },
+        {
+          pattern: /\b(tropical\s*island|on\s+an\s+island|island\s+adventure)\b/i,
+          key: "island",
+          desc: PLACES.island,
+        },
+        {
+          pattern: /\b(underwater|under\s*the\s*sea|ocean\s*floor|coral|reef|mermaid|submarine)\b/i,
+          key: "undersea",
+          desc: PLACES.undersea,
+        },
+        {
+          pattern: /\b(space|outer\s*space|moon|planet|galaxy|cosmic|rocket|asteroid|comet)\b/i,
+          key: "space",
+          desc: "a friendly cartoon planet or asteroid in space — soft pastel landscape with distant ringed planets, comet trails, and starry sky",
+        },
+        {
+          pattern: /\b(at\s*sea|open\s*ocean|sailing|yacht|out\s*on\s*the\s*waves)\b/i,
+          key: "sea",
+          desc: PLACES.sea,
+        },
+        {
+          pattern: /\b(beach|shore|seaside|sand\s*castle|surf|rockpool)\b/i,
+          key: "beach",
+          desc: "a sunny beach with gentle waves, soft sand, scattered shells, and palm trees or rocky outcrops in the distance",
+        },
+        {
+          pattern: /\b(garden|meadow|orchard|vegetable\s*patch|allotment)\b/i,
+          key: "garden",
+          desc: "a flower garden with butterflies, tall hollyhocks, a winding path, and a wooden gate or trellis",
+        },
+        {
+          pattern: /\b(woods?|forest|jungle|glade|grove|thicket|undergrowth)\b/i,
+          key: "woods",
+          desc: PLACES.woods,
+        },
+      ];
+      for (const s of settingMap) {
+        if (s.pattern.test(plotHint) && placeKey !== s.key) {
+          placeOverridden = { from: placeKey, to: s.key };
+          placeDesc = s.desc;
+          console.info(
+            `[clever-service] place override: picker="${placeKey}" -> plot-detected="${s.key}"`,
+          );
+          break;
+        }
+      }
+    }
+    const familyPeople = sanitizeFamilyPeople(body.familyPeople);
+    const familyNames =
+      familyPeople.length > 0
+        ? familyPeople.map((p) => p.label)
+        : sanitizeFamilyNames(body.familyNames);
+    const plotPetLower = plotPetTaggedNames(plotHint);
+    const plotNamesFromPlot = extractPlotNamedHumans(plotHint, childName, plotPetLower);
+
+    const bookAssetsBase = (Deno.env.get("BOOK_ASSETS_BASE_URL") ?? "").trim();
+    const refPack = sanitizeCharacterReferencePhotos(
+      body,
+      familyPeople,
+      childName,
+    );
+
+    const portraitVisionModelResolved = (() => {
+      const env = (Deno.env.get("STORYBOOK_VISION_MODEL") ?? "").trim();
+      if (env) return env;
+      const multiHuman =
+        Object.keys(refPack.customByFriendId).length > 0 ||
+        refPack.heroUrls.length >= 2;
+      if (multiHuman) return "gpt-4o";
+      return storybookPortraitVisionModel(pictureBookQuality);
+    })();
+
+    let portraitAppearance = "";
+    const portraitVisionAttempted = Boolean(
+      refPack.heroUrls.length > 0 ||
+        Object.keys(refPack.customByFriendId).length > 0 ||
+        (bookAssetsBase && familyPeople.length > 0),
+    );
+    if (portraitVisionAttempted) {
+      try {
+        portraitAppearance = await appearanceNotesFromReferences(
+          apiKey,
+          bookAssetsBase,
+          familyPeople,
+          childName,
+          refPack.heroUrls,
+          refPack.customByFriendId,
+          pictureBookQuality,
+          portraitVisionModelResolved,
+        );
+      } catch (e) {
+        console.warn("[clever-service] portrait vision failed", e);
+      }
+    }
+
+    const plotNamedHumans = mergePlotNamedHumansWithPortrait(
+      plotHint,
+      portraitAppearance,
+      plotNamesFromPlot,
+      childName,
+      plotPetLower,
+    );
+    const storyHumanNames = mergeUniqueFirstNames(
+      [childName],
+      mergeUniqueFirstNames(familyNames, plotNamedHumans),
+    );
+    const plotOnlyHumans = plotNamedHumans.filter(
+      (n) => !familyNames.some((f) => f.toLowerCase() === n.toLowerCase()),
+    );
+
+    const portraitBlockForText =
+      portraitAppearance.length > 0
+        ? `\n\nAppearance from reference photos (each line is one person — hero and any friends you tagged with a photo, or default game portraits; match when describing these people in the story):\n${portraitAppearance}\n`
+        : "";
+
+    const storyLengthAndFormatRule =
+      storyTextModeKey === "prose"
+        ? readerArtLayoutKey === "facing"
+          ? `- Exactly 12 pages (six double-page spreads). **Facing-page layout** (one full-page picture + one dedicated text page): each **odd** text page is shown alone on a cream text page in the app — not overlaid on art. Write ${lenSpec.proseParagraphLead} per odd page (${lenSpec.proseWordRange}), warm read-aloud prose for age ~5, with natural dialogue and sensory detail. Use **one** separator between the two paragraphs only: **two newlines** (\\n\\n) in the JSON string — **no** extra blank lines, **no** third paragraph. **Do not** force ${lenSpec.proseAntiRhymeHint}; light rhythm or occasional rhyme is fine — **clarity and story flow come first**.`
+          : `- Exactly 12 pages (six double-page spreads). **Duplex layout** (one wide picture with read-aloud text overlaid on the spread in the app): each **odd** text page pairs with the illustration — write ${lenSpec.proseParagraphLead} per odd page (${lenSpec.proseWordRange}), warm read-aloud prose for age ~5, with natural dialogue and sensory detail. Use **one** separator between the two paragraphs only: **two newlines** (\\n\\n) — **no** extra blank lines, **no** third paragraph. **Do not** force ${lenSpec.proseAntiRhymeHint}; light rhythm or occasional rhyme is fine — **clarity and story flow come first**.`
+        : readerArtLayoutKey === "facing"
+        ? `- Exactly 12 pages (six double-page spreads). **Facing-page layout** (one full-page picture + one dedicated text page): each **odd** text page is shown alone on a cream text page in the app — not overlaid on art. The text on every such page MUST be exactly **${lenSpec.rhymeLines}** lines long (${lenSpec.rhymeLinesHint}), written as a fun, rhythmic poem that rhymes perfectly across the page (${lenSpec.rhymeSchemeExamples}). Each line should be ${lenSpec.rhymeLineShape}. Format the text with actual line breaks (\\n) after each line so the rhyming words fall at the ends of lines.`
+        : `- Exactly 12 pages (six double-page spreads). The text on every page MUST be exactly **${lenSpec.rhymeLines}** lines long (${lenSpec.rhymeLinesHint}), written as a fun, rhythmic poem that rhymes perfectly across the page (${lenSpec.rhymeSchemeExamples}). Each line should be ${lenSpec.rhymeLineShape}. Format the text with actual line breaks (\\n) after each line so the rhyming words fall at the ends of lines.`;
+
+    const oddPageTextFormatHint =
+      storyTextModeKey === "prose"
+        ? readerArtLayoutKey === "facing"
+          ? `${lenSpec.proseParagraphLead} in each odd \"text\" field — **exactly two paragraphs**, one separator (\\n\\n) between them, ${lenSpec.proseWordRange.replace("total on that page", "per page")}, warm read-aloud prose (not strict line-by-line rhyme).`
+          : `${lenSpec.proseParagraphLead} in each odd \"text\" field — **exactly two paragraphs**, one separator (\\n\\n), ${lenSpec.proseWordRange.replace("total on that page", "per page")}, warm read-aloud prose for text shown with the wide illustration (not strict line-by-line rhyme).`
+        : `exactly **${lenSpec.rhymeLines}** lines, separated by newline characters (\\n) in each \"text\" string — ${lenSpec.rhymeOddPageTail}.`;
+
+    const proseVolumeParityRule =
+      storyTextModeKey === "prose"
+        ? `- **Two paragraphs only:** Every prose-first TEXT page MUST be **exactly two paragraphs** (${lenSpec.proseWordRange.replace("total on that page", "each page alike")}) — same rule on pages **9** and **11** as everywhere else. Split the beat across two blocks (e.g. scene + reaction, or dialogue + narrator follow-up); **do not** add a third paragraph, **do not** glue everything into one slab, **do not** use more than one \\n\\n in the string.`
+        : "";
+
+    const system = `You write warm picture-book stories for UK English-speaking children about age 5.
+  Rules:
+  - ${artStyleSpec.storyBrief}
+  ${noBuddyBook ? `BOOK MODE — NO IMAGINARY BUDDY: The reader chose "No buddy". For this entire book: (1) Do NOT add a recurring fantasy creature companion (unicorn, dragon, robot, etc.) in story text, characterDesign, or illustrationBriefs unless the child's plot idea explicitly requires that creature. (2) characterDesign must describe ONLY humans — the hero, any plot-named children, and game people. (3) Each illustrationBrief VISIBLE line lists only people (humans) named in that verse. (4) Page 1 must not introduce a creature buddy. Invent gentle human-centred adventures when the plot is open-ended.\n\n` : ""}- Warm, gentle, silly — never scary, violent, or mean.
+  - No romance, no weapons, no villains that frighten.
+  ${storyLengthAndFormatRule}
+  ${proseVolumeParityRule ? `${proseVolumeParityRule}\n` : ""}- **Where the ending lives (critical):** The \`pages\` array holds **exactly twelve** slots in reading order (**1-indexed aloud:** page **1**, page **2**, … page **12**). Odd slots are prose-first beats; each even slot sits with the illustration for that spread (duplex overlays text *or*, in facing layouts, prose lives on odd slots only). Treat this as **six spreads**: spreads **1–4** introduce and escalate; spread **5 (pages 9–10)** tends to carry the climax; spread **6 (pages 11–12)** **resolves**. The **LAST full prose close** MUST sit on **page 11 only** (**array index \`10\`**, zero-based). Give **two short paragraphs there** tying up THIS plot (celebration, hugs, quiet pride, thanking the buddy) — plot-specific joy, **not vague summary**. **Page 12** (**index \`11\`**) carries **picture only** (\`illustrationBrief\` full; its \`text\` stays minimal by JSON shape). Readers should feel done after page **11**'s words. Do **not** drop a cliché goodbye like "**And that was a lovely day**" on pages **7** or **9** and vanish. If a beat tilts sentimental mid-book you must still invent **fresh, plot-specific prose** on **later odd pages**, especially through **page 11**'s last lines (walking home slower, jokes, squeezing in another little moment). **Never fully wrap the whole adventure** before slot **page 11** — reserve that page for real closure.
+  - Odd-numbered (text-first) pages: end calmly — do NOT tack on a random ALL CAPS sound effect (SPLASH! SNORE! ZOOM!) after the text; those often feel disconnected. Keep the whole page in normal sentence case. Only use a short capped word if it is genuinely the punchline of that beat (rare); most pages should have no ALL CAPS word at all.
+  - NAMES VS GENDER (critical): Do **not** choose boy/girl from how a first name "usually" sounds. Names like Remy, Riley, Alex, Sam, Jordan, Charlie can be girls or boys. **The appearance-from-photos lines are ground truth:** if a line says **Gender: girl** and long blonde hair, that named child is a **girl** in the story — use **she/her** pronouns in verses, and characterDesign must say **girl** with that exact hair — never give her a boy's short brown haircut or **he/him** unless the line explicitly says **Gender: boy**. Never override a photo-derived girl line with a masculine default.
+  - The hero's name is given — use it often. The hero IS ${childName} — this exact first name must appear in the story text on every page where the main child acts. Whenever ${childName} is in a spread's scene, that spread's illustrationBrief must name ${childName} (you may list other named friends first if the verse introduces them that way). Never substitute a different child, wrong name, or wrong gender as the hero. The art paints only who you name — do not imply an unnamed generic kid.
+  - HUMAN CO-STARS vs IMAGINARY BUDDY (critical): The "Main friend character" below is always ONE imaginary creature (unicorn, dragon, dinosaur, etc.). If the plot idea also names another child, that child is a REAL HUMAN — not the buddy, not a shape-shifted version of the buddy, and never given the buddy's role in the plot. NEVER merge names: do not write that the human co-star flies as the dragon, or that the dragon "is" that child. When the plot says the children cannot find the DINOSAUR / DRAGON, the verses must ask where the DINOSAUR or DRAGON is — do not substitute a child's name as the thing that is lost unless the plot literally says that child is hiding.
+  - **PET NAMES (critical):** A capitalised name right after "**puppy**," "**dog**," "**kitten**," "**cat**," "**bunny**," "**hamster**," "**pet**," or phrases like "**dog named** …" belongs to an **animal** (the pet). That name is NOT a separate human brother/sister/co-star — describe them as an animal character in prose if needed — **never** duplicate them as a human child in characterDesign alongside ${childName}.
+  - CAST vs TEXT (strict): Each illustrationBrief may include ONLY characters who appear **by name** on that spread's paired text page (the odd page before it), or the one imaginary buddy when the text clearly means them ("the dinosaur", "their friend") after names were established. If the verse names ${childName} plus a human co-star (e.g. Isaac) plus the buddy, all three may appear when the verse puts them in the scene. If the verse only mentions ${childName} and the buddy, the picture has only those two. If the verse also names game people who are in that scene, they may appear — list everyone the text actually puts in the moment. Never add lions, bears, random pals, villagers, crowds, or background "silhouette people" that the text does not mention. A few characters is fine **only** when the text names them all for that beat.
+  - **VISIBLE order & on-stage completeness:** Whenever two or more humans share a beat in the paired prose, **every one named by first name** there must appear in **VISIBLE** for that spread — no silent swaps. List humans in **VISIBLE** in **first-mention order** as they appear in the verse when all are on stage (left-to-right staging may echo that unless the DESCRIPTION needs a clear focal exception). If the first sentence spotlights one child acting (**toddles out**, leads the action) before another joins, that first child must be **drawn in frame** for the paired picture — do not show only the second child unless the verse says the first has stepped away; **reorder the verse** if you cannot stage both yet.
+  - If "People from the child's games" are listed, include them in the story by name as extra friends or family. They should feel like the same friendly faces the child picks in other games (e.g. Tilly, Baby). They are separate from the one imaginary "main friend character" (unicorn, dragon, etc.) — both can appear.${
+      portraitAppearance
+        ? " If appearance lines are given for the hero or game people, stay consistent with those visual details when you naturally describe them."
+        : ""
+    }
+  ${
+    portraitAppearance
+      ? `\nPHOTO-MATCH (reference photos were uploaded): The "Appearance from reference photos" block in the user message was produced from real family pictures. For every person named there, characterDesign and every spread must preserve that identity — **hair colour, hair length, and style (including accessories)**, eye colour, skin tone, approximate age, and gender presentation — never swap in a different-looking child. If a photo line conflicts with generic "plain solid tee" boilerplate, follow the photo summary (you may describe a busy real-life top as one short neutral phrase such as "cream sweatshirt with a colourful front" rather than inventing a different outfit).\n**NO HAIR CONTRAST:** If two (or more) lines all describe long blonde hair (or the same family of colouring), **every** named child must keep that — do **not** make one child brunette, auburn, or short-haired so they "look different" next to the hero. Differentiate co-stars with outfit, face shape, or small style details only, not opposite hair colours.\n`
+      : ""
+  }
+  ${
+    /\bCo_star_ref\s*:/i.test(portraitAppearance)
+      ? `\nCo_star_ref: That line describes the second uploaded **human** reference. Map it in characterDesign and illustrations to the other named child in the story (the human co-star from the plot or games) — not ${childName} when two kids are in the book, and never the imaginary buddy creature.\n`
+      : ""
+  }
+  ${
+    portraitAppearance
+      ? `\nCO-STAR HAIR (when two kids, one merged photo line): If the appearance block only fully describes ${childName} but the plot names a second human child and there is NO Co_star_ref line, give that second child hair/skin colouring **consistent with the references** (e.g. long blonde references → do not invent short brown hair for the sibling/friend unless the plot says they look different).\n`
+      : ""
+  }
+  - Include fields title (string), characterDesign (string), bookColor (string: ${BOOK_COLOR_MODEL_HINT}. If unsure, pick a tint that fits the child's name — cooler tones for many boy names, warmer for many girl names), and pages (array of 12 objects).
+    For "characterDesign": describe the hero, the one main buddy creature, EVERY human child named in the plot idea who appears in the story, and any named game people who actually appear. If the plot names only ${childName} plus the buddy, characterDesign has exactly those two rich descriptions. If the plot names an extra child (e.g. Isaac), add a full third block for that child — never fold them into the buddy description. Never lions, bears, or unnamed critters. For each included character you MUST define their EXACT gender (e.g. boy/girl) **from the appearance-from-photos lines when present — those Gender: girl/boy tokens override any guess from the spelling of the child's name.** Then age, height in words or feet without inch marks (e.g. about four feet tall, or 4 ft), body shape, skin/surface tone, eye color, facial features, hair color, hair style, AND exact texture/material (e.g. smooth sculpted clay hair, fuzzy felt fur, shiny plastic — never use the double-quote character anywhere in this field). For the buddy creature, explicitly define anatomy (horse-like unicorn with hooves and horn; or winged dragon; etc.). Plus ONE specific, unchanging outfit or set of accessories with exact colors and materials. If an animal or creature wears nothing, say they are in natural animal form with no human outfits.${
+      portraitAppearance
+        ? " When reference-photo appearance lines exist for a person, treat those as authoritative for hair, eyes, skin, and outfit vibe for that person — do not overwrite with a generic description."
+        : ""
+    } CRITICAL: Keep clothing solid-colored and simple. DO NOT put logos, graphics, patterns, or text on clothing (DALL-E hallucinates these). **OUTFIT COLOUR LOCK:** Give each recurring human **one named solid shirt colour** (e.g. Isaac = **orange** crew tee, ${childName} = **white** top) in characterDesign and keep that **exact word** forever — **never** swap orange↔green or similar between spreads. DO NOT give them multiple outfits or changing colours. You MUST use the exact same clothing description for the hero in EVERY single illustrationBrief. That locks their look for the book; the illustrator still shows different faces and poses per spread from the story beats — your prose should not force the same generic smile line into every brief.
+  - Each page: { "text": string, "illustrationBrief": string | null }.
+  - DOUBLE-PAGE SPREADS: pair pages as (1,2), (3,4), (5,6), (7,8), (9,10), (11,12).
+    Odd-numbered pages (1,3,5,7,9,11) are TEXT-FIRST pages only — use "illustrationBrief": null.
+    Even-numbered pages (2,4,6,8,10,12) are PICTURE pages — each MUST have a non-null "illustrationBrief": a vivid visual scene description for an illustrator (no text to draw, no words on signs). Each brief MUST be different and visibly progress the journey.
+    STRICT BRIEF FORMAT — start each brief with one explicit line, then a free description:
+      "VISIBLE: <comma-separated list of who is actually in this picture frame> — DESCRIPTION: <one or two sentences of what they do and where>"
+    VISIBLE CAST RULES (very important — read the paired verse carefully):
+      • Default visible = hero + any human co-stars named in the verse (e.g. a sibling) + the buddy, **only when that verse actually puts them on stage together**. If the verse is only about ${childName} and the buddy, VISIBLE lists those two. If the verse names ${childName}, Isaac, and the buddy together, list all three.
+      • If the verse says someone is HIDDEN, missing, lost, "where is", "can't find", "nowhere to be seen", "hiding", "we cannot see", "out of sight", or has flown / run / sailed AWAY — that character is NOT visible. Exclude them from VISIBLE.
+      • Example, hide-and-seek beat where the dragon is the seeker hiding: VISIBLE: Sofia, Isaac (dragon hidden — do not include).
+      • Example, beat where dragon is found / revealed: VISIBLE: Sofia, Isaac, dragon.
+      • Example, beat where the dragon is flying overhead and they spot it: VISIBLE: Sofia, Isaac, dragon (dragon small in the upper sky, whole body and wings fully visible — not clipped by the top edge).
+      • Never include a character in VISIBLE if the verse says they are NOT around for that moment.
+      • **No mystery half-humans:** Never crop an unnamed child at the frame edge (random arm, leg, or shoulder). **VISIBLE** is the full human roster — extras stay out of frame entirely.
+    The DESCRIPTION (after VISIBLE) must spell out the same specific moment as the verse on the previous page: same action, same setting, same props, same time of day — not a generic scene and NEVER a different location or activity than the verse (e.g. if the verse says bouncy castle under the sky, the picture is that bouncy castle with sky visible — not a bike ride in the woods). NEVER add guardians, helpers, or creatures the verse does not mention. NEVER duplicate the buddy unless the text says so. **When the prose names playground equipment (**slide**, swings, climbing frame)** or **hide under / behind a named tree or bush**, picture that structure — not an unrelated path. **WEATHER / OUTCOME:** If the verse says rain **stopped**, everyone **dry**, **sun** bright, or the cloud **floated away**, the image must match that — avoid active downpour on the kids in that same beat unless the text still describes them as wet. CRITICAL FOR CONSISTENCY: DO NOT re-describe permanent looks (clothes, hair colours) in the brief — the illustrator has the master designs. DO hint mood or emotion when the verse supports it (surprise, giggling, worry melting into relief) — only in the DESCRIPTION, not by re-listing outfits; avoid copying the same stock smile line into every spread.
+    TWO-PARAGRAPH TEXT PAGES (odd pages use \\n\\n once): The paired picture must honour **both** paragraphs as one spread — do **not** illustrate only the first block. If paragraph **2** moves to a **new room/zone** or introduces a **concrete focal prop** (food, breakfast, cereal, splash, bath, toy pile, costume, vehicle, trophy, bed, garden gate, **playground slide**, umbrella), make that **second** beat the **primary** setting and action (e.g. kitchen + floating bowls beats a hallway teaser). If both paragraphs share one continuous place, one coherent image may merge them; if they split locations, **default to paragraph 2's place and props** for the canvas. **Never** add humans or classmates not named in **either** paragraph.
+    ENVIRONMENT DETAIL (very important — each brief must paint a different *place* on the journey, matching the SETTING and PLOT IDEA above):
+      Every illustrationBrief MUST contain at least 2 specific environmental nouns (architecture, foliage, terrain, structure, weather, depth) AND at least 1 named prop or focal object from that beat. The environmental nouns MUST come from the actual SETTING and PLOT IDEA — if the plot says CASTLE, the briefs are inside or around a castle (stone walls, banners, courtyards, towers, throne room, drawbridge, tapestries) NOT in deep woods. If the plot says CAVE, the briefs are inside cave passages and chambers.     If the plot says BEACH, UNDERSEA, SPACE, ZOO, FARM, MOUNTAIN, DESERT, SNOW, LAKE, ISLAND, MUSEUM, CIRCUS, TRAIN, CITY, OPEN SEA, or PIRATE SHIP, paint THAT setting with matching props. Only paint a forest if the plot or setting actually mentions woods/forest/trees.
+      If the **verse or paired text** says **park**, **playground**, **common**, **town green**, or **recreation ground**, the picture must read as a **public park** — include **at least two** park cues (wide mown grass, public path or tarmac strip, bench, litter bin, fenced play area or swing frame silhouette, goal posts, bandstand, fountain, softly dotted distant walkers). **Do not** default to only a private cottage-garden arch and roses unless the prose names a **garden**.
+      Examples of good briefs — note how each one fits a DIFFERENT plot, and how each only includes things the plot would actually contain:
+        • CASTLE plot: "${childName} and the dragon peek around a stone archway in a torchlit castle corridor, banners hanging from the wall, suit of armour standing nearby."
+        • CASTLE plot: "${childName} climbs a spiral stone staircase inside a tower, narrow window showing the dragon flying past in the night sky."
+        • WOODS plot: "${childName} and the unicorn walk between tall trees at sunset, soft sunbeams falling on the path."
+        • SPACE plot: "${childName} bounces on a soft pastel asteroid, ringed planet huge in the starry sky behind them."
+        • UNDERWATER plot: "${childName} swims past a coral reef, rays of sunlight cutting down through the water, a friendly turtle alongside."
+        • BAKERY plot: "${childName} stands at a wooden counter rolling out dough, flour cloud puffing up, big stone oven glowing warmly behind."
+        • ZOO plot: "${childName} and their buddy creature wave from a wide zoo path, leafy trees and a rounded viewing deck behind them, colourful enclosure shapes in soft focus."
+        • PIRATE SHIP plot: "${childName} balances on a sunny wooden deck beside coiled ropes, billowing sails and a bright horizon, the dragon perched on the rail like a lookout."
+        • MOUNTAIN plot: "${childName} hikes a flower-lined mountain path, rocky peaks and soft clouds above, a wooden bridge crossing a tiny stream."
+      Vary the *place* between spreads in line with the plot's beats — e.g. CASTLE: gates → corridor → great hall → spiral tower → rooftop → courtyard with the dragon flying overhead. Don't repeat the same backdrop. State a different camera angle / shot type for each (wide establishing shot, mid shot, low-angle hero kneeling, over-the-shoulder peering, etc).
+      Background details ARE allowed (in fact required) — what is NOT allowed is faced extras the verse doesn't mention.
+      ${
+        readerArtLayoutKey === "facing"
+          ? "COMPOSITION / SCALE FOR THE ILLUSTRATOR (single-page pictures — story text is on the facing HTML page, not painted on this image): Each illustration reads as ONE standalone page. **No empty half, blank strip, or soft dead zone reserved for captions** in the art — paint a **balanced full-bleed** scene edge-to-edge. **Centre the cast and focal action** — keep the group's visual mass roughly **~45–55% from the left** (near the picture's horizontal middle), **not** parked on the far right or far left. **Camera pulled back** — picture-book *wide* or *medium-wide* framing: the **environment** must stay a major part of every illustration. Typical group shots: the whole cast together only **~30–45% of frame height** (single-figure beats a bit less). Modest inset — horns, ears, wing tips fully inside the frame. When the verse describes jumping, bouncing, trampolines, soaring, flying, or reaching high in the air, the illustrationBrief MUST specify a wide or full shot with every visible named figure shown completely head-to-toe — never a tight mid-shot that crops at the neck, waist, or knees."
+          : "COMPOSITION / SCALE FOR THE ILLUSTRATOR: Full-bleed spreads — the setting and atmosphere fill the double-page edge-to-edge. **Camera pulled back** — picture-book *wide* or *medium-wide* framing, not tight hero close-ups: the **environment** (walls, sky, terrain, props) must be a major part of every illustration so readers can “see the place”, not just faces. Typical group shots: the whole cast together only **~30–45% of frame height** (single-figure beats a bit less); avoid filling most of the canvas with heads and torsos. Keep a modest inset so every listed character fits without edge-clipping (full heads and feet on wide shots; on closer emotional beats, still show plenty of background, not a portrait zoom). The tallest features (unicorn horn, ears, hair, wing tips) must sit fully inside the frame with visible margin — never cropped. If tight, **widen the shot** or shrink the characters. **GUTTER:** Do not place a main character’s face or body on the exact vertical centre — bias the group slightly left or right of the fold so the book spine does not cut a child in half. When the verse describes jumping, bouncing, trampolines, soaring, flying, or reaching high in the air, the illustrationBrief MUST specify a wide or full shot with every visible named figure shown completely head-to-toe — never a tight mid-shot that crops at the neck, waist, or knees."
+      }
+    OPENING SPREAD (page 2 only — the first illustrationBrief; also reused as bookshelf cover thumbnail): MUST match page 1 text and the child's plot, AND establish the actual SETTING (castle / woods / cave / beach / space / zoo / farm / mountain / sea / ship / train / city / circus / lake / snow / desert / museum / island / etc. — whichever the plot calls for).\nOPENING CAST BUDGET — **cover thumbnail (${noBuddyBook ? "hero-focused" : "hero + buddy"}):** Pair page 1 with page 2 so **VISIBLE** ordinarily ${
+        noBuddyBook
+          ? `lists **ONLY ${childName}** in the foreground (like a paperback cover — one clear hero). Add **≤1 other named human** only if prose truly needs Mum/Dad/sibling beside ${childName} in that opener — **still ≤2 humans**, uncrowded. **Do NOT** load spread 2 with optional game friends — introduce them **from spread 3 onward** unless page 1 names each one actually with ${childName} in that beat. `
+          : `lists **ONLY ${childName} and the imaginary buddy** (foreground duo). **NO** classmates, cousins, stuffed crowd tables, multi-friend tableau unless prose literally needs **one named human beside ${childName}** (${childName} + buddy + that person **≤3** max). **Do NOT** catalogue every optional game friend on spreads 1–2 — add from spread 3 unless page 1 places everyone together. `
+      }**VISIBLE** mirrors page 1 only — **no half-visible faces at frame edges**; every pictured person wholly inside.**\n Example: castle hide-and-seek opens at gates or courtyard — not a woods default.** No unwritten extras.\n  When game people with portrait notes appear on a picture page, the brief should mention them looking like those notes (hair, outfit colours, age vibe).
+  - If a "plot idea" is given, you MUST make it the central theme of the story and feature it heavily in EVERY illustration brief. If it is empty, invent a short happy outing that fits the setting.
+  - PLOT FIDELITY — read the plot idea LITERALLY:
+    • Use ONLY props, locations, and story beats that actually appear in the plot the child wrote. Don't invent extras.
+    • Resolve the story with whatever the plot actually says is the climax — for example "they realised the dragon could fly", "they finally caught the cheeky dragon", "the cake came out of the oven golden brown". Don't substitute a generic ending.
+    • Stay inside the setting the plot names. If the plot says castle, every spread is in the castle. If beach, every spread is on the beach.
+    • Use only the named cast (hero + human co-stars from the plot + buddy + any game people the plot uses). Don't add background characters, animals, or family members the plot does not name.
+    • If the plot has a narrative twist or reveal, build to that reveal as the climax around spread 4 or 5 — not an off-hand line.
+  - OUTPUT MUST BE VALID JSON: In title, characterDesign, and EVERY page "text" and "illustrationBrief" string, do NOT put the double-quote character ("). It ends the string and corrupts the whole file. For heights use words (about four feet tall) or 4 ft / 5 ft — never write 4'0\" or 5'2\" style inch marks. For emphasis use single quotes or nothing — never paste (e.g. \"smooth clay\") with raw \" inside values.
+  - JSON only, no markdown.`;
+
+    const user = `Child name: ${childName}
+  ${
+    noBuddyBook
+      ? "Imaginary buddy: none — human-only book (no standing creature companion unless the plot explicitly demands one).\n"
+      : `Main friend character (imaginary buddy): ${characterDesc}\n`
+  }Setting to feature: ${placeDesc}
+  People from the child's games to include by name (friends/family — use them warmly when listed; each may have a portrait note above): ${
+      familyNames.length > 0 ? familyNames.join(", ") : "(none)"
+    }
+  Other human children named ONLY in the plot idea below (they are REAL KIDS in the story — NOT the imaginary buddy; give each a clear role; ${
+      portraitBlockForText
+        ? `each MUST match their appearance line above if present — never give opposite hair colour or length for 'visual contrast' with ${childName}.`
+        : "if not listed above, invent a simple distinct look"
+    }): ${
+      plotOnlyHumans.length > 0 ? plotOnlyHumans.join(", ") : "(none)"
+    }${portraitBlockForText}
+  Plot idea from the child (CRITICAL: make this the core focus of the story and pictures): ${
+      plotHint.length ? plotHint : "(none — invent a cosy little adventure that fits the setting)"
+    }
+  Page 1 and page 2 must OPEN this plot: the first illustration (page 2 brief) is the first scene readers see — match this plot's SETTING and props${
+    noBuddyBook ? "" : ", and buddy"
+  }. Read the plot literally: if it says "castle", spread 1 is the castle (gates, great hall, courtyard); if it says "woods", spread 1 is woods; if it says "underwater", spread 1 is underwater. Do NOT default to woods.
+  ${
+    familyNames.length === 0 && plotNamedHumans.length === 0
+      ? noBuddyBook
+        ? `Picture cast rule: only people **named in each verse** may appear on that spread's illustration — usually ${childName} alone or with named human friends. No creature buddy.\n`
+        : `Picture cast rule: only people/creatures **named in each verse** may appear on that spread's illustration — usually ${childName} and the buddy. Do not name anyone in a brief who is not in the paired text.\n`
+      : `Main human cast for this book (must appear in the verses whenever they are in the scene together — use these exact names): ${storyHumanNames.join(", ")}. Picture rule: only names that appear in each verse may be in that spread's illustration; match the plot's who-is-hiding logic with the VISIBLE line.\n`
+    }
+  Every odd text page: ${oddPageTextFormatHint}
+  Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "pink" | "blue" | "green" | "purple" | "orange" | "teal" | "red" | "yellow" | "lilac" | "mint" | "coral" | "navy", "pages": [ { "text": string, "illustrationBrief": string | null }, ... 12 items ] }`;
+
+    const bookCoverColorReq = String(body.bookCoverColor ?? "").trim();
+
+    let story: StoryJson;
+    try {
+      story = await openaiChatJson(
+        apiKey,
+        system,
+        user,
+        storybookStoryChatModel(pictureBookQuality),
+      );
+    } catch (e) {
+      console.error(e);
+      const detail =
+        e instanceof Error ? e.message.slice(0, 420) : String(e).slice(0, 420);
+      return jsonResponse({ error: "story_failed", detail }, 502);
+    }
+
+    if (storyTextModeKey === "prose") {
+      enforceProseTwoParagraphsOnCoreTextPages(story.pages);
+    }
+
+    story.pages = prependFrontMatterPages(story.pages, dedicationAuthor);
+
+    const briefsSummary = oddPagesWithIllustrationBriefs(story.pages)
+      .map((idx) => story.pages[idx]?.illustrationBrief)
+      .filter(Boolean)
+      .join(" | ")
+      .slice(0, 900);
+
+    let compiledLock = "";
+    const heroPortraitPin = portraitAppearanceLineMatchingHero(
+      portraitAppearance,
+      childName,
+    );
+    const coStarPortraitPins = portraitCoStarPinBlock(
+      portraitAppearance,
+      plotNamedHumans,
+      childName,
+    );
+    try {
+      compiledLock = await compileCharacterLockForImages(apiKey, {
+        childName,
+        buddyKey: characterKey,
+        buddyDesc: characterDesc,
+        placeDesc,
+        plotHint,
+        draftDesign: story.characterDesign || "",
+        briefsSummary,
+        plotNamedHumans,
+        portraitAppearance,
+        heroPortraitPinnedLine: heroPortraitPin ?? undefined,
+        coStarPortraitPins: coStarPortraitPins || undefined,
+        compileLockArtWords: artStyleSpec.compileLockArtWords,
+        compileLockChatModel: storybookCompileLockChatModel(pictureBookQuality),
+      });
+    } catch (e) {
+      console.warn("[clever-service] compileCharacterLock failed", e);
+    }
+
+    const coStarFallbackLine = (n: string) =>
+      `${n.toUpperCase()}: human child co-star from the plot — match reference-photo hair and skin when storywriter draft lists them; distinguish from ${childName} by **outfit and face shape only**, not by flipping blonde→brown or long→short unless the written draft explicitly says so. ${artStyleSpec.coStarLineEnd}`;
+
+    const duoImageCastFallback = noBuddyBook
+      ? `HERO: ${childName}, ${artStyleSpec.castHeroSurface} — always the same human hero in every spread.` +
+        (plotNamedHumans.length > 0
+          ? " " + plotNamedHumans.map((n) => coStarFallbackLine(n)).join(" ")
+          : "")
+      : `HERO: ${childName}, ${artStyleSpec.castHeroSurface} — always the same human hero in every spread. ` +
+        `BUDDY: ${characterDesc}, exactly ONE individual of this species in every image — never duplicate, never parent+baby pair, ${artStyleSpec.buddyFollowStyle}.` +
+        (plotNamedHumans.length > 0
+          ? " " + plotNamedHumans.map((n) => coStarFallbackLine(n)).join(" ")
+          : "");
+
+    const castBible =
+      compiledLock.length > 120
+        ? compiledLock
+        : familyNames.length === 0 && plotNamedHumans.length === 0
+          ? duoImageCastFallback
+          : story.characterDesign && story.characterDesign.length > 80
+            ? story.characterDesign
+            : duoImageCastFallback;
+
+    const stylePreambleLayoutDuplex =
+      "The left third must be only smooth colour, soft sky, plain wall, or gentle gradient — zero pseudo-text texture there (the app draws real text in HTML). " +
+      "CRITICAL LAYOUT RULE: Leave the left half of the image mostly uncluttered with a simple, soft, darker background so that WHITE storybook text can be printed over it clearly. Place the main characters and action on the right half or center-right of the image. ";
+
+    const stylePreambleLayoutFacing =
+      "LAYOUT (single-page art in the reader — story text is on the facing HTML page, NOT overlaid on this image): **Do not** reserve an empty left third, empty side strip, or blank half for captions. Paint a **balanced full-bleed** picture. **Centre the main characters and focal action** — aim the group's visual mass near **~45–55% from the left** (horizontal middle of the canvas), **not** flattened to one edge. ";
+
+    const stylePreambleFramingDuplex =
+      "FRAMING / CHARACTER SCALE (critical): FULL-BLEED SCENE — paint walls, sky, ground, props, and atmosphere so the artwork fills the entire canvas edge-to-edge (rich picture-book spread, not a tiny scene floating in empty space). **Pull the camera back** — **medium-wide** framing by default: the **background and setting** must read clearly in every spread, not just the characters’ faces. The cast together should typically occupy only **~28–42% of frame height** (single heroes or duos **~22–36%**) so caves, skies, rooms, and landscapes have room to breathe — never a tight bust or “zoomed-in” portrait unless the verse is purely a tight reaction beat (and even then keep architecture/sky visible). Keep modest inset — full heads, hair, hands, feet, tail, and wings inside the frame — never cropped or jammed against the border. Never crop a child or buddy at the neck or waist when the moment shows their whole body standing, jumping, or bouncing — use a wider shot instead. For jumping, trampolines, bouncing, soaring, or flying beats, default to a wide shot with the group using only **~30–42%** of frame height so heads, feet, and hooves stay clear of the top and bottom edges. **GUTTER / SPINE:** do not center a main character on the vertical midline — bias the group slightly **left or right** so the book fold does not slice through a face or torso. Unicorn horns, tall ears, hair poofs, wing tips, and raised hooves/paws must be fully visible with clear air above and beside them — never clipped. If a figure still feels tight, shrink only the cast and pull the camera back; keep the environment rich. Never line up the whole cast as a tiny strip along the bottom like stickers; show comfortable ground and body. ";
+
+    const stylePreambleFramingFacing =
+      "FRAMING / CHARACTER SCALE (critical): FULL-BLEED SCENE — paint walls, sky, ground, props, and atmosphere so the artwork fills the entire canvas edge-to-edge (rich single-page picture, not a tiny scene floating in empty space). **Pull the camera back** — **medium-wide** framing by default: the **background and setting** must read clearly in every spread, not just the characters’ faces. The cast together should typically occupy only **~28–42% of frame height** (single heroes or duos **~22–36%**) so caves, skies, rooms, and landscapes have room to breathe — never a tight bust or “zoomed-in” portrait unless the verse is purely a tight reaction beat (and even then keep architecture/sky visible). Keep modest inset — full heads, hair, hands, feet, tail, and wings inside the frame — never cropped or jammed against the border. Never crop a child or buddy at the neck or waist when the moment shows their whole body standing, jumping, or bouncing — use a wider shot instead. For jumping, trampolines, bouncing, soaring, or flying beats, default to a wide shot with the group using only **~30–42%** of frame height so heads, feet, and hooves stay clear of the top and bottom edges. **CENTRE COMPOSITION (standalone page):** keep the cast's visual weight near the **horizontal middle** (~45–55% from the left) — **do not** shove everyone to the far right or far left as if saving space for overlaid text; slight left/right asymmetry is fine. Unicorn horns, tall ears, hair poofs, wing tips, and raised hooves/paws must be fully visible with clear air above and beside them — never clipped. If a figure still feels tight, shrink only the cast and pull the camera back; keep the environment rich. Never line up the whole cast as a tiny strip along the bottom like stickers; show comfortable ground and body. ";
+
+    const stylePreamble =
+      "A completely textless illustration. DO NOT include any writing, letters, words, typography, labels, speech bubbles, dialogue balloons, thought bubbles, comic captions, newspaper strips, stone runes, book pages with text, loose paper sheets, scrolls, receipts, notebooks, stationery, litter, or ground clutter that looks like fake writing — no blurry shapes that look like fake paragraphs or gibberish anywhere. " +
+      "All story words live in the app’s HTML text page — this PNG is **visual only** (no painted dialogue or titles). " +
+      "No logos, social-media marks, app icons, or brand symbols. " +
+      (readerArtLayoutKey === "facing" ? stylePreambleLayoutFacing : stylePreambleLayoutDuplex) +
+      (readerArtLayoutKey === "facing" ? stylePreambleFramingFacing : stylePreambleFramingDuplex) +
+      artStyleSpec.preambleStyleSentence +
+      `HERO VISIBILITY: When "${childName}" appears in SCENE ACTION, they must be clearly visible (face on, not swapped for another kid). ` +
+      (heroPortraitPin?.trim()
+        ? `HERO PHOTO LOCK (authoritative — never a different-looking kid): ${heroPortraitPin.trim()} `
+        : "") +
+      (noBuddyBook
+        ? "NO STANDING CREATURE BUDDY: Illustrate only humans named in SCENE ACTION — do not add a unicorn, dragon, robot, or animal mascot unless SCENE ACTION explicitly names that element from the plot. "
+        : "ONE BUDDY ANIMAL: Only one imaginary buddy creature from the BUDDY line in the image (e.g. one unicorn), not clones or a big+little pair, unless SCENE ACTION names two. ") +
+      "TEXT-LOCKED: ONLY characters explicitly named in SCENE ACTION — same roster as this spread's verse, same count. NO unnamed extras: no villagers, silhouettes with faces, filler torch-bearers, spare animals, or audience. NO logos. Background = whatever the ENVIRONMENT line specifies (castle, woods, cave, beach, garden, space, sea, ship, mountain, zoo, farm, circus, city, train, lake, snow, desert, museum, island, etc.) without extra faced characters. NO signs with lettering, carved runes, or flyers. ";
+
+    const envTheme =
+      `ENVIRONMENT (paint THIS exact setting on every spread — do not default to woods or any other generic backdrop): ${placeDesc}. ` +
+      (plotHint.length > 0
+        ? `THEME / PLOT IDEA from the child (READ LITERALLY — if it mentions castle, paint a castle; cave, paint a cave; beach, paint a beach; etc.): ${plotHint}. `
+        : "") +
+      plotLightingEnvAddon(plotHint, childName);
+
+    const pagesOut: { text: string; imageUrl: string | null }[] = [];
+    let sceneImageUrl: string | null = null;
+    let firstPanelVisualLockUsed = false;
+    let falReduxSpreadCount = 0;
+    let falTextSpreadCount = 0;
+    let falCastAnchorUsed = false;
+    let gptImageSpreadCount = 0;
+
+    /** Image generation mode: "fal" (default) or "gptimage" (OpenAI GPT Image API, default `gpt-image-2`). */
+    const imageMode = (Deno.env.get("STORYBOOK_IMAGE_MODE") ?? "")
+      .trim()
+      .toLowerCase();
+    const useGptImage = imageMode === "gptimage" || imageMode === "openai-image";
+
+    const falKey = (Deno.env.get("FAL_KEY") ?? "").trim();
+    const falDisabled = Deno.env.get("STORYBOOK_FAL_DISABLE") === "1";
+    const useFalRedux = Boolean(falKey) && !falDisabled;
+    const falReduxModel =
+      (Deno.env.get("STORYBOOK_FAL_MODEL") ?? "").trim() ||
+      "fal-ai/flux-pro/v1.1-ultra/redux";
+    const falTextModel =
+      (Deno.env.get("STORYBOOK_FAL_TEXT_MODEL") ?? "").trim() ||
+      "fal-ai/flux-pro/v1.1";
+    const falStrengthRaw = Number(Deno.env.get("STORYBOOK_FAL_REFERENCE_STRENGTH") ?? "0.35");
+    const falStrength = Number.isFinite(falStrengthRaw) ? falStrengthRaw : 0.35;
+
+    const falLegacyFrameClause =
+      readerArtLayoutKey === "facing"
+        ? "FRAME / SCALE: full-bleed edge-to-edge; **pulled-back camera** — cast **~28–40% of frame height** typically, **setting prominent**, not zoomed portrait; modest inset — full heads, feet, hands, wings inside canvas; **centre-weighted composition** (~45–55% horizontal), not squeezed to one edge; do not squash everyone along the bottom edge. "
+        : "FRAME / SCALE: full-bleed edge-to-edge; **pulled-back camera** — cast **~28–40% of frame height** typically, **setting prominent**, not zoomed portrait; modest inset — full heads, feet, hands, wings inside canvas; bias off centre gutter; do not squash everyone along the bottom edge. ";
+
+    const falReduxLayoutHint =
+      readerArtLayoutKey === "facing"
+        ? "Standalone picture page — story text is on the facing page in the app; **centre the cast** (~45–55% horizontal), balanced composition. "
+        : "";
+
+    try {
+      const briefs: { index: number; brief: string; verse: string }[] = [];
+      for (const i of oddPagesWithIllustrationBriefs(story.pages)) {
+        const p = story.pages[i];
+        if (!p) continue;
+        briefs.push({
+          index: i,
+          brief: String(p.illustrationBrief ?? "").trim(),
+          verse: String(story.pages[i - 1]?.text ?? "").trim(),
+        });
+      }
+
+      const staggerMs = 450;
+      const urls: string[] = [];
+
+      if (briefs.length === 0) {
+        throw new Error("no_illustration_briefs");
+      }
+
+      const spread1Prompt = composeDallePrompt({
+        preamble: stylePreamble,
+        envTheme,
+        sceneBrief:
+          openingSceneImageConstraints(noBuddyBook, childName) + briefs[0].brief,
+        castBible,
+        firstPanelLock: "",
+        heroFirstName: childName,
+        mandatoryCastLine: artStyleSpec.composeMandatoryCast,
+      });
+
+      /** When set (default): one T2I “cast lineup”, then all 6 spreads = Fal image→image (Redux) from that anchor — strongest consistency. */
+      const useCastAnchor =
+        !useGptImage && useFalRedux && Deno.env.get("STORYBOOK_FAL_CAST_ANCHOR") !== "0";
+
+      const photoRefHairLock =
+        portraitAppearance.trim().length > 0
+          ? "Reference photos were supplied: for every HUMAN in LOCKED CAST, match written **Gender girl/boy**, hair colour, hair LENGTH, and arrangement — never turn a written **girl** with long blonde into a boy with short brown hair because of her name. **If every line is long blonde, both children are long blonde** — no brunette co-star for contrast. **Never** illustrate the hero as a generic brown-haired kid when refs say blonde, long hair, fringe/bangs. "
+          : "";
+
+      const heroPhotoPinLead = heroPortraitPin?.trim()
+        ? `AUTHORITATIVE HERO LOOK (copy hair/eyes/skin/clothes vibe exactly): ${heroPortraitPin.trim()} `
+        : "";
+
+      const anchorPreamble =
+        "A completely textless illustration. NO letters, words, typography, labels, speech bubbles, dialogue balloons, thought bubbles, comic captions, signs with text, book pages with writing, loose papers, scrolls, glyph noise, watermarks, or fake paragraph texture anywhere. Plain smooth background regions only — no pseudo-text. " +
+        "All read-aloud words are in the app — this sheet is **visual identity only** (no painted dialogue). " +
+        (noBuddyBook
+          ? "CAST LINEUP / MODEL SHEET for a kids picture book: every character line in LOCKED CAST below (human hero and any named human co-stars or game people ONLY — no creature buddy in the lineup). Together in ONE frame, calm neutral expressions and friendly standing poses for identity reference only — story illustrations later will change faces and poses per scene. "
+          : "CAST LINEUP / MODEL SHEET for a kids picture book: every character line in LOCKED CAST below (hero, buddy, and any named human co-stars or game people) — no one else, no third mascot or crowd, no duplicate unicorns. Together in ONE frame, calm neutral expressions and friendly standing poses for identity reference only — story illustrations later will change faces and poses per scene. ") +
+        photoRefHairLock +
+        heroPhotoPinLead +
+        "full bodies on a plain soft background that still fills the canvas edge-to-edge — modest inset so hair, feet, wings, and tails do not touch the border; figures roughly ~50–68% of frame height so each design reads clearly with a bit more breathing room around the lineup, " +
+        artStyleSpec.anchorMaterialClause +
+        ". " +
+        "Edge-to-edge, wholesome for toddlers. ";
+
+      const anchorPrompt = (
+        anchorPreamble + envTheme + "LOCKED CAST (draw exactly):\n" + castBible
+      ).slice(0, DALLE3_PROMPT_MAX);
+
+      let panelLock = "";
+
+      if (useGptImage) {
+        const gptHasPortraitRefs =
+          refPack.heroUrls.length > 0 ||
+          Object.keys(refPack.customByFriendId).length > 0;
+        const nonHeroPortraitRefs =
+          Object.keys(refPack.customByFriendId).length > 0 ||
+          /\bCo_star_ref\s*:/i.test(portraitAppearance);
+        // STRICT MODE — when STORYBOOK_IMAGE_MODE=gptimage is set, this is the
+        // ONLY pipeline we want to run. No silent fallback to Fal or DALL-E.
+        // If anything fails, we throw with a clear, actionable error so the
+        // caller knows GPT Image specifically failed (rather than getting an
+        // imageless 200 or a mixed-style book).
+        let anchorOut: { url: string; bytes: Uint8Array };
+        try {
+          anchorOut = await gptImageGenerate(
+            apiKey,
+            anchorPrompt,
+            pictureBookQuality,
+            0,
+            gptHasPortraitRefs,
+            nonHeroPortraitRefs,
+          );
+        } catch (e) {
+          const detail = e instanceof Error ? e.message : String(e);
+          throw new Error(`gpt_image_anchor_failed: ${detail}`);
+        }
+
+        {
+          // Skip the text-based visual lock for the GPT Image path — the anchor
+          // PNG is attached as a reference to EVERY spread edit, so a second
+          // text description of "what the anchor looks like" is redundant and
+          // costs ~10s of wall-clock we don't have inside Supabase's 150s edge
+          // timeout. Identity is already locked by pixels. Visual lock stays in
+          // play for the Fal / DALL·E paths below.
+          const refBytes = anchorOut.bytes;
+          // Stay under Supabase/Cloudflare wall-clock (~150s).
+          // Prefer **one** parallel wave of all spreads (default) so total image time ≈
+          // slowest single edit, not two waves + cooldown. Tier-1 OpenAI image RPM is low —
+          // if you see **429**, set **`STORYBOOK_GPTIMAGE_CHUNK_SIZE=4`** and
+          // **`STORYBOOK_GPTIMAGE_CHUNK_WAIT_MS=12000`** (or raise image throughput tier).
+          const chunkSize = (() => {
+            const raw = Number(Deno.env.get("STORYBOOK_GPTIMAGE_CHUNK_SIZE"));
+            return Number.isFinite(raw) && raw >= 1 ? Math.floor(raw) : 6;
+          })();
+          const interChunkWaitMs = (() => {
+            const raw = Number(Deno.env.get("STORYBOOK_GPTIMAGE_CHUNK_WAIT_MS"));
+            return Number.isFinite(raw) && raw >= 0 ? raw : 0;
+          })();
+          const adaptiveChunkWait =
+            Deno.env.get("STORYBOOK_GPTIMAGE_CHUNK_WAIT_ADAPTIVE") !== "0";
+
+          // SHOT PLAN — keeps each of the 6 spreads at a different camera
+          // distance so the book reads as a journey, not 6 portraits. Notes are
+          // intentionally generic — no example props (no "treasure", no
+          // "glowing flower"), because mentioning those words even in negation
+          // primes gpt-image-1 to render them.
+          const shotPlanDuplex = [
+            {
+              label: "WIDE ESTABLISHING SHOT",
+              note:
+                "Wide establishing shot — camera well back. Full-bleed environment — sky, architecture, terrain, and foreground paint to every edge; **setting is the star as much as the cast**. Full bodies head to toe: the whole cast together roughly **~32–42% of frame height** (not a hero poster crop), fully inside the frame with generous breathing room — silhouettes never touch or clip the border. Bias the group slightly left or right of vertical centre so the book gutter does not slice a face.",
+            },
+            {
+              label: "MID SHOT",
+              note:
+                "Medium-wide shot — **not** a tight knees-up portrait: show **waist-up or full-body at a comfortable distance** so walls, cave, or sky stay prominent. Cast roughly **~34–45% of frame height** together. Full-bleed setting behind and around them; entire heads (hair included) and hands inside the frame with modest inset. Bias cast off the exact centre fold. If the verse implies jumping, bouncing, trampoline, soaring, or flying, override: wide full-body (same inset as spread 1).",
+            },
+            {
+              label: "OVER-THE-SHOULDER / DISCOVERY ANGLE",
+              note:
+                "Three-quarter or over-the-shoulder angle — **camera still pulled back** so the discovery and the **environment** both read. Full-bleed world. Foreground character fully inside canvas (no cropped ears or elbows at edges). Cast **~32–44% of frame height**; setting fills surrounding space to the edges. Avoid centre-spine through main faces.",
+            },
+            {
+              label: "FOCAL MOMENT — MEDIUM FRAMING (NOT FACE FILL)",
+              note:
+                "**Medium** framing on the verse's focal action — **not** an extreme facial close-up: prefer **mid-thigh up, waist-up, or wider** so cave, room, or landscape stays visible. Cast **≤~40% of frame height**; background and atmosphere run edge-to-edge. Every face, hand, and prop that matters fully inside the frame with modest inset. If jumping, bouncing, or airborne, override to wide full-body — no tight crop on leaping bodies.",
+            },
+            {
+              label: "WIDE JOURNEY SHOT — DIFFERENT PART OF THE SETTING",
+              note:
+                "A second wide shot in a DIFFERENT corner of the same setting. Full-bleed world — **environment dominates**. Cast smaller on the canvas (**~20–32% of frame height**), full figures readable, never cropped; gutter-safe placement.",
+            },
+            {
+              label: "WARM FINALE — MEDIUM (NOT TIGHT PORTRAIT)",
+              note:
+                "Finale warmth — **medium three-quarter or waist-up**, not stacked tight face fill: show celebratory **background** (same setting) clearly. Cast **~35–45% of frame height**; entire heads with hair and ears inside frame with modest inset. If the verse still describes jumping, bouncing, or flying, use wide full-body instead.",
+            },
+          ];
+
+          const shotPlanFacing = [
+            {
+              label: "WIDE ESTABLISHING SHOT",
+              note:
+                "Wide establishing shot — camera well back. Full-bleed environment — sky, architecture, terrain, and foreground paint to every edge; **setting is the star as much as the cast**. Full bodies head to toe: the whole cast together roughly **~32–42% of frame height** (not a hero poster crop), fully inside the frame with generous breathing room — silhouettes never touch or clip the border. **Centre-weighted composition:** the cast's visual mass near **~45–55% horizontal** — balanced for a standalone page (story text is on the facing page).",
+            },
+            {
+              label: "MID SHOT",
+              note:
+                "Medium-wide shot — **not** a tight knees-up portrait: show **waist-up or full-body at a comfortable distance** so walls, cave, or sky stay prominent. Cast roughly **~34–45% of frame height** together. Full-bleed setting behind and around them; entire heads (hair included) and hands inside the frame with modest inset. **Balanced framing** — near the horizontal middle (~45–55%), not parked on one edge. If the verse implies jumping, bouncing, trampoline, soaring, or flying, override: wide full-body (same inset as spread 1).",
+            },
+            {
+              label: "OVER-THE-SHOULDER / DISCOVERY ANGLE",
+              note:
+                "Three-quarter or over-the-shoulder angle — **camera still pulled back** so the discovery and the **environment** both read. Full-bleed world. Foreground character fully inside canvas (no cropped ears or elbows at edges). Cast **~32–44% of frame height**; setting fills surrounding space to the edges. Keep important faces **off the extreme left/right** edges with modest inset.",
+            },
+            {
+              label: "FOCAL MOMENT — MEDIUM FRAMING (NOT FACE FILL)",
+              note:
+                "**Medium** framing on the verse's focal action — **not** an extreme facial close-up: prefer **mid-thigh up, waist-up, or wider** so cave, room, or landscape stays visible. Cast **≤~40% of frame height**; background and atmosphere run edge-to-edge. Every face, hand, and prop that matters fully inside the frame with modest inset — **centre the moment** in the frame (~45–55% horizontal). If jumping, bouncing, or airborne, override to wide full-body — no tight crop on leaping bodies.",
+            },
+            {
+              label: "WIDE JOURNEY SHOT — DIFFERENT PART OF THE SETTING",
+              note:
+                "A second wide shot in a DIFFERENT corner of the same setting. Full-bleed world — **environment dominates**. Cast smaller on the canvas (**~20–32% of frame height**), full figures readable, never cropped; **balanced centre-friendly placement**.",
+            },
+            {
+              label: "WARM FINALE — MEDIUM (NOT TIGHT PORTRAIT)",
+              note:
+                "Finale warmth — **medium three-quarter or waist-up**, not stacked tight face fill: show celebratory **background** (same setting) clearly. Cast **~35–45% of frame height**; entire heads with hair and ears inside frame with modest inset; **group near horizontal centre**. If the verse still describes jumping, bouncing, or flying, use wide full-body instead.",
+            },
+          ];
+
+          const shotPlan = readerArtLayoutKey === "facing" ? shotPlanFacing : shotPlanDuplex;
+
+          // Clean, POSITIVE-ONLY edit prompt builder. We attach the anchor PNG as
+          // the character reference; everything else describes ONLY what to
+          // paint, not what to avoid. Negative lists were paradoxically nudging
+          // gpt-image-1 toward stock props (treasure chests, glowing flowers,
+          // mossy logs) — every "no treasure" line counts as a treasure mention
+          // to the model. So we list nothing to avoid: just the positive scene.
+          // Pull the LLM's "VISIBLE: ..." line out of the brief if present, plus
+          // detect missing-buddy cues in the verse ("where is", "can't find",
+          // "nowhere to be seen", "hidden", etc.) so the buddy is excluded from
+          // the picture when the story says they're not around.
+          const parseVisibleCast = (
+            brief: string,
+            verse: string,
+          ): { visibleLine: string | null; buddyMissing: boolean } => {
+            const m = brief.match(/^\s*VISIBLE\s*:\s*([^\n]+?)(?:\s*[—\-]\s*DESCRIPTION\s*:|$)/i);
+            const visibleLine = m ? m[1].trim() : null;
+            const buddyMissing = buddyCreatureHiddenInVerse(verse);
+            return { visibleLine, buddyMissing };
+          };
+
+          const buildEditPrompt = (b: typeof briefs[number], idx: number) => {
+            const shot = shotPlan[idx] ?? shotPlan[shotPlan.length - 1];
+            const verseLines = b.verse.trim().slice(0, 500);
+            const { visibleLine, buddyMissing } = parseVisibleCast(b.brief, verseLines);
+            const pairedMomentLead =
+              storyTextModeKey === "rhyme"
+                ? "from the rhyming verse on the paired text page"
+                : "from the story text on the paired text page";
+
+            const blocks: string[] = [];
+
+            // 1. Style + reference instruction
+            blocks.push(
+              artStyleSpec.gptEditStyleOpener +
+                (readerArtLayoutKey === "facing"
+                  ? "SAFE SCALE: Full-bleed scene — environment fills the entire canvas edge-to-edge. **Pull the camera back:** the cast together should use only **~28–42% of frame height** (typically) so **walls, sky, cave, or landscape read clearly** — not a zoomed portrait. Full heads, hair, feet, hands, wings, and tails inside the frame with modest inset — never edge-clipped. Never crop standing or jumping children at the neck, waist, or knees — if the moment is full-body, show full-body. **Single-page layout:** centre the cast — keep the focal group's visual mass near **~45–55% horizontal** (balanced; **not** squeezed to one side as if saving space for overlaid text). Do not leave empty margins around the whole painting. "
+                  : "SAFE SCALE: Full-bleed scene — environment fills the entire canvas edge-to-edge. **Pull the camera back:** the cast together should use only **~28–42% of frame height** (typically) so **walls, sky, cave, or landscape read clearly** — not a zoomed portrait. Full heads, hair, feet, hands, wings, and tails inside the frame with modest inset — never edge-clipped. Never crop standing or jumping children at the neck, waist, or knees — if the moment is full-body, show full-body. **Book gutter:** bias the group slightly left or right of frame centre — never put a main child's face on the vertical midline. Do not leave empty margins around the whole painting. ") +
+                "The attached reference image shows the cast on a neutral backdrop — use it ONLY to lock each character's identity (face shapes, hair, outfit colours, species, body shape). Ignore the lineup's neutral expressions and poses for this sheet — on THIS spread, show expressions and poses that fit the story moment. Repaint the world fresh.",
+            );
+
+            // 2. Setting (the override-resolved placeDesc + plotHint)
+            blocks.push(
+              `SETTING — paint exactly this world on every spread:\n${placeDesc}.${plotHint ? `\nThe child's story idea: ${plotHint}` : ""}`,
+            );
+
+            // 3. Shot framing
+            blocks.push(`SHOT TYPE (spread ${idx + 1} of ${shotPlan.length}): ${shot.label}. ${shot.note}`);
+
+            if (idx === 0) {
+              blocks.push(
+                noBuddyBook
+                  ? `OPENING / SHELF COVER (${childName}'s first picture): **Hero-only foreground** — just ${childName} dominates like a paperback cover (${childName} alone unless the verse above explicitly names exactly one other person beside them — then **≤2 humans**, uncrowded). No classrooms full of classmates, family breakfast tables, or half-faces at the margins unless the verse demands it — **prefer ${childName} centered in the opening scene.**`
+                  : `OPENING / SHELF COVER (${childName}'s first picture): **Hero + buddy only foreground** — ${childName} AND the imaginary buddy (${childName} plus buddy creature); **≤2 principals** unless the verse explicitly names **one other human** in that beat — then ${childName}, buddy, that human **≤3**. No crowds, no clipped extras at frame edges.`,
+              );
+              if (heroPortraitPin?.trim()) {
+                blocks.push(
+                  `HERO REFERENCE (cover must match uploaded child): ${heroPortraitPin.trim()} — same kid, hair colour and style as refs; never a generic different-haired substitute.`,
+                );
+              }
+            }
+
+            const verseBriefForCam = `${b.verse}\n${b.brief}`;
+            if (needsFullBodyWideFraming(verseBriefForCam)) {
+              blocks.push(
+                "CAMERA OVERRIDE — VERTICAL OR AIRBORNE ACTION: This spread's verse or scene implies jumping, bouncing, trampoline, soaring, flying, or similar. Treat any mid-shot or close-up plan as superseded: use a WIDE or FULL shot with the camera pulled back. Every named person and the buddy (if listed in WHO IS IN THIS PICTURE) must show a complete head (hair, hat, unicorn horn if any), full torso, arms, legs, feet, and the buddy's tail, mane, and hooves — all fully inside the frame with clear margin from every edge. Never crop at the neck, waist, or knees. The cast together may use only **~30–42% of frame height** with plenty of visible sky or ceiling above.",
+              );
+            }
+
+            // 4. The exact moment, from the verse
+            if (verseLines) {
+              blocks.push(
+                `THIS SPREAD'S MOMENT (${pairedMomentLead} — show every action literally):\n"""\n${verseLines}\n"""`,
+              );
+              if (/\n\s*\n/.test(verseLines)) {
+                blocks.push(
+                  "TWO-PARAGRAPH VERSE: The text has two blocks (blank line between). Honour **both** — if the **second** block moves to a new room or centres food/props/funny action (e.g. cereal, kitchen mess, splash), that beat is usually the MAIN picture; do **not** give a crowded hallway tableau that ignores the second block's setting and props.",
+                );
+              }
+              blocks.push(
+                "VISUAL MATCHING: Paint the SAME setting, time of day, and activity as the verse — if it says bouncy castle under the sky, show padded inflatable bounce-house walls and open sky; if it says kitchen or courtyard, show that. Do not substitute a different scene (e.g. woods and bicycle) unless the verse names those.",
+              );
+              blocks.push(
+                "BEAT FIDELITY: Match **concrete props and places** (slide, swings, tree trunk, bush, gate, umbrella, kitchen counter, etc.) and the **outcome of the beat** — if text says rain **stopped**, cloud **left**, or children are **dry / warm in sun**, show that; if they are still getting wet, show rain. If two paragraphs differ, prefer the **second** block’s action and setting when it moves the story forward.",
+              );
+              if (
+                /\bpark\b|playground|\bcommons?\b|\brec(?:reation)?\s*ground\b|\btown\s+green\b/i.test(
+                  verseLines,
+                )
+              ) {
+                blocks.push(
+                  "PARK READABILITY: World must read like a **public park or playground verge** — at least two cues (bench, litter bin, wide mown grass, tarmac/path, fenced play silhouette, swings frame, fountain, distant dotted walkers). Do **not** use only a private cottage garden arch unless the verse says garden.",
+                );
+              }
+            }
+
+            blocks.push(
+              "EXPRESSION & POSE: Keep each character's IDENTITY locked to the reference — same face shape, hair COLOUR, hair LENGTH, hair STYLE, skin tone, outfit colours, species, proportions. Change pose, body language, and facial expression to match THIS SPREAD'S MOMENT (e.g. surprised brows, belly laugh, anxious side-glance, sleepy smile, focused pout). Do not give every spread the same neutral grin unless the verse is neutral; buddy creatures should emote in species-appropriate ways too.",
+            );
+
+            blocks.push(
+              "OUTFIT LOCK: Each named child's shirt/top must match CAST IDENTITIES and the reference lineup **exactly** — same named solid colour every spread (**no** orange⇄green or other hue swaps for one person).",
+            );
+
+            // 5. Visible cast for THIS spread (the part that fixes the
+            //    "dinosaur is hidden but appears in the picture" bug).
+            //    Priority: explicit VISIBLE line from the LLM, else infer from
+            //    the verse's missing-buddy cues, else fall back to "the cast".
+            if (visibleLine) {
+              blocks.push(
+                `WHO IS IN THIS PICTURE (the only characters to draw — match the reference for each):\n${visibleLine}` +
+                  (buddyMissing
+                    ? `\n(The verse says the buddy is hiding / out of sight / missing for this beat — keep them OUT of frame as VISIBLE says.)`
+                    : ""),
+              );
+            } else if (buddyMissing) {
+              const humanList =
+                storyHumanNames.length > 0 ? storyHumanNames.join(", ") : childName;
+              blocks.push(
+                `WHO IS IN THIS PICTURE: ${humanList}. The imaginary buddy creature is not in this scene — the verse is about searching or not finding them — do not draw the buddy creature in this frame.`,
+              );
+            }
+
+            blocks.push(
+              "FRAMING — NAMED KIDS & PETS: Anyone named in WHO IS IN THIS PICTURE must read as a **main** figure (face visible, not a sliver on the outer edge); widen the shot or reposition the group near the **horizontal middle (~42–58%)** before cropping.",
+            );
+
+            // 6. Scene note (free description from the LLM)
+            blocks.push(`SCENE NOTE: ${b.brief}`);
+
+            // 7. Cast bible (compact; longer when photo refs so Hair: lines survive truncation)
+            const castCap = portraitAppearance.trim().length > 0 ? 1400 : 800;
+            const castSnippet = castBible.trim().slice(0, castCap);
+            blocks.push(
+              `CAST IDENTITIES (only draw the ones listed in WHO IS IN THIS PICTURE — match the reference for each):\n${castSnippet}`,
+            );
+
+            if (portraitAppearance.trim().length > 0) {
+              blocks.push(
+                "HAIR FIDELITY: Each named child must keep the exact hair colour, length, and arrangement from the reference lineup and lines above (e.g. long blonde stays long blonde; pigtails stay pigtails). **Never** give one girl dark brown ponytail and the other long blonde for contrast — if both lines say blonde, both are blonde. Do not revert to a default boy crew cut or generic brown bob unless the cast explicitly describes that. **GENDER:** If the cast bible says a named child is a girl (or reference had Gender: girl), illustrate a girl — do not draw them as a boy with short brown hair. If the cast bible or paired verse uses **he/him/his** for a named human (e.g. Isaac), illustrate that child as a **boy** — do **not** substitute a generic girl silhouette for 'variety'.",
+              );
+            }
+
+            blocks.push(
+              "PRONOUN LOCK: If the paired verse uses **he/him/his** for a named child, that child must read as a **boy** in the picture; **she/her** for that name → **girl**. Never swap genders for two-kid contrast.",
+            );
+            blocks.push(
+              "Paint ONLY what the verse, WHO IS IN THIS PICTURE, and SCENE NOTE describe — no extra props, no extra characters, no background crowd, no signs, speech balloons, or any writing in the picture. **No edge-cropped mystery humans** (no partial stranger arms/legs); only named cast, fully readable.",
+            );
+
+            return blocks.join("\n\n");
+          };
+
+          let lastChunkMs = 0;
+          for (
+            let chunkStart = 0;
+            chunkStart < briefs.length;
+            chunkStart += chunkSize
+          ) {
+            if (chunkStart > 0 && interChunkWaitMs > 0) {
+              // Full cooldown protects OpenAI tier-1 RPM. But if the previous chunk
+              // already took ~one minute wall-clock, the rolling limit window has
+              // usually advanced — sleeping the full amount often pushes past the
+              // ~150s edge gateway (HTTP 546) for no benefit.
+              const prevMs = lastChunkMs;
+              let sleepMs = interChunkWaitMs;
+              if (adaptiveChunkWait) {
+                if (prevMs >= 55000) {
+                  sleepMs = Math.min(sleepMs, 2000);
+                } else if (prevMs >= 35000) {
+                  sleepMs = Math.min(
+                    sleepMs,
+                    Math.max(2000, Math.floor(interChunkWaitMs / 2)),
+                  );
+                }
+              }
+              console.info(
+                `[clever-service] gpt-image chunk cooldown ${sleepMs}ms (prev chunk ${prevMs}ms; budget ${interChunkWaitMs}ms)`,
+              );
+              await delay(sleepMs);
+            }
+            const slice = briefs.slice(chunkStart, chunkStart + chunkSize);
+            const chunkT0 = Date.now();
+            const chunkResults = await Promise.all(
+              slice.map(async (b, localIdx) => {
+                const idx = chunkStart + localIdx;
+                const editPrompt = buildEditPrompt(b, idx);
+                try {
+                  const out = await gptImageEdit(
+                    apiKey,
+                    editPrompt,
+                    [refBytes],
+                    pictureBookQuality,
+                    0,
+                    gptHasPortraitRefs,
+                    nonHeroPortraitRefs,
+                  );
+                  return { idx, url: out.url };
+                } catch (e) {
+                  console.warn(
+                    "[clever-service] GPT Image edit failed for spread",
+                    idx,
+                    e,
+                  );
+                  throw e;
+                }
+              }),
+            );
+            lastChunkMs = Date.now() - chunkT0;
+            for (const r of chunkResults) {
+              urls[r.idx] = r.url;
+              gptImageSpreadCount++;
+            }
+          }
+          // Strict completeness check — if for any reason urls didn't fill,
+          // surface a clear error so the UI doesn't render an imageless book.
+          const missing = briefs
+            .map((_, i) => i)
+            .filter((i) => !urls[i] || typeof urls[i] !== "string");
+          if (missing.length > 0) {
+            throw new Error(
+              `gpt_image_incomplete: missing ${missing.length}/${briefs.length} spread(s) at index ${missing.join(",")}`,
+            );
+          }
+        }
+      }
+
+      if (!useGptImage && useCastAnchor) {
+        let anchorUrl: string | null = null;
+        try {
+          anchorUrl = await falFluxProTextToImageUrl(falKey, falTextModel, anchorPrompt);
+          falTextSpreadCount = 1;
+        } catch (e) {
+          console.warn(
+            "[clever-service] Fal cast-anchor T2I failed; falling back to spread-1 T2I + Redux×5",
+            e,
+          );
+        }
+
+        if (anchorUrl) {
+          try {
+            panelLock = await visualLockFromFirstImage(apiKey, anchorUrl);
+            firstPanelVisualLockUsed = panelLock.length > 40;
+          } catch (e) {
+            console.warn("[clever-service] visual lock (anchor) failed", e);
+          }
+
+          let refUrl: string = anchorUrl as string;
+          for (let idx = 0; idx < briefs.length; idx++) {
+            if (idx > 0) await delay(staggerMs);
+            const b = briefs[idx];
+            const composed = composeDallePrompt({
+              preamble: stylePreamble,
+              envTheme,
+              sceneBrief:
+                (idx === 0
+                  ? openingSceneImageConstraints(noBuddyBook, childName)
+                  : "") + b.brief,
+              castBible,
+              firstPanelLock: panelLock,
+              heroFirstName: childName,
+              mandatoryCastLine: artStyleSpec.composeMandatoryCast,
+            });
+            const verseBeat = spreadTextForPicturePage(b.index, story.pages).slice(0, 360);
+            const verseTwoParagraphs = /\n\s*\n/.test(verseBeat);
+            const wideBeatClause = needsFullBodyWideFraming(`${verseBeat} ${b.brief}`)
+              ? "WIDE FULL-BODY CAM: verse implies jumping/bouncing/airborne — pull camera back; every named figure complete head-to-toe, buddy tail/horn/mane in frame; no neck or waist crops. "
+              : "";
+            try {
+              const falPrompt =
+                falReduxLayoutHint +
+                wideBeatClause +
+                "PICTURE BOOK SPREAD — illustrate THIS story beat literally. " +
+                (verseTwoParagraphs
+                  ? "If VERSE has two paragraphs, prioritize the SECOND block's setting and headline props when it is the vivid beat (food, splash, toy mess) — do not ignore it for a preamble-only tableau. ONLY people/creatures named in the verse — no unnamed friend crowd. "
+                  : "") +
+                "VERSE (must match mood, action, props): " +
+                verseBeat +
+                ". " +
+                "SCENE: change layout, camera, and environment completely vs the reference. Show the action and setting in the brief — rockets, trampolines, castles, planets, etc. must appear visibly if the story calls for them. " +
+                "Keep character IDENTITY only from the reference (face shape, species, hair/outfit colours, sizes)—vary expressions and poses to match the verse's emotion; do not recycle the same neutral smile on every spread. Do not recreate neutral lineup poses or plain backdrop. " +
+                artStyleSpec.falReduxStyleTag +
+                composed.slice(0, FAL_REDUX_PROMPT_MAX - 420);
+              const u = await falFluxReduxImageUrl(
+                falKey,
+                falReduxModel,
+                refUrl,
+                falPrompt,
+                falStrength,
+              );
+              urls[idx] = u;
+              falReduxSpreadCount++;
+              refUrl = u;
+            } catch (e) {
+              console.warn("[clever-service] Fal Redux (anchor chain) failed for spread", idx, e);
+              throwFalImage(`Fal image-to-image failed for spread ${idx + 1} of 6`, e);
+            }
+          }
+          falCastAnchorUsed = true;
+        }
+      }
+
+      /* Legacy: spread 1 = T2I, spreads 2–6 = Redux(spread1). When FAL off, anchor off, anchor T2I failed, or incomplete urls. */
+      const needLegacySpreads =
+        !useGptImage &&
+        (!useFalRedux ||
+          urls.length < briefs.length ||
+          (useCastAnchor && falTextSpreadCount === 0));
+
+      if (needLegacySpreads) {
+        if (useFalRedux && useCastAnchor && falTextSpreadCount === 0) {
+          urls.length = 0;
+        }
+        if (urls.length === 0) {
+          if (useFalRedux) {
+            try {
+              urls[0] = await falFluxProTextToImageUrl(falKey, falTextModel, spread1Prompt);
+              falTextSpreadCount = 1;
+            } catch (e) {
+              console.warn("[clever-service] Fal text-to-image (spread 1) failed", e);
+              throwFalImage("Fal text-to-image failed for the first picture", e);
+            }
+          } else {
+            urls[0] = await openaiImageUrl(apiKey, spread1Prompt, "1024x1024");
+          }
+
+          if (!panelLock) {
+            try {
+              panelLock = await visualLockFromFirstImage(apiKey, urls[0]);
+              firstPanelVisualLockUsed = panelLock.length > 40;
+            } catch (e) {
+              console.warn("[clever-service] visual lock failed", e);
+            }
+          }
+
+          if (briefs.length > 1) {
+            const referenceStillUrl = urls[0];
+            const rest = await Promise.all(
+              briefs.slice(1).map(async (b, idx) => {
+                if (idx > 0) await delay(idx * staggerMs);
+                const composed = composeDallePrompt({
+                  preamble: stylePreamble,
+                  envTheme,
+                  sceneBrief: b.brief,
+                  castBible,
+                  firstPanelLock: panelLock,
+                  heroFirstName: childName,
+                  mandatoryCastLine: artStyleSpec.composeMandatoryCast,
+                });
+                if (useFalRedux) {
+                  if (!referenceStillUrl) {
+                    throwFalImage("Fal image-to-image missing reference from first picture", new Error("no_reference_url"));
+                  }
+                  try {
+                    const wideBeatClause = needsFullBodyWideFraming(`${b.verse} ${b.brief}`)
+                      ? "WIDE FULL-BODY CAM: jumping/bouncing/airborne — pull camera back; head-to-toe for every named figure; buddy tail/horn in frame. "
+                      : "";
+                    const falPrompt =
+                      falReduxLayoutHint +
+                      wideBeatClause +
+                      "New story moment — change poses, action, and background to match the scene. " +
+                      "Keep the same hero face shape, hair, outfit colours, and the same buddy and named creatures as the reference — only beings named in SCENE ACTION, no new animals or people. Shift facial expressions and body language to match the story beat — not the same static expression every time. " +
+                      artStyleSpec.falLegacyStyleTag +
+                      falLegacyFrameClause +
+                      composed.slice(0, FAL_REDUX_PROMPT_MAX - 220);
+                    const u = await falFluxReduxImageUrl(
+                      falKey,
+                      falReduxModel,
+                      referenceStillUrl,
+                      falPrompt,
+                      falStrength,
+                    );
+                    falReduxSpreadCount++;
+                    return u;
+                  } catch (e) {
+                    console.warn("[clever-service] Fal Redux failed", e);
+                    throwFalImage(`Fal image-to-image failed for spread ${idx + 2} of 6`, e);
+                  }
+                }
+                return openaiImageUrl(apiKey, composed, "1024x1024");
+              }),
+            );
+            for (let i = 0; i < rest.length; i++) {
+              urls.push(rest[i]);
+            }
+          }
+        }
+      }
+
+      /** Final picture page (page 12): opt-in reuse of spread 1 art (set STORYBOOK_REUSE_FIRST_ON_LAST=1 for a bookend repeat). Default = generate a distinct final spread. */
+      const reuseFirstIllustrationOnLast = Deno.env.get("STORYBOOK_REUSE_FIRST_ON_LAST") === "1";
+      if (reuseFirstIllustrationOnLast && briefs.length >= 2 && urls.length >= briefs.length) {
+        const first = urls[0];
+        if (first && typeof first === "string" && /^https?:\/\//i.test(first.trim())) {
+          urls[briefs.length - 1] = first;
+        }
+      }
+
+      sceneImageUrl = urls[0] || null;
+
+      const urlByIndex = new Map<number, string>();
+      briefs.forEach((b, k) => urlByIndex.set(b.index, urls[k]));
+
+      story.pages.forEach((p, i) => {
+        let imageUrl = urlByIndex.get(i) ?? null;
+        if (
+          imageUrl == null &&
+          i === FRONT_MATTER_PAGE_COUNT - 1 &&
+          sceneImageUrl &&
+          /^https?:\/\//i.test(String(sceneImageUrl).trim())
+        ) {
+          imageUrl = sceneImageUrl;
+        }
+        pagesOut.push({
+          text: p.text.trim(),
+          imageUrl,
+        });
+      });
+    } catch (e) {
+      console.error(e);
+      const detail = e instanceof Error ? e.message : String(e);
+      const isGpt = useGptImage && /^gpt_image_/i.test(detail);
+      const errKey = isGpt
+        ? "gpt_image_failed"
+        : e instanceof FalImageError
+        ? "fal_failed"
+        : "images_failed";
+      return jsonResponse(
+        {
+          error: errKey,
+          detail,
+          imageMode,
+          title: story.title,
+          pages: story.pages.map((p) => ({ text: p.text.trim(), imageUrl: null })),
+        },
+        502,
+      );
+    }
+
+    const bookColorOut = coerceBookColor(bookCoverColorReq, story.bookColor, childName);
+    const readerFont = pickStoryReaderFont();
+
+    return jsonResponse({
+      title: story.title,
+      bookColor: bookColorOut,
+      readerFont,
+      sceneImageUrl,
+      pages: pagesOut,
+      meta: {
+        childName,
+        characterKey,
+        placeKey,
+        placeOverridden,
+        plotNamedHumans,
+        storyHumanNames,
+        plotHintLen: plotHint.length,
+        familyNames,
+        familyPeopleIds: familyPeople.map((p) => p.id),
+        portraitVisionAttempted,
+        portraitAppearanceUsed: portraitAppearance.length > 0,
+        imageCount: pagesOut.filter((p) => p.imageUrl).length,
+        spreads: Math.floor(pagesOut.length / 2),
+        characterLockCompiled: compiledLock.length > 0,
+        firstPanelVisualLock: firstPanelVisualLockUsed,
+        falTextModel: useFalRedux ? falTextModel : null,
+        falTextSpreads: falTextSpreadCount,
+        falCastAnchorUsed,
+        falReduxModel: useFalRedux ? falReduxModel : null,
+        falReduxSpreads: falReduxSpreadCount,
+        imageMode: useGptImage ? "gptimage" : "fal",
+        gptImageModel: useGptImage ? gptImageDefaultModel() : null,
+        gptImageSpreads: useGptImage ? gptImageSpreadCount : 0,
+        pictureBookQuality,
+        illustrationStyle: illustrationStyleKey,
+        reuseFirstIllustrationOnLast:
+          Deno.env.get("STORYBOOK_REUSE_FIRST_ON_LAST") === "1",
+      },
+    });
+}
+
+async function runStorybookGenerationJob(
+  jobId: string,
+  bodySnapshot: StorybookRequestBody,
+): Promise<void> {
+  const client = serviceRoleSupabase();
+  if (!client) return;
+  await patchStorybookJob(client, jobId, {
+    status: "running",
+    updated_at: new Date().toISOString(),
+  });
+  const apiKey = Deno.env.get("OPENAI_API_KEY");
+  if (!apiKey) {
+    await patchStorybookJob(client, jobId, {
+      status: "failed",
+      http_status: 500,
+      result_payload: { error: "server_missing_openai" },
+      updated_at: new Date().toISOString(),
+    });
+    return;
+  }
+  try {
+    const res = await executeStorybookPipeline(apiKey, bodySnapshot);
+    const textRes = await res.text();
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(textRes) as unknown;
+    } catch {
+      parsed = {
+        error: "job_non_json_response",
+        detail: textRes.slice(0, 800),
+      };
+    }
+    await patchStorybookJob(client, jobId, {
+      status: res.ok ? "complete" : "failed",
+      http_status: res.status,
+      result_payload: parsed,
+      updated_at: new Date().toISOString(),
+    });
+  } catch (e) {
+    const detail = e instanceof Error ? e.message : String(e);
+    await patchStorybookJob(client, jobId, {
+      status: "failed",
+      http_status: 546,
+      result_payload: { error: "job_exception", detail },
+      updated_at: new Date().toISOString(),
+    });
+    console.error("[clever-service] storybook job exception", jobId, e);
+  }
+}
+
 Deno.serve(async (req) => {
   console.info("[clever-service]", req.method);
 
@@ -2968,6 +4346,35 @@ Deno.serve(async (req) => {
   // Optional simple proxy for downloading OpenAI images to avoid strict CORS
   if (req.method === "GET") {
     const searchParams = new URL(req.url).searchParams;
+
+    const storybookJobId = searchParams.get("storybook_job")?.trim();
+    if (storybookJobId && /^[0-9a-f-]{36}$/i.test(storybookJobId)) {
+      const client = serviceRoleSupabase();
+      if (!client) {
+        return jsonResponse({ error: "storybook_job_db_unconfigured" }, 503);
+      }
+      const { data, error } = await client
+        .from("storybook_generation_jobs")
+        .select("status,http_status,result_payload,updated_at")
+        .eq("id", storybookJobId)
+        .maybeSingle();
+      if (error) {
+        console.warn("[storybook_job] select", error.message);
+      }
+      if (!data) {
+        return jsonResponse(
+          { error: "storybook_job_not_found", id: storybookJobId },
+          404,
+        );
+      }
+      return jsonResponse({
+        storybook_job_status: data.status,
+        http_status: data.http_status,
+        result: data.result_payload,
+        updated_at: data.updated_at,
+      });
+    }
+
     
     // 1. Text-to-Speech (TTS) Proxy
     const ttsText = searchParams.get("ttsText");
@@ -3080,6 +4487,8 @@ Deno.serve(async (req) => {
     buddyCustom?: string;
     /** When `place` is `custom_place`, short free-text from the child (max 200 chars). */
     placeCustom?: string;
+    /** When true, enqueue a background job (202 + poll `?storybook_job=`). */
+    storybook_async?: unknown;
   };
   try {
     body = await req.json();
@@ -3087,1220 +4496,41 @@ Deno.serve(async (req) => {
     return jsonResponse({ error: "bad_json" }, 400);
   }
 
-  const childName = sanitizeName(String(body.childName ?? ""));
-  const dedicationAuthor =
-    String(body.author ?? "").trim() || childName;
-  const characterKey = normalizeWizardKey(body.character ?? "");
-  const placeKey = normalizeWizardKey(body.place ?? "");
 
-  let characterDesc = CHARACTERS[characterKey];
-  let placeDesc = PLACES[placeKey];
-
-  if (characterKey === "custom_buddy") {
-    const c = sanitizeCustomChoice(String(body.buddyCustom ?? ""));
-    if (c.length < 4) {
-      return jsonResponse({
-        error: "invalid_choices",
-        detail: "custom_buddy_too_short",
-      }, 400);
-    }
-    characterDesc =
-      `One imaginary buddy as described: ${c}. Keep a single consistent friendly storybook design — soft proportions, kind expression, never scary or adult; no realistic weapons, gore, horror, or recognizable licensed characters.`;
-  }
-  if (placeKey === "custom_place") {
-    const p = sanitizeCustomChoice(String(body.placeCustom ?? ""));
-    if (p.length < 4) {
-      return jsonResponse({
-        error: "invalid_choices",
-        detail: "custom_place_too_short",
-      }, 400);
-    }
-    placeDesc =
-      `Setting as described: ${p}. Bright picture-book world for young children — warm and readable, no nightmare horror, disasters, politics, or logos / brand text.`;
-  }
-
-  if (!characterDesc || !placeDesc) {
-    if (!characterDesc) {
-      return jsonResponse({
-        error: "invalid_choices",
-        detail: `unknown_character:${characterKey}`,
-      }, 400);
-    }
-    return jsonResponse({
-      error: "invalid_choices",
-      detail: `unknown_place:${placeKey}`,
-    }, 400);
-  }
-
-  const noBuddyBook = characterKey === "nobuddy";
-
-  const plotHint = sanitizePlotHint(String(body.plotHint ?? ""));
-  const pictureBookQuality = coercePictureBookQuality(body.pictureBookQuality);
-  const illustrationStyleKey = coerceIllustrationStyle(body.illustrationStyle);
-  const readerArtLayoutKey = coerceReaderArtLayout(body.readerArtLayout);
-  const storyTextModeKey = coerceStoryTextMode(body.storyTextMode, readerArtLayoutKey);
-  const storyLengthKey = coerceStoryLength(body.storyLength);
-  const lenSpec = storyLengthSpec(storyLengthKey);
-  const artStyleSpec = ART_STYLE_SPECS[illustrationStyleKey];
-
-  // If the child's plot prompt clearly names a different setting than the one
-  // they tapped on (e.g. picker = "woods" but plot says "in a castle"), the
-  // PLOT wins. Otherwise the LLM gets a conflicting "ENVIRONMENT: forest"
-  // alongside "THEME: castle hide and seek" and the model averages them.
-  // Detect the most specific setting word in the plot and swap.
-  let placeOverridden: { from: string; to: string } | null = null;
-  if (plotHint) {
-    const settingMap: Array<{
-      pattern: RegExp;
-      key: string;
-      desc: string;
-    }> = [
-      {
-        pattern: /\b(castle|fortress|palace|throne\s*room|drawbridge|turret|keep|battlement)\b/i,
-        key: "castle",
-        desc: "a fairy-tale castle — stone walls and corridors with arched doorways, hanging tapestries and banners, flagstone floors, courtyards with crenellated walls, narrow turret windows",
-      },
-      {
-        pattern: /\b(cave|cavern|tunnel|underground)\b/i,
-        key: "cave",
-        desc: PLACES.cave,
-      },
-      {
-        pattern:
-          /\b(football\s*stadium|soccer\s*stadium|football\s*ground|football\s*pitch|soccer\s*pitch|soccer\s*field|at\s+the\s+stadium|in\s+the\s+stadium|stadium\s+stands?)\b/i,
-        key: "stadium",
-        desc: PLACES.stadium,
-      },
-      {
-        pattern: /\b(museum|gallery)\b/i,
-        key: "museum",
-        desc: PLACES.museum,
-      },
-      {
-        pattern: /\b(train|railway|locomotive|carriage|station\s+platform)\b/i,
-        key: "train",
-        desc: PLACES.train,
-      },
-      {
-        pattern: /\b(circus|big\s*top|under\s+the\s+circus\s+tent)\b/i,
-        key: "circus",
-        desc: PLACES.circus,
-      },
-      {
-        pattern: /\b(pirate\s*ship|galleon|shipwreck|aboard\s+a\s+ship|on\s+a\s+pirate\s+ship)\b/i,
-        key: "pirateship",
-        desc: PLACES.pirateship,
-      },
-      {
-        pattern: /\b(zoo|safari\s*park|petting\s+zoo|animal\s*park|aquarium)\b/i,
-        key: "zoo",
-        desc: PLACES.zoo,
-      },
-      {
-        pattern: /\b(farm|barn|tractor|hayloft|farmland)\b/i,
-        key: "farm",
-        desc: PLACES.farm,
-      },
-      {
-        pattern: /\b(mountain|mountains|alpine|summit|peak|hillside|hilltop)\b/i,
-        key: "mountain",
-        desc: PLACES.mountain,
-      },
-      {
-        pattern: /\b(desert|sand\s*dunes|oasis)\b/i,
-        key: "desert",
-        desc: PLACES.desert,
-      },
-      {
-        pattern: /\b(snow|snowy|igloo|ski\s+slope|winter\s+wonderland)\b/i,
-        key: "snow",
-        desc: PLACES.snow,
-      },
-      {
-        pattern: /\b(town|city|market\s+square|high\s*street)\b/i,
-        key: "city",
-        desc: PLACES.city,
-      },
-      {
-        pattern: /\b(lake|lakeside|riverbank|rowing\s+boat)\b/i,
-        key: "lake",
-        desc: PLACES.lake,
-      },
-      {
-        pattern: /\b(tropical\s*island|on\s+an\s+island|island\s+adventure)\b/i,
-        key: "island",
-        desc: PLACES.island,
-      },
-      {
-        pattern: /\b(underwater|under\s*the\s*sea|ocean\s*floor|coral|reef|mermaid|submarine)\b/i,
-        key: "undersea",
-        desc: PLACES.undersea,
-      },
-      {
-        pattern: /\b(space|outer\s*space|moon|planet|galaxy|cosmic|rocket|asteroid|comet)\b/i,
-        key: "space",
-        desc: "a friendly cartoon planet or asteroid in space — soft pastel landscape with distant ringed planets, comet trails, and starry sky",
-      },
-      {
-        pattern: /\b(at\s*sea|open\s*ocean|sailing|yacht|out\s*on\s*the\s*waves)\b/i,
-        key: "sea",
-        desc: PLACES.sea,
-      },
-      {
-        pattern: /\b(beach|shore|seaside|sand\s*castle|surf|rockpool)\b/i,
-        key: "beach",
-        desc: "a sunny beach with gentle waves, soft sand, scattered shells, and palm trees or rocky outcrops in the distance",
-      },
-      {
-        pattern: /\b(garden|meadow|orchard|vegetable\s*patch|allotment)\b/i,
-        key: "garden",
-        desc: "a flower garden with butterflies, tall hollyhocks, a winding path, and a wooden gate or trellis",
-      },
-      {
-        pattern: /\b(woods?|forest|jungle|glade|grove|thicket|undergrowth)\b/i,
-        key: "woods",
-        desc: PLACES.woods,
-      },
-    ];
-    for (const s of settingMap) {
-      if (s.pattern.test(plotHint) && placeKey !== s.key) {
-        placeOverridden = { from: placeKey, to: s.key };
-        placeDesc = s.desc;
-        console.info(
-          `[clever-service] place override: picker="${placeKey}" -> plot-detected="${s.key}"`,
-        );
-        break;
-      }
-    }
-  }
-  const familyPeople = sanitizeFamilyPeople(body.familyPeople);
-  const familyNames =
-    familyPeople.length > 0
-      ? familyPeople.map((p) => p.label)
-      : sanitizeFamilyNames(body.familyNames);
-  const plotPetLower = plotPetTaggedNames(plotHint);
-  const plotNamesFromPlot = extractPlotNamedHumans(plotHint, childName, plotPetLower);
-
-  const bookAssetsBase = (Deno.env.get("BOOK_ASSETS_BASE_URL") ?? "").trim();
-  const refPack = sanitizeCharacterReferencePhotos(
-    body,
-    familyPeople,
-    childName,
-  );
-
-  const portraitVisionModelResolved = (() => {
-    const env = (Deno.env.get("STORYBOOK_VISION_MODEL") ?? "").trim();
-    if (env) return env;
-    const multiHuman =
-      Object.keys(refPack.customByFriendId).length > 0 ||
-      refPack.heroUrls.length >= 2;
-    if (multiHuman) return "gpt-4o";
-    return storybookPortraitVisionModel(pictureBookQuality);
-  })();
-
-  let portraitAppearance = "";
-  const portraitVisionAttempted = Boolean(
-    refPack.heroUrls.length > 0 ||
-      Object.keys(refPack.customByFriendId).length > 0 ||
-      (bookAssetsBase && familyPeople.length > 0),
-  );
-  if (portraitVisionAttempted) {
-    try {
-      portraitAppearance = await appearanceNotesFromReferences(
-        apiKey,
-        bookAssetsBase,
-        familyPeople,
-        childName,
-        refPack.heroUrls,
-        refPack.customByFriendId,
-        pictureBookQuality,
-        portraitVisionModelResolved,
+  if (wantsStorybookAsync(body)) {
+    const db = serviceRoleSupabase();
+    const urlOk = Boolean(storybookJobSupabaseUrl());
+    const keyOk = Boolean(storybookJobServiceRoleKey());
+    if (!db || !urlOk || !keyOk) {
+      return jsonResponse(
+        {
+          error: "storybook_async_unconfigured",
+          msg:
+            "Async storybook jobs need SUPABASE_URL (or STORYBOOK_SUPABASE_URL) and a secret API key: hosted functions usually provide SUPABASE_SECRET_KEYS automatically; otherwise set SUPABASE_SERVICE_ROLE_KEY or STORYBOOK_SUPABASE_SERVICE_ROLE_KEY, plus migration storybook_generation_jobs.",
+        },
+        501,
       );
-    } catch (e) {
-      console.warn("[clever-service] portrait vision failed", e);
     }
-  }
-
-  const plotNamedHumans = mergePlotNamedHumansWithPortrait(
-    plotHint,
-    portraitAppearance,
-    plotNamesFromPlot,
-    childName,
-    plotPetLower,
-  );
-  const storyHumanNames = mergeUniqueFirstNames(
-    [childName],
-    mergeUniqueFirstNames(familyNames, plotNamedHumans),
-  );
-  const plotOnlyHumans = plotNamedHumans.filter(
-    (n) => !familyNames.some((f) => f.toLowerCase() === n.toLowerCase()),
-  );
-
-  const portraitBlockForText =
-    portraitAppearance.length > 0
-      ? `\n\nAppearance from reference photos (each line is one person — hero and any friends you tagged with a photo, or default game portraits; match when describing these people in the story):\n${portraitAppearance}\n`
-      : "";
-
-  const storyLengthAndFormatRule =
-    storyTextModeKey === "prose"
-      ? readerArtLayoutKey === "facing"
-        ? `- Exactly 12 pages (six double-page spreads). **Facing-page layout** (one full-page picture + one dedicated text page): each **odd** text page is shown alone on a cream text page in the app — not overlaid on art. Write ${lenSpec.proseParagraphLead} per odd page (${lenSpec.proseWordRange}), warm read-aloud prose for age ~5, with natural dialogue and sensory detail. Use **one** separator between the two paragraphs only: **two newlines** (\\n\\n) in the JSON string — **no** extra blank lines, **no** third paragraph. **Do not** force ${lenSpec.proseAntiRhymeHint}; light rhythm or occasional rhyme is fine — **clarity and story flow come first**.`
-        : `- Exactly 12 pages (six double-page spreads). **Duplex layout** (one wide picture with read-aloud text overlaid on the spread in the app): each **odd** text page pairs with the illustration — write ${lenSpec.proseParagraphLead} per odd page (${lenSpec.proseWordRange}), warm read-aloud prose for age ~5, with natural dialogue and sensory detail. Use **one** separator between the two paragraphs only: **two newlines** (\\n\\n) — **no** extra blank lines, **no** third paragraph. **Do not** force ${lenSpec.proseAntiRhymeHint}; light rhythm or occasional rhyme is fine — **clarity and story flow come first**.`
-      : readerArtLayoutKey === "facing"
-      ? `- Exactly 12 pages (six double-page spreads). **Facing-page layout** (one full-page picture + one dedicated text page): each **odd** text page is shown alone on a cream text page in the app — not overlaid on art. The text on every such page MUST be exactly **${lenSpec.rhymeLines}** lines long (${lenSpec.rhymeLinesHint}), written as a fun, rhythmic poem that rhymes perfectly across the page (${lenSpec.rhymeSchemeExamples}). Each line should be ${lenSpec.rhymeLineShape}. Format the text with actual line breaks (\\n) after each line so the rhyming words fall at the ends of lines.`
-      : `- Exactly 12 pages (six double-page spreads). The text on every page MUST be exactly **${lenSpec.rhymeLines}** lines long (${lenSpec.rhymeLinesHint}), written as a fun, rhythmic poem that rhymes perfectly across the page (${lenSpec.rhymeSchemeExamples}). Each line should be ${lenSpec.rhymeLineShape}. Format the text with actual line breaks (\\n) after each line so the rhyming words fall at the ends of lines.`;
-
-  const oddPageTextFormatHint =
-    storyTextModeKey === "prose"
-      ? readerArtLayoutKey === "facing"
-        ? `${lenSpec.proseParagraphLead} in each odd \"text\" field — **exactly two paragraphs**, one separator (\\n\\n) between them, ${lenSpec.proseWordRange.replace("total on that page", "per page")}, warm read-aloud prose (not strict line-by-line rhyme).`
-        : `${lenSpec.proseParagraphLead} in each odd \"text\" field — **exactly two paragraphs**, one separator (\\n\\n), ${lenSpec.proseWordRange.replace("total on that page", "per page")}, warm read-aloud prose for text shown with the wide illustration (not strict line-by-line rhyme).`
-      : `exactly **${lenSpec.rhymeLines}** lines, separated by newline characters (\\n) in each \"text\" string — ${lenSpec.rhymeOddPageTail}.`;
-
-  const proseVolumeParityRule =
-    storyTextModeKey === "prose"
-      ? `- **Two paragraphs only:** Every prose-first TEXT page MUST be **exactly two paragraphs** (${lenSpec.proseWordRange.replace("total on that page", "each page alike")}) — same rule on pages **9** and **11** as everywhere else. Split the beat across two blocks (e.g. scene + reaction, or dialogue + narrator follow-up); **do not** add a third paragraph, **do not** glue everything into one slab, **do not** use more than one \\n\\n in the string.`
-      : "";
-
-  const system = `You write warm picture-book stories for UK English-speaking children about age 5.
-Rules:
-- ${artStyleSpec.storyBrief}
-${noBuddyBook ? `BOOK MODE — NO IMAGINARY BUDDY: The reader chose "No buddy". For this entire book: (1) Do NOT add a recurring fantasy creature companion (unicorn, dragon, robot, etc.) in story text, characterDesign, or illustrationBriefs unless the child's plot idea explicitly requires that creature. (2) characterDesign must describe ONLY humans — the hero, any plot-named children, and game people. (3) Each illustrationBrief VISIBLE line lists only people (humans) named in that verse. (4) Page 1 must not introduce a creature buddy. Invent gentle human-centred adventures when the plot is open-ended.\n\n` : ""}- Warm, gentle, silly — never scary, violent, or mean.
-- No romance, no weapons, no villains that frighten.
-${storyLengthAndFormatRule}
-${proseVolumeParityRule ? `${proseVolumeParityRule}\n` : ""}- **Where the ending lives (critical):** The \`pages\` array holds **exactly twelve** slots in reading order (**1-indexed aloud:** page **1**, page **2**, … page **12**). Odd slots are prose-first beats; each even slot sits with the illustration for that spread (duplex overlays text *or*, in facing layouts, prose lives on odd slots only). Treat this as **six spreads**: spreads **1–4** introduce and escalate; spread **5 (pages 9–10)** tends to carry the climax; spread **6 (pages 11–12)** **resolves**. The **LAST full prose close** MUST sit on **page 11 only** (**array index \`10\`**, zero-based). Give **two short paragraphs there** tying up THIS plot (celebration, hugs, quiet pride, thanking the buddy) — plot-specific joy, **not vague summary**. **Page 12** (**index \`11\`**) carries **picture only** (\`illustrationBrief\` full; its \`text\` stays minimal by JSON shape). Readers should feel done after page **11**'s words. Do **not** drop a cliché goodbye like "**And that was a lovely day**" on pages **7** or **9** and vanish. If a beat tilts sentimental mid-book you must still invent **fresh, plot-specific prose** on **later odd pages**, especially through **page 11**'s last lines (walking home slower, jokes, squeezing in another little moment). **Never fully wrap the whole adventure** before slot **page 11** — reserve that page for real closure.
-- Odd-numbered (text-first) pages: end calmly — do NOT tack on a random ALL CAPS sound effect (SPLASH! SNORE! ZOOM!) after the text; those often feel disconnected. Keep the whole page in normal sentence case. Only use a short capped word if it is genuinely the punchline of that beat (rare); most pages should have no ALL CAPS word at all.
-- NAMES VS GENDER (critical): Do **not** choose boy/girl from how a first name "usually" sounds. Names like Remy, Riley, Alex, Sam, Jordan, Charlie can be girls or boys. **The appearance-from-photos lines are ground truth:** if a line says **Gender: girl** and long blonde hair, that named child is a **girl** in the story — use **she/her** pronouns in verses, and characterDesign must say **girl** with that exact hair — never give her a boy's short brown haircut or **he/him** unless the line explicitly says **Gender: boy**. Never override a photo-derived girl line with a masculine default.
-- The hero's name is given — use it often. The hero IS ${childName} — this exact first name must appear in the story text on every page where the main child acts. Whenever ${childName} is in a spread's scene, that spread's illustrationBrief must name ${childName} (you may list other named friends first if the verse introduces them that way). Never substitute a different child, wrong name, or wrong gender as the hero. The art paints only who you name — do not imply an unnamed generic kid.
-- HUMAN CO-STARS vs IMAGINARY BUDDY (critical): The "Main friend character" below is always ONE imaginary creature (unicorn, dragon, dinosaur, etc.). If the plot idea also names another child, that child is a REAL HUMAN — not the buddy, not a shape-shifted version of the buddy, and never given the buddy's role in the plot. NEVER merge names: do not write that the human co-star flies as the dragon, or that the dragon "is" that child. When the plot says the children cannot find the DINOSAUR / DRAGON, the verses must ask where the DINOSAUR or DRAGON is — do not substitute a child's name as the thing that is lost unless the plot literally says that child is hiding.
-- **PET NAMES (critical):** A capitalised name right after "**puppy**," "**dog**," "**kitten**," "**cat**," "**bunny**," "**hamster**," "**pet**," or phrases like "**dog named** …" belongs to an **animal** (the pet). That name is NOT a separate human brother/sister/co-star — describe them as an animal character in prose if needed — **never** duplicate them as a human child in characterDesign alongside ${childName}.
-- CAST vs TEXT (strict): Each illustrationBrief may include ONLY characters who appear **by name** on that spread's paired text page (the odd page before it), or the one imaginary buddy when the text clearly means them ("the dinosaur", "their friend") after names were established. If the verse names ${childName} plus a human co-star (e.g. Isaac) plus the buddy, all three may appear when the verse puts them in the scene. If the verse only mentions ${childName} and the buddy, the picture has only those two. If the verse also names game people who are in that scene, they may appear — list everyone the text actually puts in the moment. Never add lions, bears, random pals, villagers, crowds, or background "silhouette people" that the text does not mention. A few characters is fine **only** when the text names them all for that beat.
-- **VISIBLE order & on-stage completeness:** Whenever two or more humans share a beat in the paired prose, **every one named by first name** there must appear in **VISIBLE** for that spread — no silent swaps. List humans in **VISIBLE** in **first-mention order** as they appear in the verse when all are on stage (left-to-right staging may echo that unless the DESCRIPTION needs a clear focal exception). If the first sentence spotlights one child acting (**toddles out**, leads the action) before another joins, that first child must be **drawn in frame** for the paired picture — do not show only the second child unless the verse says the first has stepped away; **reorder the verse** if you cannot stage both yet.
-- If "People from the child's games" are listed, include them in the story by name as extra friends or family. They should feel like the same friendly faces the child picks in other games (e.g. Tilly, Baby). They are separate from the one imaginary "main friend character" (unicorn, dragon, etc.) — both can appear.${
-    portraitAppearance
-      ? " If appearance lines are given for the hero or game people, stay consistent with those visual details when you naturally describe them."
-      : ""
-  }
-${
-  portraitAppearance
-    ? `\nPHOTO-MATCH (reference photos were uploaded): The "Appearance from reference photos" block in the user message was produced from real family pictures. For every person named there, characterDesign and every spread must preserve that identity — **hair colour, hair length, and style (including accessories)**, eye colour, skin tone, approximate age, and gender presentation — never swap in a different-looking child. If a photo line conflicts with generic "plain solid tee" boilerplate, follow the photo summary (you may describe a busy real-life top as one short neutral phrase such as "cream sweatshirt with a colourful front" rather than inventing a different outfit).\n**NO HAIR CONTRAST:** If two (or more) lines all describe long blonde hair (or the same family of colouring), **every** named child must keep that — do **not** make one child brunette, auburn, or short-haired so they "look different" next to the hero. Differentiate co-stars with outfit, face shape, or small style details only, not opposite hair colours.\n`
-    : ""
-}
-${
-  /\bCo_star_ref\s*:/i.test(portraitAppearance)
-    ? `\nCo_star_ref: That line describes the second uploaded **human** reference. Map it in characterDesign and illustrations to the other named child in the story (the human co-star from the plot or games) — not ${childName} when two kids are in the book, and never the imaginary buddy creature.\n`
-    : ""
-}
-${
-  portraitAppearance
-    ? `\nCO-STAR HAIR (when two kids, one merged photo line): If the appearance block only fully describes ${childName} but the plot names a second human child and there is NO Co_star_ref line, give that second child hair/skin colouring **consistent with the references** (e.g. long blonde references → do not invent short brown hair for the sibling/friend unless the plot says they look different).\n`
-    : ""
-}
-- Include fields title (string), characterDesign (string), bookColor (string: ${BOOK_COLOR_MODEL_HINT}. If unsure, pick a tint that fits the child's name — cooler tones for many boy names, warmer for many girl names), and pages (array of 12 objects).
-  For "characterDesign": describe the hero, the one main buddy creature, EVERY human child named in the plot idea who appears in the story, and any named game people who actually appear. If the plot names only ${childName} plus the buddy, characterDesign has exactly those two rich descriptions. If the plot names an extra child (e.g. Isaac), add a full third block for that child — never fold them into the buddy description. Never lions, bears, or unnamed critters. For each included character you MUST define their EXACT gender (e.g. boy/girl) **from the appearance-from-photos lines when present — those Gender: girl/boy tokens override any guess from the spelling of the child's name.** Then age, height in words or feet without inch marks (e.g. about four feet tall, or 4 ft), body shape, skin/surface tone, eye color, facial features, hair color, hair style, AND exact texture/material (e.g. smooth sculpted clay hair, fuzzy felt fur, shiny plastic — never use the double-quote character anywhere in this field). For the buddy creature, explicitly define anatomy (horse-like unicorn with hooves and horn; or winged dragon; etc.). Plus ONE specific, unchanging outfit or set of accessories with exact colors and materials. If an animal or creature wears nothing, say they are in natural animal form with no human outfits.${
-    portraitAppearance
-      ? " When reference-photo appearance lines exist for a person, treat those as authoritative for hair, eyes, skin, and outfit vibe for that person — do not overwrite with a generic description."
-      : ""
-  } CRITICAL: Keep clothing solid-colored and simple. DO NOT put logos, graphics, patterns, or text on clothing (DALL-E hallucinates these). **OUTFIT COLOUR LOCK:** Give each recurring human **one named solid shirt colour** (e.g. Isaac = **orange** crew tee, ${childName} = **white** top) in characterDesign and keep that **exact word** forever — **never** swap orange↔green or similar between spreads. DO NOT give them multiple outfits or changing colours. You MUST use the exact same clothing description for the hero in EVERY single illustrationBrief. That locks their look for the book; the illustrator still shows different faces and poses per spread from the story beats — your prose should not force the same generic smile line into every brief.
-- Each page: { "text": string, "illustrationBrief": string | null }.
-- DOUBLE-PAGE SPREADS: pair pages as (1,2), (3,4), (5,6), (7,8), (9,10), (11,12).
-  Odd-numbered pages (1,3,5,7,9,11) are TEXT-FIRST pages only — use "illustrationBrief": null.
-  Even-numbered pages (2,4,6,8,10,12) are PICTURE pages — each MUST have a non-null "illustrationBrief": a vivid visual scene description for an illustrator (no text to draw, no words on signs). Each brief MUST be different and visibly progress the journey.
-  STRICT BRIEF FORMAT — start each brief with one explicit line, then a free description:
-    "VISIBLE: <comma-separated list of who is actually in this picture frame> — DESCRIPTION: <one or two sentences of what they do and where>"
-  VISIBLE CAST RULES (very important — read the paired verse carefully):
-    • Default visible = hero + any human co-stars named in the verse (e.g. a sibling) + the buddy, **only when that verse actually puts them on stage together**. If the verse is only about ${childName} and the buddy, VISIBLE lists those two. If the verse names ${childName}, Isaac, and the buddy together, list all three.
-    • If the verse says someone is HIDDEN, missing, lost, "where is", "can't find", "nowhere to be seen", "hiding", "we cannot see", "out of sight", or has flown / run / sailed AWAY — that character is NOT visible. Exclude them from VISIBLE.
-    • Example, hide-and-seek beat where the dragon is the seeker hiding: VISIBLE: Sofia, Isaac (dragon hidden — do not include).
-    • Example, beat where dragon is found / revealed: VISIBLE: Sofia, Isaac, dragon.
-    • Example, beat where the dragon is flying overhead and they spot it: VISIBLE: Sofia, Isaac, dragon (dragon small in the upper sky, whole body and wings fully visible — not clipped by the top edge).
-    • Never include a character in VISIBLE if the verse says they are NOT around for that moment.
-    • **No mystery half-humans:** Never crop an unnamed child at the frame edge (random arm, leg, or shoulder). **VISIBLE** is the full human roster — extras stay out of frame entirely.
-  The DESCRIPTION (after VISIBLE) must spell out the same specific moment as the verse on the previous page: same action, same setting, same props, same time of day — not a generic scene and NEVER a different location or activity than the verse (e.g. if the verse says bouncy castle under the sky, the picture is that bouncy castle with sky visible — not a bike ride in the woods). NEVER add guardians, helpers, or creatures the verse does not mention. NEVER duplicate the buddy unless the text says so. **When the prose names playground equipment (**slide**, swings, climbing frame)** or **hide under / behind a named tree or bush**, picture that structure — not an unrelated path. **WEATHER / OUTCOME:** If the verse says rain **stopped**, everyone **dry**, **sun** bright, or the cloud **floated away**, the image must match that — avoid active downpour on the kids in that same beat unless the text still describes them as wet. CRITICAL FOR CONSISTENCY: DO NOT re-describe permanent looks (clothes, hair colours) in the brief — the illustrator has the master designs. DO hint mood or emotion when the verse supports it (surprise, giggling, worry melting into relief) — only in the DESCRIPTION, not by re-listing outfits; avoid copying the same stock smile line into every spread.
-  TWO-PARAGRAPH TEXT PAGES (odd pages use \\n\\n once): The paired picture must honour **both** paragraphs as one spread — do **not** illustrate only the first block. If paragraph **2** moves to a **new room/zone** or introduces a **concrete focal prop** (food, breakfast, cereal, splash, bath, toy pile, costume, vehicle, trophy, bed, garden gate, **playground slide**, umbrella), make that **second** beat the **primary** setting and action (e.g. kitchen + floating bowls beats a hallway teaser). If both paragraphs share one continuous place, one coherent image may merge them; if they split locations, **default to paragraph 2's place and props** for the canvas. **Never** add humans or classmates not named in **either** paragraph.
-  ENVIRONMENT DETAIL (very important — each brief must paint a different *place* on the journey, matching the SETTING and PLOT IDEA above):
-    Every illustrationBrief MUST contain at least 2 specific environmental nouns (architecture, foliage, terrain, structure, weather, depth) AND at least 1 named prop or focal object from that beat. The environmental nouns MUST come from the actual SETTING and PLOT IDEA — if the plot says CASTLE, the briefs are inside or around a castle (stone walls, banners, courtyards, towers, throne room, drawbridge, tapestries) NOT in deep woods. If the plot says CAVE, the briefs are inside cave passages and chambers.     If the plot says BEACH, UNDERSEA, SPACE, ZOO, FARM, MOUNTAIN, DESERT, SNOW, LAKE, ISLAND, MUSEUM, CIRCUS, TRAIN, CITY, OPEN SEA, or PIRATE SHIP, paint THAT setting with matching props. Only paint a forest if the plot or setting actually mentions woods/forest/trees.
-    If the **verse or paired text** says **park**, **playground**, **common**, **town green**, or **recreation ground**, the picture must read as a **public park** — include **at least two** park cues (wide mown grass, public path or tarmac strip, bench, litter bin, fenced play area or swing frame silhouette, goal posts, bandstand, fountain, softly dotted distant walkers). **Do not** default to only a private cottage-garden arch and roses unless the prose names a **garden**.
-    Examples of good briefs — note how each one fits a DIFFERENT plot, and how each only includes things the plot would actually contain:
-      • CASTLE plot: "${childName} and the dragon peek around a stone archway in a torchlit castle corridor, banners hanging from the wall, suit of armour standing nearby."
-      • CASTLE plot: "${childName} climbs a spiral stone staircase inside a tower, narrow window showing the dragon flying past in the night sky."
-      • WOODS plot: "${childName} and the unicorn walk between tall trees at sunset, soft sunbeams falling on the path."
-      • SPACE plot: "${childName} bounces on a soft pastel asteroid, ringed planet huge in the starry sky behind them."
-      • UNDERWATER plot: "${childName} swims past a coral reef, rays of sunlight cutting down through the water, a friendly turtle alongside."
-      • BAKERY plot: "${childName} stands at a wooden counter rolling out dough, flour cloud puffing up, big stone oven glowing warmly behind."
-      • ZOO plot: "${childName} and their buddy creature wave from a wide zoo path, leafy trees and a rounded viewing deck behind them, colourful enclosure shapes in soft focus."
-      • PIRATE SHIP plot: "${childName} balances on a sunny wooden deck beside coiled ropes, billowing sails and a bright horizon, the dragon perched on the rail like a lookout."
-      • MOUNTAIN plot: "${childName} hikes a flower-lined mountain path, rocky peaks and soft clouds above, a wooden bridge crossing a tiny stream."
-    Vary the *place* between spreads in line with the plot's beats — e.g. CASTLE: gates → corridor → great hall → spiral tower → rooftop → courtyard with the dragon flying overhead. Don't repeat the same backdrop. State a different camera angle / shot type for each (wide establishing shot, mid shot, low-angle hero kneeling, over-the-shoulder peering, etc).
-    Background details ARE allowed (in fact required) — what is NOT allowed is faced extras the verse doesn't mention.
-    ${
-      readerArtLayoutKey === "facing"
-        ? "COMPOSITION / SCALE FOR THE ILLUSTRATOR (single-page pictures — story text is on the facing HTML page, not painted on this image): Each illustration reads as ONE standalone page. **No empty half, blank strip, or soft dead zone reserved for captions** in the art — paint a **balanced full-bleed** scene edge-to-edge. **Centre the cast and focal action** — keep the group's visual mass roughly **~45–55% from the left** (near the picture's horizontal middle), **not** parked on the far right or far left. **Camera pulled back** — picture-book *wide* or *medium-wide* framing: the **environment** must stay a major part of every illustration. Typical group shots: the whole cast together only **~30–45% of frame height** (single-figure beats a bit less). Modest inset — horns, ears, wing tips fully inside the frame. When the verse describes jumping, bouncing, trampolines, soaring, flying, or reaching high in the air, the illustrationBrief MUST specify a wide or full shot with every visible named figure shown completely head-to-toe — never a tight mid-shot that crops at the neck, waist, or knees."
-        : "COMPOSITION / SCALE FOR THE ILLUSTRATOR: Full-bleed spreads — the setting and atmosphere fill the double-page edge-to-edge. **Camera pulled back** — picture-book *wide* or *medium-wide* framing, not tight hero close-ups: the **environment** (walls, sky, terrain, props) must be a major part of every illustration so readers can “see the place”, not just faces. Typical group shots: the whole cast together only **~30–45% of frame height** (single-figure beats a bit less); avoid filling most of the canvas with heads and torsos. Keep a modest inset so every listed character fits without edge-clipping (full heads and feet on wide shots; on closer emotional beats, still show plenty of background, not a portrait zoom). The tallest features (unicorn horn, ears, hair, wing tips) must sit fully inside the frame with visible margin — never cropped. If tight, **widen the shot** or shrink the characters. **GUTTER:** Do not place a main character’s face or body on the exact vertical centre — bias the group slightly left or right of the fold so the book spine does not cut a child in half. When the verse describes jumping, bouncing, trampolines, soaring, flying, or reaching high in the air, the illustrationBrief MUST specify a wide or full shot with every visible named figure shown completely head-to-toe — never a tight mid-shot that crops at the neck, waist, or knees."
+    const jobId = crypto.randomUUID();
+    const payload = stripStorybookAsyncFields(body);
+    const insErr = await insertPendingStorybookJob(db, jobId, payload);
+    if (insErr) {
+      return jsonResponse(
+        { error: "storybook_job_insert_failed", detail: insErr.slice(0, 220) },
+        500,
+      );
     }
-  OPENING SPREAD (page 2 only — the first illustrationBrief; also reused as bookshelf cover thumbnail): MUST match page 1 text and the child's plot, AND establish the actual SETTING (castle / woods / cave / beach / space / zoo / farm / mountain / sea / ship / train / city / circus / lake / snow / desert / museum / island / etc. — whichever the plot calls for).\nOPENING CAST BUDGET — **cover thumbnail (${noBuddyBook ? "hero-focused" : "hero + buddy"}):** Pair page 1 with page 2 so **VISIBLE** ordinarily ${
-      noBuddyBook
-        ? `lists **ONLY ${childName}** in the foreground (like a paperback cover — one clear hero). Add **≤1 other named human** only if prose truly needs Mum/Dad/sibling beside ${childName} in that opener — **still ≤2 humans**, uncrowded. **Do NOT** load spread 2 with optional game friends — introduce them **from spread 3 onward** unless page 1 names each one actually with ${childName} in that beat. `
-        : `lists **ONLY ${childName} and the imaginary buddy** (foreground duo). **NO** classmates, cousins, stuffed crowd tables, multi-friend tableau unless prose literally needs **one named human beside ${childName}** (${childName} + buddy + that person **≤3** max). **Do NOT** catalogue every optional game friend on spreads 1–2 — add from spread 3 unless page 1 places everyone together. `
-    }**VISIBLE** mirrors page 1 only — **no half-visible faces at frame edges**; every pictured person wholly inside.**\n Example: castle hide-and-seek opens at gates or courtyard — not a woods default.** No unwritten extras.\n  When game people with portrait notes appear on a picture page, the brief should mention them looking like those notes (hair, outfit colours, age vibe).
-- If a "plot idea" is given, you MUST make it the central theme of the story and feature it heavily in EVERY illustration brief. If it is empty, invent a short happy outing that fits the setting.
-- PLOT FIDELITY — read the plot idea LITERALLY:
-  • Use ONLY props, locations, and story beats that actually appear in the plot the child wrote. Don't invent extras.
-  • Resolve the story with whatever the plot actually says is the climax — for example "they realised the dragon could fly", "they finally caught the cheeky dragon", "the cake came out of the oven golden brown". Don't substitute a generic ending.
-  • Stay inside the setting the plot names. If the plot says castle, every spread is in the castle. If beach, every spread is on the beach.
-  • Use only the named cast (hero + human co-stars from the plot + buddy + any game people the plot uses). Don't add background characters, animals, or family members the plot does not name.
-  • If the plot has a narrative twist or reveal, build to that reveal as the climax around spread 4 or 5 — not an off-hand line.
-- OUTPUT MUST BE VALID JSON: In title, characterDesign, and EVERY page "text" and "illustrationBrief" string, do NOT put the double-quote character ("). It ends the string and corrupts the whole file. For heights use words (about four feet tall) or 4 ft / 5 ft — never write 4'0\" or 5'2\" style inch marks. For emphasis use single quotes or nothing — never paste (e.g. \"smooth clay\") with raw \" inside values.
-- JSON only, no markdown.`;
-
-  const user = `Child name: ${childName}
-${
-  noBuddyBook
-    ? "Imaginary buddy: none — human-only book (no standing creature companion unless the plot explicitly demands one).\n"
-    : `Main friend character (imaginary buddy): ${characterDesc}\n`
-}Setting to feature: ${placeDesc}
-People from the child's games to include by name (friends/family — use them warmly when listed; each may have a portrait note above): ${
-    familyNames.length > 0 ? familyNames.join(", ") : "(none)"
-  }
-Other human children named ONLY in the plot idea below (they are REAL KIDS in the story — NOT the imaginary buddy; give each a clear role; ${
-    portraitBlockForText
-      ? `each MUST match their appearance line above if present — never give opposite hair colour or length for 'visual contrast' with ${childName}.`
-      : "if not listed above, invent a simple distinct look"
-  }): ${
-    plotOnlyHumans.length > 0 ? plotOnlyHumans.join(", ") : "(none)"
-  }${portraitBlockForText}
-Plot idea from the child (CRITICAL: make this the core focus of the story and pictures): ${
-    plotHint.length ? plotHint : "(none — invent a cosy little adventure that fits the setting)"
-  }
-Page 1 and page 2 must OPEN this plot: the first illustration (page 2 brief) is the first scene readers see — match this plot's SETTING and props${
-  noBuddyBook ? "" : ", and buddy"
-}. Read the plot literally: if it says "castle", spread 1 is the castle (gates, great hall, courtyard); if it says "woods", spread 1 is woods; if it says "underwater", spread 1 is underwater. Do NOT default to woods.
-${
-  familyNames.length === 0 && plotNamedHumans.length === 0
-    ? noBuddyBook
-      ? `Picture cast rule: only people **named in each verse** may appear on that spread's illustration — usually ${childName} alone or with named human friends. No creature buddy.\n`
-      : `Picture cast rule: only people/creatures **named in each verse** may appear on that spread's illustration — usually ${childName} and the buddy. Do not name anyone in a brief who is not in the paired text.\n`
-    : `Main human cast for this book (must appear in the verses whenever they are in the scene together — use these exact names): ${storyHumanNames.join(", ")}. Picture rule: only names that appear in each verse may be in that spread's illustration; match the plot's who-is-hiding logic with the VISIBLE line.\n`
-  }
-Every odd text page: ${oddPageTextFormatHint}
-Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "pink" | "blue" | "green" | "purple" | "orange" | "teal" | "red" | "yellow" | "lilac" | "mint" | "coral" | "navy", "pages": [ { "text": string, "illustrationBrief": string | null }, ... 12 items ] }`;
-
-  const bookCoverColorReq = String(body.bookCoverColor ?? "").trim();
-
-  let story: StoryJson;
-  try {
-    story = await openaiChatJson(
-      apiKey,
-      system,
-      user,
-      storybookStoryChatModel(pictureBookQuality),
-    );
-  } catch (e) {
-    console.error(e);
-    const detail =
-      e instanceof Error ? e.message.slice(0, 420) : String(e).slice(0, 420);
-    return jsonResponse({ error: "story_failed", detail }, 502);
-  }
-
-  if (storyTextModeKey === "prose") {
-    enforceProseTwoParagraphsOnCoreTextPages(story.pages);
-  }
-
-  story.pages = prependFrontMatterPages(story.pages, dedicationAuthor);
-
-  const briefsSummary = oddPagesWithIllustrationBriefs(story.pages)
-    .map((idx) => story.pages[idx]?.illustrationBrief)
-    .filter(Boolean)
-    .join(" | ")
-    .slice(0, 900);
-
-  let compiledLock = "";
-  const heroPortraitPin = portraitAppearanceLineMatchingHero(
-    portraitAppearance,
-    childName,
-  );
-  const coStarPortraitPins = portraitCoStarPinBlock(
-    portraitAppearance,
-    plotNamedHumans,
-    childName,
-  );
-  try {
-    compiledLock = await compileCharacterLockForImages(apiKey, {
-      childName,
-      buddyKey: characterKey,
-      buddyDesc: characterDesc,
-      placeDesc,
-      plotHint,
-      draftDesign: story.characterDesign || "",
-      briefsSummary,
-      plotNamedHumans,
-      portraitAppearance,
-      heroPortraitPinnedLine: heroPortraitPin ?? undefined,
-      coStarPortraitPins: coStarPortraitPins || undefined,
-      compileLockArtWords: artStyleSpec.compileLockArtWords,
-      compileLockChatModel: storybookCompileLockChatModel(pictureBookQuality),
-    });
-  } catch (e) {
-    console.warn("[clever-service] compileCharacterLock failed", e);
-  }
-
-  const coStarFallbackLine = (n: string) =>
-    `${n.toUpperCase()}: human child co-star from the plot — match reference-photo hair and skin when storywriter draft lists them; distinguish from ${childName} by **outfit and face shape only**, not by flipping blonde→brown or long→short unless the written draft explicitly says so. ${artStyleSpec.coStarLineEnd}`;
-
-  const duoImageCastFallback = noBuddyBook
-    ? `HERO: ${childName}, ${artStyleSpec.castHeroSurface} — always the same human hero in every spread.` +
-      (plotNamedHumans.length > 0
-        ? " " + plotNamedHumans.map((n) => coStarFallbackLine(n)).join(" ")
-        : "")
-    : `HERO: ${childName}, ${artStyleSpec.castHeroSurface} — always the same human hero in every spread. ` +
-      `BUDDY: ${characterDesc}, exactly ONE individual of this species in every image — never duplicate, never parent+baby pair, ${artStyleSpec.buddyFollowStyle}.` +
-      (plotNamedHumans.length > 0
-        ? " " + plotNamedHumans.map((n) => coStarFallbackLine(n)).join(" ")
-        : "");
-
-  const castBible =
-    compiledLock.length > 120
-      ? compiledLock
-      : familyNames.length === 0 && plotNamedHumans.length === 0
-        ? duoImageCastFallback
-        : story.characterDesign && story.characterDesign.length > 80
-          ? story.characterDesign
-          : duoImageCastFallback;
-
-  const stylePreambleLayoutDuplex =
-    "The left third must be only smooth colour, soft sky, plain wall, or gentle gradient — zero pseudo-text texture there (the app draws real text in HTML). " +
-    "CRITICAL LAYOUT RULE: Leave the left half of the image mostly uncluttered with a simple, soft, darker background so that WHITE storybook text can be printed over it clearly. Place the main characters and action on the right half or center-right of the image. ";
-
-  const stylePreambleLayoutFacing =
-    "LAYOUT (single-page art in the reader — story text is on the facing HTML page, NOT overlaid on this image): **Do not** reserve an empty left third, empty side strip, or blank half for captions. Paint a **balanced full-bleed** picture. **Centre the main characters and focal action** — aim the group's visual mass near **~45–55% from the left** (horizontal middle of the canvas), **not** flattened to one edge. ";
-
-  const stylePreambleFramingDuplex =
-    "FRAMING / CHARACTER SCALE (critical): FULL-BLEED SCENE — paint walls, sky, ground, props, and atmosphere so the artwork fills the entire canvas edge-to-edge (rich picture-book spread, not a tiny scene floating in empty space). **Pull the camera back** — **medium-wide** framing by default: the **background and setting** must read clearly in every spread, not just the characters’ faces. The cast together should typically occupy only **~28–42% of frame height** (single heroes or duos **~22–36%**) so caves, skies, rooms, and landscapes have room to breathe — never a tight bust or “zoomed-in” portrait unless the verse is purely a tight reaction beat (and even then keep architecture/sky visible). Keep modest inset — full heads, hair, hands, feet, tail, and wings inside the frame — never cropped or jammed against the border. Never crop a child or buddy at the neck or waist when the moment shows their whole body standing, jumping, or bouncing — use a wider shot instead. For jumping, trampolines, bouncing, soaring, or flying beats, default to a wide shot with the group using only **~30–42%** of frame height so heads, feet, and hooves stay clear of the top and bottom edges. **GUTTER / SPINE:** do not center a main character on the vertical midline — bias the group slightly **left or right** so the book fold does not slice through a face or torso. Unicorn horns, tall ears, hair poofs, wing tips, and raised hooves/paws must be fully visible with clear air above and beside them — never clipped. If a figure still feels tight, shrink only the cast and pull the camera back; keep the environment rich. Never line up the whole cast as a tiny strip along the bottom like stickers; show comfortable ground and body. ";
-
-  const stylePreambleFramingFacing =
-    "FRAMING / CHARACTER SCALE (critical): FULL-BLEED SCENE — paint walls, sky, ground, props, and atmosphere so the artwork fills the entire canvas edge-to-edge (rich single-page picture, not a tiny scene floating in empty space). **Pull the camera back** — **medium-wide** framing by default: the **background and setting** must read clearly in every spread, not just the characters’ faces. The cast together should typically occupy only **~28–42% of frame height** (single heroes or duos **~22–36%**) so caves, skies, rooms, and landscapes have room to breathe — never a tight bust or “zoomed-in” portrait unless the verse is purely a tight reaction beat (and even then keep architecture/sky visible). Keep modest inset — full heads, hair, hands, feet, tail, and wings inside the frame — never cropped or jammed against the border. Never crop a child or buddy at the neck or waist when the moment shows their whole body standing, jumping, or bouncing — use a wider shot instead. For jumping, trampolines, bouncing, soaring, or flying beats, default to a wide shot with the group using only **~30–42%** of frame height so heads, feet, and hooves stay clear of the top and bottom edges. **CENTRE COMPOSITION (standalone page):** keep the cast's visual weight near the **horizontal middle** (~45–55% from the left) — **do not** shove everyone to the far right or far left as if saving space for overlaid text; slight left/right asymmetry is fine. Unicorn horns, tall ears, hair poofs, wing tips, and raised hooves/paws must be fully visible with clear air above and beside them — never clipped. If a figure still feels tight, shrink only the cast and pull the camera back; keep the environment rich. Never line up the whole cast as a tiny strip along the bottom like stickers; show comfortable ground and body. ";
-
-  const stylePreamble =
-    "A completely textless illustration. DO NOT include any writing, letters, words, typography, labels, speech bubbles, dialogue balloons, thought bubbles, comic captions, newspaper strips, stone runes, book pages with text, loose paper sheets, scrolls, receipts, notebooks, stationery, litter, or ground clutter that looks like fake writing — no blurry shapes that look like fake paragraphs or gibberish anywhere. " +
-    "All story words live in the app’s HTML text page — this PNG is **visual only** (no painted dialogue or titles). " +
-    "No logos, social-media marks, app icons, or brand symbols. " +
-    (readerArtLayoutKey === "facing" ? stylePreambleLayoutFacing : stylePreambleLayoutDuplex) +
-    (readerArtLayoutKey === "facing" ? stylePreambleFramingFacing : stylePreambleFramingDuplex) +
-    artStyleSpec.preambleStyleSentence +
-    `HERO VISIBILITY: When "${childName}" appears in SCENE ACTION, they must be clearly visible (face on, not swapped for another kid). ` +
-    (heroPortraitPin?.trim()
-      ? `HERO PHOTO LOCK (authoritative — never a different-looking kid): ${heroPortraitPin.trim()} `
-      : "") +
-    (noBuddyBook
-      ? "NO STANDING CREATURE BUDDY: Illustrate only humans named in SCENE ACTION — do not add a unicorn, dragon, robot, or animal mascot unless SCENE ACTION explicitly names that element from the plot. "
-      : "ONE BUDDY ANIMAL: Only one imaginary buddy creature from the BUDDY line in the image (e.g. one unicorn), not clones or a big+little pair, unless SCENE ACTION names two. ") +
-    "TEXT-LOCKED: ONLY characters explicitly named in SCENE ACTION — same roster as this spread's verse, same count. NO unnamed extras: no villagers, silhouettes with faces, filler torch-bearers, spare animals, or audience. NO logos. Background = whatever the ENVIRONMENT line specifies (castle, woods, cave, beach, garden, space, sea, ship, mountain, zoo, farm, circus, city, train, lake, snow, desert, museum, island, etc.) without extra faced characters. NO signs with lettering, carved runes, or flyers. ";
-
-  const envTheme =
-    `ENVIRONMENT (paint THIS exact setting on every spread — do not default to woods or any other generic backdrop): ${placeDesc}. ` +
-    (plotHint.length > 0
-      ? `THEME / PLOT IDEA from the child (READ LITERALLY — if it mentions castle, paint a castle; cave, paint a cave; beach, paint a beach; etc.): ${plotHint}. `
-      : "") +
-    plotLightingEnvAddon(plotHint, childName);
-
-  const pagesOut: { text: string; imageUrl: string | null }[] = [];
-  let sceneImageUrl: string | null = null;
-  let firstPanelVisualLockUsed = false;
-  let falReduxSpreadCount = 0;
-  let falTextSpreadCount = 0;
-  let falCastAnchorUsed = false;
-  let gptImageSpreadCount = 0;
-
-  /** Image generation mode: "fal" (default) or "gptimage" (OpenAI GPT Image API, default `gpt-image-2`). */
-  const imageMode = (Deno.env.get("STORYBOOK_IMAGE_MODE") ?? "")
-    .trim()
-    .toLowerCase();
-  const useGptImage = imageMode === "gptimage" || imageMode === "openai-image";
-
-  const falKey = (Deno.env.get("FAL_KEY") ?? "").trim();
-  const falDisabled = Deno.env.get("STORYBOOK_FAL_DISABLE") === "1";
-  const useFalRedux = Boolean(falKey) && !falDisabled;
-  const falReduxModel =
-    (Deno.env.get("STORYBOOK_FAL_MODEL") ?? "").trim() ||
-    "fal-ai/flux-pro/v1.1-ultra/redux";
-  const falTextModel =
-    (Deno.env.get("STORYBOOK_FAL_TEXT_MODEL") ?? "").trim() ||
-    "fal-ai/flux-pro/v1.1";
-  const falStrengthRaw = Number(Deno.env.get("STORYBOOK_FAL_REFERENCE_STRENGTH") ?? "0.35");
-  const falStrength = Number.isFinite(falStrengthRaw) ? falStrengthRaw : 0.35;
-
-  const falLegacyFrameClause =
-    readerArtLayoutKey === "facing"
-      ? "FRAME / SCALE: full-bleed edge-to-edge; **pulled-back camera** — cast **~28–40% of frame height** typically, **setting prominent**, not zoomed portrait; modest inset — full heads, feet, hands, wings inside canvas; **centre-weighted composition** (~45–55% horizontal), not squeezed to one edge; do not squash everyone along the bottom edge. "
-      : "FRAME / SCALE: full-bleed edge-to-edge; **pulled-back camera** — cast **~28–40% of frame height** typically, **setting prominent**, not zoomed portrait; modest inset — full heads, feet, hands, wings inside canvas; bias off centre gutter; do not squash everyone along the bottom edge. ";
-
-  const falReduxLayoutHint =
-    readerArtLayoutKey === "facing"
-      ? "Standalone picture page — story text is on the facing page in the app; **centre the cast** (~45–55% horizontal), balanced composition. "
-      : "";
-
-  try {
-    const briefs: { index: number; brief: string; verse: string }[] = [];
-    for (const i of oddPagesWithIllustrationBriefs(story.pages)) {
-      const p = story.pages[i];
-      if (!p) continue;
-      briefs.push({
-        index: i,
-        brief: String(p.illustrationBrief ?? "").trim(),
-        verse: String(story.pages[i - 1]?.text ?? "").trim(),
-      });
-    }
-
-    const staggerMs = 450;
-    const urls: string[] = [];
-
-    if (briefs.length === 0) {
-      throw new Error("no_illustration_briefs");
-    }
-
-    const spread1Prompt = composeDallePrompt({
-      preamble: stylePreamble,
-      envTheme,
-      sceneBrief:
-        openingSceneImageConstraints(noBuddyBook, childName) + briefs[0].brief,
-      castBible,
-      firstPanelLock: "",
-      heroFirstName: childName,
-      mandatoryCastLine: artStyleSpec.composeMandatoryCast,
-    });
-
-    /** When set (default): one T2I “cast lineup”, then all 6 spreads = Fal image→image (Redux) from that anchor — strongest consistency. */
-    const useCastAnchor =
-      !useGptImage && useFalRedux && Deno.env.get("STORYBOOK_FAL_CAST_ANCHOR") !== "0";
-
-    const photoRefHairLock =
-      portraitAppearance.trim().length > 0
-        ? "Reference photos were supplied: for every HUMAN in LOCKED CAST, match written **Gender girl/boy**, hair colour, hair LENGTH, and arrangement — never turn a written **girl** with long blonde into a boy with short brown hair because of her name. **If every line is long blonde, both children are long blonde** — no brunette co-star for contrast. **Never** illustrate the hero as a generic brown-haired kid when refs say blonde, long hair, fringe/bangs. "
-        : "";
-
-    const heroPhotoPinLead = heroPortraitPin?.trim()
-      ? `AUTHORITATIVE HERO LOOK (copy hair/eyes/skin/clothes vibe exactly): ${heroPortraitPin.trim()} `
-      : "";
-
-    const anchorPreamble =
-      "A completely textless illustration. NO letters, words, typography, labels, speech bubbles, dialogue balloons, thought bubbles, comic captions, signs with text, book pages with writing, loose papers, scrolls, glyph noise, watermarks, or fake paragraph texture anywhere. Plain smooth background regions only — no pseudo-text. " +
-      "All read-aloud words are in the app — this sheet is **visual identity only** (no painted dialogue). " +
-      (noBuddyBook
-        ? "CAST LINEUP / MODEL SHEET for a kids picture book: every character line in LOCKED CAST below (human hero and any named human co-stars or game people ONLY — no creature buddy in the lineup). Together in ONE frame, calm neutral expressions and friendly standing poses for identity reference only — story illustrations later will change faces and poses per scene. "
-        : "CAST LINEUP / MODEL SHEET for a kids picture book: every character line in LOCKED CAST below (hero, buddy, and any named human co-stars or game people) — no one else, no third mascot or crowd, no duplicate unicorns. Together in ONE frame, calm neutral expressions and friendly standing poses for identity reference only — story illustrations later will change faces and poses per scene. ") +
-      photoRefHairLock +
-      heroPhotoPinLead +
-      "full bodies on a plain soft background that still fills the canvas edge-to-edge — modest inset so hair, feet, wings, and tails do not touch the border; figures roughly ~50–68% of frame height so each design reads clearly with a bit more breathing room around the lineup, " +
-      artStyleSpec.anchorMaterialClause +
-      ". " +
-      "Edge-to-edge, wholesome for toddlers. ";
-
-    const anchorPrompt = (
-      anchorPreamble + envTheme + "LOCKED CAST (draw exactly):\n" + castBible
-    ).slice(0, DALLE3_PROMPT_MAX);
-
-    let panelLock = "";
-
-    if (useGptImage) {
-      const gptHasPortraitRefs =
-        refPack.heroUrls.length > 0 ||
-        Object.keys(refPack.customByFriendId).length > 0;
-      const nonHeroPortraitRefs =
-        Object.keys(refPack.customByFriendId).length > 0 ||
-        /\bCo_star_ref\s*:/i.test(portraitAppearance);
-      // STRICT MODE — when STORYBOOK_IMAGE_MODE=gptimage is set, this is the
-      // ONLY pipeline we want to run. No silent fallback to Fal or DALL-E.
-      // If anything fails, we throw with a clear, actionable error so the
-      // caller knows GPT Image specifically failed (rather than getting an
-      // imageless 200 or a mixed-style book).
-      let anchorOut: { url: string; bytes: Uint8Array };
-      try {
-        anchorOut = await gptImageGenerate(
-          apiKey,
-          anchorPrompt,
-          pictureBookQuality,
-          0,
-          gptHasPortraitRefs,
-          nonHeroPortraitRefs,
-        );
-      } catch (e) {
-        const detail = e instanceof Error ? e.message : String(e);
-        throw new Error(`gpt_image_anchor_failed: ${detail}`);
-      }
-
-      {
-        // Skip the text-based visual lock for the GPT Image path — the anchor
-        // PNG is attached as a reference to EVERY spread edit, so a second
-        // text description of "what the anchor looks like" is redundant and
-        // costs ~10s of wall-clock we don't have inside Supabase's 150s edge
-        // timeout. Identity is already locked by pixels. Visual lock stays in
-        // play for the Fal / DALL·E paths below.
-        const refBytes = anchorOut.bytes;
-        // Stay under Supabase/Cloudflare wall-clock (~150s).
-        // Prefer **one** parallel wave of all spreads (default) so total image time ≈
-        // slowest single edit, not two waves + cooldown. Tier-1 OpenAI image RPM is low —
-        // if you see **429**, set **`STORYBOOK_GPTIMAGE_CHUNK_SIZE=4`** and
-        // **`STORYBOOK_GPTIMAGE_CHUNK_WAIT_MS=12000`** (or raise image throughput tier).
-        const chunkSize = (() => {
-          const raw = Number(Deno.env.get("STORYBOOK_GPTIMAGE_CHUNK_SIZE"));
-          return Number.isFinite(raw) && raw >= 1 ? Math.floor(raw) : 6;
-        })();
-        const interChunkWaitMs = (() => {
-          const raw = Number(Deno.env.get("STORYBOOK_GPTIMAGE_CHUNK_WAIT_MS"));
-          return Number.isFinite(raw) && raw >= 0 ? raw : 0;
-        })();
-        const adaptiveChunkWait =
-          Deno.env.get("STORYBOOK_GPTIMAGE_CHUNK_WAIT_ADAPTIVE") !== "0";
-
-        // SHOT PLAN — keeps each of the 6 spreads at a different camera
-        // distance so the book reads as a journey, not 6 portraits. Notes are
-        // intentionally generic — no example props (no "treasure", no
-        // "glowing flower"), because mentioning those words even in negation
-        // primes gpt-image-1 to render them.
-        const shotPlanDuplex = [
-          {
-            label: "WIDE ESTABLISHING SHOT",
-            note:
-              "Wide establishing shot — camera well back. Full-bleed environment — sky, architecture, terrain, and foreground paint to every edge; **setting is the star as much as the cast**. Full bodies head to toe: the whole cast together roughly **~32–42% of frame height** (not a hero poster crop), fully inside the frame with generous breathing room — silhouettes never touch or clip the border. Bias the group slightly left or right of vertical centre so the book gutter does not slice a face.",
-          },
-          {
-            label: "MID SHOT",
-            note:
-              "Medium-wide shot — **not** a tight knees-up portrait: show **waist-up or full-body at a comfortable distance** so walls, cave, or sky stay prominent. Cast roughly **~34–45% of frame height** together. Full-bleed setting behind and around them; entire heads (hair included) and hands inside the frame with modest inset. Bias cast off the exact centre fold. If the verse implies jumping, bouncing, trampoline, soaring, or flying, override: wide full-body (same inset as spread 1).",
-          },
-          {
-            label: "OVER-THE-SHOULDER / DISCOVERY ANGLE",
-            note:
-              "Three-quarter or over-the-shoulder angle — **camera still pulled back** so the discovery and the **environment** both read. Full-bleed world. Foreground character fully inside canvas (no cropped ears or elbows at edges). Cast **~32–44% of frame height**; setting fills surrounding space to the edges. Avoid centre-spine through main faces.",
-          },
-          {
-            label: "FOCAL MOMENT — MEDIUM FRAMING (NOT FACE FILL)",
-            note:
-              "**Medium** framing on the verse's focal action — **not** an extreme facial close-up: prefer **mid-thigh up, waist-up, or wider** so cave, room, or landscape stays visible. Cast **≤~40% of frame height**; background and atmosphere run edge-to-edge. Every face, hand, and prop that matters fully inside the frame with modest inset. If jumping, bouncing, or airborne, override to wide full-body — no tight crop on leaping bodies.",
-          },
-          {
-            label: "WIDE JOURNEY SHOT — DIFFERENT PART OF THE SETTING",
-            note:
-              "A second wide shot in a DIFFERENT corner of the same setting. Full-bleed world — **environment dominates**. Cast smaller on the canvas (**~20–32% of frame height**), full figures readable, never cropped; gutter-safe placement.",
-          },
-          {
-            label: "WARM FINALE — MEDIUM (NOT TIGHT PORTRAIT)",
-            note:
-              "Finale warmth — **medium three-quarter or waist-up**, not stacked tight face fill: show celebratory **background** (same setting) clearly. Cast **~35–45% of frame height**; entire heads with hair and ears inside frame with modest inset. If the verse still describes jumping, bouncing, or flying, use wide full-body instead.",
-          },
-        ];
-
-        const shotPlanFacing = [
-          {
-            label: "WIDE ESTABLISHING SHOT",
-            note:
-              "Wide establishing shot — camera well back. Full-bleed environment — sky, architecture, terrain, and foreground paint to every edge; **setting is the star as much as the cast**. Full bodies head to toe: the whole cast together roughly **~32–42% of frame height** (not a hero poster crop), fully inside the frame with generous breathing room — silhouettes never touch or clip the border. **Centre-weighted composition:** the cast's visual mass near **~45–55% horizontal** — balanced for a standalone page (story text is on the facing page).",
-          },
-          {
-            label: "MID SHOT",
-            note:
-              "Medium-wide shot — **not** a tight knees-up portrait: show **waist-up or full-body at a comfortable distance** so walls, cave, or sky stay prominent. Cast roughly **~34–45% of frame height** together. Full-bleed setting behind and around them; entire heads (hair included) and hands inside the frame with modest inset. **Balanced framing** — near the horizontal middle (~45–55%), not parked on one edge. If the verse implies jumping, bouncing, trampoline, soaring, or flying, override: wide full-body (same inset as spread 1).",
-          },
-          {
-            label: "OVER-THE-SHOULDER / DISCOVERY ANGLE",
-            note:
-              "Three-quarter or over-the-shoulder angle — **camera still pulled back** so the discovery and the **environment** both read. Full-bleed world. Foreground character fully inside canvas (no cropped ears or elbows at edges). Cast **~32–44% of frame height**; setting fills surrounding space to the edges. Keep important faces **off the extreme left/right** edges with modest inset.",
-          },
-          {
-            label: "FOCAL MOMENT — MEDIUM FRAMING (NOT FACE FILL)",
-            note:
-              "**Medium** framing on the verse's focal action — **not** an extreme facial close-up: prefer **mid-thigh up, waist-up, or wider** so cave, room, or landscape stays visible. Cast **≤~40% of frame height**; background and atmosphere run edge-to-edge. Every face, hand, and prop that matters fully inside the frame with modest inset — **centre the moment** in the frame (~45–55% horizontal). If jumping, bouncing, or airborne, override to wide full-body — no tight crop on leaping bodies.",
-          },
-          {
-            label: "WIDE JOURNEY SHOT — DIFFERENT PART OF THE SETTING",
-            note:
-              "A second wide shot in a DIFFERENT corner of the same setting. Full-bleed world — **environment dominates**. Cast smaller on the canvas (**~20–32% of frame height**), full figures readable, never cropped; **balanced centre-friendly placement**.",
-          },
-          {
-            label: "WARM FINALE — MEDIUM (NOT TIGHT PORTRAIT)",
-            note:
-              "Finale warmth — **medium three-quarter or waist-up**, not stacked tight face fill: show celebratory **background** (same setting) clearly. Cast **~35–45% of frame height**; entire heads with hair and ears inside frame with modest inset; **group near horizontal centre**. If the verse still describes jumping, bouncing, or flying, use wide full-body instead.",
-          },
-        ];
-
-        const shotPlan = readerArtLayoutKey === "facing" ? shotPlanFacing : shotPlanDuplex;
-
-        // Clean, POSITIVE-ONLY edit prompt builder. We attach the anchor PNG as
-        // the character reference; everything else describes ONLY what to
-        // paint, not what to avoid. Negative lists were paradoxically nudging
-        // gpt-image-1 toward stock props (treasure chests, glowing flowers,
-        // mossy logs) — every "no treasure" line counts as a treasure mention
-        // to the model. So we list nothing to avoid: just the positive scene.
-        // Pull the LLM's "VISIBLE: ..." line out of the brief if present, plus
-        // detect missing-buddy cues in the verse ("where is", "can't find",
-        // "nowhere to be seen", "hidden", etc.) so the buddy is excluded from
-        // the picture when the story says they're not around.
-        const parseVisibleCast = (
-          brief: string,
-          verse: string,
-        ): { visibleLine: string | null; buddyMissing: boolean } => {
-          const m = brief.match(/^\s*VISIBLE\s*:\s*([^\n]+?)(?:\s*[—\-]\s*DESCRIPTION\s*:|$)/i);
-          const visibleLine = m ? m[1].trim() : null;
-          const buddyMissing = buddyCreatureHiddenInVerse(verse);
-          return { visibleLine, buddyMissing };
-        };
-
-        const buildEditPrompt = (b: typeof briefs[number], idx: number) => {
-          const shot = shotPlan[idx] ?? shotPlan[shotPlan.length - 1];
-          const verseLines = b.verse.trim().slice(0, 500);
-          const { visibleLine, buddyMissing } = parseVisibleCast(b.brief, verseLines);
-          const pairedMomentLead =
-            storyTextModeKey === "rhyme"
-              ? "from the rhyming verse on the paired text page"
-              : "from the story text on the paired text page";
-
-          const blocks: string[] = [];
-
-          // 1. Style + reference instruction
-          blocks.push(
-            artStyleSpec.gptEditStyleOpener +
-              (readerArtLayoutKey === "facing"
-                ? "SAFE SCALE: Full-bleed scene — environment fills the entire canvas edge-to-edge. **Pull the camera back:** the cast together should use only **~28–42% of frame height** (typically) so **walls, sky, cave, or landscape read clearly** — not a zoomed portrait. Full heads, hair, feet, hands, wings, and tails inside the frame with modest inset — never edge-clipped. Never crop standing or jumping children at the neck, waist, or knees — if the moment is full-body, show full-body. **Single-page layout:** centre the cast — keep the focal group's visual mass near **~45–55% horizontal** (balanced; **not** squeezed to one side as if saving space for overlaid text). Do not leave empty margins around the whole painting. "
-                : "SAFE SCALE: Full-bleed scene — environment fills the entire canvas edge-to-edge. **Pull the camera back:** the cast together should use only **~28–42% of frame height** (typically) so **walls, sky, cave, or landscape read clearly** — not a zoomed portrait. Full heads, hair, feet, hands, wings, and tails inside the frame with modest inset — never edge-clipped. Never crop standing or jumping children at the neck, waist, or knees — if the moment is full-body, show full-body. **Book gutter:** bias the group slightly left or right of frame centre — never put a main child's face on the vertical midline. Do not leave empty margins around the whole painting. ") +
-              "The attached reference image shows the cast on a neutral backdrop — use it ONLY to lock each character's identity (face shapes, hair, outfit colours, species, body shape). Ignore the lineup's neutral expressions and poses for this sheet — on THIS spread, show expressions and poses that fit the story moment. Repaint the world fresh.",
-          );
-
-          // 2. Setting (the override-resolved placeDesc + plotHint)
-          blocks.push(
-            `SETTING — paint exactly this world on every spread:\n${placeDesc}.${plotHint ? `\nThe child's story idea: ${plotHint}` : ""}`,
-          );
-
-          // 3. Shot framing
-          blocks.push(`SHOT TYPE (spread ${idx + 1} of ${shotPlan.length}): ${shot.label}. ${shot.note}`);
-
-          if (idx === 0) {
-            blocks.push(
-              noBuddyBook
-                ? `OPENING / SHELF COVER (${childName}'s first picture): **Hero-only foreground** — just ${childName} dominates like a paperback cover (${childName} alone unless the verse above explicitly names exactly one other person beside them — then **≤2 humans**, uncrowded). No classrooms full of classmates, family breakfast tables, or half-faces at the margins unless the verse demands it — **prefer ${childName} centered in the opening scene.**`
-                : `OPENING / SHELF COVER (${childName}'s first picture): **Hero + buddy only foreground** — ${childName} AND the imaginary buddy (${childName} plus buddy creature); **≤2 principals** unless the verse explicitly names **one other human** in that beat — then ${childName}, buddy, that human **≤3**. No crowds, no clipped extras at frame edges.`,
-            );
-            if (heroPortraitPin?.trim()) {
-              blocks.push(
-                `HERO REFERENCE (cover must match uploaded child): ${heroPortraitPin.trim()} — same kid, hair colour and style as refs; never a generic different-haired substitute.`,
-              );
-            }
-          }
-
-          const verseBriefForCam = `${b.verse}\n${b.brief}`;
-          if (needsFullBodyWideFraming(verseBriefForCam)) {
-            blocks.push(
-              "CAMERA OVERRIDE — VERTICAL OR AIRBORNE ACTION: This spread's verse or scene implies jumping, bouncing, trampoline, soaring, flying, or similar. Treat any mid-shot or close-up plan as superseded: use a WIDE or FULL shot with the camera pulled back. Every named person and the buddy (if listed in WHO IS IN THIS PICTURE) must show a complete head (hair, hat, unicorn horn if any), full torso, arms, legs, feet, and the buddy's tail, mane, and hooves — all fully inside the frame with clear margin from every edge. Never crop at the neck, waist, or knees. The cast together may use only **~30–42% of frame height** with plenty of visible sky or ceiling above.",
-            );
-          }
-
-          // 4. The exact moment, from the verse
-          if (verseLines) {
-            blocks.push(
-              `THIS SPREAD'S MOMENT (${pairedMomentLead} — show every action literally):\n"""\n${verseLines}\n"""`,
-            );
-            if (/\n\s*\n/.test(verseLines)) {
-              blocks.push(
-                "TWO-PARAGRAPH VERSE: The text has two blocks (blank line between). Honour **both** — if the **second** block moves to a new room or centres food/props/funny action (e.g. cereal, kitchen mess, splash), that beat is usually the MAIN picture; do **not** give a crowded hallway tableau that ignores the second block's setting and props.",
-              );
-            }
-            blocks.push(
-              "VISUAL MATCHING: Paint the SAME setting, time of day, and activity as the verse — if it says bouncy castle under the sky, show padded inflatable bounce-house walls and open sky; if it says kitchen or courtyard, show that. Do not substitute a different scene (e.g. woods and bicycle) unless the verse names those.",
-            );
-            blocks.push(
-              "BEAT FIDELITY: Match **concrete props and places** (slide, swings, tree trunk, bush, gate, umbrella, kitchen counter, etc.) and the **outcome of the beat** — if text says rain **stopped**, cloud **left**, or children are **dry / warm in sun**, show that; if they are still getting wet, show rain. If two paragraphs differ, prefer the **second** block’s action and setting when it moves the story forward.",
-            );
-            if (
-              /\bpark\b|playground|\bcommons?\b|\brec(?:reation)?\s*ground\b|\btown\s+green\b/i.test(
-                verseLines,
-              )
-            ) {
-              blocks.push(
-                "PARK READABILITY: World must read like a **public park or playground verge** — at least two cues (bench, litter bin, wide mown grass, tarmac/path, fenced play silhouette, swings frame, fountain, distant dotted walkers). Do **not** use only a private cottage garden arch unless the verse says garden.",
-              );
-            }
-          }
-
-          blocks.push(
-            "EXPRESSION & POSE: Keep each character's IDENTITY locked to the reference — same face shape, hair COLOUR, hair LENGTH, hair STYLE, skin tone, outfit colours, species, proportions. Change pose, body language, and facial expression to match THIS SPREAD'S MOMENT (e.g. surprised brows, belly laugh, anxious side-glance, sleepy smile, focused pout). Do not give every spread the same neutral grin unless the verse is neutral; buddy creatures should emote in species-appropriate ways too.",
-          );
-
-          blocks.push(
-            "OUTFIT LOCK: Each named child's shirt/top must match CAST IDENTITIES and the reference lineup **exactly** — same named solid colour every spread (**no** orange⇄green or other hue swaps for one person).",
-          );
-
-          // 5. Visible cast for THIS spread (the part that fixes the
-          //    "dinosaur is hidden but appears in the picture" bug).
-          //    Priority: explicit VISIBLE line from the LLM, else infer from
-          //    the verse's missing-buddy cues, else fall back to "the cast".
-          if (visibleLine) {
-            blocks.push(
-              `WHO IS IN THIS PICTURE (the only characters to draw — match the reference for each):\n${visibleLine}` +
-                (buddyMissing
-                  ? `\n(The verse says the buddy is hiding / out of sight / missing for this beat — keep them OUT of frame as VISIBLE says.)`
-                  : ""),
-            );
-          } else if (buddyMissing) {
-            const humanList =
-              storyHumanNames.length > 0 ? storyHumanNames.join(", ") : childName;
-            blocks.push(
-              `WHO IS IN THIS PICTURE: ${humanList}. The imaginary buddy creature is not in this scene — the verse is about searching or not finding them — do not draw the buddy creature in this frame.`,
-            );
-          }
-
-          blocks.push(
-            "FRAMING — NAMED KIDS & PETS: Anyone named in WHO IS IN THIS PICTURE must read as a **main** figure (face visible, not a sliver on the outer edge); widen the shot or reposition the group near the **horizontal middle (~42–58%)** before cropping.",
-          );
-
-          // 6. Scene note (free description from the LLM)
-          blocks.push(`SCENE NOTE: ${b.brief}`);
-
-          // 7. Cast bible (compact; longer when photo refs so Hair: lines survive truncation)
-          const castCap = portraitAppearance.trim().length > 0 ? 1400 : 800;
-          const castSnippet = castBible.trim().slice(0, castCap);
-          blocks.push(
-            `CAST IDENTITIES (only draw the ones listed in WHO IS IN THIS PICTURE — match the reference for each):\n${castSnippet}`,
-          );
-
-          if (portraitAppearance.trim().length > 0) {
-            blocks.push(
-              "HAIR FIDELITY: Each named child must keep the exact hair colour, length, and arrangement from the reference lineup and lines above (e.g. long blonde stays long blonde; pigtails stay pigtails). **Never** give one girl dark brown ponytail and the other long blonde for contrast — if both lines say blonde, both are blonde. Do not revert to a default boy crew cut or generic brown bob unless the cast explicitly describes that. **GENDER:** If the cast bible says a named child is a girl (or reference had Gender: girl), illustrate a girl — do not draw them as a boy with short brown hair. If the cast bible or paired verse uses **he/him/his** for a named human (e.g. Isaac), illustrate that child as a **boy** — do **not** substitute a generic girl silhouette for 'variety'.",
-            );
-          }
-
-          blocks.push(
-            "PRONOUN LOCK: If the paired verse uses **he/him/his** for a named child, that child must read as a **boy** in the picture; **she/her** for that name → **girl**. Never swap genders for two-kid contrast.",
-          );
-          blocks.push(
-            "Paint ONLY what the verse, WHO IS IN THIS PICTURE, and SCENE NOTE describe — no extra props, no extra characters, no background crowd, no signs, speech balloons, or any writing in the picture. **No edge-cropped mystery humans** (no partial stranger arms/legs); only named cast, fully readable.",
-          );
-
-          return blocks.join("\n\n");
-        };
-
-        let lastChunkMs = 0;
-        for (
-          let chunkStart = 0;
-          chunkStart < briefs.length;
-          chunkStart += chunkSize
-        ) {
-          if (chunkStart > 0 && interChunkWaitMs > 0) {
-            // Full cooldown protects OpenAI tier-1 RPM. But if the previous chunk
-            // already took ~one minute wall-clock, the rolling limit window has
-            // usually advanced — sleeping the full amount often pushes past the
-            // ~150s edge gateway (HTTP 546) for no benefit.
-            const prevMs = lastChunkMs;
-            let sleepMs = interChunkWaitMs;
-            if (adaptiveChunkWait) {
-              if (prevMs >= 55000) {
-                sleepMs = Math.min(sleepMs, 2000);
-              } else if (prevMs >= 35000) {
-                sleepMs = Math.min(
-                  sleepMs,
-                  Math.max(2000, Math.floor(interChunkWaitMs / 2)),
-                );
-              }
-            }
-            console.info(
-              `[clever-service] gpt-image chunk cooldown ${sleepMs}ms (prev chunk ${prevMs}ms; budget ${interChunkWaitMs}ms)`,
-            );
-            await delay(sleepMs);
-          }
-          const slice = briefs.slice(chunkStart, chunkStart + chunkSize);
-          const chunkT0 = Date.now();
-          const chunkResults = await Promise.all(
-            slice.map(async (b, localIdx) => {
-              const idx = chunkStart + localIdx;
-              const editPrompt = buildEditPrompt(b, idx);
-              try {
-                const out = await gptImageEdit(
-                  apiKey,
-                  editPrompt,
-                  [refBytes],
-                  pictureBookQuality,
-                  0,
-                  gptHasPortraitRefs,
-                  nonHeroPortraitRefs,
-                );
-                return { idx, url: out.url };
-              } catch (e) {
-                console.warn(
-                  "[clever-service] GPT Image edit failed for spread",
-                  idx,
-                  e,
-                );
-                throw e;
-              }
-            }),
-          );
-          lastChunkMs = Date.now() - chunkT0;
-          for (const r of chunkResults) {
-            urls[r.idx] = r.url;
-            gptImageSpreadCount++;
-          }
-        }
-        // Strict completeness check — if for any reason urls didn't fill,
-        // surface a clear error so the UI doesn't render an imageless book.
-        const missing = briefs
-          .map((_, i) => i)
-          .filter((i) => !urls[i] || typeof urls[i] !== "string");
-        if (missing.length > 0) {
-          throw new Error(
-            `gpt_image_incomplete: missing ${missing.length}/${briefs.length} spread(s) at index ${missing.join(",")}`,
-          );
-        }
-      }
-    }
-
-    if (!useGptImage && useCastAnchor) {
-      let anchorUrl: string | null = null;
-      try {
-        anchorUrl = await falFluxProTextToImageUrl(falKey, falTextModel, anchorPrompt);
-        falTextSpreadCount = 1;
-      } catch (e) {
-        console.warn(
-          "[clever-service] Fal cast-anchor T2I failed; falling back to spread-1 T2I + Redux×5",
-          e,
-        );
-      }
-
-      if (anchorUrl) {
-        try {
-          panelLock = await visualLockFromFirstImage(apiKey, anchorUrl);
-          firstPanelVisualLockUsed = panelLock.length > 40;
-        } catch (e) {
-          console.warn("[clever-service] visual lock (anchor) failed", e);
-        }
-
-        let refUrl: string = anchorUrl as string;
-        for (let idx = 0; idx < briefs.length; idx++) {
-          if (idx > 0) await delay(staggerMs);
-          const b = briefs[idx];
-          const composed = composeDallePrompt({
-            preamble: stylePreamble,
-            envTheme,
-            sceneBrief:
-              (idx === 0
-                ? openingSceneImageConstraints(noBuddyBook, childName)
-                : "") + b.brief,
-            castBible,
-            firstPanelLock: panelLock,
-            heroFirstName: childName,
-            mandatoryCastLine: artStyleSpec.composeMandatoryCast,
-          });
-          const verseBeat = spreadTextForPicturePage(b.index, story.pages).slice(0, 360);
-          const verseTwoParagraphs = /\n\s*\n/.test(verseBeat);
-          const wideBeatClause = needsFullBodyWideFraming(`${verseBeat} ${b.brief}`)
-            ? "WIDE FULL-BODY CAM: verse implies jumping/bouncing/airborne — pull camera back; every named figure complete head-to-toe, buddy tail/horn/mane in frame; no neck or waist crops. "
-            : "";
-          try {
-            const falPrompt =
-              falReduxLayoutHint +
-              wideBeatClause +
-              "PICTURE BOOK SPREAD — illustrate THIS story beat literally. " +
-              (verseTwoParagraphs
-                ? "If VERSE has two paragraphs, prioritize the SECOND block's setting and headline props when it is the vivid beat (food, splash, toy mess) — do not ignore it for a preamble-only tableau. ONLY people/creatures named in the verse — no unnamed friend crowd. "
-                : "") +
-              "VERSE (must match mood, action, props): " +
-              verseBeat +
-              ". " +
-              "SCENE: change layout, camera, and environment completely vs the reference. Show the action and setting in the brief — rockets, trampolines, castles, planets, etc. must appear visibly if the story calls for them. " +
-              "Keep character IDENTITY only from the reference (face shape, species, hair/outfit colours, sizes)—vary expressions and poses to match the verse's emotion; do not recycle the same neutral smile on every spread. Do not recreate neutral lineup poses or plain backdrop. " +
-              artStyleSpec.falReduxStyleTag +
-              composed.slice(0, FAL_REDUX_PROMPT_MAX - 420);
-            const u = await falFluxReduxImageUrl(
-              falKey,
-              falReduxModel,
-              refUrl,
-              falPrompt,
-              falStrength,
-            );
-            urls[idx] = u;
-            falReduxSpreadCount++;
-            refUrl = u;
-          } catch (e) {
-            console.warn("[clever-service] Fal Redux (anchor chain) failed for spread", idx, e);
-            throwFalImage(`Fal image-to-image failed for spread ${idx + 1} of 6`, e);
-          }
-        }
-        falCastAnchorUsed = true;
-      }
-    }
-
-    /* Legacy: spread 1 = T2I, spreads 2–6 = Redux(spread1). When FAL off, anchor off, anchor T2I failed, or incomplete urls. */
-    const needLegacySpreads =
-      !useGptImage &&
-      (!useFalRedux ||
-        urls.length < briefs.length ||
-        (useCastAnchor && falTextSpreadCount === 0));
-
-    if (needLegacySpreads) {
-      if (useFalRedux && useCastAnchor && falTextSpreadCount === 0) {
-        urls.length = 0;
-      }
-      if (urls.length === 0) {
-        if (useFalRedux) {
-          try {
-            urls[0] = await falFluxProTextToImageUrl(falKey, falTextModel, spread1Prompt);
-            falTextSpreadCount = 1;
-          } catch (e) {
-            console.warn("[clever-service] Fal text-to-image (spread 1) failed", e);
-            throwFalImage("Fal text-to-image failed for the first picture", e);
-          }
-        } else {
-          urls[0] = await openaiImageUrl(apiKey, spread1Prompt, "1024x1024");
-        }
-
-        if (!panelLock) {
-          try {
-            panelLock = await visualLockFromFirstImage(apiKey, urls[0]);
-            firstPanelVisualLockUsed = panelLock.length > 40;
-          } catch (e) {
-            console.warn("[clever-service] visual lock failed", e);
-          }
-        }
-
-        if (briefs.length > 1) {
-          const referenceStillUrl = urls[0];
-          const rest = await Promise.all(
-            briefs.slice(1).map(async (b, idx) => {
-              if (idx > 0) await delay(idx * staggerMs);
-              const composed = composeDallePrompt({
-                preamble: stylePreamble,
-                envTheme,
-                sceneBrief: b.brief,
-                castBible,
-                firstPanelLock: panelLock,
-                heroFirstName: childName,
-                mandatoryCastLine: artStyleSpec.composeMandatoryCast,
-              });
-              if (useFalRedux) {
-                if (!referenceStillUrl) {
-                  throwFalImage("Fal image-to-image missing reference from first picture", new Error("no_reference_url"));
-                }
-                try {
-                  const wideBeatClause = needsFullBodyWideFraming(`${b.verse} ${b.brief}`)
-                    ? "WIDE FULL-BODY CAM: jumping/bouncing/airborne — pull camera back; head-to-toe for every named figure; buddy tail/horn in frame. "
-                    : "";
-                  const falPrompt =
-                    falReduxLayoutHint +
-                    wideBeatClause +
-                    "New story moment — change poses, action, and background to match the scene. " +
-                    "Keep the same hero face shape, hair, outfit colours, and the same buddy and named creatures as the reference — only beings named in SCENE ACTION, no new animals or people. Shift facial expressions and body language to match the story beat — not the same static expression every time. " +
-                    artStyleSpec.falLegacyStyleTag +
-                    falLegacyFrameClause +
-                    composed.slice(0, FAL_REDUX_PROMPT_MAX - 220);
-                  const u = await falFluxReduxImageUrl(
-                    falKey,
-                    falReduxModel,
-                    referenceStillUrl,
-                    falPrompt,
-                    falStrength,
-                  );
-                  falReduxSpreadCount++;
-                  return u;
-                } catch (e) {
-                  console.warn("[clever-service] Fal Redux failed", e);
-                  throwFalImage(`Fal image-to-image failed for spread ${idx + 2} of 6`, e);
-                }
-              }
-              return openaiImageUrl(apiKey, composed, "1024x1024");
-            }),
-          );
-          for (let i = 0; i < rest.length; i++) {
-            urls.push(rest[i]);
-          }
-        }
-      }
-    }
-
-    /** Final picture page (page 12): opt-in reuse of spread 1 art (set STORYBOOK_REUSE_FIRST_ON_LAST=1 for a bookend repeat). Default = generate a distinct final spread. */
-    const reuseFirstIllustrationOnLast = Deno.env.get("STORYBOOK_REUSE_FIRST_ON_LAST") === "1";
-    if (reuseFirstIllustrationOnLast && briefs.length >= 2 && urls.length >= briefs.length) {
-      const first = urls[0];
-      if (first && typeof first === "string" && /^https?:\/\//i.test(first.trim())) {
-        urls[briefs.length - 1] = first;
-      }
-    }
-
-    sceneImageUrl = urls[0] || null;
-
-    const urlByIndex = new Map<number, string>();
-    briefs.forEach((b, k) => urlByIndex.set(b.index, urls[k]));
-
-    story.pages.forEach((p, i) => {
-      let imageUrl = urlByIndex.get(i) ?? null;
-      if (
-        imageUrl == null &&
-        i === FRONT_MATTER_PAGE_COUNT - 1 &&
-        sceneImageUrl &&
-        /^https?:\/\//i.test(String(sceneImageUrl).trim())
-      ) {
-        imageUrl = sceneImageUrl;
-      }
-      pagesOut.push({
-        text: p.text.trim(),
-        imageUrl,
-      });
-    });
-  } catch (e) {
-    console.error(e);
-    const detail = e instanceof Error ? e.message : String(e);
-    const isGpt = useGptImage && /^gpt_image_/i.test(detail);
-    const errKey = isGpt
-      ? "gpt_image_failed"
-      : e instanceof FalImageError
-      ? "fal_failed"
-      : "images_failed";
+    EdgeRuntime.waitUntil(runStorybookGenerationJob(jobId, payload));
     return jsonResponse(
       {
-        error: errKey,
-        detail,
-        imageMode,
-        title: story.title,
-        pages: story.pages.map((p) => ({ text: p.text.trim(), imageUrl: null })),
+        storybook_job_id: jobId,
+        status: "pending",
       },
-      502,
+      202,
     );
   }
 
-  const bookColorOut = coerceBookColor(bookCoverColorReq, story.bookColor, childName);
-  const readerFont = pickStoryReaderFont();
+  return await executeStorybookPipeline(apiKey, body);
 
-  return jsonResponse({
-    title: story.title,
-    bookColor: bookColorOut,
-    readerFont,
-    sceneImageUrl,
-    pages: pagesOut,
-    meta: {
-      childName,
-      characterKey,
-      placeKey,
-      placeOverridden,
-      plotNamedHumans,
-      storyHumanNames,
-      plotHintLen: plotHint.length,
-      familyNames,
-      familyPeopleIds: familyPeople.map((p) => p.id),
-      portraitVisionAttempted,
-      portraitAppearanceUsed: portraitAppearance.length > 0,
-      imageCount: pagesOut.filter((p) => p.imageUrl).length,
-      spreads: Math.floor(pagesOut.length / 2),
-      characterLockCompiled: compiledLock.length > 0,
-      firstPanelVisualLock: firstPanelVisualLockUsed,
-      falTextModel: useFalRedux ? falTextModel : null,
-      falTextSpreads: falTextSpreadCount,
-      falCastAnchorUsed,
-      falReduxModel: useFalRedux ? falReduxModel : null,
-      falReduxSpreads: falReduxSpreadCount,
-      imageMode: useGptImage ? "gptimage" : "fal",
-      gptImageModel: useGptImage ? gptImageDefaultModel() : null,
-      gptImageSpreads: useGptImage ? gptImageSpreadCount : 0,
-      pictureBookQuality,
-      illustrationStyle: illustrationStyleKey,
-      reuseFirstIllustrationOnLast:
-        Deno.env.get("STORYBOOK_REUSE_FIRST_ON_LAST") === "1",
-    },
-  });
 });
    

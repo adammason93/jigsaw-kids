@@ -50,6 +50,19 @@ supabase secrets set STORYBOOK_IMAGE_MODE=gptimage
 # supabase secrets set STORYBOOK_REUSE_FIRST_ON_LAST=1
 ```
 
+## Async storybook jobs (optional)
+
+For **High** picture runs that can exceed the platform **~150s** “no response yet” limit, the client can send **`storybook_async: true`** on the same POST body. The function returns **202** with **`storybook_job_id`** and finishes in the background via **`EdgeRuntime.waitUntil`**. Poll **`GET …/functions/v1/clever-service?storybook_job={uuid}`** until **`storybook_job_status`** is **`complete`** or **`failed`** — the **`result`** object matches the JSON a synchronous POST would have returned (success body or **`error`** / **`detail`**).
+
+- Apply migration **`supabase/migrations/20260505120000_storybook_generation_jobs.sql`**.
+- On **hosted** Edge Functions you usually **do not** add a key manually: **`SUPABASE_SECRET_KEYS`** (JWT signing keys) and often **`SUPABASE_URL`** are **default secrets** — `clever-service` uses **`SUPABASE_SECRET_KEYS['default']`**, with fallback to legacy **`SUPABASE_SERVICE_ROLE_KEY`**. For a second project / fork you can set **`STORYBOOK_SUPABASE_SERVICE_ROLE_KEY`** or **`STORYBOOK_SUPABASE_URL`** instead.
+- Never expose any **secret** key in the browser — the site keeps using the **anon / publishable** key only.
+- Frontend: set **`storybookAsync: true`** in **`js/score-config.js`**. If secrets are missing, the client falls back to the one-shot POST.
+- Optional: **`STORYBOOK_ASYNC_DEFAULT=1`** makes async the default when the client omits **`storybook_async`**.
+- Local CLI: **`supabase/config.toml`** uses **`[edge_runtime] policy = per_worker`** so background tasks are not cut off after the first response.
+
+Wall-clock caps still apply to the **whole invocation** (initial HTTP handler **plus** `waitUntil` work): **Free ~150s**, **Pro ~400s** — async avoids the **idle** gateway cutoff once **202** is returned but cannot extend unlimited runtime on Free.
+
 ## Deploy
 
 ```bash

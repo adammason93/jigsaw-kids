@@ -6,7 +6,7 @@
  *    - Password: your shared family secret (strong enough for strangers; rate limits help)
  *    - Confirm / auto-confirm depending on project settings.
  * 2. Enable Email provider in Authentication → Providers (password sign-in uses this identity).
- * 3. Fill supabaseUrl, supabaseAnonKey, syncLoginEmail. Optional: storybookEdgeSlug, gameMakerEdgeSlug.
+ * 3. Fill supabaseUrl, supabaseAnonKey, syncLoginEmail. Optional: storybookEdgeSlug, gameMakerEdgeSlug, storybookAsync (background storybook jobs; see clever-service README).
  *
  * Sync UI shows only “Family password” — no inbox needed on the tablet.
  */

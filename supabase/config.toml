@@ -1,6 +1,10 @@
 # Supabase local / deploy config — extend as your project grows.
 # See: https://supabase.com/docs/guides/cli/config
 
+# Allow EdgeRuntime.waitUntil background work to finish locally (storybook_async jobs).
+[edge_runtime]
+policy = "per_worker"
+
 [api]
 enabled = true
 

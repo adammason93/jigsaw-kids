@@ -3897,6 +3897,97 @@
     return c && c.supabaseAnonKey ? String(c.supabaseAnonKey) : "";
   }
 
+  function storybookAsyncJobsEnabled() {
+    var c =
+      typeof window.SCORE_CONFIG !== "undefined"
+        ? window.SCORE_CONFIG
+        : typeof window.SCORE_SYNC !== "undefined"
+          ? window.SCORE_SYNC
+          : null;
+    if (!c) return false;
+    var v = c.storybookAsync;
+    if (v === true || v === 1 || String(v).toLowerCase() === "1") return true;
+    return false;
+  }
+
+  function storybookJobPollUrl(baseUrl, jobId) {
+    var u = String(baseUrl || "").trim();
+    if (!u) return "";
+    var sep = u.indexOf("?") >= 0 ? "&" : "?";
+    return u + sep + "storybook_job=" + encodeURIComponent(jobId);
+  }
+
+  /**
+   * @param {string} baseUrl
+   * @param {string} key
+   * @param {string} jobId
+   * @param {number} deadlineTs
+   * @returns {Promise<{ ok: boolean, status: number, body: Record<string, unknown> }>}
+   */
+  function pollStorybookJob(baseUrl, key, jobId, deadlineTs) {
+    var pollMs = 2500;
+    return fetch(storybookJobPollUrl(baseUrl, jobId), {
+      method: "GET",
+      headers: {
+        Authorization: "Bearer " + key,
+        apikey: key,
+      },
+    })
+      .then(function (r) {
+        return r.json().then(function (j) {
+          return { ok: r.ok, status: r.status, body: j };
+        });
+      })
+      .then(function (out) {
+        var b = out.body && typeof out.body === "object" ? out.body : {};
+        if (!out.ok) {
+          return out;
+        }
+        var st = String(b.storybook_job_status || "").toLowerCase();
+        if (st === "complete") {
+          var httpSt =
+            typeof b.http_status === "number" ? b.http_status : 200;
+          var payload = b.result;
+          if (!payload || typeof payload !== "object") {
+            return {
+              ok: false,
+              status: httpSt,
+              body: { error: "storybook_job_empty_result" },
+            };
+          }
+          return { ok: httpSt >= 200 && httpSt < 300, status: httpSt, body: payload };
+        }
+        if (st === "failed") {
+          var failHttp =
+            typeof b.http_status === "number" ? b.http_status : 502;
+          var failBody =
+            b.result && typeof b.result === "object"
+              ? b.result
+              : { error: "storybook_job_failed" };
+          return { ok: false, status: failHttp, body: failBody };
+        }
+        if (st === "pending" || st === "running") {
+          if (Date.now() > deadlineTs) {
+            return {
+              ok: false,
+              status: 504,
+              body: { error: "storybook_job_timeout" },
+            };
+          }
+          return new Promise(function (resolve) {
+            setTimeout(function () {
+              pollStorybookJob(baseUrl, key, jobId, deadlineTs).then(resolve);
+            }, pollMs);
+          });
+        }
+        return {
+          ok: false,
+          status: 502,
+          body: { error: "storybook_job_bad_status", detail: st },
+        };
+      });
+  }
+
   function getSelectedFamilyPeople() {
     return [];
   }
@@ -4924,44 +5015,83 @@
       }
       setBusy(true);
       var familyPeople = getSelectedFamilyPeople();
-      fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: "Bearer " + key,
-          apikey: key,
-        },
-        body: JSON.stringify({
-          childName: childName || "Friend",
-          character: normalizeWizardPresetKey(selectedChar),
-          place: normalizeWizardPresetKey(selectedPlace),
-          plotHint: plotHint,
-          buddyCustom:
-            selectedChar === "custom_buddy"
-              ? trimCustomWizardText(buddyCustomInput) || undefined
-              : undefined,
-          placeCustom:
-            selectedPlace === "custom_place"
-              ? trimCustomWizardText(placeCustomInput) || undefined
-              : undefined,
-          pictureBookQuality: selectedPictureBookQuality(),
-          illustrationStyle: readIllustrationStyleFromWizard(),
-          readerArtLayout: readBookSpreadLayoutFromWizard(),
-          storyTextMode: readStoryTextModeFromWizard(),
-          storyLength: readStoryLengthFromWizard(),
-          author: customAuthor || undefined,
-          familyNames: familyPeople.map(function (p) {
-            return p.label;
-          }),
-          familyPeople: familyPeople,
-          bookCoverColor: selectedBookCoverColor || undefined,
-          characterReferencePhotos: heroPhotoItems.length
-            ? heroPhotoItems.map(function (x) {
-                return { who: x.who, image: x.dataUrl };
-              })
+      var requestBody = {
+        childName: childName || "Friend",
+        character: normalizeWizardPresetKey(selectedChar),
+        place: normalizeWizardPresetKey(selectedPlace),
+        plotHint: plotHint,
+        buddyCustom:
+          selectedChar === "custom_buddy"
+            ? trimCustomWizardText(buddyCustomInput) || undefined
             : undefined,
+        placeCustom:
+          selectedPlace === "custom_place"
+            ? trimCustomWizardText(placeCustomInput) || undefined
+            : undefined,
+        pictureBookQuality: selectedPictureBookQuality(),
+        illustrationStyle: readIllustrationStyleFromWizard(),
+        readerArtLayout: readBookSpreadLayoutFromWizard(),
+        storyTextMode: readStoryTextModeFromWizard(),
+        storyLength: readStoryLengthFromWizard(),
+        author: customAuthor || undefined,
+        familyNames: familyPeople.map(function (p) {
+          return p.label;
         }),
-      })
+        familyPeople: familyPeople,
+        bookCoverColor: selectedBookCoverColor || undefined,
+        characterReferencePhotos: heroPhotoItems.length
+          ? heroPhotoItems.map(function (x) {
+              return { who: x.who, image: x.dataUrl };
+            })
+          : undefined,
+      };
+      var useAsync = storybookAsyncJobsEnabled();
+      function postStorybook(asyncFlag) {
+        var body = Object.assign({}, requestBody);
+        if (asyncFlag) body.storybook_async = true;
+        return fetch(url, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: "Bearer " + key,
+            apikey: key,
+          },
+          body: JSON.stringify(body),
+        }).then(function (r) {
+          return r.json().then(function (j) {
+            return { ok: r.ok, status: r.status, body: j };
+          });
+        });
+      }
+      function runStorybookOnce(asyncFlag) {
+        return postStorybook(asyncFlag).then(function (out) {
+          var b =
+            out.body && typeof out.body === "object" ? out.body : {};
+          if (
+            asyncFlag &&
+            out.status === 501 &&
+            b.error === "storybook_async_unconfigured"
+          ) {
+            return runStorybookOnce(false);
+          }
+          if (
+            asyncFlag &&
+            out.ok &&
+            out.status === 202 &&
+            b.storybook_job_id
+          ) {
+            var deadline = Date.now() + 15 * 60 * 1000;
+            return pollStorybookJob(
+              url,
+              key,
+              String(b.storybook_job_id),
+              deadline
+            );
+          }
+          return out;
+        });
+      }
+      runStorybookOnce(useAsync)
         .then(function (r) {
           return r.json().then(function (j) {
             return { ok: r.ok, status: r.status, body: j };
@@ -4980,7 +5110,7 @@
             var msg;
             if (isTimeout) {
               msg =
-                "The story maker ran out of time while drawing pictures (the server has a strict time limit — about two minutes total for the whole book). Wait a minute and try again — pick **Standard** pictures for a faster run (High uses heavier AI steps), use fewer uploaded family photos if you attached many, or ask a grown-up for help. Note: if the AI already started work, your account may still have been charged for some of it even though the book didn’t finish.";
+                "The story maker ran out of time while drawing pictures (the server has a strict time limit — about two minutes total for the whole book). Wait a minute and try again — pick Standard pictures for a faster run (High uses heavier AI steps), use fewer uploaded family photos if you attached many, or ask a grown-up for help. Note: if the AI already started work, your account may still have been charged for some of it even though the book didn’t finish.";
             } else if (b.error === "server_missing_openai") {
               msg =
                 "Story drawing isn’t turned on for this game yet. A grown-up needs to finish setup on the server.";
@@ -5021,6 +5151,15 @@
               if (b.detail) {
                 msg += " " + String(b.detail).slice(0, 320);
               }
+            } else if (b.error === "storybook_job_timeout") {
+              msg =
+                "The story maker is still drawing, but this page stopped waiting — often slow Wi‑Fi or very heavy pictures. Wait a minute and try again, or ask a grown-up for help.";
+            } else if (
+              b.error === "storybook_job_empty_result" ||
+              b.error === "storybook_job_bad_status"
+            ) {
+              msg =
+                "The story maker hit a snag while finishing your book in the background. Please try again in a moment, or ask a grown-up to check the server.";
             } else if (b.error && typeof b.error === "string") {
               msg = "Couldn’t make the book (" + b.error + ").";
             } else {

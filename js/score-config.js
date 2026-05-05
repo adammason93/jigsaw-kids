@@ -9,6 +9,8 @@ window.SCORE_SYNC = {
   syncLoginEmail: "sofia-room@fam.local",
   /** Slug in …/functions/v1/{slug} — matches folder / deploy name `clever-service`. */
   storybookEdgeSlug: "clever-service",
+  /** When true: storybook POST returns 202 and finishes in background (needs DB migration + service role secret on clever-service). */
+  storybookAsync: true,
   /** Prompt → Babylon HTML (`game-maker` edge function). */
   gameMakerEdgeSlug: "game-maker",
 };
