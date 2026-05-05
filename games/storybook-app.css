@@ -3446,13 +3446,18 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   left: auto;
   right: max(0.65rem, env(safe-area-inset-right, 0px));
   bottom: max(0.55rem, env(safe-area-inset-bottom, 0px));
-  padding: 0.2rem 0.45rem;
-  border-radius: 0;
-  background: transparent;
-  box-shadow: none;
-  font-size: 0.92rem;
-  font-weight: 650;
-  color: #1a1a1a;
+  padding: 0.32rem 0.62rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--sb-flip-light) 82%, rgba(255, 255, 255, 0.95));
+  border: 1px solid color-mix(in srgb, var(--sb-flip-red) 22%, transparent);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.75),
+    0 1px 4px rgba(45, 20, 35, 0.08);
+  font-size: 0.85rem;
+  font-weight: 720;
+  font-variant-numeric: tabular-nums;
+  color: color-mix(in srgb, var(--sb-flip-darker, #2a1810) 52%, #1a1a1a);
+  z-index: 3;
 }
 
 .sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-flip-page--text .sb-flip-page__sheet {
@@ -3463,67 +3468,123 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   overflow: hidden;
 }
 
-/* Cream paper + soft white blobs along the **gutter** edge (beside the picture), #f7f4eb field */
+/* Warm paper keyed to theme + subtle vertical tooth (not loud) — one-page-facing text leaf */
 .sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-flip-page--text .sb-flip-page__sheet::before {
   content: "";
   position: absolute;
   inset: 0;
   z-index: 0;
   background:
+    radial-gradient(
+      ellipse 88% 50% at 50% -6%,
+      color-mix(in srgb, var(--sb-flip-light) 70%, #ffffff) 0%,
+      transparent 55%
+    ),
     radial-gradient(ellipse 92% 70% at 108% 2%, #ffffff 0%, rgba(255, 255, 255, 0.82) 45%, transparent 72%),
     radial-gradient(ellipse 95% 74% at 104% 102%, #ffffff 0%, rgba(255, 255, 255, 0.8) 48%, transparent 75%),
-    #f7f4eb;
+    repeating-linear-gradient(
+      -15deg,
+      transparent 0,
+      transparent 12px,
+      rgba(255, 255, 255, 0.05) 12px,
+      rgba(255, 255, 255, 0.05) 13px
+    ),
+    linear-gradient(
+      168deg,
+      color-mix(in srgb, var(--sb-flip-light) 42%, #f7f2e8) 0%,
+      #f3ede3 45%,
+      color-mix(in srgb, var(--sb-flip-light) 30%, #ebe3d6) 100%
+    );
   pointer-events: none;
+}
+
+.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-flip-page--text .sb-flip-page__sheet::after {
+  content: "";
+  position: absolute;
+  inset: 0.5rem;
+  z-index: 1;
+  border-radius: 12px;
+  pointer-events: none;
+  border: 1.5px solid color-mix(in srgb, var(--sb-flip-red) 26%, rgba(60, 30, 45, 0.14));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.65),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.045),
+    0 10px 28px rgba(45, 20, 35, 0.06);
 }
 
 .sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-flip-page--text .sb-flip-text {
   position: relative;
-  z-index: 1;
-}
-
-.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-page-num {
   z-index: 2;
+  max-width: min(31rem, 96%);
+  margin: 0 auto;
+  padding: 0.48rem 0.6rem 2.35rem;
 }
 
 .sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-flip-text__highlight {
-  display: inline;
+  display: block;
   font-family: var(--sb-reader-font-body);
-  font-size: clamp(0.9rem, 2.65vw, 1.1rem);
-  font-weight: 550;
-  line-height: 1.72;
-  color: #25141c;
+  font-size: clamp(0.95rem, 2.85vw, 1.14rem);
+  font-weight: 560;
+  line-height: 1.78;
+  color: #2c181f;
   text-align: center;
   white-space: pre-line;
   padding: 0;
-  margin: 0;
+  margin: 0 auto;
+  max-width: min(26.5rem, 94%);
   background: transparent;
   border-radius: 0;
   box-decoration-break: initial;
   -webkit-box-decoration-break: initial;
   box-shadow: none;
-  text-shadow: none;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.35);
   -webkit-text-stroke: 0;
 }
 
-.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-big-word {
-  color: #5b21b6;
-  text-shadow: none;
+.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-flip-text__highlight::first-line {
+  font-weight: 760;
+  font-size: 1.05em;
+  letter-spacing: 0.035em;
+  color: color-mix(in srgb, var(--sb-flip-darker, #831843) 35%, #2c181f);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.45);
 }
 
-.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-flip-text {
-  max-width: min(31rem, 96%);
-  margin: 0 auto;
-  padding: 0.35rem 0.5rem 2.25rem;
+.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-big-word {
+  color: color-mix(in srgb, var(--sb-flip-mid, #9333ea) 75%, #5b21b6);
+  font-weight: 720;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-flip-text::before {
+  content: "✦";
+  display: block;
+  text-align: center;
+  font-size: 0.68rem;
+  letter-spacing: 0.55em;
+  margin: 0 0 0.52rem;
+  padding-right: 0.55em;
+  color: color-mix(in srgb, var(--sb-flip-red, #db2777) 42%, #8b7369);
+  opacity: 0.88;
+  font-family: var(--sb-reader-font-emphasis, inherit);
 }
 
 .sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-readable-word:hover {
-  background: rgba(91, 33, 182, 0.12);
+  background: color-mix(in srgb, var(--sb-flip-light) 42%, rgba(91, 33, 182, 0.12));
+  border-radius: 0.22em;
 }
 
-.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-the-end-title,
+.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-flip-text:has(.sb-the-end-wrap)::before {
+  display: none;
+}
+
+.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-the-end-title {
+  color: var(--sb-flip-mid, #be185d);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
 .sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-the-end-lead {
-  color: #2a0a1f;
-  text-shadow: none;
+  color: color-mix(in srgb, var(--sb-flip-dark, #9d174d) 45%, #2a0a1f);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.25);
 }
 
 /* Drop outgoing left-column copy early so it does not overlap incoming verso type mid-turn */
@@ -3806,19 +3867,24 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
 /* Facing verso is prose on cream paper (incoming text column), not art + white type. */
 .sb-flip-spread__inner--art-facing.sb-flip-spread__inner--peel-turning
   .sb-flip-spread__peel-back.sb-flip-spread__peel-back--verso-text {
-  background: #f7f4eb;
+  background: linear-gradient(
+    168deg,
+    color-mix(in srgb, var(--sb-flip-light) 38%, #f7f2e8) 0%,
+    #f0e9df 100%
+  );
 }
 
 .sb-flip-spread__inner--art-facing.sb-flip-spread__inner--peel-turning
   .sb-flip-spread__peel-back.sb-flip-spread__peel-back--verso-text
   .sb-flip-spread__peel-back-text
   .sb-flip-text__highlight {
+  display: block;
   font-family: var(--sb-reader-font-body);
-  font-size: clamp(0.9rem, 2.65vw, 1.1rem);
-  font-weight: 550;
-  line-height: 1.72;
-  color: #25141c;
-  text-shadow: none;
+  font-size: clamp(0.95rem, 2.85vw, 1.12rem);
+  font-weight: 560;
+  line-height: 1.76;
+  color: #2c181f;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.3);
   -webkit-font-smoothing: antialiased;
 }
 
@@ -3826,7 +3892,7 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   .sb-flip-spread__peel-back.sb-flip-spread__peel-back--verso-text
   .sb-flip-spread__peel-back-text
   .sb-big-word {
-  color: #5b21b6;
+  color: color-mix(in srgb, var(--sb-flip-mid, #9333ea) 75%, #5b21b6);
   text-shadow: none;
 }
 
@@ -4282,8 +4348,8 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
 /* Tablet band: duplex over-art type shrinks; facing text page stays readable (no sticker boxes). */
 @media (min-width: 600px) and (max-width: 1200px) {
   .sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-flip-text__highlight {
-    font-size: clamp(0.86rem, 2.45vw, 1.04rem);
-    line-height: 1.68;
+    font-size: clamp(0.92rem, 2.55vw, 1.1rem);
+    line-height: 1.74;
   }
 
   .sb-flip-spread__inner--has-art .sb-flip-text__highlight {
