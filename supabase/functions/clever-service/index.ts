@@ -619,7 +619,8 @@ async function compileCharacterLockForImages(
     plotNamedHumans: string[];
     /** Vision summary from uploaded reference photos — must win over vague draft prose for HERO / named kids. */
     portraitAppearance?: string;
-    /** Single line for compile lock: allowed art vocabulary (matches illustration style). */
+    /** Single-appearance line matching `ChildName:` from portrait block — verbatim pin for HERO in LOCK CAST. */
+    heroPortraitPinnedLine?: string;
     compileLockArtWords: string;
   },
 ): Promise<string> {
@@ -627,23 +628,35 @@ async function compileCharacterLockForImages(
     ? input.plotNamedHumans.join(", ")
     : "(none)";
   const photoBlock = String(input.portraitAppearance ?? "").trim();
+  const heroPin = String(input.heroPortraitPinnedLine ?? "").trim();
+  const petPlotClause =
+    plotPetTaggedNames(input.plotHint).size > 0
+      ? "**PETS:** If the plot uses a comma after puppy/dog/cat/kitten (e.g. 'puppy, Remy') or 'dog named …', those capitalised tokens are ANIMAL names, not human co-stars. Do NOT output NAME: LOCK lines for them as humans (no REMY:, etc.); show them only in scene actions.\n\n"
+      : "";
+
   const user =
     `Hero first name: ${input.childName}\n` +
     `Main buddy type (${input.buddyKey}): ${input.buddyDesc}\n` +
     `Setting: ${input.placeDesc}\n` +
     `Plot: ${input.plotHint || "cozy adventure"}\n` +
-    `Human co-stars named in the plot (each is a REAL CHILD — NOT the imaginary buddy; give each their own NAME: line if they appear in the draft): ${co}\n` +
+    petPlotClause +
+    `Human co-stars named in the plot (REAL CHILDREN ONLY — NOT the imaginary buddy or pet names): ${co}\n` +
     `Who appears in pictures (beats): ${input.briefsSummary}\n` +
     (photoBlock
-      ? `\nREFERENCE PHOTOS (vision summary — HERO and any named line MUST match hair, eyes, skin, age here; do not invent a different child):\n${photoBlock}\n` +
+      ? `\nREFERENCE PHOTOS (vision summary — HERO and any human photo line MUST match hair, eyes, skin, age; do NOT invent a different-looking child):\n${photoBlock}\n` +
+        (heroPin
+          ? `\n>>> HERO PHOTO FACTS (AUTHORITATIVE for ${input.childName} — copy Gender/Hair/Eyes/Skin/Clothes into **HERO:** even if draft below contradicts):\n${heroPin}\n\n`
+          : "") +
         (/\bCo_star_ref\s*:/i.test(photoBlock)
-          ? "Co_star_ref must become its own LOCKED CAST line for the human co-star using their real story name (e.g. REMY:), with the same Hair:/Eyes: facts — not a second hero line.\n"
+          ? `Co_star_ref applies ONLY when two **different human children** were uploaded. Map Co_star_ref to that second child's **human** story name — **never** ${input.childName}, **never** the imaginary buddy creature, **never** a pet's name.\n`
           : "")
       : "") +
-    `\nStorywriter draft (may be messy):\n${input.draftDesign || "(none)"}\n\n` +
+    `\nStorywriter draft (may contradict photos — IGNORE wrong hair/skin for the hero when HERO PHOTO FACTS exist):\n${input.draftDesign || "(none)"}\n\n` +
     `Rewrite into LOCKED CAST only — plain text, no JSON.\n` +
     `Use labeled lines: HERO:, BUDDY:, then one line per other named recurring HUMAN child from the plot or draft (e.g. ISAAC:) — same detail as HERO (gender, hair, eyes, skin, outfit). Never add MONKEY:, BEAR:, LION:, or random extras.\n` +
-    `When REFERENCE PHOTOS are present above, every human line MUST quote the same Hair: colour, length, and style words from those lines (you may add short style-appropriate texture words after). Wrong hair = failure.\n` +
+    (heroPin
+      ? `The **HERO:** line MUST quote the same Hair:, Eyes:, Skin:, and outfit facts as "HERO PHOTO FACTS" above (you may add a few extra words allowed by the vocabulary line below for material/texture only).\n`
+      : `When REFERENCE PHOTOS are present above, every human line MUST quote the same Hair: colour, length, and style words from those lines (you may add short style-appropriate texture words after). Wrong hair = failure.\n`) +
     `If reference lines include **Gender: girl** or **Gender: boy**, each LOCKED CAST human must use that gender — do not swap to the opposite because a name "sounds" masculine or feminine.\n` +
     `Never assign one child dark brown short hair and the other long blonde for cast "variety" when references show both blonde — match each line's hair literally.\n` +
     `Each line: exact colours, relative size vs hero, silhouette, distinctive marks, wings/tail yes/no.\n` +
@@ -651,16 +664,23 @@ async function compileCharacterLockForImages(
     `Max 2100 characters. No scenery. No actions.`;
 
   const noBuddyLock = input.buddyKey === "nobuddy";
+  const photoTruth =
+    photoBlock.length > 0
+      ? " CRITICAL: Uploaded reference summaries (and any HERO PHOTO FACTS line) OVERRIDE the storywriter draft for matching humans — if the draft's hair/skin/eyes contradict a reference line for the hero, treat the draft as WRONG."
+      : "";
   const systemLock = noBuddyLock
     ? "You are an art director for a children's book. Output only the LOCKED CAST block. Be dense and consistent. " +
       "This book has NO imaginary creature buddy — only humans (hero, plot-named children, game friends). " +
       "Output HERO: and one line per other named HUMAN (e.g. ISAAC:, TILLY:) from the draft. Do NOT output BUDDY: or any creature/animal mascot line unless the plot explicitly requires a non-human co-star (rare). " +
-      "If the draft truly has only the hero, output exactly one HERO: line. Never invent MONKEY:, BEAR:, unicorn, or dragon unless the storywriter draft explicitly includes that creature."
+      "If the draft truly has only the hero, output exactly one HERO: line. Never invent MONKEY:, BEAR:, unicorn, or dragon unless the storywriter draft explicitly includes that creature." +
+      photoTruth
     : "You are an art director for a children's book. Output only the LOCKED CAST block. Be dense and consistent. " +
       "Include EVERY named person and recurring creature from the storywriter draft who actually appears in the book (HERO, BUDDY, named human siblings/friends from the plot, and any named game friends from the draft). " +
       "If the user lists human co-stars in the plot (e.g. Isaac), they MUST appear as their own NAME: lines — never merge a human child into BUDDY and never call the dragon/dinosaur by a human sibling's name. " +
+      "Never output a NAME: LOCK line for a PET or animal mascot named in plot parenthesis beside puppy/dog/cat — pets are drawn as animals only, not as extra human silhouette lines. " +
       "If the draft truly has only the child and one imaginary friend, output exactly HERO: and BUDDY: — never invent unnamed forest animals. " +
-      "If the draft names extra friends (e.g. Tilly), add one line each — never add MONKEY:, BEAR:, or random extras not in the draft.";
+      "If the draft names extra friends (e.g. Tilly), add one line each — never add MONKEY:, BEAR:, or random extras not in the draft." +
+      photoTruth;
 
   const r = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
@@ -761,7 +781,39 @@ const PLOT_NAME_STOP = new Set(
     .filter(Boolean),
 );
 
-function extractPlotNamedHumans(plotHint: string, heroFirstName: string): string[] {
+/**
+ * Looks like "`puppy, Remy`" / "`dog named Remy`" — capitalised token is an animal name, not a human co-star.
+ */
+function plotPetTaggedNames(plotHint: string): Set<string> {
+  const hints = String(plotHint ?? "").normalize("NFKC");
+  const out = new Set<string>();
+  const addNorm = (w: string | undefined) => {
+    const t = String(w ?? "").trim();
+    if (t.length < 2 || t.length > 20) return;
+    out.add(t.toLowerCase());
+  };
+
+  let m: RegExpExecArray | null;
+  const reComma =
+    /\b(?:pupp(?:y|ies)|dog(?:s)?|doggy|kitten(?:s)?|cat(?:s)?|kitty|bunny|bunnies|rabbit(?:s)?|hamster(?:s)?|gerbil(?:s)?|goldfish|guinea\s*pig(?:s)?|furball|pet(?:s)?)\s*,\s*([A-Za-z]{2,20})\b/gi;
+  while ((m = reComma.exec(hints)) !== null) addNorm(m[1]);
+
+  const reNamed =
+    /\b(?:pupp(?:y|ies)|dog(?:s)?|doggy|kitten(?:s)?|cat(?:s)?|kitty|bunny|rabbit(?:s)?|hamster(?:s)?|guinea\s*pig(?:s)?|pet(?:s)?)\s+(?:named|called)\s+([A-Za-z]{2,20})\b/gi;
+  while ((m = reNamed.exec(hints)) !== null) addNorm(m[1]);
+
+  const rePoss =
+    /\b(?:his|her|their|my|your|the)\s+(?:little\s+|fluffy\s+|cute\s+)?(?:puppy|dog|doggy|kitty|cat|kitten|bunny|rabbit|hamster|pet)\s+([A-Za-z]{2,20})\b/gi;
+  while ((m = rePoss.exec(hints)) !== null) addNorm(m[1]);
+
+  return out;
+}
+
+function extractPlotNamedHumans(
+  plotHint: string,
+  heroFirstName: string,
+  excludeLower: ReadonlySet<string> = new Set(),
+): string[] {
   const hero = heroFirstName.trim().toLowerCase();
   const out: string[] = [];
   const seen = new Set<string>();
@@ -770,11 +822,32 @@ function extractPlotNamedHumans(plotHint: string, heroFirstName: string): string
     const low = w.toLowerCase();
     if (low === hero) continue;
     if (PLOT_NAME_STOP.has(low)) continue;
+    if (excludeLower.has(low)) continue;
     if (seen.has(low)) continue;
     seen.add(low);
     out.push(w);
   }
   return out.slice(0, 4);
+}
+
+/** Appearance block line whose label matches the hero's first name — used to pin LOCK CAST hair to the uploaded photo. */
+function portraitAppearanceLineMatchingHero(
+  portraitAppearance: string,
+  heroFirstName: string,
+): string | null {
+  const block = String(portraitAppearance ?? "").trim();
+  if (!block) return null;
+  const nm = sanitizeName(heroFirstName);
+  if (!nm) return null;
+  const want = nm.toLowerCase();
+  for (const raw of block.split("\n")) {
+    const t = raw.trim();
+    if (!t) continue;
+    const m = /^([^:]+):\s*(.+)$/u.exec(t);
+    if (!m) continue;
+    if (m[1].trim().toLowerCase() === want) return t;
+  }
+  return null;
 }
 
 function mergeUniqueFirstNames(a: string[], b: string[]): string[] {
@@ -949,7 +1022,7 @@ async function openaiVisionSummarizeHeroFromRefs(
         `This image is a reference photo of ${name} (${role === "hero" ? "story hero" : "story character"}).\n` +
         `Reply with exactly one line using this template ONLY:\n` +
         `${name}: Gender (photo only — ignore whether the name "${name}" is usually a boy or girl name): girl | boy; Hair: [colour — specific], [length], [style including fringe/pigtails/accessories]; Eyes: [colour]; Skin: [tone]; Age: [approx]; Clothes: [silhouette + colours, or graphic tee/jeans].\n` +
-        `If the photo shows a young girl (long hair, dress, typical presentation), you MUST write Gender: girl even for names like Remy, Alex, or Sam. State real hair length and colour. Do not copy logos. max 52 words; no art-style words.\n` +
+        `If the photo shows a young girl (long hair, dress, typical presentation), you MUST write Gender: girl even for names like Remy, Alex, or Sam. Say **straight / wavy / curly** and **blonde / brown / black / red / auburn** exactly as visible — if forehead bangs/fringe cover the eyebrows, write "with blunt fringe (bangs)". If hair is in a ponytail or bun but roots are blonde, say blonde anyway — never downgrade to generic brown bob. State real hair length and colour. Do not copy logos. max 52 words; no art-style words.\n` +
         `Use the NAME exactly as spelled above. No other text.`,
     });
     content.push({ type: "image_url", image_url: { url: dataUrls[0] } });
@@ -2863,7 +2936,8 @@ Deno.serve(async (req) => {
     familyPeople.length > 0
       ? familyPeople.map((p) => p.label)
       : sanitizeFamilyNames(body.familyNames);
-  const plotNamedHumans = extractPlotNamedHumans(plotHint, childName);
+  const plotPetLower = plotPetTaggedNames(plotHint);
+  const plotNamedHumans = extractPlotNamedHumans(plotHint, childName, plotPetLower);
   const storyHumanNames = mergeUniqueFirstNames(
     [childName],
     mergeUniqueFirstNames(familyNames, plotNamedHumans),
@@ -2937,6 +3011,7 @@ ${proseVolumeParityRule ? `${proseVolumeParityRule}\n` : ""}- **Where the ending
 - NAMES VS GENDER (critical): Do **not** choose boy/girl from how a first name "usually" sounds. Names like Remy, Riley, Alex, Sam, Jordan, Charlie can be girls or boys. **The appearance-from-photos lines are ground truth:** if a line says **Gender: girl** and long blonde hair, that named child is a **girl** in the story — use **she/her** pronouns in verses, and characterDesign must say **girl** with that exact hair — never give her a boy's short brown haircut or **he/him** unless the line explicitly says **Gender: boy**. Never override a photo-derived girl line with a masculine default.
 - The hero's name is given — use it often. The hero IS ${childName} — this exact first name must appear in the story text on every page where the main child acts. Whenever ${childName} is in a spread's scene, that spread's illustrationBrief must name ${childName} (you may list other named friends first if the verse introduces them that way). Never substitute a different child, wrong name, or wrong gender as the hero. The art paints only who you name — do not imply an unnamed generic kid.
 - HUMAN CO-STARS vs IMAGINARY BUDDY (critical): The "Main friend character" below is always ONE imaginary creature (unicorn, dragon, dinosaur, etc.). If the plot idea also names another child, that child is a REAL HUMAN — not the buddy, not a shape-shifted version of the buddy, and never given the buddy's role in the plot. NEVER merge names: do not write that the human co-star flies as the dragon, or that the dragon "is" that child. When the plot says the children cannot find the DINOSAUR / DRAGON, the verses must ask where the DINOSAUR or DRAGON is — do not substitute a child's name as the thing that is lost unless the plot literally says that child is hiding.
+- **PET NAMES (critical):** A capitalised name right after "**puppy**," "**dog**," "**kitten**," "**cat**," "**bunny**," "**hamster**," "**pet**," or phrases like "**dog named** …" belongs to an **animal** (the pet). That name is NOT a separate human brother/sister/co-star — describe them as an animal character in prose if needed — **never** duplicate them as a human child in characterDesign alongside ${childName}.
 - CAST vs TEXT (strict): Each illustrationBrief may include ONLY characters who appear **by name** on that spread's paired text page (the odd page before it), or the one imaginary buddy when the text clearly means them ("the dinosaur", "their friend") after names were established. If the verse names ${childName} plus a human co-star (e.g. Isaac) plus the buddy, all three may appear when the verse puts them in the scene. If the verse only mentions ${childName} and the buddy, the picture has only those two. If the verse also names game people who are in that scene, they may appear — list everyone the text actually puts in the moment. Never add lions, bears, random pals, villagers, crowds, or background "silhouette people" that the text does not mention. A few characters is fine **only** when the text names them all for that beat.
 - If "People from the child's games" are listed, include them in the story by name as extra friends or family. They should feel like the same friendly faces the child picks in other games (e.g. Tilly, Baby). They are separate from the one imaginary "main friend character" (unicorn, dragon, etc.) — both can appear.${
     portraitAppearance
@@ -3062,6 +3137,10 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
     .slice(0, 900);
 
   let compiledLock = "";
+  const heroPortraitPin = portraitAppearanceLineMatchingHero(
+    portraitAppearance,
+    childName,
+  );
   try {
     compiledLock = await compileCharacterLockForImages(apiKey, {
       childName,
@@ -3073,6 +3152,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
       briefsSummary,
       plotNamedHumans,
       portraitAppearance,
+      heroPortraitPinnedLine: heroPortraitPin ?? undefined,
       compileLockArtWords: artStyleSpec.compileLockArtWords,
     });
   } catch (e) {
