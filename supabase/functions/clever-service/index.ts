@@ -2417,6 +2417,75 @@ function decodeB64ToBytes(b64: string): Uint8Array {
   return out;
 }
 
+/** Detect image kind for OpenAI multipart `image[]` (bytes are raw decoded file). */
+function blobMimeFromImageBytes(bytes: Uint8Array): string {
+  if (bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) {
+    return "image/jpeg";
+  }
+  if (
+    bytes.length >= 8 &&
+    bytes[0] === 0x89 &&
+    bytes[1] === 0x50 &&
+    bytes[2] === 0x4e &&
+    bytes[3] === 0x47
+  ) {
+    return "image/png";
+  }
+  if (
+    bytes.length >= 12 &&
+    bytes[0] === 0x52 &&
+    bytes[1] === 0x49 &&
+    bytes[2] === 0x46 &&
+    bytes[3] === 0x46 &&
+    bytes[8] === 0x57 &&
+    bytes[9] === 0x45 &&
+    bytes[10] === 0x42 &&
+    bytes[11] === 0x50
+  ) {
+    return "image/webp";
+  }
+  return "image/png";
+}
+
+const GPT_PORTRAIT_I2I_MAX_IMAGES = 4;
+
+/**
+ * Decode tagged reference data URLs for image→image cast anchor (hero first, then friends by id).
+ */
+function portraitReferenceBytesForI2iAnchor(pack: {
+  heroUrls: string[];
+  customByFriendId: Record<string, string[]>;
+}): Uint8Array[] {
+  const urls: string[] = [...pack.heroUrls];
+  for (const key of Object.keys(pack.customByFriendId).sort()) {
+    urls.push(...pack.customByFriendId[key]);
+  }
+  const out: Uint8Array[] = [];
+  let total = 0;
+  for (const u of urls) {
+    if (out.length >= GPT_PORTRAIT_I2I_MAX_IMAGES) break;
+    const trimmed = String(u ?? "").replace(/\s+/gu, "").replace(/\r|\n/gu, "");
+    const m =
+      /^data:image\/(?:png|jpeg|jpg|webp);base64,([A-Za-z0-9+/=]+)$/i.exec(trimmed);
+    if (!m) continue;
+    const approx = Math.floor((m[1].length * 3) / 4);
+    if (total + approx > MAX_HERO_REFERENCES_TOTAL_BYTES) break;
+    try {
+      const b = decodeB64ToBytes(trimmed);
+      if (b.length < 800) continue;
+      total += approx;
+      out.push(b);
+    } catch {
+      continue;
+    }
+  }
+  return out;
+}
+
+function gptHeroReferenceAnchorEnabled(): boolean {
+  return Deno.env.get("STORYBOOK_GPTIMAGE_HERO_REFERENCE_ANCHOR")?.trim() !== "0";
+}
+
 function randomKey(prefix: string): string {
   const t = Date.now().toString(36);
   const r = Math.random().toString(36).slice(2, 10);
@@ -2564,6 +2633,11 @@ async function gptImageGenerate(
   return { url, bytes };
 }
 
+type GptImageEditOptions = {
+  /** First-lineup step: real uploads → stylised cast sheet; lock `input_fidelity` high. */
+  portraitPixelsAnchor?: boolean;
+};
+
 async function gptImageEdit(
   apiKey: string,
   prompt: string,
@@ -2571,13 +2645,17 @@ async function gptImageEdit(
   bookTier: PictureBookQuality,
   retryCount = 0,
   hasUserPortraitRefs = false,
+  opts?: GptImageEditOptions,
 ): Promise<{ url: string; bytes: Uint8Array }> {
   const model = gptImageDefaultModel();
   const moderation = gptImageModerationParam();
   const size = gptImageSizeForRequest(bookTier);
   const quality = gptImageQualityForRequest("edit", bookTier, hasUserPortraitRefs);
   const trimmed = prompt.slice(0, GPT_IMAGE_PROMPT_MAX);
-  const fidelity = gptImageInputFidelityForRequest(bookTier, hasUserPortraitRefs);
+  const fidelity =
+    opts?.portraitPixelsAnchor && referenceBytes.length > 0
+      ? "high"
+      : gptImageInputFidelityForRequest(bookTier, hasUserPortraitRefs);
 
   const buildForm = (withQuality: boolean): FormData => {
     const form = new FormData();
@@ -2593,10 +2671,16 @@ async function gptImageEdit(
     form.append("moderation", moderation);
     form.append("input_fidelity", fidelity);
     for (let i = 0; i < referenceBytes.length; i++) {
+      const mime = blobMimeFromImageBytes(referenceBytes[i]);
+      const ext = mime.includes("jpeg")
+        ? "jpg"
+        : mime.includes("webp")
+          ? "webp"
+          : "png";
       const blob = new Blob([referenceBytes[i]] as unknown as BlobPart[], {
-        type: "image/png",
+        type: mime,
       });
-      form.append("image[]", blob, `ref-${i + 1}.png`);
+      form.append("image[]", blob, `ref-${i + 1}.${ext}`);
     }
     return form;
   };
@@ -2635,6 +2719,7 @@ async function gptImageEdit(
         bookTier,
         retryCount + 1,
         hasUserPortraitRefs,
+        opts,
       );
     }
     console.error("[gpt-image] edits error", r.status, raw.slice(0, 700));
@@ -2642,7 +2727,10 @@ async function gptImageEdit(
   }
 
   const bytes = await gptImageBytesFromImagesResponse(raw);
-  const url = await uploadPngToStorybookImages(bytes, randomKey("spread"));
+  const url = await uploadPngToStorybookImages(
+    bytes,
+    randomKey(opts?.portraitPixelsAnchor ? "anchor" : "spread"),
+  );
   return { url, bytes };
 }
 
@@ -3370,14 +3458,61 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
       // caller knows GPT Image specifically failed (rather than getting an
       // imageless 200 or a mixed-style book).
       let anchorOut: { url: string; bytes: Uint8Array };
+      const portraitBytesForAnchor = portraitReferenceBytesForI2iAnchor(refPack);
+      const usePortraitPixelsAnchor =
+        gptHeroReferenceAnchorEnabled() &&
+        gptHasPortraitRefs &&
+        portraitBytesForAnchor.length > 0;
+
       try {
-        anchorOut = await gptImageGenerate(
-          apiKey,
-          anchorPrompt,
-          pictureBookQuality,
-          0,
-          gptHasPortraitRefs,
-        );
+        if (usePortraitPixelsAnchor) {
+          const multiKid = portraitBytesForAnchor.length > 1;
+          const i2iIntro =
+            anchorPreamble +
+            (multiKid
+              ? "UPLOAD ORDER: attached images are real reference photos (**hero uploads first**, then tagged friends left-to-right in filename order). Recreate **each photographed child’s** likeness in this illustration style alongside any cast members that exist **only** in LOCKED CAST (no photo)—draw those from LOCKED CAST. Preserve unmistakable **face identity** (bone structure, age, ethnicity vibe) per photo; hairstyles and colouring should match refs; outfits follow LOCKED CAST and book simplicity—do not slavishly copy busy print from snapshots.\n"
+              : "UPLOAD: attached image is the **real hero child**. Repaint into the picture-book style below as the lineup pose; preserve unmistakable **face identity**—bone structure, age, likeness; hair as in photo unless LOCKED CAST specifies otherwise; clothing per LOCKED CAST. Any buddy or humans **without** a photo come only from LOCKED CAST.\n");
+
+          try {
+            anchorOut = await gptImageEdit(
+              apiKey,
+              (i2iIntro + envTheme + "LOCKED CAST (draw exactly):\n" + castBible).slice(
+                0,
+                GPT_IMAGE_PROMPT_MAX,
+              ),
+              portraitBytesForAnchor,
+              pictureBookQuality,
+              0,
+              true,
+              { portraitPixelsAnchor: true },
+            );
+            console.info(
+              "[clever-service] GPT Image cast anchor from portrait image→image",
+              portraitBytesForAnchor.length,
+              "ref(s)",
+            );
+          } catch (e2) {
+            console.warn(
+              "[clever-service] portrait-pixel anchor failed; text-only cast anchor",
+              e2,
+            );
+            anchorOut = await gptImageGenerate(
+              apiKey,
+              anchorPrompt,
+              pictureBookQuality,
+              0,
+              gptHasPortraitRefs,
+            );
+          }
+        } else {
+          anchorOut = await gptImageGenerate(
+            apiKey,
+            anchorPrompt,
+            pictureBookQuality,
+            0,
+            gptHasPortraitRefs,
+          );
+        }
       } catch (e) {
         const detail = e instanceof Error ? e.message : String(e);
         throw new Error(`gpt_image_anchor_failed: ${detail}`);
