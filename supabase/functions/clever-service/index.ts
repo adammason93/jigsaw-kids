@@ -896,6 +896,198 @@ function lockedCastHeroLooksLine(cast: string): string {
   return m[1].trim().slice(0, 480);
 }
 
+function regexEscapeLiteral(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/** Heuristic LOCATION_LOCK / prop anchors from prose — reinforces VISUAL MATCHING after verse. */
+function verseSceneEnvelopeFromVerse(verseRaw: string): string {
+  const verse = verseRaw.trim();
+  if (!verse.length) return "";
+  const locks: string[] = [];
+
+  const indoorStrong =
+    /\b(bedroom|bed\s+room|kitchen|hallway|\bhall\b|bathroom|living\s+room|sitting\s+room|dining\s+room|nursery|playroom|pantry|attic|basement|stairs|landing|loft|hallway|corridor|inside\s+the\s+house|in\s+their\s+house|indoors?)\b/i
+      .test(verse);
+  const outdoorStrong =
+    /\b(garden|yard|meadow|field|park|outside|outdoor|grass\b|lawn|street|lane\b|forest|woods?|beach|sand\b|shore|path\b|gate\b|sky\b|open\s+air)\b/i
+      .test(verse);
+
+  if (indoorStrong && !outdoorStrong) {
+    locks.push(
+      "SCENE_ENVELOPE (from verse): **Indoors / home** — show room architecture (walls, ceiling, doors, windows only as windows). **Primary ground plane is not open grass** unless the verse also moves outside.",
+    );
+  } else if (outdoorStrong && !indoorStrong) {
+    locks.push(
+      "SCENE_ENVELOPE (from verse): **Outdoors / open air** — sky or clear exterior depth; **primary ground is not a bedroom floor** unless the verse says they came inside.",
+    );
+  } else if (indoorStrong && outdoorStrong) {
+    locks.push(
+      "SCENE_ENVELOPE (from verse): prose touches **inside and outside** — paint the **dominant beat** literally; use doorway, window, or garden vista for the other thread without erasing where the action mainly happens.",
+    );
+  }
+
+  const propHints: string[] = [];
+  const propBundles: { re: RegExp; hint: string }[] = [
+    {
+      re: /\b(table|counter|cup|cups|mug|sink|stove|oven|fridge|refrigerator)\b/i,
+      hint: "kitchen or dining cues",
+    },
+    { re: /\b(bed|pillow|duvet|blanket|nightstand|night\s+table|wardrobe)\b/i, hint: "bedroom furniture" },
+    { re: /\b(fence|gate|archway|hedge)\b/i, hint: "fence or garden edge" },
+    { re: /\b(pond|duck|ducks)\b/i, hint: "pond/water if in verse" },
+    { re: /\b(trampoline|bounce|bouncy|castle\s+inflate)\b/i, hint: "bounce/play equipment named in verse" },
+  ];
+  for (const { re, hint } of propBundles) {
+    if (re.test(verse)) propHints.push(hint);
+  }
+  const uniq = [...new Set(propHints)];
+  if (uniq.length) {
+    locks.push(`PROP_WEIGHT (only what the verse implies): foreground may include ${uniq.join("; ")}.`);
+  }
+
+  return locks.join(" ");
+}
+
+function validateIllustrationBrief(
+  verse: string,
+  briefRaw: string,
+  heroFirst: string,
+): string[] {
+  const issues: string[] = [];
+  const brief = briefRaw.trim();
+  if (brief.length < 40) issues.push("too_short");
+  if (!/^\s*VISIBLE\s*:/im.test(brief)) issues.push("missing_VISIBLE");
+  if (!/\bDESCRIPTION\s*:/i.test(brief)) issues.push("missing_DESCRIPTION");
+  const vm = brief.match(/^\s*VISIBLE\s*:\s*([^\n]+?)(?:\s*[—\-]\s*DESCRIPTION\s*:|$)/i);
+  const vis = vm ? vm[1].trim() : "";
+  if (vis.length < 2) issues.push("empty_VISIBLE");
+  const hero = sanitizeName(heroFirst) || "Child";
+  if (hero.length >= 2) {
+    try {
+      const heroRe = new RegExp(`\\b${regexEscapeLiteral(hero)}\\b`, "i");
+      if (heroRe.test(verse) && !heroRe.test(vis)) {
+        issues.push("VISIBLE_missing_hero_name");
+      }
+    } catch {
+      /* ignore */
+    }
+  }
+  return issues;
+}
+
+async function repairIllustrationBriefsIfNeeded(
+  apiKey: string,
+  pages: StoryPage[],
+  heroFirstName: string,
+): Promise<void> {
+  if ((Deno.env.get("STORYBOOK_BRIEF_REPAIR_DISABLE") ?? "").trim() === "1") {
+    return;
+  }
+
+  const hero = sanitizeName(heroFirstName) || "Child";
+  type Slice = { pictureIndex: number; verse: string; brief: string; prevIssueCount: number };
+  const slices: Slice[] = [];
+
+  for (const i of oddPagesWithIllustrationBriefs(pages)) {
+    const verse = spreadTextForPicturePage(i, pages);
+    const brief = String(pages[i]?.illustrationBrief ?? "").trim();
+    const issues = validateIllustrationBrief(verse, brief, hero);
+    if (issues.length === 0) continue;
+    slices.push({
+      pictureIndex: i,
+      verse,
+      brief,
+      prevIssueCount: issues.length,
+    });
+  }
+  if (slices.length === 0) return;
+
+  const model =
+    (Deno.env.get("STORYBOOK_BRIEF_REPAIR_MODEL") ?? "").trim() ||
+    "gpt-4o-mini";
+
+  const userPayload = JSON.stringify(
+    slices.map((s) => ({
+      pictureIndex: s.pictureIndex,
+      verse: s.verse.slice(0, 1800),
+      illustrationBrief: s.brief.slice(0, 650),
+      issues: validateIllustrationBrief(s.verse, s.brief, hero),
+    })),
+  );
+
+  const system =
+    "You fix picture-book illustrationBrief strings. Each repaired brief MUST start with exactly:\n" +
+    "VISIBLE: <comma-separated who is physically in frame, matching verse visibility rules — exclude anyone hidden/missing/off-stage> — DESCRIPTION: <one or two sentences: setting + action, same beat as verse. No curly quotes.\n" +
+    "Use the verse as ground truth for place, props, and cast. Preserve name spellings from the verse.\n" +
+    "Return JSON ONLY: {\"briefs\":[{\"pictureIndex\":integer,\"illustrationBrief\":\"...\"}]} with one entry per input object (same pictureIndex values).";
+
+  let content = "";
+  try {
+    const r = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model,
+        temperature: 0.15,
+        max_tokens: 2400,
+        response_format: { type: "json_object" },
+        messages: [
+          { role: "system", content: system },
+          {
+            role: "user",
+            content: `Hero first name for VISIBLE roster checks: ${hero}\nRepair these spreads:\n${userPayload}`,
+          },
+        ],
+      }),
+    });
+
+    if (!r.ok) {
+      console.warn(
+        "[clever-service] brief repair HTTP",
+        r.status,
+        (await r.text()).slice(0, 260),
+      );
+      return;
+    }
+    const data = (await r.json()) as {
+      choices?: { message?: { content?: string } }[];
+    };
+    content = String(data.choices?.[0]?.message?.content ?? "").trim();
+  } catch (e) {
+    console.warn("[clever-service] brief repair request failed", e);
+    return;
+  }
+
+  let parsed: { briefs?: { pictureIndex: number; illustrationBrief: string }[] };
+  try {
+    parsed = JSON.parse(content) as typeof parsed;
+  } catch {
+    console.warn("[clever-service] brief repair JSON parse failed");
+    return;
+  }
+
+  const byIndex = new Map(slices.map((s) => [s.pictureIndex, s]));
+  const arr = Array.isArray(parsed.briefs) ? parsed.briefs : [];
+  for (const item of arr) {
+    const idx = item.pictureIndex;
+    const slice = byIndex.get(idx);
+    const next = String(item.illustrationBrief ?? "").trim().slice(0, 520);
+    if (!slice || !Number.isFinite(idx) || idx < 0 || idx >= pages.length || next.length < 40) {
+      continue;
+    }
+    const v = spreadTextForPicturePage(idx, pages);
+    const newCount = validateIllustrationBrief(v, next, hero).length;
+    if (newCount === 0 || newCount < slice.prevIssueCount) {
+      const p = pages[idx];
+      if (p) p.illustrationBrief = next;
+    }
+  }
+}
+
 /** Selected game people with ids (for portrait lookup). Ignores unknown ids. */
 function sanitizeFamilyPeople(raw: unknown): FamilyPerson[] {
   if (!Array.isArray(raw)) return [];
@@ -2421,6 +2613,19 @@ function gptImageInputFidelityForRequest(
   return "low";
 }
 
+/** Spread edits from lineup anchor — default high `input_fidelity` (opt out with `low`). */
+function gptImageSpreadEditInputFidelity(
+  _bookTier: PictureBookQuality,
+  _hasUserPortraitRefs: boolean,
+): "low" | "high" {
+  const env = (Deno.env.get("STORYBOOK_GPTIMAGE_SPREAD_INPUT_FIDELITY") ?? "")
+    .trim()
+    .toLowerCase();
+  if (env === "low") return "low";
+  if (env === "high") return "high";
+  return "high";
+}
+
 /**
  * Vision for reference photos — default **`gpt-4o`** for hair/skin/outline accuracy;
  * **`STORYBOOK_VISION_MODEL=gpt-4o-mini`** to trim cost when budget is tighter.
@@ -2658,6 +2863,8 @@ async function gptImageGenerate(
 type GptImageEditOptions = {
   /** First-lineup step: real uploads → stylised cast sheet; lock `input_fidelity` high. */
   portraitPixelsAnchor?: boolean;
+  /** Spread repaint from stylised lineup anchor — uses spread-specific input fidelity (default high). */
+  spreadFromLineupAnchor?: boolean;
 };
 
 async function gptImageEdit(
@@ -2676,10 +2883,13 @@ async function gptImageEdit(
   const quality =
     opts?.portraitPixelsAnchor && referenceBytes.length > 0 ? "high" : baseQuality;
   const trimmed = prompt.slice(0, GPT_IMAGE_PROMPT_MAX);
-  const fidelity =
-    opts?.portraitPixelsAnchor && referenceBytes.length > 0
-      ? "high"
-      : gptImageInputFidelityForRequest(bookTier, hasUserPortraitRefs);
+  const fidelity = (() => {
+    if (opts?.portraitPixelsAnchor && referenceBytes.length > 0) return "high";
+    if (opts?.spreadFromLineupAnchor && referenceBytes.length > 0) {
+      return gptImageSpreadEditInputFidelity(bookTier, hasUserPortraitRefs);
+    }
+    return gptImageInputFidelityForRequest(bookTier, hasUserPortraitRefs);
+  })();
 
   const buildForm = (withQuality: boolean): FormData => {
     const form = new FormData();
@@ -3294,6 +3504,11 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
   }
 
   story.pages = prependFrontMatterPages(story.pages, dedicationAuthor);
+  try {
+    await repairIllustrationBriefsIfNeeded(apiKey, story.pages, childName);
+  } catch (e) {
+    console.warn("[clever-service] illustration brief repair failed (continuing)", e);
+  }
 
   const briefsSummary = oddPagesWithIllustrationBriefs(story.pages)
     .map((idx) => story.pages[idx]?.illustrationBrief)
@@ -3356,10 +3571,10 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
     "LAYOUT (single-page art in the reader — story text is on the facing HTML page, NOT overlaid on this image): **Do not** reserve an empty left third, empty side strip, or blank half for captions. Paint a **balanced full-bleed** picture. **Centre the main characters and focal action** — aim the group's visual mass near **~45–55% from the left** (horizontal middle of the canvas), **not** flattened to one edge. ";
 
   const stylePreambleFramingDuplex =
-    "FRAMING / CHARACTER SCALE (critical): FULL-BLEED SCENE — paint walls, sky, ground, props, and atmosphere so the artwork fills the entire canvas edge-to-edge (rich picture-book spread, not a tiny scene floating in empty space). **Pull the camera back** — **medium-wide** framing by default: the **background and setting** must read clearly in every spread, not just the characters’ faces. The cast together should typically occupy only **~28–42% of frame height** (single heroes or duos **~22–36%**) so caves, skies, rooms, and landscapes have room to breathe — never a tight bust or “zoomed-in” portrait unless the verse is purely a tight reaction beat (and even then keep architecture/sky visible). Keep modest inset — full heads, hair, hands, feet, tail, and wings inside the frame — never cropped or jammed against the border. Never crop a child or buddy at the neck or waist when the moment shows their whole body standing, jumping, or bouncing — use a wider shot instead. For jumping, trampolines, bouncing, soaring, or flying beats, default to a wide shot with the group using only **~30–42%** of frame height so heads, feet, and hooves stay clear of the top and bottom edges. **GUTTER / SPINE:** do not center a main character on the vertical midline — bias the group slightly **left or right** so the book fold does not slice through a face or torso. Unicorn horns, tall ears, hair poofs, wing tips, and raised hooves/paws must be fully visible with clear air above and beside them — never clipped. If a figure still feels tight, shrink only the cast and pull the camera back; keep the environment rich. Never line up the whole cast as a tiny strip along the bottom like stickers; show comfortable ground and body. ";
+    "FRAMING / CHARACTER SCALE (critical): FULL-BLEED SCENE — paint walls, sky, ground, props, and atmosphere so the artwork fills the entire canvas edge-to-edge (rich picture-book spread, not a tiny scene floating in empty space). **Pull the camera back** — **medium-wide** framing by default: the **background and setting** must read clearly in every spread, not just the characters’ faces. The cast together should typically occupy only **~30–42% of frame height** (single heroes or duos **~24–38%**) so caves, skies, rooms, and landscapes have room to breathe — never a tight bust or “zoomed-in” portrait unless the verse is purely a tight reaction beat (and even then keep architecture/sky visible). Keep modest inset — full heads, hair, hands, feet, tail, and wings inside the frame — never cropped or jammed against the border. Never crop a child or buddy at the neck or waist when the moment shows their whole body standing, jumping, or bouncing — use a wider shot instead. For jumping, trampolines, bouncing, soaring, or flying beats, default to a wide shot with the group using only **~32–44%** of frame height so heads, feet, and hooves stay clear of the top and bottom edges. **GUTTER / SPINE:** do not center a main character on the vertical midline — bias the group slightly **left or right** so the book fold does not slice through a face or torso. Unicorn horns, tall ears, hair poofs, wing tips, and raised hooves/paws must be fully visible with clear air above and beside them — never clipped. If a figure still feels tight, shrink only the cast and pull the camera back; keep the environment rich. Never line up the whole cast as a tiny strip along the bottom like stickers; show comfortable ground and body. ";
 
   const stylePreambleFramingFacing =
-    "FRAMING / CHARACTER SCALE (critical): FULL-BLEED SCENE — paint walls, sky, ground, props, and atmosphere so the artwork fills the entire canvas edge-to-edge (rich single-page picture, not a tiny scene floating in empty space). **Pull the camera back** — **medium-wide** framing by default: the **background and setting** must read clearly in every spread, not just the characters’ faces. The cast together should typically occupy only **~28–42% of frame height** (single heroes or duos **~22–36%**) so caves, skies, rooms, and landscapes have room to breathe — never a tight bust or “zoomed-in” portrait unless the verse is purely a tight reaction beat (and even then keep architecture/sky visible). Keep modest inset — full heads, hair, hands, feet, tail, and wings inside the frame — never cropped or jammed against the border. Never crop a child or buddy at the neck or waist when the moment shows their whole body standing, jumping, or bouncing — use a wider shot instead. For jumping, trampolines, bouncing, soaring, or flying beats, default to a wide shot with the group using only **~30–42%** of frame height so heads, feet, and hooves stay clear of the top and bottom edges. **CENTRE COMPOSITION (standalone page):** keep the cast's visual weight near the **horizontal middle** (~45–55% from the left) — **do not** shove everyone to the far right or far left as if saving space for overlaid text; slight left/right asymmetry is fine. Unicorn horns, tall ears, hair poofs, wing tips, and raised hooves/paws must be fully visible with clear air above and beside them — never clipped. If a figure still feels tight, shrink only the cast and pull the camera back; keep the environment rich. Never line up the whole cast as a tiny strip along the bottom like stickers; show comfortable ground and body. ";
+    "FRAMING / CHARACTER SCALE (critical): FULL-BLEED SCENE — paint walls, sky, ground, props, and atmosphere so the artwork fills the entire canvas edge-to-edge (rich single-page picture, not a tiny scene floating in empty space). **Pull the camera back** — **medium-wide** framing by default: the **background and setting** must read clearly in every spread, not just the characters’ faces. The cast together should typically occupy only **~30–42% of frame height** (single heroes or duos **~24–38%**) so caves, skies, rooms, and landscapes have room to breathe — never a tight bust or “zoomed-in” portrait unless the verse is purely a tight reaction beat (and even then keep architecture/sky visible). Keep modest inset — full heads, hair, hands, feet, tail, and wings inside the frame — never cropped or jammed against the border. Never crop a child or buddy at the neck or waist when the moment shows their whole body standing, jumping, or bouncing — use a wider shot instead. For jumping, trampolines, bouncing, soaring, or flying beats, default to a wide shot with the group using only **~32–44%** of frame height so heads, feet, and hooves stay clear of the top and bottom edges. **CENTRE COMPOSITION (standalone page):** keep the cast's visual weight near the **horizontal middle** (~45–55% from the left) — **do not** shove everyone to the far right or far left as if saving space for overlaid text; slight left/right asymmetry is fine. Unicorn horns, tall ears, hair poofs, wing tips, and raised hooves/paws must be fully visible with clear air above and beside them — never clipped. If a figure still feels tight, shrink only the cast and pull the camera back; keep the environment rich. Never line up the whole cast as a tiny strip along the bottom like stickers; show comfortable ground and body. ";
 
   const stylePreamble =
     "A completely textless illustration. DO NOT include any writing, letters, words, typography, labels, speech bubbles, newspapers, stone runes, book pages with text, loose paper sheets, scrolls, receipts, notebooks, stationery, litter, or ground clutter that looks like fake writing — no blurry shapes that look like fake paragraphs or gibberish anywhere. " +
@@ -3409,8 +3624,8 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
 
   const falLegacyFrameClause =
     readerArtLayoutKey === "facing"
-      ? "FRAME / SCALE: full-bleed edge-to-edge; **pulled-back camera** — cast **~28–40% of frame height** typically, **setting prominent**, not zoomed portrait; modest inset — full heads, feet, hands, wings inside canvas; **centre-weighted composition** (~45–55% horizontal), not squeezed to one edge; do not squash everyone along the bottom edge. "
-      : "FRAME / SCALE: full-bleed edge-to-edge; **pulled-back camera** — cast **~28–40% of frame height** typically, **setting prominent**, not zoomed portrait; modest inset — full heads, feet, hands, wings inside canvas; bias off centre gutter; do not squash everyone along the bottom edge. ";
+      ? "FRAME / SCALE: full-bleed edge-to-edge; **pulled-back camera** — cast **~30–42% of frame height** typically, **setting prominent**, not zoomed portrait; modest inset — full heads, feet, hands, wings inside canvas; **centre-weighted composition** (~45–55% horizontal), not squeezed to one edge; do not squash everyone along the bottom edge. "
+      : "FRAME / SCALE: full-bleed edge-to-edge; **pulled-back camera** — cast **~30–42% of frame height** typically, **setting prominent**, not zoomed portrait; modest inset — full heads, feet, hands, wings inside canvas; bias off centre gutter; do not squash everyone along the bottom edge. ";
 
   const falReduxLayoutHint =
     readerArtLayoutKey === "facing"
@@ -3576,7 +3791,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
           {
             label: "WIDE ESTABLISHING SHOT",
             note:
-              "Wide establishing shot — camera well back. Full-bleed environment — sky, architecture, terrain, and foreground paint to every edge; **setting is the star as much as the cast**. Full bodies head to toe: the whole cast together roughly **~32–42% of frame height** (not a hero poster crop), fully inside the frame with generous breathing room — silhouettes never touch or clip the border. Bias the group slightly left or right of vertical centre so the book gutter does not slice a face.",
+              "Wide establishing shot — camera well back. Full-bleed environment — sky, architecture, terrain, and foreground paint to every edge; **setting is the star as much as the cast**. Full bodies head to toe: the whole cast together roughly **~34–44% of frame height** (not a hero poster crop), fully inside the frame with generous breathing room — silhouettes never touch or clip the border. Bias the group slightly left or right of vertical centre so the book gutter does not slice a face.",
           },
           {
             label: "MID SHOT",
@@ -3591,12 +3806,12 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
           {
             label: "FOCAL MOMENT — MEDIUM FRAMING (NOT FACE FILL)",
             note:
-              "**Medium** framing on the verse's focal action — **not** an extreme facial close-up: prefer **mid-thigh up, waist-up, or wider** so cave, room, or landscape stays visible. Cast **≤~40% of frame height**; background and atmosphere run edge-to-edge. Every face, hand, and prop that matters fully inside the frame with modest inset. If jumping, bouncing, or airborne, override to wide full-body — no tight crop on leaping bodies.",
+              "**Medium** framing on the verse's focal action — **not** an extreme facial close-up: prefer **mid-thigh up, waist-up, or wider** so cave, room, or landscape stays visible. Cast **≤~43% of frame height**; background and atmosphere run edge-to-edge. Every face, hand, and prop that matters fully inside the frame with modest inset. If jumping, bouncing, or airborne, override to wide full-body — no tight crop on leaping bodies.",
           },
           {
             label: "WIDE JOURNEY SHOT — DIFFERENT PART OF THE SETTING",
             note:
-              "A second wide shot in a DIFFERENT corner of the same setting. Full-bleed world — **environment dominates**. Cast smaller on the canvas (**~20–32% of frame height**), full figures readable, never cropped; gutter-safe placement.",
+              "A second wide shot in another part of the **same** setting (gentle variety, not a harsh camera jump). Full-bleed world — **environment still leads**. Cast readable but not tiny stickers (**~26–36% of frame height**), full figures, never cropped; gutter-safe placement.",
           },
           {
             label: "WARM FINALE — MEDIUM (NOT TIGHT PORTRAIT)",
@@ -3609,7 +3824,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
           {
             label: "WIDE ESTABLISHING SHOT",
             note:
-              "Wide establishing shot — camera well back. Full-bleed environment — sky, architecture, terrain, and foreground paint to every edge; **setting is the star as much as the cast**. Full bodies head to toe: the whole cast together roughly **~32–42% of frame height** (not a hero poster crop), fully inside the frame with generous breathing room — silhouettes never touch or clip the border. **Centre-weighted composition:** the cast's visual mass near **~45–55% horizontal** — balanced for a standalone page (story text is on the facing page).",
+              "Wide establishing shot — camera well back. Full-bleed environment — sky, architecture, terrain, and foreground paint to every edge; **setting is the star as much as the cast**. Full bodies head to toe: the whole cast together roughly **~34–44% of frame height** (not a hero poster crop), fully inside the frame with generous breathing room — silhouettes never touch or clip the border. **Centre-weighted composition:** the cast's visual mass near **~45–55% horizontal** — balanced for a standalone page (story text is on the facing page).",
           },
           {
             label: "MID SHOT",
@@ -3624,12 +3839,12 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
           {
             label: "FOCAL MOMENT — MEDIUM FRAMING (NOT FACE FILL)",
             note:
-              "**Medium** framing on the verse's focal action — **not** an extreme facial close-up: prefer **mid-thigh up, waist-up, or wider** so cave, room, or landscape stays visible. Cast **≤~40% of frame height**; background and atmosphere run edge-to-edge. Every face, hand, and prop that matters fully inside the frame with modest inset — **centre the moment** in the frame (~45–55% horizontal). If jumping, bouncing, or airborne, override to wide full-body — no tight crop on leaping bodies.",
+              "**Medium** framing on the verse's focal action — **not** an extreme facial close-up: prefer **mid-thigh up, waist-up, or wider** so cave, room, or landscape stays visible. Cast **≤~43% of frame height**; background and atmosphere run edge-to-edge. Every face, hand, and prop that matters fully inside the frame with modest inset — **centre the moment** in the frame (~45–55% horizontal). If jumping, bouncing, or airborne, override to wide full-body — no tight crop on leaping bodies.",
           },
           {
             label: "WIDE JOURNEY SHOT — DIFFERENT PART OF THE SETTING",
             note:
-              "A second wide shot in a DIFFERENT corner of the same setting. Full-bleed world — **environment dominates**. Cast smaller on the canvas (**~20–32% of frame height**), full figures readable, never cropped; **balanced centre-friendly placement**.",
+              "A second wide shot in another part of the **same** setting (gentle variety, not a harsh camera jump). Full-bleed world — **environment still leads**. Cast readable but not tiny stickers (**~26–36% of frame height**), full figures, never cropped; **balanced centre-friendly placement**.",
           },
           {
             label: "WARM FINALE — MEDIUM (NOT TIGHT PORTRAIT)",
@@ -3675,8 +3890,8 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
           blocks.push(
             artStyleSpec.gptEditStyleOpener +
               (readerArtLayoutKey === "facing"
-                ? "SAFE SCALE: Full-bleed scene — environment fills the entire canvas edge-to-edge. **Pull the camera back:** the cast together should use only **~28–42% of frame height** (typically) so **walls, sky, cave, or landscape read clearly** — not a zoomed portrait. Full heads, hair, feet, hands, wings, and tails inside the frame with modest inset — never edge-clipped. Never crop standing or jumping children at the neck, waist, or knees — if the moment is full-body, show full-body. **Single-page layout:** centre the cast — keep the focal group's visual mass near **~45–55% horizontal** (balanced; **not** squeezed to one side as if saving space for overlaid text). Do not leave empty margins around the whole painting. "
-                : "SAFE SCALE: Full-bleed scene — environment fills the entire canvas edge-to-edge. **Pull the camera back:** the cast together should use only **~28–42% of frame height** (typically) so **walls, sky, cave, or landscape read clearly** — not a zoomed portrait. Full heads, hair, feet, hands, wings, and tails inside the frame with modest inset — never edge-clipped. Never crop standing or jumping children at the neck, waist, or knees — if the moment is full-body, show full-body. **Book gutter:** bias the group slightly left or right of frame centre — never put a main child's face on the vertical midline. Do not leave empty margins around the whole painting. ") +
+                ? "SAFE SCALE: Full-bleed scene — environment fills the entire canvas edge-to-edge. **Pull the camera back:** the cast together should use only **~30–42% of frame height** (typically) so **walls, sky, cave, or landscape read clearly** — not a zoomed portrait. Full heads, hair, feet, hands, wings, and tails inside the frame with modest inset — never edge-clipped. Never crop standing or jumping children at the neck, waist, or knees — if the moment is full-body, show full-body. **Single-page layout:** centre the cast — keep the focal group's visual mass near **~45–55% horizontal** (balanced; **not** squeezed to one side as if saving space for overlaid text). Do not leave empty margins around the whole painting. "
+                : "SAFE SCALE: Full-bleed scene — environment fills the entire canvas edge-to-edge. **Pull the camera back:** the cast together should use only **~30–42% of frame height** (typically) so **walls, sky, cave, or landscape read clearly** — not a zoomed portrait. Full heads, hair, feet, hands, wings, and tails inside the frame with modest inset — never edge-clipped. Never crop standing or jumping children at the neck, waist, or knees — if the moment is full-body, show full-body. **Book gutter:** bias the group slightly left or right of frame centre — never put a main child's face on the vertical midline. Do not leave empty margins around the whole painting. ") +
               "The attached reference image shows the cast on a neutral backdrop — use it ONLY to lock each character's **identity**: face shape, **hair length and outer silhouette** (fringes, ponytails, volume), **relative heights** between humans (who is taller, how big a baby is next to the hero), skin tone, outfit colours/silhouette, species/body shape. **Do not** treat the lineup as a suggestion you may drift from on later spreads. Ignore neutral expressions and lineup poses — on THIS spread, show emotion and action that fit the verse; **everything else about how each character LOOKS stays the same** as the reference. Repaint the world fresh.",
           );
 
@@ -3711,6 +3926,8 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
             blocks.push(
               "VISUAL MATCHING: Paint the SAME setting, time of day, and activity as the verse — if it says bouncy castle under the sky, show padded inflatable bounce-house walls and open sky; if it says kitchen or courtyard, show that. Do not substitute a different scene (e.g. woods and bicycle) unless the verse names those.",
             );
+            const envBlock = verseSceneEnvelopeFromVerse(b.verse);
+            if (envBlock) blocks.push(envBlock);
           }
 
           blocks.push(
@@ -3815,6 +4032,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
                   pictureBookQuality,
                   0,
                   gptHasPortraitRefs,
+                  { spreadFromLineupAnchor: true },
                 );
                 return { idx, url: out.url };
               } catch (e) {
