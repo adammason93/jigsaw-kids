@@ -287,6 +287,8 @@
   var readStepBtn = document.getElementById("sbReadStepBtn");
   var btnStart = document.getElementById("sbStartJourney");
   var btnGen = document.getElementById("sbGenerate");
+  /** True while Make my book POST/poll is running — blocks double-tap duplicate API spend. */
+  var sbGenerateInFlight = false;
   var heroPhotoInput = document.getElementById("sbHeroPhoto");
   var heroPhotoPickBtn = document.getElementById("sbHeroPhotoPick");
   var heroPhotoThumbsWrap = document.getElementById("sbHeroPhotoThumbsWrap");
@@ -5017,6 +5019,7 @@
 
   if (btnGen) {
     btnGen.addEventListener("click", function () {
+      if (sbGenerateInFlight) return;
       setError("");
       setReaderArtLayout(readBookSpreadLayoutFromWizard());
       setIllustrationStyle(readIllustrationStyleFromWizard());
@@ -5040,6 +5043,9 @@
           return;
         }
       }
+      sbGenerateInFlight = true;
+      btnGen.disabled = true;
+      btnGen.setAttribute("aria-busy", "true");
       setBusy(true);
       var familyPeople = getSelectedFamilyPeople();
       var requestBody = {
@@ -5230,6 +5236,9 @@
           );
         })
         .finally(function () {
+          sbGenerateInFlight = false;
+          btnGen.disabled = false;
+          btnGen.removeAttribute("aria-busy");
           setBusy(false);
         });
     });

@@ -4296,6 +4296,7 @@ async function runStorybookGenerationJob(
     status: "running",
     updated_at: new Date().toISOString(),
   });
+  console.info(`[clever-service] storybook_job start ${jobId}`);
   const apiKey = Deno.env.get("OPENAI_API_KEY");
   if (!apiKey) {
     await patchStorybookJob(client, jobId, {

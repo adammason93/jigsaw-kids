@@ -63,6 +63,13 @@ For **High** picture runs that can exceed the platform **~150s** “no response 
 
 Wall-clock caps still apply to the **whole invocation** (initial HTTP handler **plus** `waitUntil` work): **Free ~150s**, **Pro ~400s** — async avoids the **idle** gateway cutoff once **202** is returned but cannot extend unlimited runtime on Free.
 
+### Pro plan & usage (fewer wasted retries)
+
+- **Upgrade to Pro** mainly buys **more wall-clock (~400s)** on Edge so one book run is likelier to **finish** instead of timing out → you avoid **immediate “try again” loops** (each full retry is **another** OpenAI book).
+- The storybook UI **disables “Make my book”** and ignores double-taps while a request is running so kids don’t accidentally start **two** books (two charges).
+- **OpenAI still charges successful steps** even if the app errors afterward — tip: test with **Standard** quality and fewer photos first; use **Dashboard → Edge Logs** and **`[clever-service] storybook_job start <uuid>`** to line up spikes with **`storybook_generation_jobs`** rows.
+- Set **billing / usage alerts** on OpenAI and Supabase.
+
 ## Deploy
 
 ```bash
