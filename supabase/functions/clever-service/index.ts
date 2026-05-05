@@ -1510,9 +1510,31 @@ function spreadTextForPicturePage(pictureIndex: number, pages: StoryPage[]): str
   return merged.replace(/[.!?…]+$/u, "").trim();
 }
 
-/** Shown on shelf thumbnail + opener — constrain crowding vs cast lineup / storywriter over-listing. */
-const OPENING_SCENE_IMAGE_CONSTRAINTS =
-  "OPENING PICTURE (also the bookshelf cover thumbnail): Prefer a **CLEAR, UN-CROWDED** tableau — ideally **≤3 full-bodied figures visible** (**hero + buddy + at most ONE extra human**, each named on the paired prose page unless the child's plot snippet literally insists on more people gathered for moment one — then **≤4**, still uncrowded). **FORBIDDEN:** clipped or half-visible children or buddies sneaking into frame from extreme left/right — no cropped-only elbows, stray hat rims, or half torsos at the edges; every pictured person is fully framed. EVERY named figure must appear **COMPLETE** inside the margins with roomy setting foreground/background breathing space. ";
+/**
+ * Prepended to spread-1 illustration briefs — also referenced for GPT Image edits (first spread).
+ * Bookshelf cover thumbnail uses this art — keep foreground to hero ± buddy.
+ */
+function openingSceneImageConstraints(noBuddyBook: boolean, heroFirstName: string): string {
+  const h = sanitizeName(heroFirstName) || "the hero";
+  if (noBuddyBook) {
+    return (
+      "OPENING PICTURE (also the bookshelf cover thumbnail): **Cover-style foreground** — **only " +
+      h +
+      "** as the main human (**no classmates, siblings, parents, crowds, or pet focus in the foreground**). Setting and props can be rich. **FORBIDDEN:** half-visible strangers cropping in from far left/right edges. If page-1 prose **absolutely requires** another named person beside " +
+      h +
+      " for that beat, allow **exactly ONE** extra human — still uncrowded (**≤2 humans**). "
+    );
+  }
+  return (
+    "OPENING PICTURE (also the bookshelf cover thumbnail): **Cover-style foreground** — **ONLY " +
+    h +
+    " AND the imaginary buddy** (two principals). **Do NOT** place human friends/siblings/parents/game people in the foreground — save them for spread 3+ unless opening prose **explicitly** needs **one** named human with " +
+    h +
+    " in that first beat (then **≤3 figures total**: " +
+    h +
+    ", buddy, one extra human max). **FORBIDDEN:** edge-cropped partial bodies. "
+  );
+}
 
 function fallbackProseForEmptyEvenTextPage(pageIndexEven0: number): string {
   if (pageIndexEven0 === LAST_MODEL_TEXT_PAGE_INDEX) {
@@ -3072,8 +3094,11 @@ ${
         ? "COMPOSITION / SCALE FOR THE ILLUSTRATOR (single-page pictures — story text is on the facing HTML page, not painted on this image): Each illustration reads as ONE standalone page. **No empty half, blank strip, or soft dead zone reserved for captions** in the art — paint a **balanced full-bleed** scene edge-to-edge. **Centre the cast and focal action** — keep the group's visual mass roughly **~45–55% from the left** (near the picture's horizontal middle), **not** parked on the far right or far left. **Camera pulled back** — picture-book *wide* or *medium-wide* framing: the **environment** must stay a major part of every illustration. Typical group shots: the whole cast together only **~30–45% of frame height** (single-figure beats a bit less). Modest inset — horns, ears, wing tips fully inside the frame. When the verse describes jumping, bouncing, trampolines, soaring, flying, or reaching high in the air, the illustrationBrief MUST specify a wide or full shot with every visible named figure shown completely head-to-toe — never a tight mid-shot that crops at the neck, waist, or knees."
         : "COMPOSITION / SCALE FOR THE ILLUSTRATOR: Full-bleed spreads — the setting and atmosphere fill the double-page edge-to-edge. **Camera pulled back** — picture-book *wide* or *medium-wide* framing, not tight hero close-ups: the **environment** (walls, sky, terrain, props) must be a major part of every illustration so readers can “see the place”, not just faces. Typical group shots: the whole cast together only **~30–45% of frame height** (single-figure beats a bit less); avoid filling most of the canvas with heads and torsos. Keep a modest inset so every listed character fits without edge-clipping (full heads and feet on wide shots; on closer emotional beats, still show plenty of background, not a portrait zoom). The tallest features (unicorn horn, ears, hair, wing tips) must sit fully inside the frame with visible margin — never cropped. If tight, **widen the shot** or shrink the characters. **GUTTER:** Do not place a main character’s face or body on the exact vertical centre — bias the group slightly left or right of the fold so the book spine does not cut a child in half. When the verse describes jumping, bouncing, trampolines, soaring, flying, or reaching high in the air, the illustrationBrief MUST specify a wide or full shot with every visible named figure shown completely head-to-toe — never a tight mid-shot that crops at the neck, waist, or knees."
     }
-  OPENING SPREAD (page 2 only — the first illustrationBrief; also reused as bookshelf cover thumbnail): MUST match page 1 text and the child's plot, AND establish the actual SETTING (castle / woods / cave / beach / space / zoo / farm / mountain / sea / ship / train / city / circus / lake / snow / desert / museum / island / etc. — whichever the plot calls for).\nOPENING CAST BUDGET — **minimal faces so the cover thumbnail reads clearly:** Pair page 1 text with page 2 so **VISIBLE** ordinarily lists ONLY ${childName}, the imaginary buddy (if any), and **at most one other named human actually in that opening verse**, unless the plot snippet explicitly needs several children together in scene one. **Do NOT put every optional game friend onto spreads 1–2**: introduce extra pals **from spread 3 onward** unless page 1 names each one **on stage together.** **VISIBLE** mirrors page 1 only — **no half-visible bodies creeping from frame edges**; every faced figure wholly inside margins.\n Example: castle hide-and-seek opens at gates or courtyard — not a woods default.** No unwritten extras.
-  When game people with portrait notes appear on a picture page, the brief should mention them looking like those notes (hair, outfit colours, age vibe).
+  OPENING SPREAD (page 2 only — the first illustrationBrief; also reused as bookshelf cover thumbnail): MUST match page 1 text and the child's plot, AND establish the actual SETTING (castle / woods / cave / beach / space / zoo / farm / mountain / sea / ship / train / city / circus / lake / snow / desert / museum / island / etc. — whichever the plot calls for).\nOPENING CAST BUDGET — **cover thumbnail (${noBuddyBook ? "hero-focused" : "hero + buddy"}):** Pair page 1 with page 2 so **VISIBLE** ordinarily ${
+      noBuddyBook
+        ? `lists **ONLY ${childName}** in the foreground (like a paperback cover — one clear hero). Add **≤1 other named human** only if prose truly needs Mum/Dad/sibling beside ${childName} in that opener — **still ≤2 humans**, uncrowded. **Do NOT** load spread 2 with optional game friends — introduce them **from spread 3 onward** unless page 1 names each one actually with ${childName} in that beat. `
+        : `lists **ONLY ${childName} and the imaginary buddy** (foreground duo). **NO** classmates, cousins, stuffed crowd tables, multi-friend tableau unless prose literally needs **one named human beside ${childName}** (${childName} + buddy + that person **≤3** max). **Do NOT** catalogue every optional game friend on spreads 1–2 — add from spread 3 unless page 1 places everyone together. `
+    }**VISIBLE** mirrors page 1 only — **no half-visible faces at frame edges**; every pictured person wholly inside.**\n Example: castle hide-and-seek opens at gates or courtyard — not a woods default.** No unwritten extras.\n  When game people with portrait notes appear on a picture page, the brief should mention them looking like those notes (hair, outfit colours, age vibe).
 - If a "plot idea" is given, you MUST make it the central theme of the story and feature it heavily in EVERY illustration brief. If it is empty, invent a short happy outing that fits the setting.
 - PLOT FIDELITY — read the plot idea LITERALLY:
   • Use ONLY props, locations, and story beats that actually appear in the plot the child wrote. Don't invent extras.
@@ -3272,7 +3297,8 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
     const spread1Prompt = composeDallePrompt({
       preamble: stylePreamble,
       envTheme,
-      sceneBrief: OPENING_SCENE_IMAGE_CONSTRAINTS + briefs[0].brief,
+      sceneBrief:
+        openingSceneImageConstraints(noBuddyBook, childName) + briefs[0].brief,
       castBible,
       firstPanelLock: "",
       heroFirstName: childName,
@@ -3474,7 +3500,9 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
 
           if (idx === 0) {
             blocks.push(
-              `OPENING / SHELF THUMB (${childName}'s FIRST picture): Compose like a paperback cover — **≤3 cleanly framed figures preferred** (${childName} + buddy ± one named friend from the verse) unless THIS verse deliberately groups more—and then **still ≤4** with wide camera. Absolutely **NO partial people** cropping in from far left/right edges.`,
+              noBuddyBook
+                ? `OPENING / SHELF COVER (${childName}'s first picture): **Hero-only foreground** — just ${childName} dominates like a paperback cover (${childName} alone unless the verse above explicitly names exactly one other person beside them — then **≤2 humans**, uncrowded). No classrooms full of classmates, family breakfast tables, or half-faces at the margins unless the verse demands it — **prefer ${childName} centered in the opening scene.**`
+                : `OPENING / SHELF COVER (${childName}'s first picture): **Hero + buddy only foreground** — ${childName} AND the imaginary buddy (${childName} plus buddy creature); **≤2 principals** unless the verse explicitly names **one other human** in that beat — then ${childName}, buddy, that human **≤3**. No crowds, no clipped extras at frame edges.`,
             );
           }
 
@@ -3642,7 +3670,10 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
           const composed = composeDallePrompt({
             preamble: stylePreamble,
             envTheme,
-            sceneBrief: (idx === 0 ? OPENING_SCENE_IMAGE_CONSTRAINTS : "") + b.brief,
+            sceneBrief:
+              (idx === 0
+                ? openingSceneImageConstraints(noBuddyBook, childName)
+                : "") + b.brief,
             castBible,
             firstPanelLock: panelLock,
             heroFirstName: childName,
