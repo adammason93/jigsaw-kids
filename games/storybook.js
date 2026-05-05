@@ -4126,13 +4126,13 @@
     });
   }
 
-  function resetPictureQualityToDefault() {
+  function resetPictureQualityToStandard() {
     var std = document.querySelector(
       'input[name="sbPictureQuality"][value="standard"]'
     );
     var hi = document.querySelector('input[name="sbPictureQuality"][value="high"]');
-    if (std) std.checked = true;
-    if (hi) hi.checked = false;
+    if (std) std.checked = false;
+    if (hi) hi.checked = true;
   }
 
   function goToStep(n) {
@@ -4183,7 +4183,7 @@
     if (bookColorsExtra) bookColorsExtra.hidden = true;
     if (bookColorToggle) bookColorToggle.setAttribute("aria-expanded", "false");
     goToStep(0);
-    resetPictureQualityToDefault();
+    resetPictureQualityToStandard();
     syncBookSpreadLayoutRadios();
     syncIllustrationStyleRadios();
     syncStoryTextModeRadios();
@@ -4977,7 +4977,7 @@
             var msg;
             if (isTimeout) {
               msg =
-                "The story maker ran out of time — it was still drawing pictures. Wait a minute and try again. Ask a grown-up to check the Supabase plan (paid plans allow longer runs) and that the latest storybook code is deployed. Note: any pictures that already finished may still show on your OpenAI bill.";
+                "The story maker ran out of time — it was still drawing lots of pictures. Wait a moment and try again, or ask a grown-up for help.";
             } else if (b.error === "server_missing_openai") {
               msg =
                 "Story drawing isn’t turned on for this game yet. A grown-up needs to finish setup on the server.";
