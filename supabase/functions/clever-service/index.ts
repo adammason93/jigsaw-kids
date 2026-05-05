@@ -37,6 +37,22 @@ function openAiBearerOrgHeaders(apiKey: string): Record<string, string> {
 }
 
 /**
+ * Log the prompt/payload sent to an OpenAI endpoint.
+ * Set `STORYBOOK_LOG_PROMPTS=0` to silence. Visible in Supabase → Edge Logs.
+ */
+function logOpenAiPrompt(label: string, payload: unknown): void {
+  if (Deno.env.get("STORYBOOK_LOG_PROMPTS") === "0") return;
+  try {
+    const json = typeof payload === "string"
+      ? payload
+      : JSON.stringify(payload);
+    console.info(`[clever-service] openai-prompt ${label}`, json);
+  } catch (_e) {
+    console.info(`[clever-service] openai-prompt ${label} <unserialisable>`);
+  }
+}
+
+/**
  * OpenAI speech built-in voices for `gpt-4o-mini-tts` (full set).
  * `tts-1` / `tts-1-hd` only support: alloy, ash, coral, echo, fable, onyx, nova, sage, shimmer.
  * @see https://platform.openai.com/docs/guides/text-to-speech#voice-options
@@ -770,21 +786,20 @@ async function compileCharacterLockForImages(
   const compileModel = String(input.compileLockChatModel ?? "").trim() ||
     "gpt-4o-mini";
 
+  const compileLockPayload = {
+    model: compileModel,
+    temperature: 0.15,
+    max_tokens: 1200,
+    messages: [
+      { role: "system", content: systemLock },
+      { role: "user", content: user },
+    ],
+  };
+  logOpenAiPrompt("compileCharacterLock", compileLockPayload);
   const r = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
     headers: openAiJsonAuthHeaders(apiKey),
-    body: JSON.stringify({
-      model: compileModel,
-      temperature: 0.15,
-      max_tokens: 1200,
-      messages: [
-        {
-          role: "system",
-          content: systemLock,
-        },
-        { role: "user", content: user },
-      ],
-    }),
+    body: JSON.stringify(compileLockPayload),
   });
 
   if (!r.ok) {
@@ -798,30 +813,32 @@ async function compileCharacterLockForImages(
 }
 
 async function visualLockFromFirstImage(apiKey: string, imageUrl: string): Promise<string> {
+  const visualLockPayload = {
+    model: "gpt-4o-mini",
+    temperature: 0.1,
+    max_tokens: 500,
+    messages: [
+      {
+        role: "user",
+        content: [
+          {
+            type: "text",
+            text:
+              "This is cast lineup / spread 1 art for a kids' picture book. Write a single compact paragraph LOCK: repeatable character looks for later spreads. " +
+              "Include every principal figure in the **foreground** of this art (the human hero child first, the one main buddy creature, plus any other named child who is clearly a main co-star in the lineup). " +
+              "For each: face shape, hair, eyes, skin, outfit colours, species/size for creatures. If crowd or blurry extras appear, IGNORE them — do not lock them. " +
+              "No background, no story. Max 900 characters.",
+          },
+          { type: "image_url", image_url: { url: imageUrl } },
+        ],
+      },
+    ],
+  };
+  logOpenAiPrompt("visualLockFromFirstImage", visualLockPayload);
   const r = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
     headers: openAiJsonAuthHeaders(apiKey),
-    body: JSON.stringify({
-      model: "gpt-4o-mini",
-      temperature: 0.1,
-      max_tokens: 500,
-      messages: [
-        {
-          role: "user",
-          content: [
-            {
-              type: "text",
-              text:
-                "This is cast lineup / spread 1 art for a kids' picture book. Write a single compact paragraph LOCK: repeatable character looks for later spreads. " +
-                "Include every principal figure in the **foreground** of this art (the human hero child first, the one main buddy creature, plus any other named child who is clearly a main co-star in the lineup). " +
-                "For each: face shape, hair, eyes, skin, outfit colours, species/size for creatures. If crowd or blurry extras appear, IGNORE them — do not lock them. " +
-                "No background, no story. Max 900 characters.",
-            },
-            { type: "image_url", image_url: { url: imageUrl } },
-          ],
-        },
-      ],
-    }),
+    body: JSON.stringify(visualLockPayload),
   });
   if (!r.ok) {
     const t = await r.text();
@@ -1151,15 +1168,17 @@ async function openaiVisionDescribePortraits(
     });
   }
 
+  const visionPortraitsPayload = {
+    model: model,
+    temperature: 0.05,
+    max_tokens: 550,
+    messages: [{ role: "user", content }],
+  };
+  logOpenAiPrompt("openaiVisionDescribePortraits", visionPortraitsPayload);
   const r = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
     headers: openAiJsonAuthHeaders(apiKey),
-    body: JSON.stringify({
-      model: model,
-      temperature: 0.05,
-      max_tokens: 550,
-      messages: [{ role: "user", content }],
-    }),
+    body: JSON.stringify(visionPortraitsPayload),
   });
 
   if (!r.ok) {
@@ -1220,15 +1239,17 @@ async function openaiVisionSummarizeHeroFromRefs(
     }
   }
 
+  const visionHeroRefsPayload = {
+    model: model,
+    temperature: 0.05,
+    max_tokens: 600,
+    messages: [{ role: "user", content }],
+  };
+  logOpenAiPrompt("openaiVisionSummarizeHeroFromRefs", visionHeroRefsPayload);
   const r = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
     headers: openAiJsonAuthHeaders(apiKey),
-    body: JSON.stringify({
-      model: model,
-      temperature: 0.05,
-      max_tokens: 600,
-      messages: [{ role: "user", content }],
-    }),
+    body: JSON.stringify(visionHeroRefsPayload),
   });
 
   if (!r.ok) {
@@ -1267,15 +1288,17 @@ async function openaiVisionTwoHeroPhotosSameChild(
     { type: "image_url", image_url: { url: urlA, detail: "low" } },
     { type: "image_url", image_url: { url: urlB, detail: "low" } },
   ];
+  const twoHeroPayload = {
+    model: "gpt-4o-mini",
+    temperature: 0,
+    max_tokens: 16,
+    messages: [{ role: "user", content }],
+  };
+  logOpenAiPrompt("openaiVisionTwoHeroPhotosSameChild", twoHeroPayload);
   const r = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
     headers: openAiJsonAuthHeaders(apiKey),
-    body: JSON.stringify({
-      model: "gpt-4o-mini",
-      temperature: 0,
-      max_tokens: 16,
-      messages: [{ role: "user", content }],
-    }),
+    body: JSON.stringify(twoHeroPayload),
   });
   if (!r.ok) {
     console.warn("[clever-service] two-photo same/two vision skipped", r.status);
@@ -1972,19 +1995,21 @@ async function openaiChatJsonOnce(
   user: string,
   chatModel: string,
 ): Promise<StoryJson> {
+  const storyChatPayload = {
+    model: chatModel,
+    temperature: 0.35,
+    max_tokens: 10000,
+    response_format: { type: "json_object" },
+    messages: [
+      { role: "system", content: system },
+      { role: "user", content: user },
+    ],
+  };
+  logOpenAiPrompt("openaiChatJsonOnce(story)", storyChatPayload);
   const r = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
     headers: openAiJsonAuthHeaders(apiKey),
-    body: JSON.stringify({
-      model: chatModel,
-      temperature: 0.35,
-      max_tokens: 10000,
-      response_format: { type: "json_object" },
-      messages: [
-        { role: "system", content: system },
-        { role: "user", content: user },
-      ],
-    }),
+    body: JSON.stringify(storyChatPayload),
   });
 
   if (!r.ok) {
@@ -2074,6 +2099,7 @@ async function openaiImageGenerations(
   payload: Record<string, unknown>,
   retryCount = 0,
 ): Promise<string> {
+  logOpenAiPrompt("openaiImageGenerations", payload);
   const r = await fetch("https://api.openai.com/v1/images/generations", {
     method: "POST",
     headers: openAiJsonAuthHeaders(apiKey),
@@ -3001,12 +3027,14 @@ async function gptImageGenerate(
   );
   const trimmed = prompt.slice(0, GPT_IMAGE_PROMPT_MAX);
 
-  const post = (body: Record<string, unknown>) =>
-    fetch("https://api.openai.com/v1/images/generations", {
+  const post = (body: Record<string, unknown>) => {
+    logOpenAiPrompt("gptImageGenerate(anchor)", body);
+    return fetch("https://api.openai.com/v1/images/generations", {
       method: "POST",
       headers: openAiJsonAuthHeaders(apiKey),
       body: JSON.stringify(body),
     });
+  };
 
   let r = await post({
     model,
@@ -3115,6 +3143,15 @@ async function gptImageEdit(
     return form;
   };
 
+  logOpenAiPrompt("gptImageEdit(spread)", {
+    model,
+    size,
+    quality,
+    moderation,
+    input_fidelity: gptImageEditsSupportsInputFidelity(model) ? fidelity : undefined,
+    reference_images: referenceBytes.length,
+    prompt: trimmed,
+  });
   let r = await fetch("https://api.openai.com/v1/images/edits", {
     method: "POST",
     headers: openAiBearerOrgHeaders(apiKey),
