@@ -7,6 +7,7 @@ enabled = true
 [functions.clever-service]
 # Kids’ hub uses anon key without login for games; this keeps the function callable from the static site.
 # Lock down with Dashboard rate limits + budgets; consider JWT or a shared header secret for production.
+# Heavy GPT-image books must finish quickly: hosted limit is ~150s on Free; paid Supabase often allows ~400s — see Dashboard / docs.
 verify_jwt = false
 
 [functions.game-maker]

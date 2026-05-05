@@ -1639,17 +1639,37 @@ function normalizeStoryJson(raw: unknown): StoryJson {
   return { title, characterDesign, bookColor, pages };
 }
 
-/** Story JSON — `high` book tier uses a stronger model unless `STORYBOOK_STORY_MODEL` is set. */
+/** GPT Image pipeline is Edge wall-clock capped (~150s on many plans): prefer mini unless explicit override. */
+function storybookUsesGptImagePipeline(): boolean {
+  const img = (Deno.env.get("STORYBOOK_IMAGE_MODE") ?? "").trim().toLowerCase();
+  return img === "gptimage" || img === "openai-image";
+}
+
+/**
+ * Story JSON model. GPT Image books default to **`gpt-4o-mini`** on high tier too (saves tens of seconds for images).
+ * Override: `STORYBOOK_STORY_MODEL=gpt-4o` — or **`STORYBOOK_STRICT_STORY_QUALITY=1`** with high tier for full gpt-4o.
+ */
 function storybookStoryChatModel(bookTier: PictureBookQuality): string {
   const o = (Deno.env.get("STORYBOOK_STORY_MODEL") ?? "").trim();
   if (o) return o;
+  const strict = (Deno.env.get("STORYBOOK_STRICT_STORY_QUALITY") ?? "").trim() === "1";
+  if (storybookUsesGptImagePipeline() && bookTier === "high" && !strict) {
+    return "gpt-4o-mini";
+  }
   return bookTier === "high" ? "gpt-4o" : "gpt-4o-mini";
 }
 
-/** LOCKED CAST compile — same tier rule; override with `STORYBOOK_COMPILE_LOCK_MODEL`. */
+/**
+ * LOCKED CAST compile model — same Edge budget rule as story; override `STORYBOOK_COMPILE_LOCK_MODEL`
+ * or set `STORYBOOK_STRICT_STORY_QUALITY=1` for gpt-4o on high tier.
+ */
 function storybookCompileLockChatModel(bookTier: PictureBookQuality): string {
   const o = (Deno.env.get("STORYBOOK_COMPILE_LOCK_MODEL") ?? "").trim();
   if (o) return o;
+  const strict = (Deno.env.get("STORYBOOK_STRICT_STORY_QUALITY") ?? "").trim() === "1";
+  if (storybookUsesGptImagePipeline() && bookTier === "high" && !strict) {
+    return "gpt-4o-mini";
+  }
   return bookTier === "high" ? "gpt-4o" : "gpt-4o-mini";
 }
 
@@ -2046,7 +2066,7 @@ type PictureBookQuality = "standard" | "high";
  * **`STORYBOOK_REF_PHOTO_IMAGE_BOOST=1`** (or `true` / `on` / `yes`), in which case we use a
  * **high** cast anchor once + **medium** edits so likeness reads better (costs more).
  * Default (unset): economy image quality with refs — same as no uploads on standard tier.
- * `high` = print-oriented: 1536×1024 when env size unset; when `STORYBOOK_GPTIMAGE_*` secrets are unset, anchor and spread edits both use **high** image quality and **high** `input_fidelity` on edits for stronger reference match.
+ * `high` = default canvas **1024×1024** when size secret unset (fits Edge wall clock + ~target spend); set **`STORYBOOK_GPTIMAGE_SIZE=1536x1024`** for wider spread (slower/costlier). When quality secret unset: anchor **high**, spread edits **medium**, edits **`input_fidelity` high** — strong likeness without doubling edit latency/cost vs all-high edits.
  * `STORYBOOK_GPTIMAGE_SIZE` / `STORYBOOK_GPTIMAGE_QUALITY` secrets still override per tier.
  */
 function coercePictureBookQuality(raw: unknown): PictureBookQuality {
@@ -2336,14 +2356,14 @@ function gptImageRefPhotoQualityBoostEnabled(): boolean {
   return v === "1" || v === "true" || v === "on" || v === "yes";
 }
 
-function gptImageSizeForRequest(bookTier: PictureBookQuality): string {
+function gptImageSizeForRequest(_bookTier: PictureBookQuality): string {
   const raw = (Deno.env.get("STORYBOOK_GPTIMAGE_SIZE") ?? "")
     .trim()
     .toLowerCase()
     .replace(/\s/g, "")
     .replace("×", "x");
   if (raw && GPT_IMAGE_SIZES.has(raw)) return raw;
-  if (bookTier === "high") return "1536x1024";
+  /** 1024² keeps GPT Image books inside typical ~150s Edge budgets (1 anchor + 6 parallel-ish edits). Landscape: set secret `STORYBOOK_GPTIMAGE_SIZE=1536x1024`. */
   return "1024x1024";
 }
 
@@ -2373,8 +2393,8 @@ function gptImageQualityForRequest(
     return envRaw;
   }
   if (bookTier === "high") {
-    // Premium tier: strong anchor + strong edits so reference identity and scene details stick
-    return "high";
+    // Anchor: max detail for cast lineup. Edits: medium — much faster/cheaper than 6×high, still pairs with high input_fidelity.
+    return scope === "generation" ? "high" : "medium";
   }
   // Standard tier — optional bump when ref photos (costly; enable with STORYBOOK_REF_PHOTO_IMAGE_BOOST=1)
   if (hasUserPortraitRefs && gptImageRefPhotoQualityBoostEnabled()) {
@@ -3393,13 +3413,14 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
         // Cost-aware defaults: tier from `pictureBookQuality` + env overrides for size/quality/input_fidelity.
         // Tier-1 OpenAI image RPM is 5 — chunk 4 edits, brief wait, then 2 edits. Raise wait or
         // shrink chunk size if you see 429s; raise OpenAI tier or lower wait if 546.
+        // Default **6** = all spread edits in one parallel batch (fastest wall clock). Tier-1 OpenAI image RPM is low — if you see 429s, set `STORYBOOK_GPTIMAGE_CHUNK_SIZE=4`.
         const chunkSize = (() => {
           const raw = Number(Deno.env.get("STORYBOOK_GPTIMAGE_CHUNK_SIZE"));
-          return Number.isFinite(raw) && raw >= 1 ? Math.floor(raw) : 4;
+          return Number.isFinite(raw) && raw >= 1 ? Math.floor(raw) : 6;
         })();
         const interChunkWaitMs = (() => {
           const raw = Number(Deno.env.get("STORYBOOK_GPTIMAGE_CHUNK_WAIT_MS"));
-          return Number.isFinite(raw) && raw >= 0 ? raw : 12000;
+          return Number.isFinite(raw) && raw >= 0 ? raw : 2000;
         })();
         const adaptiveChunkWait =
           Deno.env.get("STORYBOOK_GPTIMAGE_CHUNK_WAIT_ADAPTIVE") !== "0";
