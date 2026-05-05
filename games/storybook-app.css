@@ -3341,6 +3341,11 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   overflow: hidden;
 }
 
+/* Readable soft serif used for dedication + facing prose (loaded in storybook.html). */
+:root {
+  --sb-story-soft-serif: "Lora", Georgia, "Times New Roman", serif;
+}
+
 /* Dedication / blank art: only the right-hand page (matches 7px gutter + flex half-columns). */
 .sb-flip-spread__art-flyleaf {
   position: absolute;
@@ -3356,9 +3361,39 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   align-items: center;
   justify-content: center;
   text-align: center;
-  background: #fff;
+  background-color: #fffef9;
+  background-image:
+    radial-gradient(ellipse 105% 88% at 0% -5%, rgba(140, 200, 255, 0.52) 0%, transparent 60%),
+    radial-gradient(ellipse 100% 84% at 103% -2%, rgba(185, 235, 160, 0.5) 0%, transparent 58%),
+    radial-gradient(ellipse 108% 92% at -4% 102%, rgba(255, 170, 210, 0.44) 0%, transparent 62%),
+    radial-gradient(ellipse 102% 88% at 101% 101%, rgba(255, 215, 120, 0.52) 0%, transparent 58%);
   pointer-events: auto;
   border-radius: 0 6px 6px 0;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+/* Extra splodge sparkle + scribble hints (pure CSS, stays light for print legibility). */
+.sb-flip-spread__art-flyleaf::before {
+  content: "";
+  position: absolute;
+  inset: -6%;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.72;
+  background:
+    radial-gradient(circle at 16% 24%, rgba(255, 120, 180, 0.22) 0%, transparent 8%),
+    radial-gradient(circle at 82% 18%, rgba(120, 210, 255, 0.2) 0%, transparent 7%),
+    radial-gradient(circle at 72% 78%, rgba(255, 200, 80, 0.18) 0%, transparent 8%),
+    radial-gradient(circle at 26% 86%, rgba(160, 240, 150, 0.16) 0%, transparent 7%),
+    linear-gradient(
+      125deg,
+      transparent 42%,
+      rgba(255, 255, 255, 0.35) 44%,
+      rgba(255, 255, 255, 0.35) 46%,
+      transparent 48%
+    );
+  transform: rotate(-6deg);
 }
 
 /* Author `display:flex` above beats the default `[hidden]{display:none}` — without this, the flyleaf
@@ -3367,14 +3402,33 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   display: none !important;
 }
 
+.sb-flip-spread__art-flyleaf .sb-flip-text {
+  position: relative;
+  z-index: 1;
+}
+
 .sb-flip-spread__art-flyleaf .sb-flip-flyleaf-paragraph {
   margin: 0;
-  font-family: var(--sb-reader-font-body, "Fredoka", "Nunito", sans-serif);
-  font-size: clamp(1rem, 2.8vw, 1.35rem);
-  font-weight: 600;
-  line-height: 1.45;
-  color: rgba(55, 35, 60, 0.92);
-  max-width: 28ch;
+  font-family: var(--sb-story-soft-serif);
+  font-size: clamp(1.06rem, 3vw, 1.42rem);
+  font-weight: 500;
+  font-style: italic;
+  line-height: 1.7;
+  letter-spacing: 0.02em;
+  color: rgba(38, 30, 48, 0.92);
+  max-width: 30ch;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.75);
+}
+
+.sb-flip-spread__art-flyleaf .sb-flip-text__highlight {
+  font-family: inherit;
+  font-style: italic;
+  font-weight: inherit;
+}
+
+.sb-flip-spread__art-flyleaf .sb-readable-word:hover {
+  background: rgba(255, 255, 255, 0.55);
+  border-radius: 0.2em;
 }
 
 .sb-flip-spread__inner--flyleaf-pane .sb-flip-spread__art-cover {
@@ -3468,13 +3522,17 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   overflow: hidden;
 }
 
-/* Warm paper keyed to theme + subtle vertical tooth (not loud) — one-page-facing text leaf */
+/* Warm paper keyed to theme + soft paint-corner splashes (one-page-facing text leaf). */
 .sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-flip-page--text .sb-flip-page__sheet::before {
   content: "";
   position: absolute;
   inset: 0;
   z-index: 0;
   background:
+    radial-gradient(ellipse 82% 78% at -10% -6%, rgba(140, 200, 255, 0.28) 0%, transparent 54%),
+    radial-gradient(ellipse 80% 74% at 112% -3%, rgba(185, 235, 160, 0.26) 0%, transparent 52%),
+    radial-gradient(ellipse 86% 80% at -6% 108%, rgba(255, 175, 205, 0.24) 0%, transparent 56%),
+    radial-gradient(ellipse 82% 76% at 106% 105%, rgba(255, 215, 120, 0.28) 0%, transparent 53%),
     radial-gradient(
       ellipse 88% 50% at 50% -6%,
       color-mix(in srgb, var(--sb-flip-light) 70%, #ffffff) 0%,
@@ -3522,10 +3580,12 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
 
 .sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-flip-text__highlight {
   display: block;
-  font-family: var(--sb-reader-font-body);
+  font-family: var(--sb-story-soft-serif);
   font-size: clamp(0.95rem, 2.85vw, 1.14rem);
-  font-weight: 560;
-  line-height: 1.78;
+  font-weight: 500;
+  font-style: normal;
+  letter-spacing: 0.03em;
+  line-height: 1.82;
   color: #2c181f;
   text-align: center;
   white-space: pre-line;
@@ -3542,7 +3602,8 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
 }
 
 .sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-flip-text__highlight::first-line {
-  font-weight: 760;
+  font-weight: 650;
+  font-style: italic;
   font-size: 1.05em;
   letter-spacing: 0.035em;
   color: color-mix(in srgb, var(--sb-flip-darker, #831843) 35%, #2c181f);
@@ -3550,8 +3611,10 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
 }
 
 .sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-big-word {
+  font-family: var(--sb-story-soft-serif);
   color: color-mix(in srgb, var(--sb-flip-mid, #9333ea) 75%, #5b21b6);
-  font-weight: 720;
+  font-weight: 700;
+  font-style: italic;
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.25);
 }
 
@@ -3565,7 +3628,8 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   padding-right: 0.55em;
   color: color-mix(in srgb, var(--sb-flip-red, #db2777) 42%, #8b7369);
   opacity: 0.88;
-  font-family: var(--sb-reader-font-emphasis, inherit);
+  font-family: var(--sb-story-soft-serif);
+  font-style: italic;
 }
 
 .sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-readable-word:hover {
@@ -3578,11 +3642,17 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
 }
 
 .sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-the-end-title {
+  font-family: var(--sb-story-soft-serif);
+  font-weight: 700;
+  font-style: italic;
   color: var(--sb-flip-mid, #be185d);
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
 }
 
 .sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-the-end-lead {
+  font-family: var(--sb-story-soft-serif);
+  font-weight: 550;
+  font-style: italic;
   color: color-mix(in srgb, var(--sb-flip-dark, #9d174d) 45%, #2a0a1f);
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.25);
 }
@@ -3867,11 +3937,14 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
 /* Facing verso is prose on cream paper (incoming text column), not art + white type. */
 .sb-flip-spread__inner--art-facing.sb-flip-spread__inner--peel-turning
   .sb-flip-spread__peel-back.sb-flip-spread__peel-back--verso-text {
-  background: linear-gradient(
-    168deg,
-    color-mix(in srgb, var(--sb-flip-light) 38%, #f7f2e8) 0%,
-    #f0e9df 100%
-  );
+  background:
+    radial-gradient(ellipse 78% 70% at -8% -4%, rgba(140, 200, 255, 0.2) 0%, transparent 50%),
+    radial-gradient(ellipse 76% 68% at 108% -2%, rgba(185, 235, 160, 0.18) 0%, transparent 48%),
+    linear-gradient(
+      168deg,
+      color-mix(in srgb, var(--sb-flip-light) 38%, #f7f2e8) 0%,
+      #f0e9df 100%
+    );
 }
 
 .sb-flip-spread__inner--art-facing.sb-flip-spread__inner--peel-turning
@@ -3879,10 +3952,12 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   .sb-flip-spread__peel-back-text
   .sb-flip-text__highlight {
   display: block;
-  font-family: var(--sb-reader-font-body);
+  font-family: var(--sb-story-soft-serif);
   font-size: clamp(0.95rem, 2.85vw, 1.12rem);
-  font-weight: 560;
-  line-height: 1.76;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  line-height: 1.8;
+  font-style: normal;
   color: #2c181f;
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.3);
   -webkit-font-smoothing: antialiased;
@@ -3892,6 +3967,9 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   .sb-flip-spread__peel-back.sb-flip-spread__peel-back--verso-text
   .sb-flip-spread__peel-back-text
   .sb-big-word {
+  font-family: var(--sb-story-soft-serif);
+  font-style: italic;
+  font-weight: 700;
   color: color-mix(in srgb, var(--sb-flip-mid, #9333ea) 75%, #5b21b6);
   text-shadow: none;
 }

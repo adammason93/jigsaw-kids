@@ -3107,7 +3107,7 @@
       "@media print{.sbdl-spread{break-inside:avoid;flex-direction:row;padding:2rem;gap:2rem;}}";
 
     return (
-      '<!DOCTYPE html><html lang="en-GB"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin=""/><link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&amp;family=Fredoka:wght@400;500;600;700&amp;family=Kalam:wght@400;700&amp;family=Nunito:wght@600;700;800&amp;family=Patrick+Hand&amp;family=Schoolbell&amp;family=Sniglet:wght@400;800&amp;display=swap" rel="stylesheet"/><title>' +
+      '<!DOCTYPE html><html lang="en-GB"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin=""/><link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&amp;family=Comic+Neue:wght@400;700&amp;family=Fredoka:wght@400;500;600;700&amp;family=Kalam:wght@400;700&amp;family=Nunito:wght@600;700;800&amp;family=Patrick+Hand&amp;family=Schoolbell&amp;family=Sniglet:wght@400;800&amp;display=swap" rel="stylesheet"/><title>' +
       escTitle +
       "</title><style>" +
       css +
