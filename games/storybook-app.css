@@ -3816,7 +3816,7 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   width: 66%;
   max-width: 66%;
   margin: 0 auto;
-  padding: clamp(3%, 1.4dvh, 7%) 0 clamp(3.5%, 1.6dvh, 10%);
+  padding: clamp(1.8%, 1dvh, 4.5%) 0 clamp(2%, 1.1dvh, 6%);
 }
 
 .sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art
@@ -3824,11 +3824,11 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   .sb-flip-text__highlight {
   display: block;
   font-family: var(--sb-story-soft-serif), "Lora", Georgia, serif !important;
-  font-size: clamp(0.84rem, 2.1vw, 1rem);
+  font-size: clamp(0.66rem, 1.58vw, 0.8rem);
   font-weight: 400;
   font-style: normal;
-  letter-spacing: 0.02em;
-  line-height: 1.74;
+  letter-spacing: 0.015em;
+  line-height: 1.5;
   color: rgba(42, 28, 35, 0.94);
   text-align: center;
   white-space: pre-line;
@@ -3848,8 +3848,8 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
 .sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-flip-left-shell .sb-flip-text__highlight::first-line {
   font-weight: 500;
   font-style: italic;
-  font-size: 1.02em;
-  letter-spacing: 0.03em;
+  font-size: 1.03em;
+  letter-spacing: 0.025em;
   color: color-mix(in srgb, var(--sb-flip-dark, #9d174d) 28%, rgba(42, 28, 35, 0.92));
   text-shadow: none;
 }
@@ -3865,19 +3865,20 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
 /* Proper-name / keyword emphasis (paired with JS .sb-key-word) */
 .sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-flip-left-shell .sb-key-word {
   font-family: "Patrick Hand", "Comic Neue", "Kalam", cursive !important;
-  font-size: 1.12em;
+  font-size: 1.08em;
   font-weight: 700 !important;
   font-style: normal !important;
   letter-spacing: 0.06em;
   color: color-mix(in srgb, var(--sb-flip-dark, #86143f) 55%, #4c0519);
 }
 
+.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-flip-left-shell .sb-flip-text::before {
   content: "✦";
   display: block;
   text-align: center;
-  font-size: 0.58rem;
-  letter-spacing: 0.48em;
-  margin: 0 0 0.38rem;
+  font-size: 0.52rem;
+  letter-spacing: 0.42em;
+  margin: 0 0 0.3rem;
   padding-right: 0.48em;
   color: color-mix(in srgb, var(--sb-flip-red, #db2777) 38%, #8b7369);
   opacity: 0.75;
@@ -4698,8 +4699,8 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
 /* Tablet band: duplex over-art type shrinks; facing text page stays readable (no sticker boxes). */
 @media (min-width: 600px) and (max-width: 1200px) {
   .sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-flip-left-shell .sb-flip-text__highlight {
-    font-size: clamp(0.74rem, 1.8vw, 0.88rem);
-    line-height: 1.7;
+    font-size: clamp(0.6rem, 1.42vw, 0.73rem);
+    line-height: 1.48;
   }
 
   .sb-flip-spread__inner--has-art:not(.sb-flip-spread__inner--art-facing) .sb-flip-text__highlight {
