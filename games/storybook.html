@@ -12,7 +12,7 @@
   <link rel="manifest" href="../manifest.json" />
   <link rel="stylesheet" href="../js/kids-core.css" />
   <!-- storybook-app.css = renamed file so CDN/browser cache cannot keep old storybook.css -->
-  <link rel="stylesheet" href="storybook-app.css?v=169" />
+  <link rel="stylesheet" href="storybook-app.css?v=172" />
   <link rel="stylesheet" href="../tablet-ipad.css" />
   <!-- Last wins: guarantees new background even if a proxy cached an ancient stylesheet elsewhere -->
   <style>
@@ -704,6 +704,22 @@
                               cy="28"
                               rx="16"
                               ry="14"
+                              fill="var(--sb-facing-corner-accent, #ffffff)"
+                            />
+                            <!-- Bottom white washes (mirror top corner feel) -->
+                            <path
+                              fill="var(--sb-facing-corner-mid, #ffffff)"
+                              d="M-10 108c22-36 68-28 104-8 40 22 48 68-6 86-58 20-130-6-98-78z"
+                            />
+                            <path
+                              fill="var(--sb-facing-corner-strong, #ffffff)"
+                              d="M118 108c-34-38-86-32-120-4-36 30-12 88 58 88 58 0 104-38 62-84z"
+                            />
+                            <ellipse
+                              cx="26"
+                              cy="88"
+                              rx="20"
+                              ry="16"
                               fill="var(--sb-facing-corner-accent, #ffffff)"
                             />
                           </svg>
