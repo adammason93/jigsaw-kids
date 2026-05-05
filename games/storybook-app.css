@@ -2078,6 +2078,16 @@ body.sb-portal-welcome-open {
   }
 }
 
+/* Three picture-tier options: allow wrap so labels stay readable on tablets */
+.sb-picture-quality .sb-quality-row {
+  flex-wrap: wrap;
+}
+@media (min-width: 420px) {
+  .sb-picture-quality .sb-quality-opt {
+    flex: 1 1 min(100%, 200px);
+  }
+}
+
 .sb-quality-opt {
   flex: 1;
   display: flex;

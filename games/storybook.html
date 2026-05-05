@@ -12,7 +12,7 @@
   <link rel="manifest" href="../manifest.json" />
   <link rel="stylesheet" href="../js/kids-core.css" />
   <!-- storybook-app.css = renamed file so CDN/browser cache cannot keep old storybook.css -->
-  <link rel="stylesheet" href="storybook-app.css?v=179" />
+  <link rel="stylesheet" href="storybook-app.css?v=180" />
   <link rel="stylesheet" href="../tablet-ipad.css" />
   <!-- Last wins: guarantees new background even if a proxy cached an ancient stylesheet elsewhere -->
   <style>
@@ -416,21 +416,28 @@
           <fieldset class="sb-picture-quality">
             <legend class="sb-label sb-label--secondary">Pictures</legend>
             <p class="sb-panel__micro sb-picture-quality__hint" id="sbPictureQualityHint">
-              <strong>Default: Best for print</strong> — strongest match between <strong>story text</strong>, <strong>each picture</strong>, and <strong>uploaded faces</strong> (recommended for keepsakes). <strong>Play &amp; screen</strong> uses lighter story + cast-lock, economy <strong>GPT Image 2</strong> settings, and <strong>cheaper photo-understanding</strong> so the API bill drops — uploads may line up with the art a little less tightly than Best for print. Total cost varies — check your OpenAI usage.
+              <strong>Default: Best for print</strong> — strongest match between <strong>story text</strong>, <strong>each picture</strong>, and <strong>uploaded faces</strong> (recommended for keepsakes). <strong>Balanced refs</strong> keeps <strong>GPT Image 2</strong> + photo-grounded cast but attaches your uploads to the <strong>first two</strong> picture spreads only (later spreads lock from the anchor — lower API cost). <strong>Play &amp; screen</strong> is the lowest-cost tier. Total cost varies — check your OpenAI usage.
             </p>
             <div class="sb-quality-row" role="radiogroup" aria-labelledby="sbPictureQualityHint">
               <label class="sb-quality-opt">
                 <input type="radio" name="sbPictureQuality" value="standard" />
                 <span class="sb-quality-opt__body">
                   <span class="sb-quality-opt__title">Play &amp; screen</span>
-                  <span class="sb-quality-opt__sub">Budget — economy image quality; cheaper vision on uploads than Best for print. Same story length.</span>
+                  <span class="sb-quality-opt__sub">Lowest cost — economy image + vision; uploads on every spread edit when you add photos</span>
+                </span>
+              </label>
+              <label class="sb-quality-opt">
+                <input type="radio" name="sbPictureQuality" value="balanced" />
+                <span class="sb-quality-opt__body">
+                  <span class="sb-quality-opt__title">Balanced refs</span>
+                  <span class="sb-quality-opt__sub">Photo-grounded cast; uploads on spreads 1–2 only, then anchor — good likeness with lower spend than every spread</span>
                 </span>
               </label>
               <label class="sb-quality-opt">
                 <input type="radio" name="sbPictureQuality" value="high" checked />
                 <span class="sb-quality-opt__body">
                   <span class="sb-quality-opt__title">Best for print (default)</span>
-                  <span class="sb-quality-opt__sub">Sharper story ↔ picture alignment; stronger art tier — best with hero / family photo uploads</span>
+                  <span class="sb-quality-opt__sub">Sharper story ↔ picture alignment; stronger art tier — best with hero / family photo uploads on each spread</span>
                 </span>
               </label>
             </div>
@@ -858,7 +865,7 @@
   <script src="../js/storybook-shelf-store.js" defer></script>
   <!-- Required for cloud shelf sync + upload (same as other games) -->
   <script src="../js/score-cloud.js" defer></script>
-  <script src="storybook.js?v=347" defer></script>
+  <script src="storybook.js?v=348" defer></script>
   <script>
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("../sw.js").catch(function () {});

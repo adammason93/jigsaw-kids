@@ -2330,6 +2330,8 @@ async function falFluxProTextToImageUrl(
  * Default model **`gpt-image-2`**: tuned for **stronger continuity** across the anchor
  * lineup + per-spread **edits** (same cast / costume lock) than the older 1.x family.
  * Override via **`STORYBOOK_GPTIMAGE_MODEL`** — only **`gpt-image-2`** (and `gpt-image-2*`) are honoured by default; other ids fall back to **`gpt-image-2`** unless **`STORYBOOK_GPTIMAGE_ALLOW_NON_IMAGE2=1`** (dev only).
+ * **Split quality (optional):** **`STORYBOOK_GPTIMAGE_QUALITY_GENERATION`** and **`STORYBOOK_GPTIMAGE_QUALITY_EDIT`** (`low` \| `medium` \| `high` \| `auto`). If unset, **`STORYBOOK_GPTIMAGE_QUALITY`** still applies to **both** scopes (legacy).
+ * **User refs on edits:** **`STORYBOOK_GPTIMAGE_USER_REFS_FIRST_N_SPREADS`** = attach hero/friend upload bytes only on spreads with index **0 .. N-1** (`0` = anchor-only on every spread). Tier **`balanced`** defaults **N=2** when unset.
  * ────────────────────────────────────────────────────────────────────────── */
 
 const GPT_IMAGE_DEFAULT_MODEL = "gpt-image-2";
@@ -2345,10 +2347,11 @@ const GPT_IMAGE_SIZES: ReadonlySet<string> = new Set([
 ]);
 
 /** User-chosen tier from JSON `pictureBookQuality` (GPT Image path only; Fal unchanged). */
-type PictureBookQuality = "standard" | "high";
+type PictureBookQuality = "standard" | "high" | "balanced";
 
 /**
  * `standard` = **play / screen economy**: lighter **gpt-4o-mini** story + lock when unset; **1024²** GPT Image 2. Vision uses **`gpt-4o-mini`** by default (even with photo uploads) — set **`STORYBOOK_BUDGET_VISION_4O=1`** for **`gpt-4o`** on refs only. Image **quality** stays medium/low unless **`STORYBOOK_REF_PHOTO_IMAGE_BOOST=1`**.
+ * `balanced` = **refs + spend control** — same story/vision/size defaults as **`standard`**; **GPT Image 2** anchor still **medium** gen + **low** edit; **uploaded face refs attach to the first 2 spread edits only** (later spreads: **anchor PNG only**) unless **`STORYBOOK_GPTIMAGE_USER_REFS_FIRST_N_SPREADS`** overrides. Override split via **`STORYBOOK_GPTIMAGE_QUALITY_*`**.
  * `high` = **grown-up / keepsake** (~**40–60p** ballpark pictures + sharper text↔briefs — **verify** billing): **gpt-4o** story + lock when unset; **1536×1024** when **`STORYBOOK_GPTIMAGE_LEGACY_BUDGET=0`** OR model is **`gpt-image-1.5`**; **`gpt-image-2`** with **unset legacy flag** defaults to **cost-parity** (**1024²**, softer edit **`quality`** unless env overrides — spread edits do not send **`input_fidelity`** for Image 2). **`gpt-4o`** portrait vision when unset (mini on standard).
  * Omitted **`pictureBookQuality`** defaults to **standard** so casual play stays cheaper.
  */
@@ -2356,11 +2359,19 @@ function coercePictureBookQuality(raw: unknown): PictureBookQuality {
   const s = String(raw ?? "").trim().toLowerCase();
   if (!s || s === "default" || s === "recommended") return "standard";
   if (s === "high" || s === "print" || s === "premium") return "high";
+  if (
+    s === "balanced" ||
+    s === "balanced_refs" ||
+    s === "economy_balanced" ||
+    s === "refs_balanced"
+  ) {
+    return "balanced";
+  }
   return "standard";
 }
 
 /**
- * **`gpt-4o`** on **high** for tighter text ↔ illustrationBrief alignment; **`gpt-4o-mini`** on **standard**.
+ * **`gpt-4o`** on **high** for tighter text ↔ illustrationBrief alignment; **`gpt-4o-mini`** on **standard** / **balanced**.
  * Overrides: **`STORYBOOK_STORY_MODEL`**. **`STORYBOOK_STRICT_STORY_QUALITY=0`** forces **`gpt-4o-mini`** even on **high**.
  */
 function storybookStoryChatModel(bookTier: PictureBookQuality): string {
@@ -2730,6 +2741,46 @@ function gptImageModerationParam(): "low" | "auto" {
     : "low";
 }
 
+/**
+ * Per-scope quality override. **`STORYBOOK_GPTIMAGE_QUALITY_GENERATION`** / **`_EDIT`** win their scope; otherwise **`STORYBOOK_GPTIMAGE_QUALITY`** applies to both (legacy single knob).
+ */
+function gptImageQualityEnvScopeOverride(
+  scope: "generation" | "edit",
+): "low" | "medium" | "high" | "auto" | null {
+  const key =
+    scope === "generation"
+      ? "STORYBOOK_GPTIMAGE_QUALITY_GENERATION"
+      : "STORYBOOK_GPTIMAGE_QUALITY_EDIT";
+  const per = (Deno.env.get(key) ?? "").trim().toLowerCase();
+  if (per === "medium" || per === "high" || per === "auto" || per === "low") {
+    return per;
+  }
+  const legacy = (Deno.env.get("STORYBOOK_GPTIMAGE_QUALITY") ?? "").trim().toLowerCase();
+  if (
+    legacy === "medium" ||
+    legacy === "high" ||
+    legacy === "auto" ||
+    legacy === "low"
+  ) {
+    return legacy;
+  }
+  return null;
+}
+
+/** When non-null, attach uploaded hero/friend ref **bytes** only when `spreadIdx < n` (spreads are 0-based). */
+function gptImageUserRefsSpreadExclusiveCap(
+  bookTier: PictureBookQuality,
+): number | null {
+  const raw = (Deno.env.get("STORYBOOK_GPTIMAGE_USER_REFS_FIRST_N_SPREADS") ?? "").trim();
+  if (raw !== "") {
+    const n = Number.parseInt(raw, 10);
+    if (!Number.isFinite(n) || n < 0) return null;
+    return n;
+  }
+  if (bookTier === "balanced") return 2;
+  return null;
+}
+
 function gptImageQualityForRequest(
   scope: "generation" | "edit",
   bookTier: PictureBookQuality,
@@ -2737,15 +2788,8 @@ function gptImageQualityForRequest(
   nonHeroPortraitRefs = false,
   hasHeroPortraitRefs = false,
 ): "low" | "medium" | "high" | "auto" {
-  const envRaw = (Deno.env.get("STORYBOOK_GPTIMAGE_QUALITY") ?? "").trim().toLowerCase();
-  if (
-    envRaw === "medium" ||
-    envRaw === "high" ||
-    envRaw === "auto" ||
-    envRaw === "low"
-  ) {
-    return envRaw;
-  }
+  const scopeOverride = gptImageQualityEnvScopeOverride(scope);
+  if (scopeOverride) return scopeOverride;
   if (bookTier === "high") {
     if (
       gptImageCostParityModeEnabled() &&
@@ -2761,7 +2805,7 @@ function gptImageQualityForRequest(
     }
     return scope === "generation" ? "high" : "medium";
   }
-  // Standard tier — default medium gen + low edit; ref-photo "pro" bands only if STORYBOOK_REF_PHOTO_IMAGE_BOOST=1
+  // Standard / balanced — default medium gen + low edit; ref-photo "pro" bands only if STORYBOOK_REF_PHOTO_IMAGE_BOOST=1
   if (
     hasUserPortraitRefs &&
     gptImageRefPhotoQualityBoostEnabled(bookTier)
@@ -2807,7 +2851,7 @@ function gptImageInputFidelityForRequest(
 
 /**
  * Vision model for summarising **uploaded** reference photos (used when `portraitVisionModelResolved` is not passed). **`STORYBOOK_VISION_MODEL`** overrides.
- * Note: HTTP handler sets **`portraitVisionModelResolved`** — **Play & screen** uses **`gpt-4o-mini`** for vision by default even with uploads; **high** uses **`gpt-4o`** when uploads exist.
+ * Note: HTTP handler sets **`portraitVisionModelResolved`** — **Play & screen** / **balanced** uses **`gpt-4o-mini`** for vision by default even with uploads; **high** uses **`gpt-4o`** when uploads exist.
  */
 function storybookPortraitVisionModel(bookTier: PictureBookQuality): string {
   const m = (Deno.env.get("STORYBOOK_VISION_MODEL") ?? "").trim();
@@ -3419,8 +3463,8 @@ async function executeStorybookPipeline(
     const portraitVisionModelResolved = (() => {
       const env = (Deno.env.get("STORYBOOK_VISION_MODEL") ?? "").trim();
       if (env) return env;
-      /** Budget tier: use mini vision even with uploads (major £ save). Set STORYBOOK_BUDGET_VISION_4O=1 to use gpt-4o for ref photos on Play & screen only. Best for print unchanged below. */
-      if (pictureBookQuality === "standard") {
+      /** Play / screen + **balanced**: mini vision even with uploads (major £ save). Set STORYBOOK_BUDGET_VISION_4O=1 for gpt-4o on ref photos. Best for print unchanged below. */
+      if (pictureBookQuality === "standard" || pictureBookQuality === "balanced") {
         const budget4o = (Deno.env.get("STORYBOOK_BUDGET_VISION_4O") ?? "").trim() === "1";
         return budget4o ? "gpt-4o" : "gpt-4o-mini";
       }
@@ -3431,9 +3475,12 @@ async function executeStorybookPipeline(
       return storybookPortraitVisionModel(pictureBookQuality);
     })();
 
-    if (pictureBookQuality === "standard") {
+    if (
+      pictureBookQuality === "standard" ||
+      pictureBookQuality === "balanced"
+    ) {
       console.info(
-        `[clever-service] budget tier: vision=${portraitVisionModelResolved}; ref image boost=${gptImageRefPhotoQualityBoostEnabled("standard")} (STORYBOOK_REF_PHOTO_IMAGE_BOOST=1 / STORYBOOK_BUDGET_VISION_4O=1 for stronger Play & screen)`,
+        `[clever-service] budget tier (${pictureBookQuality}): vision=${portraitVisionModelResolved}; ref image boost=${gptImageRefPhotoQualityBoostEnabled(pictureBookQuality)} (STORYBOOK_REF_PHOTO_IMAGE_BOOST=1 / STORYBOOK_BUDGET_VISION_4O=1 for stronger Play & screen / balanced)`,
       );
     }
 
@@ -3906,56 +3953,100 @@ async function executeStorybookPipeline(
           // timeout. Identity is already locked by pixels. Visual lock stays in
           // play for the Fal / DALL·E paths below.
           const refBytes = anchorOut.bytes;
-          /** Anchor first; optional uploads as extra `image[]` so likeness is pixel-grounded — not text-only summaries. Disable with **`STORYBOOK_GPTIMAGE_USER_REFS_IN_EDIT=0`. */
-          const editReferenceBytes: Uint8Array[] = [refBytes];
-          if (
+          /** Anchor on every spread; optional hero/friend upload bytes (`STORYBOOK_GPTIMAGE_USER_REFS_IN_EDIT`, `STORYBOOK_GPTIMAGE_USER_REFS_FIRST_N_SPREADS`, **`balanced`** tier). */
+          const rawTot = Deno.env.get("STORYBOOK_GPTIMAGE_EDIT_MAX_IMAGES")?.trim();
+          const maxTotalParsed = Number.parseInt(rawTot ?? "", 10);
+          const maxTotalImages = Number.isFinite(maxTotalParsed) && maxTotalParsed >= 2
+            ? Math.min(Math.floor(maxTotalParsed), 9)
+            : 6;
+
+          const rawHero = Deno.env.get(
+            "STORYBOOK_GPTIMAGE_EDIT_MAX_USER_HERO_REFS",
+          )?.trim();
+          const maxHeroExtrasParsed = Number.parseInt(rawHero ?? "", 10);
+          const maxHeroExtras =
+            Number.isFinite(maxHeroExtrasParsed) && maxHeroExtrasParsed >= 0
+              ? Math.min(Math.floor(maxHeroExtrasParsed), 6)
+              : 3;
+
+          const userRefsSpreadCap = gptImageUserRefsSpreadExclusiveCap(
+            pictureBookQuality,
+          );
+          if (userRefsSpreadCap !== null) {
+            console.info(
+              userRefsSpreadCap === 0
+                ? "[clever-service] gpt-image user ref photos: none (anchor-only on every spread edit; STORYBOOK_GPTIMAGE_USER_REFS_FIRST_N_SPREADS=0)"
+                : `[clever-service] gpt-image user ref photos on first ${userRefsSpreadCap} spread(s) (indices 0–${userRefsSpreadCap - 1}); later spreads anchor-only`,
+            );
+          }
+
+          const userRefsInEdit =
             Deno.env.get("STORYBOOK_GPTIMAGE_USER_REFS_IN_EDIT") !== "0" &&
-            gptHasPortraitRefs
-          ) {
-            const rawTot = Deno.env.get("STORYBOOK_GPTIMAGE_EDIT_MAX_IMAGES")?.trim();
-            const maxTotalParsed = Number.parseInt(rawTot ?? "", 10);
-            const maxTotalImages = Number.isFinite(maxTotalParsed) && maxTotalParsed >= 2
-              ? Math.min(Math.floor(maxTotalParsed), 9)
-              : 6;
+            gptHasPortraitRefs;
 
-            const rawHero = Deno.env.get(
-              "STORYBOOK_GPTIMAGE_EDIT_MAX_USER_HERO_REFS",
-            )?.trim();
-            const maxHeroExtrasParsed = Number.parseInt(rawHero ?? "", 10);
-            const maxHeroExtras =
-              Number.isFinite(maxHeroExtrasParsed) && maxHeroExtrasParsed >= 0
-                ? Math.min(Math.floor(maxHeroExtrasParsed), 6)
-                : 3;
+          const preloadedHeroBytes: Uint8Array[] = [];
+          let preloadedFriendByte: Uint8Array | null = null;
 
+          if (userRefsInEdit) {
             let heroPhotoCount = 0;
             for (const hr of refPack.heroUrls) {
               if (
                 heroPhotoCount >= maxHeroExtras ||
-                editReferenceBytes.length >= maxTotalImages
+                1 + preloadedHeroBytes.length >= maxTotalImages
               ) break;
               const b = await loadImageBytesForGptEdit(hr);
               if (!b?.length) continue;
-              editReferenceBytes.push(b);
+              preloadedHeroBytes.push(b);
               heroPhotoCount++;
             }
             if (heroPhotoCount > 0) {
               console.info(
-                `[clever-service] gpt-image edit refs: anchor + ${heroPhotoCount} hero photo(s); cap=${maxTotalImages}`,
+                `[clever-service] gpt-image edit refs preloaded: ${heroPhotoCount} hero photo(s); cap=${maxTotalImages}`,
               );
             }
 
-            if (nonHeroPortraitRefs && editReferenceBytes.length < maxTotalImages) {
+            if (
+              nonHeroPortraitRefs &&
+              1 + preloadedHeroBytes.length < maxTotalImages
+            ) {
               for (const urls of Object.values(refPack.customByFriendId)) {
                 const first = urls?.[0];
                 if (!first) continue;
                 const b = await loadImageBytesForGptEdit(first);
                 if (!b?.length) continue;
-                editReferenceBytes.push(b);
-                console.info("[clever-service] gpt-image edit refs: +1 tagged friend photo");
+                preloadedFriendByte = b;
+                console.info(
+                  "[clever-service] gpt-image edit refs preloaded: +1 tagged friend photo",
+                );
                 break;
               }
             }
           }
+
+          const editReferenceBytesForSpread = (spreadIdx: number): Uint8Array[] => {
+            const out: Uint8Array[] = [refBytes];
+            if (!userRefsInEdit) return out;
+            if (
+              userRefsSpreadCap !== null &&
+              spreadIdx >= userRefsSpreadCap
+            ) {
+              return out;
+            }
+            let n = out.length;
+            for (let i = 0; i < preloadedHeroBytes.length; i++) {
+              if (i >= maxHeroExtras || n >= maxTotalImages) break;
+              out.push(preloadedHeroBytes[i]!);
+              n++;
+            }
+            if (
+              nonHeroPortraitRefs &&
+              preloadedFriendByte &&
+              n < maxTotalImages
+            ) {
+              out.push(preloadedFriendByte);
+            }
+            return out;
+          };
 
           // Stay under Supabase/Cloudflare wall-clock (~150s).
           // Prefer **one** parallel wave of all spreads (default) so total image time ≈
@@ -4079,7 +4170,7 @@ async function executeStorybookPipeline(
 
             // 1. Style + reference instruction
             const refIdentityLine =
-              editReferenceBytes.length > 1
+              editReferenceBytesForSpread(idx).length > 1
                 ? "You have several reference images: **#1** is the neutral cast lineup — use it for **costume colours, buddy species/proportions, hair length/silhouette, and scale vs the buddy**. **#2 onward** are real family photos — for every named child who appears in those photos, match **actual facial structure, eyes, cheek shape, skin tone, and hair** so the painted child is recognisably the same real person (not a generic stock kid). Merge lineup + photos into one consistent likeness per child. Ignore all reference backdrops and snapshot poses; paint environment and action from SETTING and THIS spread's verse only. On THIS spread, choose expressions and body language from the story moment — not pasted neutral grins. Repaint the world fresh. "
                 : "The attached reference image shows the cast on a neutral backdrop — use it ONLY to lock each character's identity (face shapes, hair, outfit colours, species, body shape). Ignore the lineup's neutral expressions and poses for this sheet — on THIS spread, show expressions and poses that fit the story moment. Repaint the world fresh.";
 
@@ -4268,7 +4359,7 @@ async function executeStorybookPipeline(
                   const out = await gptImageEdit(
                     apiKey,
                     editPrompt,
-                    editReferenceBytes,
+                    editReferenceBytesForSpread(idx),
                     pictureBookQuality,
                     0,
                     gptHasPortraitRefs,

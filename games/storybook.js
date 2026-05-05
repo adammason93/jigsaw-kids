@@ -4317,8 +4317,12 @@
     var std = document.querySelector(
       'input[name="sbPictureQuality"][value="standard"]'
     );
+    var bal = document.querySelector(
+      'input[name="sbPictureQuality"][value="balanced"]'
+    );
     var hi = document.querySelector('input[name="sbPictureQuality"][value="high"]');
     if (std) std.checked = false;
+    if (bal) bal.checked = false;
     if (hi) hi.checked = true;
   }
 
@@ -4550,7 +4554,9 @@
 
   function selectedPictureBookQuality() {
     var el = document.querySelector('input[name="sbPictureQuality"]:checked');
-    if (el && String(el.value).toLowerCase() === "high") return "high";
+    var v = el ? String(el.value).toLowerCase() : "";
+    if (v === "high") return "high";
+    if (v === "balanced") return "balanced";
     return "standard";
   }
 
