@@ -3918,6 +3918,35 @@
   }
 
   /**
+   * Read fetch body as JSON; never throw — bad/HTML responses become `{ error: "non_json_response" }`.
+   * @param {Response} r
+   * @returns {Promise<{ ok: boolean, status: number, body: Record<string, unknown> }>}
+   */
+  function envelopeFromResponse(r) {
+    return r.text().then(function (t) {
+      var trimmed = String(t || "").trim();
+      if (!trimmed) {
+        return { ok: r.ok, status: r.status, body: {} };
+      }
+      try {
+        var j = JSON.parse(trimmed);
+        var body =
+          typeof j === "object" && j !== null ? j : { raw: trimmed };
+        return { ok: r.ok, status: r.status, body: body };
+      } catch (e) {
+        return {
+          ok: false,
+          status: r.status,
+          body: {
+            error: "non_json_response",
+            detail: trimmed.slice(0, 280),
+          },
+        };
+      }
+    });
+  }
+
+  /**
    * @param {string} baseUrl
    * @param {string} key
    * @param {string} jobId
@@ -3934,9 +3963,7 @@
       },
     })
       .then(function (r) {
-        return r.json().then(function (j) {
-          return { ok: r.ok, status: r.status, body: j };
-        });
+        return envelopeFromResponse(r);
       })
       .then(function (out) {
         var b = out.body && typeof out.body === "object" ? out.body : {};
@@ -5058,9 +5085,7 @@
           },
           body: JSON.stringify(body),
         }).then(function (r) {
-          return r.json().then(function (j) {
-            return { ok: r.ok, status: r.status, body: j };
-          });
+          return envelopeFromResponse(r);
         });
       }
       function runStorybookOnce(asyncFlag) {
@@ -5155,6 +5180,10 @@
             ) {
               msg =
                 "The story maker hit a snag while finishing your book in the background. Please try again in a moment, or ask a grown-up to check the server.";
+            } else if (b.error === "non_json_response" && b.detail) {
+              msg =
+                "The story server replied in an unexpected format (often a gateway error page). Ask a grown-up to check Edge Function logs and redeploy clever-service. " +
+                String(b.detail).slice(0, 220);
             } else if (b.error && typeof b.error === "string") {
               msg = "Couldn’t make the book (" + b.error + ").";
             } else {
@@ -5185,12 +5214,19 @@
           spreadIndex = 0;
           showBook();
         })
-        .catch(function () {
+        .catch(function (err) {
+          console.error("[storybook] Make my book", err);
           var u = functionUrl();
+          var tech =
+            err && typeof err.message === "string" && err.message.trim()
+              ? " (" + err.message.trim().slice(0, 160) + ")"
+              : "";
           setError(
             u
-              ? "Can’t reach the story magic right now. Check your internet, or ask a grown-up to try again in a minute."
-              : "Story magic isn’t set up here yet. Ask a grown-up to open ⚙️ and check sign-in / settings."
+              ? "Can’t reach the story magic right now. Check your internet, or ask a grown-up to try again in a minute." +
+                  tech
+              : "Story magic isn’t set up here yet. Ask a grown-up to open ⚙️ and check sign-in / settings." +
+                  tech
           );
         })
         .finally(function () {
