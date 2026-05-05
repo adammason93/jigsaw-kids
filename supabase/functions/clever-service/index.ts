@@ -332,6 +332,14 @@ function sanitizeCustomChoice(raw: string): string {
     .slice(0, STORYBOOK_CUSTOM_CHOICE_MAX);
 }
 
+/** Normalise preset ids from the wizard (tolerate casing / stray spaces from caches or old builds). */
+function normalizeWizardKey(raw: unknown): string {
+  return String(raw ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, "_");
+}
+
 /** Optional hero photo(s) from the client (base64 data URL); cap raw size like game portraits. */
 const MAX_HERO_REFERENCE_BYTES = 1_200_000;
 const MAX_HERO_REFERENCE_IMAGES = 3;
@@ -2609,8 +2617,8 @@ Deno.serve(async (req) => {
   const childName = sanitizeName(String(body.childName ?? ""));
   const dedicationAuthor =
     String(body.author ?? "").trim() || childName;
-  const characterKey = String(body.character ?? "");
-  const placeKey = String(body.place ?? "");
+  const characterKey = normalizeWizardKey(body.character ?? "");
+  const placeKey = normalizeWizardKey(body.place ?? "");
 
   let characterDesc = CHARACTERS[characterKey];
   let placeDesc = PLACES[placeKey];
@@ -2618,7 +2626,10 @@ Deno.serve(async (req) => {
   if (characterKey === "custom_buddy") {
     const c = sanitizeCustomChoice(String(body.buddyCustom ?? ""));
     if (c.length < 4) {
-      return jsonResponse({ error: "invalid_choices" }, 400);
+      return jsonResponse({
+        error: "invalid_choices",
+        detail: "custom_buddy_too_short",
+      }, 400);
     }
     characterDesc =
       `One imaginary buddy as described: ${c}. Keep a single consistent friendly storybook design — soft proportions, kind expression, never scary or adult; no realistic weapons, gore, horror, or recognizable licensed characters.`;
@@ -2626,14 +2637,26 @@ Deno.serve(async (req) => {
   if (placeKey === "custom_place") {
     const p = sanitizeCustomChoice(String(body.placeCustom ?? ""));
     if (p.length < 4) {
-      return jsonResponse({ error: "invalid_choices" }, 400);
+      return jsonResponse({
+        error: "invalid_choices",
+        detail: "custom_place_too_short",
+      }, 400);
     }
     placeDesc =
       `Setting as described: ${p}. Bright picture-book world for young children — warm and readable, no nightmare horror, disasters, politics, or logos / brand text.`;
   }
 
   if (!characterDesc || !placeDesc) {
-    return jsonResponse({ error: "invalid_choices" }, 400);
+    if (!characterDesc) {
+      return jsonResponse({
+        error: "invalid_choices",
+        detail: `unknown_character:${characterKey}`,
+      }, 400);
+    }
+    return jsonResponse({
+      error: "invalid_choices",
+      detail: `unknown_place:${placeKey}`,
+    }, 400);
   }
 
   const noBuddyBook = characterKey === "nobuddy";

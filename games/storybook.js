@@ -3523,6 +3523,14 @@
     refreshBookColorChips();
   }
 
+  /** Must match clever-service `normalizeWizardKey` for character/place IDs. */
+  function normalizeWizardPresetKey(id) {
+    return String(id || "")
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, "_");
+  }
+
   /** Must match clever-service `STORYBOOK_CUSTOM_CHOICE_MAX`. */
   var STORYBOOK_CUSTOM_CHOICE_MAX = 200;
 
@@ -4402,8 +4410,8 @@
         },
         body: JSON.stringify({
           childName: childName || "Friend",
-          character: selectedChar,
-          place: selectedPlace,
+          character: normalizeWizardPresetKey(selectedChar),
+          place: normalizeWizardPresetKey(selectedPlace),
           plotHint: plotHint,
           buddyCustom:
             selectedChar === "custom_buddy"
@@ -4463,6 +4471,27 @@
             } else if (b.error === "images_failed" && b.detail) {
               msg =
                 "Couldn’t make the book (pictures). " + String(b.detail);
+            } else if (b.error === "invalid_choices") {
+              var detail = String(b.detail || "").trim();
+              if (detail.indexOf("unknown_place:") === 0) {
+                msg =
+                  "That scene name didn’t reach the Storybook maker yet — ask a grown-up to redeploy the latest clever-service update, or try another scene for now.";
+              } else if (detail.indexOf("unknown_character:") === 0) {
+                msg =
+                  "That buddy name didn’t reach the Storybook maker yet — ask a grown-up to redeploy the latest clever-service update, or try another buddy for now.";
+              } else if (detail === "custom_place_too_short") {
+                msg =
+                  "Please describe where the story happens — at least 4 letters — or tap a scene above instead of \"Add your own scene\".";
+              } else if (detail === "custom_buddy_too_short") {
+                msg =
+                  "Please describe your buddy in a few more words — at least 4 letters.";
+              } else if (detail) {
+                msg =
+                  "We couldn’t use one of those story choices (" + detail.slice(0, 160) + "). Try another tap or refresh the page.";
+              } else {
+                msg =
+                  "We couldn’t use one of those story choices. Refresh the page, or pick a different buddy or scene.";
+              }
             } else if (b.error === "story_failed") {
               msg =
                 "Couldn’t finish the story text. Try again — if it keeps happening, ask a grown-up to check the setup.";
