@@ -2328,10 +2328,8 @@ async function falFluxProTextToImageUrl(
  * GPT Image pipeline (OpenAI Image API — generations + edits)
  *
  * Default model **`gpt-image-2`**: tuned for **stronger continuity** across the anchor
- * lineup + per-spread **edits** (same cast / costume lock) than the older 1.x family at
- * the same workflow — keep this default unless you deliberately set a cheaper model.
- * Override via **`STORYBOOK_GPTIMAGE_MODEL`** (e.g. **`gpt-image-1.5`** for lower list
- * price; **not** recommended when you care most about cross-spread likeness).
+ * lineup + per-spread **edits** (same cast / costume lock) than the older 1.x family.
+ * Override via **`STORYBOOK_GPTIMAGE_MODEL`** — only **`gpt-image-2`** (and `gpt-image-2*`) are honoured by default; other ids fall back to **`gpt-image-2`** unless **`STORYBOOK_GPTIMAGE_ALLOW_NON_IMAGE2=1`** (dev only).
  * ────────────────────────────────────────────────────────────────────────── */
 
 const GPT_IMAGE_DEFAULT_MODEL = "gpt-image-2";
@@ -2670,8 +2668,16 @@ function gptImageRefPhotoQualityBoostEnabled(
 }
 
 function gptImageDefaultModel(): string {
-  return (Deno.env.get("STORYBOOK_GPTIMAGE_MODEL") ?? "").trim() ||
-    GPT_IMAGE_DEFAULT_MODEL;
+  const env = (Deno.env.get("STORYBOOK_GPTIMAGE_MODEL") ?? "").trim();
+  const allowLegacy =
+    (Deno.env.get("STORYBOOK_GPTIMAGE_ALLOW_NON_IMAGE2") ?? "").trim() === "1";
+  if (!env) return GPT_IMAGE_DEFAULT_MODEL;
+  if (gptImageIsGptImage2Family(env)) return env;
+  if (allowLegacy) return env;
+  console.warn(
+    `[clever-service] STORYBOOK_GPTIMAGE_MODEL="${env}" is not GPT Image 2 — using ${GPT_IMAGE_DEFAULT_MODEL} for accuracy. Set STORYBOOK_GPTIMAGE_ALLOW_NON_IMAGE2=1 to allow other models (not recommended).`,
+  );
+  return GPT_IMAGE_DEFAULT_MODEL;
 }
 
 function gptImageIsGptImage2Family(model: string): boolean {
