@@ -1199,6 +1199,9 @@
       var leftP = story.pages[si * 2];
       if (leftP && leftP.imageUrl) raw = String(leftP.imageUrl);
     }
+    if (!raw && si === 0 && story.sceneImageUrl) {
+      raw = String(story.sceneImageUrl);
+    }
     return storyImageDisplayUrl(raw);
   }
 

@@ -3113,8 +3113,8 @@ ${
     • Example, beat where dragon is found / revealed: VISIBLE: Sofia, Isaac, dragon.
     • Example, beat where the dragon is flying overhead and they spot it: VISIBLE: Sofia, Isaac, dragon (dragon small in the upper sky, whole body and wings fully visible — not clipped by the top edge).
     • Never include a character in VISIBLE if the verse says they are NOT around for that moment.
-  The DESCRIPTION (after VISIBLE) must spell out the same specific moment as the verse on the previous page: same action, same setting, same props, same time of day — not a generic scene and NEVER a different location or activity than the verse (e.g. if the verse says bouncy castle under the sky, the picture is that bouncy castle with sky visible — not a bike ride in the woods). NEVER add guardians, helpers, or creatures the verse does not mention. NEVER duplicate the buddy unless the text says so. CRITICAL FOR CONSISTENCY: DO NOT re-describe permanent looks (clothes, hair colours) in the brief — the illustrator has the master designs. DO hint mood or emotion when the verse supports it (surprise, giggling, worry melting into relief) — only in the DESCRIPTION, not by re-listing outfits; avoid copying the same stock smile line into every spread.
-  TWO-PARAGRAPH TEXT PAGES (odd pages use \\n\\n once): The paired picture must honour **both** paragraphs as one spread — do **not** illustrate only the first block. If paragraph **2** moves to a **new room/zone** or introduces a **concrete focal prop** (food, breakfast, cereal, splash, bath, toy pile, costume, vehicle, trophy, bed, garden gate), make that **second** beat the **primary** setting and action (e.g. kitchen + floating bowls beats a hallway teaser). If both paragraphs share one continuous place, one coherent image may merge them; if they split locations, **default to paragraph 2's place and props** for the canvas. **Never** add humans or classmates not named in **either** paragraph.
+  The DESCRIPTION (after VISIBLE) must spell out the same specific moment as the verse on the previous page: same action, same setting, same props, same time of day — not a generic scene and NEVER a different location or activity than the verse (e.g. if the verse says bouncy castle under the sky, the picture is that bouncy castle with sky visible — not a bike ride in the woods). NEVER add guardians, helpers, or creatures the verse does not mention. NEVER duplicate the buddy unless the text says so. **When the prose names playground equipment (**slide**, swings, climbing frame)** or **hide under / behind a named tree or bush**, picture that structure — not an unrelated path. **WEATHER / OUTCOME:** If the verse says rain **stopped**, everyone **dry**, **sun** bright, or the cloud **floated away**, the image must match that — avoid active downpour on the kids in that same beat unless the text still describes them as wet. CRITICAL FOR CONSISTENCY: DO NOT re-describe permanent looks (clothes, hair colours) in the brief — the illustrator has the master designs. DO hint mood or emotion when the verse supports it (surprise, giggling, worry melting into relief) — only in the DESCRIPTION, not by re-listing outfits; avoid copying the same stock smile line into every spread.
+  TWO-PARAGRAPH TEXT PAGES (odd pages use \\n\\n once): The paired picture must honour **both** paragraphs as one spread — do **not** illustrate only the first block. If paragraph **2** moves to a **new room/zone** or introduces a **concrete focal prop** (food, breakfast, cereal, splash, bath, toy pile, costume, vehicle, trophy, bed, garden gate, **playground slide**, umbrella), make that **second** beat the **primary** setting and action (e.g. kitchen + floating bowls beats a hallway teaser). If both paragraphs share one continuous place, one coherent image may merge them; if they split locations, **default to paragraph 2's place and props** for the canvas. **Never** add humans or classmates not named in **either** paragraph.
   ENVIRONMENT DETAIL (very important — each brief must paint a different *place* on the journey, matching the SETTING and PLOT IDEA above):
     Every illustrationBrief MUST contain at least 2 specific environmental nouns (architecture, foliage, terrain, structure, weather, depth) AND at least 1 named prop or focal object from that beat. The environmental nouns MUST come from the actual SETTING and PLOT IDEA — if the plot says CASTLE, the briefs are inside or around a castle (stone walls, banners, courtyards, towers, throne room, drawbridge, tapestries) NOT in deep woods. If the plot says CAVE, the briefs are inside cave passages and chambers. If the plot says BEACH, UNDERSEA, SPACE, ZOO, FARM, MOUNTAIN, DESERT, SNOW, LAKE, ISLAND, MUSEUM, CIRCUS, TRAIN, CITY, OPEN SEA, or PIRATE SHIP, paint THAT setting with matching props. Only paint a forest if the plot or setting actually mentions woods/forest/trees.
     Examples of good briefs — note how each one fits a DIFFERENT plot, and how each only includes things the plot would actually contain:
@@ -3267,7 +3267,8 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
     "FRAMING / CHARACTER SCALE (critical): FULL-BLEED SCENE — paint walls, sky, ground, props, and atmosphere so the artwork fills the entire canvas edge-to-edge (rich single-page picture, not a tiny scene floating in empty space). **Pull the camera back** — **medium-wide** framing by default: the **background and setting** must read clearly in every spread, not just the characters’ faces. The cast together should typically occupy only **~28–42% of frame height** (single heroes or duos **~22–36%**) so caves, skies, rooms, and landscapes have room to breathe — never a tight bust or “zoomed-in” portrait unless the verse is purely a tight reaction beat (and even then keep architecture/sky visible). Keep modest inset — full heads, hair, hands, feet, tail, and wings inside the frame — never cropped or jammed against the border. Never crop a child or buddy at the neck or waist when the moment shows their whole body standing, jumping, or bouncing — use a wider shot instead. For jumping, trampolines, bouncing, soaring, or flying beats, default to a wide shot with the group using only **~30–42%** of frame height so heads, feet, and hooves stay clear of the top and bottom edges. **CENTRE COMPOSITION (standalone page):** keep the cast's visual weight near the **horizontal middle** (~45–55% from the left) — **do not** shove everyone to the far right or far left as if saving space for overlaid text; slight left/right asymmetry is fine. Unicorn horns, tall ears, hair poofs, wing tips, and raised hooves/paws must be fully visible with clear air above and beside them — never clipped. If a figure still feels tight, shrink only the cast and pull the camera back; keep the environment rich. Never line up the whole cast as a tiny strip along the bottom like stickers; show comfortable ground and body. ";
 
   const stylePreamble =
-    "A completely textless illustration. DO NOT include any writing, letters, words, typography, labels, speech bubbles, newspapers, stone runes, book pages with text, loose paper sheets, scrolls, receipts, notebooks, stationery, litter, or ground clutter that looks like fake writing — no blurry shapes that look like fake paragraphs or gibberish anywhere. " +
+    "A completely textless illustration. DO NOT include any writing, letters, words, typography, labels, speech bubbles, dialogue balloons, thought bubbles, comic captions, newspaper strips, stone runes, book pages with text, loose paper sheets, scrolls, receipts, notebooks, stationery, litter, or ground clutter that looks like fake writing — no blurry shapes that look like fake paragraphs or gibberish anywhere. " +
+    "All story words live in the app’s HTML text page — this PNG is **visual only** (no painted dialogue or titles). " +
     "No logos, social-media marks, app icons, or brand symbols. " +
     (readerArtLayoutKey === "facing" ? stylePreambleLayoutFacing : stylePreambleLayoutDuplex) +
     (readerArtLayoutKey === "facing" ? stylePreambleFramingFacing : stylePreambleFramingDuplex) +
@@ -3368,7 +3369,8 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
       : "";
 
     const anchorPreamble =
-      "A completely textless illustration. NO letters, words, typography, labels, speech bubbles, signs with text, book pages with writing, loose papers, scrolls, glyph noise, watermarks, or fake paragraph texture anywhere. Plain smooth background regions only — no pseudo-text. " +
+      "A completely textless illustration. NO letters, words, typography, labels, speech bubbles, dialogue balloons, thought bubbles, comic captions, signs with text, book pages with writing, loose papers, scrolls, glyph noise, watermarks, or fake paragraph texture anywhere. Plain smooth background regions only — no pseudo-text. " +
+      "All read-aloud words are in the app — this sheet is **visual identity only** (no painted dialogue). " +
       (noBuddyBook
         ? "CAST LINEUP / MODEL SHEET for a kids picture book: every character line in LOCKED CAST below (human hero and any named human co-stars or game people ONLY — no creature buddy in the lineup). Together in ONE frame, calm neutral expressions and friendly standing poses for identity reference only — story illustrations later will change faces and poses per scene. "
         : "CAST LINEUP / MODEL SHEET for a kids picture book: every character line in LOCKED CAST below (hero, buddy, and any named human co-stars or game people) — no one else, no third mascot or crowd, no duplicate unicorns. Together in ONE frame, calm neutral expressions and friendly standing poses for identity reference only — story illustrations later will change faces and poses per scene. ") +
@@ -3586,6 +3588,9 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
             blocks.push(
               "VISUAL MATCHING: Paint the SAME setting, time of day, and activity as the verse — if it says bouncy castle under the sky, show padded inflatable bounce-house walls and open sky; if it says kitchen or courtyard, show that. Do not substitute a different scene (e.g. woods and bicycle) unless the verse names those.",
             );
+            blocks.push(
+              "BEAT FIDELITY: Match **concrete props and places** (slide, swings, tree trunk, bush, gate, umbrella, kitchen counter, etc.) and the **outcome of the beat** — if text says rain **stopped**, cloud **left**, or children are **dry / warm in sun**, show that; if they are still getting wet, show rain. If two paragraphs differ, prefer the **second** block’s action and setting when it moves the story forward.",
+            );
           }
 
           blocks.push(
@@ -3611,6 +3616,10 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
             );
           }
 
+          blocks.push(
+            "FRAMING — NAMED KIDS & PETS: Anyone named in WHO IS IN THIS PICTURE must read as a **main** figure (face visible, not a sliver on the outer edge); widen the shot or reposition the group near the **horizontal middle (~42–58%)** before cropping.",
+          );
+
           // 6. Scene note (free description from the LLM)
           blocks.push(`SCENE NOTE: ${b.brief}`);
 
@@ -3629,7 +3638,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
 
           // 8. Final constraint
           blocks.push(
-            "Paint ONLY what the verse, WHO IS IN THIS PICTURE, and SCENE NOTE describe — no extra props, no extra characters, no background crowd, no signs or writing in the picture.",
+            "Paint ONLY what the verse, WHO IS IN THIS PICTURE, and SCENE NOTE describe — no extra props, no extra characters, no background crowd, no signs, speech balloons, or any writing in the picture.",
           );
 
           return blocks.join("\n\n");
@@ -3885,9 +3894,18 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
     briefs.forEach((b, k) => urlByIndex.set(b.index, urls[k]));
 
     story.pages.forEach((p, i) => {
+      let imageUrl = urlByIndex.get(i) ?? null;
+      if (
+        imageUrl == null &&
+        i === FRONT_MATTER_PAGE_COUNT - 1 &&
+        sceneImageUrl &&
+        /^https?:\/\//i.test(String(sceneImageUrl).trim())
+      ) {
+        imageUrl = sceneImageUrl;
+      }
       pagesOut.push({
         text: p.text.trim(),
-        imageUrl: urlByIndex.get(i) ?? null,
+        imageUrl,
       });
     });
   } catch (e) {
