@@ -1020,6 +1020,8 @@
   var spreadIndex = 0;
   /** @type {boolean} */
   var spreadAnimLock = false;
+  /** @type {number | null} — swap to incoming prose slightly before hinge ends */
+  var midTurnIncomingTimer = null;
   var coverOpenGeneration = 0;
 
   function prefersReducedSpreadMotion() {
@@ -1129,6 +1131,10 @@
   }
 
   function clearSpreadTurnClasses() {
+    if (midTurnIncomingTimer != null) {
+      window.clearTimeout(midTurnIncomingTimer);
+      midTurnIncomingTimer = null;
+    }
     if (spreadInnerEl) {
       spreadInnerEl.classList.remove(
         "sb-flip-spread__inner--turn-out-next",
@@ -1170,7 +1176,7 @@
     }
     shell.addEventListener("transitionend", onTe);
     shell.addEventListener("webkitTransitionEnd", onTe);
-    var tid = window.setTimeout(finish, 950);
+    var tid = window.setTimeout(finish, 780);
   }
 
   /**
@@ -1287,6 +1293,10 @@
 
     spreadAnimLock = true;
     setSpreadNavBusy(true);
+    if (midTurnIncomingTimer != null) {
+      window.clearTimeout(midTurnIncomingTimer);
+      midTurnIncomingTimer = null;
+    }
     snapPeelShellToRest(peelShell);
     clearSpreadTurnRevealFx();
     if (spreadInnerEl) {
@@ -1371,11 +1381,48 @@
       void peelShell.offsetWidth;
       window.requestAnimationFrame(function () {
         peelShell.classList.add(cls1);
+        midTurnIncomingTimer = window.setTimeout(function () {
+          midTurnIncomingTimer = null;
+          if (
+            !spreadInnerEl ||
+            !spreadInnerEl.classList.contains("sb-flip-spread__inner--peel-turning")
+          ) {
+            return;
+          }
+          writeSpreadTextMetaFromStory();
+          updateSpreadPageNumberDisplay();
+        }, 220);
       });
 
       bindCpShellTurnEnd(peelShell, function peelTurnDone() {
         try {
+          if (midTurnIncomingTimer != null) {
+            window.clearTimeout(midTurnIncomingTimer);
+            midTurnIncomingTimer = null;
+          }
+
+          clearPeelBackTextColumn();
+
+          writeSpreadTextMetaFromStory();
+          syncSpreadIllustrationFromStory();
+          syncReaderFacingLayoutClasses();
+          placeTextPageForFacingLayout();
+          updateSpreadPageNumberDisplay();
+
+          peelShell.style.display = "none";
+          peelShell.hidden = true;
+
+          if (outgoingLeftShell) {
+            outgoingLeftShell.hidden = true;
+            outgoingLeftShell.style.display = "none";
+          }
+
+          if (peelImg) peelImg.removeAttribute("src");
+          if (peelBackImg) peelBackImg.removeAttribute("src");
+          if (outgoingLeftImg) outgoingLeftImg.removeAttribute("src");
+
           snapPeelShellToRest(peelShell);
+
           clearSpreadTurnRevealFx();
           if (flipSpreadEl) {
             flipSpreadEl.classList.remove("sb-flip-spread--peel-active");
@@ -1399,22 +1446,6 @@
               }
             }
           }
-          clearPeelBackTextColumn();
-          if (peelImg) peelImg.removeAttribute("src");
-          if (peelBackImg) peelBackImg.removeAttribute("src");
-          if (outgoingLeftImg) outgoingLeftImg.removeAttribute("src");
-
-          peelShell.style.display = "none";
-          peelShell.hidden = true;
-          if (outgoingLeftShell) {
-            outgoingLeftShell.hidden = true;
-            outgoingLeftShell.style.display = "none";
-          }
-          writeSpreadTextMetaFromStory();
-          syncSpreadIllustrationFromStory();
-          syncReaderFacingLayoutClasses();
-          placeTextPageForFacingLayout();
-          updateSpreadPageNumberDisplay();
           updatePagerHints();
         } finally {
           spreadAnimLock = false;
