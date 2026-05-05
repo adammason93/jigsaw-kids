@@ -293,6 +293,18 @@
   var heroPhotoThumbsList = document.getElementById("sbHeroPhotoThumbs");
   var heroPhotoErr = document.getElementById("sbHeroPhotoErr");
   var heroPhotoRemove = document.getElementById("sbHeroPhotoRemove");
+  var heroPhotoNameOverlay = document.getElementById("sbHeroPhotoNameOverlay");
+  var heroPhotoNameThumb = document.getElementById("sbHeroPhotoNameThumb");
+  var heroPhotoNameLead = document.getElementById("sbHeroPhotoNameLead");
+  var heroPhotoNameInput = document.getElementById("sbHeroPhotoNameInput");
+  var heroPhotoNameErr = document.getElementById("sbHeroPhotoNameErrInline");
+  var btnHeroPhotoNameOk = document.getElementById("sbHeroPhotoNameOk");
+  var btnHeroPhotoNameVoice = document.getElementById("sbHeroPhotoNameVoice");
+  var btnHeroPhotoNameMe = document.getElementById("sbHeroPhotoNameMe");
+  var heroPhotoNameVoiceHint = document.getElementById("sbHeroPhotoNameVoiceHint");
+  /** @type {number[]} — indices in heroPhotoItems still to name after an upload */
+  var heroPhotoPromptIndices = [];
+  var heroPhotoPromptAt = 0;
   var heroRefDatalist = document.getElementById("sbHeroRefWhoDatalist");
   /** @type {{ dataUrl: string, who: string }[]} */
   var heroPhotoItems = [];
@@ -852,6 +864,7 @@
   function syncVoiceButtons() {
     var onName = speechTarget === "name";
     var onPlot = speechTarget === "plot";
+    var onHeroPhotoName = speechTarget === "hero_photo_name";
     if (btnVoiceName) {
       btnVoiceName.classList.toggle("is-listening", onName);
       btnVoiceName.setAttribute("aria-pressed", onName ? "true" : "false");
@@ -863,6 +876,34 @@
       btnVoicePlot.setAttribute("aria-pressed", onPlot ? "true" : "false");
       var plotLbl = btnVoicePlot.querySelector(".sb-voice-btn__txt");
       if (plotLbl) plotLbl.textContent = onPlot ? "Stop listening" : "Speak your idea";
+    }
+    if (btnHeroPhotoNameVoice) {
+      btnHeroPhotoNameVoice.classList.toggle("is-listening", onHeroPhotoName);
+      btnHeroPhotoNameVoice.setAttribute("aria-pressed", onHeroPhotoName ? "true" : "false");
+      var hpLbl = btnHeroPhotoNameVoice.querySelector(".sb-voice-btn__txt");
+      if (hpLbl) hpLbl.textContent = onHeroPhotoName ? "Stop" : "Speak";
+    }
+  }
+
+  function setHeroPhotoNameVoiceHint(msg) {
+    if (!heroPhotoNameVoiceHint) return;
+    if (msg) {
+      heroPhotoNameVoiceHint.textContent = msg;
+      heroPhotoNameVoiceHint.hidden = false;
+    } else {
+      heroPhotoNameVoiceHint.textContent = "";
+      heroPhotoNameVoiceHint.hidden = true;
+    }
+  }
+
+  function setHeroPhotoNameInlineErr(msg) {
+    if (!heroPhotoNameErr) return;
+    if (msg) {
+      heroPhotoNameErr.textContent = msg;
+      heroPhotoNameErr.hidden = false;
+    } else {
+      heroPhotoNameErr.textContent = "";
+      heroPhotoNameErr.hidden = true;
     }
   }
 
@@ -885,6 +926,7 @@
       } catch (e) {}
     }
     syncVoiceButtons();
+    setHeroPhotoNameVoiceHint("");
     if (!preserveHints) setVoiceHint("", "");
   }
 
@@ -936,6 +978,58 @@
     } catch (err) {
       stopSpeech({ preserveVoiceHints: true });
       setVoiceHint("Couldn’t start the microphone. Try typing.", "");
+    }
+  }
+
+  function startHeroPhotoNameSpeech() {
+    var RecHp = getSpeechRecognition();
+    if (!RecHp || !heroPhotoNameInput) return;
+    if (speechTarget === "hero_photo_name") {
+      stopSpeech();
+      return;
+    }
+    stopSpeech();
+    stopStepGuideAudio();
+    speechTarget = "hero_photo_name";
+    var recHp = new RecHp();
+    recHp.lang = "en-GB";
+    recHp.continuous = false;
+    recHp.interimResults = false;
+    recHp.maxAlternatives = 1;
+    recHp.onresult = function (e) {
+      if (!e.results || !e.results.length) return;
+      var tHp = e.results[0][0].transcript.trim();
+      heroPhotoNameInput.value = tHp.slice(0, 48);
+      setHeroPhotoNameInlineErr("");
+    };
+    recHp.onerror = function (eHp) {
+      if (eHp.error === "aborted") return;
+      var friendlyHp =
+        eHp.error === "not-allowed"
+          ? "Microphone blocked — you can type the name instead."
+          : eHp.error === "no-speech"
+            ? "Didn't hear anyone — tap Speak again or type."
+            : "Something went wrong — try typing.";
+      stopSpeech({ preserveVoiceHints: true });
+      setHeroPhotoNameVoiceHint(friendlyHp);
+    };
+    recHp.onend = function () {
+      if (activeSpeech !== recHp) return;
+      activeSpeech = null;
+      speechTarget = null;
+      plotSpeechPrefix = "";
+      plotSpeechAccum = "";
+      syncVoiceButtons();
+      setHeroPhotoNameVoiceHint("");
+    };
+    activeSpeech = recHp;
+    syncVoiceButtons();
+    setHeroPhotoNameVoiceHint("Listening — say their name");
+    try {
+      recHp.start();
+    } catch (errHp) {
+      stopSpeech({ preserveVoiceHints: true });
+      setHeroPhotoNameVoiceHint("Couldn't use the microphone — type instead.");
     }
   }
 
@@ -2204,9 +2298,10 @@
   function enrichFacingBlobRgb(sample, tintPool, poolIndex) {
     var tint = tintPool[poolIndex % tintPool.length] || tintPool[0];
     var o =
-      sample || mixRgbs({ r: 250, g: 244, b: 235 }, tint, 0.38);
-    if (rgbLinearLum(o) > 235) o = mixRgbs(o, tint, 0.45);
-    if (rgbChromaFrac(o) < 0.1) o = mixRgbs(o, tint, 0.42);
+      sample || mixRgbs({ r: 248, g: 240, b: 228 }, tint, 0.58);
+    if (rgbLinearLum(o) > 218) o = mixRgbs(o, tint, 0.5);
+    if (rgbLinearLum(o) > 232) o = mixRgbs(o, tint, 0.4);
+    if (rgbChromaFrac(o) < 0.14) o = mixRgbs(o, tint, 0.58);
     return o;
   }
 
@@ -3469,6 +3564,151 @@
     inp.value = displayNameForWho(r);
   }
 
+  function hideHeroPhotoNameOverlayUi() {
+    if (heroPhotoNameOverlay) {
+      heroPhotoNameOverlay.classList.add("is-hidden");
+      heroPhotoNameOverlay.setAttribute("aria-hidden", "true");
+    }
+    setHeroPhotoNameInlineErr("");
+    setHeroPhotoNameVoiceHint("");
+  }
+
+  function abortHeroPhotoNamePrompt() {
+    heroPhotoPromptIndices = [];
+    heroPhotoPromptAt = 0;
+    stopSpeech({ preserveVoiceHints: true });
+    hideHeroPhotoNameOverlayUi();
+  }
+
+  function closeHeroPhotoNamePromptSequence() {
+    heroPhotoPromptIndices = [];
+    heroPhotoPromptAt = 0;
+    hideHeroPhotoNameOverlayUi();
+  }
+
+  function applyHeroPhotoWhoAtPrompt(idx, raw) {
+    setHeroPhotoNameInlineErr("");
+    var r = resolveWhoFromText(raw);
+    if (r === null) {
+      setHeroPhotoNameInlineErr("Try a short name with letters — like Ava or Jack.");
+      return false;
+    }
+    heroPhotoItems[idx].who = r;
+    return true;
+  }
+
+  function advanceHeroPhotoNamePromptAfterSuccess() {
+    heroPhotoPromptAt += 1;
+    if (heroPhotoPromptAt >= heroPhotoPromptIndices.length) {
+      closeHeroPhotoNamePromptSequence();
+      renderHeroPhotoThumbs();
+      return;
+    }
+    paintHeroPhotoNamePromptStep();
+  }
+
+  function paintHeroPhotoNamePromptStep() {
+    if (
+      !heroPhotoNameOverlay ||
+      !heroPhotoNameInput ||
+      !heroPhotoNameThumb ||
+      !heroPhotoNameLead
+    ) {
+      closeHeroPhotoNamePromptSequence();
+      return;
+    }
+    if (heroPhotoPromptAt >= heroPhotoPromptIndices.length) {
+      closeHeroPhotoNamePromptSequence();
+      renderHeroPhotoThumbs();
+      return;
+    }
+    var idxPaint = heroPhotoPromptIndices[heroPhotoPromptAt];
+    if (idxPaint < 0 || idxPaint >= heroPhotoItems.length) {
+      closeHeroPhotoNamePromptSequence();
+      renderHeroPhotoThumbs();
+      return;
+    }
+    heroPhotoNameOverlay.classList.remove("is-hidden");
+    heroPhotoNameOverlay.setAttribute("aria-hidden", "false");
+    heroPhotoNameThumb.src = heroPhotoItems[idxPaint].dataUrl;
+    heroPhotoNameThumb.alt = "Picture you added for your book";
+
+    var totalP = heroPhotoPromptIndices.length;
+    var nP = heroPhotoPromptAt + 1;
+    heroPhotoNameLead.textContent =
+      totalP > 1
+        ? "Picture " + nP + " of " + totalP + " — who's in this one?"
+        : "Who is in this picture? Tap Done when it looks right.";
+
+    heroPhotoNameInput.value = displayNameForWho(heroPhotoItems[idxPaint].who);
+    setHeroPhotoNameInlineErr("");
+
+    var myNamePaint =
+      nameInput && nameInput.value.trim() ? nameInput.value.trim() : "";
+    if (btnHeroPhotoNameMe) {
+      btnHeroPhotoNameMe.classList.toggle("is-hidden", !myNamePaint);
+    }
+
+    window.requestAnimationFrame(function () {
+      try {
+        heroPhotoNameInput.focus();
+        heroPhotoNameInput.select();
+      } catch (eFocusHp) {}
+    });
+  }
+
+  function beginHeroPhotoNamePromptForNewIndices(newIdxs) {
+    if (!newIdxs || !newIdxs.length) {
+      renderHeroPhotoThumbs();
+      return;
+    }
+    if (!heroPhotoNameOverlay) {
+      renderHeroPhotoThumbs();
+      return;
+    }
+    stopSpeech({ preserveVoiceHints: true });
+    setHeroPhotoNameInlineErr("");
+    setHeroPhotoNameVoiceHint("");
+    heroPhotoPromptIndices = newIdxs.slice();
+    heroPhotoPromptAt = 0;
+    renderHeroPhotoThumbs();
+    paintHeroPhotoNamePromptStep();
+  }
+
+  function onHeroPhotoNameDoneClick() {
+    if (!heroPhotoPromptIndices.length || heroPhotoPromptAt >= heroPhotoPromptIndices.length) {
+      closeHeroPhotoNamePromptSequence();
+      renderHeroPhotoThumbs();
+      return;
+    }
+    var idxDone = heroPhotoPromptIndices[heroPhotoPromptAt];
+    if (idxDone < 0 || idxDone >= heroPhotoItems.length) {
+      closeHeroPhotoNamePromptSequence();
+      renderHeroPhotoThumbs();
+      return;
+    }
+    if (!heroPhotoNameInput) return;
+    if (!applyHeroPhotoWhoAtPrompt(idxDone, heroPhotoNameInput.value)) return;
+    advanceHeroPhotoNamePromptAfterSuccess();
+  }
+
+  function onHeroPhotoNameMeClick() {
+    if (!heroPhotoPromptIndices.length || heroPhotoPromptAt >= heroPhotoPromptIndices.length) {
+      closeHeroPhotoNamePromptSequence();
+      renderHeroPhotoThumbs();
+      return;
+    }
+    var idxMe = heroPhotoPromptIndices[heroPhotoPromptAt];
+    if (idxMe < 0 || idxMe >= heroPhotoItems.length) {
+      closeHeroPhotoNamePromptSequence();
+      renderHeroPhotoThumbs();
+      return;
+    }
+    heroPhotoItems[idxMe].who = "hero";
+    setHeroPhotoNameInlineErr("");
+    advanceHeroPhotoNamePromptAfterSuccess();
+  }
+
   function renderHeroPhotoThumbs() {
     if (!heroPhotoThumbsList || !heroPhotoThumbsWrap) return;
     syncHeroRefDatalist();
@@ -3477,6 +3717,8 @@
       var li = document.createElement("li");
       li.className = "sb-hero-ref__thumb-item";
       li.setAttribute("data-idx", String(idx));
+      var wrap = document.createElement("div");
+      wrap.className = "sb-hero-ref__thumb-wrap";
       var img = document.createElement("img");
       img.className = "sb-hero-ref__thumb";
       img.src = item.dataUrl;
@@ -3504,18 +3746,20 @@
       var btn = document.createElement("button");
       btn.type = "button";
       btn.className = "sb-hero-ref__thumb-remove";
-      btn.setAttribute("aria-label", "Remove photo " + (idx + 1));
+      btn.setAttribute("aria-label", "Remove this photo");
       btn.setAttribute("data-idx", String(idx));
       btn.textContent = "\u00d7";
-      li.appendChild(img);
+      wrap.appendChild(img);
+      wrap.appendChild(btn);
+      li.appendChild(wrap);
       li.appendChild(inp);
-      li.appendChild(btn);
       heroPhotoThumbsList.appendChild(li);
     });
     heroPhotoThumbsWrap.hidden = heroPhotoItems.length === 0;
   }
 
   function clearHeroPhoto() {
+    abortHeroPhotoNamePrompt();
     heroPhotoItems = [];
     if (heroPhotoInput) heroPhotoInput.value = "";
     renderHeroPhotoThumbs();
@@ -3964,6 +4208,7 @@
 
   function closeJourney() {
     stopSpeech();
+    abortHeroPhotoNamePrompt();
     stopStepGuideAudio();
     var m = modal || document.getElementById("sbModal");
     if (m) {
@@ -4497,6 +4742,7 @@
       });
       Promise.all(reads)
         .then(function (urls) {
+          var prevLenAdd = heroPhotoItems.length;
           urls.forEach(function (url) {
             if (
               url &&
@@ -4506,7 +4752,12 @@
               heroPhotoItems.push({ dataUrl: url, who: "hero" });
             }
           });
-          renderHeroPhotoThumbs();
+          var freshIdxs = [];
+          var ai;
+          for (ai = prevLenAdd; ai < heroPhotoItems.length; ai++) {
+            freshIdxs.push(ai);
+          }
+          beginHeroPhotoNamePromptForNewIndices(freshIdxs);
         })
         .catch(function () {
           setHeroPhotoError("Could not read that photo.");
@@ -4522,6 +4773,7 @@
       var idx = parseInt(rm.getAttribute("data-idx") || "-1", 10);
       if (idx >= 0 && idx < heroPhotoItems.length) {
         heroPhotoItems.splice(idx, 1);
+        abortHeroPhotoNamePrompt();
         renderHeroPhotoThumbs();
         setHeroPhotoError("");
       }
@@ -4530,6 +4782,28 @@
   if (heroPhotoRemove) {
     heroPhotoRemove.addEventListener("click", function () {
       clearHeroPhoto();
+    });
+  }
+  if (btnHeroPhotoNameOk) {
+    btnHeroPhotoNameOk.addEventListener("click", function () {
+      onHeroPhotoNameDoneClick();
+    });
+  }
+  if (btnHeroPhotoNameMe) {
+    btnHeroPhotoNameMe.addEventListener("click", function () {
+      onHeroPhotoNameMeClick();
+    });
+  }
+  if (btnHeroPhotoNameVoice) {
+    btnHeroPhotoNameVoice.addEventListener("click", function () {
+      startHeroPhotoNameSpeech();
+    });
+  }
+  if (heroPhotoNameInput) {
+    heroPhotoNameInput.addEventListener("keydown", function (evIn) {
+      if (evIn.key !== "Enter") return;
+      evIn.preventDefault();
+      onHeroPhotoNameDoneClick();
     });
   }
   if (nameInput) {

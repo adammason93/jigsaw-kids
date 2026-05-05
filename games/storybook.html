@@ -12,7 +12,7 @@
   <link rel="manifest" href="../manifest.json" />
   <link rel="stylesheet" href="../js/kids-core.css" />
   <!-- storybook-app.css = renamed file so CDN/browser cache cannot keep old storybook.css -->
-  <link rel="stylesheet" href="storybook-app.css?v=166" />
+  <link rel="stylesheet" href="storybook-app.css?v=169" />
   <link rel="stylesheet" href="../tablet-ipad.css" />
   <!-- Last wins: guarantees new background even if a proxy cached an ancient stylesheet elsewhere -->
   <style>
@@ -169,8 +169,7 @@
           <div class="sb-hero-ref" id="sbHeroRefBlock">
             <label class="sb-label sb-label--secondary" for="sbHeroPhotoPick">Photos for the book (optional, up to 3)</label>
             <p class="sb-panel__hint sb-panel__hint--tight">
-              Under each photo, type who it is (hero’s name or another child’s name) — suggestions appear as you type.
-              If both photos are for the hero only, leave both as the hero; if the story has two children, put the other child’s name under their photo so the book can match them.
+              When you add a picture we’ll ask a quick “who’s this?” so the story fits. You can tap the little ✕ on a photo to take it away, or adjust names under each picture anytime.
             </p>
             <datalist id="sbHeroRefWhoDatalist"></datalist>
             <div class="sb-filepick">
@@ -191,7 +190,7 @@
             <p class="sb-note sb-note--inline" id="sbHeroPhotoErr" role="alert" hidden></p>
             <div class="sb-hero-ref__preview" id="sbHeroPhotoThumbsWrap" hidden>
               <ul class="sb-hero-ref__thumbs" id="sbHeroPhotoThumbs" aria-label="Hero photo previews"></ul>
-              <button type="button" class="sb-btn sb-btn--ghost sb-btn--small" id="sbHeroPhotoRemove">Remove all photos</button>
+              <button type="button" class="sb-hero-ref__remove-all" id="sbHeroPhotoRemove">Remove all</button>
             </div>
           </div>
           <label class="sb-label sb-label--secondary" for="sbBookTitle">What should we call your book?</label>
@@ -514,6 +513,49 @@
           </div>
         </div>
       </div>
+      <!-- Pop-over on top of the wizard sheet (photo just added → name it) -->
+      <div id="sbHeroPhotoNameOverlay" class="sb-hero-name-overlay is-hidden" aria-hidden="true">
+        <div class="sb-hero-name-overlay__card" role="dialog" aria-modal="true" aria-labelledby="sbHeroPhotoNameTitle">
+          <h3 class="sb-hero-name-overlay__title" id="sbHeroPhotoNameTitle">What’s their name?</h3>
+          <p class="sb-hero-name-overlay__lead" id="sbHeroPhotoNameLead">Who’s in this picture?</p>
+          <div class="sb-hero-name-overlay__thumb-wrap">
+            <img class="sb-hero-name-overlay__thumb" id="sbHeroPhotoNameThumb" alt="" width="112" height="112" decoding="async" />
+          </div>
+          <div class="sb-hero-name-overlay__voice-row">
+            <input
+              class="sb-input sb-hero-name-overlay__input"
+              id="sbHeroPhotoNameInput"
+              type="text"
+              maxlength="48"
+              autocomplete="off"
+              autocapitalize="words"
+              enterkeyhint="done"
+              placeholder="Type their name…"
+              aria-describedby="sbHeroPhotoNameVoiceHint sbHeroPhotoNameErrInline"
+            />
+            <button
+              type="button"
+              class="sb-voice-btn sb-voice-btn--hero-photo"
+              id="sbHeroPhotoNameVoice"
+              aria-pressed="false"
+              aria-label="Speak their name into the microphone"
+            >
+              <span class="sb-voice-btn__ic" aria-hidden="true">🎤</span>
+              <span class="sb-voice-btn__txt">Speak</span>
+            </button>
+          </div>
+          <p class="sb-hero-name-overlay__voice-hint" id="sbHeroPhotoNameVoiceHint" aria-live="polite" hidden></p>
+          <p class="sb-hero-name-overlay__err" id="sbHeroPhotoNameErrInline" role="alert" hidden></p>
+          <div class="sb-hero-name-overlay__quick">
+            <button type="button" class="sb-btn sb-btn--ghost sb-hero-name-overlay__quick-btn is-hidden" id="sbHeroPhotoNameMe">
+              It’s me
+            </button>
+          </div>
+          <div class="sb-hero-name-overlay__actions">
+            <button type="button" class="sb-btn sb-btn--primary sb-hero-name-overlay__done" id="sbHeroPhotoNameOk">Done</button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <section class="sb-book is-hidden" id="sbBook" aria-labelledby="sbBookHeading" hidden>
@@ -777,7 +819,7 @@
   <script src="../js/storybook-shelf-store.js" defer></script>
   <!-- Required for cloud shelf sync + upload (same as other games) -->
   <script src="../js/score-cloud.js" defer></script>
-  <script src="storybook.js?v=337" defer></script>
+  <script src="storybook.js?v=340" defer></script>
   <script>
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("../sw.js").catch(function () {});

@@ -22,12 +22,12 @@
   --sb-flip-desk: #cbc0e6;
   /* Facing text page: cream field + corner blobs (fills come from palette or sampled from art) */
   --sb-facing-cream: #faf6ec;
-  --sb-facing-blob-layer-opacity: 0.38;
-  --sb-facing-blob-a: color-mix(in srgb, var(--sb-flip-mid) 40%, rgb(185, 226, 155));
-  --sb-facing-blob-b: color-mix(in srgb, var(--sb-flip-red) 50%, rgb(255, 224, 182));
-  --sb-facing-blob-c: color-mix(in srgb, var(--sb-flip-red) 48%, rgb(255, 210, 228));
-  --sb-facing-blob-d: color-mix(in srgb, var(--sb-flip-dark) 32%, rgb(160, 206, 248));
-  --sb-facing-blob-accent: color-mix(in srgb, var(--sb-flip-light) 40%, rgb(255, 206, 172));
+  --sb-facing-blob-layer-opacity: 0.52;
+  --sb-facing-blob-a: color-mix(in srgb, var(--sb-flip-mid) 62%, rgb(150, 200, 100));
+  --sb-facing-blob-b: color-mix(in srgb, var(--sb-flip-red) 72%, rgb(255, 200, 120));
+  --sb-facing-blob-c: color-mix(in srgb, var(--sb-flip-red) 65%, rgb(255, 160, 200));
+  --sb-facing-blob-d: color-mix(in srgb, var(--sb-flip-dark) 48%, rgb(120, 190, 255));
+  --sb-facing-blob-accent: color-mix(in srgb, var(--sb-flip-red) 35%, rgb(255, 210, 150));
   /* Open spread height; width follows aspect-ratio on .sb-flip-spread__inner (portrait book, crease centered) */
   --sb-book-inner-h: clamp(288px, min(70dvh, 82vh), 640px);
   /* width ≈ height × this (7/10 → taller than wide); kept for cover / reader width calcs */
@@ -112,12 +112,12 @@ body.page-storybook.sb-route-story .sb-landing__left {
 }
 
 @media (max-width: 1200px) and (max-height: 900px) {
-  .sb-flip-spread__inner--has-art .sb-flip-text__highlight {
+  .sb-flip-spread__inner--has-art:not(.sb-flip-spread__inner--art-facing) .sb-flip-text__highlight {
     font-size: clamp(1rem, min(3.6vw, 3.4dvh), 1.52rem);
     line-height: 1.48;
   }
 
-  .sb-flip-spread__inner--has-art .sb-big-word {
+  .sb-flip-spread__inner--has-art:not(.sb-flip-spread__inner--art-facing) .sb-big-word {
     font-size: 1.48em;
   }
 }
@@ -2409,10 +2409,11 @@ body.sb-portal-welcome-open {
 
 .sb-hero-ref__preview {
   display: flex;
-  align-items: center;
-  gap: 0.75rem;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
   margin: 0.65rem 0 0;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
 }
 
 .sb-hero-ref__thumb {
@@ -2433,6 +2434,14 @@ body.sb-portal-welcome-open {
   flex-wrap: wrap;
   gap: 0.5rem 0.65rem;
   align-items: flex-start;
+}
+
+.sb-hero-ref__thumb-wrap {
+  position: relative;
+  display: block;
+  align-self: flex-start;
+  border-radius: 12px;
+  line-height: 0;
 }
 
 .sb-hero-ref__thumb-item {
@@ -2465,28 +2474,177 @@ body.sb-portal-welcome-open {
 
 .sb-hero-ref__thumb-remove {
   position: absolute;
-  top: -0.3rem;
-  right: -0.3rem;
-  width: 1.35rem;
-  height: 1.35rem;
+  top: 3px;
+  right: 3px;
+  width: 1.375rem;
+  height: 1.375rem;
+  min-width: 1.375rem;
+  min-height: 1.375rem;
   border-radius: 50%;
   border: none;
-  background: rgba(131, 24, 67, 0.9);
+  background: rgba(30, 20, 30, 0.55);
   color: #fff;
-  font-size: 1rem;
-  font-weight: 800;
+  font-size: 0.95rem;
+  font-weight: 700;
   line-height: 1;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  z-index: 2;
   -webkit-tap-highlight-color: transparent;
 }
 
 .sb-hero-ref__thumb-remove:focus-visible {
   outline: 2px solid #db2777;
   outline-offset: 2px;
+}
+
+.sb-hero-ref__remove-all {
+  margin: 0;
+  padding: 0.15rem 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: rgba(107, 29, 74, 0.72);
+  text-decoration: underline;
+  letter-spacing: 0.02em;
+  align-self: flex-start;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.sb-hero-ref__remove-all:active {
+  color: #9d174d;
+}
+
+/* Pop-up after adding a reference photo — big type for kids */
+.sb-hero-name-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.85rem;
+  box-sizing: border-box;
+  background: rgba(75, 20, 50, 0.28);
+  backdrop-filter: blur(3px);
+}
+
+.sb-hero-name-overlay__card {
+  width: min(21rem, 100%);
+  padding: 1.15rem 1.05rem 1.2rem;
+  border-radius: 22px;
+  background: linear-gradient(160deg, #fffefb 0%, #fff6fb 48%, #fdf2ff 100%);
+  border: 3px solid #fbcfe8;
+  box-shadow:
+    0 12px 36px rgba(107, 25, 70, 0.22),
+    0 0 0 1px rgba(255, 255, 255, 0.95) inset;
+  text-align: center;
+}
+
+.sb-hero-name-overlay__title {
+  margin: 0 0 0.35rem;
+  font-size: clamp(1.35rem, 4.8vw, 1.72rem);
+  font-weight: 900;
+  line-height: 1.18;
+  color: #831843;
+  letter-spacing: -0.01em;
+}
+
+.sb-hero-name-overlay__lead {
+  margin: 0 0 0.85rem;
+  font-size: 1.05rem;
+  font-weight: 800;
+  line-height: 1.38;
+  color: #73123d;
+}
+
+.sb-hero-name-overlay__thumb-wrap {
+  display: flex;
+  justify-content: center;
+  margin: 0 0 0.95rem;
+}
+
+.sb-hero-name-overlay__thumb {
+  width: 6rem;
+  height: 6rem;
+  border-radius: 16px;
+  object-fit: cover;
+  border: 3px solid rgba(251, 113, 133, 0.45);
+  box-shadow: 0 6px 20px rgba(131, 24, 67, 0.15);
+}
+
+.sb-hero-name-overlay__voice-row {
+  display: flex;
+  align-items: stretch;
+  gap: 0.5rem;
+  margin: 0 0 0.45rem;
+}
+
+.sb-hero-name-overlay__input {
+  flex: 1;
+  min-height: 2.85rem;
+  font-size: 1.06rem !important;
+  font-weight: 700;
+  border-radius: 14px !important;
+  padding: 0.45rem 0.65rem !important;
+}
+
+.sb-voice-btn--hero-photo {
+  flex-shrink: 0;
+  align-self: stretch;
+  min-height: 2.85rem;
+  padding-inline: 0.6rem !important;
+}
+
+.sb-voice-btn--hero-photo .sb-voice-btn__txt {
+  font-size: 0.8rem !important;
+}
+
+.sb-hero-name-overlay__voice-hint {
+  margin: 0 0 0.35rem;
+  min-height: 1rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #db2777;
+  line-height: 1.3;
+}
+
+.sb-hero-name-overlay__err {
+  margin: 0 0 0.65rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #be123c;
+  line-height: 1.35;
+}
+
+.sb-hero-name-overlay__quick {
+  margin: 0 0 0.55rem;
+  min-height: 2rem;
+}
+
+.sb-hero-name-overlay__quick-btn.sb-btn {
+  padding: 0.4rem 0.95rem !important;
+  border-radius: 999px !important;
+  font-size: 0.92rem !important;
+}
+
+.sb-hero-name-overlay__actions {
+  margin: 0.15rem 0 0;
+}
+
+.sb-hero-name-overlay__done.sb-btn {
+  width: 100%;
+  min-height: 2.85rem;
+  font-size: 1.1rem !important;
+  border-radius: 16px !important;
+  font-weight: 900 !important;
 }
 
 .sb-note--inline {
@@ -3521,7 +3679,10 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   z-index: 3;
 }
 
-.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-flip-page--text .sb-flip-page__sheet {
+.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art
+  .sb-flip-left-shell
+  .sb-flip-page--text
+  .sb-flip-page__sheet {
   background: var(--sb-facing-cream, #faf6ec);
   box-shadow: none;
   margin: 0;
@@ -3537,19 +3698,21 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   height: 100%;
   z-index: 0;
   pointer-events: none;
-  opacity: var(--sb-facing-blob-layer-opacity, 0.38);
+  opacity: var(--sb-facing-blob-layer-opacity, 0.52);
   -webkit-mask-image: radial-gradient(
-    ellipse 70% 66% at 50% 54%,
+    ellipse 78% 73% at 50% 51%,
     rgba(0, 0, 0, 0) 0%,
-    rgba(0, 0, 0, 0.12) 52%,
-    rgba(0, 0, 0, 0.58) 82%,
+    rgba(0, 0, 0, 0.04) 32%,
+    rgba(0, 0, 0, 0.35) 62%,
+    rgba(0, 0, 0, 0.72) 86%,
     #000 100%
   );
   mask-image: radial-gradient(
-    ellipse 70% 66% at 50% 54%,
+    ellipse 78% 73% at 50% 51%,
     rgba(0, 0, 0, 0) 0%,
-    rgba(0, 0, 0, 0.12) 52%,
-    rgba(0, 0, 0, 0.58) 82%,
+    rgba(0, 0, 0, 0.04) 32%,
+    rgba(0, 0, 0, 0.35) 62%,
+    rgba(0, 0, 0, 0.72) 86%,
     #000 100%
   );
   -webkit-mask-size: 100% 100%;
@@ -3563,7 +3726,10 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
 }
 
 /* Paper tooth + gentle tint on top of cream (no full-bleed colour wash). */
-.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-flip-page--text .sb-flip-page__sheet::before {
+.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art
+  .sb-flip-left-shell
+  .sb-flip-page--text
+  .sb-flip-page__sheet::before {
   content: "";
   position: absolute;
   inset: 0;
@@ -3586,7 +3752,10 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
 }
 
 /* Small star + squiggle (muted blue-grey like sample books). */
-.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-flip-page--text .sb-flip-page__sheet::after {
+.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art
+  .sb-flip-left-shell
+  .sb-flip-page--text
+  .sb-flip-page__sheet::after {
   content: "";
   position: absolute;
   inset: 0;
@@ -3602,7 +3771,10 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   opacity: 0.92;
 }
 
-.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-flip-page--text .sb-flip-text {
+.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art
+  .sb-flip-left-shell
+  .sb-flip-page--text
+  .sb-flip-text {
   position: relative;
   z-index: 3;
   box-sizing: border-box;
@@ -3612,15 +3784,17 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   padding: clamp(6%, 2.5dvh, 12%) 0 clamp(8%, 3dvh, 14%);
 }
 
-.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-flip-text__highlight {
+.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art
+  .sb-flip-left-shell
+  .sb-flip-text__highlight {
   display: block;
-  font-family: var(--sb-story-soft-serif);
-  font-size: clamp(0.78rem, 1.95vw, 0.92rem);
+  font-family: var(--sb-story-soft-serif), "Lora", Georgia, serif !important;
+  font-size: clamp(0.84rem, 2.1vw, 1rem);
   font-weight: 400;
   font-style: normal;
   letter-spacing: 0.02em;
   line-height: 1.74;
-  color: rgba(42, 28, 35, 0.9);
+  color: rgba(42, 28, 35, 0.94);
   text-align: center;
   white-space: pre-line;
   padding: 0;
@@ -3636,7 +3810,7 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   -webkit-text-stroke: 0;
 }
 
-.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-flip-text__highlight::first-line {
+.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-flip-left-shell .sb-flip-text__highlight::first-line {
   font-weight: 500;
   font-style: italic;
   font-size: 1.02em;
@@ -3645,15 +3819,15 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   text-shadow: none;
 }
 
-.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-big-word {
-  font-family: var(--sb-story-soft-serif);
+.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-flip-left-shell .sb-big-word {
+  font-family: var(--sb-story-soft-serif), "Lora", Georgia, serif;
   color: color-mix(in srgb, var(--sb-flip-mid, #9333ea) 72%, #5b21b6);
   font-weight: 600;
   font-style: italic;
   text-shadow: none;
 }
 
-.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-flip-text::before {
+.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-flip-left-shell .sb-flip-text::before {
   content: "✦";
   display: block;
   text-align: center;
@@ -3668,25 +3842,25 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   font-weight: 400;
 }
 
-.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-readable-word:hover {
+.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-flip-left-shell .sb-readable-word:hover {
   background: color-mix(in srgb, var(--sb-flip-light) 42%, rgba(91, 33, 182, 0.12));
   border-radius: 0.22em;
 }
 
-.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-flip-text:has(.sb-the-end-wrap)::before {
+.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-flip-left-shell .sb-flip-text:has(.sb-the-end-wrap)::before {
   display: none;
 }
 
-.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-the-end-title {
-  font-family: var(--sb-story-soft-serif);
+.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-flip-left-shell .sb-the-end-title {
+  font-family: var(--sb-story-soft-serif), "Lora", Georgia, serif;
   font-weight: 600;
   font-style: italic;
   color: var(--sb-flip-mid, #be185d);
   text-shadow: none;
 }
 
-.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-the-end-lead {
-  font-family: var(--sb-story-soft-serif);
+.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-flip-left-shell .sb-the-end-lead {
+  font-family: var(--sb-story-soft-serif), "Lora", Georgia, serif;
   font-weight: 400;
   font-style: italic;
   color: color-mix(in srgb, var(--sb-flip-dark, #9d174d) 45%, #2a0a1f);
@@ -4112,7 +4286,7 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
 }
 
 /* Text over full-bleed art: plain type + soft shadow for legibility (no per-line tape) */
-.sb-flip-spread__inner--has-art .sb-flip-page--text .sb-flip-page__sheet {
+.sb-flip-spread__inner--has-art:not(.sb-flip-spread__inner--art-facing) .sb-flip-page--text .sb-flip-page__sheet {
   background: transparent;
   box-shadow: none;
   margin: 0;
@@ -4130,7 +4304,10 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
 }
 
 /* Facing text page: clip decorative blobs flush to the half-page edge */
-.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-flip-page--text .sb-flip-page__sheet {
+.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art
+  .sb-flip-left-shell
+  .sb-flip-page--text
+  .sb-flip-page__sheet {
   overflow: hidden;
 }
 
@@ -4362,8 +4539,8 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   box-shadow: 0 1px 3px rgba(42, 10, 31, 0.08);
 }
 
-/* Picture-book text over art: white type + black shadow for legibility on illustrations */
-.sb-flip-spread__inner--has-art .sb-flip-text__highlight {
+/* Picture-book text over art: duplex / full-bleed only — excluded when using facing “paper page” prose */
+.sb-flip-spread__inner--has-art:not(.sb-flip-spread__inner--art-facing) .sb-flip-text__highlight {
   display: inline;
   font-family: var(--sb-reader-font-over-art);
   font-size: clamp(1.35rem, 4.2vw, 1.75rem);
@@ -4386,7 +4563,7 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   -webkit-font-smoothing: antialiased;
 }
 
-.sb-flip-spread__inner--has-art .sb-flip-text {
+.sb-flip-spread__inner--has-art:not(.sb-flip-spread__inner--art-facing) .sb-flip-text {
   position: relative;
   z-index: 0;
   max-width: min(32rem, 92%);
@@ -4395,17 +4572,21 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   border-radius: 0;
 }
 
-.sb-flip-spread__inner--has-art .sb-readable-word {
+.sb-flip-spread__inner--has-art:not(.sb-flip-spread__inner--art-facing) .sb-readable-word {
   cursor: pointer;
   border-radius: 0.18em;
   transition: background 0.15s ease;
 }
 
-.sb-flip-spread__inner--has-art .sb-readable-word:hover {
+.sb-flip-spread__inner--has-art:not(.sb-flip-spread__inner--art-facing) .sb-readable-word:hover {
   background: rgba(0, 0, 0, 0.22);
 }
 
-.sb-flip-spread__inner--has-art .sb-big-word {
+.sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-flip-left-shell .sb-readable-word {
+  cursor: pointer;
+}
+
+.sb-flip-spread__inner--has-art:not(.sb-flip-spread__inner--art-facing) .sb-big-word {
   font-family: var(--sb-reader-font-emphasis);
   font-size: 1.65em;
   font-weight: 800;
@@ -4422,7 +4603,7 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
     0 0 2px rgba(0, 0, 0, 0.9);
 }
 
-.sb-flip-spread__inner--has-art .sb-word-reading {
+.sb-flip-spread__inner--has-art:not(.sb-flip-spread__inner--art-facing) .sb-word-reading {
   outline: 2px solid rgba(255, 255, 255, 0.95);
   outline-offset: 2px;
   background: rgba(0, 0, 0, 0.35);
@@ -4456,7 +4637,7 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
   color: #500724;
 }
 
-.sb-flip-spread__inner--has-art .sb-the-end-title {
+.sb-flip-spread__inner--has-art:not(.sb-flip-spread__inner--art-facing) .sb-the-end-title {
   color: #fff;
   text-shadow:
     0 1px 2px rgba(0, 0, 0, 0.92),
@@ -4464,7 +4645,7 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
     0 0 2px rgba(0, 0, 0, 0.9);
 }
 
-.sb-flip-spread__inner--has-art .sb-the-end-lead {
+.sb-flip-spread__inner--has-art:not(.sb-flip-spread__inner--art-facing) .sb-the-end-lead {
   color: #fff;
   text-shadow:
     0 1px 2px rgba(0, 0, 0, 0.92),
@@ -4472,7 +4653,7 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
     0 0 2px rgba(0, 0, 0, 0.9);
 }
 
-.sb-flip-spread__inner--has-art .sb-the-end-wrap {
+.sb-flip-spread__inner--has-art:not(.sb-flip-spread__inner--art-facing) .sb-the-end-wrap {
   padding: 0.5rem 0.75rem;
   border-radius: 0;
   background: none;
@@ -4481,17 +4662,17 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
 
 /* Tablet band: duplex over-art type shrinks; facing text page stays readable (no sticker boxes). */
 @media (min-width: 600px) and (max-width: 1200px) {
-  .sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-flip-text__highlight {
+  .sb-flip-spread__inner--art-facing.sb-flip-spread__inner--has-art .sb-flip-left-shell .sb-flip-text__highlight {
     font-size: clamp(0.74rem, 1.8vw, 0.88rem);
     line-height: 1.7;
   }
 
-  .sb-flip-spread__inner--has-art .sb-flip-text__highlight {
+  .sb-flip-spread__inner--has-art:not(.sb-flip-spread__inner--art-facing) .sb-flip-text__highlight {
     font-size: clamp(1.05rem, 3.35vw, 1.48rem);
     line-height: 1.5;
   }
 
-  .sb-flip-spread__inner--has-art .sb-big-word {
+  .sb-flip-spread__inner--has-art:not(.sb-flip-spread__inner--art-facing) .sb-big-word {
     font-size: 1.48em;
   }
 
@@ -4515,11 +4696,11 @@ body.page-storybook.sb-reader-immersive .sb-book .sb-book-side-actions {
     font-size: clamp(0.88rem, 2.65vw, 1.05rem);
   }
 
-  .sb-flip-spread__inner--has-art .sb-the-end-title {
+  .sb-flip-spread__inner--has-art:not(.sb-flip-spread__inner--art-facing) .sb-the-end-title {
     font-size: clamp(1.45rem, 4.5vw, 2rem);
   }
 
-  .sb-flip-spread__inner--has-art .sb-the-end-lead {
+  .sb-flip-spread__inner--has-art:not(.sb-flip-spread__inner--art-facing) .sb-the-end-lead {
     font-size: clamp(0.88rem, 2.65vw, 1.05rem);
   }
 
