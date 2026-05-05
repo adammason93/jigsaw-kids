@@ -645,9 +645,9 @@ async function compileCharacterLockForImages(
     `Human co-stars named in the plot (REAL CHILDREN ONLY — NOT the imaginary buddy or pet names): ${co}\n` +
     `Who appears in pictures (beats): ${input.briefsSummary}\n` +
     (photoBlock
-      ? `\nREFERENCE PHOTOS (vision summary — HERO and any human photo line MUST match hair, eyes, skin, age; do NOT invent a different-looking child):\n${photoBlock}\n` +
+      ? `\nREFERENCE PHOTOS (vision summary — HERO and each human line MUST match hair, eyes, skin, plus **their own developmental age/stage and body proportions**; do NOT invent a different-looking child and do NOT normalize every child to the same apparent age):\n${photoBlock}\n` +
         (heroPin
-          ? `\n>>> HERO PHOTO FACTS (AUTHORITATIVE for ${input.childName} — copy Gender/Hair/Eyes/Skin/Clothes into **HERO:** even if draft below contradicts):\n${heroPin}\n\n`
+          ? `\n>>> HERO PHOTO FACTS (AUTHORITATIVE for ${input.childName} — copy Gender/Hair/Eyes/Skin, **Age/stage + body proportions if stated**, and Clothes into **HERO:** even if draft below contradicts):\n${heroPin}\n\n`
           : "") +
         (/\bCo_star_ref\s*:/i.test(photoBlock)
           ? `Co_star_ref applies ONLY when two **different human children** were uploaded. Map Co_star_ref to that second child's **human** story name — **never** ${input.childName}, **never** the imaginary buddy creature, **never** a pet's name.\n`
@@ -655,11 +655,12 @@ async function compileCharacterLockForImages(
       : "") +
     `\nStorywriter draft (may contradict photos — IGNORE wrong hair/skin for the hero when HERO PHOTO FACTS exist):\n${input.draftDesign || "(none)"}\n\n` +
     `Rewrite into LOCKED CAST only — plain text, no JSON.\n` +
-    `Use labeled lines: HERO:, BUDDY:, then one line per other named recurring HUMAN child from the plot or draft (e.g. ISAAC:) — same detail as HERO (gender, hair, eyes, skin, outfit). Never add MONKEY:, BEAR:, LION:, or random extras.\n` +
+    `Use labeled lines: HERO:, BUDDY:, then one line per other named recurring HUMAN child from the plot or draft (e.g. ISAAC:) — same detail as HERO (gender, hair, eyes, skin, **age bracket + proportional size vs hero**, posture/sitting vs standing cues, outfit). Never add MONKEY:, BEAR:, LION:, or random extras.\n` +
     (heroPin
-      ? `The **HERO:** line MUST quote the same Hair:, Eyes:, Skin:, and outfit facts as "HERO PHOTO FACTS" above (you may add a few extra words allowed by the vocabulary line below for material/texture only).\n`
+      ? `The **HERO:** line MUST quote the same Hair:, Eyes:, Skin:, **Age/stage + proportion words when present in HERO PHOTO FACTS**, and outfit facts as "HERO PHOTO FACTS" above (you may add a few extra words allowed by the vocabulary line below for material/texture only).\n`
       : `When REFERENCE PHOTOS are present above, every human line MUST quote the same Hair: colour, length, and style words from those lines (you may add short style-appropriate texture words after). Wrong hair = failure.\n`) +
     `If reference lines include **Gender: girl** or **Gender: boy**, each LOCKED CAST human must use that gender — do not swap to the opposite because a name "sounds" masculine or feminine.\n` +
+    `**MIXED AGES / SIBLINGS:** If ref lines show different developmental stages (e.g. baby + preschooler), each human LOCK line MUST keep that gap — smaller/shorter baby frame, larger head-to-body for the infant, vs longer-legged older child — never age the baby up to match the hero or make everyone the same height band.\n` +
     `Never assign one child dark brown short hair and the other long blonde for cast "variety" when references show both blonde — match each line's hair literally.\n` +
     `Each line: exact colours, relative size vs hero, silhouette, distinctive marks, wings/tail yes/no.\n` +
     `${input.compileLockArtWords}\n` +
@@ -668,7 +669,7 @@ async function compileCharacterLockForImages(
   const noBuddyLock = input.buddyKey === "nobuddy";
   const photoTruth =
     photoBlock.length > 0
-      ? " CRITICAL: Uploaded reference summaries (and any HERO PHOTO FACTS line) OVERRIDE the storywriter draft for matching humans — if the draft's hair/skin/eyes contradict a reference line for the hero, treat the draft as WRONG."
+      ? " CRITICAL: Uploaded reference summaries (and any HERO PHOTO FACTS line) OVERRIDE the storywriter draft for matching humans — if the draft's hair/skin/eyes/age-stage contradict a reference line for the hero, treat the draft as WRONG. When refs describe an infant and an older child, never collapse them into matching ages."
       : "";
   const systemLock = noBuddyLock
     ? "You are an art director for a children's book. Output only the LOCKED CAST block. Be dense and consistent. " +
@@ -963,8 +964,9 @@ async function openaiVisionDescribePortraits(
       text:
         `These ${items.length} images are reference photos for named characters in a kids' picture book, in order: ${ordered}.\n` +
         `Reply with exactly ${items.length} lines. Each line MUST use this exact template (fill in from the photo only; keep the labels):\n` +
-        `NAME: Gender (photo only — ignore whether the NAME sounds male or female): girl | boy; Hair: [colour — be specific, e.g. platinum blonde / light brown], [length — e.g. very short / chin / shoulder / mid-back / long past shoulders], [style — e.g. high pigtails with pink bands, centre part, full fringe]; Eyes: [colour]; Skin: [tone]; Age: [e.g. about 5]; Clothes: [silhouette + colours — if the shirt has a big print, say "graphic tee" without copying the art].\n` +
-        `Be literal: if the photo shows a girl, you MUST write Gender: girl even if the name is often used for boys. If hair is long in the photo, say long; if blonde, say blonde. Do not transcribe logos or tiny text. max 48 words per line; no art-style words.\n` +
+        `NAME: Gender (photo only — ignore whether the NAME sounds male or female): girl | boy; Hair: [colour — be specific, e.g. platinum blonde / light brown], [length — e.g. very short / chin / shoulder / mid-back / long past shoulders], [style — e.g. high pigtails with pink bands, centre part, full fringe]; Eyes: [colour]; Skin: [tone]; Age/stage (photo evidence ONLY — NEVER guess all children the same age): pick ONE bracket — **infant under ~18 months** | toddler ~18mo–3y | preschool ~3–6y | school-age ~6y+ ; then Motor: [e.g. sits in chair/harness, crawling, cruises, toddler walk, steady walker]; Body: [baby cues = very large rounded head vs torso, chunky limbs, often sparse fine hair vs thick toddler/preschool hair]; Clothes: [silhouette + colours — if the shirt has a big print, say "graphic tee" without copying the art].\n` +
+        `Each child is SEPARATE: if one photo shows a seated baby with baby proportions and another shows an upright preschooler with long legs, preserve that mismatch — never describe both as the same developmental stage.\n` +
+        `Be literal: if the photo shows a girl, you MUST write Gender: girl even if the name is often used for boys. If hair is long in the photo, say long; if blonde, say blonde. Do not transcribe logos or tiny text. max 54 words per line; no art-style words.\n` +
         `Use each NAME exactly as spelled above. No other text.`,
     },
   ];
@@ -1023,7 +1025,8 @@ async function openaiVisionSummarizeHeroFromRefs(
       text:
         `This image is a reference photo of ${name} (${role === "hero" ? "story hero" : "story character"}).\n` +
         `Reply with exactly one line using this template ONLY:\n` +
-        `${name}: Gender (photo only — ignore whether the name "${name}" is usually a boy or girl name): girl | boy; Hair: [colour — specific], [length], [style including fringe/pigtails/accessories]; Eyes: [colour]; Skin: [tone]; Age: [approx]; Clothes: [silhouette + colours, or graphic tee/jeans].\n` +
+        `${name}: Gender (photo only — ignore whether the name "${name}" is usually a boy or girl name): girl | boy; Hair: [colour — specific], [length], [style including fringe/pigtails/accessories]; Eyes: [colour]; Skin: [tone]; Age/stage: [same bracket spelling as batch template — infant under ~18mo | toddler ~18mo–3y | preschool ~3–6y | older ~6y+ ]; Motor/body (visible): [sits/crawls/toddling/walking; baby proportions if infant — oversized head vs legs, chunky limbs vs long-legged walker]; Clothes: [silhouette + colours, or graphic tee/jeans].\n` +
+        `If under ~18mo: say **infant** or **young baby**, NOT "toddler" or "preschooler". If seated in high chair/strapped/support, SAY SO — do not pretend they walk like a bigger child.\n` +
         `If the photo shows a young girl (long hair, dress, typical presentation), you MUST write Gender: girl even for names like Remy, Alex, or Sam. Say **straight / wavy / curly** and **blonde / brown / black / red / auburn** exactly as visible — if forehead bangs/fringe cover the eyebrows, write "with blunt fringe (bangs)". If hair is in a ponytail or bun but roots are blonde, say blonde anyway — never downgrade to generic brown bob. State real hair length and colour. Do not copy logos. max 52 words; no art-style words.\n` +
         `Use the NAME exactly as spelled above. No other text.`,
     });
@@ -1639,21 +1642,26 @@ function normalizeStoryJson(raw: unknown): StoryJson {
   return { title, characterDesign, bookColor, pages };
 }
 
-/** Story JSON defaults to **`gpt-4o-mini`**. **`STORYBOOK_STORY_MODEL`** overrides. **`STORYBOOK_STRICT_STORY_QUALITY=1`** uses **`gpt-4o`** on **high** only (costlier / slower — closer to timeout risk). */
+/**
+ * **`gpt-4o-mini`** on **standard** (~economy cap); **`gpt-4o`** on **high** for tighter text↔picture briefs (each is one JSON call).
+ * Overrides: **`STORYBOOK_STORY_MODEL`**. Set **`STORYBOOK_STRICT_STORY_QUALITY=0`** to force **`gpt-4o-mini`** even on **high**.
+ */
 function storybookStoryChatModel(bookTier: PictureBookQuality): string {
   const o = (Deno.env.get("STORYBOOK_STORY_MODEL") ?? "").trim();
   if (o) return o;
-  const strict = (Deno.env.get("STORYBOOK_STRICT_STORY_QUALITY") ?? "").trim() === "1";
-  if (strict && bookTier === "high") return "gpt-4o";
+  const relaxed = (Deno.env.get("STORYBOOK_STRICT_STORY_QUALITY") ?? "").trim() === "0";
+  if (relaxed) return "gpt-4o-mini";
+  if (bookTier === "high") return "gpt-4o";
   return "gpt-4o-mini";
 }
 
-/** LOCKED CAST — same defaults as **`storybookStoryChatModel`** (`STORYBOOK_COMPILE_LOCK_MODEL` overrides). */
+/** LOCKED CAST — mirrors **`storybookStoryChatModel`**; override with **`STORYBOOK_COMPILE_LOCK_MODEL`**. */
 function storybookCompileLockChatModel(bookTier: PictureBookQuality): string {
   const o = (Deno.env.get("STORYBOOK_COMPILE_LOCK_MODEL") ?? "").trim();
   if (o) return o;
-  const strict = (Deno.env.get("STORYBOOK_STRICT_STORY_QUALITY") ?? "").trim() === "1";
-  if (strict && bookTier === "high") return "gpt-4o";
+  const relaxed = (Deno.env.get("STORYBOOK_STRICT_STORY_QUALITY") ?? "").trim() === "0";
+  if (relaxed) return "gpt-4o-mini";
+  if (bookTier === "high") return "gpt-4o";
   return "gpt-4o-mini";
 }
 
@@ -2334,21 +2342,25 @@ function coerceIllustrationStyle(raw: unknown): IllustrationStyleKey {
   return "clay3d";
 }
 
-/** When true (opt-in only): standard tier bumps GPT Image quality if user uploaded ref photos. Unset = economy tier even with refs (~standard cost); uploads + vision text still steer likeness. */
+/**
+ * Opt-in push toward the ~60p ceiling: **all** GPT Image edits (including spreads) at **high**
+ * when refs are present — use only when you need max likeness vs cost.
+ * Baseline paths already use stronger gen + medium edits whenever refs exist.
+ */
 function gptImageRefPhotoQualityBoostEnabled(): boolean {
   const v = (Deno.env.get("STORYBOOK_REF_PHOTO_IMAGE_BOOST") ?? "").trim().toLowerCase();
   return v === "1" || v === "true" || v === "on" || v === "yes";
 }
 
-function gptImageSizeForRequest(_bookTier: PictureBookQuality): string {
+function gptImageSizeForRequest(bookTier: PictureBookQuality): string {
   const raw = (Deno.env.get("STORYBOOK_GPTIMAGE_SIZE") ?? "")
     .trim()
     .toLowerCase()
     .replace(/\s/g, "")
     .replace("×", "x");
   if (raw && GPT_IMAGE_SIZES.has(raw)) return raw;
-  /** 1024² keeps GPT Image books inside typical ~150s Edge budgets (1 anchor + 6 parallel-ish edits). Landscape: set secret `STORYBOOK_GPTIMAGE_SIZE=1536x1024`. */
-  return "1024x1024";
+  /** **Standard** stays 1024² for reliability; **high** tier defaults to landscape detail while books often still finish under ~60p combined. Override with secret `STORYBOOK_GPTIMAGE_SIZE`. */
+  return bookTier === "high" ? "1536x1024" : "1024x1024";
 }
 
 function gptImageDefaultModel(): string {
@@ -2377,36 +2389,39 @@ function gptImageQualityForRequest(
     return envRaw;
   }
   if (bookTier === "high") {
-    /** ~50p / reliable Edge finishes: avoid pricey high-res anchor unless secrets override */
-    return scope === "generation" ? "medium" : "medium";
+    if (hasUserPortraitRefs && gptImageRefPhotoQualityBoostEnabled()) {
+      return "high";
+    }
+    return scope === "generation" ? "high" : "medium";
   }
-  // Standard tier — optional bump when ref photos (costly; enable with STORYBOOK_REF_PHOTO_IMAGE_BOOST=1)
-  if (hasUserPortraitRefs && gptImageRefPhotoQualityBoostEnabled()) {
+  // Standard — ref photos → stronger likeness by default (~still under typical ~60p cap vs bargain runs)
+  if (hasUserPortraitRefs) {
+    if (gptImageRefPhotoQualityBoostEnabled()) return "high";
     return scope === "generation" ? "high" : "medium";
   }
   return scope === "generation" ? "medium" : "low";
 }
 
-/** When env unset: high book tier or (ref photos + quality boost on) → stricter edit lock. */
+/** When env unset: uploaded ref photos → high `input_fidelity` on edits to lock likeness; optional extras via secrets. */
 function gptImageInputFidelityForRequest(
-  bookTier: PictureBookQuality,
+  _bookTier: PictureBookQuality,
   hasUserPortraitRefs: boolean,
 ): "low" | "high" {
   const env = (Deno.env.get("STORYBOOK_GPTIMAGE_INPUT_FIDELITY") ?? "").trim().toLowerCase();
   if (env === "high") return "high";
   if (env === "low") return "low";
-  if (bookTier === "high" && hasUserPortraitRefs) return "high";
-  if (hasUserPortraitRefs && gptImageRefPhotoQualityBoostEnabled()) return "high";
+  if (hasUserPortraitRefs) return "high";
   return "low";
 }
 
 /**
- * Vision for reference photos — default **`gpt-4o-mini`** for cost; **`STORYBOOK_VISION_MODEL=gpt-4o`** for max hair/skin accuracy.
+ * Vision for reference photos — default **`gpt-4o`** for hair/skin/outline accuracy;
+ * **`STORYBOOK_VISION_MODEL=gpt-4o-mini`** to trim cost when budget is tighter.
  */
 function storybookPortraitVisionModel(): string {
   const m = (Deno.env.get("STORYBOOK_VISION_MODEL") ?? "").trim();
   if (m) return m;
-  return "gpt-4o-mini";
+  return "gpt-4o";
 }
 
 function decodeB64ToBytes(b64: string): Uint8Array {
@@ -2650,7 +2665,9 @@ async function gptImageEdit(
   const model = gptImageDefaultModel();
   const moderation = gptImageModerationParam();
   const size = gptImageSizeForRequest(bookTier);
-  const quality = gptImageQualityForRequest("edit", bookTier, hasUserPortraitRefs);
+  const baseQuality = gptImageQualityForRequest("edit", bookTier, hasUserPortraitRefs);
+  const quality =
+    opts?.portraitPixelsAnchor && referenceBytes.length > 0 ? "high" : baseQuality;
   const trimmed = prompt.slice(0, GPT_IMAGE_PROMPT_MAX);
   const fidelity =
     opts?.portraitPixelsAnchor && referenceBytes.length > 0
@@ -3152,8 +3169,8 @@ ${proseVolumeParityRule ? `${proseVolumeParityRule}\n` : ""}- **Where the ending
       : ""
   }
 ${
-  portraitAppearance
-    ? `\nPHOTO-MATCH (reference photos were uploaded): The "Appearance from reference photos" block in the user message was produced from real family pictures. For every person named there, characterDesign and every spread must preserve that identity — **hair colour, hair length, and style (including accessories)**, eye colour, skin tone, approximate age, and gender presentation — never swap in a different-looking child. If a photo line conflicts with generic "plain solid tee" boilerplate, follow the photo summary (you may describe a busy real-life top as one short neutral phrase such as "cream sweatshirt with a colourful front" rather than inventing a different outfit).\n**NO HAIR CONTRAST:** If two (or more) lines all describe long blonde hair (or the same family of colouring), **every** named child must keep that — do **not** make one child brunette, auburn, or short-haired so they "look different" next to the hero. Differentiate co-stars with outfit, face shape, or small style details only, not opposite hair colours.\n`
+    portraitAppearance
+      ? `\nPHOTO-MATCH (reference photos were uploaded): The "Appearance from reference photos" block in the user message was produced from real family pictures. For every person named there, characterDesign and every spread must preserve that identity — **hair colour, hair length, and style (including accessories)**, eye colour, skin tone, **distinct developmental stage (infant vs toddler vs preschool) and realistic body proportions for that stage**, gender presentation — never swap in a different-looking child nor **average ages** across siblings.\nIf one line reads as an **infant / young baby (~under 18 months)** and another as an older **walker/preschooler**, KEEP that contrast: the baby stays visibly younger, shorter, rounder-headed, and weaker on their feet — never draw them the same size or standing pose as the older child unless the story beat explicitly says they are being carried or supported.\n**NO HAIR CONTRAST:** If two (or more) lines all describe long blonde hair (or the same family of colouring), **every** named child must keep that — do **not** make one child brunette, auburn, or short-haired so they "look different" next to the hero. Differentiate co-stars with outfit, face shape, **age stage**, or small style details only, not opposite hair colours.\nIf a photo line conflicts with generic "plain solid tee" boilerplate, follow the photo summary (you may describe a busy real-life top as one short neutral phrase such as "cream sweatshirt with a colourful front" rather than inventing a different outfit).\n`
     : ""
 }
 ${
@@ -3167,9 +3184,9 @@ ${
     : ""
 }
 - Include fields title (string), characterDesign (string), bookColor (string: ${BOOK_COLOR_MODEL_HINT}. If unsure, pick a tint that fits the child's name — cooler tones for many boy names, warmer for many girl names), and pages (array of 12 objects).
-  For "characterDesign": describe the hero, the one main buddy creature, EVERY human child named in the plot idea who appears in the story, and any named game people who actually appear. If the plot names only ${childName} plus the buddy, characterDesign has exactly those two rich descriptions. If the plot names an extra child (e.g. Isaac), add a full third block for that child — never fold them into the buddy description. Never lions, bears, or unnamed critters. For each included character you MUST define their EXACT gender (e.g. boy/girl) **from the appearance-from-photos lines when present — those Gender: girl/boy tokens override any guess from the spelling of the child's name.** Then age, height in words or feet without inch marks (e.g. about four feet tall, or 4 ft), body shape, skin/surface tone, eye color, facial features, hair color, hair style, AND exact texture/material (e.g. smooth sculpted clay hair, fuzzy felt fur, shiny plastic — never use the double-quote character anywhere in this field). For the buddy creature, explicitly define anatomy (horse-like unicorn with hooves and horn; or winged dragon; etc.). Plus ONE specific, unchanging outfit or set of accessories with exact colors and materials. If an animal or creature wears nothing, say they are in natural animal form with no human outfits.${
+  For "characterDesign": describe the hero, the one main buddy creature, EVERY human child named in the plot idea who appears in the story, and any named game people who actually appear. If the plot names only ${childName} plus the buddy, characterDesign has exactly those two rich descriptions. If the plot names an extra child (e.g. Isaac), add a full third block for that child — never fold them into the buddy description. Never lions, bears, or unnamed critters. For each included character you MUST define their EXACT gender (e.g. boy/girl) **from the appearance-from-photos lines when present — those Gender: girl/boy tokens override any guess from the spelling of the child's name.** Then **age band and locomotion realistic for THAT child** — an infant sibling is seated/crawling/held cues and baby proportions vs a preschool hero who walks; never give every human the same wording like "about four feet tall". Then height/size in plain words vs other kids (much shorter sibling, waist-high to hero, etc.), body shape (baby chub vs lanky preschooler), skin/surface tone, eye color, facial features, hair color, hair style, AND exact texture/material (e.g. smooth sculpted clay hair, fuzzy felt fur, shiny plastic — never use the double-quote character anywhere in this field). For the buddy creature, explicitly define anatomy (horse-like unicorn with hooves and horn; or winged dragon; etc.). Plus ONE specific, unchanging outfit or set of accessories with exact colors and materials. If an animal or creature wears nothing, say they are in natural animal form with no human outfits.${
     portraitAppearance
-      ? " When reference-photo appearance lines exist for a person, treat those as authoritative for hair, eyes, skin, and outfit vibe for that person — do not overwrite with a generic description."
+      ? " When reference-photo appearance lines exist for a person, treat those as authoritative for hair, eyes, skin, **age bracket and locomotion cues**, and outfit vibe — do not overwrite with a generic description."
       : ""
   } CRITICAL: Keep clothing solid-colored and simple. DO NOT put logos, graphics, patterns, or text on clothing (DALL-E hallucinates these). DO NOT give them multiple outfits or changing colors. You MUST use the exact same clothing description for the hero in EVERY single illustrationBrief. That locks their look for the book; the illustrator still shows different faces and poses per spread from the story beats — your prose should not force the same generic smile line into every brief.
 - Each page: { "text": string, "illustrationBrief": string | null }.
@@ -3347,6 +3364,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
     (noBuddyBook
       ? "NO STANDING CREATURE BUDDY: Illustrate only humans named in SCENE ACTION — do not add a unicorn, dragon, robot, or animal mascot unless SCENE ACTION explicitly names that element from the plot. "
       : "ONE BUDDY ANIMAL: Only one imaginary buddy creature from the BUDDY line in the image (e.g. one unicorn), not clones or a big+little pair, unless SCENE ACTION names two. ") +
+    "PET & QUADRUPED ANATOMY: Any walking dog/puppy/cat pony fox bunny or buddy drawn as quadrupeds — spine and skull face travel direction together; nose points where paws lead. **Forbidden:** head rotated ~180° (face toward camera while rump tail away). Prefer side profile gentle three-quarter rear-cute or matched front pose — never exorcist neck twists on animals. " +
     "TEXT-LOCKED: ONLY characters explicitly named in SCENE ACTION — same roster as this spread's verse, same count. NO unnamed extras: no villagers, silhouettes with faces, filler torch-bearers, spare animals, or audience. NO logos. Background = whatever the ENVIRONMENT line specifies (castle, woods, cave, beach, garden, space, sea, ship, mountain, zoo, farm, circus, city, train, lake, snow, desert, museum, island, etc.) without extra faced characters. NO signs with lettering, carved runes, or flyers. ";
 
   const envTheme =
@@ -3428,14 +3446,14 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
 
     const photoRefHairLock =
       portraitAppearance.trim().length > 0
-        ? "Reference photos were supplied: for every HUMAN in LOCKED CAST, match written **Gender girl/boy**, hair colour, hair LENGTH, and arrangement — never turn a written **girl** with long blonde into a boy with short brown hair because of her name. **If every line is long blonde, both children are long blonde** — no brunette co-star for contrast. "
+        ? "Reference photos were supplied: for every HUMAN in LOCKED CAST, match written **Gender girl/boy**, hair colour, hair LENGTH, and arrangement — never turn a written **girl** with long blonde into a boy with short brown hair because of her name. **If every line is long blonde, both children are long blonde** — no brunette co-star for contrast. **Mixed ages:** if LOCKED CAST says one child is an infant/baby and another is a preschool walker, lineup + spreads must preserve shorter baby frame vs taller sibling — never same-height twin treatment. "
         : "";
 
     const anchorPreamble =
       "A completely textless illustration. NO letters, words, typography, labels, speech bubbles, signs with text, book pages with writing, loose papers, scrolls, glyph noise, watermarks, or fake paragraph texture anywhere. Plain smooth background regions only — no pseudo-text. " +
       (noBuddyBook
-        ? "CAST LINEUP / MODEL SHEET for a kids picture book: every character line in LOCKED CAST below (human hero and any named human co-stars or game people ONLY — no creature buddy in the lineup). Together in ONE frame, calm neutral expressions and friendly standing poses for identity reference only — story illustrations later will change faces and poses per scene. "
-        : "CAST LINEUP / MODEL SHEET for a kids picture book: every character line in LOCKED CAST below (hero, buddy, and any named human co-stars or game people) — no one else, no third mascot or crowd, no duplicate unicorns. Together in ONE frame, calm neutral expressions and friendly standing poses for identity reference only — story illustrations later will change faces and poses per scene. ") +
+        ? "CAST LINEUP / MODEL SHEET for a kids picture book: every character line in LOCKED CAST below (human hero and any named human co-stars or game people ONLY — no creature buddy in the lineup). Together in ONE frame, calm neutral expressions; **identification poses** — preschoolers/upright walkers standing on flat ground; babies/infants from LOCKED CAST **seated**, **held**, or cushioned squat — never redraw a visibly younger baby standing full-height like an older sibling. Story illustrations later will change faces and poses per scene. "
+        : "CAST LINEUP / MODEL SHEET for a kids picture book: every character line in LOCKED CAST below (hero, buddy, and any named human co-stars or game people) — no one else, no third mascot or crowd, no duplicate unicorns. Together in ONE frame, calm neutral expressions; **identification poses** — walkers stand on their feet side-by-side style; photographed **infants remain visibly infants** (**seated** on cushion/ground, parent's arms, stroller, age-appropriate) — NOT same stature as preschool hero beside them. Story illustrations later will change faces and poses per scene. ") +
       photoRefHairLock +
       "full bodies on a plain soft background that still fills the canvas edge-to-edge — modest inset so hair, feet, wings, and tails do not touch the border; figures roughly ~50–68% of frame height so each design reads clearly with a bit more breathing room around the lineup, " +
       artStyleSpec.anchorMaterialClause +
@@ -3470,7 +3488,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
           const i2iIntro =
             anchorPreamble +
             (multiKid
-              ? "UPLOAD ORDER: attached images are real reference photos (**hero uploads first**, then tagged friends left-to-right in filename order). Recreate **each photographed child’s** likeness in this illustration style alongside any cast members that exist **only** in LOCKED CAST (no photo)—draw those from LOCKED CAST. Preserve unmistakable **face identity** (bone structure, age, ethnicity vibe) per photo; hairstyles and colouring should match refs; outfits follow LOCKED CAST and book simplicity—do not slavishly copy busy print from snapshots.\n"
+              ? "UPLOAD ORDER: attached images are real reference photos (**hero uploads first**, then tagged friends left-to-right in filename order). Recreate **each photographed child’s** likeness in this illustration style alongside any cast members that exist **only** in LOCKED CAST (no photo)—draw those from LOCKED CAST. Preserve unmistakable **face identity**, **exact developmental stage** (do not age-up a seated baby next to an older walker), bone structure likeness per photo; hairstyles and colouring should match refs; outfits follow LOCKED CAST and book simplicity—do not slavishly copy busy print from snapshots.\n"
               : "UPLOAD: attached image is the **real hero child**. Repaint into the picture-book style below as the lineup pose; preserve unmistakable **face identity**—bone structure, age, likeness; hair as in photo unless LOCKED CAST specifies otherwise; clothing per LOCKED CAST. Any buddy or humans **without** a photo come only from LOCKED CAST.\n");
 
           try {
@@ -3689,7 +3707,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
           }
 
           blocks.push(
-            "EXPRESSION & POSE: Keep each character's IDENTITY locked to the reference — same face shape, hair COLOUR, hair LENGTH, hair STYLE, skin tone, outfit colours, species, proportions. Change pose, body language, and facial expression to match THIS SPREAD'S MOMENT (e.g. surprised brows, belly laugh, anxious side-glance, sleepy smile, focused pout). Do not give every spread the same neutral grin unless the verse is neutral; buddy creatures should emote in species-appropriate ways too.",
+            "EXPRESSION & POSE: Keep each character's IDENTITY locked to the reference — same face shape, hair COLOUR, hair LENGTH, hair STYLE, skin tone, outfit colours, species, **age-appropriate body proportions** (infant vs walker — never age a baby up to match a preschool sibling's height). Change pose, body language, and facial expression to match THIS SPREAD'S MOMENT (e.g. surprised brows, belly laugh, anxious side-glance, sleepy smile, focused pout). Do not give every spread the same neutral grin unless the verse is neutral; buddy creatures should emote in species-appropriate ways too.",
           );
 
           // 5. Visible cast for THIS spread (the part that fixes the
