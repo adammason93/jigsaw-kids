@@ -1,6 +1,10 @@
 # clever-service (storybook)
 
-Generates a **12-page** story (6 double-page spreads) with **GPT-4o-mini** JSON. **Illustrations:** with **`FAL_KEY`** set (default) — one **Flux** text-to-image **cast lineup / model sheet** (anchor), then **all 6 spreads** use **[Fal Flux Ultra Redux](https://fal.ai)** **image→image** from that anchor for consistent characters across scenes. Without **`FAL_KEY`**, all 6 images use **DALL·E 3** (OpenAI).
+Generates a **12-page** story (six double-page spreads) with OpenAI chat (tiered **`gpt-4o`** / **`gpt-4o-mini`** per **`pictureBookQuality`** and env overrides).
+
+**Illustrations (documented setup):** set **`STORYBOOK_IMAGE_MODE=gptimage`** so every book uses **OpenAI GPT Image** only (**default model `gpt-image-2`** when **`STORYBOOK_GPTIMAGE_MODEL`** is omitted): **one anchor** **`/v1/images/generations`**, then **six spreads** **`/v1/images/edits`** against that anchor PNG (uploaded to Supabase **`storybook_images`**). That path has **no silent fallback** — failures return **`gpt_image_failed`** / **`gpt_image_anchor_failed`**.
+
+Older **non–GPT-Image** pipelines may still exist **in source** for forks; omit **`STORYBOOK_IMAGE_MODE`** only if your deployment deliberately uses another path and you maintain it yourself — this README does not describe third-party illustration APIs.
 
 ## Secrets
 
@@ -13,26 +17,19 @@ supabase secrets set OPENAI_API_KEY=sk-...
 # Optional — only for gpt-4o-mini-tts; overrides the built-in kid-friendly instruction line
 # supabase secrets set OPENAI_TTS_INSTRUCTIONS=Speak in a cheerful storyteller voice.
 # Public HTTPS origin where your static site serves files (no trailing slash).
-# Used to fetch portrait PNGs (e.g. games/images/character-freya.png) for vision → DALL·E prompts.
+# Used to fetch portrait PNGs (e.g. games/images/character-freya.png) for vision → prompts.
 supabase secrets set BOOK_ASSETS_BASE_URL=https://your-site.example
 # Optional — model for summarising **uploaded** hero/friend reference photos (default gpt-4o for better hair/colour accuracy; use mini to save cost):
 # supabase secrets set STORYBOOK_VISION_MODEL=gpt-4o-mini
 
-# Optional — cast anchor T2I + 6× image→image Redux (strongest consistency). If a Fal image step errors, the request fails with **`fal_failed`** (no DALL·E fallback — avoids mixed-style books). Without **`FAL_KEY`**, all pictures use DALL·E as before.
-supabase secrets set FAL_KEY=...
-# Optional overrides:
-# supabase secrets set STORYBOOK_FAL_TEXT_MODEL=fal-ai/flux-pro/v1.1   # anchor + legacy spread-1 model
-# supabase secrets set STORYBOOK_FAL_MODEL=fal-ai/flux-pro/v1.1-ultra/redux
-# supabase secrets set STORYBOOK_FAL_REFERENCE_STRENGTH=0.35
-# supabase secrets set STORYBOOK_FAL_CAST_ANCHOR=0   # legacy: spread 1 T2I, spreads 2–6 Redux from spread 1 (not anchor sheet)
-# supabase secrets set STORYBOOK_REUSE_FIRST_ON_LAST=1   # opt-in: last picture spread reuses spread 1 art as a bookend; omit or leave unset for a distinct final illustration (default)
-# supabase secrets set STORYBOOK_FAL_DISABLE=1   # force all DALL·E even if FAL_KEY is set
-
-# Optional — switch image pipeline to OpenAI GPT Image (generations + edits; default model gpt-image-1.5).
-# Anchor = text-to-image, spreads 2–6 = images/edits with the anchor as reference (best character consistency on the OpenAI side).
+# Illustrations — OpenAI GPT Image (recommended)
+# Anchor = text-to-image, spreads 2–6 = images/edits with the anchor as reference.
 # Requires the public storage bucket created by migration 20260501093000_storybook_images_public_bucket.sql.
-# supabase secrets set STORYBOOK_IMAGE_MODE=gptimage
-# supabase secrets set STORYBOOK_GPTIMAGE_MODEL=gpt-image-1.5   # or gpt-image-1, gpt-image-1-mini, etc.
+supabase secrets set STORYBOOK_IMAGE_MODE=gptimage
+# supabase secrets set STORYBOOK_GPTIMAGE_MODEL=gpt-image-2   # omitted default; or gpt-image-1.5 to save vs Image 2, etc.
+# **`high`** **`pictureBookQuality`** + default **`gpt-image-2`** → **cost-parity** caps (1024², tighter edit **`quality`** / **`input_fidelity`**) unless you opt out — keeps picture spend nearer legacy ~£0.40–0.60 (**verify** usage):
+# supabase secrets set STORYBOOK_GPTIMAGE_LEGACY_BUDGET=0    # **max** print fidelity: 1536×1024 + high/med defaults again
+# supabase secrets set STORYBOOK_GPTIMAGE_LEGACY_BUDGET=1    # force parity for **any** image model (e.g. tighten 1.5 too)
 # supabase secrets set STORYBOOK_GPTIMAGE_MODERATION=low        # default low (omit or set low); use auto for OpenAI default moderation
 # supabase secrets set STORYBOOK_GPTIMAGE_QUALITY=high    # optional: high on anchor AND all six spread edits (priciest; restores old “max detail” tier)
 # supabase secrets set STORYBOOK_GPTIMAGE_QUALITY=medium  # optional: one tier for anchor + all edits (between economy and high)
@@ -40,10 +37,13 @@ supabase secrets set FAL_KEY=...
 # # If you omit STORYBOOK_GPTIMAGE_QUALITY: **standard** tier uses **medium** anchor + **low** edits + **low** `input_fidelity` by default — **including when reference photos are uploaded** (economy; uploads + vision summaries still steer likeness). Opt into pricier likeness with **`STORYBOOK_REF_PHOTO_IMAGE_BOOST=1`** (or `true` / `on` / `yes`): then with uploads you get **high** anchor + **medium** edits + **high** `input_fidelity` on edits. **High** `pictureBookQuality` is unchanged (`high` / `medium`). `STORYBOOK_GPTIMAGE_QUALITY` still overrides everything when set.
 # supabase secrets set STORYBOOK_REF_PHOTO_IMAGE_BOOST=1   # optional: standard + ref photos — bump image quality/fidelity (costs more; better face/hair lock)
 # supabase secrets set STORYBOOK_GPTIMAGE_SIZE=1536x1024    # optional: default 1024x1024 (cheapest); 1536x1024 = wider spread, costs more
-# supabase secrets set STORYBOOK_GPTIMAGE_INPUT_FIDELITY=low    # edits: force low | high; if OMITTED: high when high tier OR (ref photos + ref boost on); else low
-# supabase secrets set STORYBOOK_GPTIMAGE_CHUNK_SIZE=4         # how many spread edits to run in parallel per chunk (default 4 — anchor+4=5/min, the tier-1 ceiling)
-# supabase secrets set STORYBOOK_GPTIMAGE_CHUNK_WAIT_MS=12000  # pause between chunks (default 12000ms; raise to 20000+ if 429 rate limits; try 8000 only on higher OpenAI tiers)
+# supabase secrets set STORYBOOK_GPTIMAGE_INPUT_FIDELITY=low    # edits: force low | high; if OMITTED: see cost-parity for **high** + `gpt-image-2`, else **high** when **`high`** tier OR (ref photos + boost on)
+# supabase secrets set STORYBOOK_GPTIMAGE_CHUNK_SIZE=4         # how many spread edits to run in parallel per chunk (default 6 — one wave when possible)
+# supabase secrets set STORYBOOK_GPTIMAGE_CHUNK_WAIT_MS=12000  # pause between chunks (default 0ms within one wave; raise if 429 rate limits)
 # Adaptive cooldown (default on): if the previous batch was slow, the function sleeps less so the ~150s edge limit is less likely to hit. To always use the full wait: supabase secrets set STORYBOOK_GPTIMAGE_CHUNK_WAIT_ADAPTIVE=0
+
+# Optional — reuse first illustration on last spread (any image mode)
+# supabase secrets set STORYBOOK_REUSE_FIRST_ON_LAST=1
 ```
 
 ## Deploy
@@ -88,28 +88,31 @@ Allowlist: **`OPENAI_TTS_VOICE_IDS`** in `supabase/functions/clever-service/inde
 
 The browser calls `…/functions/v1/clever-service` — set **`storybookEdgeSlug`** in `js/score-config.js` if you ever use a different slug. **`character`** / **`place`** normally pick preset keys listed in **`CHARACTERS`** and **`PLACES`** in `supabase/functions/clever-service/index.ts` (matching `games/storybook.js`). Keys are normalised with **`normalizeWizardKey`** (trim, lower case, spaces collapsed to underscores). If the browser has **newer** chip keys than your deployed function, you get **`error: "invalid_choices"`** with **`detail`** like **`unknown_place:fairground`** until you redeploy **`clever-service`**. For **any buddy or place** the picker also supports **`custom_buddy`** with **`buddyCustom`** and **`custom_place`** with **`placeCustom`** (trimmed prose, minimum a few letters after sanitise, maximum **200** characters each — same caps as `STORYBOOK_CUSTOM_CHOICE_MAX` on the Edge function). **`plotHint`** is trimmed to **800** characters server-side (same cap as the storybook textarea).
 
-**`pictureBookQuality`** (optional, GPT Image mode only): **`"standard"`** (**default**) — **play / screen** economy: **`gpt-4o-mini`** story + LOCKED CAST + **`gpt-4o-mini`** portrait vision unless **`STORYBOOK_STORY_MODEL`**, **`STORYBOOK_COMPILE_LOCK_MODEL`**, or **`STORYBOOK_VISION_MODEL`** override; **1024×1024** spreads when size secret unset; **`STORYBOOK_REF_PHOTO_IMAGE_BOOST`** is **off** unless you opt in (**`1`** / **`true`**). **`"high"`** — **print / grown-ups**: **`gpt-4o`** story + cast lock + **`gpt-4o`** portrait vision by default; **1536×1024**; ref-photo GPT Image bump is **on** unless **`STORYBOOK_REF_PHOTO_IMAGE_BOOST=0`**. **`STORYBOOK_GPTIMAGE_SIZE`** / **`STORYBOOK_GPTIMAGE_QUALITY`** still override both tiers. Fal / DALL·E paths ignore this field.
+**`pictureBookQuality`** (optional, GPT Image mode only): **`"standard"`** (**default**) — **play / screen** economy: **`gpt-4o-mini`** story + LOCKED CAST + **`gpt-4o-mini`** portrait vision unless **`STORYBOOK_STORY_MODEL`**, **`STORYBOOK_COMPILE_LOCK_MODEL`**, or **`STORYBOOK_VISION_MODEL`** override; **1024×1024** spreads when size secret unset; **`STORYBOOK_REF_PHOTO_IMAGE_BOOST`** is **off** unless you opt in (**`1`** / **`true`**). **`"high"`** — **grown-ups / keepsakes**: **`gpt-4o`** story + cast lock + **`gpt-4o`** portrait vision by default. With **`gpt-image-2`** (default model), **`high`** defaults to **cost-parity**: **1024×1024** + lighter edit **`quality`** / **`input_fidelity`** when **`STORYBOOK_GPTIMAGE_LEGACY_BUDGET`** is unset (same goal as legacy ~£0.40–0.60 pictures — verify usage). Use **`STORYBOOK_GPTIMAGE_LEGACY_BUDGET=0`** for full **high** fidelity (**1536×1024**, high/med GPT Image tiers). Ref-photo GPT Image bump is **on** for **`high`** unless **`STORYBOOK_REF_PHOTO_IMAGE_BOOST=0`**. **`STORYBOOK_GPTIMAGE_SIZE`** / **`STORYBOOK_GPTIMAGE_QUALITY`** still override both tiers.
 
 ## Cost (indicative)
 
-Rough order: With Fal, typically **1** text-to-image (anchor) **+ 6** Redux image→image calls, or legacy **7** calls (1 T2I + 6 Redux), plus DALL·E-only paths **+** story chat **+** character-bible chat **+** optional **vision** (portraits + first-panel lock) **+** **Fal** latency. Check [OpenAI](https://openai.com/pricing) and [Fal pricing](https://fal.ai/pricing) for current rates.
+Rough order **for GPT Image books:** **one** GPT Image generation **+ six** GPT Image edits **plus** story / LOCKED CAST / optional portrait vision. Check **[OpenAI pricing](https://openai.com/pricing)** for current rates.
 
 **GPT Image:** **standard** is often **~14p-order** for **AI pictures only** (anchor + spreads); **high** often **~40–60p** for pictures — **verify** billing. Turn **`STORYBOOK_REF_PHOTO_IMAGE_BOOST=1`** on standard + uploads for stronger likeness at higher image cost.
 
 **Micro savings:** the **two-hero-photo** SAME/TWO vision check uses **`gpt-4o-mini`** with **`detail: low`**. Portrait **hair** vision is **`gpt-4o-mini`** on **standard** tier and **`gpt-4o`** on **high** unless **`STORYBOOK_VISION_MODEL`** is set.
 
-The JSON response **`meta`** includes **`imageMode`** (`fal` or `gptimage`), **`falCastAnchorUsed`**, **`falTextSpreads`**, **`falReduxSpreads`**, **`falTextModel`** / **`falReduxModel`** when Fal is enabled, and **`gptImageModel`** / **`gptImageSpreads`** when GPT Image is enabled.
+The JSON **`meta`** includes **`imageMode`** and, when GPT Image ran, **`gptImageModel`** and **`gptImageSpreads`**.
 
-Portrait images are **not** sent to DALL·E (it only accepts text). The function downloads PNGs from your deployed site, summarises looks with vision, and injects that text into story + image prompts.
+Portrait images are summarised via vision text (not pasted into GPT Image multipart as raw uploads for the spreads — see code for portrait reference handling).
 
 **Two photos both tagged for the hero:** the function runs a quick vision check (same child vs two different children). If they look like **two** kids, it produces two appearance lines (`Co_star_ref` for the second) so the illustrated co-star is not a random generic. First photo = hero, second = other named child when split. If it decides **same** child but your story has two human characters, prompts still nudge the co-star’s hair toward the reference family look.
 
-The static **storybook** page loads illustration URLs through the same **`clever-service?url=`** image proxy as DALL·E for **Fal** CDN links (`fal.media`, etc.) so spreads don’t randomly show a black picture pane when the browser can’t fetch the remote file directly.
+Some illustration URLs load through **`clever-service?url=`** when the browser needs a **same-origin proxy** — see `games/storybook.js` (**`storyImageNeedsEdgeProxy`**).
 
 ## Troubleshooting
 
-- **GPT Image (`STORYBOOK_IMAGE_MODE=gptimage`)** — **strict, no fallback**: When this mode is on, the function will ONLY use the configured GPT Image model (**default `gpt-image-1.5`** if `STORYBOOK_GPTIMAGE_MODEL` is unset). There is **no silent fallback** to Fal or DALL·E — if the anchor or any spread edit fails, the function returns `error: "gpt_image_failed"` with the OpenAI detail in `detail` and `imageMode: "gptimage"` so the client knows exactly which engine failed. Anchor uses **`/v1/images/generations`**; the 6 spread edits use **`/v1/images/edits`** with the anchor PNG as reference. **Per-request `pictureBookQuality`:** **`standard`** (default) vs **`high`** — see “Deploy” section above; **`STORYBOOK_GPTIMAGE_QUALITY`** / **`STORYBOOK_GPTIMAGE_SIZE`** env secrets override the tier defaults when set. **`size: 1024x1024`** vs **`1536x1024`** depends on tier and env (see above), **`input_fidelity`** on edits defaults to **`high`** when **`pictureBookQuality` is high** or **(uploaded reference photos and `STORYBOOK_REF_PHOTO_IMAGE_BOOST` is on)**, else **`low`** (override with **`STORYBOOK_GPTIMAGE_INPUT_FIDELITY`**), **`moderation: low`**, **`output_format: png`**, **`stream: false`**, and **HTTP 400 fallbacks** (minimal generation payload; edits retry without `quality`). Output is decoded from base64 (or fetched if a URL is ever returned) and uploaded to the public **`storybook_images`** bucket. Spread edits default to **one batch of six in parallel** (fastest wall clock under the Edge **~150s** limit); override with **`STORYBOOK_GPTIMAGE_CHUNK_SIZE`** and optional **`STORYBOOK_GPTIMAGE_CHUNK_WAIT_MS`** if you hit **429** rate limits — e.g. **4** then **12000**. Visual lock vision is **skipped** for this pipeline. A built-in **429 retry-after backoff** handles bursts. Errors usually come from missing bucket, prompt moderation, rate limits, or edge timeout — check function logs.
-- **Fal (`fal_failed`)**: When **`FAL_KEY`** is set, a failed Fal step stops the whole book (no DALL·E substitution). Check function logs, Fal queue errors, and billing. With **cast anchor**, the reference is the anchor URL; with **`STORYBOOK_FAL_CAST_ANCHOR=0`**, Fal must fetch spread 1’s image URL. Tune `STORYBOOK_FAL_REFERENCE_STRENGTH` (higher = stick closer to the reference). The **first picture spread** uses a slightly lower strength than the rest so the opening scene (woods, torches, etc.) can replace the neutral lineup backdrop.
-- **`images_failed` / DALL·E HTTP 400** (no Fal, or non-Fal errors): Redeploy so you have the latest function (sequential images + retries). The API response body is returned as `detail` in the JSON and logged. Common causes: deprecated parameter combos (the function retries with minimal payload), invalid image size for the account, or prompt **content policy** (read the `detail` message from OpenAI).
-- **Log line `gpt-image chunk cooldown …`**: This is normal — the function pauses between batches of spread edits for OpenAI rate limits. It is **not** an error. If the **first batch was slow** (often 55s+), the new **adaptive** cooldown uses a **shorter** sleep so the total run is less likely to exceed the edge **~150s** wall clock (HTTP 546). Disable with `STORYBOOK_GPTIMAGE_CHUNK_WAIT_ADAPTIVE=0` if you see **429**s and need the full wait every time.
-- **HTTP 546 / 504 / “ran out of time”**: The Edge invocation has a ~**150s** wall clock. GPT Image is **1 anchor + 6 edits**; defaults run **six spread edits in one parallel wave** (`STORYBOOK_GPTIMAGE_CHUNK_SIZE` **6**, wait **0**) to minimise total time — if OpenAI returns **429**, fall back to **chunk 4** + **`STORYBOOK_GPTIMAGE_CHUNK_WAIT_MS=12000`** or raise image throughput tier. **Paid Supabase** can allow a longer Edge limit in the Dashboard. **Billing:** incomplete runs may still incur OpenAI charges for requests that finished before the gateway cut you off — the UI explains this briefly on timeout.
+- **GPT Image (`STORYBOOK_IMAGE_MODE=gptimage`)** — **strict**: the function ONLY uses the configured GPT Image model (**default `gpt-image-2`** if `STORYBOOK_GPTIMAGE_MODEL` is unset). If the anchor or any spread edit fails, the function returns **`gpt_image_failed`** (or **`gpt_image_anchor_failed`**) with the OpenAI **`detail`** and **`imageMode: "gptimage"`**. **`size`**, **`quality`**, **`input_fidelity`** follow tier + **`STORYBOOK_GPTIMAGE_*`** secrets — see Secrets block. **`HTTP 400` fallbacks** may retry minimal payloads inside the GPT Image pipeline only — not a provider switch.
+
+- **`images_failed` / DALL·E HTTP 400**: only applies if your deployment runs the **legacy OpenAI Images (DALL·E)** path (**no** GPT Image mode). Otherwise ignore if you strictly use GPT Image.
+
+- **Log line `gpt-image chunk cooldown …`**: normal — pacing for rate limits. **Adaptive cooldown** trims sleep when batches were slow; disable with **`STORYBOOK_GPTIMAGE_CHUNK_WAIT_ADAPTIVE=0`** if debugging **429** behaviour.
+
+- **HTTP 546 / 504**: Edge **~150s** budget. GPT Image is **anchor + six edits**. Reduce parallel batch size (**`STORYBOOK_GPTIMAGE_CHUNK_SIZE`**), add waits (**`STORYBOOK_GPTIMAGE_CHUNK_WAIT_MS`**), upgrade OpenAI throughput, or extend Edge limit (**paid Supabase**) if needed.
+

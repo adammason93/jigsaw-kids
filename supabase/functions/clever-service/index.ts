@@ -673,14 +673,16 @@ async function compileCharacterLockForImages(
     ? "You are an art director for a children's book. Output only the LOCKED CAST block. Be dense and consistent. " +
       "This book has NO imaginary creature buddy — only humans (hero, plot-named children, game friends). " +
       "Output HERO: and one line per other named HUMAN (e.g. ISAAC:, TILLY:) from the draft. Do NOT output BUDDY: or any creature/animal mascot line unless the plot explicitly requires a non-human co-star (rare). " +
-      "If the draft truly has only the hero, output exactly one HERO: line. Never invent MONKEY:, BEAR:, unicorn, or dragon unless the storywriter draft explicitly includes that creature." +
+      "If the draft truly has only the hero, output exactly one HERO: line. Never invent MONKEY:, BEAR:, unicorn, or dragon unless the storywriter draft explicitly includes that creature. " +
+      "OUTFIT COLOUR LOCK: Each human NAME: line must pin ONE permanent solid tee colour + simple silhouette (no swaps later)." +
       photoTruth
     : "You are an art director for a children's book. Output only the LOCKED CAST block. Be dense and consistent. " +
       "Include EVERY named person and recurring creature from the storywriter draft who actually appears in the book (HERO, BUDDY, named human siblings/friends from the plot, and any named game friends from the draft). " +
       "If the user lists human co-stars in the plot (e.g. Isaac), they MUST appear as their own NAME: lines — never merge a human child into BUDDY and never call the dragon/dinosaur by a human sibling's name. " +
       "Never output a NAME: LOCK line for a PET or animal mascot named in plot parenthesis beside puppy/dog/cat — pets are drawn as animals only, not as extra human silhouette lines. " +
       "If the draft truly has only the child and one imaginary friend, output exactly HERO: and BUDDY: — never invent unnamed forest animals. " +
-      "If the draft names extra friends (e.g. Tilly), add one line each — never add MONKEY:, BEAR:, or random extras not in the draft." +
+      "If the draft names extra friends (e.g. Tilly), add one line each — never add MONKEY:, BEAR:, or random extras not in the draft. " +
+      "OUTFIT COLOUR LOCK: Each human NAME: line must name ONE fixed solid shirt/top colour plus simple cut (e.g. **Isaac:** … **orange** short-sleeve crew tee; **Sofia:** … **white** unicorn tee summary); each child keeps exactly one hue — never two different shirt colours for the same NAME line." +
       photoTruth;
 
   const compileModel = String(input.compileLockChatModel ?? "").trim() ||
@@ -1567,19 +1569,63 @@ function fallbackProseForEmptyEvenTextPage(pageIndexEven0: number): string {
       "They wandered home slowly together, swapping favourite bits aloud and grinning whenever the day's sparkle twinkled back to mind—the kind that keeps bedtime smiles glowing long after the door clicks shut."
     );
   }
-  return "Little quiet fell between giggles—but they leaned toward the next idea before it could sneak away.";
+  return (
+    "Little quiet fell between giggles — but they leaned toward the next idea before it could sneak away.\n\n" +
+    "The path still sparkled ahead, inviting one more grin, one more sideways look, before they picked up pace again toward whatever came next."
+  );
+}
+
+/**
+ * Ensures prose text-first pages ship as exactly two paragraphs (one \\n\\n).
+ * Handles thin model output without calling an LLM.
+ */
+function ensureProseTwoParagraphs(text: string): string {
+  const trimmedOuter = text.replace(/[ \t]+/g, " ").trim();
+  const parts = text
+    .split(/\n\n+/)
+    .map((p) => p.replace(/[ \t]+/g, " ").trim())
+    .filter(Boolean);
+  if (parts.length >= 2) {
+    return `${parts[0]}\n\n${parts.slice(1).join(" ")}`;
+  }
+  const single = parts[0] ?? trimmedOuter;
+  if (!single) return "";
+  const sentences = single
+    .split(/(?<=[.!?…])\s+/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+  if (sentences.length >= 2) {
+    const mid = Math.ceil(sentences.length / 2);
+    return `${sentences.slice(0, mid).join(" ")}\n\n${sentences.slice(mid).join(" ")}`;
+  }
+  return (
+    `${single}\n\n` +
+      "They let the warmth of the moment linger — same grin tugging sideways, toes still twitchy with the day's small magic before the picture on the following page slid fully into view."
+  );
+}
+
+/** After normalisation — core 12 pages only — clamp length like `normalizeStoryJson`. */
+function enforceProseTwoParagraphsOnCoreTextPages(pages: StoryPage[]): void {
+  for (let i = 0; i < PAGE_COUNT && i < pages.length; i += 2) {
+    const raw = pages[i]?.text ?? "";
+    const shaped = ensureProseTwoParagraphs(raw);
+    pages[i].text =
+      shaped.length > STORYBOOK_PROSE_PAGE_TEXT_MAX
+        ? `${shaped.slice(0, Math.max(0, STORYBOOK_PROSE_PAGE_TEXT_MAX - 1))}…`
+        : shaped;
+  }
 }
 
 /** When the model returns too few entries, synthesise placeholders by spread — avoid repeating the SAME closing line mid-book. */
 function paddingTextForSyntheticTextSlot(index0Based: number): string {
   const spread1 = Math.floor(index0Based / 2) + 1;
   const stubs = [
-    "Their shoes pattered onward without stopping — somewhere new waited just ahead.",
-    "They paused mid-path to grin at one another — the day still had room for one more silly idea.",
-    "When the breeze picked up again, laughter carried with it.",
-    "A little wrinkle in the plan only made everyone try harder.",
-    "The best bit was not guessing what would surprise them next.",
-    "Back toward home, sleepy but pleased, everyone agreed it had been exactly the adventure they hoped for.",
+    "Their shoes pattered onward without stopping — somewhere new waited just ahead.\n\nThey swapped a sideways glance like a dare, giggles bubbling up whenever the horizon pretended it had run out of ideas.",
+    "They paused mid-path to grin at one another — the day still had room for one more silly idea.\n\nThe sun seemed to overhear every joke, tossing an extra flake of sparkle across the gravel while they leaned in to whisper what they should try next.",
+    "When the breeze picked up again, laughter carried with it.\n\nThey leaned into the swirl of sound, elbows bumping, already inventing punchlines nobody else would hear.",
+    "A little wrinkle in the plan only made everyone try harder.\n\nThey counted it as part of the fun — heads tilted, eyebrows high, scrambling for the silliest tweak that kept the sparkle alive.",
+    "The best bit was not guessing what would surprise them next.\n\nStill, they leaned toward the rumours the afternoon kept dropping — elbows bumping, eyes bright, begging the next grin to hurry up.",
+    "Back toward home, sleepy but pleased, everyone agreed it had been exactly the adventure they hoped for.\n\nHands brushed pockets for keepsakes they'd only tucked into memory — warm, ordinary, stubbornly unwilling to dissolve just because dusk was creeping in.",
   ];
   return stubs[(spread1 - 1) % stubs.length] ?? stubs[stubs.length - 1];
 }
@@ -2026,14 +2072,14 @@ async function falFluxProTextToImageUrl(
 }
 
 /* ──────────────────────────────────────────────────────────────────────────
- * GPT Image (a.k.a. "GPT Image 2" in some UIs) pipeline
+ * GPT Image pipeline (OpenAI Image API — generations + edits)
  *
- * Uses OpenAI's `/v1/images/generations` and `/v1/images/edits` with model
- * `gpt-image-1.5` by default (override via STORYBOOK_GPTIMAGE_MODEL). Output is
- * base64 PNG; we upload it to the public `storybook_images` Supabase Storage
- * bucket and return a public URL so the storybook UI can render it like any
- * other URL.
+ * Default model **`gpt-image-2`** (matches consumer “GPT Image 2” wording; OpenArt
+ * and others resell the same capability). Override via **`STORYBOOK_GPTIMAGE_MODEL`**
+ * (e.g. `gpt-image-1.5` for lower cost — see billing).
  * ────────────────────────────────────────────────────────────────────────── */
+
+const GPT_IMAGE_DEFAULT_MODEL = "gpt-image-2";
 
 const GPT_IMAGE_BUCKET = "storybook_images";
 const GPT_IMAGE_PROMPT_MAX = 4000;
@@ -2050,7 +2096,7 @@ type PictureBookQuality = "standard" | "high";
 
 /**
  * `standard` = **play / screen economy** (~**14p UK** ballpark for the AI picture step when secrets unset — verify on your bill): 1024², gpt-4o-mini story+lock+vision-by-default; optional ref-photo image boost via env only.
- * `high` = **grown-up / print** (~**40–60p** ballpark pictures + sharper text↔briefs): **gpt-4o** story + lock when unset; 1536×1024 spreads; **`gpt-4o`** portrait vision when unset (mini on standard).
+ * `high` = **grown-up / keepsake** (~**40–60p** ballpark pictures + sharper text↔briefs — **verify** billing): **gpt-4o** story + lock when unset; **1536×1024** when **`STORYBOOK_GPTIMAGE_LEGACY_BUDGET=0`** OR model is **`gpt-image-1.5`**; **`gpt-image-2`** with **unset legacy flag** defaults to **cost-parity** (**1024²**, softer edit quality/fidelity unless env overrides — targets similar spend to pre–Image‑2 **`high`**). **`gpt-4o`** portrait vision when unset (mini on standard).
  * Omitted **`pictureBookQuality`** defaults to **standard** so casual play stays cheaper.
  */
 function coercePictureBookQuality(raw: unknown): PictureBookQuality {
@@ -2364,19 +2410,49 @@ function gptImageRefPhotoQualityBoostEnabled(
   return bookTier === "high";
 }
 
+function gptImageDefaultModel(): string {
+  return (Deno.env.get("STORYBOOK_GPTIMAGE_MODEL") ?? "").trim() ||
+    GPT_IMAGE_DEFAULT_MODEL;
+}
+
+function gptImageIsGptImage2Family(model: string): boolean {
+  const m = model.trim().toLowerCase();
+  return m === "gpt-image-2" || m.startsWith("gpt-image-2");
+}
+
+/**
+ * Keeps **`pictureBookQuality === "high"`** near the legacy UK **~40–60p / book** picture band when using
+ * **`gpt-image-2`** (Image 2 is pricier per pixel than 1.5 unless we ease size / edit quality / fidelity).
+ *
+ * • **Unset** env → parity **ON** when the resolved model id is **`gpt-image-2*`**, **OFF** for **`gpt-image-1.5`** etc.
+ * • **`STORYBOOK_GPTIMAGE_LEGACY_BUDGET=1`** → force parity on (any model).
+ * • **`STORYBOOK_GPTIMAGE_LEGACY_BUDGET=0`** → force parity **off** (full **high** tier: 1536×1024 + high/med quality + high fidelity unless you set overrides).
+ *
+ * Explicit **`STORYBOOK_GPTIMAGE_SIZE`**, **`STORYBOOK_GPTIMAGE_QUALITY`**, or **`STORYBOOK_GPTIMAGE_INPUT_FIDELITY`** still win when set (non-empty).
+ */
+function gptImageCostParityModeEnabled(): boolean {
+  const v = (Deno.env.get("STORYBOOK_GPTIMAGE_LEGACY_BUDGET") ?? "").trim().toLowerCase();
+  if (v === "0" || v === "false" || v === "off" || v === "no") return false;
+  if (v === "1" || v === "true" || v === "on" || v === "yes") return true;
+  return gptImageIsGptImage2Family(gptImageDefaultModel());
+}
+
 function gptImageSizeForRequest(bookTier: PictureBookQuality): string {
-  const raw = (Deno.env.get("STORYBOOK_GPTIMAGE_SIZE") ?? "")
-    .trim()
+  const envSize = (Deno.env.get("STORYBOOK_GPTIMAGE_SIZE") ?? "").trim();
+  const raw = envSize
     .toLowerCase()
     .replace(/\s/g, "")
     .replace("×", "x");
   if (raw && GPT_IMAGE_SIZES.has(raw)) return raw;
+  if (
+    bookTier === "high" &&
+    gptImageCostParityModeEnabled() &&
+    !envSize
+  ) {
+    return "1024x1024";
+  }
   if (bookTier === "high") return "1536x1024";
   return "1024x1024";
-}
-
-function gptImageDefaultModel(): string {
-  return (Deno.env.get("STORYBOOK_GPTIMAGE_MODEL") ?? "").trim() || "gpt-image-1.5";
 }
 
 /** OpenAI default is "auto"; we default to "low" to reduce false refusals on kids' story prompts. */
@@ -2401,6 +2477,15 @@ function gptImageQualityForRequest(
     return envRaw;
   }
   if (bookTier === "high") {
+    if (
+      gptImageCostParityModeEnabled() &&
+      !(Deno.env.get("STORYBOOK_GPTIMAGE_QUALITY") ?? "").trim()
+    ) {
+      if (hasUserPortraitRefs && gptImageRefPhotoQualityBoostEnabled(bookTier)) {
+        return scope === "generation" ? "medium" : "medium";
+      }
+      return scope === "generation" ? "medium" : "low";
+    }
     return scope === "generation" ? "high" : "medium";
   }
   // Standard tier — optional bump when ref photos (costly; enable with STORYBOOK_REF_PHOTO_IMAGE_BOOST=1)
@@ -2415,9 +2500,20 @@ function gptImageInputFidelityForRequest(
   bookTier: PictureBookQuality,
   hasUserPortraitRefs: boolean,
 ): "low" | "high" {
-  const env = (Deno.env.get("STORYBOOK_GPTIMAGE_INPUT_FIDELITY") ?? "").trim().toLowerCase();
-  if (env === "high") return "high";
-  if (env === "low") return "low";
+  const envPlain = (Deno.env.get("STORYBOOK_GPTIMAGE_INPUT_FIDELITY") ?? "").trim().toLowerCase();
+  const envUnset = !(Deno.env.get("STORYBOOK_GPTIMAGE_INPUT_FIDELITY") ?? "").trim();
+  if (envPlain === "high") return "high";
+  if (envPlain === "low") return "low";
+  if (
+    bookTier === "high" &&
+    gptImageCostParityModeEnabled() &&
+    envUnset
+  ) {
+    if (hasUserPortraitRefs && gptImageRefPhotoQualityBoostEnabled(bookTier)) {
+      return "high";
+    }
+    return "low";
+  }
   if (bookTier === "high") return "high";
   if (hasUserPortraitRefs && gptImageRefPhotoQualityBoostEnabled(bookTier)) return "high";
   return "low";
@@ -3084,6 +3180,7 @@ ${proseVolumeParityRule ? `${proseVolumeParityRule}\n` : ""}- **Where the ending
 - HUMAN CO-STARS vs IMAGINARY BUDDY (critical): The "Main friend character" below is always ONE imaginary creature (unicorn, dragon, dinosaur, etc.). If the plot idea also names another child, that child is a REAL HUMAN — not the buddy, not a shape-shifted version of the buddy, and never given the buddy's role in the plot. NEVER merge names: do not write that the human co-star flies as the dragon, or that the dragon "is" that child. When the plot says the children cannot find the DINOSAUR / DRAGON, the verses must ask where the DINOSAUR or DRAGON is — do not substitute a child's name as the thing that is lost unless the plot literally says that child is hiding.
 - **PET NAMES (critical):** A capitalised name right after "**puppy**," "**dog**," "**kitten**," "**cat**," "**bunny**," "**hamster**," "**pet**," or phrases like "**dog named** …" belongs to an **animal** (the pet). That name is NOT a separate human brother/sister/co-star — describe them as an animal character in prose if needed — **never** duplicate them as a human child in characterDesign alongside ${childName}.
 - CAST vs TEXT (strict): Each illustrationBrief may include ONLY characters who appear **by name** on that spread's paired text page (the odd page before it), or the one imaginary buddy when the text clearly means them ("the dinosaur", "their friend") after names were established. If the verse names ${childName} plus a human co-star (e.g. Isaac) plus the buddy, all three may appear when the verse puts them in the scene. If the verse only mentions ${childName} and the buddy, the picture has only those two. If the verse also names game people who are in that scene, they may appear — list everyone the text actually puts in the moment. Never add lions, bears, random pals, villagers, crowds, or background "silhouette people" that the text does not mention. A few characters is fine **only** when the text names them all for that beat.
+- **VISIBLE order & on-stage completeness:** Whenever two or more humans share a beat in the paired prose, **every one named by first name** there must appear in **VISIBLE** for that spread — no silent swaps. List humans in **VISIBLE** in **first-mention order** as they appear in the verse when all are on stage (left-to-right staging may echo that unless the DESCRIPTION needs a clear focal exception). If the first sentence spotlights one child acting (**toddles out**, leads the action) before another joins, that first child must be **drawn in frame** for the paired picture — do not show only the second child unless the verse says the first has stepped away; **reorder the verse** if you cannot stage both yet.
 - If "People from the child's games" are listed, include them in the story by name as extra friends or family. They should feel like the same friendly faces the child picks in other games (e.g. Tilly, Baby). They are separate from the one imaginary "main friend character" (unicorn, dragon, etc.) — both can appear.${
     portraitAppearance
       ? " If appearance lines are given for the hero or game people, stay consistent with those visual details when you naturally describe them."
@@ -3109,7 +3206,7 @@ ${
     portraitAppearance
       ? " When reference-photo appearance lines exist for a person, treat those as authoritative for hair, eyes, skin, and outfit vibe for that person — do not overwrite with a generic description."
       : ""
-  } CRITICAL: Keep clothing solid-colored and simple. DO NOT put logos, graphics, patterns, or text on clothing (DALL-E hallucinates these). DO NOT give them multiple outfits or changing colors. You MUST use the exact same clothing description for the hero in EVERY single illustrationBrief. That locks their look for the book; the illustrator still shows different faces and poses per spread from the story beats — your prose should not force the same generic smile line into every brief.
+  } CRITICAL: Keep clothing solid-colored and simple. DO NOT put logos, graphics, patterns, or text on clothing (DALL-E hallucinates these). **OUTFIT COLOUR LOCK:** Give each recurring human **one named solid shirt colour** (e.g. Isaac = **orange** crew tee, ${childName} = **white** top) in characterDesign and keep that **exact word** forever — **never** swap orange↔green or similar between spreads. DO NOT give them multiple outfits or changing colours. You MUST use the exact same clothing description for the hero in EVERY single illustrationBrief. That locks their look for the book; the illustrator still shows different faces and poses per spread from the story beats — your prose should not force the same generic smile line into every brief.
 - Each page: { "text": string, "illustrationBrief": string | null }.
 - DOUBLE-PAGE SPREADS: pair pages as (1,2), (3,4), (5,6), (7,8), (9,10), (11,12).
   Odd-numbered pages (1,3,5,7,9,11) are TEXT-FIRST pages only — use "illustrationBrief": null.
@@ -3123,10 +3220,12 @@ ${
     • Example, beat where dragon is found / revealed: VISIBLE: Sofia, Isaac, dragon.
     • Example, beat where the dragon is flying overhead and they spot it: VISIBLE: Sofia, Isaac, dragon (dragon small in the upper sky, whole body and wings fully visible — not clipped by the top edge).
     • Never include a character in VISIBLE if the verse says they are NOT around for that moment.
+    • **No mystery half-humans:** Never crop an unnamed child at the frame edge (random arm, leg, or shoulder). **VISIBLE** is the full human roster — extras stay out of frame entirely.
   The DESCRIPTION (after VISIBLE) must spell out the same specific moment as the verse on the previous page: same action, same setting, same props, same time of day — not a generic scene and NEVER a different location or activity than the verse (e.g. if the verse says bouncy castle under the sky, the picture is that bouncy castle with sky visible — not a bike ride in the woods). NEVER add guardians, helpers, or creatures the verse does not mention. NEVER duplicate the buddy unless the text says so. **When the prose names playground equipment (**slide**, swings, climbing frame)** or **hide under / behind a named tree or bush**, picture that structure — not an unrelated path. **WEATHER / OUTCOME:** If the verse says rain **stopped**, everyone **dry**, **sun** bright, or the cloud **floated away**, the image must match that — avoid active downpour on the kids in that same beat unless the text still describes them as wet. CRITICAL FOR CONSISTENCY: DO NOT re-describe permanent looks (clothes, hair colours) in the brief — the illustrator has the master designs. DO hint mood or emotion when the verse supports it (surprise, giggling, worry melting into relief) — only in the DESCRIPTION, not by re-listing outfits; avoid copying the same stock smile line into every spread.
   TWO-PARAGRAPH TEXT PAGES (odd pages use \\n\\n once): The paired picture must honour **both** paragraphs as one spread — do **not** illustrate only the first block. If paragraph **2** moves to a **new room/zone** or introduces a **concrete focal prop** (food, breakfast, cereal, splash, bath, toy pile, costume, vehicle, trophy, bed, garden gate, **playground slide**, umbrella), make that **second** beat the **primary** setting and action (e.g. kitchen + floating bowls beats a hallway teaser). If both paragraphs share one continuous place, one coherent image may merge them; if they split locations, **default to paragraph 2's place and props** for the canvas. **Never** add humans or classmates not named in **either** paragraph.
   ENVIRONMENT DETAIL (very important — each brief must paint a different *place* on the journey, matching the SETTING and PLOT IDEA above):
-    Every illustrationBrief MUST contain at least 2 specific environmental nouns (architecture, foliage, terrain, structure, weather, depth) AND at least 1 named prop or focal object from that beat. The environmental nouns MUST come from the actual SETTING and PLOT IDEA — if the plot says CASTLE, the briefs are inside or around a castle (stone walls, banners, courtyards, towers, throne room, drawbridge, tapestries) NOT in deep woods. If the plot says CAVE, the briefs are inside cave passages and chambers. If the plot says BEACH, UNDERSEA, SPACE, ZOO, FARM, MOUNTAIN, DESERT, SNOW, LAKE, ISLAND, MUSEUM, CIRCUS, TRAIN, CITY, OPEN SEA, or PIRATE SHIP, paint THAT setting with matching props. Only paint a forest if the plot or setting actually mentions woods/forest/trees.
+    Every illustrationBrief MUST contain at least 2 specific environmental nouns (architecture, foliage, terrain, structure, weather, depth) AND at least 1 named prop or focal object from that beat. The environmental nouns MUST come from the actual SETTING and PLOT IDEA — if the plot says CASTLE, the briefs are inside or around a castle (stone walls, banners, courtyards, towers, throne room, drawbridge, tapestries) NOT in deep woods. If the plot says CAVE, the briefs are inside cave passages and chambers.     If the plot says BEACH, UNDERSEA, SPACE, ZOO, FARM, MOUNTAIN, DESERT, SNOW, LAKE, ISLAND, MUSEUM, CIRCUS, TRAIN, CITY, OPEN SEA, or PIRATE SHIP, paint THAT setting with matching props. Only paint a forest if the plot or setting actually mentions woods/forest/trees.
+    If the **verse or paired text** says **park**, **playground**, **common**, **town green**, or **recreation ground**, the picture must read as a **public park** — include **at least two** park cues (wide mown grass, public path or tarmac strip, bench, litter bin, fenced play area or swing frame silhouette, goal posts, bandstand, fountain, softly dotted distant walkers). **Do not** default to only a private cottage-garden arch and roses unless the prose names a **garden**.
     Examples of good briefs — note how each one fits a DIFFERENT plot, and how each only includes things the plot would actually contain:
       • CASTLE plot: "${childName} and the dragon peek around a stone archway in a torchlit castle corridor, banners hanging from the wall, suit of armour standing nearby."
       • CASTLE plot: "${childName} climbs a spiral stone staircase inside a tower, narrow window showing the dragon flying past in the night sky."
@@ -3206,6 +3305,10 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
     const detail =
       e instanceof Error ? e.message.slice(0, 420) : String(e).slice(0, 420);
     return jsonResponse({ error: "story_failed", detail }, 502);
+  }
+
+  if (storyTextModeKey === "prose") {
+    enforceProseTwoParagraphsOnCoreTextPages(story.pages);
   }
 
   story.pages = prependFrontMatterPages(story.pages, dedicationAuthor);
@@ -3307,7 +3410,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
   let falCastAnchorUsed = false;
   let gptImageSpreadCount = 0;
 
-  /** Image generation mode: "fal" (default) or "gptimage" (OpenAI gpt-image-1 / future GPT Image 2). */
+  /** Image generation mode: "fal" (default) or "gptimage" (OpenAI GPT Image API, default `gpt-image-2`). */
   const imageMode = (Deno.env.get("STORYBOOK_IMAGE_MODE") ?? "")
     .trim()
     .toLowerCase();
@@ -3601,10 +3704,23 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
             blocks.push(
               "BEAT FIDELITY: Match **concrete props and places** (slide, swings, tree trunk, bush, gate, umbrella, kitchen counter, etc.) and the **outcome of the beat** — if text says rain **stopped**, cloud **left**, or children are **dry / warm in sun**, show that; if they are still getting wet, show rain. If two paragraphs differ, prefer the **second** block’s action and setting when it moves the story forward.",
             );
+            if (
+              /\bpark\b|playground|\bcommons?\b|\brec(?:reation)?\s*ground\b|\btown\s+green\b/i.test(
+                verseLines,
+              )
+            ) {
+              blocks.push(
+                "PARK READABILITY: World must read like a **public park or playground verge** — at least two cues (bench, litter bin, wide mown grass, tarmac/path, fenced play silhouette, swings frame, fountain, distant dotted walkers). Do **not** use only a private cottage garden arch unless the verse says garden.",
+              );
+            }
           }
 
           blocks.push(
             "EXPRESSION & POSE: Keep each character's IDENTITY locked to the reference — same face shape, hair COLOUR, hair LENGTH, hair STYLE, skin tone, outfit colours, species, proportions. Change pose, body language, and facial expression to match THIS SPREAD'S MOMENT (e.g. surprised brows, belly laugh, anxious side-glance, sleepy smile, focused pout). Do not give every spread the same neutral grin unless the verse is neutral; buddy creatures should emote in species-appropriate ways too.",
+          );
+
+          blocks.push(
+            "OUTFIT LOCK: Each named child's shirt/top must match CAST IDENTITIES and the reference lineup **exactly** — same named solid colour every spread (**no** orange⇄green or other hue swaps for one person).",
           );
 
           // 5. Visible cast for THIS spread (the part that fixes the
@@ -3648,7 +3764,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
 
           // 8. Final constraint
           blocks.push(
-            "Paint ONLY what the verse, WHO IS IN THIS PICTURE, and SCENE NOTE describe — no extra props, no extra characters, no background crowd, no signs, speech balloons, or any writing in the picture.",
+            "Paint ONLY what the verse, WHO IS IN THIS PICTURE, and SCENE NOTE describe — no extra props, no extra characters, no background crowd, no signs, speech balloons, or any writing in the picture. **No edge-cropped mystery humans** (no partial stranger arms/legs); only named cast, fully readable.",
           );
 
           return blocks.join("\n\n");
@@ -3970,9 +4086,7 @@ Return JSON shape: { "title": string, "characterDesign": string, "bookColor": "p
       falReduxModel: useFalRedux ? falReduxModel : null,
       falReduxSpreads: falReduxSpreadCount,
       imageMode: useGptImage ? "gptimage" : "fal",
-      gptImageModel: useGptImage
-        ? (Deno.env.get("STORYBOOK_GPTIMAGE_MODEL") ?? "").trim() || "gpt-image-1.5"
-        : null,
+      gptImageModel: useGptImage ? gptImageDefaultModel() : null,
       gptImageSpreads: useGptImage ? gptImageSpreadCount : 0,
       pictureBookQuality,
       illustrationStyle: illustrationStyleKey,

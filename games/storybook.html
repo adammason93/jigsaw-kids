@@ -416,7 +416,7 @@
           <fieldset class="sb-picture-quality">
             <legend class="sb-label sb-label--secondary">Pictures</legend>
             <p class="sb-panel__micro sb-picture-quality__hint" id="sbPictureQualityHint">
-              <strong>Play &amp; screen</strong> is the default — great when kids are trying ideas (often <strong>~14p total</strong> for the book’s AI pictures, not per image). <strong>Best for print</strong> costs more (<strong>~40–60p</strong> ballpark for pictures) and uses smarter writing + photos for keepsakes or grown-ups. Exact pence moves with OpenAI pricing and photos.
+              <strong>Play &amp; screen</strong> is the default — great when kids are trying ideas (often <strong>~14p total</strong> for the book’s AI pictures, not per image). <strong>Best for print</strong> uses smarter writing + photos — often roughly <strong>~40–60p for that book’s AI pictures only</strong> (anchor + spreads; not counting separate story/chat/vision costs on your OpenAI bill). With the newest GPT Image model the server trims resolution and edit tiers so picture totals stay nearer that band — set <strong>STORYBOOK_GPTIMAGE_LEGACY_BUDGET=0</strong> in Supabase for max-size print. Exact pence moves with pricing and uploads.
             </p>
             <div class="sb-quality-row" role="radiogroup" aria-labelledby="sbPictureQualityHint">
               <label class="sb-quality-opt">
@@ -430,7 +430,7 @@
                 <input type="radio" name="sbPictureQuality" value="high" />
                 <span class="sb-quality-opt__body">
                   <span class="sb-quality-opt__title">Best for print</span>
-                  <span class="sb-quality-opt__sub">Sharper art + story match — ~40–60p pictures, better for printing</span>
+                  <span class="sb-quality-opt__sub">Sharper story + art match — ~40–60p for pictures (whole book bill is higher)</span>
                 </span>
               </label>
             </div>
