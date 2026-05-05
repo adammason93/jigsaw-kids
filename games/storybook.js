@@ -4131,8 +4131,8 @@
       'input[name="sbPictureQuality"][value="standard"]'
     );
     var hi = document.querySelector('input[name="sbPictureQuality"][value="high"]');
-    if (std) std.checked = false;
-    if (hi) hi.checked = true;
+    if (std) std.checked = true;
+    if (hi) hi.checked = false;
   }
 
   function goToStep(n) {

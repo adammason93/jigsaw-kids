@@ -416,21 +416,21 @@
           <fieldset class="sb-picture-quality">
             <legend class="sb-label sb-label--secondary">Pictures</legend>
             <p class="sb-panel__micro sb-picture-quality__hint" id="sbPictureQualityHint">
-              Default is <strong>high quality</strong> for a good match to your text and reference photos. Picture generation is tuned to <strong>finish inside the server time limit</strong> (square art by default — often <strong>about 35–75p</strong> per book depending on provider pricing). Choose Standard to spend less; ask a grown-up if you need extra-wide print images on the server.
+              Default is <strong>Standard</strong>: tuned to <strong>finish reliably</strong> under the server time limit and stay nearer <strong>about 50p per book</strong> (pricing varies). Pick <strong>high quality</strong> only if you accept higher cost and more timeout risk on free hosting — ask a grown-up before enabling wider print sizes on the server.
             </p>
             <div class="sb-quality-row" role="radiogroup" aria-labelledby="sbPictureQualityHint">
               <label class="sb-quality-opt">
-                <input type="radio" name="sbPictureQuality" value="standard" />
+                <input type="radio" name="sbPictureQuality" value="standard" checked />
                 <span class="sb-quality-opt__body">
-                  <span class="sb-quality-opt__title">Standard</span>
-                  <span class="sb-quality-opt__sub">Lower picture cost — quick drafts on screen</span>
+                  <span class="sb-quality-opt__title">Standard (recommended)</span>
+                  <span class="sb-quality-opt__sub">Best balance — nearer ~50p, fewer timeouts</span>
                 </span>
               </label>
               <label class="sb-quality-opt">
-                <input type="radio" name="sbPictureQuality" value="high" checked />
+                <input type="radio" name="sbPictureQuality" value="high" />
                 <span class="sb-quality-opt__body">
-                  <span class="sb-quality-opt__title">High quality (recommended)</span>
-                  <span class="sb-quality-opt__sub">Best likeness and verse match — typical books ~35–75p</span>
+                  <span class="sb-quality-opt__title">High quality</span>
+                  <span class="sb-quality-opt__sub">Richer pictures — costs more; may timeout on slower tiers</span>
                 </span>
               </label>
             </div>
