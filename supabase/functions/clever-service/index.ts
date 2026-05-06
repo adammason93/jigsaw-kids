@@ -4783,6 +4783,173 @@ async function runStorybookGenerationJob(
   }
 }
 
+const CHARACTER_NAME_MAX = 60;
+
+const CHARACTER_HERO_PROMPT =
+  "3D clay cartoon portrait of a child character for a children's picture book. " +
+  "Match the child's hair colour and style, eye colour, skin tone, and general appearance " +
+  "from the reference photo, but render as a charming 3D clay cartoon — not realistic. " +
+  "Single character, full-body standing pose facing the camera, friendly warm expression, " +
+  "calm neutral pose. Soft studio lighting, completely plain off-white background. " +
+  "No text, no labels, no captions, no signs. Wholesome, kid-friendly, no scary elements.";
+
+function characterBuddyPrompt(name: string, referenced: boolean): string {
+  const refClause = referenced
+    ? "Use the reference image to match colours, silhouette, and key features, " +
+      "but render as a charming 3D clay cartoon — not realistic. "
+    : "";
+  return (
+    `3D clay cartoon character for a children's picture book: ${name}. ` +
+    "Friendly, whimsical creature or imaginary friend. " +
+    refClause +
+    "Single character, full-body standing pose facing the camera, calm neutral expression. " +
+    "Soft studio lighting, completely plain off-white background. " +
+    "No text, no labels, no captions, no signs. Wholesome, kid-friendly, no scary elements."
+  );
+}
+
+async function characterImageEditCall(
+  apiKey: string,
+  prompt: string,
+  refBytes: Uint8Array,
+): Promise<Uint8Array> {
+  const model = gptImageDefaultModel();
+  const moderation = gptImageModerationParam();
+  const tier: PictureBookQuality = "standard";
+  const size = gptImageSizeForRequest(tier);
+  const quality = gptImageQualityForRequest("edit", tier, true, false, true);
+  const fidelity = gptImageInputFidelityForRequest(tier, true, false, true);
+  const trimmed = prompt.slice(0, GPT_IMAGE_PROMPT_MAX);
+
+  const buildForm = (withQuality: boolean): FormData => {
+    const form = new FormData();
+    form.append("model", model);
+    form.append("prompt", trimmed);
+    form.append("n", "1");
+    form.append("size", size);
+    if (withQuality) form.append("quality", quality);
+    form.append("output_format", "png");
+    form.append("stream", "false");
+    form.append("moderation", moderation);
+    if (gptImageEditsSupportsInputFidelity(model)) {
+      form.append("input_fidelity", fidelity);
+    }
+    const mime = imageMimeForBytes(refBytes);
+    const blob = new Blob([refBytes as unknown as BlobPart], { type: mime });
+    form.append("image[]", blob, `ref-1.${fileExtForImageMime(mime)}`);
+    return form;
+  };
+
+  logOpenAiPrompt("gptImageEdit(character)", {
+    model,
+    size,
+    quality,
+    moderation,
+    input_fidelity: gptImageEditsSupportsInputFidelity(model) ? fidelity : undefined,
+    prompt: trimmed,
+  });
+
+  let r = await fetch("https://api.openai.com/v1/images/edits", {
+    method: "POST",
+    headers: openAiBearerOrgHeaders(apiKey),
+    body: buildForm(true),
+  });
+  let raw = await r.text();
+  if (!r.ok && r.status === 400) {
+    r = await fetch("https://api.openai.com/v1/images/edits", {
+      method: "POST",
+      headers: openAiBearerOrgHeaders(apiKey),
+      body: buildForm(false),
+    });
+    raw = await r.text();
+  }
+  if (!r.ok) {
+    throw new Error(openaiImageErrorDetail(r.status, raw));
+  }
+  return await gptImageBytesFromImagesResponse(raw);
+}
+
+async function characterImageGenerateCall(
+  apiKey: string,
+  prompt: string,
+): Promise<Uint8Array> {
+  const model = gptImageDefaultModel();
+  const moderation = gptImageModerationParam();
+  const tier: PictureBookQuality = "standard";
+  const size = gptImageSizeForRequest(tier);
+  const quality = gptImageQualityForRequest("generation", tier, false, false, false);
+  const trimmed = prompt.slice(0, GPT_IMAGE_PROMPT_MAX);
+
+  const post = (b: Record<string, unknown>) => {
+    logOpenAiPrompt("gptImageGenerate(character)", b);
+    return fetch("https://api.openai.com/v1/images/generations", {
+      method: "POST",
+      headers: openAiJsonAuthHeaders(apiKey),
+      body: JSON.stringify(b),
+    });
+  };
+
+  let r = await post({
+    model,
+    prompt: trimmed,
+    n: 1,
+    size,
+    quality,
+    moderation,
+    output_format: "png",
+    stream: false,
+  });
+  let raw = await r.text();
+  if (!r.ok && r.status === 400) {
+    r = await post({
+      model,
+      prompt: trimmed,
+      n: 1,
+      moderation,
+      output_format: "png",
+      stream: false,
+    });
+    raw = await r.text();
+  }
+  if (!r.ok) {
+    throw new Error(openaiImageErrorDetail(r.status, raw));
+  }
+  return await gptImageBytesFromImagesResponse(raw);
+}
+
+async function handleGenerateCharacter(
+  apiKey: string,
+  body: { characterName?: string; characterType?: string; referencePhoto?: string },
+): Promise<Response> {
+  const name = String(body.characterName ?? "").trim().slice(0, CHARACTER_NAME_MAX);
+  const type = body.characterType === "buddy" ? "buddy" : "hero";
+  if (!name) {
+    return jsonResponse({ error: "missing_character_name" }, 400);
+  }
+  const refSanitized = sanitizeHeroReferenceImage(body.referencePhoto);
+  if (type === "hero" && !refSanitized) {
+    return jsonResponse({ error: "missing_reference_photo" }, 400);
+  }
+  const prompt = type === "hero"
+    ? CHARACTER_HERO_PROMPT
+    : characterBuddyPrompt(name, Boolean(refSanitized));
+
+  try {
+    const bytes = refSanitized
+      ? await characterImageEditCall(apiKey, prompt, decodeB64ToBytes(refSanitized))
+      : await characterImageGenerateCall(apiKey, prompt);
+    const b64 = bytesToBase64(bytes);
+    return jsonResponse({ imageData: `data:image/png;base64,${b64}` });
+  } catch (e) {
+    const detail = e instanceof Error ? e.message : String(e);
+    console.error("[clever-service] generate_character error", detail);
+    return jsonResponse(
+      { error: "character_generation_failed", detail: detail.slice(0, 240) },
+      502,
+    );
+  }
+}
+
 Deno.serve(async (req) => {
   console.info("[clever-service]", req.method);
 
@@ -4951,6 +5118,16 @@ Deno.serve(async (req) => {
     return jsonResponse({ error: "bad_json" }, 400);
   }
 
+  const action = typeof (body as { action?: unknown }).action === "string"
+    ? String((body as { action: string }).action)
+    : "";
+  if (action === "generate_character") {
+    return await handleGenerateCharacter(apiKey, body as unknown as {
+      characterName?: string;
+      characterType?: string;
+      referencePhoto?: string;
+    });
+  }
 
   if (wantsStorybookAsync(body)) {
     const db = serviceRoleSupabase();
