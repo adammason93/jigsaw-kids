@@ -3778,6 +3778,7 @@
       heroPhotoThumbsList.appendChild(li);
     });
     heroPhotoThumbsWrap.hidden = heroPhotoItems.length === 0;
+    refreshSavedCharAdded();
   }
 
   function clearHeroPhoto() {
@@ -3789,6 +3790,220 @@
       heroPhotoErr.textContent = "";
       heroPhotoErr.hidden = true;
     }
+  }
+
+  var savedCharPickBtn = document.getElementById("sbSavedCharPick");
+  var savedCharPanel = document.getElementById("sbSavedCharPanel");
+  var savedCharGrid = document.getElementById("sbSavedCharGrid");
+  var savedCharStatus = document.getElementById("sbSavedCharStatus");
+  /** @type {{ id: string, name: string, type: string }[] | null} */
+  var savedCharList = null;
+  var savedCharLoading = false;
+
+  function savedCharStoreReady() {
+    return (
+      typeof window.CharacterStore !== "undefined" &&
+      window.CharacterStore.isConfigured()
+    );
+  }
+
+  function setSavedCharStatus(msg) {
+    if (savedCharStatus) savedCharStatus.textContent = msg || "";
+  }
+
+  function savedCharIsAdded(id) {
+    return heroPhotoItems.some(function (x) {
+      return x.charId === id;
+    });
+  }
+
+  function refreshSavedCharAdded() {
+    if (!savedCharGrid) return;
+    Array.prototype.forEach.call(
+      savedCharGrid.querySelectorAll(".sb-savedchar__item"),
+      function (btn) {
+        var on = savedCharIsAdded(btn.getAttribute("data-id"));
+        btn.classList.toggle("is-added", on);
+        btn.setAttribute("aria-pressed", on ? "true" : "false");
+      },
+    );
+  }
+
+  /** Re-encode to JPEG so a saved PNG stays under the per-photo upload cap. */
+  function savedCharUrlToDataUrl(url) {
+    return fetch(url, { cache: "no-store" })
+      .then(function (r) {
+        if (!r.ok) throw new Error("download " + r.status);
+        return r.blob();
+      })
+      .then(function (blob) {
+        return new Promise(function (resolve, reject) {
+          var objUrl = URL.createObjectURL(blob);
+          var img = new Image();
+          img.onload = function () {
+            var max = 1024;
+            var scale = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
+            var w = Math.max(1, Math.round(img.naturalWidth * scale));
+            var h = Math.max(1, Math.round(img.naturalHeight * scale));
+            var canvas = document.createElement("canvas");
+            canvas.width = w;
+            canvas.height = h;
+            var ctx = canvas.getContext("2d");
+            ctx.fillStyle = "#ffffff";
+            ctx.fillRect(0, 0, w, h);
+            ctx.drawImage(img, 0, 0, w, h);
+            URL.revokeObjectURL(objUrl);
+            var q = 0.9;
+            var out = canvas.toDataURL("image/jpeg", q);
+            while (out.length * 0.75 > HERO_PHOTO_MAX_FILE_BYTES && q > 0.5) {
+              q -= 0.1;
+              out = canvas.toDataURL("image/jpeg", q);
+            }
+            resolve(out);
+          };
+          img.onerror = function () {
+            URL.revokeObjectURL(objUrl);
+            reject(new Error("decode"));
+          };
+          img.src = objUrl;
+        });
+      });
+  }
+
+  function whoForSavedChar(c) {
+    var name = String(c.name || "").trim();
+    if (c.type !== "buddy" && nameInput) {
+      var typed = nameInput.value.trim();
+      if (!typed) {
+        nameInput.value = name.slice(0, 24);
+        return "hero";
+      }
+      if (typed.toLowerCase() === name.toLowerCase()) return "hero";
+    }
+    var r = resolveWhoFromText(name);
+    if (r) return r;
+    var first = name.split(/\s+/)[0].toLowerCase().replace(/[^a-z0-9]/g, "");
+    return first || "friend";
+  }
+
+  function toggleSavedChar(c, btn) {
+    setHeroPhotoError("");
+    var existing = -1;
+    heroPhotoItems.forEach(function (x, i) {
+      if (x.charId === c.id) existing = i;
+    });
+    if (existing >= 0) {
+      heroPhotoItems.splice(existing, 1);
+      renderHeroPhotoThumbs();
+      return;
+    }
+    if (heroPhotoItems.length >= HERO_PHOTO_MAX_COUNT) {
+      setHeroPhotoError("You already have 3 pictures — remove one to add another.");
+      return;
+    }
+    if (btn.classList.contains("is-busy")) return;
+    var imgEl = btn.querySelector("img");
+    var src = imgEl && imgEl.getAttribute("src");
+    if (!src) {
+      setHeroPhotoError("That character's picture is still loading — try again in a moment.");
+      return;
+    }
+    btn.classList.add("is-busy");
+    savedCharUrlToDataUrl(src)
+      .then(function (dataUrl) {
+        btn.classList.remove("is-busy");
+        if (savedCharIsAdded(c.id)) return;
+        if (heroPhotoItems.length >= HERO_PHOTO_MAX_COUNT) {
+          setHeroPhotoError("You already have 3 pictures — remove one to add another.");
+          return;
+        }
+        heroPhotoItems.push({ dataUrl: dataUrl, who: whoForSavedChar(c), charId: c.id });
+        renderHeroPhotoThumbs();
+      })
+      .catch(function () {
+        btn.classList.remove("is-busy");
+        setHeroPhotoError("Could not load that character — try again.");
+      });
+  }
+
+  function renderSavedCharGrid() {
+    if (!savedCharGrid) return;
+    savedCharGrid.replaceChildren();
+    var list = savedCharList || [];
+    if (!list.length) {
+      setSavedCharStatus("No saved characters yet — make one on the My Characters page.");
+      return;
+    }
+    setSavedCharStatus("Tap a character to put them in your book.");
+    list.forEach(function (c) {
+      var li = document.createElement("li");
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "sb-savedchar__item";
+      btn.setAttribute("data-id", c.id);
+      btn.setAttribute("aria-pressed", "false");
+      var pic = document.createElement("span");
+      pic.className = "sb-savedchar__pic";
+      pic.textContent = "…";
+      var nm = document.createElement("span");
+      nm.className = "sb-savedchar__name";
+      nm.textContent = c.name || "Friend";
+      var tick = document.createElement("span");
+      tick.className = "sb-savedchar__tick";
+      tick.setAttribute("aria-hidden", "true");
+      tick.textContent = "✓";
+      btn.appendChild(pic);
+      btn.appendChild(nm);
+      btn.appendChild(tick);
+      btn.addEventListener("click", function () {
+        toggleSavedChar(c, btn);
+      });
+      li.appendChild(btn);
+      savedCharGrid.appendChild(li);
+      window.CharacterStore.getCharacterSignedUrl(c.id, function (err, url) {
+        if (err || !url) {
+          pic.textContent = "🙈";
+          return;
+        }
+        var img = document.createElement("img");
+        img.alt = "";
+        img.decoding = "async";
+        img.src = url;
+        pic.replaceChildren(img);
+      });
+    });
+    refreshSavedCharAdded();
+  }
+
+  function loadSavedChars(force) {
+    if (savedCharLoading || !savedCharStoreReady()) return;
+    if (savedCharList && !force) {
+      renderSavedCharGrid();
+      return;
+    }
+    savedCharLoading = true;
+    setSavedCharStatus("Loading your characters…");
+    window.CharacterStore.loadCharacters(function (err, list) {
+      savedCharLoading = false;
+      if (err) {
+        setSavedCharStatus(
+          String(err.message || err) === "no_session"
+            ? "Sign in (⚙️ Settings) to use your saved characters."
+            : "Could not load your characters — try again.",
+        );
+        return;
+      }
+      savedCharList = Array.isArray(list) ? list : [];
+      renderSavedCharGrid();
+    });
+  }
+
+  function toggleSavedCharPanel() {
+    if (!savedCharPanel || !savedCharPickBtn) return;
+    var open = savedCharPanel.hidden;
+    savedCharPanel.hidden = !open;
+    savedCharPickBtn.setAttribute("aria-expanded", open ? "true" : "false");
+    if (open) loadSavedChars(false);
   }
 
   function setHeroPhotoError(msg) {
@@ -5105,6 +5320,10 @@
     heroPhotoPickBtn.addEventListener("click", function () {
       heroPhotoInput.click();
     });
+  }
+  if (savedCharPickBtn && savedCharStoreReady()) {
+    savedCharPickBtn.hidden = false;
+    savedCharPickBtn.addEventListener("click", toggleSavedCharPanel);
   }
 
   var btnNext0 = document.getElementById("sbNext0");

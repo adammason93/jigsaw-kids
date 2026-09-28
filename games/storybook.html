@@ -12,7 +12,7 @@
   <link rel="manifest" href="../manifest.json" />
   <link rel="stylesheet" href="../js/kids-core.css" />
   <!-- storybook-app.css = renamed file so CDN/browser cache cannot keep old storybook.css -->
-  <link rel="stylesheet" href="storybook-app.css?v=180" />
+  <link rel="stylesheet" href="storybook-app.css?v=181" />
   <link rel="stylesheet" href="../tablet-ipad.css" />
   <!-- Last wins: guarantees new background even if a proxy cached an ancient stylesheet elsewhere -->
   <style>
@@ -172,7 +172,7 @@
           <div class="sb-hero-ref" id="sbHeroRefBlock">
             <label class="sb-label sb-label--secondary" for="sbHeroPhotoPick">Photos for the book (optional, up to 3)</label>
             <p class="sb-panel__hint sb-panel__hint--tight">
-              When you add a picture we’ll ask a quick “who’s this?” so the story fits. You can tap the little ✕ on a photo to take it away, or adjust names under each picture anytime.
+              Add your own photos or pick a character you made on My Characters. When you add a photo we’ll ask a quick “who’s this?” so the story fits. You can tap the little ✕ on a photo to take it away, or adjust names under each picture anytime.
             </p>
             <datalist id="sbHeroRefWhoDatalist"></datalist>
             <div class="sb-filepick">
@@ -189,6 +189,14 @@
               <button type="button" class="sb-btn sb-btn--ghost sb-filepick__btn" id="sbHeroPhotoPick">
                 Add photos…
               </button>
+              <button type="button" class="sb-btn sb-btn--ghost sb-filepick__btn sb-savedchar__open" id="sbSavedCharPick" aria-expanded="false" aria-controls="sbSavedCharPanel" hidden>
+                🎭 Pick a saved character…
+              </button>
+            </div>
+            <div class="sb-savedchar" id="sbSavedCharPanel" hidden>
+              <p class="sb-savedchar__status" id="sbSavedCharStatus" aria-live="polite"></p>
+              <ul class="sb-savedchar__grid" id="sbSavedCharGrid" aria-label="Your saved characters"></ul>
+              <a class="sb-savedchar__make" href="../characters.html">+ Make a new character</a>
             </div>
             <p class="sb-note sb-note--inline" id="sbHeroPhotoErr" role="alert" hidden></p>
             <div class="sb-hero-ref__preview" id="sbHeroPhotoThumbsWrap" hidden>
@@ -865,7 +873,8 @@
   <script src="../js/storybook-shelf-store.js" defer></script>
   <!-- Required for cloud shelf sync + upload (same as other games) -->
   <script src="../js/score-cloud.js" defer></script>
-  <script src="storybook.js?v=349" defer></script>
+  <script src="../js/character-store.js" defer></script>
+  <script src="storybook.js?v=350" defer></script>
   <script>
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("../sw.js").catch(function () {});

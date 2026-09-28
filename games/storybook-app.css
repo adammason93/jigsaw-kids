@@ -2466,6 +2466,123 @@ body.sb-portal-welcome-open {
   text-align: center;
 }
 
+.sb-filepick__btn + .sb-filepick__btn {
+  margin-top: 0.45rem;
+}
+
+.sb-savedchar__open[hidden] {
+  display: none;
+}
+
+.sb-savedchar {
+  margin: 0.55rem 0 0;
+  padding: 0.7rem;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.75);
+  border: 2px dashed rgba(219, 39, 119, 0.3);
+}
+
+.sb-savedchar__status {
+  margin: 0 0 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #6b1d4a;
+}
+
+.sb-savedchar__grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(5.5rem, 1fr));
+  gap: 0.55rem;
+}
+
+.sb-savedchar__item {
+  position: relative;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.35rem 0.35rem 0.45rem;
+  border: 3px solid transparent;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(131, 24, 67, 0.12);
+  font: inherit;
+  cursor: pointer;
+  transition: border-color 0.15s, transform 0.15s;
+}
+
+.sb-savedchar__item:hover {
+  transform: translateY(-2px);
+}
+
+.sb-savedchar__item.is-added {
+  border-color: #db2777;
+}
+
+.sb-savedchar__item.is-busy {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.sb-savedchar__pic {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 10px;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  background: #fdf2f8;
+  font-size: 1.4rem;
+}
+
+.sb-savedchar__pic img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.sb-savedchar__name {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: #6b1d4a;
+}
+
+.sb-savedchar__tick {
+  position: absolute;
+  top: -0.45rem;
+  right: -0.45rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  display: none;
+  place-items: center;
+  background: #db2777;
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 800;
+}
+
+.sb-savedchar__item.is-added .sb-savedchar__tick {
+  display: grid;
+}
+
+.sb-savedchar__make {
+  display: inline-block;
+  margin-top: 0.6rem;
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #db2777;
+}
+
 /* File field is .visually-hidden — picker is .sb-filepick__btn */
 .sb-hero-ref__input {
   margin: 0;
