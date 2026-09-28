@@ -3926,6 +3926,39 @@
       });
   }
 
+  /** `?book=<shelf id>` (homepage shelf) — open that book in the reader once the library has loaded. */
+  function openBookFromUrl() {
+    var id = "";
+    try {
+      id = String(new URLSearchParams(window.location.search || "").get("book") || "").trim();
+    } catch (eP) {
+      return;
+    }
+    if (!id) return;
+    try {
+      var u = new URL(window.location.href);
+      u.searchParams.delete("book");
+      window.history.replaceState({}, "", u.pathname + (u.search || "") + (u.hash || ""));
+    } catch (eU) {}
+
+    var opened = false;
+    function tryOpen() {
+      if (opened) return;
+      var found = loadShelf().some(function (b) {
+        return b && b.id === id;
+      });
+      if (!found) return;
+      opened = true;
+      window.removeEventListener("kids-scorecard-refresh", onRefresh);
+      openShelfBook(id);
+    }
+    function onRefresh() {
+      reloadShelfCacheFromStore(tryOpen);
+    }
+    window.addEventListener("kids-scorecard-refresh", onRefresh);
+    reloadShelfCacheFromStore(tryOpen);
+  }
+
   /** `?char=<saved id>` or `?char=builtin:<KidsGameCharacters id>` — open the maker with that character added. */
   function preselectCharacterFromUrl() {
     var raw = "";
@@ -5748,6 +5781,7 @@
   } catch (err) {}
 
   preselectCharacterFromUrl();
+  openBookFromUrl();
 
   if (typeof KidsCore !== "undefined") {
     KidsCore.init();

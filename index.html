@@ -79,6 +79,34 @@
         </div>
       </section>
 
+      <section class="home-books" id="books" aria-labelledby="booksTitle">
+        <img class="home-books__bg" src="games/images/portal/books-room.jpg" width="1280" height="720" alt="" decoding="async" loading="lazy" />
+        <span class="home-books__star home-books__star--1" aria-hidden="true">★</span>
+        <span class="home-books__star home-books__star--2" aria-hidden="true">★</span>
+        <span class="home-books__star home-books__star--3" aria-hidden="true">★</span>
+        <div class="home-books__head">
+          <div>
+            <p class="home-books__kicker">Featured books</p>
+            <h2 class="home-books__title" id="booksTitle"><span class="home-books__name">Sofia’s</span> Story Books</h2>
+            <p class="home-books__sub" id="homeBooksSub">Read, explore and create your own stories with Sofia’s magical book collection.</p>
+          </div>
+          <a class="home-books__all" href="games/storybook.html">
+            View all books
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5.5 15.5 12 9 18.5" /></svg>
+          </a>
+        </div>
+        <div class="home-books__shelf">
+          <button type="button" class="home-books__arrow home-books__arrow--prev" id="homeBooksPrev" aria-label="Previous books" hidden>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5.5 8.5 12 15 18.5" /></svg>
+          </button>
+          <ul class="home-books__track" id="homeBooksTrack" role="list" aria-labelledby="booksTitle"></ul>
+          <button type="button" class="home-books__arrow home-books__arrow--next" id="homeBooksNext" aria-label="More books" hidden>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5.5 15.5 12 9 18.5" /></svg>
+          </button>
+          <span class="home-books__plank" aria-hidden="true"></span>
+        </div>
+      </section>
+
       <section class="home-cast" id="cast" aria-labelledby="castTitle">
         <div class="home-cast__head">
           <div>
@@ -148,6 +176,7 @@
   <script src="js/character-store.js" defer></script>
   <script src="home.js"></script>
   <script src="home-cast.js" defer></script>
+  <script src="home-books.js" defer></script>
   <script>
     if (typeof KidsCore !== "undefined") {
       KidsCore.init({ skipBar: true });
