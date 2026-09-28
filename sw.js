@@ -1,9 +1,10 @@
 /* Minimal offline shell — network-first, cache as fallback for same-origin */
-const CACHE = "jigsaw-kids-v335";
+const CACHE = "jigsaw-kids-v336";
 const SHELL = [
   "./index.html",
   "./home.css",
   "./home.js",
+  "./home-cast.js",
   "./games/images/portal/hero-sofia.jpg",
   "./manifest.json",
   "./icons/icon-192.png",

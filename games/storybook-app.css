@@ -2466,8 +2466,17 @@ body.sb-portal-welcome-open {
   text-align: center;
 }
 
-.sb-filepick__btn + .sb-filepick__btn {
-  margin-top: 0.45rem;
+.sb-filepick {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.sb-filepick .sb-filepick__btn {
+  flex: 1 1 13rem;
+  width: auto;
+  max-width: none;
+  white-space: nowrap;
 }
 
 .sb-savedchar__open[hidden] {

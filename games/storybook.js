@@ -3901,17 +3901,17 @@
       setHeroPhotoError("You already have 3 pictures — remove one to add another.");
       return;
     }
-    if (btn.classList.contains("is-busy")) return;
-    var imgEl = btn.querySelector("img");
-    var src = imgEl && imgEl.getAttribute("src");
+    if (btn && btn.classList.contains("is-busy")) return;
+    var imgEl = btn && btn.querySelector("img");
+    var src = c.src || (imgEl && imgEl.getAttribute("src"));
     if (!src) {
       setHeroPhotoError("That character's picture is still loading — try again in a moment.");
       return;
     }
-    btn.classList.add("is-busy");
+    if (btn) btn.classList.add("is-busy");
     savedCharUrlToDataUrl(src)
       .then(function (dataUrl) {
-        btn.classList.remove("is-busy");
+        if (btn) btn.classList.remove("is-busy");
         if (savedCharIsAdded(c.id)) return;
         if (heroPhotoItems.length >= HERO_PHOTO_MAX_COUNT) {
           setHeroPhotoError("You already have 3 pictures — remove one to add another.");
@@ -3921,9 +3921,66 @@
         renderHeroPhotoThumbs();
       })
       .catch(function () {
-        btn.classList.remove("is-busy");
+        if (btn) btn.classList.remove("is-busy");
         setHeroPhotoError("Could not load that character — try again.");
       });
+  }
+
+  /** `?char=<saved id>` or `?char=builtin:<KidsGameCharacters id>` — open the maker with that character added. */
+  function preselectCharacterFromUrl() {
+    var raw = "";
+    try {
+      raw = String(new URLSearchParams(window.location.search || "").get("char") || "").trim();
+    } catch (eP) {
+      return;
+    }
+    if (!raw) return;
+    try {
+      var u = new URL(window.location.href);
+      u.searchParams.delete("char");
+      window.history.replaceState({}, "", u.pathname + (u.search || "") + (u.hash || ""));
+    } catch (eU) {}
+
+    openJourney();
+    goToStep(1);
+
+    if (raw.indexOf("builtin:") === 0) {
+      var bid = raw.slice(8);
+      var list = Array.isArray(window.KidsGameCharacters) ? window.KidsGameCharacters : [];
+      var found = null;
+      list.forEach(function (x) {
+        if (x && x.id === bid) found = x;
+      });
+      if (!found) return;
+      toggleSavedChar(
+        {
+          id: "builtin:" + found.id,
+          name: found.label,
+          type: found.id === "sofia" ? "hero" : "buddy",
+          src: "../" + found.portrait,
+        },
+        null,
+      );
+      return;
+    }
+
+    if (!savedCharStoreReady()) return;
+    if (savedCharPanel && savedCharPanel.hidden) toggleSavedCharPanel();
+    window.CharacterStore.loadCharacters(function (err, chars) {
+      if (err || !Array.isArray(chars)) return;
+      var c = null;
+      chars.forEach(function (x) {
+        if (x && x.id === raw) c = x;
+      });
+      if (!c) return;
+      window.CharacterStore.getCharacterSignedUrl(c.id, function (e2, url) {
+        if (e2 || !url) {
+          setHeroPhotoError("Could not load that character — try again.");
+          return;
+        }
+        toggleSavedChar({ id: c.id, name: c.name, type: c.type, src: url }, null);
+      });
+    });
   }
 
   function renderSavedCharGrid() {
@@ -5689,6 +5746,8 @@
       openSampleBook();
     }
   } catch (err) {}
+
+  preselectCharacterFromUrl();
 
   if (typeof KidsCore !== "undefined") {
     KidsCore.init();

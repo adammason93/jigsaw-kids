@@ -345,6 +345,8 @@
       } else if (name === "favourites") {
         setFilter("fav");
         scrollToId("games");
+      } else if (name === "characters") {
+        scrollToId("cast");
       } else if (name === "about") {
         scrollToId("about");
       }
