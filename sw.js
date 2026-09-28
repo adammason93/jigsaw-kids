@@ -1,7 +1,12 @@
 /* Minimal offline shell — network-first, cache as fallback for same-origin */
-const CACHE = "jigsaw-kids-v339";
+const CACHE = "jigsaw-kids-v340";
 const SHELL = [
   "./index.html",
+  "./portal.html",
+  "./portal-gate.js",
+  "./portal-gate.css",
+  "./welcome.css",
+  "./welcome.js",
   "./home.css",
   "./home.js",
   "./home-cast.js",
@@ -194,7 +199,7 @@ self.addEventListener("fetch", function (e) {
       })
       .catch(function () {
         return caches.match(e.request).then(function (c) {
-          return c || caches.match("./index.html");
+          return c || caches.match("./portal.html");
         });
       })
   );

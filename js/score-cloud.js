@@ -1414,6 +1414,45 @@
       schedulePush();
     },
     isConfigured: isConfigured,
+    /** cb(session|null, err) — err set when the sync library or network could not be reached. */
+    getSession: function (cb) {
+      ensureClient(function (sb) {
+        if (!sb) {
+          cb(null, new Error("sync_unavailable"));
+          return;
+        }
+        sb.auth
+          .getSession()
+          .then(function (res) {
+            cb((res && res.data && res.data.session) || null, res && res.error ? res.error : null);
+          })
+          .catch(function (e) {
+            cb(null, e || new Error("session_failed"));
+          });
+      });
+    },
+    /** Family-password sign-in (same account as ⚙️ Sync). cb(err|null). */
+    signIn: function (password, cb) {
+      var loginEmail = (cfg().syncLoginEmail && String(cfg().syncLoginEmail).trim()) || "";
+      if (!loginEmail) {
+        cb(new Error("not_configured"));
+        return;
+      }
+      ensureClient(function (sb) {
+        if (!sb) {
+          cb(new Error("sync_unavailable"));
+          return;
+        }
+        sb.auth
+          .signInWithPassword({ email: loginEmail, password: String(password || "") })
+          .then(function (r) {
+            cb(r && r.error ? r.error : null);
+          })
+          .catch(function (e) {
+            cb(e || new Error("sign_in_failed"));
+          });
+      });
+    },
     downloadColouringSession: downloadColouringSession,
     uploadColouringSession: uploadColouringSession,
     scheduleColouringUpload: scheduleColouringUpload,

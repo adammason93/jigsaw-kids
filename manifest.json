@@ -5,7 +5,7 @@
   "lang": "en-GB",
   "dir": "ltr",
   "id": "./index.html",
-  "start_url": "./index.html",
+  "start_url": "./portal.html",
   "scope": "./",
   "display": "standalone",
   "display_override": ["fullscreen", "standalone", "minimal-ui", "browser"],

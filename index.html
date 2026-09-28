@@ -3,212 +3,194 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="mobile-web-app-capable" content="yes" />
-  <meta name="theme-color" content="#7c3aed" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="description" content="Picture jigsaw, AI storybook, prompt-made 3D games, colouring book, link grid puzzle, block stack (Tetris-style), Drive Mad (online), number path, word search, Memory, Snap, Snake, Zuma, marble maze, snakes and ladders, noughts and crosses, Connect 4, rock paper scissors for children — works offline after one visit (except AI and embedded web games)." />
-  <title>Sofia's Game Room</title>
-  <link rel="manifest" href="manifest.json" />
-  <link rel="stylesheet" href="js/kids-core.css" />
-  <link rel="stylesheet" href="home.css" />
+  <meta name="theme-color" content="#7c4dff" />
+  <title>Oovi — a world made just for them</title>
+  <meta name="description" content="Personalised stories, jigsaw puzzles, learning and games built around your child. Ad-free, parent controlled and made for children." />
+  <meta property="og:title" content="Oovi — a world made just for them" />
+  <meta property="og:description" content="Stories, games and learning personalised around your child." />
+  <meta property="og:image" content="games/images/welcome/hero.jpg" />
+  <link rel="icon" type="image/svg+xml" href="games/images/brand/oovi-mark.svg" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <link rel="stylesheet" href="welcome.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
 </head>
-<body class="page-home">
-  <div class="home">
-    <header class="home-bar">
-      <a class="home-logo" href="./" data-nav="home" aria-label="Sofia's Game Room — home">
-        <img class="home-logo__pad" src="games/images/brand/oovi-mark.svg" width="100" height="136" alt="" />
-        <span class="home-logo__text"><span class="home-logo__name">Sofia’s</span> Game Room</span>
-        <span class="home-logo__star" aria-hidden="true">⭐</span>
-      </a>
+<body>
+  <header class="w-bar" id="top">
+    <a class="w-logo" href="#top" aria-label="Oovi — home">
+      <img class="w-logo__mark" src="games/images/brand/oovi-mark.svg" width="100" height="136" alt="" />
+      <span class="w-logo__word" aria-hidden="true">ovi</span>
+    </a>
+    <nav class="w-nav" aria-label="Main">
+      <a href="#games">Games</a>
+      <a href="#stories">Stories</a>
+      <a href="#learning">Learning</a>
+      <a href="#about">About</a>
+    </nav>
+    <div class="w-bar__end">
+      <a class="w-btn w-btn--ghost" href="portal.html">Log in</a>
+      <a class="w-btn w-btn--primary" href="#try">Get Started Free <span aria-hidden="true">→</span></a>
+    </div>
+  </header>
 
-      <nav class="home-nav" aria-label="Main">
-        <a class="home-nav__link is-active" href="#top" data-nav="home" aria-current="page">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11.2 12 4l9 7.2V20a1 1 0 0 1-1 1h-5.5v-6h-5v6H4a1 1 0 0 1-1-1z"/></svg>
-          <span>Home</span>
-        </a>
-        <a class="home-nav__link" href="#games" data-nav="games">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7h10a5 5 0 0 1 4.9 6l-.8 4a2.5 2.5 0 0 1-4.3 1.2L14.5 16h-5l-2.3 2.2A2.5 2.5 0 0 1 2.9 17l-.8-4A5 5 0 0 1 7 7zm0 3v1.5H5.5v1.5H7v1.5h1.5V13H10v-1.5H8.5V10zm9.5 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm-2 2a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/></svg>
-          <span>Games</span>
-        </a>
-        <a class="home-nav__link" href="#cast" data-nav="characters">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16l-5.4 3 1.2-6-4.5-4.2 6.1-.7z"/></svg>
-          <span>Characters</span>
-        </a>
-        <a class="home-nav__link" href="#games" data-nav="favourites">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7.5-4.6-10-9.3C.4 8.3 2.3 4 6.3 4c2.3 0 3.9 1.3 5.7 3.3C13.8 5.3 15.4 4 17.7 4c4 0 5.9 4.3 4.3 7.7C19.5 16.4 12 21 12 21z"/></svg>
-          <span><span class="home-nav__my">My </span>Favourites</span>
-        </a>
-        <a class="home-nav__link" href="#about" data-nav="about">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm1.3 15h-2.6v-6.5h2.6zM12 9.2a1.6 1.6 0 1 1 0-3.2 1.6 1.6 0 0 1 0 3.2z"/></svg>
-          <span>About</span>
-        </a>
-      </nav>
-
-      <div class="home-bar__end">
-        <a class="home-avatar" href="characters.html" title="My characters">
-          <img src="games/images/character-girl-blonde.png" alt="My characters" width="46" height="46" decoding="async" />
-        </a>
-        <button type="button" class="home-gear" id="homeSettings" title="Grown-up settings" aria-label="Grown-up settings">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.4 13a7.6 7.6 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.4 7.4 0 0 0-1.7-1L15 3.3h-4l-.4 2.6a7.4 7.4 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.6 7.6 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1a7.4 7.4 0 0 0 1.7 1l.3 2.6h4l.4-2.6a7.4 7.4 0 0 0 1.7-1l2.5 1 2-3.5zM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg>
-        </button>
+  <main>
+    <section class="w-hero">
+      <img class="w-hero__art" src="games/images/welcome/hero.jpg" width="1280" height="720" alt="A boy and his puppy reading a glowing storybook with a castle rising from the pages" fetchpriority="high" />
+      <div class="w-hero__copy">
+        <h1 class="w-hero__title">A world<br />made just<br /><span class="w-accent">for them.</span></h1>
+        <p class="w-hero__lead">Stories, games and learning personalised around your child.</p>
+        <a class="w-btn w-btn--primary w-btn--lg" href="#try">Create their world <span aria-hidden="true">→</span></a>
+        <ul class="w-badges" role="list">
+          <li><span class="w-badges__icon" aria-hidden="true">🛡️</span> Ad-free</li>
+          <li><span class="w-badges__icon" aria-hidden="true">👪</span> Parent controlled</li>
+          <li><span class="w-badges__icon" aria-hidden="true">💜</span> Made for children</li>
+        </ul>
       </div>
-    </header>
+    </section>
 
-    <main id="top">
-      <section class="home-hero" aria-labelledby="homeTitle">
-        <img class="home-hero__art" src="games/images/portal/hero-sofia.jpg" width="1280" height="720" alt="" decoding="async" fetchpriority="high" />
-        <span class="home-hero__spark home-hero__spark--1" aria-hidden="true">★</span>
-        <span class="home-hero__spark home-hero__spark--2" aria-hidden="true">★</span>
-        <span class="home-hero__spark home-hero__spark--3" aria-hidden="true">★</span>
-        <span class="home-hero__spark home-hero__spark--4" aria-hidden="true">★</span>
-        <div class="home-hero__copy">
-          <p class="home-hero__kicker">Welcome to</p>
-          <h1 class="home-hero__title" id="homeTitle"><span class="home-hero__name">Sofia’s</span> Game Room</h1>
-          <p class="home-hero__lead">Tap a game and jump in — puzzles, colours, races and more, all in one happy place!</p>
-          <a class="home-hero__cta" id="homeStart" href="#games">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13a1 1 0 0 0 1.5.9l10.2-6.5a1 1 0 0 0 0-1.8L9.5 4.6A1 1 0 0 0 8 5.5z"/></svg>
-            Start Playing
-          </a>
-          <p class="home-hero__welcome-back" id="portalWelcomeBack" role="status" aria-live="polite" hidden>
-            Welcome back, Sofia! ✨
-          </p>
-        </div>
-      </section>
+    <section class="w-intro w-reveal">
+      <p class="w-kicker">Made around them</p>
+      <h2 class="w-intro__title">Everything they love.<br /><span class="w-accent">Made a little more theirs.</span></h2>
+      <p class="w-intro__lead">Their name, interests, photos and learning level can shape the experience — turning every story, puzzle, activity and game into something unique.</p>
+    </section>
 
-      <section class="home-books" id="books" aria-labelledby="booksTitle">
-        <img class="home-books__bg" src="games/images/portal/books-room.jpg" width="1280" height="720" alt="" decoding="async" loading="lazy" />
-        <span class="home-books__star home-books__star--1" aria-hidden="true">★</span>
-        <span class="home-books__star home-books__star--2" aria-hidden="true">★</span>
-        <span class="home-books__star home-books__star--3" aria-hidden="true">★</span>
-        <div class="home-books__head">
-          <div>
-            <p class="home-books__kicker">Featured books</p>
-            <h2 class="home-books__title" id="booksTitle"><span class="home-books__name">Sofia’s</span> Story Books</h2>
-            <p class="home-books__sub" id="homeBooksSub">Read, explore and create your own stories with Sofia’s magical book collection.</p>
-          </div>
-          <a class="home-books__all" href="games/storybook.html">
-            View all books
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5.5 15.5 12 9 18.5" /></svg>
-          </a>
+    <section class="w-feature w-feature--stories" id="stories">
+      <div class="w-feature__inner">
+        <div class="w-feature__copy w-reveal">
+          <p class="w-kicker w-kicker--coral">Personalised stories</p>
+          <h2 class="w-feature__title">They’re not just reading the story. <span class="w-accent">They’re in it.</span></h2>
+          <p class="w-feature__text">Create magical stories featuring your child, their family, pets and favourite places.</p>
         </div>
-        <div class="home-books__shelf">
-          <button type="button" class="home-books__arrow home-books__arrow--prev" id="homeBooksPrev" aria-label="Previous books" hidden>
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5.5 8.5 12 15 18.5" /></svg>
-          </button>
-          <ul class="home-books__track" id="homeBooksTrack" role="list" aria-labelledby="booksTitle"></ul>
-          <button type="button" class="home-books__arrow home-books__arrow--next" id="homeBooksNext" aria-label="More books" hidden>
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5.5 15.5 12 9 18.5" /></svg>
-          </button>
-          <span class="home-books__plank" aria-hidden="true"></span>
+        <div class="w-feature__media w-reveal">
+          <img src="games/images/welcome/book.jpg" width="1152" height="864" alt="An open storybook showing the boy and his puppy near a fairytale castle" loading="lazy" />
         </div>
-      </section>
+      </div>
+    </section>
 
-      <section class="home-cast" id="cast" aria-labelledby="castTitle">
-        <div class="home-cast__head">
-          <div>
-            <h2 class="home-cast__title" id="castTitle">Sofia’s Characters</h2>
-            <p class="home-cast__sub" id="homeCastSub">Tap a friend to make a story with them!</p>
-          </div>
-          <a class="home-cast__add" href="characters.html">
-            <span aria-hidden="true">✨</span> Make a character
-          </a>
+    <section class="w-feature w-feature--jigsaw w-feature--flip">
+      <div class="w-feature__inner">
+        <div class="w-feature__media w-reveal">
+          <img src="games/images/welcome/jigsaw.jpg" width="1152" height="864" alt="A jigsaw puzzle of the boy hugging his puppy on a beach" loading="lazy" />
         </div>
-        <div class="home-cast__stage" id="homeCastStage">
-          <span class="home-cast__sun" aria-hidden="true"></span>
-          <span class="home-cast__cloud home-cast__cloud--1" aria-hidden="true"></span>
-          <span class="home-cast__cloud home-cast__cloud--2" aria-hidden="true"></span>
-          <span class="home-cast__cloud home-cast__cloud--3" aria-hidden="true"></span>
-          <span class="home-cast__hills" aria-hidden="true"></span>
-          <span class="home-cast__grass" aria-hidden="true"></span>
-          <div class="home-cast__bubble" id="homeCastBubble" role="dialog" aria-live="polite" hidden>
-            <p class="home-cast__bubble-text" id="homeCastBubbleText"></p>
-            <a class="home-cast__bubble-go" id="homeCastBubbleGo" href="games/storybook.html">📖 Make a story with me</a>
-          </div>
+        <div class="w-feature__copy w-reveal">
+          <p class="w-kicker w-kicker--blue">Custom jigsaw puzzles</p>
+          <h2 class="w-feature__title">Turn their favourite memories into puzzles.</h2>
+          <p class="w-feature__text">Use your photos, holidays, pets or generated pictures to create beautiful jigsaws with different difficulty levels.</p>
         </div>
-      </section>
+      </div>
+    </section>
 
-      <section class="home-games" id="games" aria-labelledby="gamesTitle">
-        <div class="home-games__head">
-          <div class="home-games__heading">
-            <h2 class="home-games__title" id="gamesTitle">Games</h2>
-            <p class="home-games__sub">Pick a game and let the fun begin!</p>
-          </div>
-          <label class="home-search">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.5 3a7.5 7.5 0 0 1 6 12l4.3 4.3-1.5 1.5-4.3-4.3A7.5 7.5 0 1 1 10.5 3zm0 2.2a5.3 5.3 0 1 0 0 10.6 5.3 5.3 0 0 0 0-10.6z"/></svg>
-            <span class="visually-hidden">Search games</span>
-            <input type="search" id="homeSearch" placeholder="Search games..." autocomplete="off" enterkeyhint="search" />
-          </label>
-          <div class="home-tabs" role="group" aria-label="Game types">
-            <button type="button" class="home-tab is-active" data-filter="all" aria-pressed="true">All</button>
-            <button type="button" class="home-tab" data-filter="puzzles" aria-pressed="false">Puzzles</button>
-            <button type="button" class="home-tab" data-filter="creative" aria-pressed="false">Creative</button>
-            <button type="button" class="home-tab" data-filter="stories" aria-pressed="false">Stories</button>
-            <button type="button" class="home-tab" data-filter="racing" aria-pressed="false">Racing</button>
-            <button type="button" class="home-tab" data-filter="arcade" aria-pressed="false">Arcade</button>
-            <button type="button" class="home-tab" data-filter="classic" aria-pressed="false">Classic</button>
-            <button type="button" class="home-tab home-tab--fav" data-filter="fav" aria-pressed="false">♥ Favourites</button>
-          </div>
+    <section class="w-feature w-feature--learning" id="learning">
+      <div class="w-feature__inner">
+        <div class="w-feature__copy w-reveal">
+          <p class="w-kicker w-kicker--green">Personalised learning</p>
+          <h2 class="w-feature__title">Learning at their level.</h2>
+          <p class="w-feature__text">Activities that adapt to what they’re learning — from early years to primary. Their level. Their pace. Still feels like play.</p>
         </div>
-
-        <ul class="home-grid" id="homeGrid" role="list" aria-labelledby="gamesTitle"></ul>
-        <p class="home-empty" id="homeEmpty" hidden></p>
-      </section>
-
-      <section class="home-about" id="about" aria-labelledby="aboutTitle">
-        <div class="home-about__icon" aria-hidden="true">💡</div>
-        <div class="home-about__text">
-          <h2 class="home-about__title" id="aboutTitle">About Sofia’s Game Room</h2>
-          <p><span id="homeGameCount">20</span> games in one happy place — no sign-up, and most games work offline after your first visit.</p>
-          <p><strong>Tip for grown-ups &amp; kids:</strong> add this page to your home screen for quick full-screen play. Tap the <span aria-hidden="true">⚙️</span> gear for sounds, read-aloud and a calmer screen.</p>
+        <div class="w-feature__media w-reveal">
+          <img src="games/images/welcome/learning.jpg" width="1152" height="864" alt="Learning cards showing Aa with an apple, 2 plus 3, and a cat" loading="lazy" />
         </div>
-      </section>
-    </main>
-  </div>
+      </div>
+    </section>
 
-  <script src="js/score-config.js"></script>
-  <script src="js/kids-core.js"></script>
-  <script src="js/storybook-shelf-store.js" defer></script>
-  <script src="js/score-cloud.js" defer></script>
-  <script src="js/character-store.js" defer></script>
-  <script src="home.js"></script>
-  <script src="home-cast.js" defer></script>
-  <script src="home-books.js" defer></script>
-  <script>
-    if (typeof KidsCore !== "undefined") {
-      KidsCore.init({ skipBar: true });
-      KidsCore.bindTapSound(document.body);
-    }
-    /* Register ASAP — automated PWA auditors often miss late SW registration */
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("./sw.js", { scope: "./" }).catch(function () {});
-    }
-    (function () {
-      var WELCOME_BACK_MS = 3 * 24 * 60 * 60 * 1000;
-      var KEY_LAST = "portalLastVisit";
-      var KEY_SESSION = "portalWelcomeBackSession";
-      var el = document.getElementById("portalWelcomeBack");
-      var now = Date.now();
-      var prev = null;
-      try {
-        var raw = localStorage.getItem(KEY_LAST);
-        if (raw) prev = parseInt(raw, 10);
-      } catch (e) {}
-      try {
-        if (prev && !isNaN(prev) && now - prev >= WELCOME_BACK_MS) {
-          if (!sessionStorage.getItem(KEY_SESSION) && el) {
-            el.removeAttribute("hidden");
-            sessionStorage.setItem(KEY_SESSION, "1");
-          }
-        }
-      } catch (e) {}
-      try {
-        localStorage.setItem(KEY_LAST, String(now));
-      } catch (e) {}
-    })();
-  </script>
+    <section class="w-games" id="games">
+      <img class="w-games__art" src="games/images/welcome/games.jpg" width="1280" height="720" alt="" loading="lazy" />
+      <div class="w-games__copy w-reveal">
+        <p class="w-kicker w-kicker--light">Games &amp; activities</p>
+        <h2 class="w-games__title">Sometimes, they just want to play.</h2>
+        <p class="w-games__text">A growing collection of fun games designed to encourage creativity, problem solving and imagination.</p>
+        <a class="w-btn w-btn--light" href="portal.html#games">See the games <span aria-hidden="true">→</span></a>
+      </div>
+    </section>
+
+    <section class="w-try" id="try">
+      <div class="w-try__card">
+        <div class="w-try__main">
+          <p class="w-kicker">Try it for free</p>
+          <h2 class="w-try__title">See what their world could look like.</h2>
+          <p class="w-try__lead">Create a quick personalised sample — no account needed.</p>
+          <form class="w-form" id="tryForm" novalidate>
+            <label class="w-field">
+              <span>Child’s first name</span>
+              <input type="text" name="name" id="tryName" placeholder="e.g. Sofia" maxlength="24" autocomplete="off" required />
+            </label>
+            <label class="w-field">
+              <span>Age / school year</span>
+              <select name="year" id="tryYear">
+                <option value="nursery">Nursery (3–4)</option>
+                <option value="reception">Reception (4–5)</option>
+                <option value="y1" selected>Year 1</option>
+                <option value="y2">Year 2</option>
+                <option value="y3">Year 3</option>
+                <option value="y4">Year 4</option>
+                <option value="y5">Year 5</option>
+                <option value="y6">Year 6</option>
+              </select>
+            </label>
+            <label class="w-field">
+              <span>What do they love?</span>
+              <input type="text" name="love" id="tryLove" placeholder="e.g. Dinosaurs, space, football…" maxlength="40" autocomplete="off" />
+            </label>
+            <button type="submit" class="w-btn w-btn--primary w-btn--lg w-form__go">Create their first adventure <span aria-hidden="true">→</span></button>
+            <p class="w-form__note" id="tryNote">No account needed to try it.</p>
+          </form>
+        </div>
+        <div class="w-try__art" aria-hidden="true">
+          <div class="w-try__frame"><img src="games/images/welcome/sample.jpg" width="1024" height="1024" alt="" loading="lazy" /></div>
+          <p class="w-try__scribble">See a personalised sample story, puzzle or game in seconds.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="w-safe" id="about">
+      <div class="w-safe__copy w-reveal">
+        <p class="w-kicker">A safe place for their imagination</p>
+        <h2 class="w-safe__title">Made for children.<br />Designed with parents in mind.</h2>
+      </div>
+      <ul class="w-safe__list" role="list">
+        <li class="w-reveal"><span class="w-safe__icon w-safe__icon--purple" aria-hidden="true">🛡️</span>No advertising</li>
+        <li class="w-reveal"><span class="w-safe__icon w-safe__icon--pink" aria-hidden="true">👪</span>Parent controls</li>
+        <li class="w-reveal"><span class="w-safe__icon w-safe__icon--green" aria-hidden="true">🌱</span>Age-appropriate experiences</li>
+        <li class="w-reveal"><span class="w-safe__icon w-safe__icon--blue" aria-hidden="true">🔒</span>Private child profiles</li>
+      </ul>
+    </section>
+
+    <section class="w-final">
+      <img class="w-final__art" src="games/images/welcome/final.jpg" width="1280" height="720" alt="" loading="lazy" />
+      <div class="w-final__copy w-reveal">
+        <h2 class="w-final__title">Their stories.<br />Their games.<br />Their learning.<br /><span class="w-accent">Their little world.</span></h2>
+        <a class="w-btn w-btn--primary w-btn--lg" href="#try">Start their Oovi world <span aria-hidden="true">→</span></a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="w-foot">
+    <a class="w-logo w-logo--foot" href="#top" aria-label="Oovi — back to top">
+      <span class="w-logo__row">
+        <img class="w-logo__mark" src="games/images/brand/oovi-mark.svg" width="100" height="136" alt="" />
+        <span class="w-logo__word" aria-hidden="true">ovi</span>
+      </span>
+      <span class="w-logo__tag">Our Own Virtual Imagination</span>
+    </a>
+    <nav class="w-foot__links" aria-label="Footer">
+      <a href="#about">Privacy</a>
+      <a href="#about">Terms</a>
+      <a class="w-btn w-btn--primary w-btn--sm" href="portal.html">Log in</a>
+    </nav>
+  </footer>
+
+  <dialog class="w-sample" id="sampleDialog" aria-labelledby="sampleTitle">
+    <button type="button" class="w-sample__close" id="sampleClose" aria-label="Close">×</button>
+    <p class="w-kicker">A personalised sample</p>
+    <h2 class="w-sample__title" id="sampleTitle"></h2>
+    <div class="w-sample__story" id="sampleStory"></div>
+    <div class="w-sample__actions">
+      <a class="w-btn w-btn--primary" href="portal.html">Open their Game Room <span aria-hidden="true">→</span></a>
+      <button type="button" class="w-btn w-btn--ghost" id="sampleAgain">Try another</button>
+    </div>
+  </dialog>
+
+  <script src="welcome.js" defer></script>
 </body>
 </html>

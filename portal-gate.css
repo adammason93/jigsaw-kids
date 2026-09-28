@@ -1,0 +1,136 @@
+.gate {
+  display: none;
+}
+
+.gate-on body {
+  overflow: hidden;
+}
+
+.gate-on .gate {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 1.2rem;
+  overflow-y: auto;
+  background:
+    radial-gradient(circle at 15% 20%, rgba(255, 214, 102, 0.35), transparent 40%),
+    radial-gradient(circle at 85% 80%, rgba(255, 138, 190, 0.3), transparent 45%),
+    linear-gradient(160deg, #f3ecff, #fdf6ee);
+  font-family: "Nunito", system-ui, sans-serif;
+}
+
+.gate__card {
+  width: min(420px, 100%);
+  padding: 2.2rem 2rem 1.8rem;
+  border-radius: 30px;
+  background: #fff;
+  box-shadow: 0 24px 60px rgba(60, 40, 120, 0.18);
+  text-align: center;
+  color: #141b4d;
+}
+
+.gate__logo {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 0.06em;
+  color: #141b4d;
+  text-decoration: none;
+  font-family: "Fredoka", "Nunito", sans-serif;
+  font-weight: 700;
+  font-size: 3rem;
+  line-height: 0.8;
+}
+
+.gate__logo img {
+  width: auto;
+  height: 1.3em;
+  margin-bottom: -0.03em;
+}
+
+.gate__title {
+  margin: 1.2rem 0 0.4rem;
+  font-family: "Fredoka", "Nunito", sans-serif;
+  font-weight: 700;
+  font-size: 1.6rem;
+  line-height: 1.15;
+}
+
+.gate__lead {
+  margin: 0 0 1.3rem;
+  color: #57557a;
+  font-weight: 600;
+}
+
+.gate__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  text-align: left;
+  font-weight: 800;
+  font-size: 0.9rem;
+}
+
+.gate__field input {
+  min-height: 52px;
+  padding: 0 1rem;
+  border: 2px solid #e6defa;
+  border-radius: 14px;
+  font: inherit;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #141b4d;
+}
+
+.gate__field input:focus {
+  outline: none;
+  border-color: #7c4dff;
+}
+
+.gate__show {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0.6rem 0 1.1rem;
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: #57557a;
+}
+
+.gate__btn {
+  width: 100%;
+  min-height: 54px;
+  border: 0;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #7c4dff, #a36bff);
+  color: #fff;
+  font: inherit;
+  font-weight: 800;
+  font-size: 1.1rem;
+  cursor: pointer;
+  box-shadow: 0 10px 22px rgba(124, 77, 255, 0.35);
+}
+
+.gate__btn:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.gate__status {
+  min-height: 1.4em;
+  margin: 0.8rem 0 0.4rem;
+  font-weight: 700;
+  font-size: 0.92rem;
+  color: #57557a;
+}
+
+.gate__status.is-error {
+  color: #d9472f;
+}
+
+.gate__back {
+  color: #7c4dff;
+  font-weight: 800;
+  text-decoration: none;
+}
