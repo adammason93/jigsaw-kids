@@ -202,6 +202,16 @@ function updateProgress() {
  * @param {string} src - URL to image (path or blob:)
  * @param {HTMLElement | null} [button] - The picture tile that was tapped
  */
+let autoStartPending = false;
+
+function finishPictureLoad() {
+  startBtn.disabled = false;
+  if (autoStartPending && !puzzleActive) {
+    autoStartPending = false;
+    startBtn.click();
+  }
+}
+
 function selectPicture(src, button) {
   dataUrl = src;
   clearPictureSelection();
@@ -218,17 +228,17 @@ function selectPicture(src, button) {
     if (dataUrl !== src) return;
     const raw = probe.naturalWidth / probe.naturalHeight || 1;
     imageAspect = Math.max(0.6, Math.min(1.8, raw));
-    startBtn.disabled = false;
     if (!puzzleActive) {
       layoutForCount();
       applyBoardAspect();
       updateProgress();
     }
+    finishPictureLoad();
   };
   probe.onerror = function () {
     if (dataUrl !== src) return;
     imageAspect = 1;
-    startBtn.disabled = false;
+    finishPictureLoad();
   };
   probe.src = resolved;
 }
@@ -643,9 +653,21 @@ try {
 } catch (e) {
   /* ignore */
 }
-setPieceCount(savedCount, false);
+const urlParams = new URLSearchParams(window.location.search);
+const urlPieces = Number(urlParams.get("pieces"));
+const urlPic = (urlParams.get("pic") || "").replace(/^.*\//, "");
+setPieceCount(LAYOUTS[urlPieces] ? urlPieces : savedCount, false);
 tray.setAttribute("data-empty", "Your pieces will appear here.");
-const firstPreset = document.querySelector(".jigsaw-preset");
+const urlPreset = urlPic
+  ? Array.prototype.find.call(document.querySelectorAll(".jigsaw-preset"), function (b) {
+      return (b.getAttribute("data-src") || "").replace(/^.*\//, "") === urlPic;
+    })
+  : null;
+if (urlPreset) {
+  autoStartPending = true;
+  if (window.history && history.replaceState) history.replaceState(null, "", window.location.pathname);
+}
+const firstPreset = urlPreset || document.querySelector(".jigsaw-preset");
 if (firstPreset) firstPreset.click();
 
 if (typeof GameScorecard !== "undefined") {

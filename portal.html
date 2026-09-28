@@ -4,14 +4,16 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="mobile-web-app-capable" content="yes" />
-  <meta name="theme-color" content="#7c3aed" />
+  <meta name="theme-color" content="#141b4d" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="description" content="Picture jigsaw, AI storybook, prompt-made 3D games, colouring book, link grid puzzle, block stack (Tetris-style), Drive Mad (online), number path, word search, Memory, Snap, Snake, Zuma, marble maze, snakes and ladders, noughts and crosses, Connect 4, rock paper scissors for children — works offline after one visit (except AI and embedded web games)." />
-  <title>Sofia's Game Room</title>
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="description" content="Sofia’s World on Oovi — stories, games, puzzles and learning." />
+  <title>Sofia’s World · Oovi</title>
   <link rel="manifest" href="manifest.json" />
+  <link rel="icon" type="image/svg+xml" href="games/images/brand/oovi-mark.svg" />
   <link rel="stylesheet" href="js/kids-core.css" />
   <link rel="stylesheet" href="home.css" />
+  <link rel="stylesheet" href="portal-app.css?v=1" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
@@ -30,7 +32,7 @@
     })();
   </script>
 </head>
-<body class="page-home">
+<body class="page-portal">
   <div class="gate" id="portalGate" role="dialog" aria-modal="true" aria-labelledby="gateTitle">
     <form class="gate__card" id="gateForm" novalidate>
       <a class="gate__logo" href="./" aria-label="Oovi — home">
@@ -49,198 +51,197 @@
       <a class="gate__back" href="./">← Back to Oovi</a>
     </form>
   </div>
-  <div class="home">
-    <header class="home-bar">
-      <a class="home-logo" href="portal.html" data-nav="home" aria-label="Sofia's Game Room — home">
-        <img class="home-logo__pad" src="games/images/brand/oovi-mark.svg" width="100" height="136" alt="" />
-        <span class="home-logo__text"><span class="home-logo__name">Sofia’s</span> Game Room</span>
-        <span class="home-logo__star" aria-hidden="true">⭐</span>
-      </a>
 
-      <nav class="home-nav" aria-label="Main">
-        <a class="home-nav__link is-active" href="#top" data-nav="home" aria-current="page">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11.2 12 4l9 7.2V20a1 1 0 0 1-1 1h-5.5v-6h-5v6H4a1 1 0 0 1-1-1z"/></svg>
-          <span>Home</span>
+  <div class="p-app">
+    <aside class="p-side" aria-label="Sections">
+      <a class="p-logo" href="#home" data-view-link="home" aria-label="Oovi — home">
+        <img src="games/images/brand/oovi-mark.svg" width="100" height="136" alt="" />
+        <span aria-hidden="true">ovi</span>
+      </a>
+      <nav class="p-side__nav">
+        <a class="p-side__link" href="#home" data-view-link="home">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11.2 12 4l9 7.2V20a1 1 0 0 1-1 1h-5.5v-6h-5v6H4a1 1 0 0 1-1-1z"/></svg><span>Home</span>
         </a>
-        <a class="home-nav__link" href="#games" data-nav="games">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7h10a5 5 0 0 1 4.9 6l-.8 4a2.5 2.5 0 0 1-4.3 1.2L14.5 16h-5l-2.3 2.2A2.5 2.5 0 0 1 2.9 17l-.8-4A5 5 0 0 1 7 7zm0 3v1.5H5.5v1.5H7v1.5h1.5V13H10v-1.5H8.5V10zm9.5 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm-2 2a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/></svg>
-          <span>Games</span>
+        <a class="p-side__link" href="#stories" data-view-link="stories">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5C6.500 4.300 9.200 4.300 12 6c2.800-1.700 5.500-1.700 8-.5V19c-2.500-1.200-5.200-1.200-8 .5-2.800-1.700-5.500-1.700-8-.5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M12 6v13.500" stroke="currentColor" stroke-width="2"/></svg><span>Stories</span>
         </a>
-        <a class="home-nav__link" href="#cast" data-nav="characters">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16l-5.4 3 1.2-6-4.5-4.2 6.1-.7z"/></svg>
-          <span>Characters</span>
+        <a class="p-side__link" href="#games" data-view-link="games">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7h10a5 5 0 0 1 4.9 6l-.8 4a2.5 2.5 0 0 1-4.3 1.2L14.5 16h-5l-2.3 2.2A2.5 2.5 0 0 1 2.9 17l-.8-4A5 5 0 0 1 7 7zm0 3v1.5H5.5v1.5H7v1.5h1.5V13H10v-1.5H8.5V10zm9.5 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm-2 2a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/></svg><span>Games</span>
         </a>
-        <a class="home-nav__link" href="#games" data-nav="favourites">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7.5-4.6-10-9.3C.4 8.3 2.3 4 6.3 4c2.3 0 3.9 1.3 5.7 3.3C13.8 5.3 15.4 4 17.7 4c4 0 5.9 4.3 4.3 7.7C19.5 16.4 12 21 12 21z"/></svg>
-          <span><span class="home-nav__my">My </span>Favourites</span>
+        <a class="p-side__link" href="#puzzles" data-view-link="puzzles">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 3a2 2 0 0 1 2 2v1h4a1 1 0 0 1 1 1v4h1a2 2 0 1 1 0 4h-1v4a1 1 0 0 1-1 1h-4v-1a2 2 0 1 0-4 0v1H4a1 1 0 0 1-1-1v-4h1a2 2 0 1 0 0-4H3V7a1 1 0 0 1 1-1h4V5a2 2 0 0 1 2-2z"/></svg><span>Puzzles</span>
         </a>
-        <a class="home-nav__link" href="#about" data-nav="about">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm1.3 15h-2.6v-6.5h2.6zM12 9.2a1.6 1.6 0 1 1 0-3.2 1.6 1.6 0 0 1 0 3.2z"/></svg>
-          <span>About</span>
+        <a class="p-side__link" href="#learning" data-view-link="learning">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5a7 7 0 0 0-4 12.700V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-1.800A7 7 0 0 0 12 2.500zM9.500 20h5v1a1 1 0 0 1-1 1h-3a1 1 0 0 1-1-1z"/></svg><span>Learning</span>
         </a>
       </nav>
-
-      <div class="home-bar__end">
-        <a class="home-avatar" href="characters.html" title="My characters">
-          <img src="games/images/character-girl-blonde.png" alt="My characters" width="46" height="46" decoding="async" />
+      <nav class="p-side__nav p-side__nav--low">
+        <a class="p-side__link" href="characters.html">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16l-5.4 3 1.2-6-4.5-4.2 6.1-.7z"/></svg><span>My World</span>
         </a>
-        <button type="button" class="home-gear" id="homeSettings" title="Grown-up settings" aria-label="Grown-up settings">
+        <a class="p-side__link" href="#favourites" data-view-link="favourites">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7.5-4.6-10-9.3C.4 8.3 2.3 4 6.3 4c2.3 0 3.9 1.3 5.7 3.3C13.8 5.3 15.4 4 17.7 4c4 0 5.9 4.3 4.3 7.7C19.5 16.4 12 21 12 21z"/></svg><span>Favourites</span>
+        </a>
+        <button type="button" class="p-side__link" data-settings>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.4 13a7.6 7.6 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.4 7.4 0 0 0-1.7-1L15 3.3h-4l-.4 2.6a7.4 7.4 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.6 7.6 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1a7.4 7.4 0 0 0 1.7 1l.3 2.6h4l.4-2.6a7.4 7.4 0 0 0 1.7-1l2.5 1 2-3.5zM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg><span>Settings</span>
+        </button>
+      </nav>
+    </aside>
+
+    <div class="p-main">
+      <header class="p-top">
+        <a class="p-logo p-logo--top" href="#home" data-view-link="home" aria-label="Oovi — home">
+          <img src="games/images/brand/oovi-mark.svg" width="100" height="136" alt="" />
+          <span aria-hidden="true">ovi</span>
+        </a>
+        <form class="p-search" id="pSearch" role="search" hidden>
+          <label class="visually-hidden" for="pSearchInput">Search games and stories</label>
+          <input type="search" id="pSearchInput" placeholder="Search games, stories, puzzles…" autocomplete="off" enterkeyhint="search" />
+        </form>
+        <a class="p-who" href="characters.html" title="My characters">
+          <img src="games/images/character-girl-blonde.png" width="40" height="40" alt="" />
+          <span>Sofia’s World</span>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+        <button type="button" class="p-round" id="pSearchBtn" aria-label="Search" aria-expanded="false">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2.6"/><path d="m15.5 15.5 5 5" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>
+        </button>
+        <button type="button" class="p-round p-round--gear" data-settings aria-label="Grown-up settings">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.4 13a7.6 7.6 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.4 7.4 0 0 0-1.7-1L15 3.3h-4l-.4 2.6a7.4 7.4 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.6 7.6 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1a7.4 7.4 0 0 0 1.7 1l.3 2.6h4l.4-2.6a7.4 7.4 0 0 0 1.7-1l2.5 1 2-3.5zM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg>
         </button>
-      </div>
-    </header>
+      </header>
 
-    <main id="top">
-      <section class="home-hero" aria-labelledby="homeTitle">
-        <img class="home-hero__art" src="games/images/portal/hero-sofia.jpg" width="1280" height="720" alt="" decoding="async" fetchpriority="high" />
-        <span class="home-hero__spark home-hero__spark--1" aria-hidden="true">★</span>
-        <span class="home-hero__spark home-hero__spark--2" aria-hidden="true">★</span>
-        <span class="home-hero__spark home-hero__spark--3" aria-hidden="true">★</span>
-        <span class="home-hero__spark home-hero__spark--4" aria-hidden="true">★</span>
-        <div class="home-hero__copy">
-          <p class="home-hero__kicker">Welcome to</p>
-          <h1 class="home-hero__title" id="homeTitle"><span class="home-hero__name">Sofia’s</span> Game Room</h1>
-          <p class="home-hero__lead">Tap a game and jump in — puzzles, colours, races and more, all in one happy place!</p>
-          <a class="home-hero__cta" id="homeStart" href="#games">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13a1 1 0 0 0 1.5.9l10.2-6.5a1 1 0 0 0 0-1.8L9.5 4.6A1 1 0 0 0 8 5.5z"/></svg>
-            Start Playing
-          </a>
-          <p class="home-hero__welcome-back" id="portalWelcomeBack" role="status" aria-live="polite" hidden>
-            Welcome back, Sofia! ✨
-          </p>
-        </div>
-      </section>
-
-      <section class="home-books" id="books" aria-labelledby="booksTitle">
-        <img class="home-books__bg" src="games/images/portal/books-room.jpg" width="1280" height="720" alt="" decoding="async" loading="lazy" />
-        <span class="home-books__star home-books__star--1" aria-hidden="true">★</span>
-        <span class="home-books__star home-books__star--2" aria-hidden="true">★</span>
-        <span class="home-books__star home-books__star--3" aria-hidden="true">★</span>
-        <div class="home-books__head">
-          <div>
-            <p class="home-books__kicker">Featured books</p>
-            <h2 class="home-books__title" id="booksTitle"><span class="home-books__name">Sofia’s</span> Story Books</h2>
-            <p class="home-books__sub" id="homeBooksSub">Read, explore and create your own stories with Sofia’s magical book collection.</p>
+      <main class="p-views">
+        <!-- Home -->
+        <section class="p-view" data-view="home" aria-labelledby="helloTitle">
+          <div class="p-hello">
+            <img class="p-hello__art" src="games/images/portal/hello.jpg" width="1280" height="720" alt="" fetchpriority="high" />
+            <div class="p-hello__copy">
+              <h1 class="p-hello__title" id="helloTitle">Hello Sofia <span class="p-wave" aria-hidden="true">👋</span></h1>
+              <p class="p-hello__sub" id="helloSub">What shall we explore today?</p>
+            </div>
           </div>
-          <a class="home-books__all" href="games/storybook.html">
-            View all books
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5.5 15.5 12 9 18.5" /></svg>
-          </a>
-        </div>
-        <div class="home-books__shelf">
-          <button type="button" class="home-books__arrow home-books__arrow--prev" id="homeBooksPrev" aria-label="Previous books" hidden>
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5.5 8.5 12 15 18.5" /></svg>
-          </button>
-          <ul class="home-books__track" id="homeBooksTrack" role="list" aria-labelledby="booksTitle"></ul>
-          <button type="button" class="home-books__arrow home-books__arrow--next" id="homeBooksNext" aria-label="More books" hidden>
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5.5 15.5 12 9 18.5" /></svg>
-          </button>
-          <span class="home-books__plank" aria-hidden="true"></span>
-        </div>
-      </section>
-
-      <section class="home-cast" id="cast" aria-labelledby="castTitle">
-        <div class="home-cast__head">
-          <div>
-            <h2 class="home-cast__title" id="castTitle">Sofia’s Characters</h2>
-            <p class="home-cast__sub" id="homeCastSub">Tap a friend to make a story with them!</p>
+          <div class="p-tiles">
+            <a class="p-tile p-tile--stories" href="#stories" data-view-link="stories"><span class="p-tile__icon" aria-hidden="true">📖</span>Stories</a>
+            <a class="p-tile p-tile--games" href="#games" data-view-link="games"><span class="p-tile__icon" aria-hidden="true">🎮</span>Games</a>
+            <a class="p-tile p-tile--puzzles" href="#puzzles" data-view-link="puzzles"><span class="p-tile__icon" aria-hidden="true">🧩</span>Puzzles</a>
+            <a class="p-tile p-tile--learning" href="#learning" data-view-link="learning"><span class="p-tile__icon" aria-hidden="true">💡</span>Learning</a>
           </div>
-          <a class="home-cast__add" href="characters.html">
-            <span aria-hidden="true">✨</span> Make a character
-          </a>
-        </div>
-        <div class="home-cast__stage" id="homeCastStage">
-          <span class="home-cast__sun" aria-hidden="true"></span>
-          <span class="home-cast__cloud home-cast__cloud--1" aria-hidden="true"></span>
-          <span class="home-cast__cloud home-cast__cloud--2" aria-hidden="true"></span>
-          <span class="home-cast__cloud home-cast__cloud--3" aria-hidden="true"></span>
-          <span class="home-cast__hills" aria-hidden="true"></span>
-          <span class="home-cast__grass" aria-hidden="true"></span>
-          <div class="home-cast__bubble" id="homeCastBubble" role="dialog" aria-live="polite" hidden>
-            <p class="home-cast__bubble-text" id="homeCastBubbleText"></p>
-            <a class="home-cast__bubble-go" id="homeCastBubbleGo" href="games/storybook.html">📖 Make a story with me</a>
-          </div>
-        </div>
-      </section>
 
-      <section class="home-games" id="games" aria-labelledby="gamesTitle">
-        <div class="home-games__head">
-          <div class="home-games__heading">
-            <h2 class="home-games__title" id="gamesTitle">Games</h2>
-            <p class="home-games__sub">Pick a game and let the fun begin!</p>
+          <div class="p-head">
+            <h2 class="p-h2">Recommended for you</h2>
+            <a class="p-more" href="#games" data-view-link="games">See all</a>
           </div>
-          <label class="home-search">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.5 3a7.5 7.5 0 0 1 6 12l4.3 4.3-1.5 1.5-4.3-4.3A7.5 7.5 0 1 1 10.5 3zm0 2.2a5.3 5.3 0 1 0 0 10.6 5.3 5.3 0 0 0 0-10.6z"/></svg>
-            <span class="visually-hidden">Search games</span>
-            <input type="search" id="homeSearch" placeholder="Search games..." autocomplete="off" enterkeyhint="search" />
-          </label>
-          <div class="home-tabs" role="group" aria-label="Game types">
-            <button type="button" class="home-tab is-active" data-filter="all" aria-pressed="true">All</button>
-            <button type="button" class="home-tab" data-filter="puzzles" aria-pressed="false">Puzzles</button>
-            <button type="button" class="home-tab" data-filter="creative" aria-pressed="false">Creative</button>
-            <button type="button" class="home-tab" data-filter="stories" aria-pressed="false">Stories</button>
-            <button type="button" class="home-tab" data-filter="racing" aria-pressed="false">Racing</button>
-            <button type="button" class="home-tab" data-filter="arcade" aria-pressed="false">Arcade</button>
-            <button type="button" class="home-tab" data-filter="classic" aria-pressed="false">Classic</button>
-            <button type="button" class="home-tab home-tab--fav" data-filter="fav" aria-pressed="false">♥ Favourites</button>
+          <ul class="p-cards p-cards--rec" id="pRecommended" role="list"></ul>
+
+          <section class="home-cast p-cast" id="cast" aria-labelledby="castTitle">
+            <div class="p-head">
+              <div>
+                <h2 class="p-h2" id="castTitle">Sofia’s Characters</h2>
+                <p class="p-sub" id="homeCastSub">Tap a friend to make a story with them!</p>
+              </div>
+              <a class="p-more" href="characters.html">✨ Make a character</a>
+            </div>
+            <div class="home-cast__stage" id="homeCastStage">
+              <span class="home-cast__sun" aria-hidden="true"></span>
+              <span class="home-cast__cloud home-cast__cloud--1" aria-hidden="true"></span>
+              <span class="home-cast__cloud home-cast__cloud--2" aria-hidden="true"></span>
+              <span class="home-cast__cloud home-cast__cloud--3" aria-hidden="true"></span>
+              <span class="home-cast__hills" aria-hidden="true"></span>
+              <span class="home-cast__grass" aria-hidden="true"></span>
+              <div class="home-cast__bubble" id="homeCastBubble" role="dialog" aria-live="polite" hidden>
+                <p class="home-cast__bubble-text" id="homeCastBubbleText"></p>
+                <a class="home-cast__bubble-go" id="homeCastBubbleGo" href="games/storybook.html">📖 Make a story with me</a>
+              </div>
+            </div>
+          </section>
+        </section>
+
+        <!-- Stories -->
+        <section class="p-view" data-view="stories" aria-labelledby="storiesTitle" hidden>
+          <h1 class="p-h1" id="storiesTitle">Stories</h1>
+          <p class="p-sub">Magical stories for curious minds.</p>
+          <div class="p-chips" id="storyChips" role="group" aria-label="Story types"></div>
+          <div class="p-feature" id="storyFeature"></div>
+          <div class="p-head">
+            <h2 class="p-h2">My Stories</h2>
+            <a class="p-more" href="games/storybook.html">View library</a>
           </div>
-        </div>
+          <ul class="p-cards p-cards--books" id="storyGrid" role="list"></ul>
+          <p class="p-empty" id="storyEmpty" hidden></p>
+        </section>
 
-        <ul class="home-grid" id="homeGrid" role="list" aria-labelledby="gamesTitle"></ul>
-        <p class="home-empty" id="homeEmpty" hidden></p>
-      </section>
+        <!-- Games -->
+        <section class="p-view" data-view="games" aria-labelledby="gamesTitle" hidden>
+          <h1 class="p-h1" id="gamesTitle">Games</h1>
+          <p class="p-sub">Play, explore and build new skills.</p>
+          <div class="p-chips" id="gameChips" role="group" aria-label="Game types"></div>
+          <ul class="p-cards p-cards--games" id="gameGrid" role="list"></ul>
+          <p class="p-empty" id="gameEmpty" hidden></p>
+        </section>
 
-      <section class="home-about" id="about" aria-labelledby="aboutTitle">
-        <div class="home-about__icon" aria-hidden="true">💡</div>
-        <div class="home-about__text">
-          <h2 class="home-about__title" id="aboutTitle">About Sofia’s Game Room</h2>
-          <p><span id="homeGameCount">20</span> games in one happy place — no sign-up, and most games work offline after your first visit.</p>
-          <p><strong>Tip for grown-ups &amp; kids:</strong> add this page to your home screen for quick full-screen play. Tap the <span aria-hidden="true">⚙️</span> gear for sounds, read-aloud and a calmer screen.</p>
-        </div>
-      </section>
-    </main>
+        <!-- Puzzles -->
+        <section class="p-view" data-view="puzzles" aria-labelledby="puzzlesTitle" hidden>
+          <h1 class="p-h1" id="puzzlesTitle">Puzzles</h1>
+          <p class="p-sub">Put the pieces together and explore amazing pictures.</p>
+          <div class="p-chips" id="puzzleChips" role="group" aria-label="Puzzle types"></div>
+          <ul class="p-cards p-cards--puzzles" id="puzzleGrid" role="list"></ul>
+          <div class="p-head">
+            <h2 class="p-h2">More puzzle games</h2>
+          </div>
+          <ul class="p-cards p-cards--games" id="puzzleGames" role="list"></ul>
+        </section>
+
+        <!-- Learning -->
+        <section class="p-view" data-view="learning" aria-labelledby="learningTitle" hidden>
+          <h1 class="p-h1" id="learningTitle">Learning</h1>
+          <p class="p-sub">Fun activities to help you grow and discover.</p>
+          <div class="p-chips" id="learnChips" role="group" aria-label="Learning areas"></div>
+          <ul class="p-learn" id="learnGrid" role="list"></ul>
+        </section>
+
+        <!-- Favourites -->
+        <section class="p-view" data-view="favourites" aria-labelledby="favTitle" hidden>
+          <h1 class="p-h1" id="favTitle">Favourites</h1>
+          <p class="p-sub">Tap the ♥ on any game to keep it here.</p>
+          <ul class="p-cards p-cards--games" id="favGrid" role="list"></ul>
+          <p class="p-empty" id="favEmpty" hidden>No favourites yet — tap the ♥ on a game to keep it here.</p>
+        </section>
+
+        <!-- Search -->
+        <section class="p-view" data-view="search" aria-labelledby="searchTitle" hidden>
+          <h1 class="p-h1" id="searchTitle">Search</h1>
+          <p class="p-sub" id="searchSub"></p>
+          <ul class="p-cards p-cards--games" id="searchGrid" role="list"></ul>
+          <p class="p-empty" id="searchEmpty" hidden>Nothing matches that — try another word!</p>
+        </section>
+      </main>
+    </div>
+
+    <nav class="p-tabs" aria-label="Sections">
+      <a href="#home" data-view-link="home"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11.2 12 4l9 7.2V20a1 1 0 0 1-1 1h-5.5v-6h-5v6H4a1 1 0 0 1-1-1z"/></svg>Home</a>
+      <a href="#stories" data-view-link="stories"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5C6.500 4.300 9.200 4.300 12 6c2.800-1.700 5.500-1.700 8-.5V19c-2.500-1.200-5.200-1.200-8 .5-2.800-1.700-5.500-1.700-8-.5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M12 6v13.500" stroke="currentColor" stroke-width="2"/></svg>Stories</a>
+      <a href="#games" data-view-link="games"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7h10a5 5 0 0 1 4.9 6l-.8 4a2.5 2.5 0 0 1-4.3 1.2L14.5 16h-5l-2.3 2.2A2.5 2.5 0 0 1 2.9 17l-.8-4A5 5 0 0 1 7 7zm0 3v1.5H5.5v1.5H7v1.5h1.5V13H10v-1.5H8.5V10zm9.5 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm-2 2a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/></svg>Games</a>
+      <a href="#puzzles" data-view-link="puzzles"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 3a2 2 0 0 1 2 2v1h4a1 1 0 0 1 1 1v4h1a2 2 0 1 1 0 4h-1v4a1 1 0 0 1-1 1h-4v-1a2 2 0 1 0-4 0v1H4a1 1 0 0 1-1-1v-4h1a2 2 0 1 0 0-4H3V7a1 1 0 0 1 1-1h4V5a2 2 0 0 1 2-2z"/></svg>Puzzles</a>
+      <a href="#learning" data-view-link="learning"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5a7 7 0 0 0-4 12.700V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-1.800A7 7 0 0 0 12 2.500zM9.500 20h5v1a1 1 0 0 1-1 1h-3a1 1 0 0 1-1-1z"/></svg>Learning</a>
+    </nav>
   </div>
 
   <script src="js/kids-core.js"></script>
   <script src="js/storybook-shelf-store.js" defer></script>
   <script src="js/score-cloud.js" defer></script>
   <script src="js/character-store.js" defer></script>
-  <script src="home.js"></script>
+  <script src="portal.js" defer></script>
   <script src="home-cast.js" defer></script>
-  <script src="home-books.js" defer></script>
   <script src="portal-gate.js" defer></script>
   <script>
     if (typeof KidsCore !== "undefined") {
       KidsCore.init({ skipBar: true });
       KidsCore.bindTapSound(document.body);
     }
-    /* Register ASAP — automated PWA auditors often miss late SW registration */
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("./sw.js", { scope: "./" }).catch(function () {});
     }
-    (function () {
-      var WELCOME_BACK_MS = 3 * 24 * 60 * 60 * 1000;
-      var KEY_LAST = "portalLastVisit";
-      var KEY_SESSION = "portalWelcomeBackSession";
-      var el = document.getElementById("portalWelcomeBack");
-      var now = Date.now();
-      var prev = null;
-      try {
-        var raw = localStorage.getItem(KEY_LAST);
-        if (raw) prev = parseInt(raw, 10);
-      } catch (e) {}
-      try {
-        if (prev && !isNaN(prev) && now - prev >= WELCOME_BACK_MS) {
-          if (!sessionStorage.getItem(KEY_SESSION) && el) {
-            el.removeAttribute("hidden");
-            sessionStorage.setItem(KEY_SESSION, "1");
-          }
-        }
-      } catch (e) {}
-      try {
-        localStorage.setItem(KEY_LAST, String(now));
-      } catch (e) {}
-    })();
   </script>
 </body>
 </html>

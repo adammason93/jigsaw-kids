@@ -1,19 +1,19 @@
 /* Minimal offline shell — network-first, cache as fallback for same-origin */
-const CACHE = "jigsaw-kids-v341";
+const CACHE = "jigsaw-kids-v342";
 const SHELL = [
   "./index.html",
   "./portal.html",
+  "./portal.js",
+  "./portal-app.css",
   "./portal-gate.js",
   "./portal-gate.css",
   "./welcome.css",
   "./welcome.js",
   "./home.css",
-  "./home.js",
   "./home-cast.js",
-  "./home-books.js",
   "./games/images/brand/oovi-mark.svg",
-  "./games/images/portal/books-room.jpg",
-  "./games/images/portal/hero-sofia.jpg",
+  "./games/images/portal/hello.jpg",
+  "./games/images/portal/stories-night.jpg",
   "./manifest.json",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
