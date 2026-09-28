@@ -8,19 +8,22 @@
   <meta name="description" content="Stories, games, puzzles and learning personalised around your child. Safe, ad-free and made for children." />
   <meta property="og:title" content="Oovi — a world made just for them" />
   <meta property="og:description" content="Stories, games, puzzles and learning personalised around your child." />
-  <meta property="og:image" content="games/images/oovi/girl.webp" />
+  <meta property="og:image" content="games/images/oovi/hero-room.jpg" />
   <link rel="icon" type="image/svg+xml" href="games/images/brand/oovi-mark.svg" />
   <link rel="apple-touch-icon" href="icons/icon-192.png" />
-  <link rel="stylesheet" href="welcome.css?v=6" />
+  <link rel="stylesheet" href="welcome.css?v=9" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
 </head>
 <body>
   <header class="o-bar" id="top">
-    <a class="o-logo" href="#top" aria-label="Oovi — home">
-      <img class="o-logo__mark" src="games/images/brand/oovi-mark.svg" width="100" height="136" alt="" />
-      <span class="o-logo__word" aria-hidden="true">ovi</span>
+    <a class="o-logo o-logo--stack" href="#top" aria-label="Oovi — Our Own Virtual Imagination">
+      <span class="o-logo__row">
+        <img class="o-logo__mark" src="games/images/brand/oovi-mark.svg" width="100" height="136" alt="" />
+        <span class="o-logo__word" aria-hidden="true">ovi</span>
+      </span>
+      <span class="o-logo__tag" aria-hidden="true">Our Own Virtual Imagination</span>
     </a>
     <nav class="o-nav" aria-label="Main">
       <a href="#top" class="is-active" aria-current="page">Home</a>
@@ -37,8 +40,9 @@
   <main>
     <section class="o-hero">
       <div class="o-hero__copy">
-        <h1 class="o-hero__title"><span>A world made</span> <span>just for them.</span></h1>
-        <p class="o-hero__lead">Stories, games, puzzles and learning personalised around your child.</p>
+        <p class="o-hero__kicker">Their stories. Their games. Their world.</p>
+        <h1 class="o-hero__title"><span>A world</span> <span>made just</span> <span class="o-hero__hl">for them.</span></h1>
+        <p class="o-hero__lead">Stories, games, puzzles and learning personalised around your child’s imagination.</p>
         <button type="button" class="o-btn o-btn--navy o-btn--lg" data-try>Try Oovi free <span aria-hidden="true">→</span></button>
         <ul class="o-checks" role="list">
           <li><span class="o-checks__tick o-checks__tick--green" aria-hidden="true"></span>Safe &amp; ad-free</li>
@@ -48,13 +52,10 @@
       </div>
 
       <div class="o-hero__art" aria-hidden="true">
-        <span class="o-hero__blob"></span>
-        <span class="o-confetti o-confetti--1"></span>
-        <span class="o-confetti o-confetti--2"></span>
-        <span class="o-confetti o-confetti--3"></span>
-        <span class="o-confetti o-confetti--4"></span>
-        <span class="o-confetti o-confetti--5"></span>
-        <span class="o-star o-star--hero">★</span>
+        <img class="o-hero__scene" src="games/images/oovi/hero-room.jpg" width="1280" height="720" alt="" fetchpriority="high" />
+        <span class="o-hero__ray o-hero__ray--1"></span>
+        <span class="o-hero__ray o-hero__ray--2"></span>
+        <span class="o-hero__ray o-hero__ray--3"></span>
 
         <div class="o-tablet">
           <div class="o-tablet__screen">
@@ -69,7 +70,7 @@
               <span class="o-app__tile o-app__tile--puzzles"><b>🧩</b>Puzzles</span>
               <span class="o-app__tile o-app__tile--learning"><b>💡</b>Learning</span>
             </div>
-            <p class="o-app__rec">Recommended for Sofia</p>
+            <p class="o-app__rec">Recommended for Sofia <span class="o-app__more">›</span></p>
             <div class="o-app__row">
               <img src="games/images/jigsaw-presets/unicorn.jpg" alt="" />
               <img src="games/images/jigsaw-presets/dino.jpg" alt="" />
@@ -79,8 +80,6 @@
             </div>
           </div>
         </div>
-
-        <img class="o-hero__girl" src="games/images/oovi/girl.webp" width="594" height="672" alt="" fetchpriority="high" />
       </div>
     </section>
 
