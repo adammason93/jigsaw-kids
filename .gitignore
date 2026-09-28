@@ -11,3 +11,6 @@ supabase/.temp/
 .dev.vars*
 !.dev.vars.example
 !.env.example
+
+# Local AI tool worktrees
+.claude/
