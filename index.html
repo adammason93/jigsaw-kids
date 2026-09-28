@@ -10,441 +10,117 @@
   <meta name="description" content="Picture jigsaw, AI storybook, prompt-made 3D games, colouring book, link grid puzzle, block stack (Tetris-style), Drive Mad (online), number path, word search, Memory, Snap, Snake, Zuma, marble maze, snakes and ladders, noughts and crosses, Connect 4, rock paper scissors for children — works offline after one visit (except AI and embedded web games)." />
   <title>Sofia's Game Room</title>
   <link rel="manifest" href="manifest.json" />
-  <link rel="stylesheet" href="portal.css" />
-  <link rel="stylesheet" href="tablet-ipad.css" />
   <link rel="stylesheet" href="js/kids-core.css" />
+  <link rel="stylesheet" href="home.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Sniglet:wght@400;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
 </head>
-<body class="page-portal">
-  <div class="portal">
-    <div class="portal-bg" aria-hidden="true">
-      <span class="portal-bg__blob portal-bg__blob--1"></span>
-      <span class="portal-bg__blob portal-bg__blob--2"></span>
-      <span class="portal-bg__blob portal-bg__blob--3"></span>
-      <span class="portal-bg__mesh"></span>
-    </div>
+<body class="page-home">
+  <div class="home">
+    <header class="home-bar">
+      <a class="home-logo" href="./" data-nav="home" aria-label="Sofia's Game Room — home">
+        <span class="home-logo__pad" aria-hidden="true">🎮</span>
+        <span class="home-logo__text"><span class="home-logo__name">Sofia’s</span> Game Room</span>
+        <span class="home-logo__star" aria-hidden="true">⭐</span>
+      </a>
 
-    <header class="portal-hero">
-      <div class="portal-hero__inner">
-        <div class="portal-hero__copy">
-          <p class="portal-hero__kicker">Hi Sofia — this room’s for you</p>
-          <h1 class="portal-hero__title">Sofia's Game Room</h1>
-          <p class="portal-hero__tagline">Tap a game and jump in — puzzles, colours, races, and classics on one happy screen.</p>
-          <div class="portal-hero__chips" aria-label="Quick facts">
-            <span class="portal-chip">Works offline</span>
-            <span class="portal-chip">No sign-up</span>
-            <span class="portal-chip">18 games</span>
-          </div>
-          <p
-            class="portal-hero__welcome-back"
-            id="portalWelcomeBack"
-            role="status"
-            aria-live="polite"
-            hidden
-          >
-            Welcome back, Sofia! ✨
-          </p>
-        </div>
-        <div class="portal-hero__mascot-wrap" aria-hidden="true">
-          <div class="portal-hero__mascot-ring"></div>
-          <div class="portal-hero__mascot">
-            <img
-              class="portal-hero__char"
-              src="games/images/character-girl-blonde.png"
-              width="168"
-              height="168"
-              alt=""
-              decoding="async"
-            />
-          </div>
-        </div>
+      <nav class="home-nav" aria-label="Main">
+        <a class="home-nav__link is-active" href="#top" data-nav="home" aria-current="page">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11.2 12 4l9 7.2V20a1 1 0 0 1-1 1h-5.5v-6h-5v6H4a1 1 0 0 1-1-1z"/></svg>
+          <span>Home</span>
+        </a>
+        <a class="home-nav__link" href="#games" data-nav="games">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7h10a5 5 0 0 1 4.9 6l-.8 4a2.5 2.5 0 0 1-4.3 1.2L14.5 16h-5l-2.3 2.2A2.5 2.5 0 0 1 2.9 17l-.8-4A5 5 0 0 1 7 7zm0 3v1.5H5.5v1.5H7v1.5h1.5V13H10v-1.5H8.5V10zm9.5 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm-2 2a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/></svg>
+          <span>Games</span>
+        </a>
+        <a class="home-nav__link" href="#games" data-nav="favourites">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7.5-4.6-10-9.3C.4 8.3 2.3 4 6.3 4c2.3 0 3.9 1.3 5.7 3.3C13.8 5.3 15.4 4 17.7 4c4 0 5.9 4.3 4.3 7.7C19.5 16.4 12 21 12 21z"/></svg>
+          <span><span class="home-nav__my">My </span>Favourites</span>
+        </a>
+        <a class="home-nav__link" href="#about" data-nav="about">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm1.3 15h-2.6v-6.5h2.6zM12 9.2a1.6 1.6 0 1 1 0-3.2 1.6 1.6 0 0 1 0 3.2z"/></svg>
+          <span>About</span>
+        </a>
+      </nav>
+
+      <div class="home-bar__end">
+        <a class="home-avatar" href="characters.html" title="My characters">
+          <img src="games/images/character-girl-blonde.png" alt="My characters" width="46" height="46" decoding="async" />
+        </a>
+        <button type="button" class="home-gear" id="homeSettings" title="Grown-up settings" aria-label="Grown-up settings">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.4 13a7.6 7.6 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.4 7.4 0 0 0-1.7-1L15 3.3h-4l-.4 2.6a7.4 7.4 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.6 7.6 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1a7.4 7.4 0 0 0 1.7 1l.3 2.6h4l.4-2.6a7.4 7.4 0 0 0 1.7-1l2.5 1 2-3.5zM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg>
+        </button>
       </div>
     </header>
 
-    <section class="portal-story-nook" aria-labelledby="portal-story-nook-title">
-      <div class="portal-story-nook__aurora" aria-hidden="true"></div>
-      <a class="portal-story-nook__hit" href="games/storybook.html?from=portal">
-        <div class="portal-story-nook__inner">
-          <div class="portal-story-nook__sparkles" aria-hidden="true">
-            <span class="portal-story-nook__spark"></span>
-            <span class="portal-story-nook__spark"></span>
-            <span class="portal-story-nook__spark"></span>
-          </div>
-          <div class="portal-story-nook__copy">
-            <p class="portal-story-nook__kicker">A nook just for you</p>
-            <h2 class="portal-story-nook__title" id="portal-story-nook-title">Sofia's stories</h2>
-            <p class="portal-story-nook__lead">
-              Dream up a book with <strong>your</strong> name, a funny buddy, and pictures — then flip the pages like a real story on your shelf.
-            </p>
-            <span class="portal-story-nook__cta">
-              Open the story nook
-              <span class="portal-story-nook__cta-arrow" aria-hidden="true">→</span>
-            </span>
-          </div>
-          <div class="portal-story-nook__preview" aria-hidden="true">
-            <div class="portal-story-nook__preview-ring"></div>
-            <img
-              class="portal-story-nook__preview-img"
-              src="games/images/portal/storybook-nook.jpg"
-              width="400"
-              height="400"
-              alt=""
-              decoding="async"
-              loading="eager"
-              fetchpriority="high"
-            />
-          </div>
+    <main id="top">
+      <section class="home-hero" aria-labelledby="homeTitle">
+        <img class="home-hero__art" src="games/images/portal/hero-sofia.jpg" width="1280" height="720" alt="" decoding="async" fetchpriority="high" />
+        <span class="home-hero__spark home-hero__spark--1" aria-hidden="true">★</span>
+        <span class="home-hero__spark home-hero__spark--2" aria-hidden="true">★</span>
+        <span class="home-hero__spark home-hero__spark--3" aria-hidden="true">★</span>
+        <span class="home-hero__spark home-hero__spark--4" aria-hidden="true">★</span>
+        <div class="home-hero__copy">
+          <p class="home-hero__kicker">Welcome to</p>
+          <h1 class="home-hero__title" id="homeTitle"><span class="home-hero__name">Sofia’s</span> Game Room</h1>
+          <p class="home-hero__lead">Tap a game and jump in — puzzles, colours, races and more, all in one happy place!</p>
+          <a class="home-hero__cta" id="homeStart" href="#games">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13a1 1 0 0 0 1.5.9l10.2-6.5a1 1 0 0 0 0-1.8L9.5 4.6A1 1 0 0 0 8 5.5z"/></svg>
+            Start Playing
+          </a>
+          <p class="home-hero__welcome-back" id="portalWelcomeBack" role="status" aria-live="polite" hidden>
+            Welcome back, Sofia! ✨
+          </p>
         </div>
-      </a>
-    </section>
-
-    <div class="game-sections">
-      <section class="game-section game-section--active" aria-labelledby="active-games-label">
-        <div class="game-section-head">
-          <span class="game-section-head__glyph" aria-hidden="true">🎮</span>
-          <div class="game-section-head__text">
-            <h2 class="game-section__label game-section__label--play" id="active-games-label">Play now</h2>
-            <p class="game-section-head__sub">Every card is a mini adventure — tap where your eyes land first.</p>
-          </div>
-        </div>
-        <ul class="game-grid game-grid--active" role="list" aria-labelledby="active-games-label">
-        <li>
-          <a class="game-card game-card--jigsaw" href="games/jigsaw.html">
-            <div class="game-card__thumb">
-              <img
-                class="game-card__img"
-                src="games/images/portal/jigsaw.jpg"
-                width="819"
-                height="1024"
-                alt=""
-                decoding="async"
-                loading="lazy"
-              />
-            </div>
-            <h3 class="game-card__title">Picture jigsaw</h3>
-          </a>
-        </li>
-        <li>
-          <a class="game-card game-card--colour" href="games/colouring.html">
-            <div class="game-card__thumb">
-              <img
-                class="game-card__img"
-                src="games/images/portal/colouring.png"
-                width="1024"
-                height="1024"
-                alt=""
-                decoding="async"
-                loading="lazy"
-              />
-            </div>
-            <h3 class="game-card__title">Colouring book</h3>
-          </a>
-        </li>
-        <li>
-          <a class="game-card game-card--storybook game-card--story-magic" href="games/storybook.html?from=portal">
-            <div class="game-card__thumb">
-              <img
-                class="game-card__img"
-                src="games/images/portal/storybook-nook.jpg"
-                width="400"
-                height="400"
-                alt=""
-                decoding="async"
-                loading="lazy"
-              />
-            </div>
-            <h3 class="game-card__title">Your story</h3>
-          </a>
-        </li>
-        <li>
-          <a class="game-card game-card--characters" href="characters.html">
-            <div class="game-card__thumb game-card__thumb--characters" aria-hidden="true" style="display:flex;align-items:center;justify-content:center;font-size:3.4rem;background:linear-gradient(135deg,#ede9fe,#fce7f3);">
-              🎭
-            </div>
-            <h3 class="game-card__title">My characters</h3>
-          </a>
-        </li>
-        <li>
-          <a class="game-card game-card--prompt-game" href="games/prompt-game.html">
-            <div class="game-card__thumb">
-              <img
-                class="game-card__img game-card__img--svg"
-                src="games/images/portal/prompt-game.svg"
-                width="320"
-                height="240"
-                alt=""
-                decoding="async"
-                loading="lazy"
-              />
-            </div>
-            <h3 class="game-card__title">Make a 3D game</h3>
-          </a>
-        </li>
-        <li>
-          <a class="game-card game-card--star-catcher" href="games/star-catcher.html">
-            <div class="game-card__thumb">
-              <img
-                class="game-card__img game-card__img--svg"
-                src="games/images/portal/star-catcher.svg"
-                width="320"
-                height="240"
-                alt=""
-                decoding="async"
-                loading="lazy"
-              />
-            </div>
-            <h3 class="game-card__title">Star Catcher</h3>
-          </a>
-        </li>
-        <li>
-          <a class="game-card game-card--math" href="games/math-race.html">
-            <div class="game-card__thumb">
-              <img
-                class="game-card__img"
-                src="games/images/math-race-park-wide.png"
-                width="1024"
-                height="510"
-                alt=""
-                decoding="async"
-                loading="lazy"
-              />
-            </div>
-            <h3 class="game-card__title">Number path</h3>
-          </a>
-        </li>
-        <li>
-          <a class="game-card game-card--snakes" href="games/snakes-ladders.html">
-            <div class="game-card__thumb">
-              <img
-                class="game-card__img"
-                src="games/images/portal/snakes-ladders.png"
-                width="672"
-                height="598"
-                alt=""
-                decoding="async"
-                loading="lazy"
-              />
-            </div>
-            <h3 class="game-card__title">Snakes &amp; Ladders</h3>
-          </a>
-        </li>
-        <li>
-          <a class="game-card game-card--ttt" href="games/noughts-crosses.html">
-            <div class="game-card__thumb">
-              <img
-                class="game-card__img"
-                src="games/images/portal/noughts-crosses.png"
-                width="1024"
-                height="1024"
-                alt=""
-                decoding="async"
-                loading="lazy"
-              />
-            </div>
-            <h3 class="game-card__title">Noughts and crosses</h3>
-          </a>
-        </li>
-        <li>
-          <a class="game-card game-card--c4" href="games/connect-four.html">
-            <div class="game-card__thumb">
-              <img
-                class="game-card__img"
-                src="games/images/portal/connect-four.png"
-                width="1024"
-                height="1024"
-                alt=""
-                decoding="async"
-                loading="lazy"
-              />
-            </div>
-            <h3 class="game-card__title">Connect 4</h3>
-          </a>
-        </li>
-        <li>
-          <a class="game-card game-card--word" href="games/word-search.html">
-            <div class="game-card__thumb">
-              <img
-                class="game-card__img"
-                src="games/images/portal/word-search.png"
-                width="904"
-                height="652"
-                alt=""
-                decoding="async"
-                loading="lazy"
-              />
-            </div>
-            <h3 class="game-card__title">Word search</h3>
-          </a>
-        </li>
-        <li>
-          <a class="game-card game-card--snap" href="games/snap.html">
-            <div class="game-card__thumb">
-              <img
-                class="game-card__img"
-                src="games/images/portal/snap.png"
-                width="500"
-                height="534"
-                alt=""
-                decoding="async"
-                loading="lazy"
-              />
-            </div>
-            <h3 class="game-card__title">Snap</h3>
-          </a>
-        </li>
-        <li>
-          <a class="game-card game-card--memory" href="games/memory.html">
-            <div class="game-card__thumb">
-              <img
-                class="game-card__img"
-                src="games/images/portal/memory.png"
-                width="794"
-                height="614"
-                alt=""
-                decoding="async"
-                loading="lazy"
-              />
-            </div>
-            <h3 class="game-card__title">Memory</h3>
-          </a>
-        </li>
-        <li>
-          <a class="game-card game-card--rps" href="games/rock-paper-scissors.html">
-            <div class="game-card__thumb">
-              <img
-                class="game-card__img"
-                src="games/images/portal/rock-paper-scissors-card.png"
-                width="674"
-                height="662"
-                alt=""
-                decoding="async"
-                loading="lazy"
-              />
-            </div>
-            <h3 class="game-card__title">Rock paper scissors</h3>
-          </a>
-        </li>
-        <li>
-          <a class="game-card game-card--snake-arcade" href="games/snake-arcade.html">
-            <div class="game-card__thumb">
-              <img
-                class="game-card__img"
-                src="games/images/portal/snake-portal.png"
-                width="842"
-                height="574"
-                alt=""
-                decoding="async"
-                loading="lazy"
-              />
-            </div>
-            <h3 class="game-card__title">Snake</h3>
-          </a>
-        </li>
-        <li>
-          <a class="game-card game-card--zuma" href="games/zuma.html">
-            <div class="game-card__thumb">
-              <img
-                class="game-card__img"
-                src="games/images/portal/zuma-portal.png"
-                width="1024"
-                height="691"
-                alt=""
-                decoding="async"
-                loading="lazy"
-              />
-            </div>
-            <h3 class="game-card__title">Zuma</h3>
-          </a>
-        </li>
-        <li>
-          <a class="game-card game-card--marble-tilt" href="games/marble-tilt.html">
-            <div class="game-card__thumb">
-              <img
-                class="game-card__img game-card__img--svg"
-                src="games/images/portal/marble-tilt.svg"
-                width="320"
-                height="240"
-                alt=""
-                decoding="async"
-                loading="lazy"
-              />
-            </div>
-            <h3 class="game-card__title">Marble maze</h3>
-          </a>
-        </li>
-        <li>
-          <a class="game-card game-card--link-grid" href="games/link-grid.html">
-            <div class="game-card__thumb">
-              <img
-                class="game-card__img game-card__img--svg"
-                src="games/images/portal/link-grid.svg"
-                width="320"
-                height="240"
-                alt=""
-                decoding="async"
-                loading="lazy"
-              />
-            </div>
-            <h3 class="game-card__title">Link grid</h3>
-          </a>
-        </li>
-        <li>
-          <a class="game-card game-card--drive-mad" href="games/drive-mad.html">
-            <div class="game-card__thumb">
-              <img
-                class="game-card__img game-card__img--svg"
-                src="games/images/portal/drive-mad.svg"
-                width="320"
-                height="240"
-                alt=""
-                decoding="async"
-                loading="lazy"
-              />
-            </div>
-            <h3 class="game-card__title">Drive Mad</h3>
-          </a>
-        </li>
-        <li>
-          <a class="game-card game-card--block-stack" href="games/block-stack.html">
-            <div class="game-card__thumb">
-              <img
-                class="game-card__img game-card__img--svg"
-                src="games/images/portal/block-stack.svg"
-                width="320"
-                height="240"
-                alt=""
-                decoding="async"
-                loading="lazy"
-              />
-            </div>
-            <h3 class="game-card__title">Block stack</h3>
-          </a>
-        </li>
-      </ul>
       </section>
-    </div>
 
-    <aside class="portal-footer" aria-label="Tips for playing">
-      <div class="portal-footer__accent" aria-hidden="true"></div>
-      <div class="portal-footer__inner">
-        <span class="portal-footer__emoji" aria-hidden="true">💡</span>
-        <p class="portal-footer__text">
-          <strong class="portal-footer__lead">Tip for grown-ups &amp; kids:</strong>
-          Add to your home screen for quick play (full screen from the icon). In many games the first tap can go full screen.
-          Tap <span class="portal-footer__gear" aria-hidden="true">⚙️</span> in a game for sounds, read-aloud, and a calmer screen.
-        </p>
-      </div>
-    </aside>
+      <section class="home-games" id="games" aria-labelledby="gamesTitle">
+        <div class="home-games__head">
+          <div class="home-games__heading">
+            <h2 class="home-games__title" id="gamesTitle">Games</h2>
+            <p class="home-games__sub">Pick a game and let the fun begin!</p>
+          </div>
+          <label class="home-search">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.5 3a7.5 7.5 0 0 1 6 12l4.3 4.3-1.5 1.5-4.3-4.3A7.5 7.5 0 1 1 10.5 3zm0 2.2a5.3 5.3 0 1 0 0 10.6 5.3 5.3 0 0 0 0-10.6z"/></svg>
+            <span class="visually-hidden">Search games</span>
+            <input type="search" id="homeSearch" placeholder="Search games..." autocomplete="off" enterkeyhint="search" />
+          </label>
+          <div class="home-tabs" role="group" aria-label="Game types">
+            <button type="button" class="home-tab is-active" data-filter="all" aria-pressed="true">All</button>
+            <button type="button" class="home-tab" data-filter="puzzles" aria-pressed="false">Puzzles</button>
+            <button type="button" class="home-tab" data-filter="creative" aria-pressed="false">Creative</button>
+            <button type="button" class="home-tab" data-filter="stories" aria-pressed="false">Stories</button>
+            <button type="button" class="home-tab" data-filter="racing" aria-pressed="false">Racing</button>
+            <button type="button" class="home-tab" data-filter="arcade" aria-pressed="false">Arcade</button>
+            <button type="button" class="home-tab" data-filter="classic" aria-pressed="false">Classic</button>
+            <button type="button" class="home-tab home-tab--fav" data-filter="fav" aria-pressed="false">♥ Favourites</button>
+          </div>
+        </div>
+
+        <ul class="home-grid" id="homeGrid" role="list" aria-labelledby="gamesTitle"></ul>
+        <p class="home-empty" id="homeEmpty" hidden></p>
+      </section>
+
+      <section class="home-about" id="about" aria-labelledby="aboutTitle">
+        <div class="home-about__icon" aria-hidden="true">💡</div>
+        <div class="home-about__text">
+          <h2 class="home-about__title" id="aboutTitle">About Sofia’s Game Room</h2>
+          <p><span id="homeGameCount">20</span> games in one happy place — no sign-up, and most games work offline after your first visit.</p>
+          <p><strong>Tip for grown-ups &amp; kids:</strong> add this page to your home screen for quick full-screen play. Tap the <span aria-hidden="true">⚙️</span> gear for sounds, read-aloud and a calmer screen.</p>
+        </div>
+      </section>
+    </main>
   </div>
+
   <script src="js/score-config.js"></script>
   <script src="js/kids-core.js"></script>
   <script src="js/storybook-shelf-store.js" defer></script>
   <script src="js/score-cloud.js" defer></script>
+  <script src="home.js"></script>
   <script>
     if (typeof KidsCore !== "undefined") {
-      KidsCore.init();
+      KidsCore.init({ skipBar: true });
       KidsCore.bindTapSound(document.body);
     }
     /* Register ASAP — automated PWA auditors often miss late SW registration */
@@ -466,7 +142,6 @@
         if (prev && !isNaN(prev) && now - prev >= WELCOME_BACK_MS) {
           if (!sessionStorage.getItem(KEY_SESSION) && el) {
             el.removeAttribute("hidden");
-            el.classList.add("portal-hero__welcome-back--show");
             sessionStorage.setItem(KEY_SESSION, "1");
           }
         }
@@ -478,4 +153,3 @@
   </script>
 </body>
 </html>
-  
