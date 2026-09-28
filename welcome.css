@@ -143,21 +143,41 @@ p {
 
 .w-logo {
   display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  color: var(--ink);
+  align-items: flex-end;
+  gap: 0.06em;
+  color: #141b4d;
   text-decoration: none;
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 1.3rem;
+  font-size: 2.5rem;
+  line-height: 0.8;
 }
 
-.w-logo__pad {
-  font-size: 1.5rem;
+.w-logo__mark {
+  width: auto;
+  height: 1.3em;
+  margin-bottom: -0.03em;
 }
 
-.w-logo__text {
-  white-space: nowrap;
+.w-logo--foot {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+}
+
+.w-logo__row {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 0.06em;
+}
+
+.w-logo__tag {
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 0.8rem;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  color: #141b4d;
 }
 
 .w-nav {
@@ -710,14 +730,11 @@ p {
 }
 
 @media (max-width: 680px) {
-  .w-logo {
-    font-size: 1.05rem;
+  .w-bar .w-logo {
+    font-size: 1.8rem;
   }
   .w-bar {
     gap: 0.6rem;
-  }
-  .w-bar .w-logo__star {
-    display: none;
   }
   .w-bar__end .w-btn--ghost {
     display: none;

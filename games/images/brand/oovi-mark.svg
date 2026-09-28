@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -36 100 136" role="img" aria-label="Oovi">
+  <defs>
+    <mask id="oovi-cut" maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100">
+      <rect x="0" y="0" width="100" height="100" fill="#fff"/>
+      <circle cx="50" cy="102" r="14" fill="#000"/>
+      <path d="M26 70V48a24 24 0 0 1 48 0v22c0 4-3 7-7 7-4.5 0-6.5-3-7.8-6.5C57.500 66 54.500 62 50 62s-7.5 4-9.200 8.500C39.500 74 37.500 77 33 77c-4 0-7-3-7-7z" fill="#000"/>
+    </mask>
+  </defs>
+  <g stroke-linecap="round" stroke-width="10" fill="none">
+    <path d="M19 -20l9 11" stroke="#fbbd3c"/>
+    <path d="M50 -29v14" stroke="#fb5f7a"/>
+    <path d="M81 -20l-9 11" stroke="#25c3a0"/>
+  </g>
+  <circle cx="50" cy="52" r="47" fill="#141b4d" mask="url(#oovi-cut)"/>
+</svg>

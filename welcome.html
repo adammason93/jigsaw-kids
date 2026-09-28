@@ -4,12 +4,13 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="theme-color" content="#7c4dff" />
-  <title>Sofia’s Game Room — a world made just for them</title>
+  <title>Oovi — a world made just for them</title>
   <meta name="description" content="Personalised stories, jigsaw puzzles, learning and games built around your child. Ad-free, parent controlled and made for children." />
-  <meta property="og:title" content="Sofia’s Game Room — a world made just for them" />
+  <meta property="og:title" content="Oovi — a world made just for them" />
   <meta property="og:description" content="Stories, games and learning personalised around your child." />
   <meta property="og:image" content="games/images/welcome/hero.jpg" />
-  <link rel="icon" href="icons/icon-192.png" />
+  <link rel="icon" type="image/svg+xml" href="games/images/brand/oovi-mark.svg" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
   <link rel="stylesheet" href="welcome.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -17,10 +18,9 @@
 </head>
 <body>
   <header class="w-bar" id="top">
-    <a class="w-logo" href="#top" aria-label="Sofia’s Game Room">
-      <span class="w-logo__pad" aria-hidden="true">🎮</span>
-      <span class="w-logo__text">Sofia’s Game Room</span>
-      <span class="w-logo__star" aria-hidden="true">⭐</span>
+    <a class="w-logo" href="#top" aria-label="Oovi — home">
+      <img class="w-logo__mark" src="games/images/brand/oovi-mark.svg" width="100" height="136" alt="" />
+      <span class="w-logo__word" aria-hidden="true">ovi</span>
     </a>
     <nav class="w-nav" aria-label="Main">
       <a href="#games">Games</a>
@@ -160,16 +160,18 @@
       <img class="w-final__art" src="games/images/welcome/final.jpg" width="1280" height="720" alt="" loading="lazy" />
       <div class="w-final__copy w-reveal">
         <h2 class="w-final__title">Their stories.<br />Their games.<br />Their learning.<br /><span class="w-accent">Their little world.</span></h2>
-        <a class="w-btn w-btn--primary w-btn--lg" href="index.html">Create their Game Room <span aria-hidden="true">→</span></a>
+        <a class="w-btn w-btn--primary w-btn--lg" href="index.html">Start their Oovi world <span aria-hidden="true">→</span></a>
       </div>
     </section>
   </main>
 
   <footer class="w-foot">
-    <a class="w-logo" href="#top" aria-label="Back to top">
-      <span class="w-logo__pad" aria-hidden="true">🎮</span>
-      <span class="w-logo__text">Sofia’s Game Room</span>
-      <span class="w-logo__star" aria-hidden="true">⭐</span>
+    <a class="w-logo w-logo--foot" href="#top" aria-label="Oovi — back to top">
+      <span class="w-logo__row">
+        <img class="w-logo__mark" src="games/images/brand/oovi-mark.svg" width="100" height="136" alt="" />
+        <span class="w-logo__word" aria-hidden="true">ovi</span>
+      </span>
+      <span class="w-logo__tag">Our Own Virtual Imagination</span>
     </a>
     <nav class="w-foot__links" aria-label="Footer">
       <a href="#about">Privacy</a>
@@ -184,7 +186,7 @@
     <h2 class="w-sample__title" id="sampleTitle"></h2>
     <div class="w-sample__story" id="sampleStory"></div>
     <div class="w-sample__actions">
-      <a class="w-btn w-btn--primary" href="index.html">Create their Game Room <span aria-hidden="true">→</span></a>
+      <a class="w-btn w-btn--primary" href="index.html">Start their Oovi world <span aria-hidden="true">→</span></a>
       <button type="button" class="w-btn w-btn--ghost" id="sampleAgain">Try another</button>
     </div>
   </dialog>

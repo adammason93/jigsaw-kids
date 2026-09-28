@@ -88,7 +88,10 @@ body.page-home {
 }
 
 .home-logo__pad {
-  font-size: 1.7rem;
+  flex: 0 0 auto;
+  width: auto;
+  height: 2.3rem;
+  margin-top: -0.35rem;
 }
 
 .home-logo__name {
@@ -1430,7 +1433,7 @@ html.kids-reduce-motion .home-cast__cloud {
     font-size: 1.15rem;
   }
   .home-logo__pad {
-    font-size: 1.4rem;
+    height: 1.9rem;
   }
   .home-nav__link {
     flex-direction: column;

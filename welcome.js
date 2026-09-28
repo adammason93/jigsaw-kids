@@ -109,7 +109,7 @@
     });
     var more = document.createElement("p");
     more.className = "w-sample__more";
-    more.innerHTML = "<strong>In the full Game Room</strong>, " + "this becomes an illustrated book starring " + "<span></span>" + " — plus puzzles and games made from it.";
+    more.innerHTML = "<strong>In Oovi</strong>, " + "this becomes an illustrated book starring " + "<span></span>" + " — plus puzzles and games made from it.";
     more.querySelector("span").textContent = input.name;
     storyEl.appendChild(more);
     if (typeof dialog.showModal === "function") {
