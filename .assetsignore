@@ -1,2 +1,10 @@
 # Worker entry source must not ship as browseable static files with assets.directory="."
 workers-site/
+# Build output and account cache written by wrangler during deploy
+.wrangler/
+# Repo / editor / tooling folders the site never serves
+.github/
+.vscode/
+.claude/
+ai-dev/
+supabase/
