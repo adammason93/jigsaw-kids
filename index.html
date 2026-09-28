@@ -11,7 +11,7 @@
   <meta property="og:image" content="games/images/oovi/girl.webp" />
   <link rel="icon" type="image/svg+xml" href="games/images/brand/oovi-mark.svg" />
   <link rel="apple-touch-icon" href="icons/icon-192.png" />
-  <link rel="stylesheet" href="welcome.css?v=2" />
+  <link rel="stylesheet" href="welcome.css?v=3" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
@@ -25,7 +25,7 @@
     <nav class="o-nav" aria-label="Main">
       <a href="#top" class="is-active" aria-current="page">Home</a>
       <a href="#features">Features</a>
-      <a href="#stages">How it works</a>
+      <a href="#how">How it works</a>
       <a href="#safe">About</a>
     </nav>
     <div class="o-bar__end">
@@ -113,7 +113,7 @@
       <div class="o-stages__copy o-reveal">
         <h2 class="o-h2">Personalised for every stage.</h2>
         <p class="o-lead">Oovi adapts to your child’s age, interests and abilities, creating a unique experience that grows with them.</p>
-        <button type="button" class="o-btn o-btn--navy" data-try>See how it works <span aria-hidden="true">→</span></button>
+        <a class="o-btn o-btn--navy" href="#how">See how it works <span aria-hidden="true">→</span></a>
       </div>
       <div class="o-stages__cards" aria-label="Age stages">
         <span class="o-confetti o-confetti--6" aria-hidden="true"></span>
@@ -138,6 +138,46 @@
           <span class="o-stage__age">7–10</span>
         </article>
       </div>
+    </section>
+
+    <section class="o-explore" id="explore">
+      <div class="o-explore__head o-reveal">
+        <div>
+          <h2 class="o-h2">Explore a world of possibilities</h2>
+          <p class="o-explore__sub">From magical stories to brain-boosting games, there’s always something new to discover.</p>
+        </div>
+        <a class="o-link" href="#features">See all features <span aria-hidden="true">→</span></a>
+      </div>
+      <ul class="o-explore__list" role="list">
+        <li class="o-explore__card o-reveal">
+          <img src="games/images/oovi/explore-stories.jpg" width="720" height="540" alt="A girl reading a glowing storybook" loading="lazy" />
+          <div class="o-explore__body">
+            <h3>Stories</h3>
+            <p>Beautifully illustrated stories your child can read, listen to or even help create.</p>
+          </div>
+        </li>
+        <li class="o-explore__card o-reveal">
+          <img src="games/images/oovi/explore-games.jpg" width="720" height="540" alt="A puppy chasing a ball in a meadow" loading="lazy" />
+          <div class="o-explore__body">
+            <h3>Games</h3>
+            <p>Fun, educational games that build skills and confidence.</p>
+          </div>
+        </li>
+        <li class="o-explore__card o-reveal">
+          <img src="games/images/oovi/explore-puzzles.jpg" width="720" height="540" alt="Colourful floating jigsaw pieces" loading="lazy" />
+          <div class="o-explore__body">
+            <h3>Puzzles</h3>
+            <p>A wide range of jigsaws with different difficulty levels and themes.</p>
+          </div>
+        </li>
+        <li class="o-explore__card o-reveal">
+          <img src="games/images/oovi/explore-learning.jpg" width="720" height="540" alt="A smiling sea turtle on a coral reef" loading="lazy" />
+          <div class="o-explore__body">
+            <h3>Learning</h3>
+            <p>Activities covering maths, reading, creativity and more.</p>
+          </div>
+        </li>
+      </ul>
     </section>
 
     <section class="o-safe" id="safe">
@@ -165,6 +205,66 @@
           Trusted, high-quality <br />content
         </li>
       </ul>
+    </section>
+
+    <section class="o-quotes" aria-label="What parents say">
+      <div class="o-quotes__art" aria-hidden="true">
+        <span class="o-quotes__blob"></span>
+        <span class="o-confetti o-confetti--10"></span>
+        <span class="o-confetti o-confetti--11"></span>
+        <span class="o-star o-star--q">★</span>
+        <img src="games/images/oovi/max.webp" width="720" height="529" alt="" loading="lazy" />
+        <span class="o-quotes__bubble" id="quoteBubble">Max loves the new dinosaur game!</span>
+      </div>
+      <div class="o-quotes__main">
+        <div class="o-quotes__track" id="quoteTrack">
+          <figure class="o-quote is-on" data-bubble="Max loves the new dinosaur game!">
+            <blockquote>“Oovi has been amazing for us. My son is entertained, but he’s also learning and being creative. I love that it’s safe and ad-free.”</blockquote>
+            <figcaption><span class="o-quote__stars" aria-label="5 out of 5 stars">★★★★★</span>Emily, parent of Max (age 6)</figcaption>
+          </figure>
+          <figure class="o-quote" data-bubble="Ruby made her own story!" hidden>
+            <blockquote>“Ruby asks to make a new story every night. Seeing herself as the hero has got her reading more than ever.”</blockquote>
+            <figcaption><span class="o-quote__stars" aria-label="5 out of 5 stars">★★★★★</span>James, parent of Ruby (age 5)</figcaption>
+          </figure>
+          <figure class="o-quote" data-bubble="Noah finished a 24-piece jigsaw!" hidden>
+            <blockquote>“The puzzles grow with him. He started on 6 pieces and now he’s proudly doing the hard ones on his own.”</blockquote>
+            <figcaption><span class="o-quote__stars" aria-label="5 out of 5 stars">★★★★★</span>Priya, parent of Noah (age 7)</figcaption>
+          </figure>
+        </div>
+        <div class="o-quotes__dots" id="quoteDots" role="group" aria-label="Choose a review"></div>
+      </div>
+      <button type="button" class="o-quotes__arrow o-quotes__arrow--prev" id="quotePrev" aria-label="Previous review">‹</button>
+      <button type="button" class="o-quotes__arrow o-quotes__arrow--next" id="quoteNext" aria-label="Next review">›</button>
+    </section>
+
+    <section class="o-how" id="how">
+      <div class="o-how__main">
+        <h2 class="o-h2 o-reveal">How it works</h2>
+        <p class="o-explore__sub o-reveal">Get started in just a few simple steps.</p>
+        <ol class="o-how__steps" role="list">
+          <li class="o-reveal">
+            <span class="o-how__num o-how__num--blue">1</span>
+            <h3>Create your account</h3>
+            <p>Sign up in minutes and set up your child’s profile.</p>
+          </li>
+          <li class="o-reveal">
+            <span class="o-how__num o-how__num--teal">2</span>
+            <h3>Personalise their world</h3>
+            <p>We tailor content to their age, interests and abilities.</p>
+          </li>
+          <li class="o-reveal">
+            <span class="o-how__num o-how__num--purple">3</span>
+            <h3>Let them explore</h3>
+            <p>Stories, games, puzzles and learning, all in one place.</p>
+          </li>
+        </ol>
+      </div>
+      <div class="o-how__art" aria-hidden="true">
+        <span class="o-star o-star--how1">★</span>
+        <span class="o-star o-star--how2">★</span>
+        <span class="o-confetti o-confetti--12"></span>
+        <img src="games/images/oovi/astronaut.webp" width="426" height="560" alt="" loading="lazy" />
+      </div>
     </section>
 
     <section class="o-devices">
@@ -262,6 +362,6 @@
     </div>
   </dialog>
 
-  <script src="welcome.js?v=2" defer></script>
+  <script src="welcome.js?v=3" defer></script>
 </body>
 </html>

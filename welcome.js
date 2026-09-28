@@ -180,4 +180,49 @@
 
   var year = document.getElementById("footYear");
   if (year) year.textContent = String(new Date().getFullYear());
+
+  /* Testimonials */
+  var quotes = Array.prototype.slice.call(document.querySelectorAll("#quoteTrack .o-quote"));
+  var dots = document.getElementById("quoteDots");
+  var bubble = document.getElementById("quoteBubble");
+  if (quotes.length && dots) {
+    var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    var at = 0;
+    var timer = null;
+    quotes.forEach(function (q, i) {
+      var b = document.createElement("button");
+      b.type = "button";
+      b.setAttribute("aria-label", "Review " + (i + 1));
+      b.addEventListener("click", function () {
+        go(i);
+      });
+      dots.appendChild(b);
+    });
+    var go = function (i) {
+      at = (i + quotes.length) % quotes.length;
+      quotes.forEach(function (q, j) {
+        q.hidden = j !== at;
+        q.classList.toggle("is-on", j === at);
+      });
+      Array.prototype.forEach.call(dots.children, function (b, j) {
+        b.classList.toggle("is-on", j === at);
+        b.setAttribute("aria-pressed", j === at ? "true" : "false");
+      });
+      if (bubble) bubble.textContent = quotes[at].getAttribute("data-bubble") || "";
+      restart();
+    };
+    var restart = function () {
+      clearInterval(timer);
+      if (!reduced) timer = setInterval(function () {
+        go(at + 1);
+      }, 7000);
+    };
+    document.getElementById("quotePrev").addEventListener("click", function () {
+      go(at - 1);
+    });
+    document.getElementById("quoteNext").addEventListener("click", function () {
+      go(at + 1);
+    });
+    go(0);
+  }
 })();
