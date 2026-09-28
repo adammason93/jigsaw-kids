@@ -115,6 +115,7 @@
   function notFoundMessage(msg) {
     var m = String(msg || "").toLowerCase();
     return (
+      m.trim() === "{}" ||
       m.indexOf("not found") >= 0 ||
       m.indexOf("does not exist") >= 0 ||
       m.indexOf("404") >= 0 ||
