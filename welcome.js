@@ -3,7 +3,7 @@
 
   document.documentElement.classList.add("js");
 
-  var reveals = document.querySelectorAll(".w-reveal");
+  var reveals = document.querySelectorAll(".o-reveal");
   if ("IntersectionObserver" in window) {
     var io = new IntersectionObserver(
       function (entries) {
@@ -32,7 +32,10 @@
   var yearIn = document.getElementById("tryYear");
   var loveIn = document.getElementById("tryLove");
   var note = document.getElementById("tryNote");
-  var dialog = document.getElementById("sampleDialog");
+  var dialog = document.getElementById("tryDialog");
+  var formView = document.getElementById("tryFormView");
+  var storyView = document.getElementById("tryStoryView");
+  var NOTE = "Nothing you type is sent anywhere.";
   var titleEl = document.getElementById("sampleTitle");
   var storyEl = document.getElementById("sampleStory");
   if (!form || !dialog) return;
@@ -108,16 +111,31 @@
       storyEl.appendChild(el);
     });
     var more = document.createElement("p");
-    more.className = "w-sample__more";
+    more.className = "o-try__more";
     more.innerHTML = "<strong>In Oovi</strong>, " + "this becomes an illustrated book starring " + "<span></span>" + " — plus puzzles and games made from it.";
     more.querySelector("span").textContent = input.name;
     storyEl.appendChild(more);
+    formView.hidden = true;
+    storyView.hidden = false;
+    dialog.scrollTop = 0;
+  }
+
+  function openDialog() {
+    formView.hidden = false;
+    storyView.hidden = true;
     if (typeof dialog.showModal === "function") {
       if (!dialog.open) dialog.showModal();
     } else {
       dialog.setAttribute("open", "");
     }
+    setTimeout(function () {
+      nameIn.focus();
+    }, 50);
   }
+
+  document.querySelectorAll("[data-try]").forEach(function (b) {
+    b.addEventListener("click", openDialog);
+  });
 
   form.addEventListener("submit", function (e) {
     e.preventDefault();
@@ -130,7 +148,7 @@
       return;
     }
     nameIn.classList.remove("is-invalid");
-    note.textContent = "No account needed to try it.";
+    note.textContent = NOTE;
     note.classList.remove("is-error");
     lastInput = { name: name, year: yearIn.value, love: cleanLove(loveIn.value) };
     showStory(lastInput);
@@ -140,7 +158,7 @@
     if (nameIn.value.trim()) {
       nameIn.classList.remove("is-invalid");
       note.classList.remove("is-error");
-      note.textContent = "No account needed to try it.";
+      note.textContent = NOTE;
     }
   });
 
@@ -149,13 +167,17 @@
     else dialog.removeAttribute("open");
   }
 
-  document.getElementById("sampleClose").addEventListener("click", closeDialog);
+  document.getElementById("tryClose").addEventListener("click", closeDialog);
   dialog.addEventListener("click", function (e) {
     if (e.target === dialog) closeDialog();
   });
   document.getElementById("sampleAgain").addEventListener("click", function () {
-    closeDialog();
+    storyView.hidden = true;
+    formView.hidden = false;
     loveIn.focus();
     loveIn.select();
   });
+
+  var year = document.getElementById("footYear");
+  if (year) year.textContent = String(new Date().getFullYear());
 })();
