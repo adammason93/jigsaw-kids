@@ -1,5 +1,5 @@
 /* Minimal offline shell — network-first, cache as fallback for same-origin */
-const CACHE = "jigsaw-kids-v336";
+const CACHE = "jigsaw-kids-v337";
 const SHELL = [
   "./index.html",
   "./home.css",
@@ -25,6 +25,12 @@ const SHELL = [
   "./tablet-ipad.css",
   "./games/jigsaw.html",
   "./games/images/jigsaw-presets/sofia-tractor.png",
+  "./games/images/jigsaw-presets/unicorn.jpg",
+  "./games/images/jigsaw-presets/puppy.jpg",
+  "./games/images/jigsaw-presets/kitten.jpg",
+  "./games/images/jigsaw-presets/dolphin.jpg",
+  "./games/images/jigsaw-presets/rocket.jpg",
+  "./games/images/jigsaw-presets/dino.jpg",
   "./games/images/jigsaw-presets/sofia-baby-bedtime.png",
   "./games/images/jigsaw-presets/baby-sister-onesie.png",
   "./games/math-race.html",

@@ -3,143 +3,245 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="theme-color" content="#2d8cba" />
+  <meta name="theme-color" content="#7c3aed" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <title>Picture jigsaw — Sofia's Game Room</title>
   <link rel="manifest" href="../manifest.json" />
   <link rel="stylesheet" href="../js/kids-core.css" />
   <link rel="stylesheet" href="../js/game-scorecard.css" />
-  <link rel="stylesheet" href="../jigsaw.css" />
-  <link rel="stylesheet" href="../tablet-ipad.css" />
+  <link rel="stylesheet" href="../home.css" />
+  <link rel="stylesheet" href="../jigsaw.css?v=2" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Sniglet:wght@400;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
 </head>
-<body class="page-jigsaw">
+<body class="page-home page-jigsaw">
   <svg class="jigsaw-clip-sprite" aria-hidden="true" width="1" height="1" focusable="false">
     <defs id="jigsaw-clip-defs"></defs>
   </svg>
-  <div class="app" id="app">
-    <nav class="game-nav" aria-label="Breadcrumb">
-      <a class="back-link back-btn" href="../index.html" aria-label="Back to all games"><span class="back-btn__icon" aria-hidden="true">&#8592;</span><span class="back-btn__text">Back</span></a>
-    </nav>
-
-    <header class="header">
-      <p class="header__kicker">Sofia’s puzzle</p>
-      <h1>Picture jigsaw</h1>
-      <p class="tagline">Pick a picture, choose how many pieces, then drag them into place.</p>
+  <div class="home jz" id="app">
+    <header class="home-bar">
+      <a class="home-logo" href="../index.html" aria-label="Sofia's Game Room — home">
+        <span class="home-logo__pad" aria-hidden="true">🎮</span>
+        <span class="home-logo__text"><span class="home-logo__name">Sofia’s</span> Game Room</span>
+        <span class="home-logo__star" aria-hidden="true">⭐</span>
+      </a>
+      <nav class="home-nav" aria-label="Main">
+        <a class="home-nav__link" href="../index.html">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11.2 12 4l9 7.2V20a1 1 0 0 1-1 1h-5.5v-6h-5v6H4a1 1 0 0 1-1-1z"/></svg>
+          <span>Home</span>
+        </a>
+        <a class="home-nav__link is-active" href="../index.html#games" aria-current="page">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7h10a5 5 0 0 1 4.9 6l-.8 4a2.5 2.5 0 0 1-4.3 1.2L14.5 16h-5l-2.3 2.2A2.5 2.5 0 0 1 2.9 17l-.8-4A5 5 0 0 1 7 7zm0 3v1.5H5.5v1.5H7v1.5h1.5V13H10v-1.5H8.5V10zm9.5 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm-2 2a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/></svg>
+          <span>Games</span>
+        </a>
+        <a class="home-nav__link" href="../index.html#favourites">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7.5-4.6-10-9.3C.4 8.3 2.3 4 6.3 4c2.3 0 3.9 1.3 5.7 3.3C13.8 5.3 15.4 4 17.7 4c4 0 5.9 4.3 4.3 7.7C19.5 16.4 12 21 12 21z"/></svg>
+          <span><span class="home-nav__my">My </span>Favourites</span>
+        </a>
+        <a class="home-nav__link" href="../index.html#about">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm1.3 15h-2.6v-6.5h2.6zM12 9.2a1.6 1.6 0 1 1 0-3.2 1.6 1.6 0 0 1 0 3.2z"/></svg>
+          <span>About</span>
+        </a>
+      </nav>
+      <div class="home-bar__end">
+        <a class="home-avatar" href="../characters.html" title="My characters">
+          <img src="images/character-girl-blonde.png" alt="My characters" width="46" height="46" decoding="async" />
+        </a>
+        <button type="button" class="home-gear" id="jzSettings" title="Grown-up settings" aria-label="Grown-up settings">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.4 13a7.6 7.6 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.4 7.4 0 0 0-1.7-1L15 3.3h-4l-.4 2.6a7.4 7.4 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.6 7.6 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1a7.4 7.4 0 0 0 1.7 1l.3 2.6h4l.4-2.6a7.4 7.4 0 0 0 1.7-1l2.5 1 2-3.5zM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg>
+        </button>
+      </div>
     </header>
 
-    <section class="gsc" aria-labelledby="jgscTitle">
-      <h2 id="jgscTitle" class="gsc__title">Score card</h2>
-      <p class="gsc__hint" id="jgscHint" hidden>
-        Each time you finish a puzzle it adds here. Saved on this device — copy/paste to move scores.
-      </p>
-      <div class="gsc__block">
-        <p class="gsc__stat-label">Puzzles completed</p>
-        <p class="gsc__stat" id="jgscDone">0</p>
+    <div class="jz-titlebar">
+      <a class="jz-back" href="../index.html#games">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11H7.8l5.6-5.6L12 4l-8 8 8 8 1.4-1.4L7.8 13H20z"/></svg>
+        Back to Games
+      </a>
+      <div class="jz-title">
+        <h1><span class="jz-title__star" aria-hidden="true">⭐</span> Create Your <span class="jz-title__accent">Jigsaw</span> <span class="jz-title__star" aria-hidden="true">⭐</span></h1>
+        <p>Choose a picture, pick how many pieces, then drag the pieces into place!</p>
       </div>
-      <div class="gsc__actions">
-        <button type="button" class="gsc__btn" id="jgscCopy">Copy scores</button>
-        <button type="button" class="gsc__btn" id="jgscPaste">Paste scores</button>
-        <button type="button" class="gsc__btn gsc__btn--danger" id="jgscReset">Reset scores</button>
-      </div>
-    </section>
+    </div>
 
-    <section class="setup card">
-      <div class="preset-block">
-        <h3 class="preset-block__title">Ready to go</h3>
-        <p class="preset-block__hint">Tap a picture to use it straight away.</p>
-        <div class="setup-toolbar">
-          <div class="preset-grid" role="group" aria-label="Ready-made pictures">
-          <button type="button" class="jigsaw-preset" data-src="images/jigsaw-presets/sofia-tractor.png" data-label="Sofia on the tractor">
-            <span class="jigsaw-preset__thumb-wrap">
-              <img
-                class="jigsaw-preset__thumb"
-                src="images/jigsaw-presets/sofia-tractor.png"
-                alt=""
-                width="140"
-                height="140"
-                loading="lazy"
-                decoding="async"
-              />
-            </span>
-            <span class="jigsaw-preset__label">Sofia on the tractor</span>
-          </button>
-          <button type="button" class="jigsaw-preset" data-src="images/jigsaw-presets/sofia-baby-bedtime.png" data-label="Bedtime with baby">
-            <span class="jigsaw-preset__thumb-wrap">
-              <img
-                class="jigsaw-preset__thumb"
-                src="images/jigsaw-presets/sofia-baby-bedtime.png"
-                alt=""
-                width="140"
-                height="140"
-                loading="lazy"
-                decoding="async"
-              />
-            </span>
-            <span class="jigsaw-preset__label">Bedtime with baby</span>
-          </button>
-          <button type="button" class="jigsaw-preset" data-src="images/jigsaw-presets/baby-sister-onesie.png" data-label="Baby &amp; big sister">
-            <span class="jigsaw-preset__thumb-wrap">
-              <img
-                class="jigsaw-preset__thumb"
-                src="images/jigsaw-presets/baby-sister-onesie.png"
-                alt=""
-                width="140"
-                height="140"
-                loading="lazy"
-                decoding="async"
-              />
-            </span>
-            <span class="jigsaw-preset__label">Baby &amp; big sister</span>
-          </button>
-          </div>
-          <div class="setup-toolbar__pieces pieces-row">
-            <label for="pieceSlider">How many pieces?</label>
-            <div class="slider-wrap">
-              <input type="range" id="pieceSlider" min="2" max="8" value="3" step="1" />
-              <output id="pieceOut" for="pieceSlider">3 × 3 = 9</output>
+    <div class="jz-layout">
+      <aside class="jz-card jz-setup" aria-label="Set up your puzzle">
+        <div class="jz-step">
+          <div class="jz-step__head">
+            <span class="jz-step__num jz-step__num--1">1</span>
+            <div>
+              <h2 class="jz-step__title">Choose a picture</h2>
+              <p class="jz-step__hint">Pick one of Sofia’s pictures or upload your own.</p>
             </div>
           </div>
-          <div class="setup-toolbar__actions row actions">
-            <button type="button" id="startBtn" class="btn btn-accent" disabled>Start puzzle</button>
-            <button type="button" id="shuffleBtn" class="btn btn-ghost" disabled>Shuffle again</button>
+          <div class="jz-tabs" role="tablist" aria-label="Picture source">
+            <button type="button" class="jz-tab is-active" role="tab" aria-selected="true" aria-controls="jzPanePresets" id="jzTabPresets">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1zm1 12.5V18h14v-3l-4-4-5 5-2-2zM8.5 7a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3z"/></svg>
+              Sofia’s pictures
+            </button>
+            <button type="button" class="jz-tab" role="tab" aria-selected="false" aria-controls="jzPanePhotos" id="jzTabPhotos">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4h6l1.8 2H20a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h3.2zm3 4.5a4.5 4.5 0 1 0 0 9 4.5 4.5 0 0 0 0-9zm0 2a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5z"/></svg>
+              Your photos
+            </button>
+          </div>
+
+          <div class="jz-pane" id="jzPanePresets" role="tabpanel" aria-labelledby="jzTabPresets">
+            <div class="jz-pics" role="group" aria-label="Ready-made pictures">
+              <button type="button" class="jigsaw-preset" data-src="images/jigsaw-presets/unicorn.jpg" data-label="Unicorn castle"><img src="images/jigsaw-presets/unicorn.jpg" alt="Unicorn castle" loading="lazy" decoding="async" /></button>
+              <button type="button" class="jigsaw-preset" data-src="images/jigsaw-presets/puppy.jpg" data-label="Puppy garden"><img src="images/jigsaw-presets/puppy.jpg" alt="Puppy garden" loading="lazy" decoding="async" /></button>
+              <button type="button" class="jigsaw-preset" data-src="images/jigsaw-presets/kitten.jpg" data-label="Cosy kitten"><img src="images/jigsaw-presets/kitten.jpg" alt="Cosy kitten" loading="lazy" decoding="async" /></button>
+              <button type="button" class="jigsaw-preset" data-src="images/jigsaw-presets/sofia-tractor.png" data-label="Sofia on the tractor"><img src="images/jigsaw-presets/sofia-tractor.png" alt="Sofia on the tractor" loading="lazy" decoding="async" /></button>
+              <button type="button" class="jigsaw-preset" data-src="images/jigsaw-presets/dolphin.jpg" data-label="Happy dolphin"><img src="images/jigsaw-presets/dolphin.jpg" alt="Happy dolphin" loading="lazy" decoding="async" /></button>
+              <button type="button" class="jigsaw-preset" data-src="images/jigsaw-presets/rocket.jpg" data-label="Space rocket"><img src="images/jigsaw-presets/rocket.jpg" alt="Space rocket" loading="lazy" decoding="async" /></button>
+              <button type="button" class="jigsaw-preset" data-src="images/jigsaw-presets/dino.jpg" data-label="Baby dinosaur"><img src="images/jigsaw-presets/dino.jpg" alt="Baby dinosaur" loading="lazy" decoding="async" /></button>
+              <button type="button" class="jigsaw-preset" data-src="images/jigsaw-presets/sofia-baby-bedtime.png" data-label="Bedtime with baby"><img src="images/jigsaw-presets/sofia-baby-bedtime.png" alt="Bedtime with baby" loading="lazy" decoding="async" /></button>
+              <button type="button" class="jigsaw-preset" data-src="images/jigsaw-presets/baby-sister-onesie.png" data-label="Baby &amp; big sister"><img src="images/jigsaw-presets/baby-sister-onesie.png" alt="Baby and big sister" loading="lazy" decoding="async" /></button>
+            </div>
+          </div>
+
+          <div class="jz-pane" id="jzPanePhotos" role="tabpanel" aria-labelledby="jzTabPhotos" hidden>
+            <input type="file" id="jzPhotoInput" class="visually-hidden" accept="image/*" tabindex="-1" aria-hidden="true" />
+            <div class="jz-pics" id="jzPhotoGrid" role="group" aria-label="Your photos">
+              <button type="button" class="jz-upload" id="jzPhotoPick">
+                <span class="jz-upload__icon" aria-hidden="true">＋</span>
+                <span>Add a photo</span>
+              </button>
+            </div>
+            <p class="jz-pane__note">Photos stay on this device — they’re not uploaded anywhere.</p>
           </div>
         </div>
-      </div>
-    </section>
 
-    <p id="status" class="status" role="status"></p>
-
-    <div class="play-area" id="playArea" hidden>
-      <div class="board-wrap">
-        <div class="board-wrap__head">
-          <h2>Put the pieces here</h2>
-          <label class="guide-toggle">
-            <input type="checkbox" id="guideToggle" checked />
-            <span>Picture guide</span>
-          </label>
-        </div>
-        <div class="board" id="board" aria-label="Puzzle board">
-          <div class="board__guide" id="boardGuide" aria-hidden="true">
-            <img class="board__guide-img" id="boardGuideImg" alt="" decoding="async" />
+        <div class="jz-step">
+          <div class="jz-step__head">
+            <span class="jz-step__num jz-step__num--2">2</span>
+            <div>
+              <h2 class="jz-step__title">Choose difficulty</h2>
+              <p class="jz-step__hint">This changes how many pieces the puzzle has.</p>
+            </div>
           </div>
-          <div class="board__grid" id="boardGrid"></div>
+          <div class="jz-levels" role="radiogroup" aria-label="Difficulty">
+            <button type="button" class="jz-level jz-level--easy is-active" data-pieces="6" role="radio" aria-checked="true">
+              <span class="jz-level__badge">6</span>
+              <span class="jz-level__text"><strong>Easy</strong><small>6 pieces</small></span>
+            </button>
+            <button type="button" class="jz-level jz-level--medium" data-pieces="12" role="radio" aria-checked="false">
+              <span class="jz-level__badge">12</span>
+              <span class="jz-level__text"><strong>Medium</strong><small>12 pieces</small></span>
+            </button>
+            <button type="button" class="jz-level jz-level--hard" data-pieces="24" role="radio" aria-checked="false">
+              <span class="jz-level__badge">24</span>
+              <span class="jz-level__text"><strong>Hard</strong><small>24 pieces</small></span>
+            </button>
+          </div>
         </div>
-      </div>
-      <div class="tray-wrap">
-        <h2>Your pieces</h2>
-        <div class="tray" id="tray" aria-label="Puzzle pieces"></div>
-      </div>
+
+        <div class="jz-step jz-step--last">
+          <div class="jz-step__head">
+            <span class="jz-step__num jz-step__num--3">3</span>
+            <div>
+              <h2 class="jz-step__title">Start your puzzle</h2>
+              <p class="jz-step__hint">Drag the pieces from below into the right spot.</p>
+            </div>
+          </div>
+          <button type="button" id="startBtn" class="jz-start" disabled>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13a1 1 0 0 0 1.5.9l10.2-6.5a1 1 0 0 0 0-1.8L9.5 4.6A1 1 0 0 0 8 5.5z"/></svg>
+            Start Puzzle
+          </button>
+        </div>
+      </aside>
+
+      <main class="jz-center">
+        <section class="jz-card jz-boardcard" id="jzBoardCard" aria-label="Puzzle board">
+          <div class="jz-boardcard__head">
+            <h2 class="jz-card__title"><span class="jz-card__icon" aria-hidden="true">🧩</span> Picture Jigsaw</h2>
+            <div class="jz-tools">
+              <span class="jz-timer" aria-label="Time">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 1h6v2H9zm3 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18zm0 2a7 7 0 1 0 0 14 7 7 0 0 0 0-14zm-1 2h2v5.4l3.5 2.1-1 1.7L11 14.5z"/></svg>
+                <span id="jzTimer">00:00</span>
+              </span>
+              <button type="button" class="jz-tool" id="guideToggle" aria-pressed="true" title="Picture guide on the board">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5c5 0 9 4.5 10 7-1 2.5-5 7-10 7S3 14.5 2 12c1-2.5 5-7 10-7zm0 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm0 2a2 2 0 1 1 0 4 2 2 0 0 1 0-4z"/></svg>
+                <span class="visually-hidden">Picture guide</span>
+              </button>
+              <button type="button" class="jz-tool" id="jzFullscreen" title="Full screen">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h6v2H6v4H4zm10 0h6v6h-2V6h-4zM4 14h2v4h4v2H4zm14 0h2v6h-6v-2h4z"/></svg>
+                <span class="visually-hidden">Full screen</span>
+              </button>
+              <button type="button" class="jz-tool" id="shuffleBtn" title="Start again" disabled>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4a8 8 0 0 1 7.4 5H17v2h6V5h-2v2.4A10 10 0 1 0 22 13h-2a8 8 0 1 1-8-9z"/></svg>
+                <span class="visually-hidden">Start again</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="jz-boardwrap">
+            <div class="board" id="board" aria-label="Puzzle board">
+              <div class="board__guide" id="boardGuide" aria-hidden="true">
+                <img class="board__guide-img" id="boardGuideImg" alt="" decoding="async" />
+              </div>
+              <div class="board__grid" id="boardGrid"></div>
+              <div class="board__intro" id="boardIntro">
+                <span class="board__intro-emoji" aria-hidden="true">🧩</span>
+                <p>Pick a picture, then tap <strong>Start Puzzle</strong>!</p>
+              </div>
+            </div>
+          </div>
+          <p id="status" class="status" role="status"></p>
+        </section>
+
+        <section class="jz-card jz-traycard" id="playArea" aria-labelledby="jzTrayTitle">
+          <h2 class="jz-card__title" id="jzTrayTitle"><span class="jz-card__icon" aria-hidden="true">🧩</span> Your puzzle pieces</h2>
+          <div class="tray" id="tray" aria-label="Puzzle pieces"></div>
+        </section>
+      </main>
+
+      <aside class="jz-side">
+        <section class="jz-card jz-mini">
+          <h2 class="jz-card__title"><span class="jz-card__icon" aria-hidden="true">🖼️</span> Preview</h2>
+          <div class="jz-preview"><img id="jzPreviewImg" alt="The picture you are making" decoding="async" /></div>
+        </section>
+
+        <section class="jz-card jz-mini">
+          <h2 class="jz-card__title"><span class="jz-card__icon" aria-hidden="true">🧩</span> Progress</h2>
+          <p class="jz-progress__text"><span id="jzPlaced">0</span> / <span id="jzTotal">6</span> pieces</p>
+          <div class="jz-progress" role="progressbar" aria-labelledby="jzPlaced" aria-valuemin="0" aria-valuemax="6" aria-valuenow="0" id="jzProgressBar">
+            <span class="jz-progress__fill" id="jzProgressFill"></span>
+          </div>
+          <p class="jz-progress__done">Puzzles finished: <strong id="jgscDone">0</strong></p>
+          <details class="jz-scores">
+            <summary>Score card</summary>
+            <section class="gsc" aria-labelledby="jgscTitle">
+              <h3 id="jgscTitle" class="visually-hidden">Score card</h3>
+              <p class="gsc__hint" id="jgscHint" hidden>
+                Each time you finish a puzzle it adds here. Saved on this device — copy/paste to move scores.
+              </p>
+              <div class="gsc__actions">
+                <button type="button" class="gsc__btn" id="jgscCopy">Copy scores</button>
+                <button type="button" class="gsc__btn" id="jgscPaste">Paste scores</button>
+                <button type="button" class="gsc__btn gsc__btn--danger" id="jgscReset">Reset scores</button>
+              </div>
+            </section>
+          </details>
+        </section>
+
+        <section class="jz-card jz-mini">
+          <h2 class="jz-card__title"><span class="jz-card__icon" aria-hidden="true">💡</span> Tips</h2>
+          <ul class="jz-tips">
+            <li><span class="jz-tips__ic" aria-hidden="true">👆</span> Drag and drop the pieces into place</li>
+            <li><span class="jz-tips__ic" aria-hidden="true">🔍</span> Look at the colours and shapes</li>
+            <li><span class="jz-tips__ic" aria-hidden="true">👁️</span> Tap the eye button to show or hide the picture guide</li>
+          </ul>
+        </section>
+      </aside>
     </div>
   </div>
   <script src="../js/score-config.js"></script>
   <script src="../js/kids-core.js" defer></script>
   <script src="../js/score-cloud.js" defer></script>
   <script src="../js/game-scorecard.js" defer></script>
-  <script src="../jigsaw.js" defer></script>
+  <script src="../jigsaw.js?v=2" defer></script>
   <script>
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("../sw.js").catch(function () {});

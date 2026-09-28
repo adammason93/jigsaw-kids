@@ -372,4 +372,11 @@
   if (countEl) countEl.textContent = String(GAMES.length);
 
   render();
+
+  var hashNav = { "#games": "games", "#favourites": "favourites", "#about": "about", "#cast": "characters" };
+  var fromHash = hashNav[window.location.hash];
+  if (fromHash) {
+    var navLink = document.querySelector('[data-nav="' + fromHash + '"]');
+    if (navLink) setTimeout(function () { navLink.click(); }, 50);
+  }
 })();
