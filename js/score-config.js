@@ -12,6 +12,6 @@ window.SCORE_SYNC = {
   /** When true: storybook POST returns 202 and finishes in background (needs DB migration + service role secret on clever-service). */
   storybookAsync: true,
   /** Prompt → Babylon HTML (`game-maker` edge function). */
-  gameMakerEdgeSlug: "game-maker",
+  gameMakerEdgeSlug: "dynamic-action",
 };
 window.SCORE_CONFIG = window.SCORE_SYNC;
