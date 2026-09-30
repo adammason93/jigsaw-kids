@@ -6,14 +6,17 @@
   <meta name="theme-color" content="#002129" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <title>Zuma — Sofia's Game Room</title>
+  <title>Zuma — Wondii</title>
   <link rel="manifest" href="../manifest.json" />
   <link rel="stylesheet" href="../js/kids-core.css" />
   <link rel="stylesheet" href="zuma.css" />
   <link rel="stylesheet" href="../tablet-ipad.css" />
+  <link rel="stylesheet" href="wondii-shell.css?v=4" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/wondii-tokens.css?v=2" />
+  <link rel="stylesheet" href="../css/wondii-p1.css?v=9" />
 </head>
 <body class="page-zuma">
   <div class="zuma-app" id="app">
@@ -93,5 +96,6 @@
       navigator.serviceWorker.register("../sw.js").catch(function () {});
     }
   </script>
+  <script src="wondii-shell.js?v=3" defer></script>
 </body>
 </html>

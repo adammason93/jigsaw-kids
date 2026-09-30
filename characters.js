@@ -289,8 +289,7 @@
       var empty = document.createElement("div");
       empty.className = "ch-empty";
       empty.innerHTML =
-        '<div class="ch-empty__emoji">🎨</div>' +
-        '<p>No characters yet — tap <strong>+ Add a character</strong> to make your first.</p>';
+        '<p>No characters yet. Tap <strong>Add a character</strong> to make your first.</p>';
       els.grid.appendChild(empty);
       return;
     }
@@ -451,6 +450,8 @@
       closeModal();
     }
   });
+
+  window.WondiiCharacters = { renderGrid: renderGrid, openModal: openModal };
 
   // First load: wait briefly for supabase auth to restore from localStorage
   setTimeout(refreshGrid, 250);

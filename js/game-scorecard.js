@@ -130,6 +130,8 @@
     return d.innerHTML;
   }
 
+  var wired = [];
+
   function wire(opts) {
     var key = opts.storageKey;
     var defaults = opts.defaults;
@@ -182,8 +184,8 @@
           '<div class="gsc__help-body">' +
           hintHtml +
           '<p class="gsc__help-sync-note">' +
-          "Scores are stored in <strong>this browser on this device only</strong> — they are not uploaded or synced online. " +
-          "To show the same totals on another phone or tablet, tap <strong>Copy scores</strong> here, then on the other device open this same game and tap <strong>Paste scores</strong> (your clipboard or a message works)." +
+          "Scores are saved on the Wondii account you’re logged in with, and come back when that account signs in on this device. " +
+          "Copy scores still lets a grown-up move totals by hand." +
           "</p>" +
           "</div>" +
           '<button type="button" class="gsc__help-close">Done</button>' +
@@ -386,6 +388,8 @@
       br.addEventListener("click", doReset);
     }
 
+    wired.push(render);
+
     return {
       load: function () {
         return load(key, defaults);
@@ -404,6 +408,17 @@
       flash: flash,
     };
   }
+
+  global.addEventListener("kids-scorecard-refresh", function () {
+    wired.forEach(function (render) {
+      render();
+    });
+  });
+  global.addEventListener("wondii-account-cleared", function () {
+    wired.forEach(function (render) {
+      render();
+    });
+  });
 
   global.GameScorecard = {
     n0: n0,

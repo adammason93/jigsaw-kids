@@ -6,15 +6,18 @@
   <meta name="theme-color" content="#7c3aed" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <title>Snakes &amp; Ladders — Sofia's Game Room</title>
+  <title>Snakes &amp; Ladders — Wondii</title>
   <link rel="manifest" href="../manifest.json" />
   <link rel="stylesheet" href="../js/kids-core.css" />
   <link rel="stylesheet" href="../js/game-scorecard.css" />
   <link rel="stylesheet" href="snakes-ladders.css" />
   <link rel="stylesheet" href="../tablet-ipad.css" />
+  <link rel="stylesheet" href="wondii-shell.css?v=4" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Sniglet:wght@400;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/wondii-tokens.css?v=2" />
+  <link rel="stylesheet" href="../css/wondii-p1.css?v=9" />
 </head>
 <body class="page-snakes">
   <div class="app" id="app">
@@ -32,19 +35,9 @@
     >
       <div class="welcome-popup__backdrop" aria-hidden="true"></div>
       <div class="welcome-popup__panel">
-        <h2 id="welcomeTitle" class="welcome-popup__title">Welcome, Sofia!</h2>
+        <h2 id="welcomeTitle" class="welcome-popup__title">Welcome!</h2>
         <div class="welcome-popup__stage">
-          <div class="welcome-popup__char-swing" aria-hidden="true">
-            <img
-              class="welcome-popup__char"
-              src="images/character-girl-blonde.png"
-              width="200"
-              height="280"
-              alt=""
-              decoding="async"
-            />
-          </div>
-          <p class="welcome-popup__bubble" role="text">This game’s for you — have fun!</p>
+          <p class="welcome-popup__bubble" role="text">Climb the ladders and have fun!</p>
         </div>
         <button type="button" class="btn btn--primary" id="btnWelcomeOk">Let’s play!</button>
       </div>
@@ -445,8 +438,9 @@
   </div>
   <script src="../js/score-config.js"></script>
   <script src="../js/kids-core.js"></script>
-  <script src="../js/score-cloud.js"></script>
-  <script src="../js/game-scorecard.js"></script>
-  <script src="snakes-ladders.js"></script>
+  <script src="../js/score-cloud.js?v=6"></script>
+  <script src="../js/game-scorecard.js?v=2"></script>
+  <script src="snakes-ladders.js?v=3"></script>
+  <script src="wondii-shell.js?v=3" defer></script>
 </body>
 </html>

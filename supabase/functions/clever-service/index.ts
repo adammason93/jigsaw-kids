@@ -323,6 +323,16 @@ const FAMILY_PORTRAIT_PATHS: Record<string, string> = {
   freya: "games/images/character-freya.png",
 };
 
+/**
+ * Wizard buddy id → stored character sheet, relative to the site root.
+ * Family humans stay in FAMILY_PORTRAIT_PATHS (same ids as KidsGameCharacters).
+ * A buddy key is listed here only when a real sheet exists — otherwise the
+ * anchor stays text-to-image for that buddy.
+ */
+const CANONICAL_BUDDY_PATHS: Record<string, string> = {
+  // unicorn, dragon, dinosaur, … have no stored sheet yet.
+};
+
 type FamilyPerson = { id: string; label: string };
 
 type StoryPage = { text: string; illustrationBrief: string | null };
@@ -481,6 +491,8 @@ function composeDallePrompt(parts: {
   plotHint?: string;
   /** Verse or merged text for the same spread — improves home-scene detection. */
   verseForDomesticGuard?: string;
+  /** Book-wide visual plan slice for this spread (world, camera, continuity). */
+  visualPlan?: string;
 }): string {
   const lockChunk = parts.firstPanelLock.trim()
     ? `MATCH FIRST SPREAD — copy these exact looks (faces, hair, outfits, creatures): ${parts.firstPanelLock.trim()}\n\n`
@@ -497,7 +509,19 @@ function composeDallePrompt(parts: {
   );
   const mid =
     `SCENE ACTION: ${parts.sceneBrief}\n\n${identity}${domestic}${lockChunk}MANDATORY CAST (${parts.mandatoryCastLine}):\n`;
-  const head = `${parts.preamble}${parts.envTheme}`;
+  let plan = String(parts.visualPlan ?? "").trim();
+  const headBase = `${parts.preamble}${parts.envTheme}`;
+  const minCast = 480;
+  const planBudget = DALLE3_PROMPT_MAX - minCast - mid.length - headBase.length - 48;
+  if (!plan || planBudget < 160) {
+    plan = "";
+  } else if (plan.length > planBudget) {
+    plan = plan.slice(0, planBudget);
+  }
+  const planChunk = plan
+    ? `BOOK VISUAL PLAN (same world and illustrator on every page — place, light, props, and camera; do not redesign faces, hair, outfits, or species):\n${plan}\n\n`
+    : "";
+  const head = `${headBase}${planChunk}`;
   const room = DALLE3_PROMPT_MAX - head.length - mid.length;
   let cast = parts.castBible.trim();
   if (cast.length > room) {
@@ -810,6 +834,518 @@ async function compileCharacterLockForImages(
   const data = await r.json();
   const text = String(data.choices?.[0]?.message?.content ?? "").trim();
   return text.slice(0, 2100);
+}
+
+/** One plan for the whole book, written after the script and before picture 1. */
+type BookVisualBiblePage = {
+  spread: number;
+  location: string;
+  subLocation: string;
+  characters: string[];
+  action: string;
+  mood: string;
+  lighting: string;
+  cameraShot: string;
+  cameraAngle: string;
+  characterBlocking: string;
+  environmentFocus: string;
+  foregroundElements: string;
+  backgroundElements: string;
+  heroScale: string;
+  colourEmphasis: string;
+  continuityRequirements: string;
+  mustDifferFromPrevious: string;
+  /** App-only. The image model must not paint these words. */
+  textBlocks: BookTextBlock[];
+  impactWords: BookImpactWord[];
+  textSafeZones: BookTextSafeZone[];
+};
+
+type BookTextBlock = {
+  side: "left" | "right";
+  position: string;
+  sentences: string[];
+};
+
+type BookImpactWord = {
+  text: string;
+  type: "sound" | "magical" | "emotion" | "place" | "dialogue";
+};
+
+type BookTextSafeZone = {
+  side: "left" | "right";
+  position: string;
+  priority: number;
+};
+
+type BookVisualBible = {
+  art_style: string;
+  world: {
+    setting: string;
+    palette: string;
+    recurring_locations: string[];
+    recurring_props: string[];
+  };
+  arc: {
+    beginning: string;
+    middle: string;
+    climax: string;
+    ending: string;
+  };
+  pages: BookVisualBiblePage[];
+};
+
+/** Shared line for every spread image prompt. World continuity, not composition continuity. */
+const SPREAD_NEW_COMPOSITION_LINE =
+  "Create a genuinely new composition for this spread. Maintain character and world identity, but do NOT copy the previous spread's camera position, character placement, background arrangement, prop placement or composition. Continuity means the same story world — not the same image. Use this spread's Visual Bible camera, sub-location, lighting and environmentFocus as authoritative art direction.";
+
+/** Calm scenery for the app's type. Never includes the words themselves. */
+const FALLBACK_TEXT_ZONES: BookTextSafeZone[][] = [
+  [
+    { side: "left", position: "upper-left", priority: 1 },
+    { side: "right", position: "upper-right", priority: 2 },
+  ],
+  [
+    { side: "left", position: "mid-left", priority: 1 },
+    { side: "right", position: "lower-right", priority: 2 },
+  ],
+  [
+    { side: "right", position: "upper-right", priority: 1 },
+    { side: "left", position: "lower-left", priority: 2 },
+  ],
+];
+
+function textSpaceArtDirection(zones: BookTextSafeZone[] | undefined): string {
+  const where = (zones || [])
+    .slice(0, 3)
+    .map((z) => `${z.side} page, ${z.position}`)
+    .join("; ");
+  return (
+    "TEXT-SAFE AREAS" +
+    (where ? ` (${where})` : "") +
+    ": reserve calm visual negative space in these areas. Do not place faces, characters, important props, major discoveries, or highly detailed focal elements inside them. " +
+    "The areas should still contain natural scenery and must NOT look like empty blank boxes. " +
+    "Do not paint any words, letters, numbers, captions, speech balloons, or story text anywhere. Typography is added later in the app and must not appear in the illustration."
+  );
+}
+
+function bibleClip(value: unknown, max: number): string {
+  return String(value ?? "").replace(/\s+/g, " ").trim().slice(0, max);
+}
+
+function bibleStringList(value: unknown, maxItems: number, maxLen: number): string[] {
+  if (!Array.isArray(value)) return [];
+  const out: string[] = [];
+  for (const item of value) {
+    const s = bibleClip(item, maxLen);
+    if (!s) continue;
+    out.push(s);
+    if (out.length >= maxItems) break;
+  }
+  return out;
+}
+
+function bibleSide(value: unknown): "left" | "right" | "" {
+  const side = bibleClip(value, 12).toLowerCase();
+  if (side === "left" || side === "right") return side;
+  return "";
+}
+
+function bibleImpactType(value: unknown): BookImpactWord["type"] {
+  const type = bibleClip(value, 20).toLowerCase();
+  if (type === "sound" || type === "magical" || type === "emotion" || type === "place" || type === "dialogue") {
+    return type;
+  }
+  return "magical";
+}
+
+function bibleTextZones(value: unknown, fallback: BookTextSafeZone[]): BookTextSafeZone[] {
+  if (!Array.isArray(value)) return fallback;
+  const out: BookTextSafeZone[] = [];
+  for (const item of value) {
+    if (!item || typeof item !== "object") continue;
+    const row = item as Record<string, unknown>;
+    const side = bibleSide(row.side);
+    const position = bibleClip(row.position, 40);
+    if (!side || !position) continue;
+    const priority = Number(row.priority);
+    out.push({
+      side,
+      position,
+      priority: Number.isFinite(priority) ? priority : out.length + 1,
+    });
+    if (out.length >= 3) break;
+  }
+  return out.length ? out : fallback;
+}
+
+function bibleImpactWords(value: unknown): BookImpactWord[] {
+  if (!Array.isArray(value)) return [];
+  const out: BookImpactWord[] = [];
+  for (const item of value) {
+    if (!item || typeof item !== "object") continue;
+    const row = item as Record<string, unknown>;
+    const text = bibleClip(row.text, 48);
+    if (!text) continue;
+    out.push({ text, type: bibleImpactType(row.type) });
+    if (out.length >= 3) break;
+  }
+  return out;
+}
+
+function bibleTextBlocks(value: unknown, fallback: BookTextBlock[]): BookTextBlock[] {
+  if (!Array.isArray(value)) return fallback;
+  const out: BookTextBlock[] = [];
+  for (const item of value) {
+    if (!item || typeof item !== "object") continue;
+    const row = item as Record<string, unknown>;
+    const side = bibleSide(row.side);
+    const position = bibleClip(row.position, 40);
+    const sentences = bibleStringList(row.sentences, 4, 220);
+    if (!side || !position || !sentences.length) continue;
+    out.push({ side, position, sentences });
+    if (out.length >= 3) break;
+  }
+  return out.length ? out : fallback;
+}
+
+function fallbackBookVisualBible(input: {
+  styleLine: string;
+  placeDesc: string;
+  briefs: { brief: string; verse: string }[];
+}): BookVisualBible {
+  const beats: Array<Omit<BookVisualBiblePage, "spread" | "characters" | "action" | "continuityRequirements" | "mustDifferFromPrevious" | "textBlocks" | "impactWords" | "textSafeZones">> = [
+    {
+      location: "",
+      subLocation: "the arrival edge of this world",
+      mood: "wonder at first sight",
+      lighting: "cool opening light, distinct from later scenes",
+      cameraShot: "WIDE ESTABLISHING",
+      cameraAngle: "eye level, pulled far back",
+      characterBlocking: "small figures just inside the place, not centred as a portrait",
+      environmentFocus: "the threshold and the scale of the world",
+      foregroundElements: "the ground they have just stepped onto",
+      backgroundElements: "the wider place opening ahead",
+      heroScale: "small — the world is the subject",
+      colourEmphasis: "cool first palette of this world",
+    },
+    {
+      location: "",
+      subLocation: "a path or room deeper in, not the arrival spot",
+      mood: "curious exploring",
+      lighting: "a different colour of light than the arrival",
+      cameraShot: "OVER-THE-SHOULDER",
+      cameraAngle: "just behind the hero, looking into the new space",
+      characterBlocking: "hero near the camera edge, discovery ahead",
+      environmentFocus: "whatever they have just found",
+      foregroundElements: "a shoulder and the near ground",
+      backgroundElements: "the new sub-location, not the arrival view",
+      heroScale: "medium — people and the thing they found",
+      colourEmphasis: "shift the light colour from the first picture",
+    },
+    {
+      location: "",
+      subLocation: "a narrow or sheltered pocket of the same world",
+      mood: "close and a little mysterious",
+      lighting: "dimmer, a local glow rather than open sky",
+      cameraShot: "MEDIUM",
+      cameraAngle: "slightly low, among the details",
+      characterBlocking: "characters interacting with one object or creature",
+      environmentFocus: "the interaction, with the pocket of place still readable",
+      foregroundElements: "the object or creature they are using",
+      backgroundElements: "walls, rocks, or trees of this pocket only",
+      heroScale: "medium, not filling the frame",
+      colourEmphasis: "a deeper local colour, not the opening light",
+    },
+    {
+      location: "",
+      subLocation: "the emotional heart of the adventure",
+      mood: "the feeling of this verse",
+      lighting: "softer and warmer or stranger than the travel shots",
+      cameraShot: "CLOSE",
+      cameraAngle: "near their faces, but the place still shows behind them",
+      characterBlocking: "reaction between hero and buddy",
+      environmentFocus: "expression, with a hint of where they are",
+      foregroundElements: "faces and hands",
+      backgroundElements: "a soft read of this sub-location only",
+      heroScale: "closer, still not a face-filling poster",
+      colourEmphasis: "the emotional colour of this beat",
+    },
+    {
+      location: "",
+      subLocation: "a high or far view of a different part of the world",
+      mood: "scale and journey",
+      lighting: "broader sky or ceiling light, unlike the close scene",
+      cameraShot: "HIGH ANGLE",
+      cameraAngle: "looking down across the place",
+      characterBlocking: "small figures on a route through the world",
+      environmentFocus: "the map of this world, a new district",
+      foregroundElements: "a near ledge, branch, or rim",
+      backgroundElements: "the far part of the world they have not stood in yet",
+      heroScale: "small inside a huge place",
+      colourEmphasis: "wider, cooler or brighter than the previous picture",
+    },
+    {
+      location: "",
+      subLocation: "the leaving place, not a repeat of the arrival ground",
+      mood: "warm ending",
+      lighting: "a finale glow that is not the first picture's light",
+      cameraShot: "AERIAL",
+      cameraAngle: "above and away, the journey readable",
+      characterBlocking: "figures small against the way home or the last landmark",
+      environmentFocus: "departure and the whole world behind them",
+      foregroundElements: "only what is physically at the leaving spot",
+      backgroundElements: "the world they travelled, seen from far",
+      heroScale: "small — the world is the subject again",
+      colourEmphasis: "finale light, distinct from spread 1",
+    },
+  ];
+  const place = bibleClip(input.placeDesc, 180) || "the story's own setting";
+  return {
+    art_style: bibleClip(input.styleLine, 220) ||
+      "One premium picture-book illustrator for every page.",
+    world: {
+      setting: place,
+      palette: "One world palette family, with the light colour changing from spread to spread",
+      recurring_locations: [place],
+      recurring_props: [],
+    },
+    arc: {
+      beginning: "Arrive in a specific part of the world",
+      middle: "Move through visually different parts of that same world",
+      climax: "The biggest beat, in its own sub-location and light",
+      ending: "Leave from a view that is not the opening shot",
+    },
+    pages: input.briefs.map((b, i) => {
+      const beat = beats[i % beats.length];
+      const prev = i > 0 ? beats[(i - 1) % beats.length] : null;
+      return {
+        spread: i + 1,
+        location: place,
+        subLocation: beat.subLocation,
+        characters: [],
+        action: bibleClip(b.verse || b.brief, 200),
+        mood: beat.mood,
+        lighting: beat.lighting,
+        cameraShot: beat.cameraShot,
+        cameraAngle: beat.cameraAngle,
+        characterBlocking: beat.characterBlocking,
+        environmentFocus: beat.environmentFocus,
+        foregroundElements: beat.foregroundElements,
+        backgroundElements: beat.backgroundElements,
+        heroScale: beat.heroScale,
+        colourEmphasis: beat.colourEmphasis,
+        continuityRequirements: i === 0
+          ? "First picture. Lock clothes, species, and the geological or architectural language of this world. Do not invent a second world."
+          : "Same clothes, species, and world materials. Do not repeat the previous picture's camera or the previous patch of ground.",
+        mustDifferFromPrevious: prev
+          ? `Not ${prev.cameraShot} again, not ${prev.subLocation}, and not the same prop layout or light as that picture.`
+          : "Opening picture. Later spreads must not copy this camera.",
+        textBlocks: [],
+        impactWords: [],
+        textSafeZones: FALLBACK_TEXT_ZONES[i % FALLBACK_TEXT_ZONES.length],
+      };
+    }),
+  };
+}
+
+function normalizeBookVisualBible(
+  raw: unknown,
+  fallback: BookVisualBible,
+): BookVisualBible {
+  const obj = raw && typeof raw === "object" ? raw as Record<string, unknown> : {};
+  const worldRaw = obj.world && typeof obj.world === "object"
+    ? obj.world as Record<string, unknown>
+    : {};
+  const arcRaw = obj.arc && typeof obj.arc === "object"
+    ? obj.arc as Record<string, unknown>
+    : {};
+  const pagesRaw = Array.isArray(obj.pages) ? obj.pages : [];
+  const pages = fallback.pages.map((fb, i) => {
+    const row = pagesRaw[i] && typeof pagesRaw[i] === "object"
+      ? pagesRaw[i] as Record<string, unknown>
+      : {};
+    return {
+      spread: i + 1,
+      location: bibleClip(row.location, 160) || fb.location,
+      subLocation: bibleClip(row.subLocation, 160) || fb.subLocation,
+      characters: bibleStringList(row.characters, 6, 40),
+      action: bibleClip(row.action, 220) || fb.action,
+      mood: bibleClip(row.mood, 80) || fb.mood,
+      lighting: bibleClip(row.lighting, 140) || fb.lighting,
+      cameraShot: bibleClip(row.cameraShot || row.composition, 80) || fb.cameraShot,
+      cameraAngle: bibleClip(row.cameraAngle, 120) || fb.cameraAngle,
+      characterBlocking: bibleClip(row.characterBlocking, 180) || fb.characterBlocking,
+      environmentFocus: bibleClip(row.environmentFocus, 160) || fb.environmentFocus,
+      foregroundElements: bibleClip(row.foregroundElements, 160) || fb.foregroundElements,
+      backgroundElements: bibleClip(row.backgroundElements, 160) || fb.backgroundElements,
+      heroScale: bibleClip(row.heroScale, 120) || fb.heroScale,
+      colourEmphasis: bibleClip(row.colourEmphasis, 120) || fb.colourEmphasis,
+      continuityRequirements: bibleClip(row.continuityRequirements || row.continuity, 220) ||
+        fb.continuityRequirements,
+      mustDifferFromPrevious: bibleClip(row.mustDifferFromPrevious, 220) ||
+        fb.mustDifferFromPrevious,
+      textBlocks: bibleTextBlocks(row.textBlocks, fb.textBlocks),
+      impactWords: bibleImpactWords(row.impactWords),
+      textSafeZones: bibleTextZones(row.textSafeZones, fb.textSafeZones),
+    };
+  });
+  return {
+    art_style: bibleClip(obj.art_style, 240) || fallback.art_style,
+    world: {
+      setting: bibleClip(worldRaw.setting, 200) || fallback.world.setting,
+      palette: bibleClip(worldRaw.palette, 140) || fallback.world.palette,
+      recurring_locations: bibleStringList(worldRaw.recurring_locations, 6, 80)
+        .concat(fallback.world.recurring_locations)
+        .filter((v, i, a) => a.indexOf(v) === i)
+        .slice(0, 6),
+      recurring_props: bibleStringList(worldRaw.recurring_props, 8, 60),
+    },
+    arc: {
+      beginning: bibleClip(arcRaw.beginning, 120) || fallback.arc.beginning,
+      middle: bibleClip(arcRaw.middle, 120) || fallback.arc.middle,
+      climax: bibleClip(arcRaw.climax, 120) || fallback.arc.climax,
+      ending: bibleClip(arcRaw.ending, 120) || fallback.arc.ending,
+    },
+    pages,
+  };
+}
+
+async function compileBookVisualBible(
+  apiKey: string,
+  chatModel: string,
+  input: {
+    styleLine: string;
+    placeDesc: string;
+    plotHint: string;
+    castBible: string;
+    pages: StoryPage[];
+    briefs: { brief: string; verse: string }[];
+  },
+): Promise<{ bible: BookVisualBible; source: "model" | "fallback" }> {
+  const fallback = fallbackBookVisualBible(input);
+  const spreads = input.briefs.map((b, i) =>
+    `SPREAD ${i + 1}\nVERSE: ${bibleClip(b.verse, 500)}\nNOTE: ${bibleClip(b.brief, 320)}`
+  ).join("\n\n");
+  const script = input.pages.map((p, i) => {
+    const text = bibleClip(p?.text, 280);
+    return text ? `PAGE ${i + 1}: ${text}` : "";
+  }).filter(Boolean).join("\n").slice(0, 4500);
+
+  const system =
+    "You are the illustration director for one children's picture book. " +
+    "The story script is already finished. Plan EVERY illustrated spread together, as one visual journey, before any image is drawn. " +
+    "Output JSON only. " +
+    "Identity is already locked elsewhere: do not redesign faces, hair, skin, age, outfits, or the buddy's species and markings. " +
+    "WORLD CONTINUITY is not COMPOSITION CONTINUITY. " +
+    "Keep one world: shared geology or architecture, one palette family, and the same design when an object returns. " +
+    "Do NOT keep one composition. Consecutive spreads must not share the same camera shot, the same patch of ground, the same prop layout, or the same light colour. " +
+    "A world has several visually distinct sub-locations (arrival, a trail, a cave, a lookout, a leaving place). They belong to one world and must not look like the same piece of ground. " +
+    "Choose cameraShot from the story, not from a fixed cycle: EXTREME WIDE, WIDE ESTABLISHING, MEDIUM, CLOSE, LOW ANGLE, HIGH ANGLE, OVER-THE-SHOULDER, SILHOUETTE, AERIAL. " +
+    "Never give two spreads in a row the same cameraShot. " +
+    "heroScale must change: some spreads keep the characters small so the world is the subject (establishing, travel, discovery, reveals). Not every picture is a character portrait. " +
+    "Recurring props are designs to preserve IF they appear. Do not put a rocket, chest, crystal, door, or vehicle into a picture just because it exists in the book. Show it only when the characters are physically near it, the verse mentions it, or this composition needs it. " +
+    "lighting and colourEmphasis must progress (for example cool arrival, coloured glow while exploring, darker cave, warm discovery, different light for goodbye). Do not use one lighting setup for the whole book. " +
+    "mustDifferFromPrevious must name the previous spread's camera, sub-location, and light so this picture cannot copy them. " +
+    "Also plan where the APP will place type. textSafeZones are calm scenery pockets (1–3), each on the left page or the right page, never across the centre gutter. " +
+    "textBlocks split the verse semantically across those zones (keep a quote with the sentence that follows it; do not split a sentence; 1–3 blocks). " +
+    "impactWords are at most 3 phrases that genuinely pop (sound, magical, emotion, place, or dialogue). " +
+    "These fields are layout notes for the app. Do not ask the illustration to draw the words. " +
+    "Do not invent a new character or an event that contradicts the verse. " +
+    "Tasteful extra environmental detail is welcome when it matches this sub-location.";
+
+  const user =
+    `Art style to keep: ${bibleClip(input.styleLine, 300)}\n` +
+    `Setting: ${bibleClip(input.placeDesc, 300)}\n` +
+    `Plot: ${bibleClip(input.plotHint, 500) || "(none)"}\n` +
+    `LOCKED CAST (identity only — do not change it):\n${bibleClip(input.castBible, 900)}\n\n` +
+    `Plan exactly ${input.briefs.length} illustrated spreads, in this order, as one journey:\n${spreads}\n\n` +
+    `Full script for continuity:\n${script}\n\n` +
+    `Return JSON: { "art_style": string, "world": { "setting": string, "palette": string, "recurring_locations": string[], "recurring_props": string[] }, "arc": { "beginning": string, "middle": string, "climax": string, "ending": string }, "pages": [ { "spread": number, "location": string, "subLocation": string, "characters": string[], "action": string, "mood": string, "lighting": string, "cameraShot": string, "cameraAngle": string, "characterBlocking": string, "environmentFocus": string, "foregroundElements": string, "backgroundElements": string, "heroScale": string, "colourEmphasis": string, "continuityRequirements": string, "mustDifferFromPrevious": string, "textBlocks": [ { "side": "left"|"right", "position": "upper-left"|"upper-right"|"mid-left"|"mid-right"|"lower-left"|"lower-right", "sentences": string[] } ], "impactWords": [ { "text": string, "type": "sound"|"magical"|"emotion"|"place"|"dialogue" } ], "textSafeZones": [ { "side": "left"|"right", "position": string, "priority": number } ] } ] } ` +
+    `pages length must be ${input.briefs.length}. ` +
+    `textBlocks.sentences must be copied from the verse, not rewritten. impactWords.text must be a short phrase that already appears in the verse. At most 3 impact words and 3 text blocks. ` +
+    `location is the world. subLocation is the distinct part of that world in this picture. ` +
+    `cameraShot is the shot type. continuityRequirements is identity and world rules only (clothes, species, materials) — not a reason to repeat the previous composition. ` +
+    `mustDifferFromPrevious is mandatory for every spread after the first.`;
+
+  const payload = {
+    model: chatModel,
+    temperature: 0.4,
+    max_tokens: 4600,
+    response_format: { type: "json_object" },
+    messages: [
+      { role: "system", content: system },
+      { role: "user", content: user },
+    ],
+  };
+  logOpenAiPrompt("compileBookVisualBible", payload);
+  const r = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: openAiJsonAuthHeaders(apiKey),
+    body: JSON.stringify(payload),
+  });
+  if (!r.ok) {
+    const t = await r.text();
+    console.error("compileBookVisualBible error", r.status, t.slice(0, 400));
+    return { bible: fallback, source: "fallback" };
+  }
+  const data = await r.json();
+  const content = String(data.choices?.[0]?.message?.content ?? "").trim();
+  if (!content) return { bible: fallback, source: "fallback" };
+  try {
+    const parsed = JSON.parse(sanitizeModelJsonForParse(unwrapJsonContent(content)));
+    return { bible: normalizeBookVisualBible(parsed, fallback), source: "model" };
+  } catch (e) {
+    console.warn("[clever-service] visual bible parse failed", e);
+    return { bible: fallback, source: "fallback" };
+  }
+}
+
+/** Compact plan for one spread. Same world and cast; a new camera, sub-location, and light. */
+function visualPlanForSpread(
+  bible: BookVisualBible | null,
+  spreadIdx: number,
+  spreadCount: number,
+): string {
+  if (!bible || spreadCount < 1) return "";
+  const page = bible.pages[spreadIdx];
+  if (!page) return "";
+  const prev = spreadIdx > 0 ? bible.pages[spreadIdx - 1] : null;
+  const locs = bible.world.recurring_locations.slice(0, 4).join("; ");
+  const props = bible.world.recurring_props.slice(0, 6).join("; ");
+  const who = page.characters.slice(0, 5).join(", ");
+  const parts = [
+    textSpaceArtDirection(page.textSafeZones),
+    `THIS PICTURE ${spreadIdx + 1} of ${spreadCount}. WORLD: ${page.location}. SUB-LOCATION (this picture only): ${page.subLocation}.`,
+    `DOING: ${page.action}. MOOD: ${page.mood}.`,
+    `LIGHT (authoritative): ${page.lighting}. COLOUR EMPHASIS: ${page.colourEmphasis}.`,
+    `CAMERA (authoritative): ${page.cameraShot}. ANGLE: ${page.cameraAngle}. HERO SCALE: ${page.heroScale}.`,
+    `BLOCKING: ${page.characterBlocking}. ENVIRONMENT FOCUS: ${page.environmentFocus}.`,
+    `FOREGROUND: ${page.foregroundElements}. BACKGROUND: ${page.backgroundElements}.`,
+    `BEAT: ${
+      spreadIdx === 0
+        ? bible.arc.beginning
+        : spreadIdx >= spreadCount - 1
+          ? bible.arc.ending
+          : spreadIdx >= Math.ceil(spreadCount / 2)
+            ? bible.arc.climax
+            : bible.arc.middle
+    }.`,
+    who ? `WHO: ${who}.` : "",
+    `WORLD RULES (identity and materials only): ${page.continuityRequirements}`,
+    prev
+      ? `MUST DIFFER FROM PREVIOUS PICTURE: ${page.mustDifferFromPrevious} Previous camera was ${prev.cameraShot} in ${prev.subLocation} with ${prev.lighting}. Do not repeat that camera, that ground, that prop layout, or that light.`
+      : `OPENING SHOT. Later pictures must not copy this camera or this patch of ground.`,
+    props
+      ? `PROP DESIGNS to preserve only when this spread lists them or the verse puts the characters beside them: ${props}. Do not paste a recurring object into this picture just because it appeared earlier.`
+      : "",
+    locs ? `Same world, different districts when the story moves: ${locs}.` : "",
+    `WORLD: ${bible.world.setting}. Palette family: ${bible.world.palette}.`,
+    `STYLE: ${bible.art_style}`,
+    SPREAD_NEW_COMPOSITION_LINE,
+    "Do not redesign face, hair, outfit, or species.",
+  ];
+  return parts.filter(Boolean).join(" ").slice(0, 1500);
 }
 
 async function visualLockFromFirstImage(apiKey: string, imageUrl: string): Promise<string> {
@@ -2353,14 +2889,15 @@ async function falFluxProTextToImageUrl(
 /* ──────────────────────────────────────────────────────────────────────────
  * GPT Image pipeline (OpenAI Image API — generations + edits)
  *
- * Default model **`gpt-image-2`**: tuned for **stronger continuity** across the anchor
- * lineup + per-spread **edits** (same cast / costume lock) than the older 1.x family.
- * Override via **`STORYBOOK_GPTIMAGE_MODEL`** — only **`gpt-image-2`** (and `gpt-image-2*`) are honoured by default; other ids fall back to **`gpt-image-2`** unless **`STORYBOOK_GPTIMAGE_ALLOW_NON_IMAGE2=1`** (dev only).
+ * Default model **`gpt-image-2.5-sunburst`**. Set **`STORYBOOK_GPTIMAGE_MODEL`** to any OpenAI image
+ * model id to test another one — generations and edits both use that id.
+ * **`gpt-image-2`** still omits **`input_fidelity`** (the API rejects it). Models known
+ * to accept it send **`high`**. Unknown ids omit it unless **`STORYBOOK_GPTIMAGE_INPUT_FIDELITY`** is set.
  * **Split quality (optional):** **`STORYBOOK_GPTIMAGE_QUALITY_GENERATION`** and **`STORYBOOK_GPTIMAGE_QUALITY_EDIT`** (`low` \| `medium` \| `high` \| `auto`). If unset, **`STORYBOOK_GPTIMAGE_QUALITY`** still applies to **both** scopes (legacy).
  * **User refs on edits:** **`STORYBOOK_GPTIMAGE_USER_REFS_FIRST_N_SPREADS`** = attach hero/friend upload bytes only on spreads with index **0 .. N-1** (`0` = anchor-only on every spread). When **unset**, all tiers attach uploads on **every** spread edit (needed for stable child likeness). Set **`N=2`** (etc.) only to shave API cost at the risk of cast drift on later spreads.
  * ────────────────────────────────────────────────────────────────────────── */
 
-const GPT_IMAGE_DEFAULT_MODEL = "gpt-image-2";
+const GPT_IMAGE_DEFAULT_MODEL = "gpt-image-2.5-sunburst";
 
 const GPT_IMAGE_BUCKET = "storybook_images";
 const GPT_IMAGE_PROMPT_MAX = 4000;
@@ -2699,30 +3236,71 @@ function gptImageRefPhotoQualityBoostEnabled(bookTier: PictureBookQuality): bool
   return false;
 }
 
+/** One model id for generations and edits. Empty env keeps `gpt-image-2.5-sunburst`. */
 function gptImageDefaultModel(): string {
   const env = (Deno.env.get("STORYBOOK_GPTIMAGE_MODEL") ?? "").trim();
-  const allowLegacy =
-    (Deno.env.get("STORYBOOK_GPTIMAGE_ALLOW_NON_IMAGE2") ?? "").trim() === "1";
-  if (!env) return GPT_IMAGE_DEFAULT_MODEL;
-  if (gptImageIsGptImage2Family(env)) return env;
-  if (allowLegacy) return env;
-  console.warn(
-    `[clever-service] STORYBOOK_GPTIMAGE_MODEL="${env}" is not GPT Image 2 — using ${GPT_IMAGE_DEFAULT_MODEL} for accuracy. Set STORYBOOK_GPTIMAGE_ALLOW_NON_IMAGE2=1 to allow other models (not recommended).`,
-  );
-  return GPT_IMAGE_DEFAULT_MODEL;
+  return env || GPT_IMAGE_DEFAULT_MODEL;
 }
 
+/** Exact Image 2 and its dated snapshots. `gpt-image-2.5-sunburst` is a different model. */
 function gptImageIsGptImage2Family(model: string): boolean {
   const m = model.trim().toLowerCase();
-  return m === "gpt-image-2" || m.startsWith("gpt-image-2");
+  if (m === "gpt-image-2") return true;
+  return /^gpt-image-2-\d/.test(m);
 }
 
-/** `POST /v1/images/edits` — **`input_fidelity`** is valid for GPT Image **1.x** (`gpt-image-1`, **`gpt-image-1.5`**, dated ids). **Image 2** rejects it (**HTTP 400**); **mini** rejects it — omit entirely. */
-function gptImageEditsSupportsInputFidelity(model: string): boolean {
+/** Known to reject `input_fidelity` on `/v1/images/edits`. Not inferred for other ids. */
+function gptImageKnownRejectsInputFidelity(model: string): boolean {
   const m = model.trim().toLowerCase();
-  if (gptImageIsGptImage2Family(m)) return false;
-  if (!m.startsWith("gpt-image-1")) return false;
-  return !m.includes("mini");
+  if (gptImageIsGptImage2Family(m)) return true;
+  if (m.includes("mini")) return true;
+  return false;
+}
+
+/** Known to accept `input_fidelity`. Unknown ids are not treated as a yes. */
+function gptImageKnownAcceptsInputFidelity(model: string): boolean {
+  const m = model.trim().toLowerCase();
+  if (gptImageKnownRejectsInputFidelity(m)) return false;
+  return m.startsWith("gpt-image-1");
+}
+
+/**
+ * Whether this edit request may include `input_fidelity`.
+ * `gpt-image-2` never does. A new model id does only when
+ * `STORYBOOK_GPTIMAGE_INPUT_FIDELITY` is `high` or `low`.
+ */
+function gptImageSupportsInputFidelity(model: string): boolean {
+  if (gptImageKnownRejectsInputFidelity(model)) return false;
+  if (gptImageKnownAcceptsInputFidelity(model)) return true;
+  const env = (Deno.env.get("STORYBOOK_GPTIMAGE_INPUT_FIDELITY") ?? "")
+    .trim()
+    .toLowerCase();
+  return env === "high" || env === "low";
+}
+
+function gptImageEditsSupportsInputFidelity(model: string): boolean {
+  return gptImageSupportsInputFidelity(model);
+}
+
+/** Quality is sent, then dropped on HTTP 400 by the existing edit retry. */
+function gptImageSupportsImageQuality(_model: string): boolean {
+  return true;
+}
+
+/** Reference edits stay on `/v1/images/edits` for every configured model id. */
+function gptImageSupportsImageEditing(_model: string): boolean {
+  return true;
+}
+
+/** Log / meta label. `default` means the parameter was omitted and the API default applies. */
+function gptImageFidelityLogLabel(model: string): "high" | "default" | "unsupported" {
+  if (gptImageKnownRejectsInputFidelity(model)) return "unsupported";
+  if (!gptImageSupportsInputFidelity(model)) return "default";
+  const env = (Deno.env.get("STORYBOOK_GPTIMAGE_INPUT_FIDELITY") ?? "")
+    .trim()
+    .toLowerCase();
+  if (env === "low") return "default";
+  return "high";
 }
 
 /**
@@ -2838,38 +3416,20 @@ function gptImageQualityForRequest(
   return scope === "generation" ? "medium" : "low";
 }
 
-/** When env unset: high book tier or (ref photos + quality boost on) → stricter edit lock. Sent on **`/images/edits`** only when **`gptImageEditsSupportsInputFidelity`** (Image 2 omits; API default applies). */
+/**
+ * Value for `input_fidelity` when the model accepts it.
+ * Supporting models use **high** so the reference face, hair, outfit, and buddy markings stay put.
+ * `STORYBOOK_GPTIMAGE_INPUT_FIDELITY=low` is the only downgrade. `gpt-image-2` never sends the field.
+ */
 function gptImageInputFidelityForRequest(
-  bookTier: PictureBookQuality,
-  hasUserPortraitRefs: boolean,
-  nonHeroPortraitRefs = false,
-  hasHeroPortraitRefs = false,
+  _bookTier: PictureBookQuality,
+  _hasUserPortraitRefs: boolean,
+  _nonHeroPortraitRefs = false,
+  _hasHeroPortraitRefs = false,
 ): "low" | "high" {
   const envPlain = (Deno.env.get("STORYBOOK_GPTIMAGE_INPUT_FIDELITY") ?? "").trim().toLowerCase();
-  const envUnset = !(Deno.env.get("STORYBOOK_GPTIMAGE_INPUT_FIDELITY") ?? "").trim();
-  if (envPlain === "high") return "high";
   if (envPlain === "low") return "low";
-  if (
-    bookTier === "high" &&
-    gptImageCostParityModeEnabled() &&
-    envUnset
-  ) {
-    if (
-      hasUserPortraitRefs &&
-      gptImageRefPhotoQualityBoostEnabled(bookTier)
-    ) {
-      return "high";
-    }
-    return "low";
-  }
-  if (bookTier === "high") return "high";
-  if (
-    hasUserPortraitRefs &&
-    gptImageRefPhotoQualityBoostEnabled(bookTier)
-  ) {
-    return "high";
-  }
-  return "low";
+  return "high";
 }
 
 /**
@@ -2917,6 +3477,28 @@ function fileExtForImageMime(m: "image/png" | "image/jpeg" | "image/webp"): stri
   return "png";
 }
 
+type CanonicalStoryCharacterRefs = {
+  hero?: Uint8Array;
+  buddy?: Uint8Array;
+  additionalCharacters?: Uint8Array[];
+  /** Parallel to additionalCharacters — first names used to decide which spread needs them. */
+  additionalLabels?: string[];
+  heroFrom?: "user_upload" | "canonical_asset";
+  buddyFrom?: "user_upload" | "canonical_asset";
+};
+
+function canonicalStoryAssetPath(id: string): string | null {
+  const key = id.trim().toLowerCase().replace(/[^a-z0-9]/g, "");
+  if (!key || key === "nobuddy" || key === "custom_buddy") return null;
+  return FAMILY_PORTRAIT_PATHS[key] ?? CANONICAL_BUDDY_PATHS[key] ?? null;
+}
+
+function storyNameToken(raw: string): string {
+  return (raw.trim().split(/\s+/)[0] ?? "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "");
+}
+
 /** Load a reference URL (https or data URL) into raw bytes for image edits. */
 async function loadImageBytesForGptEdit(urlRaw: string): Promise<Uint8Array | null> {
   try {
@@ -2933,6 +3515,110 @@ async function loadImageBytesForGptEdit(urlRaw: string): Promise<Uint8Array | nu
     console.warn("[clever-service] loadImageBytesForGptEdit failed", e);
   }
   return null;
+}
+
+const CANONICAL_ANCHOR_IDENTITY =
+  "REFERENCE IMAGES DEFINE CHARACTER IDENTITY. " +
+  "Do not redesign these characters. " +
+  "Preserve: facial structure, hair, skin tone, eyes, body proportions, outfit colours/design, buddy species, buddy markings, distinctive features. " +
+  "Create a neutral full-body cast model sheet using THESE SAME characters. " +
+  "The purpose of this image is identity continuity for an entire children's book. " +
+  "Ignore the original reference background. " +
+  "Do not copy the original pose. " +
+  "Do not invent alternative versions of the characters. " +
+  "One individual per supplied character. " +
+  "Keep the existing Wondii illustration style. ";
+
+/**
+ * Visual identity for the book cast.
+ * User-uploaded photos win over a stored sheet for the same role.
+ * Stored sheets are FAMILY_PORTRAIT_PATHS (hero / co-stars) and
+ * CANONICAL_BUDDY_PATHS (wizard buddy id). Loaded via fetchPortraitDataUrl.
+ */
+async function resolveCanonicalStoryCharacterReferences(input: {
+  assetsBase: string;
+  childName: string;
+  characterKey: string;
+  familyPeople: FamilyPerson[];
+  heroUploadUrls: string[];
+  friendUploads: Record<string, string[]>;
+}): Promise<CanonicalStoryCharacterRefs> {
+  const out: CanonicalStoryCharacterRefs = {};
+
+  const heroUpload = input.heroUploadUrls.find((u) => String(u ?? "").trim());
+  if (heroUpload) {
+    const bytes = await loadImageBytesForGptEdit(heroUpload);
+    if (bytes?.length) {
+      out.hero = bytes;
+      out.heroFrom = "user_upload";
+    }
+  }
+
+  const heroToken = storyNameToken(input.childName);
+  const heroAssetId =
+    (heroToken && canonicalStoryAssetPath(heroToken) ? heroToken : null) ??
+    input.familyPeople.find((p) =>
+      p.id === heroToken || storyNameToken(p.label) === heroToken
+    )?.id ??
+    null;
+
+  if (!out.hero && heroAssetId && input.assetsBase.trim()) {
+    const path = canonicalStoryAssetPath(heroAssetId);
+    if (path) {
+      const dataUrl = await fetchPortraitDataUrl(input.assetsBase, path);
+      const bytes = dataUrl ? await loadImageBytesForGptEdit(dataUrl) : null;
+      if (bytes?.length) {
+        out.hero = bytes;
+        out.heroFrom = "canonical_asset";
+      }
+    }
+  }
+
+  const buddyKey = input.characterKey.trim().toLowerCase();
+  const buddyUpload =
+    input.friendUploads.buddy?.[0] ??
+    input.friendUploads[buddyKey]?.[0];
+  if (buddyUpload && buddyKey !== "nobuddy") {
+    const bytes = await loadImageBytesForGptEdit(buddyUpload);
+    if (bytes?.length) {
+      out.buddy = bytes;
+      out.buddyFrom = "user_upload";
+    }
+  }
+
+  const buddyPath = canonicalStoryAssetPath(buddyKey);
+  if (!out.buddy && buddyPath && input.assetsBase.trim()) {
+    const dataUrl = await fetchPortraitDataUrl(input.assetsBase, buddyPath);
+    const bytes = dataUrl ? await loadImageBytesForGptEdit(dataUrl) : null;
+    if (bytes?.length) {
+      out.buddy = bytes;
+      out.buddyFrom = "canonical_asset";
+    }
+  }
+
+  const additional: Uint8Array[] = [];
+  const additionalLabels: string[] = [];
+  if (input.assetsBase.trim()) {
+    for (const person of input.familyPeople) {
+      if (additional.length >= 3) break;
+      if (heroAssetId && person.id === heroAssetId) continue;
+      if (storyNameToken(person.label) === heroToken) continue;
+      const uploaded = input.friendUploads[person.id]?.[0];
+      if (uploaded) continue;
+      const path = FAMILY_PORTRAIT_PATHS[person.id];
+      if (!path) continue;
+      const dataUrl = await fetchPortraitDataUrl(input.assetsBase, path);
+      const bytes = dataUrl ? await loadImageBytesForGptEdit(dataUrl) : null;
+      if (!bytes?.length) continue;
+      additional.push(bytes);
+      additionalLabels.push(person.label);
+    }
+  }
+  if (additional.length > 0) {
+    out.additionalCharacters = additional;
+    out.additionalLabels = additionalLabels;
+  }
+  return out;
 }
 
 function randomKey(prefix: string): string {
@@ -3125,7 +3811,7 @@ async function gptImageEdit(
     form.append("prompt", trimmed);
     form.append("n", "1");
     form.append("size", size);
-    if (withQuality) {
+    if (withQuality && gptImageSupportsImageQuality(model)) {
       form.append("quality", quality);
     }
     form.append("output_format", "png");
@@ -3842,13 +4528,25 @@ async function executeStorybookPipeline(
         : "") +
       plotLightingEnvAddon(plotHint, childName);
 
-    const pagesOut: { text: string; imageUrl: string | null }[] = [];
+    const pagesOut: {
+      text: string;
+      imageUrl: string | null;
+      textBlocks?: BookTextBlock[];
+      impactWords?: BookImpactWord[];
+      textSafeZones?: BookTextSafeZone[];
+    }[] = [];
     let sceneImageUrl: string | null = null;
     let firstPanelVisualLockUsed = false;
     let falReduxSpreadCount = 0;
     let falTextSpreadCount = 0;
     let falCastAnchorUsed = false;
     let gptImageSpreadCount = 0;
+    let bookBible: BookVisualBible | null = null;
+    let visualBibleSource: "model" | "fallback" | "none" = "none";
+    let characterReferenceMode: "canonical_refs" | "user_refs" | "text_fallback" =
+      "text_fallback";
+    let gptImageFidelityReported: "high" | "default" | "unsupported" | null = null;
+    let gptImageQualityReported: string | null = null;
 
     /** Image generation mode: "fal" (default) or "gptimage" (OpenAI GPT Image API, default `gpt-image-2`). */
     const imageMode = (Deno.env.get("STORYBOOK_IMAGE_MODE") ?? "")
@@ -3869,14 +4567,10 @@ async function executeStorybookPipeline(
     const falStrength = Number.isFinite(falStrengthRaw) ? falStrengthRaw : 0.35;
 
     const falLegacyFrameClause =
-      readerArtLayoutKey === "facing"
-        ? "FRAME / SCALE: full-bleed edge-to-edge; **pulled-back camera** — cast **~28–40% of frame height** typically, **setting prominent**, not zoomed portrait; modest inset — full heads, feet, hands, wings inside canvas; **centre-weighted composition** (~45–55% horizontal), not squeezed to one edge; do not squash everyone along the bottom edge. "
-        : "FRAME / SCALE: full-bleed edge-to-edge; **pulled-back camera** — cast **~28–40% of frame height** typically, **setting prominent**, not zoomed portrait; modest inset — full heads, feet, hands, wings inside canvas; bias off centre gutter; do not squash everyone along the bottom edge. ";
+      "FRAME / SCALE: full-bleed edge-to-edge. Follow this spread's visual-bible heroScale — establishing, travel, and reveal shots keep the cast small in a huge place; closer shots may come nearer, but not a face-filling poster. Modest inset when figures are full-body — heads, feet, hands, and wings inside the canvas. Do not squash everyone along the bottom edge. Do not reuse the previous spread's camera distance. ";
 
     const falReduxLayoutHint =
-      readerArtLayoutKey === "facing"
-        ? "Standalone picture page — story text is on the facing page in the app; **centre the cast** (~45–55% horizontal), balanced composition. "
-        : "";
+      SPREAD_NEW_COMPOSITION_LINE + " ";
 
     try {
       const briefs: { index: number; brief: string; verse: string }[] = [];
@@ -3898,6 +4592,40 @@ async function executeStorybookPipeline(
         throw new Error("no_illustration_briefs");
       }
 
+      await reportProgress(38, "Planning the book as one illustrated world…");
+      const bibleFallback = fallbackBookVisualBible({
+        styleLine: artStyleSpec.preambleStyleSentence,
+        placeDesc,
+        briefs,
+      });
+      try {
+        const planned = await compileBookVisualBible(
+          apiKey,
+          storybookCompileLockChatModel(pictureBookQuality),
+          {
+            styleLine: artStyleSpec.preambleStyleSentence,
+            placeDesc,
+            plotHint,
+            castBible,
+            pages: story.pages,
+            briefs,
+          },
+        );
+        bookBible = planned.bible;
+        visualBibleSource = planned.source;
+      } catch (e) {
+        console.warn("[clever-service] visual bible failed; using script fallback", e);
+        bookBible = bibleFallback;
+        visualBibleSource = "fallback";
+      }
+      if (!bookBible) {
+        bookBible = bibleFallback;
+        visualBibleSource = "fallback";
+      }
+
+      const planFor = (spreadIdx: number) =>
+        visualPlanForSpread(bookBible, spreadIdx, briefs.length);
+
       const spread1Prompt = composeDallePrompt({
         preamble: stylePreamble,
         envTheme,
@@ -3913,6 +4641,7 @@ async function executeStorybookPipeline(
         plotHint,
         verseForDomesticGuard:
           `${briefs[0].verse ?? ""}\n${briefs[0].brief ?? ""}`.trim(),
+        visualPlan: planFor(0),
       });
 
       /** When set (default): one T2I “cast lineup”, then all 6 spreads = Fal image→image (Redux) from that anchor — strongest consistency. */
@@ -3948,6 +4677,17 @@ async function executeStorybookPipeline(
       let panelLock = "";
 
       if (useGptImage) {
+        const resolvedGptImageModel = gptImageDefaultModel();
+        gptImageFidelityReported = gptImageFidelityLogLabel(resolvedGptImageModel);
+        console.info(`[clever-service] GPT Image model: ${resolvedGptImageModel}`);
+        console.info(
+          `[clever-service] input fidelity: ${gptImageFidelityReported}`,
+        );
+        if (!gptImageSupportsImageEditing(resolvedGptImageModel)) {
+          throw new Error(
+            `gpt_image_model_no_edit:${resolvedGptImageModel}`,
+          );
+        }
         const gptHasPortraitRefs =
           refPack.heroUrls.length > 0 ||
           Object.keys(refPack.customByFriendId).length > 0;
@@ -3955,23 +4695,91 @@ async function executeStorybookPipeline(
         const nonHeroPortraitRefs =
           Object.keys(refPack.customByFriendId).length > 0 ||
           /\bCo_star_ref\s*:/i.test(portraitAppearance);
+        gptImageQualityReported = gptImageQualityForRequest(
+          "edit",
+          pictureBookQuality,
+          gptHasPortraitRefs,
+          nonHeroPortraitRefs,
+          hasHeroPortraitRefs,
+        );
         // STRICT MODE — when STORYBOOK_IMAGE_MODE=gptimage is set, this is the
         // ONLY pipeline we want to run. No silent fallback to Fal or DALL-E.
         // If anything fails, we throw with a clear, actionable error so the
         // caller knows GPT Image specifically failed (rather than getting an
         // imageless 200 or a mixed-style book).
         let anchorOut: { url: string; bytes: Uint8Array };
+        const canonicalRefs = await resolveCanonicalStoryCharacterReferences({
+          assetsBase: bookAssetsBase,
+          childName,
+          characterKey,
+          familyPeople,
+          heroUploadUrls: refPack.heroUrls,
+          friendUploads: refPack.customByFriendId,
+        });
+        const anchorRefBytes: Uint8Array[] = [];
+        const anchorRefRoles: string[] = [];
+        if (canonicalRefs.hero) {
+          anchorRefBytes.push(canonicalRefs.hero);
+          anchorRefRoles.push(
+            canonicalRefs.heroFrom === "user_upload"
+              ? "image 1 is the hero (uploaded photo — this wins over any text description)"
+              : "image 1 is the stored hero",
+          );
+        }
+        if (canonicalRefs.buddy) {
+          anchorRefBytes.push(canonicalRefs.buddy);
+          anchorRefRoles.push(
+            canonicalRefs.buddyFrom === "user_upload"
+              ? `image ${anchorRefBytes.length} is the buddy (uploaded reference — this wins over any text description)`
+              : `image ${anchorRefBytes.length} is the stored buddy`,
+          );
+        }
+        console.info(
+          `[clever-service] storybook canonical refs: hero=${Boolean(canonicalRefs.hero)} buddy=${Boolean(canonicalRefs.buddy)} additional=${canonicalRefs.additionalCharacters?.length ?? 0}`,
+        );
+        const anchorUsesReferenceEdit = anchorRefBytes.length > 0;
+        console.info(
+          `[clever-service] anchor mode: ${anchorUsesReferenceEdit ? "reference_edit" : "text_generation_fallback"}`,
+        );
+        const usedCanonicalAsset =
+          canonicalRefs.heroFrom === "canonical_asset" ||
+          canonicalRefs.buddyFrom === "canonical_asset";
+        characterReferenceMode = anchorUsesReferenceEdit
+          ? (usedCanonicalAsset ? "canonical_refs" : "user_refs")
+          : "text_fallback";
+
         try {
           await reportProgress(44, "Drawing the cast lineup…");
-          anchorOut = await gptImageGenerate(
-            apiKey,
-            anchorPrompt,
-            pictureBookQuality,
-            0,
-            gptHasPortraitRefs,
-            nonHeroPortraitRefs,
-            hasHeroPortraitRefs,
-          );
+          if (anchorUsesReferenceEdit) {
+            const identityLead =
+              CANONICAL_ANCHOR_IDENTITY +
+              anchorRefRoles.join(". ") +
+              ". Text descriptions must not change this identity. ";
+            const room = GPT_IMAGE_PROMPT_MAX - identityLead.length;
+            const anchorEditPrompt = (
+              identityLead + anchorPrompt.slice(0, Math.max(0, room))
+            ).slice(0, GPT_IMAGE_PROMPT_MAX);
+            anchorOut = await gptImageEdit(
+              apiKey,
+              anchorEditPrompt,
+              anchorRefBytes,
+              pictureBookQuality,
+              0,
+              true,
+              Boolean(canonicalRefs.buddy) || nonHeroPortraitRefs,
+              Boolean(canonicalRefs.hero),
+            );
+          } else {
+            anchorOut = await gptImageGenerate(
+              apiKey,
+              anchorPrompt,
+              pictureBookQuality,
+              0,
+              gptHasPortraitRefs,
+              nonHeroPortraitRefs,
+              hasHeroPortraitRefs,
+            );
+          }
         } catch (e) {
           const detail = e instanceof Error ? e.message : String(e);
           throw new Error(`gpt_image_anchor_failed: ${detail}`);
@@ -4017,11 +4825,15 @@ async function executeStorybookPipeline(
             gptHasPortraitRefs;
 
           const preloadedHeroBytes: Uint8Array[] = [];
-          let preloadedFriendByte: Uint8Array | null = null;
+          let preloadedFriend: { label: string; bytes: Uint8Array } | null = null;
 
           if (userRefsInEdit) {
+            const heroUrlsForPreload =
+              canonicalRefs.heroFrom === "user_upload"
+                ? refPack.heroUrls.slice(1)
+                : refPack.heroUrls;
             let heroPhotoCount = 0;
-            for (const hr of refPack.heroUrls) {
+            for (const hr of heroUrlsForPreload) {
               if (
                 heroPhotoCount >= maxHeroExtras ||
                 1 + preloadedHeroBytes.length >= maxTotalImages
@@ -4033,20 +4845,27 @@ async function executeStorybookPipeline(
             }
             if (heroPhotoCount > 0) {
               console.info(
-                `[clever-service] gpt-image edit refs preloaded: ${heroPhotoCount} hero photo(s); cap=${maxTotalImages}`,
+                `[clever-service] gpt-image edit refs preloaded: ${heroPhotoCount} extra hero photo(s); cap=${maxTotalImages}`,
               );
             }
 
-            if (
-              nonHeroPortraitRefs &&
-              1 + preloadedHeroBytes.length < maxTotalImages
-            ) {
-              for (const urls of Object.values(refPack.customByFriendId)) {
+            if (nonHeroPortraitRefs && 1 + preloadedHeroBytes.length < maxTotalImages) {
+              for (const [id, urls] of Object.entries(refPack.customByFriendId)) {
+                if (
+                  canonicalRefs.buddyFrom === "user_upload" &&
+                  (id === "buddy" || id === characterKey)
+                ) {
+                  continue;
+                }
                 const first = urls?.[0];
                 if (!first) continue;
                 const b = await loadImageBytesForGptEdit(first);
                 if (!b?.length) continue;
-                preloadedFriendByte = b;
+                const person = familyPeople.find((p) => p.id === id);
+                preloadedFriend = {
+                  label: person?.label || id,
+                  bytes: b,
+                };
                 console.info(
                   "[clever-service] gpt-image edit refs preloaded: +1 tagged friend photo",
                 );
@@ -4055,28 +4874,110 @@ async function executeStorybookPipeline(
             }
           }
 
+          const spreadCastText = (spreadIdx: number): string => {
+            const page = bookBible?.pages[spreadIdx];
+            const b = briefs[spreadIdx];
+            return [
+              ...(page?.characters ?? []),
+              page?.action ?? "",
+              b?.verse ?? "",
+              b?.brief ?? "",
+            ].join("\n");
+          };
+          const mentionsToken = (blob: string, token: string): boolean => {
+            const t = token.trim();
+            if (t.length < 2) return false;
+            const esc = t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+            return new RegExp(`\\b${esc}\\b`, "i").test(blob);
+          };
+          const heroInSpread = (spreadIdx: number): boolean => {
+            const first = childName.trim().split(/\s+/)[0] ?? "";
+            const vis = String(briefs[spreadIdx]?.brief ?? "").match(
+              /^\s*VISIBLE\s*:\s*([^\n]+?)(?:\s*[—\-]\s*DESCRIPTION\s*:|$)/i,
+            );
+            if (vis?.[1]) return mentionsToken(vis[1], first);
+            const listed = bookBible?.pages[spreadIdx]?.characters ?? [];
+            if (listed.length > 0) {
+              return listed.some((c) => mentionsToken(c, first));
+            }
+            return true;
+          };
+          const buddyInSpread = (spreadIdx: number): boolean => {
+            if (noBuddyBook || !canonicalRefs.buddy) return false;
+            const verse = briefs[spreadIdx]?.verse ?? "";
+            if (buddyCreatureHiddenInVerse(verse)) return false;
+            const vis = String(briefs[spreadIdx]?.brief ?? "").match(
+              /^\s*VISIBLE\s*:\s*([^\n]+?)(?:\s*[—\-]\s*DESCRIPTION\s*:|$)/i,
+            );
+            const buddyWord = characterKey.replace(/_/g, " ");
+            if (vis?.[1]) {
+              return mentionsToken(vis[1], buddyWord) ||
+                /\bbuddy\b/i.test(vis[1]);
+            }
+            const listed = bookBible?.pages[spreadIdx]?.characters ?? [];
+            if (listed.length > 0) {
+              return listed.some((c) =>
+                mentionsToken(c, buddyWord) || /\bbuddy\b/i.test(c)
+              );
+            }
+            return true;
+          };
+
           const editReferenceBytesForSpread = (spreadIdx: number): Uint8Array[] => {
             const out: Uint8Array[] = [refBytes];
-            if (!userRefsInEdit) return out;
+            const labels = ["anchor"];
+            const pushRef = (bytes: Uint8Array | undefined, label: string) => {
+              if (!bytes?.length || out.length >= maxTotalImages) return;
+              if (out.includes(bytes)) return;
+              out.push(bytes);
+              labels.push(label);
+            };
+
+            const heroOn = heroInSpread(spreadIdx);
+            const buddyOn = buddyInSpread(spreadIdx);
+            const blob = spreadCastText(spreadIdx);
+
+            if (heroOn && canonicalRefs.heroFrom === "canonical_asset") {
+              pushRef(canonicalRefs.hero, "hero");
+            }
+            if (buddyOn && canonicalRefs.buddyFrom === "canonical_asset") {
+              pushRef(canonicalRefs.buddy, "buddy");
+            }
+            const extraBytes = canonicalRefs.additionalCharacters ?? [];
+            const extraLabels = canonicalRefs.additionalLabels ?? [];
+            for (let i = 0; i < extraBytes.length; i++) {
+              const label = extraLabels[i] ?? "";
+              if (label && mentionsToken(blob, label)) {
+                pushRef(extraBytes[i], label);
+              }
+            }
+
+            const allowUserRefs =
+              userRefsInEdit &&
+              (userRefsSpreadCap === null || spreadIdx < userRefsSpreadCap);
+            if (allowUserRefs && heroOn) {
+              if (canonicalRefs.heroFrom === "user_upload") {
+                pushRef(canonicalRefs.hero, "user-hero");
+              }
+              for (let i = 0; i < preloadedHeroBytes.length; i++) {
+                if (i >= maxHeroExtras) break;
+                pushRef(preloadedHeroBytes[i], "user-hero");
+              }
+            }
+            if (allowUserRefs && buddyOn && canonicalRefs.buddyFrom === "user_upload") {
+              pushRef(canonicalRefs.buddy, "buddy");
+            }
             if (
-              userRefsSpreadCap !== null &&
-              spreadIdx >= userRefsSpreadCap
+              allowUserRefs &&
+              preloadedFriend &&
+              mentionsToken(blob, preloadedFriend.label)
             ) {
-              return out;
+              pushRef(preloadedFriend.bytes, "user-friend");
             }
-            let n = out.length;
-            for (let i = 0; i < preloadedHeroBytes.length; i++) {
-              if (i >= maxHeroExtras || n >= maxTotalImages) break;
-              out.push(preloadedHeroBytes[i]!);
-              n++;
-            }
-            if (
-              nonHeroPortraitRefs &&
-              preloadedFriendByte &&
-              n < maxTotalImages
-            ) {
-              out.push(preloadedFriendByte);
-            }
+
+            console.info(
+              `[clever-service] spread refs: ${labels.join(" + ")}`,
+            );
             return out;
           };
 
@@ -4209,14 +5110,23 @@ async function executeStorybookPipeline(
             blocks.push(
               artStyleSpec.gptEditStyleOpener +
                 (readerArtLayoutKey === "facing"
-                  ? "SAFE SCALE: Full-bleed scene — environment fills the entire canvas edge-to-edge. **Pull the camera back:** the cast together should use only **~28–42% of frame height** (typically) so **walls, sky, cave, or landscape read clearly** — not a zoomed portrait. Full heads, hair, feet, hands, wings, and tails inside the frame with modest inset — never edge-clipped. Never crop standing or jumping children at the neck, waist, or knees — if the moment is full-body, show full-body. **Single-page layout:** centre the cast — keep the focal group's visual mass near **~45–55% horizontal** (balanced; **not** squeezed to one side as if saving space for overlaid text). Do not leave empty margins around the whole painting. "
-                  : "SAFE SCALE: Full-bleed scene — environment fills the entire canvas edge-to-edge. **Pull the camera back:** the cast together should use only **~28–42% of frame height** (typically) so **walls, sky, cave, or landscape read clearly** — not a zoomed portrait. Full heads, hair, feet, hands, wings, and tails inside the frame with modest inset — never edge-clipped. Never crop standing or jumping children at the neck, waist, or knees — if the moment is full-body, show full-body. **Book gutter:** bias the group slightly left or right of frame centre — never put a main child's face on the vertical midline. Do not leave empty margins around the whole painting. ") +
+                  ? "SAFE SCALE: Full-bleed scene — the environment fills the canvas edge-to-edge. Character size follows this spread's visual-bible heroScale: wide, travel, and reveal shots keep the cast small inside a huge place; closer shots may come nearer. Do not default every picture to the same camera distance. When the shot is full-body, keep heads, hair, feet, hands, wings, and tails inside the frame. Never crop standing or jumping children at the neck, waist, or knees. Do not leave empty margins around the whole painting. "
+                  : "SAFE SCALE: Full-bleed scene — the environment fills the canvas edge-to-edge. Character size follows this spread's visual-bible heroScale: wide, travel, and reveal shots keep the cast small inside a huge place; closer shots may come nearer. Do not default every picture to the same camera distance. When the shot is full-body, keep heads, hair, feet, hands, wings, and tails inside the frame. Never crop standing or jumping children at the neck, waist, or knees. Book gutter: do not put a main child's face on the vertical midline. Do not leave empty margins around the whole painting. ") +
                 refIdentityLine,
             );
 
             // 2. Setting (the override-resolved placeDesc + plotHint)
+            const spreadPlan = planFor(idx).slice(0, 1400);
+            if (spreadPlan) {
+              blocks.push(
+                `BOOK VISUAL PLAN (camera, sub-location, lighting, heroScale, and environmentFocus here are authoritative art direction; identity still comes from the reference images, not from this plan):\n${spreadPlan}`,
+              );
+            }
+            blocks.push(SPREAD_NEW_COMPOSITION_LINE);
+            blocks.push(textSpaceArtDirection(bookBible?.pages[idx]?.textSafeZones));
+
             blocks.push(
-              `SETTING — paint exactly this world on every spread:\n${placeDesc}.${plotHint ? `\nThe child's story idea: ${plotHint}` : ""}`,
+              `SETTING — one story world, but this spread uses only its own sub-location from the visual plan (not the same ground as the previous picture):\n${placeDesc}.${plotHint ? `\nThe child's story idea: ${plotHint}` : ""}`,
             );
 
             const domesticG = domesticInteriorCastExtraGuard(
@@ -4229,7 +5139,9 @@ async function executeStorybookPipeline(
             }
 
             // 3. Shot framing
-            blocks.push(`SHOT TYPE (spread ${idx + 1} of ${shotPlan.length}): ${shot.label}. ${shot.note}`);
+            blocks.push(
+              `SHOT HINT only if the BOOK VISUAL PLAN has no camera: ${shot.label}. If the plan names cameraShot, subLocation, lighting, heroScale, or environmentFocus, ignore this hint and ignore any fixed character-size percentage. Do not repeat the previous spread's framing.`,
+            );
 
             if (idx === 0) {
               const page1 = String(story.pages[0]?.text ?? "").trim();
@@ -4324,7 +5236,7 @@ async function executeStorybookPipeline(
             }
 
             blocks.push(
-              "FRAMING — NAMED KIDS & PETS: Anyone named in WHO IS IN THIS PICTURE must read as a **main** figure (face visible, not a sliver on the outer edge); widen the shot or reposition the group near the **horizontal middle (~42–58%)** before cropping.",
+              "FRAMING — NAMED KIDS & PETS: Anyone named in WHO IS IN THIS PICTURE stays fully inside the frame (no cropped face or body at the edge). On WIDE, EXTREME WIDE, HIGH ANGLE, and AERIAL shots they may be small in a huge place. On MEDIUM and CLOSE shots they read clearly. Do not park every group in the same spot.",
             );
 
             // 6. Scene note (free description from the LLM)
@@ -4347,7 +5259,7 @@ async function executeStorybookPipeline(
               "PRONOUN LOCK: If the paired verse uses **he/him/his** for a named child, that child must read as a **boy** in the picture; **she/her** for that name → **girl**. Never swap genders for two-kid contrast.",
             );
             blocks.push(
-              "Paint ONLY what the verse, WHO IS IN THIS PICTURE, and SCENE NOTE describe — no extra props, no extra characters, no background crowd, no signs, speech balloons, or any writing in the picture. **No edge-cropped mystery humans** (no partial stranger arms/legs); only named cast, fully readable.",
+              "Paint the verse, WHO IS IN THIS PICTURE, SCENE NOTE, and this spread's sub-location. A recurring prop keeps its design when it appears, and stays out of the picture when this spread's foreground does not include it and the characters are not beside it. Foreground, midground, and background should be this sub-location, not a copy of the previous picture. No extra characters, no background crowd, no signs, speech balloons, or any writing. **No edge-cropped mystery humans** (no partial stranger arms/legs); only named cast, fully readable.",
             );
 
             return blocks.join("\n\n");
@@ -4490,20 +5402,25 @@ async function executeStorybookPipeline(
               ? "WIDE FULL-BODY CAM: verse implies jumping/bouncing/airborne — pull camera back; every named figure complete head-to-toe, buddy tail/horn/mane in frame; no neck or waist crops. "
               : "";
             try {
-              const falPrompt =
+              const spreadPlan = planFor(idx).slice(0, 900);
+              const falPrompt = (
+                textSpaceArtDirection(bookBible?.pages[idx]?.textSafeZones) +
+                " " +
+                (spreadPlan ? `BOOK VISUAL PLAN: ${spreadPlan} ` : "") +
                 falReduxLayoutHint +
                 wideBeatClause +
                 "PICTURE BOOK SPREAD — illustrate THIS story beat literally. " +
                 (verseTwoParagraphs
                   ? "If VERSE has two paragraphs, prioritize the SECOND block's setting and headline props when it is the vivid beat (food, splash, toy mess) — do not ignore it for a preamble-only tableau. ONLY people/creatures named in the verse — no unnamed friend crowd. "
                   : "") +
-                "VERSE (must match mood, action, props): " +
+                "VERSE (paint the action only — do not letter these words onto the picture): " +
                 verseBeat +
                 ". " +
                 "SCENE: change layout, camera, and environment completely vs the reference. Show the action and setting in the brief — rockets, trampolines, castles, planets, etc. must appear visibly if the story calls for them. " +
                 "Keep character IDENTITY only from the reference (face shape, species, hair/outfit colours, sizes)—vary expressions and poses to match the verse's emotion; do not recycle the same neutral smile on every spread. Do not recreate neutral lineup poses or plain backdrop. " +
                 artStyleSpec.falReduxStyleTag +
-                composed.slice(0, FAL_REDUX_PROMPT_MAX - 420);
+                composed.slice(0, FAL_REDUX_PROMPT_MAX - 420)
+              ).slice(0, FAL_REDUX_PROMPT_MAX);
               const u = await falFluxReduxImageUrl(
                 falKey,
                 falReduxModel,
@@ -4588,14 +5505,19 @@ async function executeStorybookPipeline(
                     const wideBeatClause = needsFullBodyWideFraming(`${b.verse} ${b.brief}`)
                       ? "WIDE FULL-BODY CAM: jumping/bouncing/airborne — pull camera back; head-to-toe for every named figure; buddy tail/horn in frame. "
                       : "";
-                    const falPrompt =
+                    const spreadPlan = planFor(idx + 1).slice(0, 900);
+                    const falPrompt = (
+                      textSpaceArtDirection(bookBible?.pages[idx + 1]?.textSafeZones) +
+                      " " +
+                      (spreadPlan ? `BOOK VISUAL PLAN: ${spreadPlan} ` : "") +
                       falReduxLayoutHint +
                       wideBeatClause +
                       "New story moment — change poses, action, and background to match the scene. " +
                       "Keep the same hero face shape, hair, outfit colours, and the same buddy and named creatures as the reference — only beings named in SCENE ACTION, no new animals or people. Shift facial expressions and body language to match the story beat — not the same static expression every time. " +
                       artStyleSpec.falLegacyStyleTag +
                       falLegacyFrameClause +
-                      composed.slice(0, FAL_REDUX_PROMPT_MAX - 220);
+                      composed.slice(0, FAL_REDUX_PROMPT_MAX - 220)
+                    ).slice(0, FAL_REDUX_PROMPT_MAX);
                     const u = await falFluxReduxImageUrl(
                       falKey,
                       falReduxModel,
@@ -4644,9 +5566,18 @@ async function executeStorybookPipeline(
         ) {
           imageUrl = sceneImageUrl;
         }
+        const spreadLayout = bookBible?.pages[Math.floor(i / 2)];
+        const layoutFields = i % 2 === 0 && spreadLayout
+          ? {
+            textBlocks: spreadLayout.textBlocks,
+            impactWords: spreadLayout.impactWords,
+            textSafeZones: spreadLayout.textSafeZones,
+          }
+          : {};
         pagesOut.push({
           text: p.text.trim(),
           imageUrl,
+          ...layoutFields,
         });
       });
     } catch (e) {
@@ -4696,6 +5627,8 @@ async function executeStorybookPipeline(
         imageCount: pagesOut.filter((p) => p.imageUrl).length,
         spreads: Math.floor(pagesOut.length / 2),
         characterLockCompiled: compiledLock.length > 0,
+        visualBible: visualBibleSource,
+        characterReferenceMode,
         firstPanelVisualLock: firstPanelVisualLockUsed,
         falTextModel: useFalRedux ? falTextModel : null,
         falTextSpreads: falTextSpreadCount,
@@ -4704,6 +5637,8 @@ async function executeStorybookPipeline(
         falReduxSpreads: falReduxSpreadCount,
         imageMode: useGptImage ? "gptimage" : "fal",
         gptImageModel: useGptImage ? gptImageDefaultModel() : null,
+        gptImageInputFidelity: useGptImage ? gptImageFidelityReported : null,
+        gptImageQuality: useGptImage ? gptImageQualityReported : null,
         gptImageSpreads: useGptImage ? gptImageSpreadCount : 0,
         pictureBookQuality,
         illustrationStyle: illustrationStyleKey,
@@ -4827,7 +5762,7 @@ async function characterImageEditCall(
     form.append("prompt", trimmed);
     form.append("n", "1");
     form.append("size", size);
-    if (withQuality) form.append("quality", quality);
+    if (withQuality && gptImageSupportsImageQuality(model)) form.append("quality", quality);
     form.append("output_format", "png");
     form.append("stream", "false");
     form.append("moderation", moderation);

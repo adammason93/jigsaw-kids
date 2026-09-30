@@ -189,6 +189,9 @@
       button { min-width: 78px; padding: 12px 12px; border-radius: 20px; }
     }
   </style>
+  <link rel="stylesheet" href="wondii-shell.css?v=4" />
+  <link rel="stylesheet" href="../css/wondii-tokens.css?v=2" />
+  <link rel="stylesheet" href="../css/wondii-p1.css?v=9" />
 </head>
 <body>
   <nav class="star-catcher-back" aria-label="Breadcrumb">
@@ -197,13 +200,13 @@
     </a>
   </nav>
   <main class="game-wrap">
-    <h1>⭐ Star Catcher ⭐</h1>
+    <h1>Star Catcher</h1>
 
     <div class="top-bar">
       <div class="pill">Score: <span id="score">0</span></div>
       <div class="pill">Time: <span id="time">45</span>s</div>
       <div class="pill">Best: <span id="best">0</span></div>
-      <div class="pill">Lives: <span id="lives">❤️❤️❤️</span></div>
+      <div class="pill">Lives: <span id="lives">3</span></div>
       <div class="pill">Level: <span id="level">1</span></div>
     </div>
 
@@ -219,11 +222,13 @@
           <button type="button" id="leftBtn">⬅️ Left</button>
           <button type="button" id="rightBtn">Right ➡️</button>
         </div>
-        <button type="button" id="startBtn">▶️ Start</button>
+        <button type="button" id="startBtn">Start</button>
       </div>
     </section>
   </main>
 
+  <script src="../js/score-config.js"></script>
+  <script src="../js/score-cloud.js?v=6"></script>
   <script type="module">
     import * as THREE from 'https://unpkg.com/three@0.160.0/build/three.module.js';
 
@@ -271,6 +276,15 @@
     let startCountdownInterval = null;
     let score = 0;
     let best = Number(localStorage.getItem('threeStarCatcherBest') || 0);
+    window.addEventListener('kids-scorecard-refresh', function () {
+      if (running) return;
+      best = Number(localStorage.getItem('threeStarCatcherBest') || 0);
+      if (bestEl) bestEl.textContent = String(best);
+    });
+    window.addEventListener('wondii-account-cleared', function () {
+      best = 0;
+      if (bestEl) bestEl.textContent = '0';
+    });
     let timeLeft = 45;
     let lives = 3;
     let level = 1;
@@ -326,7 +340,7 @@
     }
 
     function updateLivesDisplay() {
-      livesEl.textContent = '❤️'.repeat(lives) + '🤍'.repeat(3 - lives);
+      livesEl.textContent = String(lives);
     }
 
     function loseLife() {
@@ -930,5 +944,6 @@
       navigator.serviceWorker.register("../sw.js").catch(function () {});
     }
   </script>
+  <script src="wondii-shell.js?v=3" defer></script>
 </body>
 </html>

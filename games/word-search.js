@@ -409,7 +409,7 @@
       return;
     }
     const prize = opts.prize;
-    const playerName = opts.playerName || "Sofia";
+    const playerName = opts.playerName || "You";
 
     let finished = false;
     function done() {
@@ -447,7 +447,7 @@
     }
 
     if (treasurePopupLead) {
-      treasurePopupLead.textContent = playerName + " — you’ve won a prize!";
+      treasurePopupLead.textContent = playerName === "You" ? "You’ve won a prize!" : playerName + " — you’ve won a prize!";
     }
     if (treasurePopupPrize) {
       treasurePopupPrize.textContent = prize;
@@ -588,7 +588,7 @@
         const prize = TREASURE_PRIZES[randomInt(0, TREASURE_PRIZES.length - 1)];
         showKellyWellDone(function () {
           showTreasurePopup(
-            { prize: prize, playerName: "Sofia" },
+            { prize: prize, playerName: "You" },
             function () {
               if (typeof KidsCore !== "undefined") {
                 KidsCore.playSound("win");

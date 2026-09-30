@@ -6,15 +6,18 @@
   <meta name="theme-color" content="#2d6a4f" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <title>Number path — Sofia's Game Room</title>
+  <title>Number path — Wondii</title>
   <link rel="manifest" href="../manifest.json" />
   <link rel="stylesheet" href="../js/kids-core.css" />
   <link rel="stylesheet" href="../js/game-scorecard.css" />
   <link rel="stylesheet" href="math-race.css" />
   <link rel="stylesheet" href="../tablet-ipad.css" />
+  <link rel="stylesheet" href="wondii-shell.css?v=4" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Sniglet:wght@400;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/wondii-tokens.css?v=2" />
+  <link rel="stylesheet" href="../css/wondii-p1.css?v=9" />
 </head>
 <body class="page-math">
   <div class="app app--setup" id="app">
@@ -37,7 +40,7 @@
         <div class="page-header__text">
           <h1>Number path</h1>
           <p>
-            You’re Sofia — race the dinosaur! Get a one-step head start, then answer each sum or take-away before it can catch you.
+            Race the dinosaur! Get a one-step head start, then answer each sum or take-away before it can catch you.
             Every correct answer moves you forward on the path.
           </p>
         </div>
@@ -94,21 +97,10 @@
       <section class="card" aria-labelledby="lblChar">
         <h2 id="lblChar">Who is playing?</h2>
         <p class="card__hint card__hint--tight" id="charSectionHint">
-          You play as Sofia. After your turn, the dinosaur tries a question — stay ahead on the path!
+          You race the dinosaur. After your turn, it tries a question — stay ahead on the path!
         </p>
-        <div class="char-block char-block--sofia-only" aria-label="Runner">
-          <div class="char-sofia-lock">
-            <img
-              class="char-sofia-lock__pic"
-              src="images/character-sofia-running.png"
-              alt=""
-              width="64"
-              height="64"
-              loading="lazy"
-              decoding="async"
-            />
-            <p class="char-sofia-lock__name">Sofia</p>
-          </div>
+        <div class="char-block" aria-label="Runner">
+          <p class="char-sofia-lock__name">You</p>
         </div>
       </section>
 
@@ -271,13 +263,14 @@
   </div>
   <script src="../js/score-config.js"></script>
   <script src="../js/kids-core.js" defer></script>
-  <script src="../js/score-cloud.js" defer></script>
-  <script src="../js/game-scorecard.js" defer></script>
-  <script src="math-race.js" defer></script>
+  <script src="../js/score-cloud.js?v=6" defer></script>
+  <script src="../js/game-scorecard.js?v=2" defer></script>
+  <script src="math-race.js?v=2" defer></script>
   <script>
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("../sw.js").catch(function () {});
     }
   </script>
+  <script src="wondii-shell.js?v=3" defer></script>
 </body>
 </html>

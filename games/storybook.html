@@ -7,12 +7,13 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <link rel="preload" href="/games/images/storybook-landing-room-bg.jpg" as="image" />
-  <meta name="theme-color" content="#db2777" />
-  <title>Your story — Sofia's Game Room</title>
+  <meta name="theme-color" content="#141b4d" />
+  <title>Make a book — Wondii</title>
   <link rel="manifest" href="../manifest.json" />
   <link rel="stylesheet" href="../js/kids-core.css" />
   <!-- storybook-app.css = renamed file so CDN/browser cache cannot keep old storybook.css -->
-  <link rel="stylesheet" href="storybook-app.css?v=181" />
+  <link rel="stylesheet" href="storybook-app.css?v=182" />
+  <link rel="stylesheet" href="storybook-wondii.css?v=13" />
   <link rel="stylesheet" href="../tablet-ipad.css" />
   <!-- Last wins: guarantees new background even if a proxy cached an ancient stylesheet elsewhere -->
   <style>
@@ -27,7 +28,9 @@
   </style>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Comic+Neue:wght@400;700&family=Fredoka:wght@400;500;600;700&family=Kalam:wght@400;700&family=Nunito:wght@600;700;800&family=Patrick+Hand&family=Schoolbell&family=Sniglet:wght@400;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Comic+Neue:wght@400;700&family=Fredoka:wght@400;500;600;700&family=Kalam:wght@400;700&family=Nunito:wght@500;600;700;800&family=Patrick+Hand&family=Schoolbell&family=Sniglet:wght@400;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/wondii-tokens.css?v=2" />
+  <link rel="stylesheet" href="../css/wondii-p1.css?v=9" />
 </head>
 <body class="page-storybook sb-route-story">
   <!-- Magical welcome when arriving from main portal (?from=portal) -->
@@ -46,14 +49,14 @@
       <div class="sb-portal-welcome__mascot" aria-hidden="true">
         <img
           class="sb-portal-welcome__char"
-          src="/games/images/character-girl-blonde.png"
+          src="/games/images/brand/wondi-mark.svg"
           alt=""
           width="140"
           height="140"
           decoding="async"
         />
       </div>
-      <p class="sb-portal-welcome__kicker">✨ Sofia says ✨</p>
+      <p class="sb-portal-welcome__kicker">Wondii</p>
       <h2 class="sb-portal-welcome__title" id="sbPortalWelcomeTitle">Welcome back!</h2>
       <p class="sb-portal-welcome__lead" id="sbPortalWelcomeLead">
         Let’s get creative — start a new book or open one you’ve put on your shelf.
@@ -65,7 +68,7 @@
   </div>
   <div class="sb-app" id="app">
     <nav class="sb-nav">
-      <a class="sb-back back-btn" href="../portal.html" aria-label="Back">
+      <a class="sb-back back-btn" href="../portal.html#stories" aria-label="Back to stories">
         <span class="back-btn__icon" aria-hidden="true">&#8592;</span><span class="back-btn__text">Back</span>
       </a>
     </nav>
@@ -80,10 +83,10 @@
           </header>
           <div class="sb-landing__copy">
             <p class="sb-landing__tagline">
-              Your own magical reading nook — tap below to start a journey.
+              Five short steps. Then we write the story and draw the pictures.
             </p>
             <p class="sb-landing__lead">
-              A little journey — a few pop-up questions. Then we draw the pictures and write the story for you.
+              Name, a friend, a place, and what happens. You can change the look at the end.
             </p>
           </div>
           <p class="sb-note sb-note--landing" id="sbError" role="alert" hidden></p>
@@ -102,7 +105,7 @@
           </div>
         </div>
 
-        <div class="sb-landing__right">
+        <div class="sb-landing__right" hidden>
           <div class="sb-library" id="sbLibrary">
             <h2 class="sb-library__h" id="sbLibraryHeading">My library</h2>
             <p class="sb-library__hint" id="sbLibraryHint">
@@ -139,8 +142,8 @@
         </button>
         <div class="sb-modal__progress" id="sbProgress" aria-hidden="true"></div>
         <p class="sb-note sb-note--modal" id="sbModalError" role="alert" hidden></p>
-        <p class="sb-modal__kicker" id="sbStepKicker">Step 1 of 4</p>
-        <h2 class="sb-modal__heading" id="sbStepHeading">Hello!</h2>
+        <p class="sb-modal__kicker" id="sbStepKicker">Step 1 of 5</p>
+        <h2 class="sb-modal__heading" id="sbStepHeading">Who’s the hero?</h2>
         <div class="sb-modal__read-step-wrap">
           <button type="button" class="sb-read-step" id="sbReadStepBtn" aria-label="Read this step out loud">
             <span aria-hidden="true">🔊</span> Read this to me
@@ -148,21 +151,10 @@
         </div>
 
         <div class="sb-panel is-active" data-panel="0" id="sbPanel0">
-          <p class="sb-panel__why" id="sbPanelWhy0">Every story starts with hello — there are no wrong answers here.</p>
-          <p class="sb-panel__text">
-            We’ll ask who you are, who your buddy is, where you go, and what happens.
-            Grown-ups: turn on story magic in Settings (⚙️) when you’re ready — sign in so books can be saved.
-          </p>
-          <div class="sb-modal__actions">
-            <button type="button" class="sb-btn sb-btn--primary sb-btn--modal" id="sbNext0">Let’s go</button>
-          </div>
-        </div>
-
-        <div class="sb-panel" data-panel="1" id="sbPanel1" hidden>
-          <p class="sb-panel__why" id="sbPanelWhy1">We’ll use this for your hero on every page.</p>
-          <label class="sb-label" for="sbName">What’s your name in the story?</label>
+          <p class="sb-panel__why" id="sbPanelWhy0">This is the child on every page.</p>
+          <label class="sb-label" for="sbName">What’s their name?</label>
           <div class="sb-voice-row">
-            <input class="sb-input sb-input--flex" id="sbName" type="text" maxlength="24" autocomplete="given-name" placeholder="Your name or tap Speak" />
+            <input class="sb-input sb-input--flex" id="sbName" type="text" maxlength="24" autocomplete="given-name" placeholder="Their name" />
             <button type="button" class="sb-voice-btn" id="sbVoiceName" aria-pressed="false" aria-label="Speak your name">
               <span class="sb-voice-btn__ic" aria-hidden="true">🎤</span>
               <span class="sb-voice-btn__txt">Speak</span>
@@ -170,9 +162,9 @@
           </div>
           <p class="sb-voice-hint" id="sbVoiceNameHint" aria-live="polite"></p>
           <div class="sb-hero-ref" id="sbHeroRefBlock">
-            <label class="sb-label sb-label--secondary" for="sbHeroPhotoPick">Photos for the book (optional, up to 3)</label>
+            <label class="sb-label sb-label--secondary" for="sbHeroPhotoPick">Add a face (optional)</label>
             <p class="sb-panel__hint sb-panel__hint--tight">
-              Add your own photos or pick a character you made on My Characters. When you add a photo we’ll ask a quick “who’s this?” so the story fits. You can tap the little ✕ on a photo to take it away, or adjust names under each picture anytime.
+              A photo, or a character you already made. Up to 3. We’ll ask who is in each picture.
             </p>
             <datalist id="sbHeroRefWhoDatalist"></datalist>
             <div class="sb-filepick">
@@ -190,7 +182,7 @@
                 Add photos…
               </button>
               <button type="button" class="sb-btn sb-btn--ghost sb-filepick__btn sb-savedchar__open" id="sbSavedCharPick" aria-expanded="false" aria-controls="sbSavedCharPanel" hidden>
-                🎭 Pick a saved character…
+                Use a saved character
               </button>
             </div>
             <div class="sb-savedchar" id="sbSavedCharPanel" hidden>
@@ -204,61 +196,13 @@
               <button type="button" class="sb-hero-ref__remove-all" id="sbHeroPhotoRemove">Remove all</button>
             </div>
           </div>
-          <label class="sb-label sb-label--secondary" for="sbBookTitle">What should we call your book?</label>
-          <input
-            class="sb-input"
-            id="sbBookTitle"
-            type="text"
-            maxlength="48"
-            autocomplete="off"
-            placeholder="e.g. The star and the brave fox"
-          />
-          <p class="sb-panel__micro">This is the name on the front cover. Leave it blank and we’ll use a title from your story.</p>
-          <p class="sb-label sb-label--secondary" style="margin-top: 1rem;">Book colour</p>
-          <p class="sb-panel__hint sb-panel__hint--tight">
-            For the cover frame and pages. Tap <strong>More colours</strong> for the full palette — auto still guesses from the name if you pick Auto.
-          </p>
-          <div class="sb-book-colors" id="sbBookColorsWrap">
-            <div class="sb-chip-row sb-book-colors__quick" id="sbBookColorsQuick" role="radiogroup" aria-label="Book colour"></div>
-            <button
-              type="button"
-              class="sb-btn sb-btn--ghost sb-btn--small sb-book-colors__toggle"
-              id="sbBookColorToggle"
-              aria-expanded="false"
-              aria-controls="sbBookColorsExtra"
-            >
-              More colours…
-            </button>
-            <div class="sb-book-colors__extra" id="sbBookColorsExtra" hidden>
-              <div class="sb-color-grid" id="sbBookColorsGrid" role="radiogroup" aria-label="More book colours"></div>
-            </div>
+          <div class="sb-modal__actions">
+            <button type="button" class="sb-btn sb-btn--primary sb-btn--modal" id="sbNext0">Next</button>
           </div>
-          <label class="sb-label sb-label--secondary" for="sbAuthor" style="margin-top:1rem;">Author / Illustrator (optional)</label>
-          <input
-            class="sb-input"
-            id="sbAuthor"
-            type="text"
-            maxlength="48"
-            autocomplete="off"
-            placeholder="e.g. Written by Sofia"
-          />
-          <div class="sb-modal__actions sb-modal__actions--split">
-            <button type="button" class="sb-btn sb-btn--ghost sb-btn--modal" id="sbBack1">Back</button>
-            <button type="button" class="sb-btn sb-btn--primary sb-btn--modal" id="sbNext1">Next</button>
-          </div>
-          <div class="sb-modal__actions sb-modal__actions--full">
-            <button type="button" class="sb-btn sb-btn--ghost sb-btn--modal" id="sbSkipToPlot">
-              Skip buddy — scene &amp; story next
-            </button>
-          </div>
-          <p class="sb-panel__micro sb-panel__micro--skip-hint">
-            Starts a gentle default friend; you still pick the scene and write what happens on the next step.
-          </p>
         </div>
 
-        <div class="sb-panel" data-panel="2" id="sbPanel2" hidden>
-          <p class="sb-panel__why" id="sbPanelWhy2">A buddy is optional — you can tell a people-only tale.</p>
-          <p class="sb-panel__hint">Tap a buddy, or tap <strong>Add your own buddy</strong> and describe anyone — or no buddy for a people-only story.</p>
+        <div class="sb-panel" data-panel="1" id="sbPanel2" hidden>
+          <p class="sb-panel__why" id="sbPanelWhy2">A friend to go with them. Or pick no buddy.</p>
           <div class="sb-chip-row" id="sbCharacters" role="radiogroup" aria-label="Character"></div>
           <div class="sb-custom-choice-wrap" id="sbBuddyCustomWrap" hidden aria-hidden="true">
             <label class="sb-label sb-label--secondary" for="sbBuddyCustom">Describe your buddy</label>
@@ -267,9 +211,8 @@
               class="sb-textarea sb-textarea--compact"
               rows="3"
               maxlength="200"
-              placeholder="e.g. a tiny teal robot with rollers for feet, always humming a song"
+              placeholder="e.g. a tiny teal robot with rollers for feet"
             ></textarea>
-            <p class="sb-panel__micro">Up to 200 characters — silly, kind, and storybook-friendly ideas work best.</p>
           </div>
           <div class="sb-modal__actions sb-modal__actions--split">
             <button type="button" class="sb-btn sb-btn--ghost sb-btn--modal" id="sbBack2">Back</button>
@@ -277,10 +220,8 @@
           </div>
         </div>
 
-        <div class="sb-panel" data-panel="3" id="sbPanel4" hidden>
-          <p class="sb-panel__why" id="sbPanelWhy4">Pick the scene for your pictures here, then write what happens below — one sentence is plenty.</p>
-          <p class="sb-label sb-label--secondary sb-panel__scene-heading">Where should it happen?</p>
-          <p class="sb-panel__hint sb-panel__hint--tight">Tap a scene, or tap <strong>Add your own scene</strong> and write any place.</p>
+        <div class="sb-panel" data-panel="2" id="sbPanelPlace" hidden>
+          <p class="sb-panel__why">One place for the pictures.</p>
           <div class="sb-chip-row" id="sbPlaces" role="radiogroup" aria-label="Place"></div>
           <div class="sb-custom-choice-wrap" id="sbPlaceCustomWrap" hidden aria-hidden="true">
             <label class="sb-label sb-label--secondary" for="sbPlaceCustom">Describe the place</label>
@@ -291,18 +232,25 @@
               maxlength="200"
               placeholder="e.g. Grandma’s allotment with a pumpkin patch and a squeaky greenhouse door"
             ></textarea>
-            <p class="sb-panel__micro">Anything you imagine — castles, playgrounds, rockets, grandma’s sofa — up to 200 characters.</p>
           </div>
+          <div class="sb-modal__actions sb-modal__actions--split">
+            <button type="button" class="sb-btn sb-btn--ghost sb-btn--modal" id="sbBackPlace">Back</button>
+            <button type="button" class="sb-btn sb-btn--primary sb-btn--modal" id="sbNextPlace">Next</button>
+          </div>
+        </div>
+
+        <div class="sb-panel" data-panel="3" id="sbPanelStory" hidden>
+          <p class="sb-panel__why">One sentence is enough. Or tap an idea.</p>
           <div class="sb-panel__story-idea-wrap">
-            <label class="sb-label" for="sbPlot">What happens? (a few lines or up to about 1,000 words)</label>
+            <label class="sb-label" for="sbPlot">What happens?</label>
             <textarea
               class="sb-textarea"
               id="sbPlot"
-              rows="10"
+              rows="6"
               maxlength="6000"
-              placeholder="Type or tap Speak — tell us what happens."
+              placeholder="We found a magic door…"
             ></textarea>
-            <p class="sb-plot-starters-label" id="sbPlotStartersLabel">Try an idea:</p>
+            <p class="sb-plot-starters-label" id="sbPlotStartersLabel">Try an idea</p>
             <div class="sb-plot-starters" id="sbPlotStarters" role="group" aria-labelledby="sbPlotStartersLabel"></div>
             <div class="sb-voice-plot-actions">
               <button type="button" class="sb-voice-btn sb-voice-btn--block" id="sbVoicePlot" aria-pressed="false" aria-label="Speak your story idea">
@@ -311,12 +259,19 @@
               </button>
             </div>
             <p class="sb-voice-hint" id="sbVoicePlotHint" aria-live="polite"></p>
-            <p class="sb-panel__micro">Up to ~1,000 words is fine. We’ll keep it gentle and happy for little readers.</p>
           </div>
+          <div class="sb-modal__actions sb-modal__actions--split">
+            <button type="button" class="sb-btn sb-btn--ghost sb-btn--modal" id="sbBackStory">Back</button>
+            <button type="button" class="sb-btn sb-btn--primary sb-btn--modal" id="sbNextStory">Next</button>
+          </div>
+        </div>
+
+        <div class="sb-panel" data-panel="4" id="sbPanel4" hidden>
+          <p class="sb-panel__why">Pick a look. The whole book will match.</p>
           <fieldset class="sb-illustration-styles" id="sbIllustrationStyles" aria-describedby="sbIllustrationStylesHint">
-            <legend class="sb-label sb-label--secondary">Art style</legend>
+            <legend class="sb-label sb-label--secondary">Picture style</legend>
             <p class="sb-panel__micro sb-illustration-styles__hint" id="sbIllustrationStylesHint">
-              Choose how the pictures should look. Each card shows the same cosy scene in that style — your whole book will match what you pick.
+              Tap a card. Clay is the usual choice.
             </p>
             <div class="sb-style-picks" role="radiogroup" aria-labelledby="sbIllustrationStylesHint">
               <label class="sb-style-pick">
@@ -421,83 +376,119 @@
               </label>
             </div>
           </fieldset>
+          <details class="sb-more">
+            <summary>More about this book</summary>
+            <label class="sb-label sb-label--secondary" for="sbBookTitle">Book title</label>
+            <input
+              class="sb-input"
+              id="sbBookTitle"
+              type="text"
+              maxlength="48"
+              autocomplete="off"
+              placeholder="Leave blank and we’ll name it"
+            />
+            <p class="sb-label sb-label--secondary">Cover colour</p>
+            <div class="sb-book-colors" id="sbBookColorsWrap">
+              <div class="sb-chip-row sb-book-colors__quick" id="sbBookColorsQuick" role="radiogroup" aria-label="Book colour"></div>
+              <button
+                type="button"
+                class="sb-btn sb-btn--ghost sb-btn--small sb-book-colors__toggle"
+                id="sbBookColorToggle"
+                aria-expanded="false"
+                aria-controls="sbBookColorsExtra"
+              >
+                More colours
+              </button>
+              <div class="sb-book-colors__extra" id="sbBookColorsExtra" hidden>
+                <div class="sb-color-grid" id="sbBookColorsGrid" role="radiogroup" aria-label="More book colours"></div>
+              </div>
+            </div>
+            <label class="sb-label sb-label--secondary" for="sbAuthor">Written by (optional)</label>
+            <input
+              class="sb-input"
+              id="sbAuthor"
+              type="text"
+              maxlength="48"
+              autocomplete="off"
+              placeholder="e.g. Written by you"
+            />
           <fieldset class="sb-picture-quality">
-            <legend class="sb-label sb-label--secondary">Pictures</legend>
+            <legend class="sb-label sb-label--secondary">Picture quality</legend>
             <p class="sb-panel__micro sb-picture-quality__hint" id="sbPictureQualityHint">
-              <strong>Default: Best for print</strong> — strongest match between <strong>story text</strong>, <strong>each picture</strong>, and <strong>uploaded faces</strong> (recommended for keepsakes). <strong>Balanced refs</strong> uses the same <strong>GPT Image 2</strong> path as Play &amp; screen and keeps <strong>your photos attached on every picture spread</strong> so children stay recognisable end-to-end; it sits between Play &amp; screen and Best for print on story/art tuning. Total cost varies — check your OpenAI usage.
+              Best pictures is the usual choice. Everyday is quicker. Clearer faces sits in between.
             </p>
             <div class="sb-quality-row" role="radiogroup" aria-labelledby="sbPictureQualityHint">
               <label class="sb-quality-opt">
                 <input type="radio" name="sbPictureQuality" value="standard" />
                 <span class="sb-quality-opt__body">
-                  <span class="sb-quality-opt__title">Play &amp; screen</span>
-                  <span class="sb-quality-opt__sub">Lowest cost — economy image + vision; uploads on every spread edit when you add photos</span>
+                  <span class="sb-quality-opt__title">Everyday</span>
+                  <span class="sb-quality-opt__sub">Quicker pictures</span>
                 </span>
               </label>
               <label class="sb-quality-opt">
                 <input type="radio" name="sbPictureQuality" value="balanced" />
                 <span class="sb-quality-opt__body">
-                  <span class="sb-quality-opt__title">Balanced refs</span>
-                  <span class="sb-quality-opt__sub">Same photo attachment every spread as Play &amp; screen — lighter story/vision tier than Best for print; great when you need stable faces across the whole book</span>
+                  <span class="sb-quality-opt__title">Clearer faces</span>
+                  <span class="sb-quality-opt__sub">Keeps people looking the same</span>
                 </span>
               </label>
               <label class="sb-quality-opt">
                 <input type="radio" name="sbPictureQuality" value="high" checked />
                 <span class="sb-quality-opt__body">
-                  <span class="sb-quality-opt__title">Best for print (default)</span>
-                  <span class="sb-quality-opt__sub">Sharper story ↔ picture alignment; stronger art tier — best with hero / family photo uploads on each spread</span>
+                  <span class="sb-quality-opt__title">Best pictures</span>
+                  <span class="sb-quality-opt__sub">The usual choice</span>
                 </span>
               </label>
             </div>
           </fieldset>
           <fieldset class="sb-book-spread-layout" id="sbBookSpreadLayout" aria-describedby="sbBookSpreadLayoutHint">
-            <legend class="sb-label sb-label--secondary">Picture spread</legend>
+            <legend class="sb-label sb-label--secondary">How pictures sit</legend>
             <p class="sb-panel__micro sb-book-spread-layout__hint" id="sbBookSpreadLayoutHint">
-              Choose how each illustration appears when you read. <strong>One page</strong> fits the <em>whole</em> picture on a single side (same image file — scaled to fit, not stretched across both pages).
+              Wide across both pages, or the picture on one side and the words on the other.
             </p>
             <div class="sb-quality-row" role="radiogroup" aria-labelledby="sbBookSpreadLayoutHint">
               <label class="sb-quality-opt">
                 <input type="radio" name="sbBookSpreadLayout" value="duplex" checked />
                 <span class="sb-quality-opt__body">
                   <span class="sb-quality-opt__title">Across both pages</span>
-                  <span class="sb-quality-opt__sub">One wide picture behind the spread — like an open poster</span>
+                  <span class="sb-quality-opt__sub">One wide picture</span>
                 </span>
               </label>
               <label class="sb-quality-opt">
                 <input type="radio" name="sbBookSpreadLayout" value="facing" />
                 <span class="sb-quality-opt__body">
                   <span class="sb-quality-opt__title">One page only</span>
-                  <span class="sb-quality-opt__sub">Full picture on one side, story text on the other — sides alternate each spread</span>
+                  <span class="sb-quality-opt__sub">Picture on one side, words on the other</span>
                 </span>
               </label>
             </div>
           </fieldset>
           <fieldset class="sb-story-text-mode" id="sbStoryTextMode" aria-describedby="sbStoryTextModeHint">
-            <legend class="sb-label sb-label--secondary">Story words</legend>
+            <legend class="sb-label sb-label--secondary">How it reads</legend>
             <p class="sb-panel__micro sb-story-text-mode__hint" id="sbStoryTextModeHint">
-              Pick how the story reads on each text page — normal sentences or a rhyming poem.
+              Rhymes, or a normal story.
             </p>
             <div class="sb-quality-row" role="radiogroup" aria-labelledby="sbStoryTextModeHint">
               <label class="sb-quality-opt">
                 <input type="radio" name="sbStoryTextMode" value="rhyme" checked />
                 <span class="sb-quality-opt__body">
-                  <span class="sb-quality-opt__title">Rhyming poem</span>
-                  <span class="sb-quality-opt__sub">Rhythm and rhyme — line count follows “Story length” below</span>
+                  <span class="sb-quality-opt__title">Rhymes</span>
+                  <span class="sb-quality-opt__sub">The usual choice</span>
                 </span>
               </label>
               <label class="sb-quality-opt">
                 <input type="radio" name="sbStoryTextMode" value="prose" />
                 <span class="sb-quality-opt__body">
-                  <span class="sb-quality-opt__title">Normal story</span>
-                  <span class="sb-quality-opt__sub">Short paragraphs — easier to read aloud</span>
+                  <span class="sb-quality-opt__title">A normal story</span>
+                  <span class="sb-quality-opt__sub">Short paragraphs</span>
                 </span>
               </label>
             </div>
           </fieldset>
           <fieldset class="sb-story-length" id="sbStoryLength" aria-describedby="sbStoryLengthHint">
-            <legend class="sb-label sb-label--secondary">Story length</legend>
+            <legend class="sb-label sb-label--secondary">How long each page is</legend>
             <p class="sb-panel__micro sb-story-length__hint" id="sbStoryLengthHint">
-              How much text on each story page — the book still has twelve pages; this only changes how full each page feels.
+              The book still has twelve pages. This only changes how full each page feels.
             </p>
             <div class="sb-quality-row" role="radiogroup" aria-labelledby="sbStoryLengthHint">
               <label class="sb-quality-opt">
@@ -511,7 +502,7 @@
                 <input type="radio" name="sbStoryLength" value="medium" checked />
                 <span class="sb-quality-opt__body">
                   <span class="sb-quality-opt__title">Medium</span>
-                  <span class="sb-quality-opt__sub">Balanced — default</span>
+                  <span class="sb-quality-opt__sub">The usual choice</span>
                 </span>
               </label>
               <label class="sb-quality-opt">
@@ -523,10 +514,11 @@
               </label>
             </div>
           </fieldset>
+          </details>
           <div class="sb-modal__actions sb-modal__actions--split">
             <button type="button" class="sb-btn sb-btn--ghost sb-btn--modal" id="sbBack4">Back</button>
             <button type="button" class="sb-btn sb-btn--primary sb-btn--modal" id="sbGenerate">
-              Make my book ✨
+              Make my book
             </button>
           </div>
         </div>
@@ -577,6 +569,19 @@
     </div>
 
     <section class="sb-book is-hidden" id="sbBook" aria-labelledby="sbBookHeading" hidden>
+      <header class="sb-read-chrome" id="sbReadChrome">
+        <button type="button" class="sb-chrome-btn" id="sbLibraryBack">
+          <span aria-hidden="true">←</span> Stories
+        </button>
+        <div class="sb-read-chrome__center">
+          <p class="sb-read-chrome__title" id="sbReadChromeTitle" aria-hidden="true"></p>
+          <p class="sb-read-chrome__pages" id="sbReadChromePages"></p>
+        </div>
+        <div class="sb-read-chrome__end">
+          <button type="button" class="sb-chrome-btn sb-chrome-btn--icon" id="sbFaveBook" aria-pressed="false" aria-label="Love this book">♡</button>
+          <button type="button" class="sb-chrome-btn sb-chrome-btn--icon" id="sbReaderDismiss" aria-label="Close and return to your stories">×</button>
+        </div>
+      </header>
       <h2 class="sb-book-title" id="sbBookHeading"></h2>
       <p class="sb-book-close-tool">
         <button
@@ -612,9 +617,13 @@
                       <span class="sb-cover__face">
                         <span class="sb-cover__spine" aria-hidden="true"></span>
                         <span class="sb-cover__panel" id="sbCoverPanel">
+                        <span class="sb-cover__wash" aria-hidden="true"></span>
                         <span class="sb-cover__deco" aria-hidden="true">✨</span>
                         <span class="sb-cover__title" id="sbCoverTitle"></span>
+                        <span class="sb-cover__kicker" id="sbCoverKicker"></span>
                         <span class="sb-cover__author" id="sbCoverAuthor"></span>
+                        <span class="sb-cover__open" aria-hidden="true"><span aria-hidden="true">✨</span> Open book</span>
+                        <span class="sb-cover__made" id="sbCoverMade"></span>
                         <span class="sb-cover__hint">Tap to open</span>
                         </span>
                       </span>
@@ -748,10 +757,11 @@
                             />
                           </svg>
                           <span class="sb-page-num" id="sbSpreadPageNum" aria-hidden="true"></span>
-                          <p class="sb-flip-text">
+                          <p class="sb-flip-text" id="sbSpreadTextPanel">
                             <span class="sb-flip-text__clip" id="sbSpreadTextClip">
                               <span class="sb-flip-text__highlight" id="sbSpreadText"></span>
                             </span>
+                            <span class="sb-story-overflow" id="sbStoryOverflow" hidden>This page has more words than fit</span>
                           </p>
                         </div>
                       </div>
@@ -762,6 +772,7 @@
                       id="sbFlipRightShell"
                       aria-hidden="true"
                     ></div>
+                    <div class="sb-story-type" id="sbStoryType" hidden></div>
                     <div class="sb-flip-book-legacy-art" aria-hidden="true" hidden>
                       <div class="sb-flip-art" id="sbSpreadArt">
                         <span class="sb-flip-art__num" id="sbSpreadArtNum"></span>
@@ -773,25 +784,35 @@
               </div>
             </div>
           </div>
+          <div class="sb-read-dock" id="sbReadDock">
+            <p class="sb-word-tip" id="sbWordTip" hidden><span aria-hidden="true">👆</span> Tap any word to hear it</p>
+            <div class="sb-read-toolbar" id="sbReadToolbar" role="toolbar" aria-label="Reading tools">
+              <button
+                type="button"
+                class="sb-btn sb-btn--ghost sb-read-to-me sb-read-toolbar__btn"
+                id="sbReadToMe"
+                aria-label="Read page to me"
+                aria-pressed="false"
+              >
+                <span class="sb-read-toolbar__icon" aria-hidden="true">🔊</span>
+                <span class="sb-read-toolbar__label">Read to me</span>
+              </button>
+              <button type="button" class="sb-read-toolbar__btn" id="sbReadMyself" aria-pressed="false">
+                <span class="sb-read-toolbar__icon" aria-hidden="true">✨</span>
+                <span class="sb-read-toolbar__label">Read myself</span>
+              </button>
+              <button type="button" class="sb-read-toolbar__btn" id="sbReaderFullscreen" aria-pressed="false">
+                <span class="sb-read-toolbar__icon" aria-hidden="true">⛶</span>
+                <span class="sb-read-toolbar__label">Full screen</span>
+              </button>
+            </div>
+          </div>
           <div
             class="sb-book-side-actions"
             id="sbSpreadTextActions"
             hidden
             aria-label="Read aloud controls"
-          >
-            <div class="sb-tap-hint">
-              <span class="sb-tap-hint__ic" aria-hidden="true">👆</span>
-              Tap any word to hear it
-            </div>
-            <button
-              type="button"
-              class="sb-btn sb-btn--ghost sb-read-to-me"
-              id="sbReadToMe"
-              aria-label="Read page to me"
-            >
-              <span aria-hidden="true">🔊</span>
-            </button>
-          </div>
+          ></div>
         </div>
         <button
           type="button"
@@ -860,7 +881,7 @@
     </button>
   </div>
 
-  <script src="../js/kids-game-characters.js"></script>
+  <script src="../js/kids-game-characters.js?v=2"></script>
   <script src="../js/score-config.js"></script>
   <script src="../js/kids-core.js"></script>
   <script>
@@ -870,11 +891,11 @@
     }
   </script>
   <!-- IndexedDB shelf (mobile); must load before score-cloud + storybook -->
-  <script src="../js/storybook-shelf-store.js" defer></script>
+  <script src="../js/storybook-shelf-store.js?v=3" defer></script>
   <!-- Required for cloud shelf sync + upload (same as other games) -->
-  <script src="../js/score-cloud.js" defer></script>
+  <script src="../js/score-cloud.js?v=6" defer></script>
   <script src="../js/character-store.js" defer></script>
-  <script src="storybook.js?v=351" defer></script>
+  <script src="storybook.js?v=362" defer></script>
   <script>
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("../sw.js").catch(function () {});

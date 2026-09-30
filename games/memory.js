@@ -22,19 +22,12 @@
   ];
 
   /** Same faces as noughts-crosses (paths relative to games/). */
-  var CHARACTERS = [
-    { id: "babyca", label: "Baby", src: "images/character-babyca.png" },
-    { id: "tilly", label: "Tilly", src: "images/tilly-mascot.png" },
-    { id: "coolegg", label: "Isaac", src: "images/character-baby-coolegg.png" },
-    { id: "sofia", label: "Sofia", src: "images/character-girl-blonde.png" },
-    { id: "mummy", label: "Mummy", src: "images/character-kelly.png" },
-    { id: "freya", label: "Freya", src: "images/character-freya.png" },
-  ];
+  var CHARACTERS = [];
 
   var SIZES = {
-    quick: { pairs: 8, animals: 4, people: 4 },
-    normal: { pairs: 12, animals: 6, people: 6 },
-    big: { pairs: 15, animals: 9, people: 6 },
+    quick: { pairs: 8, animals: 8, people: 0 },
+    normal: { pairs: 12, animals: 12, people: 0 },
+    big: { pairs: 12, animals: 12, people: 0 },
   };
 
   var MISMATCH_MS = 750;

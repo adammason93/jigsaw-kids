@@ -1,5 +1,5 @@
 /* Minimal offline shell — network-first, cache as fallback for same-origin */
-const CACHE = "jigsaw-kids-v347";
+const CACHE = "jigsaw-kids-v367";
 const SHELL = [
   "./index.html",
   "./portal.html",
@@ -11,7 +11,8 @@ const SHELL = [
   "./welcome.js",
   "./home.css",
   "./home-cast.js",
-  "./games/images/brand/oovi-mark.svg",
+  "./games/images/brand/wondi-mark.svg",
+  "./games/images/brand/wondi-wordmark.svg",
   "./games/images/portal/hello.jpg",
   "./games/images/portal/stories-night.jpg",
   "./manifest.json",
@@ -134,6 +135,7 @@ const SHELL = [
   "./games/colouring.js",
   "./games/storybook.html",
   "./games/storybook-app.css",
+  "./games/storybook-wondii.css",
   "./games/storybook.js",
   "./js/character-store.js",
   "./games/images/portal/storybook-nook.jpg",

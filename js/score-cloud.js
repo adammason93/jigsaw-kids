@@ -17,6 +17,118 @@
     "mathRaceScorecardV1",
   ];
 
+  /** Small progress that is saved on the signed-in account and restored on login. */
+  var ACCOUNT_SYNC_KEYS = SCORE_KEYS.concat([
+    "portalFavourites",
+    "kidsStatsV1",
+    "kidsProfileV1",
+    "jigsawPieces",
+    "jigsawPictureGuide",
+    "runnerBest",
+    "runnerName",
+    "runnerEnv",
+    "runnerChar",
+    "rpsScoreV1",
+    "snakeArcadeHighV1",
+    "threeStarCatcherBest",
+    "linkGridCurrentLevel",
+    "linkGridCompletedLevels",
+    "sbReaderArtLayout",
+    "sbIllustrationStyle",
+    "sbStoryTextMode",
+    "sbStoryLength",
+    "tttCharPickV1",
+    "c4CharacterPickV1",
+    "snapCharPickV1",
+  ]);
+
+  /** Private on this device per account. Cloud copies already live in that account's storage folder. */
+  var ACCOUNT_LOCAL_KEYS = [
+    "jigsawKidsColouringV1",
+    "jigsawKids_storybookShelf_v1",
+    "wondii-learning-draft",
+    "wondii-learning-adventures",
+    "wondii-teach-prefs",
+    "wondii-teach-favs",
+    "wondii-teach-recent",
+    "wondii-teach-feedback",
+    "wondii-teach-seen",
+    "wondii-class-sessions",
+    "wondii-board-names",
+    "wondii-school-classes",
+  ];
+
+  var ACCOUNT_PREFIXES = ["wondii-fave:"];
+  var accountUid = "";
+  var applyingCloud = false;
+  var nativeGet = global.localStorage.getItem.bind(global.localStorage);
+  var nativeSet = global.localStorage.setItem.bind(global.localStorage);
+  var nativeRemove = global.localStorage.removeItem.bind(global.localStorage);
+
+  function isAccountKey(key) {
+    var k = String(key || "");
+    var i;
+    for (i = 0; i < ACCOUNT_SYNC_KEYS.length; i++) {
+      if (ACCOUNT_SYNC_KEYS[i] === k) return true;
+    }
+    for (i = 0; i < ACCOUNT_LOCAL_KEYS.length; i++) {
+      if (ACCOUNT_LOCAL_KEYS[i] === k) return true;
+    }
+    for (i = 0; i < ACCOUNT_PREFIXES.length; i++) {
+      if (k.indexOf(ACCOUNT_PREFIXES[i]) === 0) return true;
+    }
+    return false;
+  }
+
+  function isSyncKey(key) {
+    var k = String(key || "");
+    var i;
+    for (i = 0; i < ACCOUNT_SYNC_KEYS.length; i++) {
+      if (ACCOUNT_SYNC_KEYS[i] === k) return true;
+    }
+    for (i = 0; i < ACCOUNT_PREFIXES.length; i++) {
+      if (k.indexOf(ACCOUNT_PREFIXES[i]) === 0) return true;
+    }
+    return false;
+  }
+
+  function scopedStorageKey(uid, key) {
+    return "wondii-u:" + uid + ":" + key;
+  }
+
+  function bindAccountScope(uid) {
+    accountUid = uid ? String(uid) : "";
+  }
+
+  global.localStorage.getItem = function (key) {
+    if (isAccountKey(key)) {
+      if (!accountUid) return null;
+      return nativeGet(scopedStorageKey(accountUid, key));
+    }
+    return nativeGet(key);
+  };
+  global.localStorage.setItem = function (key, value) {
+    if (isAccountKey(key)) {
+      if (!accountUid) return;
+      nativeSet(scopedStorageKey(accountUid, key), String(value));
+      if (!applyingCloud && isSyncKey(key)) {
+        try {
+          schedulePush();
+        } catch (ePush) {}
+      }
+      return;
+    }
+    nativeSet(key, String(value));
+  };
+  global.localStorage.removeItem = function (key) {
+    if (isAccountKey(key)) {
+      if (!accountUid) return;
+      nativeRemove(scopedStorageKey(accountUid, key));
+      return;
+    }
+    nativeRemove(key);
+  };
+
   var SYNC_LIB =
     "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js";
 
@@ -97,17 +209,98 @@
     });
   }
 
+  function clearScoreKeys() {
+    if (!accountUid) return;
+    var prefix = "wondii-u:" + accountUid + ":";
+    var drop = [];
+    var i;
+    for (i = 0; i < global.localStorage.length; i++) {
+      var storageKey = global.localStorage.key(i);
+      if (!storageKey || storageKey.indexOf(prefix) !== 0) continue;
+      if (isSyncKey(storageKey.slice(prefix.length))) drop.push(storageKey);
+    }
+    for (i = 0; i < drop.length; i++) nativeRemove(drop[i]);
+  }
+
+  function adoptLegacyIfSameAccount(uid, payload) {
+    var overlap = false;
+    var mismatch = false;
+    var i;
+    for (i = 0; i < SCORE_KEYS.length; i++) {
+      var scoreKey = SCORE_KEYS[i];
+      var legacyScore = nativeGet(scoreKey);
+      if (legacyScore == null || payload[scoreKey] == null) continue;
+      if (legacyScore === encodeStored(payload[scoreKey])) overlap = true;
+      else mismatch = true;
+    }
+    if (!overlap || mismatch) return;
+    function copyIfEmpty(logical) {
+      if (!isAccountKey(logical)) return;
+      var scoped = scopedStorageKey(uid, logical);
+      if (nativeGet(scoped) != null) return;
+      var legacy = nativeGet(logical);
+      if (legacy == null || legacy === "") return;
+      nativeSet(scoped, legacy);
+    }
+    var pending = ACCOUNT_SYNC_KEYS.concat(ACCOUNT_LOCAL_KEYS);
+    for (i = 0; i < global.localStorage.length; i++) {
+      var storageKey = global.localStorage.key(i);
+      if (storageKey && storageKey.indexOf("wondii-fave:") === 0) pending.push(storageKey);
+    }
+    for (i = 0; i < pending.length; i++) copyIfEmpty(pending[i]);
+  }
+
+  function bindShelfUser(uid) {
+    bindAccountScope(uid);
+    var st = global.StorybookShelfStore;
+    if (st && typeof st.bindUser === "function") {
+      st.bindUser(uid || null);
+    }
+  }
+
+  function clearAccountScope() {
+    bindShelfUser(null);
+    clearScoreKeys();
+    try {
+      global.sessionStorage.removeItem("wondii-active-uid");
+    } catch (e) {}
+    try {
+      global.localStorage.removeItem("portalCastCache");
+    } catch (e2) {}
+    try {
+      global.dispatchEvent(new CustomEvent("wondii-account-cleared"));
+    } catch (e3) {}
+    try {
+      global.dispatchEvent(new CustomEvent("kids-scorecard-refresh"));
+    } catch (e4) {}
+  }
+
+  function decodeStored(raw) {
+    try {
+      return JSON.parse(raw);
+    } catch (e) {
+      return raw;
+    }
+  }
+
+  function encodeStored(value) {
+    return typeof value === "string" ? value : JSON.stringify(value);
+  }
+
   function collectNestedPayload() {
     /** @type {Record<string, unknown>} */
     var nested = {};
-    for (var i = 0; i < SCORE_KEYS.length; i++) {
-      var k = SCORE_KEYS[i];
-      try {
-        var raw = global.localStorage.getItem(k);
-        if (raw != null && raw !== "") {
-          nested[k] = JSON.parse(raw);
-        }
-      } catch (e) {}
+    if (!accountUid) return nested;
+    var prefix = "wondii-u:" + accountUid + ":";
+    var i;
+    for (i = 0; i < global.localStorage.length; i++) {
+      var storageKey = global.localStorage.key(i);
+      if (!storageKey || storageKey.indexOf(prefix) !== 0) continue;
+      var logical = storageKey.slice(prefix.length);
+      if (!isSyncKey(logical)) continue;
+      var raw = nativeGet(storageKey);
+      if (raw == null || raw === "") continue;
+      nested[logical] = decodeStored(raw);
     }
     return nested;
   }
@@ -176,32 +369,56 @@
           .maybeSingle()
           .then(function (rowRes) {
             var row = rowRes.data;
+            var previousUid = "";
+            try {
+              previousUid = global.sessionStorage.getItem("wondii-active-uid") || "";
+            } catch (ePrevUid) {}
+            var switched = previousUid !== sess.user.id;
+            try {
+              global.sessionStorage.setItem("wondii-active-uid", sess.user.id);
+            } catch (eUid) {}
             if (!row || !row.payload || typeof row.payload !== "object") {
+              if (switched) {
+                clearScoreKeys();
+              }
               if (onDone) {
-                onDone(true); // Return true even if no score bundles, to ensure storage buckets still sync
+                onDone(true);
               }
               return;
             }
+            adoptLegacyIfSameAccount(sess.user.id, row.payload);
             var changed = false;
             var pk = Object.keys(row.payload);
             var i;
-            for (i = 0; i < pk.length; i++) {
-              var key = pk[i];
-              if (SCORE_KEYS.indexOf(key) === -1) {
-                continue;
+            applyingCloud = true;
+            try {
+              for (i = 0; i < pk.length; i++) {
+                var key = pk[i];
+                if (!isSyncKey(key)) continue;
+                var nextJson = encodeStored(row.payload[key]);
+                var prevJson = null;
+                try {
+                  prevJson = global.localStorage.getItem(key);
+                } catch (ePrev) {}
+                if (prevJson === nextJson) continue;
+                try {
+                  global.localStorage.setItem(key, nextJson);
+                  changed = true;
+                } catch (e) {}
               }
-              var nextJson = JSON.stringify(row.payload[key]);
-              var prevJson = null;
-              try {
-                prevJson = global.localStorage.getItem(key);
-              } catch (ePrev) {}
-              if (prevJson === nextJson) {
-                continue;
+              if (switched) {
+                var present = {};
+                for (i = 0; i < pk.length; i++) present[pk[i]] = true;
+                for (i = 0; i < ACCOUNT_SYNC_KEYS.length; i++) {
+                  if (!present[ACCOUNT_SYNC_KEYS[i]]) {
+                    try {
+                      global.localStorage.removeItem(ACCOUNT_SYNC_KEYS[i]);
+                    } catch (eDrop) {}
+                  }
+                }
               }
-              try {
-                global.localStorage.setItem(key, nextJson);
-                changed = true;
-              } catch (e) {}
+            } finally {
+              applyingCloud = false;
             }
             if (onDone) {
               onDone(changed);
@@ -780,11 +997,11 @@
           cb(Array.isArray(arr) ? arr : []);
         })
         .catch(function () {
-          cb(loadLocalStorybookShelf());
+          cb([]);
         });
       return;
     }
-    cb(loadLocalStorybookShelf());
+    cb([]);
   }
 
   /** @param {Array} merged @param {function(Error|null): void} cb */
@@ -800,12 +1017,7 @@
         });
       return;
     }
-    try {
-      global.localStorage.setItem(STORYBOOK_SHELF_KEY, JSON.stringify(merged));
-      cb(null);
-    } catch (e) {
-      cb(e);
-    }
+    cb(new Error("no_store"));
   }
 
   /** Prefer savedAt, then id prefix b{timestamp}. */
@@ -861,7 +1073,21 @@
       }
       var cloudBooks = normalizedCloudShelf(data);
 
-      storybookShelfGetJson(function (local) {
+      ensureClient(function (sb) {
+        if (!sb) {
+          optionalCb(null);
+          return;
+        }
+        sb.auth.getSession().then(function (res) {
+          var user = res.data && res.data.session && res.data.session.user;
+          if (!user) {
+            bindShelfUser(null);
+            optionalCb(null);
+            return;
+          }
+          bindShelfUser(user.id);
+          storybookShelfGetJson(function (local) {
+        function continueMerge() {
         var cloudById = Object.create(null);
         var i;
         var b;
@@ -964,6 +1190,15 @@
         } else {
           runUploadThenFinish();
         }
+        }
+
+        var store = global.StorybookShelfStore;
+        if (store && typeof store.clearIsolated === "function") store.clearIsolated();
+        continueMerge();
+          });
+        }).catch(function () {
+          optionalCb(null);
+        });
       });
     });
   }
@@ -1229,7 +1464,7 @@
             } else {
               setStatus(
                 statusEl,
-                "Sign in with the family password to turn on sync."
+                "Log in from the Wondii home with your own email. Stories and scores stay on that account."
               );
               btnOut.style.display = "none";
               if (accountLineEl) {
@@ -1253,51 +1488,10 @@
 
       if (btnSignIn) {
         btnSignIn.addEventListener("click", function () {
-          var pwd = passEl ? String(passEl.value || "") : "";
-          var c = cfg();
-          var loginEmail =
-            (c.syncLoginEmail && String(c.syncLoginEmail).trim()) || "";
-          if (!loginEmail) {
-            setStatus(statusEl, "Configure syncLoginEmail in score-config.js.");
-            return;
-          }
-          if (pwd.length < 6) {
-            setStatus(statusEl, "Enter the family password (at least 6 characters).");
-            return;
-          }
-          ensureClient(function (sb) {
-            if (!sb) {
-              setStatus(statusEl, "Sync library failed to load.");
-              return;
-            }
-            sb.auth
-              .signInWithPassword({
-                email: loginEmail,
-                password: pwd,
-              })
-              .then(function (r) {
-                if (r.error) {
-                  var m = r.error.message || "Could not sign in.";
-                  if (/Invalid login|invalid/i.test(m)) {
-                    setStatus(statusEl, "Wrong password — try again or ask a grown-up.");
-                  } else {
-                    setStatus(statusEl, m);
-                  }
-                  return;
-                }
-              if (passEl) {
-                passEl.value = "";
-              }
-              setStatus(statusEl, "Signed in — syncing…");
-              refreshAuthUi();
-              pullAndApply(function (changed) {
-                refreshOpenScoreUis(); // Always trigger refresh to sync storage buckets
-                if (!changed) {
-                  pushBundle();
-                }
-              });
-              });
-          });
+          setStatus(
+            statusEl,
+            "Log in from the Wondii home with your own email. Stories, games and scores stay on that account."
+          );
         });
       }
 
@@ -1372,7 +1566,7 @@
             if (!sb) {
               return;
             }
-            sb.auth.signOut().then(function () {
+            global.KidsScoreCloud.signOut(function () {
               refreshAuthUi();
               setStatus(statusEl, "Signed out on this device.");
             });
@@ -1388,10 +1582,14 @@
         return;
       }
       sb.auth.onAuthStateChange(function (event, session) {
-        // do not reload here — listener can repeat
+        if (event === "SIGNED_OUT") {
+          clearAccountScope();
+          return;
+        }
         if (session && session.user && event === "SIGNED_IN") {
+          bindShelfUser(session.user.id);
           pullAndApply(function (changed) {
-            refreshOpenScoreUis(); // Always trigger refresh to sync storage buckets
+            refreshOpenScoreUis();
             if (!changed) {
               pushBundle();
             }
@@ -1401,9 +1599,15 @@
       sb.auth.getSession().then(function (res) {
         var sess = res.data && res.data.session;
         if (sess && sess.user) {
+          bindShelfUser(sess.user.id);
           pullAndApply(function (changed) {
-            refreshOpenScoreUis(); // Always trigger refresh to sync storage buckets (storybook/colouring) even if score_bundles didn't change
+            refreshOpenScoreUis();
           });
+        } else {
+          bindShelfUser(null);
+          try {
+            global.dispatchEvent(new CustomEvent("kids-scorecard-refresh"));
+          } catch (e) {}
         }
       });
     });
@@ -1415,6 +1619,49 @@
     },
     isConfigured: isConfigured,
     /** cb(session|null, err) — err set when the sync library or network could not be reached. */
+    signOut: function (cb) {
+      ensureClient(function (sb) {
+        if (!sb) {
+          if (cb) cb();
+          return;
+        }
+        sb.auth.getSession().then(function (res) {
+          var sess = res.data && res.data.session;
+          function finishOut() {
+            sb.auth.signOut().then(function () {
+              if (cb) cb();
+            }).catch(function () {
+              clearAccountScope();
+              if (cb) cb();
+            });
+          }
+          if (!sess || !sess.user) {
+            finishOut();
+            return;
+          }
+          var nested = collectNestedPayload();
+          if (!Object.keys(nested).length) {
+            finishOut();
+            return;
+          }
+          sb.from("score_bundles")
+            .upsert(
+              {
+                user_id: sess.user.id,
+                payload: nested,
+                updated_at: new Date().toISOString(),
+              },
+              { onConflict: "user_id" }
+            )
+            .then(finishOut)
+            .catch(finishOut);
+        }).catch(function () {
+          sb.auth.signOut().then(function () {
+            if (cb) cb();
+          });
+        });
+      });
+    },
     getSession: function (cb) {
       ensureClient(function (sb) {
         if (!sb) {
@@ -1434,6 +1681,11 @@
     /** Family-password sign-in (same account as ⚙️ Sync). cb(err|null). */
     signIn: function (password, cb) {
       var loginEmail = (cfg().syncLoginEmail && String(cfg().syncLoginEmail).trim()) || "";
+      this.signInWithEmail(loginEmail, password, cb);
+    },
+    /** Email + password sign-in. cb(err|null). */
+    signInWithEmail: function (email, password, cb) {
+      var loginEmail = String(email || "").trim();
       if (!loginEmail) {
         cb(new Error("not_configured"));
         return;
@@ -1450,6 +1702,50 @@
           })
           .catch(function (e) {
             cb(e || new Error("sign_in_failed"));
+          });
+      });
+    },
+    /**
+     * Create an account. cb(err|null, { session, needsConfirm }).
+     * Characters and books are stored under this user’s id.
+     */
+    signUp: function (email, password, cb) {
+      var loginEmail = String(email || "").trim();
+      if (!loginEmail) {
+        cb(new Error("not_configured"));
+        return;
+      }
+      ensureClient(function (sb) {
+        if (!sb) {
+          cb(new Error("sync_unavailable"));
+          return;
+        }
+        var redirect = global.location.origin + "/portal.html";
+        sb.auth
+          .signUp({
+            email: loginEmail,
+            password: String(password || ""),
+            options: { emailRedirectTo: redirect },
+          })
+          .then(function (r) {
+            if (r && r.error) {
+              cb(r.error);
+              return;
+            }
+            var user = r && r.data && r.data.user;
+            var session = (r && r.data && r.data.session) || null;
+            if (user && Array.isArray(user.identities) && user.identities.length === 0) {
+              cb(new Error("already_registered"));
+              return;
+            }
+            cb(null, {
+              session: session,
+              needsConfirm: !session,
+              email: (user && user.email) || (session && session.user && session.user.email) || loginEmail
+            });
+          })
+          .catch(function (e) {
+            cb(e || new Error("sign_up_failed"));
           });
       });
     },

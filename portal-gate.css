@@ -33,20 +33,14 @@
 
 .gate__logo {
   display: inline-flex;
-  align-items: flex-end;
-  gap: 0.06em;
-  color: #141b4d;
+  line-height: 0;
   text-decoration: none;
-  font-family: "Fredoka", "Nunito", sans-serif;
-  font-weight: 700;
-  font-size: 3rem;
-  line-height: 0.8;
 }
 
 .gate__logo img {
-  width: auto;
-  height: 1.3em;
-  margin-bottom: -0.03em;
+  width: min(240px, 78%);
+  height: auto;
+  margin: 0;
 }
 
 .gate__title {
@@ -117,6 +111,10 @@
   cursor: wait;
 }
 
+.gate__field + .gate__field {
+  margin-top: 0.75rem;
+}
+
 .gate__status {
   min-height: 1.4em;
   margin: 0.8rem 0 0.4rem;
@@ -129,8 +127,51 @@
   color: #d9472f;
 }
 
+.gate__tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.35rem;
+  margin: 1.15rem 0 0.2rem;
+  padding: 0.28rem;
+  border-radius: 999px;
+  background: #f3eefb;
+}
+
+.gate__tab {
+  min-height: 44px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #57557a;
+  font: inherit;
+  font-weight: 800;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.gate__tab.is-on {
+  background: #fff;
+  color: #141b4d;
+  box-shadow: 0 4px 14px rgba(20, 27, 77, 0.1);
+}
+
+.gate__tab:focus-visible {
+  outline: 3px solid #7c4dff;
+  outline-offset: 2px;
+}
+
 .gate__back {
+  display: inline-block;
+  margin-top: 0.35rem;
+  border: 0;
+  background: none;
   color: #7c4dff;
+  font: inherit;
   font-weight: 800;
   text-decoration: none;
+  cursor: pointer;
+}
+
+.gate__back[hidden] {
+  display: none;
 }

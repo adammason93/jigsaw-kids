@@ -472,6 +472,16 @@
   }
 
   loadHigh();
+  window.addEventListener("kids-scorecard-refresh", function () {
+    loadHigh();
+    syncHighDisplay();
+  });
+  window.addEventListener("wondii-account-cleared", function () {
+    high.easy = 0;
+    high.normal = 0;
+    high.hard = 0;
+    syncHighDisplay();
+  });
   syncHighDisplay();
   resizeCanvas();
 

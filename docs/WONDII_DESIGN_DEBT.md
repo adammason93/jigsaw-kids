@@ -1,0 +1,164 @@
+# Wondii design debt
+
+Rebuild programme: Phase 0 baseline is `docs/rebuild/PHASE_00_BASELINE.md` (30 September 2026). Debt below is the audit. One line is now stale: `css/wondii-tokens.css` exists in the working tree and is untracked. The P1 skin does not retire the debt in this file.
+
+Discovery only. Nothing here has been refactored. Priorities match the registry.
+
+A surface moves LEGACY → IN PROGRESS → MIGRATED → VISUALLY VERIFIED only after it is checked against `docs/WONDII_VISUAL_SURFACE_REGISTRY.md`. A header change does not migrate the board behind it.
+
+This audit's score, from the registry:
+
+| | |
+| --- | ---: |
+| Total surfaces | 182 |
+| Current (latest school UI, still not tokenised) | 29 |
+| Mixed | 80 |
+| Legacy | 71 |
+| Unknown | 2 |
+| Migrated and visually verified in this audit | 0 |
+| Runtime review required | 182 |
+
+## P0 — broken or inconsistent core journey
+
+The teacher path changes visual product in the middle.
+
+1. Class room (`class-room.css`, CLS-002–CLS-014) and the adventure player (`class.css`, `present.js`, CLS-016–CLS-037) are different systems. "Start adventure" leaves the floor and opens another stylesheet, another header, and animal avatars instead of the floor sprites.
+2. Two creators share `create.html`. `flow.js` is the short path. `create.js` still renders a full guided creator when `library`, `guided`, `prefs`, `feedback`, `pace`, `custom`, `adapt`, `template`, `example`, or `demo` is set (ADV-013–ADV-029). `viewGenerating()` is a timed wait.
+3. Storybook (STR-001–STR-017) is a third product: `storybook-app.css` (190 hexes) plus `storybook-wondii.css` (83). The reader font is picked from Fredoka, Schoolbell, Sniglet, Kalam, Patrick Hand, or Comic Neue.
+4. Family home (FAM-005) still uses emoji as the tile icons (`📖` `🎮` `🧩` `💡`) while the teacher home in the same portal uses the school cards.
+5. Results (`viewResults`) hardcodes Ramsden red `#c41230` on a screen that is not Ramsden-specific. Preview buttons hardcode navy `#141b4d` inline.
+6. Account-scoped scores and the Link Grid completion flag do not match. `linkGridCompletedLevels` is plain `localStorage`.
+
+## P1 — legacy customer-facing UI
+
+1. All 19 family play boards. `wondii-shell` is chrome only. Largest own stylesheets: `snakes-ladders.css` 155 hexes, `math-race.css` 105, `snap.css` 97, `colouring.css` 84, `noughts-crosses.css` 57, `connect-four.css` 57, `word-search.css` 56, `memory.css` 40, `jigsaw.css` 42, `runner.css` 39. `runner.js` itself has about 98 hex matches.
+2. `characters.html` (FAM-012–FAM-016), its own modal and about 34 hexes in the page.
+3. Electricity demo (SCH-015–SCH-023), own CSS, hardcoded `#c41230`, and a back link aimed at Ramsden.
+4. Ramsden microsite (SCH-007–SCH-014). The accent is written into the page and `schools/ramsden.js` instead of coming only from the organisation record.
+5. Join (CLS-038–CLS-042) uses `class.css`, not the class room.
+6. Portal catalogues (FAM-006–FAM-011) and the storybook shelf are different book and game cards.
+7. `classroom.js` avatars are preset animals. Class pupils on the floor use `games/images/schools/room/kid-*.webp`. The spin slide does not use those faces unless `pupil.portrait` is set.
+
+## P2 — mixed design
+
+1. Public homepage `welcome.css` (88 hexes) and portal `portal.css` (82) plus `portal-app.css` (51) plus `home.css` (60) plus `portal-gate.css` (18). One account, five stylesheets.
+2. `org-portal.css` (72 hexes) is the newest school skin and still not tokens. It sits on top of portal CSS.
+3. `wondii-shell.css` (10 hexes) loads Fredoka and Nunito again per game.
+4. Storybook wondii layer on top of the old app CSS.
+5. Adventure steps ADV-007–ADV-009 are still in `flow.js` `STEPS` beside the short path.
+6. Native `window.confirm` for removing a pupil (CLS-015). Present end-session is an inline paragraph (CLS-034).
+7. Help is duplicated: shell modal (GME-001) and Snap's own rules modal (GME-011).
+
+## P3 — polish
+
+1. Marketing bands on `/` and the lower Ramsden bands.
+2. Quote carousel, try dialog, boot line, welcome banner.
+3. Emoji in the jigsaw title and the Star Catcher title.
+4. Full-screen buttons implemented separately on the class room, the present stage, and the storybook reader.
+
+## Duplication (do not merge yet)
+
+| Pattern | Copies | Same job? |
+| --- | --- | --- |
+| Class card | `teach-class` in `home.js`, `learn-class` in `flow.js`, `room-card` in `class-room.js` | Same idea, three markups |
+| Portrait URL | `class-room.js`, `home.js`, `present.js`, `flow.js` | Same age prefix and hair files, copied |
+| Name → girl/boy | `class-room.js`, `home.js`, `present.js` | Same lists, copied |
+| Primary button | `.room-go`, `.learn-btn`, `.teach-go`, `.o-btn`, `.class-btn`, `.sb-btn`, per-game buttons | Same role, different CSS |
+| Quiet button | `.room-ghost`, `.learn-ghost`, `.teach-quiet`, `.class-ghost` | Same role |
+| Book card | Portal `renderStories`, storybook `#sbShelf` | Same library, two cards |
+| Game card | Portal `renderGames` / `renderPuzzles` | Catalogue only. Not a play board |
+| Score | `game-scorecard.js`, `rewardBar()`, `viewResults()`, noughts side stats, RPS overlay score | Five score UIs |
+| Help | `wondii-modal`, `#snapRulesModal`, storybook step read-aloud | Overlapping |
+| Adventure library | Teacher today, `viewSaved`, `viewLibrary` | Three lists of the same drafts |
+| Lesson quiz | `questionHtml`, electricity `viewQuiz` | Two quiz UIs |
+| Word activity | `word-search.html`, electricity `viewWords`, template `word_search` | Three different things |
+
+`GameCard`, `LearningGameCard`, `ActivityCard`, `PuzzleCard`, and `QuizCard` do not exist as components. Portal render functions and `teach.js` template objects are the real duplicates.
+
+## Component consolidation plan
+
+Build shared pieces only where the registry shows the same job repeated. Do not wrap every game in one component.
+
+| Future piece | Would replace | Leave alone |
+| --- | --- | --- |
+| Tokens (colour, type, space, radius, shadow, motion) | Hex and font repeats below | Per-game art |
+| Button and quiet button | The button classes listed above | — |
+| Sheet / dialog | Org sheets, class wizard, pupil card, character modal, activity sheet, native confirm | Browser `alert` until replaced |
+| Page header | Portal bar, class `room-top`, present header, game nav, storybook chrome | Marketing `o-bar` until that page is in scope |
+| Class card and portrait | The three cards and four portrait helpers | — |
+| Empty, loading, error | Boot, class missing, adventure missing, library hints, `#sbBusy`, character `#chBusy` | — |
+| Book card | Portal stories and storybook shelf | Reader spread |
+| Scoreboard | Family `.gsc`, present reward pips, results sheet | Participation tab, which is not a score |
+| Teacher controls | `details.class-tools` | — |
+| Result screen | `#screenWin`, `#screenLose`, overlays, `doneHtml`, `viewResults` | — |
+
+### Classroom shell
+
+A classroom shell is appropriate. A family-game shell already exists and is the wrong place to pretend the boards match.
+
+Call the classroom one `WondiiLessonShell` (the file set is lessons, not the 19 arcade games). It would wrap `viewStage` only:
+
+- School type and colour from the organisation, not a hardcoded Ramsden red
+- Title, year, slide count
+- `rewardBar` and any future team row
+- Teacher controls, including a real confirm
+- 16:9 frame, the same idea as `.room-frame`
+- Correct, incorrect, and reward states as slots
+- Pause, completion, and the results handoff
+- One full-screen control
+
+`questionHtml`, `storyHtml`, `spinHtml`, `mysteryHtml`, and `doorsHtml` would stay the mechanics inside it. Electricity would stay outside until someone decides the demo is a lesson rather than a microsite page.
+
+`wondii-shell.js` should stay the family header. Extending it with a scoreboard and teacher controls would mix the portal games with the classroom. Do not build either shell until a migration phase says so.
+
+## Tokens today
+
+There is no token file. No Tailwind. Values are repeated in CSS and in inline styles.
+
+Colour, counted as hex matches in product CSS/HTML/JS (worktrees excluded). Largest files:
+
+| File | Hex matches |
+| --- | ---: |
+| `games/storybook-app.css` | 190 |
+| `games/snakes-ladders.css` | 155 |
+| `games/math-race.css` | 105 |
+| `games/snap.css` | 97 |
+| `welcome.css` | 88 |
+| `games/storybook-wondii.css` | 83 |
+| `portal.css` | 82 |
+| `games/colouring.css` | 84 |
+| `schools/org-portal.css` | 72 |
+| `home.css` | 60 |
+| `games/noughts-crosses.css` | 57 |
+| `games/connect-four.css` | 57 |
+| `games/word-search.css` | 56 |
+| `schools/demo/electricity.css` | 51 |
+| `portal-app.css` | 51 |
+| `jigsaw.css` | 42 |
+| `games/memory.css` | 40 |
+| `games/runner.css` | 39 |
+| `js/game-scorecard.css` | 38 |
+| `schools/learn/class.css` | 37 |
+| `schools/school.css` | 35 |
+| `characters.html` | 34 |
+| `js/kids-core.css` | 34 |
+| `schools/learn/create.css` | 32 |
+| `games/runner.js` | 98 |
+| `games/storybook.js` | 40 |
+| `games/star-catcher.html` | 40 |
+
+Navy `#141b4d` is repeated as a literal, including `orgColour` default `#141b4d` and preview buttons in `present.js`. Ramsden `#c41230` is literal in `ramsden.html`, `schools/ramsden.js`, `schools/demo/electricity.css`, and `present.js` results/preview kickers.
+
+Type: Fredoka and Nunito are linked by the shell, the portal, and storybook. Storybook also offers Schoolbell, Sniglet, Kalam, Patrick Hand, Comic Neue. Marketing uses its own stack in `welcome.css`.
+
+Spacing, radius, shadow, and motion are local to each stylesheet. This audit did not catalogue every `border-radius` and `box-shadow`. That pass is still open. Inline style is confirmed in `present.js` (header, results kicker, preview inputs and buttons, bar widths) and in `class-room.js` seat geometry.
+
+Icons: inline SVG in the portal nav. Emoji as icons on the family home tiles, the jigsaw title, and Star Catcher. No second icon library was found.
+
+## What not to say
+
+Do not report "all pages updated", "all games redesigned", or "design system applied everywhere".
+
+The only honest migration line until the registry changes is:
+
+182 total. 0 migrated. 29 current-but-not-tokenised. 80 mixed. 71 legacy. 2 unknown. 182 runtime review required.

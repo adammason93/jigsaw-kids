@@ -112,7 +112,7 @@
     });
     var more = document.createElement("p");
     more.className = "o-try__more";
-    more.innerHTML = "<strong>In Oovi</strong>, " + "this becomes an illustrated book starring " + "<span></span>" + " — plus puzzles and games made from it.";
+    more.innerHTML = "<strong>In Wondii</strong>, " + "this becomes an illustrated book starring " + "<span></span>" + " — plus puzzles and games made from it.";
     more.querySelector("span").textContent = input.name;
     storyEl.appendChild(more);
     formView.hidden = true;

@@ -234,20 +234,22 @@
   ];
 
   var STEP_HEADINGS = [
-    "Let’s make your book",
     "Who’s the hero?",
-    "Pick a buddy",
-    "Where & what happens",
+    "Who comes along?",
+    "Where does it happen?",
+    "What happens?",
+    "How should it look?",
   ];
 
-  var STEP_PROGRESS_LABELS = ["Hello", "You", "Friend", "Story"];
+  var STEP_PROGRESS_LABELS = ["You", "Friend", "Place", "Story", "Look"];
 
   /** Short lines read aloud per wizard step (pre-readers). */
   var STEP_GUIDE_TEXT = [
-    "Welcome. We will ask who you are, who your friend is, then where the story happens and what happens. Press Let’s go when you are ready.",
-    "Who is the hero? This is your name in the story. You can type or tap Speak. You can add photos and pick a book title and colours.",
-    "Pick a buddy for your story, tap Add your own buddy to describe anyone you like, or pick no buddy for people only.",
-    "Pick where it happens using the scenes you see, tap Add your own scene if you like, then write what happens below. One sentence is enough — you can tap Speak or try a starter.",
+    "Who is the hero? Type their name, or tap Speak. You can add a photo if you like. Then press Next.",
+    "Pick a friend to come along. Or pick no buddy.",
+    "Pick a place for the pictures. Tap Next when you have one.",
+    "What happens in the story? One sentence is enough. You can tap an idea, or Speak.",
+    "Pick how the pictures should look. Then press Make my book.",
   ];
 
   var PLOT_STARTERS = [
@@ -432,6 +434,19 @@
     // Highlight the word being read
     if (element) {
       element.classList.add("sb-word-reading");
+      var impact = element.closest ? element.closest(".sb-impact") : null;
+      if (impact) {
+        impact.classList.remove("sb-impact--pop", "sb-impact--whoosh", "sb-impact--spark", "sb-impact--glow");
+        var kind = "sb-impact--glow";
+        if (impact.classList.contains("sb-impact--sound")) kind = "sb-impact--pop";
+        else if (impact.classList.contains("sb-impact--magical")) kind = "sb-impact--spark";
+        else if (impact.classList.contains("sb-impact--emotion")) kind = "sb-impact--pop";
+        impact.classList.add(kind);
+        window.setTimeout(function () {
+          impact.classList.remove(kind);
+        }, 560);
+      }
+      dismissWordTip();
     }
     
     var audioUrl = cleverServiceTtsUrl(word);
@@ -469,9 +484,21 @@
       currentAudio.src = "";
       currentAudio = null;
     }
-    if (btnReadToMe) {
-      btnReadToMe.innerHTML = '<span aria-hidden="true" style="margin: 0;">🔊</span>';
-      btnReadToMe.disabled = false;
+    setReadToMeState("idle");
+  }
+
+  function setReadToMeState(state) {
+    if (!btnReadToMe) return;
+    var icon = btnReadToMe.querySelector(".sb-read-toolbar__icon");
+    var label = btnReadToMe.querySelector(".sb-read-toolbar__label");
+    var reading = state === "reading";
+    btnReadToMe.classList.toggle("is-reading", reading);
+    btnReadToMe.disabled = state === "wait";
+    btnReadToMe.setAttribute("aria-pressed", reading ? "true" : "false");
+    if (icon) icon.textContent = state === "wait" ? "…" : reading ? "⏹" : "🔊";
+    if (label) label.textContent = reading ? "Stop" : "Read to me";
+    if (!icon && !label) {
+      btnReadToMe.textContent = reading ? "Stop" : "Read to me";
     }
   }
 
@@ -485,15 +512,19 @@
       var n = numSpreads();
       if (n < 1 || spreadIndex * 2 >= story.pages.length) return;
       var leftP = story.pages[spreadIndex * 2];
-      if (!leftP || !leftP.text) return;
+      var rightP = story.pages[spreadIndex * 2 + 1];
+      var readText = leftP && leftP.text ? String(leftP.text).trim() : "";
+      if (rightP && rightP.text && String(rightP.text).trim()) {
+        readText = readText ? readText + "\n\n" + String(rightP.text).trim() : String(rightP.text).trim();
+      }
+      if (!readText) return;
       
       var fUrl = functionUrl();
       if (!fUrl) return;
       
-      btnReadToMe.innerHTML = '<span aria-hidden="true" style="margin: 0;">⏳</span>';
-      btnReadToMe.disabled = true;
+      setReadToMeState("wait");
       
-      var audioUrl = cleverServiceTtsUrl(leftP.text);
+      var audioUrl = cleverServiceTtsUrl(readText);
       if (!audioUrl) {
         stopReading();
         return;
@@ -505,15 +536,13 @@
       if (playPromise !== undefined) {
         playPromise.then(function() {
           if (!currentAudio) return;
-          btnReadToMe.innerHTML = '<span aria-hidden="true" style="margin: 0;">⏹️</span>';
-          btnReadToMe.disabled = false;
+          setReadToMeState("reading");
         }).catch(function(e) {
           console.error("Audio playback failed:", e);
           stopReading();
         });
       } else {
-        btnReadToMe.innerHTML = '<span aria-hidden="true" style="margin: 0;">⏹️</span>';
-        btnReadToMe.disabled = false;
+        setReadToMeState("reading");
       }
       
       currentAudio.onended = stopReading;
@@ -1356,7 +1385,7 @@
     }
     shell.addEventListener("transitionend", onTe);
     shell.addEventListener("webkitTransitionEnd", onTe);
-    var tid = window.setTimeout(finish, 480);
+    var tid = window.setTimeout(finish, 760);
   }
 
   /**
@@ -1368,6 +1397,8 @@
     syncSpreadIllustrationFromStory();
     syncReaderFacingLayoutClasses();
     placeTextPageForFacingLayout();
+    renderDuplexStoryType();
+    window.requestAnimationFrame(fitVisibleStoryText);
     updateSpreadPageNumberDisplay();
     nudgeDuplexArtComposite();
     prefetchAdjacentSpreadIllustrations();
@@ -1665,7 +1696,7 @@
     if (book && book.classList.contains("sb-book--cover-visible")) return;
     if (delta > 0 && spreadIndex >= numSpreads() - 1) return;
     if (delta < 0 && spreadIndex <= 0) return;
-    if (prefersReducedSpreadMotion()) {
+    if (prefersReducedSpreadMotion() || phoneReaderOn()) {
       navigateSpreadInstant(delta);
       return;
     }
@@ -1717,6 +1748,10 @@
 
     readerStack.classList.remove("sb-reader-stack--open");
     book.classList.add("sb-book--cover-visible");
+    book.classList.remove("sb-chrome--quiet", "sb-book--phone-leaf", "sb-book--phone-right");
+    phoneLeaf = "left";
+    syncReadDock();
+    updateReadChrome();
     if (readerPages) readerPages.setAttribute("aria-hidden", "true");
     if (btnOpenCover) {
       btnOpenCover.removeAttribute("aria-hidden");
@@ -1732,8 +1767,18 @@
 
     spreadIndex = 0;
     coverOpenGeneration += 1;
+    phoneLeaf = "left";
     readerStack.classList.add("sb-reader-stack--open");
     book.classList.remove("sb-book--cover-visible");
+    book.classList.add("sb-book--opening");
+    window.setTimeout(function () {
+      if (book) book.classList.remove("sb-book--opening");
+    }, 980);
+    applyPhoneLeaf();
+    syncReadDock();
+    updateReadChrome();
+    maybeShowWordTip();
+    wakeReaderChrome();
     if (readerPages) readerPages.removeAttribute("aria-hidden");
     if (btnOpenCover) {
       btnOpenCover.setAttribute("aria-hidden", "true");
@@ -1825,7 +1870,7 @@
     book.style.setProperty("--sb-reader-font-over-art", preset.overArt);
     book.style.setProperty("--sb-reader-font-emphasis", preset.emphasis);
 
-    var u = story.sceneImageUrl;
+    var u = story.sceneImageUrl || firstSpreadArtUrlForCover();
     if (u) {
       book.classList.add("sb-book--themed");
       // Remove setting the background image on the entire book container
@@ -1873,14 +1918,14 @@
     var imgs = [
       "images/colouring/template-winged-unicorn.png",
       "images/colouring/template-dino-hill.png",
-      "images/character-freya.png",
+      "images/colouring/template-pony.png",
       "images/math-race-dino.png",
       "images/colouring/template-mermaid.png",
-      "images/character-sofia-running.png",
+      "images/colouring/template-splash-friends.png",
     ];
     var texts = [
-      "Once upon a time, a small fox named Mira found a silver star glinting in the tall grass near the edge of the woods.",
-      "The star whispered that it had tumbled from the sky and needed to be home before sunrise. Mira promised to help.",
+      "\"Ready, Fox?\" Mira asked, glancing at her friend. The fox nodded eagerly, its fluffy tail swishing in excitement.\n\nWith a roar, they raced toward the shimmering moon.",
+      "BANG! The star whispered that it had tumbled from the sky and needed to be home before sunrise, beyond Crystal Valley.",
       "She rolled the star gently in a leaf-boat down the brook, past sleepy ducks and sparkling stones.",
       "At the hill of three oaks, a wise crow pointed to the clearest patch of night where the sky looked soft as velvet.",
       "Mira tossed the star as high as she could. It caught a breeze and rose — tiny at first, then bright again.",
@@ -1898,6 +1943,29 @@
         imageUrl: null,
       }
     );
+    pages[2].textSafeZones = [
+      { side: "left", position: "upper-left", priority: 1 },
+      { side: "right", position: "upper-right", priority: 2 },
+    ];
+    pages[2].impactWords = [
+      { text: "\"Ready, Fox?\"", type: "dialogue" },
+      { text: "shimmering moon", type: "magical" },
+    ];
+    pages[2].textBlocks = [
+      {
+        side: "left",
+        position: "upper-left",
+        sentences: [
+          "\"Ready, Fox?\" Mira asked, glancing at her friend.",
+          "The fox nodded eagerly, its fluffy tail swishing in excitement.",
+        ],
+      },
+      {
+        side: "right",
+        position: "upper-right",
+        sentences: ["With a roar, they raced toward the shimmering moon."],
+      },
+    ];
     var rfKeys = Object.keys(SB_READER_FONT_PRESETS);
     var rfPick = rfKeys[(Math.random() * rfKeys.length) | 0] || "fredoka";
     return {
@@ -2264,10 +2332,14 @@
   function fillPeelBackTextColumn(si) {
     if (!spreadPeelBackText) return;
     if (
-      spreadInnerEl &&
-      spreadInnerEl.classList.contains("sb-flip-spread__inner--art-facing")
+      !spreadInnerEl ||
+      !spreadInnerEl.classList.contains("sb-flip-spread__inner--art-facing")
     ) {
       spreadPeelBackText.innerHTML = "";
+      window.requestAnimationFrame(function () {
+        renderDuplexStoryType();
+        fitVisibleStoryText();
+      });
       return;
     }
     var block = spreadLeftColumnBlockAtSi(si);
@@ -2282,6 +2354,7 @@
     } else {
       spreadPeelBackText.innerHTML = "";
     }
+    window.requestAnimationFrame(fitVisibleStoryText);
   }
 
   function openSampleBook() {
@@ -2289,6 +2362,585 @@
     spreadIndex = 0;
     showBook();
   }
+
+  var storyTypeState = null;
+
+  function duplexStoryTypeActive() {
+    if (!story || !spreadInnerEl) return false;
+    if (getEffectiveReaderArtLayout() === "facing") return false;
+    if (spreadInnerEl.classList.contains("sb-flip-spread__inner--art-facing")) return false;
+    if (spreadInnerEl.classList.contains("sb-flip-spread__inner--flyleaf-pane")) return false;
+    if (spreadIndex * 2 >= story.pages.length) return false;
+    return (
+      spreadInnerEl.classList.contains("sb-flip-spread__inner--has-art") ||
+      spreadRowHasIllustration(spreadIndex)
+    );
+  }
+
+  function storyWordCount(sentence) {
+    return String(sentence || "")
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean).length;
+  }
+
+  function storySentenceSpecial(sentence) {
+    var s = String(sentence || "").trim();
+    return /[“"]/.test(s) || (/!$/.test(s) && s.length < 18);
+  }
+
+  function splitStoryParagraphs(text) {
+    return String(text || "")
+      .replace(/\r/g, "")
+      .split(/\n+/)
+      .map(function (para) {
+        return para.trim();
+      })
+      .filter(Boolean)
+      .map(function (para) {
+        var sentences = [];
+        var buf = "";
+        var quote = false;
+        for (var i = 0; i < para.length; i++) {
+          var ch = para.charAt(i);
+          buf += ch;
+          if (ch === '"' || ch === "\u201c" || ch === "\u201d") quote = !quote;
+          if (!quote && /[.!?]/.test(ch)) {
+            var nxt = para.charAt(i + 1);
+            if (!nxt || /\s/.test(nxt)) {
+              if (buf.trim()) sentences.push(buf.trim());
+              buf = "";
+            }
+          }
+        }
+        if (buf.trim()) sentences.push(buf.trim());
+        return sentences.length ? sentences : [para];
+      });
+  }
+
+  function blocksFromPlanner(text, hinted) {
+    if (!hinted || !hinted.length) return null;
+    var lower = String(text || "").toLowerCase();
+    var ok = hinted.every(function (block) {
+      var sentences = block && block.sentences;
+      return (
+        sentences &&
+        sentences.length &&
+        sentences.every(function (sentence) {
+          var bit = String(sentence || "").trim().toLowerCase();
+          return bit.length > 2 && lower.indexOf(bit) >= 0;
+        })
+      );
+    });
+    if (!ok) return null;
+    return hinted.slice(0, 3).map(function (block, i) {
+      return {
+        side: block.side === "right" ? "right" : "left",
+        position: String(block.position || (block.side === "right" ? "upper-right" : "upper-left")),
+        width: block.width || (i === 0 ? "30%" : "28%"),
+        sentences: block.sentences.map(function (sentence) {
+          return String(sentence).trim();
+        }),
+      };
+    });
+  }
+
+  function planStoryTextBlocks(text, zones, hinted) {
+    var planned = blocksFromPlanner(text, hinted);
+    var blocks = planned;
+    if (!blocks) {
+      var groups = splitStoryParagraphs(text);
+      var chunks = [];
+      if (groups.length >= 2) {
+        chunks.push(groups[0].slice());
+        var rest = [];
+        for (var g = 1; g < groups.length; g++) rest = rest.concat(groups[g]);
+        if (groups.length >= 3 && rest.length > groups[groups.length - 1].length) {
+          var last = groups[groups.length - 1];
+          chunks.push(rest.slice(0, rest.length - last.length));
+          chunks.push(last.slice());
+        } else {
+          chunks.push(rest);
+        }
+      } else {
+        var sents = (groups[0] || []).slice();
+        var cut = -1;
+        var shift = /^(with|then|suddenly|at last|soon|later|next|finally|meanwhile)\b/i;
+        for (var s = 1; s < sents.length; s++) {
+          if (shift.test(sents[s])) {
+            cut = s;
+            break;
+          }
+        }
+        if (cut < 0 && sents.length >= 4) {
+          cut = /[“"]/.test(sents[0]) ? 2 : Math.ceil(sents.length / 2);
+          if (cut >= sents.length) cut = sents.length - 1;
+        }
+        if (cut > 0 && cut < sents.length) {
+          chunks = [sents.slice(0, cut), sents.slice(cut)];
+        } else if (sents.length) {
+          chunks = [sents];
+        }
+      }
+      blocks = chunks
+        .filter(function (sentences) {
+          return sentences && sentences.length;
+        })
+        .slice(0, 3)
+        .map(function (sentences) {
+          return { sentences: sentences };
+        });
+    }
+
+    var merged = [];
+    blocks.forEach(function (block) {
+      var words = block.sentences.reduce(function (sum, sentence) {
+        return sum + storyWordCount(sentence);
+      }, 0);
+      var special = block.sentences.some(storySentenceSpecial);
+      if (words <= 2 && !special && merged.length) {
+        merged[merged.length - 1].sentences = merged[merged.length - 1].sentences.concat(block.sentences);
+      } else {
+        merged.push({
+          side: block.side,
+          position: block.position,
+          width: block.width,
+          sentences: block.sentences.slice(),
+        });
+      }
+    });
+    blocks = merged.slice(0, 3);
+
+    var positions = (zones || []).slice().sort(function (a, b) {
+      return (Number(a.priority) || 9) - (Number(b.priority) || 9);
+    });
+    if (!positions.length) {
+      positions = [
+        { side: "left", position: "upper-left" },
+        { side: "right", position: "upper-right" },
+        { side: "left", position: "lower-left" },
+      ];
+    }
+    var usedPos = {};
+    var placedSides = [];
+    return blocks.map(function (block, i) {
+      var zone = positions[i] || positions[positions.length - 1];
+      var side = block.side === "right" || block.side === "left" ? block.side : zone.side === "right" ? "right" : "left";
+      if (!block.side && blocks.length > 1 && i > 0 && side === placedSides[0]) {
+        side = placedSides[0] === "left" ? "right" : "left";
+        zone = { side: side, position: side === "right" ? "upper-right" : "upper-left" };
+      }
+      placedSides.push(side);
+      var position = block.position || zone.position || (side === "right" ? "upper-right" : "upper-left");
+      var key = side + ":" + position;
+      if (usedPos[key]) {
+        position = side === "right" ? "lower-right" : "lower-left";
+        key = side + ":" + position;
+      }
+      usedPos[key] = true;
+      return {
+        side: side,
+        position: position,
+        width: block.width || (i === 0 ? "30%" : "28%"),
+        sentences: block.sentences,
+      };
+    });
+  }
+
+  function resolveImpactWords(text, hinted) {
+    var source = String(text || "");
+    var lower = source.toLowerCase();
+    var found = [];
+    function add(phrase, type) {
+      var bit = String(phrase || "").trim();
+      if (!bit || found.length >= 3) return;
+      if (lower.indexOf(bit.toLowerCase()) < 0) return;
+      if (found.some(function (item) { return item.text.toLowerCase() === bit.toLowerCase(); })) return;
+      found.push({ text: bit, type: type || "magical" });
+    }
+    (hinted || []).forEach(function (item) {
+      if (item && item.text) add(item.text, item.type || "magical");
+    });
+    if (found.length) return found.slice(0, 3);
+    var sound = /\b(?:BANG|BOOM|WHOOSH|CRASH|ROAR|ZOOM|SPLASH|POP|POW|ZAP)!/gi;
+    var match;
+    while ((match = sound.exec(source))) add(match[0], "sound");
+    var spoken = /[“"][^"“”]{1,32}[”"]/.exec(source);
+    if (spoken) add(spoken[0], "dialogue");
+    var place = /\b[A-Z][a-z]+(?:\s+[A-Z][a-z]+){0,2}\s+(?:Valley|Palace|Forest|Castle|Cave|Kingdom|Mountain|Ocean|Garden|Ridge)\b/.exec(source);
+    if (place) add(place[0], "place");
+    var magical = /\b(?:shimmering|glowing|glistening|sparkling|glittering|magical|enormous)\s+[a-z]{3,}/i.exec(source);
+    if (magical) add(magical[0], "magical");
+    else {
+      var magicalWord = /\b(?:shimmering|glowing|glistening|sparkling|glittering|magical|enormous)\b/i.exec(source);
+      if (magicalWord) add(magicalWord[0], "magical");
+    }
+    var emotion = /\b(?:AMAZING|WOW|HOORAY|YAY)!/g;
+    while ((match = emotion.exec(source))) add(match[0], "emotion");
+    return found.slice(0, 3);
+  }
+
+  function storyWordsHtml(chunk) {
+    var lines = escapeHtml(chunk).split("\n");
+    return lines
+      .map(function (line) {
+        return line
+          .split(/(\s+)/)
+          .map(function (part) {
+            if (!part || /^\s+$/.test(part)) return part;
+            var clean = part.replace(/[.,/#!$%^&*;:{}=\-_`~()'"”]/g, "");
+            return (
+              '<span class="sb-readable-word" data-word="' +
+              escapeAttr(clean) +
+              '">' +
+              part +
+              "</span>"
+            );
+          })
+          .join("");
+      })
+      .join("<br/>");
+  }
+
+  function markStoryImpacts(text, impacts) {
+    var src = String(text || "");
+    var lower = src.toLowerCase();
+    var ranges = [];
+    (impacts || []).forEach(function (impact) {
+      if (ranges.length >= 3) return;
+      var phrase = String(impact.text || "").trim();
+      if (phrase.length < 2) return;
+      var at = lower.indexOf(phrase.toLowerCase());
+      if (at < 0) return;
+      var end = at + phrase.length;
+      var overlaps = ranges.some(function (range) {
+        return at < range.end && end > range.start;
+      });
+      if (overlaps) return;
+      var type = /^(sound|magical|emotion|place|dialogue)$/.test(impact.type) ? impact.type : "magical";
+      ranges.push({ start: at, end: end, type: type });
+    });
+    ranges.sort(function (a, b) {
+      return a.start - b.start;
+    });
+    var html = "";
+    var cursor = 0;
+    ranges.forEach(function (range) {
+      html += storyWordsHtml(src.slice(cursor, range.start));
+      html +=
+        '<span class="sb-impact sb-impact--' +
+        range.type +
+        '">' +
+        storyWordsHtml(src.slice(range.start, range.end)) +
+        "</span>";
+      if (range.type === "dialogue" && range.end < src.length) html += "<br/>";
+      cursor = range.end;
+    });
+    html += storyWordsHtml(src.slice(cursor));
+    return html;
+  }
+
+  function pageWidthFromSpread(width) {
+    var n = parseFloat(width);
+    if (!n) return "";
+    if (n <= 42) return Math.max(46, Math.min(78, Math.round((n / 44.5) * 100))) + "%";
+    return Math.max(46, Math.min(78, Math.round(n))) + "%";
+  }
+
+  function paintStoryType(layer, state) {
+    var left = "";
+    var right = "";
+    state.blocks.forEach(function (block, index) {
+      var html =
+        '<p class="sb-story-block" data-side="' +
+        block.side +
+        '" data-pos="' +
+        escapeAttr(block.position) +
+        '" data-block-index="' +
+        index +
+        '" style="width:' +
+        pageWidthFromSpread(block.width) +
+        '">' +
+        markStoryImpacts(block.sentences.join(" "), state.impacts) +
+        "</p>";
+      if (block.side === "right") right += html;
+      else left += html;
+    });
+    layer.innerHTML =
+      '<div class="sb-story-type__page" data-side="left">' +
+      left +
+      '</div><div class="sb-story-type__gutter" aria-hidden="true"></div><div class="sb-story-type__page" data-side="right">' +
+      right +
+      '</div><p class="sb-story-type__flag" id="sbStoryTypeOverflow" hidden>This spread has more words than fit</p>';
+    bindReadableWordSpans(layer);
+  }
+
+  function renderDuplexStoryType() {
+    var layer = document.getElementById("sbStoryType");
+    var panel = document.getElementById("sbSpreadTextPanel");
+    if (!layer || !spreadInnerEl) return;
+    var on = duplexStoryTypeActive();
+    spreadInnerEl.classList.toggle("sb-flip-spread__inner--story-type", on);
+    if (panel) {
+      if (on) panel.setAttribute("aria-hidden", "true");
+      else panel.removeAttribute("aria-hidden");
+    }
+    if (!on) {
+      layer.hidden = true;
+      layer.innerHTML = "";
+      storyTypeState = null;
+      return;
+    }
+    var leftP = story.pages[spreadIndex * 2] || {};
+    var rightP = story.pages[spreadIndex * 2 + 1] || {};
+    var text = String(leftP.text || "").trim();
+    if (rightP.text && String(rightP.text).trim()) {
+      text = text ? text + "\n\n" + String(rightP.text).trim() : String(rightP.text).trim();
+    }
+    if (!text) {
+      layer.hidden = true;
+      layer.innerHTML = "";
+      storyTypeState = null;
+      spreadInnerEl.classList.remove("sb-flip-spread__inner--story-type");
+      return;
+    }
+    var zones = leftP.textSafeZones || rightP.textSafeZones || [];
+    var hintedBlocks = leftP.textBlocks || rightP.textBlocks || [];
+    var hintedImpacts = leftP.impactWords || rightP.impactWords || [];
+    storyTypeState = {
+      blocks: planStoryTextBlocks(text, zones, hintedBlocks),
+      impacts: resolveImpactWords(text, hintedImpacts),
+    };
+    paintStoryType(layer, storyTypeState);
+    layer.hidden = false;
+  }
+
+  function storyBlockOverflows(block, region) {
+    return block.scrollHeight > region + 2;
+  }
+
+  function pullBlockOffGutter(block, gutter) {
+    if (!block || !gutter) return;
+    var guard = 0;
+    while (guard < 6) {
+      var box = block.getBoundingClientRect();
+      var gap = gutter.getBoundingClientRect();
+      if (box.right <= gap.left + 1 || box.left >= gap.right - 1) return;
+      var next = Math.max(120, box.width - 16);
+      block.style.width = next + "px";
+      guard += 1;
+    }
+  }
+
+  function fitStoryTypeBlocks(layer, pass) {
+    if (!storyTypeState) return;
+    var flag = document.getElementById("sbStoryTypeOverflow");
+    if (flag) flag.hidden = true;
+    var gutter = layer.querySelector(".sb-story-type__gutter");
+    var nodes = layer.querySelectorAll(".sb-story-block");
+    var base = Math.max(16, Math.min(27, (window.innerWidth || 1200) * 0.0135));
+    var anyOver = false;
+    for (var i = 0; i < nodes.length; i++) {
+      var node = nodes[i];
+      var page = node.parentElement;
+      var pageH = (page && page.clientHeight) || 400;
+      var pageW = (page && page.clientWidth) || 280;
+      var region = Math.round(pageH * 0.42);
+      var size = base;
+      var leading = 1.42;
+      node.style.maxHeight = region + "px";
+      node.style.overflow = "hidden";
+      node.style.fontSize = size.toFixed(2) + "px";
+      node.style.lineHeight = String(leading);
+      while (size > 16 && storyBlockOverflows(node, region)) {
+        size -= 1;
+        node.style.fontSize = size.toFixed(2) + "px";
+      }
+      if (storyBlockOverflows(node, region)) {
+        leading = 1.35;
+        node.style.lineHeight = "1.35";
+      }
+      if (storyBlockOverflows(node, region)) {
+        region = Math.round(pageH * 0.58);
+        node.style.maxHeight = region + "px";
+        node.style.width = Math.round(pageW * 0.76) + "px";
+      }
+      pullBlockOffGutter(node, gutter);
+      var over = storyBlockOverflows(node, region);
+      node.classList.toggle("sb-story-block--overfilled", over);
+      node.style.overflow = over ? "auto" : "visible";
+      if (!over) node.style.maxHeight = "";
+      var index = Number(node.getAttribute("data-block-index"));
+      if (storyTypeState.blocks[index]) storyTypeState.blocks[index].overfilled = over;
+      if (over) anyOver = true;
+    }
+    if (anyOver && pass < 1 && redistributeStoryBlocks()) {
+      paintStoryType(layer, storyTypeState);
+      fitStoryTypeBlocks(layer, pass + 1);
+      return;
+    }
+    layer.setAttribute("data-sb-text-fit", anyOver ? "overflow" : "ok");
+    if (flag) flag.hidden = !anyOver;
+  }
+
+  function redistributeStoryBlocks() {
+    if (!storyTypeState || storyTypeState.blocks.length >= 3 && storyTypeState.blocks.every(function (block) {
+      return block.overfilled;
+    })) {
+      return false;
+    }
+    var moved = false;
+    storyTypeState.blocks.forEach(function (block) {
+      if (!block.overfilled || block.sentences.length < 2) return;
+      var sentence = block.sentences[block.sentences.length - 1];
+      if (storyWordCount(sentence) < 3 && !storySentenceSpecial(sentence)) return;
+      var otherSide = block.side === "left" ? "right" : "left";
+      var others = storyTypeState.blocks.filter(function (item) {
+        return item.side === otherSide;
+      });
+      if (others.length >= 2) return;
+      if (!others.length && storyTypeState.blocks.length >= 3) return;
+      block.sentences.pop();
+      if (others.length === 1) others[0].sentences.push(sentence);
+      else {
+        storyTypeState.blocks.push({
+          side: otherSide,
+          position: otherSide === "right" ? "lower-right" : "lower-left",
+          width: "28%",
+          sentences: [sentence],
+        });
+      }
+      block.overfilled = false;
+      moved = true;
+    });
+    return moved;
+  }
+
+  var storyTextFitTimer = 0;
+
+  function fitOneStoryHighlight(highlightEl, isMain) {
+    var panel = highlightEl ? highlightEl.closest(".sb-flip-text") : null;
+    var sheet = highlightEl ? highlightEl.closest(".sb-flip-page__sheet") || highlightEl.parentElement : null;
+    var flag = isMain ? document.getElementById("sbStoryOverflow") : null;
+    var plain = String(highlightEl && highlightEl.textContent || "").replace(/\s+/g, " ").trim();
+    if (!highlightEl || !sheet || !plain || highlightEl.querySelector(".sb-the-end-wrap")) {
+      if (highlightEl) {
+        highlightEl.style.fontSize = "";
+        highlightEl.style.lineHeight = "";
+        highlightEl.classList.remove("sb-story-copy--long", "sb-story-text--overflow");
+      }
+      if (panel) {
+        panel.style.width = "";
+        panel.style.maxWidth = "";
+        panel.style.maxHeight = "";
+        panel.classList.remove("sb-story-panel--wide", "sb-story-text--overflow");
+      }
+      if (flag) flag.hidden = true;
+      if (sheet && sheet.setAttribute) sheet.setAttribute("data-sb-text-fit", "empty");
+      return;
+    }
+    if (flag) flag.hidden = true;
+    var overArt = !!(
+      spreadInnerEl &&
+      spreadInnerEl.classList.contains("sb-flip-spread__inner--has-art") &&
+      !spreadInnerEl.classList.contains("sb-flip-spread__inner--art-facing")
+    );
+    var breaks = highlightEl.innerHTML.match(/<br/gi);
+    var longCopy = plain.length > 90 || (breaks ? breaks.length : 0) >= 2;
+    highlightEl.classList.toggle("sb-story-copy--long", longCopy);
+
+    var sheetW = sheet.clientWidth || 280;
+    var sheetH = sheet.clientHeight || 360;
+    var safeX = Math.max(16, sheetW * 0.08);
+    var safeY = Math.max(14, sheetH * 0.08);
+    var gutter = overArt ? Math.max(18, sheetW * 0.06) : 0;
+    var maxW = Math.max(110, sheetW - safeX * 2 - gutter);
+    var limitH = Math.max(64, sheetH - safeY);
+    var startW = Math.round(Math.min(maxW, maxW * (longCopy ? 0.94 : 0.8)));
+    var minPx = overArt ? 11 : 12;
+    var maxPx = overArt
+      ? Math.min(17, Math.max(minPx + 1, Math.min(sheetH * 0.046, sheetW * 0.036)))
+      : Math.min(18, Math.max(minPx + 1, sheetH * 0.04));
+
+    function paint(size, leading, width) {
+      highlightEl.style.fontSize = size.toFixed(2) + "px";
+      highlightEl.style.lineHeight = String(leading);
+      if (panel && overArt) {
+        panel.style.width = Math.round(width) + "px";
+        panel.style.maxWidth = "100%";
+      }
+    }
+    function tooTall(width) {
+      var box = panel || highlightEl;
+      var tall = box.offsetHeight > limitH + 1;
+      var wide = highlightEl.scrollWidth > width + 6;
+      return tall || wide;
+    }
+
+    var leading = 1.45;
+    var width = startW;
+    var lo = minPx;
+    var hi = maxPx;
+    var best = minPx;
+    var step;
+    for (step = 0; step < 8; step++) {
+      var mid = (lo + hi) / 2;
+      paint(mid, leading, width);
+      if (!tooTall(width)) {
+        best = mid;
+        lo = mid;
+      } else {
+        hi = mid;
+      }
+    }
+    paint(best, leading, width);
+    if (tooTall(width)) {
+      leading = 1.35;
+      paint(best, leading, width);
+    }
+    if (tooTall(width) && width < maxW - 1) {
+      width = maxW;
+      if (panel) panel.classList.add("sb-story-panel--wide");
+      paint(best, leading, width);
+    } else if (panel) {
+      panel.classList.remove("sb-story-panel--wide");
+    }
+    if (tooTall(width)) {
+      best = minPx;
+      leading = 1.35;
+      width = maxW;
+      paint(best, leading, width);
+    }
+    var overflow = tooTall(width);
+    highlightEl.classList.toggle("sb-story-text--overflow", overflow);
+    if (panel) {
+      panel.classList.toggle("sb-story-text--overflow", overflow);
+      panel.style.maxHeight = overflow ? Math.round(limitH) + "px" : "";
+    }
+    if (flag) flag.hidden = !overflow;
+    if (sheet.setAttribute) sheet.setAttribute("data-sb-text-fit", overflow ? "overflow" : "ok");
+  }
+
+  function fitVisibleStoryText() {
+    var layer = document.getElementById("sbStoryType");
+    if (
+      layer &&
+      !layer.hidden &&
+      spreadInnerEl &&
+      spreadInnerEl.classList.contains("sb-flip-spread__inner--story-type")
+    ) {
+      fitStoryTypeBlocks(layer, 0);
+      return;
+    }
+    fitOneStoryHighlight(spreadText, true);
+    var peel = document.querySelector(".sb-flip-spread__peel-back-text .sb-flip-text__highlight");
+    if (peel && peel !== spreadText) fitOneStoryHighlight(peel, false);
+  }
+
+  window.addEventListener("resize", function () {
+    if (storyTextFitTimer) window.clearTimeout(storyTextFitTimer);
+    storyTextFitTimer = window.setTimeout(fitVisibleStoryText, 140);
+  });
 
   /** @param {number} [textSiOverride]  Spread index for prose (facing uses primary text page of the pair). */
   function writeSpreadTextMetaFromStory(textSiOverride) {
@@ -2493,6 +3145,8 @@
     }
     syncReaderFacingLayoutClasses();
     placeTextPageForFacingLayout();
+    renderDuplexStoryType();
+    window.requestAnimationFrame(fitVisibleStoryText);
     updateSpreadPageNumberDisplay();
     updatePagerHints();
     prefetchAdjacentSpreadIllustrations();
@@ -2517,16 +3171,117 @@
       if (btnNext) btnNext.disabled = true;
       return;
     }
-    if (btnPrev) btnPrev.disabled = si <= 0;
-    if (btnNext) btnNext.disabled = si >= n - 1;
+    if (btnPrev) btnPrev.disabled = si <= 0 && !(phoneReaderOn() && phoneLeaf === "right");
+    if (btnNext) btnNext.disabled = si >= n - 1 && !(phoneReaderOn() && phoneLeaf === "left");
+    updateReadChrome();
+  }
+
+  var phoneLeaf = "left";
+
+  function phoneReaderOn() {
+    return !!(
+      window.matchMedia &&
+      window.matchMedia("(max-width: 700px)").matches &&
+      book &&
+      readerStack &&
+      readerStack.classList.contains("sb-reader-stack--open") &&
+      !book.classList.contains("sb-book--cover-visible")
+    );
+  }
+
+  function applyPhoneLeaf() {
+    if (!book) return;
+    var on = phoneReaderOn();
+    book.classList.toggle("sb-book--phone-leaf", on);
+    book.classList.toggle("sb-book--phone-right", on && phoneLeaf === "right");
+    updateReadChrome();
+  }
+
+  function updateReadChrome() {
+    var titleEl = document.getElementById("sbReadChromeTitle");
+    var pagesEl = document.getElementById("sbReadChromePages");
+    if (titleEl && story) titleEl.textContent = story.title || "Your book";
+    if (!pagesEl || !story || !story.pages) return;
+    if (book && book.classList.contains("sb-book--cover-visible")) {
+      pagesEl.textContent = "";
+      return;
+    }
+    var total = story.pages.length;
+    var current = spreadIndex * 2 + 1;
+    if (book && book.classList.contains("sb-book--phone-right")) current += 1;
+    if (current > total) current = total;
+    if (current < 1) current = 1;
+    pagesEl.textContent = "Page " + current + " of " + total;
+  }
+
+  function dismissWordTip() {
+    var tip = document.getElementById("sbWordTip");
+    if (tip) tip.hidden = true;
+    try {
+      window.localStorage.setItem("wondii-word-tip", "1");
+    } catch (eTip) {}
+  }
+
+  function maybeShowWordTip() {
+    var tip = document.getElementById("sbWordTip");
+    if (!tip) return;
+    try {
+      if (window.localStorage.getItem("wondii-word-tip") === "1") {
+        tip.hidden = true;
+        return;
+      }
+    } catch (eSeen) {}
+    tip.hidden = false;
+    window.setTimeout(dismissWordTip, 5200);
+  }
+
+  function syncReadDock() {
+    var dock = document.getElementById("sbReadDock");
+    if (!dock || !book || !readerStack) return;
+    var open =
+      readerStack.classList.contains("sb-reader-stack--open") &&
+      !book.classList.contains("sb-book--cover-visible");
+    dock.hidden = !open;
+  }
+
+  var readerChromeTimer = 0;
+  function wakeReaderChrome() {
+    if (!book) return;
+    book.classList.remove("sb-chrome--quiet");
+    if (readerChromeTimer) window.clearTimeout(readerChromeTimer);
+    if (!readerStack || !readerStack.classList.contains("sb-reader-stack--open")) return;
+    if (book.classList.contains("sb-book--cover-visible")) return;
+    readerChromeTimer = window.setTimeout(function () {
+      if (book) book.classList.add("sb-chrome--quiet");
+    }, 3000);
   }
 
   function goNextPage() {
+    if (phoneReaderOn() && phoneLeaf === "left") {
+      phoneLeaf = "right";
+      applyPhoneLeaf();
+      wakeReaderChrome();
+      return;
+    }
+    if (story && spreadIndex >= numSpreads() - 1) return;
+    phoneLeaf = "left";
     navigateSpread(1);
+    applyPhoneLeaf();
+    wakeReaderChrome();
   }
 
   function goPrevPage() {
+    if (phoneReaderOn() && phoneLeaf === "right") {
+      phoneLeaf = "left";
+      applyPhoneLeaf();
+      wakeReaderChrome();
+      return;
+    }
+    if (spreadIndex <= 0) return;
+    phoneLeaf = phoneReaderOn() ? "right" : "left";
     navigateSpread(-1);
+    applyPhoneLeaf();
+    wakeReaderChrome();
   }
 
   function escapeHtml(s) {
@@ -2752,14 +3507,7 @@
   var shelfCache = null;
 
   function loadShelfSyncFromLocalStorage() {
-    try {
-      var raw = localStorage.getItem(SHELF_STORAGE_KEY);
-      if (!raw) return [];
-      var data = JSON.parse(raw);
-      return Array.isArray(data) ? data : [];
-    } catch (e) {
-      return [];
-    }
+    return [];
   }
 
   /**
@@ -2808,8 +3556,10 @@
    * @param {function(): void} [done]
    */
   function reloadShelfCacheFromStore(done) {
-    if (window.StorybookShelfStore && typeof window.StorybookShelfStore.getJson === "function") {
-      window.StorybookShelfStore.getJson()
+    var store = window.StorybookShelfStore;
+    var read = store && (store.getVisibleJson || store.getJson);
+    if (read) {
+      read.call(store)
         .then(function (list) {
           shelfCache = Array.isArray(list) ? list : [];
           if (done) {
@@ -2876,6 +3626,11 @@
       }
     }
 
+    if (window.StorybookShelfStore && window.StorybookShelfStore.isIsolated && window.StorybookShelfStore.isIsolated()) {
+      window.StorybookShelfStore.setIsolated(null, tryList);
+      afterPersistOk(raw);
+      return;
+    }
     if (window.StorybookShelfStore && typeof window.StorybookShelfStore.setRaw === "function") {
       window.StorybookShelfStore.setRaw(raw).then(
         function () {
@@ -2956,11 +3711,15 @@
       var fb = String(p.imageUrl || "").trim();
       var inline = dataUrls[i] || null;
       if (fb && shelfPreferStoredUrlWithoutBlob(fb)) inline = null;
-      return {
+      var stored = {
         text: p.text,
         imageDataUrl: inline,
         imageUrlFallback: p.imageUrl || null,
       };
+      if (p.textSafeZones) stored.textSafeZones = p.textSafeZones;
+      if (p.impactWords) stored.impactWords = p.impactWords;
+      if (p.textBlocks) stored.textBlocks = p.textBlocks;
+      return stored;
     });
     var storedSceneData = sceneDataUrl || null;
     var sf = String(sceneUrlFallback || "").trim();
@@ -3016,10 +3775,14 @@
       /* Prefer remote asset when present so reopen matches stored PNG (not shelf JPEG). */
       sceneImageUrl: item.sceneUrlFallback || item.sceneDataUrl || null,
       pages: item.pages.map(function (p) {
-        return {
+        var page = {
           text: p.text,
           imageUrl: p.imageUrlFallback || p.imageDataUrl || null,
         };
+        if (p.textSafeZones) page.textSafeZones = p.textSafeZones;
+        if (p.impactWords) page.impactWords = p.impactWords;
+        if (p.textBlocks) page.textBlocks = p.textBlocks;
+        return page;
       }),
     };
     spreadIndex = 0;
@@ -3443,7 +4206,7 @@
       css +
       '</style></head><body><div class="sbdl-wrap">' +
       articles.join("") +
-      '<p class="sbdl-foot">Saved from your Sofia&rsquo;s Game Room storybook. Keep this file to read your story any time!</p></div></body></html>'
+      '<p class="sbdl-foot">Saved from Wondii. Keep this file to read your story any time!</p></div></body></html>'
     );
   }
 
@@ -3975,7 +4738,7 @@
     } catch (eU) {}
 
     openJourney();
-    goToStep(1);
+    goToStep(0);
 
     if (raw.indexOf("builtin:") === 0) {
       var bid = raw.slice(8);
@@ -4574,7 +5337,7 @@
   function renderProgress() {
     if (!progressEl) return;
     progressEl.textContent = "";
-    for (var i = 0; i < 4; i++) {
+    for (var i = 0; i < STEP_PROGRESS_LABELS.length; i++) {
       var cell = document.createElement("span");
       cell.className = "sb-progress-step";
       if (i < journeyStep) cell.classList.add("is-done");
@@ -4636,8 +5399,11 @@
       stopSpeech();
       stopStepGuideAudio();
     }
-    journeyStep = Math.max(0, Math.min(3, n));
-    if (stepKicker) stepKicker.textContent = "Step " + (journeyStep + 1) + " of 4";
+    journeyStep = Math.max(0, Math.min(STEP_HEADINGS.length - 1, n));
+    if (stepKicker) {
+      stepKicker.textContent =
+        "Step " + (journeyStep + 1) + " of " + STEP_HEADINGS.length;
+    }
     if (stepHeading) stepHeading.textContent = STEP_HEADINGS[journeyStep] || "";
     renderProgress();
     var panelEls = document.querySelectorAll("#sbModal .sb-panel");
@@ -4647,21 +5413,21 @@
       p.hidden = !on;
       p.classList.toggle("is-active", on);
     });
-    if (journeyStep === 1 && nameInput) {
+    if (journeyStep === 0 && nameInput) {
       window.requestAnimationFrame(function () {
         nameInput.focus();
       });
     }
-    if (journeyStep === 2) {
+    if (journeyStep === 1) {
       syncBuddyCustomPanel();
     }
-    if (journeyStep === 3) {
+    if (journeyStep === 2) {
       syncPlaceCustomPanel();
-      if (plotInput) {
-        window.requestAnimationFrame(function () {
-          plotInput.focus();
-        });
-      }
+    }
+    if (journeyStep === 3 && plotInput) {
+      window.requestAnimationFrame(function () {
+        plotInput.focus();
+      });
     }
   }
 
@@ -4689,6 +5455,13 @@
         stepHeading.focus();
       } catch (e1) {}
     }
+    try {
+      var orgSeed = sessionStorage.getItem("wondii-org-starter");
+      if (orgSeed && plotInput && !String(plotInput.value || "").trim()) {
+        plotInput.value = String(orgSeed).slice(0, PLOT_INPUT_MAX);
+        sessionStorage.removeItem("wondii-org-starter");
+      }
+    } catch (eSeed) {}
   }
 
   function closeJourney() {
@@ -4705,14 +5478,9 @@
     document.body.classList.remove("sb-modal-open");
   }
 
-  /** Close the build-your-book journey and return focus to the landing CTA. */
+  /** Close the build-your-book journey and return to the portal Stories section. */
   function dismissJourneyToLanding() {
-    closeJourney();
-    if (btnStart && typeof btnStart.focus === "function") {
-      try {
-        btnStart.focus();
-      } catch (_eJourneyFocus) {}
-    }
+    goToPortalStories();
   }
 
   function setBookActionsOpen(open) {
@@ -4725,8 +5493,7 @@
 
   function setReaderImmersiveFromLayout() {
     if (!book) return;
-    var on =
-      !book.classList.contains("is-hidden") && immersiveReaderMq.matches;
+    var on = !book.classList.contains("is-hidden") && !book.hidden;
     if (on) {
       book.classList.add("sb-book--immersive");
       document.body.classList.add("sb-reader-immersive");
@@ -4738,7 +5505,11 @@
     }
   }
 
-  /** Leave the reader and show the story hub (landing + shelf). Does not reset the journey form. */
+  function goToPortalStories() {
+    window.location.href = "../portal.html#stories";
+  }
+
+  /** Leave the reader and show the story maker. Does not reset the journey form. */
   function returnToStoryLanding() {
     stopReading();
     story = null;
@@ -4826,6 +5597,20 @@
     }
     if (readerHeading) readerHeading.textContent = story.title;
     if (coverTitle && story) coverTitle.textContent = story.title;
+    var coverWho = story && story.author ? String(story.author).replace(/\(sample\)/i, "").trim() : "";
+    var coverKicker = document.getElementById("sbCoverKicker");
+    var coverMade = document.getElementById("sbCoverMade");
+    if (coverKicker) {
+      coverKicker.textContent = coverWho
+        ? "An adventure starring " + coverWho
+        : "An adventure made for you";
+    }
+    if (coverMade) {
+      coverMade.textContent = coverWho ? "Made especially for " + coverWho : "Made especially for you";
+    }
+    updateReadChrome();
+    syncReadDock();
+    syncFaveButton();
     if (btnOpenCover && story) {
       btnOpenCover.setAttribute(
         "aria-label",
@@ -4852,6 +5637,7 @@
     }
     applyBookThemingFromStory();
     renderSpread();
+    updateReadChrome();
     syncCloseBookButton();
     setBookActionsOpen(false);
     setReaderImmersiveFromLayout();
@@ -4941,104 +5727,22 @@
   }
 
   function initPortalWelcome() {
-    var el = document.getElementById("sbPortalWelcome");
-    if (!el) return;
     var params;
     try {
       params = new URLSearchParams(window.location.search || "");
     } catch (e) {
       return;
     }
-    if (String(params.get("from") || "") !== "portal") return;
-
-    var dismissBtn = document.getElementById("sbPortalWelcomeDismiss");
-    var titleEl = document.getElementById("sbPortalWelcomeTitle");
-    var leadEl = document.getElementById("sbPortalWelcomeLead");
-    var prof =
-      typeof KidsCore !== "undefined" && typeof KidsCore.getProfile === "function"
-        ? KidsCore.getProfile()
-        : {};
-    var rawName = prof && prof.name ? String(prof.name).trim() : "";
-    var displayName = rawName || "Sofia";
-    if (titleEl) {
-      titleEl.textContent = "Welcome back, " + displayName + "!";
-    }
-    if (leadEl) {
-      leadEl.textContent =
-        "Let’s get creative — start a new book or open one you’ve put on your shelf.";
-    }
-    var reduced =
-      typeof window.matchMedia === "function" &&
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-    function cleanUrl() {
-      try {
-        var u = new URL(window.location.href);
-        if (!u.searchParams.has("from")) return;
-        u.searchParams.delete("from");
-        var next = u.pathname + (u.search || "") + (u.hash || "");
-        window.history.replaceState({}, "", next);
-      } catch (e2) {}
-    }
-
-    function dismiss() {
-      if (!el || el.hidden) return;
-      el.classList.add("is-leaving");
-      document.body.classList.remove("sb-portal-welcome-open");
-      window.setTimeout(function () {
-        el.hidden = true;
-        el.classList.remove("is-active", "is-leaving");
-        el.setAttribute("aria-hidden", "true");
-        document.removeEventListener("keydown", onKey);
-        var startBtn = document.getElementById("sbStartJourney");
-        if (startBtn && typeof startBtn.focus === "function") {
-          startBtn.focus();
-        }
-      }, reduced ? 120 : 340);
-    }
-
-    function onKey(ev) {
-      if (ev.key === "Escape") {
-        ev.preventDefault();
-        dismiss();
-      }
-    }
-
-    cleanUrl();
-    el.hidden = false;
-    el.setAttribute("aria-hidden", "false");
-    document.body.classList.add("sb-portal-welcome-open");
-    document.addEventListener("keydown", onKey);
-
-    if (dismissBtn) {
-      dismissBtn.addEventListener("click", function (e) {
-        e.preventDefault();
-        dismiss();
-      });
-    }
-
-    el.addEventListener("click", function (e) {
-      if (
-        e.target &&
-        e.target.classList &&
-        e.target.classList.contains("sb-portal-welcome__veil")
-      ) {
-        dismiss();
-      }
-    });
-
-    if (reduced) {
-      el.classList.add("is-active");
-      if (dismissBtn) dismissBtn.focus();
-    } else {
-      window.requestAnimationFrame(function () {
-        window.requestAnimationFrame(function () {
-          el.classList.add("is-active");
-          if (dismissBtn) dismissBtn.focus();
-        });
-      });
-    }
+    if (String(params.get("from") || "") !== "portal" && String(params.get("create") || "") !== "1") return;
+    try {
+      var u = new URL(window.location.href);
+      u.searchParams.delete("from");
+      u.searchParams.delete("create");
+      window.history.replaceState({}, "", u.pathname + (u.search || "") + (u.hash || ""));
+    } catch (e2) {}
+    openJourney();
   }
+
 
   function startStorybookApp() {
   buildChipRows();
@@ -5057,7 +5761,7 @@
     if (window.StorybookShelfStore && typeof window.StorybookShelfStore.ready === "function") {
       window.StorybookShelfStore.ready()
         .then(function () {
-          return window.StorybookShelfStore.getJson();
+          return (window.StorybookShelfStore.getVisibleJson || window.StorybookShelfStore.getJson).call(window.StorybookShelfStore);
         })
         .then(function (list) {
           shelfCache = Array.isArray(list) ? list : [];
@@ -5233,7 +5937,7 @@
             !book.hidden
           ) {
             e.preventDefault();
-            returnToStoryLanding();
+            goToPortalStories();
           }
         }
       },
@@ -5297,6 +6001,113 @@
       closeBookCover();
     });
   }
+
+  var btnLibraryBack = document.getElementById("sbLibraryBack");
+  var btnReaderDismiss = document.getElementById("sbReaderDismiss");
+  var btnFaveBook = document.getElementById("sbFaveBook");
+  var btnReadMyself = document.getElementById("sbReadMyself");
+  var btnReaderFullscreen = document.getElementById("sbReaderFullscreen");
+
+  function syncFaveButton() {
+    if (!btnFaveBook || !story) return;
+    var on = false;
+    try {
+      on = window.localStorage.getItem("wondii-fave:" + (story.title || "")) === "1";
+    } catch (eFave) {}
+    btnFaveBook.setAttribute("aria-pressed", on ? "true" : "false");
+    btnFaveBook.textContent = on ? "♥" : "♡";
+  }
+
+  if (btnLibraryBack) {
+    btnLibraryBack.addEventListener("click", function () {
+      goToPortalStories();
+    });
+  }
+  if (btnReaderDismiss) {
+    btnReaderDismiss.addEventListener("click", function () {
+      goToPortalStories();
+    });
+  }
+  if (btnFaveBook) {
+    btnFaveBook.addEventListener("click", function () {
+      if (!story) return;
+      var key = "wondii-fave:" + (story.title || "");
+      var on = btnFaveBook.getAttribute("aria-pressed") === "true";
+      try {
+        window.localStorage.setItem(key, on ? "0" : "1");
+      } catch (eSet) {}
+      syncFaveButton();
+      wakeReaderChrome();
+    });
+  }
+  if (btnReadMyself) {
+    btnReadMyself.addEventListener("click", function () {
+      stopReading();
+      btnReadMyself.setAttribute("aria-pressed", "true");
+      wakeReaderChrome();
+    });
+  }
+  if (btnReaderFullscreen) {
+    btnReaderFullscreen.addEventListener("click", function () {
+      var root = book || document.documentElement;
+      var req = root.requestFullscreen || root.webkitRequestFullscreen;
+      if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+        if (req) req.call(root);
+      } else if (document.exitFullscreen) {
+        document.exitFullscreen();
+      } else if (document.webkitExitFullscreen) {
+        document.webkitExitFullscreen();
+      }
+      wakeReaderChrome();
+    });
+  }
+  document.addEventListener("fullscreenchange", function () {
+    var on = !!document.fullscreenElement;
+    if (book) book.classList.toggle("sb-reader--fs", on);
+    if (btnReaderFullscreen) {
+      btnReaderFullscreen.setAttribute("aria-pressed", on ? "true" : "false");
+      var label = btnReaderFullscreen.querySelector(".sb-read-toolbar__label");
+      if (label) label.textContent = on ? "Exit full screen" : "Full screen";
+    }
+  });
+
+  ["pointerdown", "pointermove", "keydown", "touchstart", "focusin"].forEach(function (evtName) {
+    document.addEventListener(evtName, function () {
+      if (!book || book.hidden || book.classList.contains("is-hidden")) return;
+      wakeReaderChrome();
+    }, { passive: true });
+  });
+
+  document.addEventListener("keydown", function (e) {
+    if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+    if (!book || book.hidden || book.classList.contains("is-hidden")) return;
+    if (book.classList.contains("sb-book--cover-visible")) return;
+    var tag = e.target && e.target.tagName ? e.target.tagName : "";
+    if (tag === "INPUT" || tag === "TEXTAREA" || (e.target && e.target.isContentEditable)) return;
+    e.preventDefault();
+    if (e.key === "ArrowLeft") goPrevPage();
+    else goNextPage();
+  });
+
+  if (bookSpreadEl) {
+    var swipeX = 0;
+    bookSpreadEl.addEventListener("touchstart", function (e) {
+      if (!e.changedTouches || !e.changedTouches[0]) return;
+      swipeX = e.changedTouches[0].clientX;
+    }, { passive: true });
+    bookSpreadEl.addEventListener("touchend", function (e) {
+      if (!e.changedTouches || !e.changedTouches[0]) return;
+      if (!book || book.classList.contains("sb-book--cover-visible")) return;
+      var dx = e.changedTouches[0].clientX - swipeX;
+      if (Math.abs(dx) < 48) return;
+      if (dx < 0) goNextPage();
+      else goPrevPage();
+    }, { passive: true });
+  }
+
+  window.addEventListener("resize", function () {
+    applyPhoneLeaf();
+  });
 
   if (heroPhotoInput) {
     heroPhotoInput.addEventListener("change", function () {
@@ -5417,32 +6228,12 @@
   }
 
   var btnNext0 = document.getElementById("sbNext0");
-  var btnBack1 = document.getElementById("sbBack1");
-  var btnNext1 = document.getElementById("sbNext1");
-  var btnSkipToPlot = document.getElementById("sbSkipToPlot");
   var btnBack2 = document.getElementById("sbBack2");
   var btnNext2 = document.getElementById("sbNext2");
   var btnBack4 = document.getElementById("sbBack4");
 
   if (btnNext0) btnNext0.addEventListener("click", function () { goToStep(1); });
-  if (btnBack1) btnBack1.addEventListener("click", function () { goToStep(0); });
-  if (btnNext1) {
-    btnNext1.addEventListener("click", function () {
-      skippedBuddyAndPlace = false;
-      goToStep(2);
-    });
-  }
-  if (btnSkipToPlot) {
-    btnSkipToPlot.addEventListener("click", function () {
-      skippedBuddyAndPlace = true;
-      selectedChar = "unicorn";
-      selectedPlace = "beach";
-      refreshCharacterChips();
-      refreshPlaceChips();
-      goToStep(3);
-    });
-  }
-  if (btnBack2) btnBack2.addEventListener("click", function () { goToStep(1); });
+  if (btnBack2) btnBack2.addEventListener("click", function () { goToStep(0); });
   if (btnNext2) btnNext2.addEventListener("click", function () {
     if (selectedChar === "custom_buddy") {
       var t = trimCustomWizardText(buddyCustomInput);
@@ -5452,11 +6243,32 @@
       }
     }
     setError("");
-    goToStep(3);
+    skippedBuddyAndPlace = false;
+    goToStep(2);
   });
+  var btnBackPlace = document.getElementById("sbBackPlace");
+  var btnNextPlace = document.getElementById("sbNextPlace");
+  var btnBackStory = document.getElementById("sbBackStory");
+  var btnNextStory = document.getElementById("sbNextStory");
+  if (btnBackPlace) btnBackPlace.addEventListener("click", function () { goToStep(1); });
+  if (btnNextPlace) {
+    btnNextPlace.addEventListener("click", function () {
+      if (selectedPlace === "custom_place") {
+        var placeText = trimCustomWizardText(placeCustomInput);
+        if (placeText.length < 4) {
+          setError("Describe the place in a few words, or pick one above.");
+          return;
+        }
+      }
+      setError("");
+      goToStep(3);
+    });
+  }
+  if (btnBackStory) btnBackStory.addEventListener("click", function () { goToStep(2); });
+  if (btnNextStory) btnNextStory.addEventListener("click", function () { goToStep(4); });
   if (btnBack4) {
     btnBack4.addEventListener("click", function () {
-      goToStep(skippedBuddyAndPlace ? 1 : 2);
+      goToStep(3);
     });
   }
 
@@ -5486,9 +6298,8 @@
       if (selectedPlace === "custom_place") {
         var placeText = trimCustomWizardText(placeCustomInput);
         if (placeText.length < 4) {
-          setError(
-            "Please describe where the story happens (at least 4 letters), or pick a scene above."
-          );
+          setError("Describe the place in a few words, or pick one from the list.");
+          goToStep(2);
           return;
         }
       }
@@ -5773,18 +6584,33 @@
     });
   }
 
+  var stayOnStorybook = false;
   try {
-    var params = new URLSearchParams(window.location.search);
-    if (params.get("sample") === "1" || params.get("demo") === "1") {
+    var bootParams = new URLSearchParams(window.location.search || "");
+    stayOnStorybook = !!(
+      bootParams.get("book") ||
+      bootParams.get("char") ||
+      bootParams.get("sample") === "1" ||
+      bootParams.get("demo") === "1"
+    );
+    if (bootParams.get("sample") === "1" || bootParams.get("demo") === "1") {
       openSampleBook();
     }
   } catch (err) {}
 
   preselectCharacterFromUrl();
   openBookFromUrl();
+  try {
+    if (sessionStorage.getItem("wondii-org-starter")) openJourney();
+  } catch (eOrgSeed) {}
+
+  var makerNow = document.getElementById("sbModal");
+  if (makerNow && !makerNow.hidden && !makerNow.classList.contains("is-hidden")) stayOnStorybook = true;
+  if (book && !book.hidden && !book.classList.contains("is-hidden")) stayOnStorybook = true;
+  if (!stayOnStorybook) goToPortalStories();
 
   if (typeof KidsCore !== "undefined") {
-    KidsCore.init();
+    KidsCore.init({ skipFullscreen: true });
     KidsCore.bindTapSound(document.getElementById("app"));
   }
 

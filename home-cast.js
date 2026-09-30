@@ -6,12 +6,7 @@
   var MAX_CAST = 8;
   var CUTOUT_HEIGHT = 260;
 
-  var BUILTINS = [
-    { id: "builtin:sofia", name: "Sofia", src: "games/images/character-girl-blonde.png" },
-    { id: "builtin:isaac", name: "Isaac", src: "games/images/character-baby-coolegg.png" },
-    { id: "builtin:babyca", name: "Baby", src: "games/images/character-babyca.png" },
-    { id: "builtin:tilly", name: "Tilly", src: "games/images/tilly-mascot.png" },
-  ];
+  var BUILTINS = [];
 
   var stage = document.getElementById("homeCastStage");
   var sub = document.getElementById("homeCastSub");
@@ -166,13 +161,9 @@
   }
 
   function castWithFill(saved) {
-    var list = saved.slice(0, MAX_CAST).map(function (c) {
+    return saved.slice(0, MAX_CAST).map(function (c) {
       return { id: c.id, name: c.name, src: c.thumb, saved: true };
     });
-    for (var i = 0; list.length < MIN_CAST && i < BUILTINS.length; i++) {
-      list.push({ id: BUILTINS[i].id, name: BUILTINS[i].name, src: BUILTINS[i].src, saved: false });
-    }
-    return list;
   }
 
   function castSignature(list) {
@@ -399,18 +390,20 @@
 
   function setSub(savedCount, signedIn) {
     if (!sub) return;
+    var empty = document.getElementById("homeCastEmpty");
+    if (empty) empty.hidden = savedCount > 0;
     if (savedCount > 0) {
       sub.textContent = "Tap a friend to make a story with them!";
     } else if (signedIn) {
-      sub.textContent = "Make your own characters — they’ll come and play here!";
+      sub.textContent = "Create your first character.";
     } else {
-      sub.textContent = "Tap a friend to say hi — or make your own characters!";
+      sub.textContent = "Your characters will appear here.";
     }
   }
 
-  var cached = readCache();
+  var cached = [];
   buildStage(castWithFill(cached));
-  setSub(cached.length, false);
+  setSub(0, false);
   start();
 
   function syncFromCloud() {
@@ -451,13 +444,22 @@
       Promise.all(jobs).then(function (rows) {
         var fresh = rows.filter(Boolean);
         cached = fresh;
-        writeCache(fresh);
         buildStage(castWithFill(fresh));
         setSub(fresh.length, true);
         start();
       });
     });
   }
+
+  function clearCast() {
+    cached = [];
+    currentSig = "cleared";
+    buildStage([]);
+    setSub(0, false);
+  }
+
+  window.addEventListener("wondii-account-cleared", clearCast);
+  window.addEventListener("kids-scorecard-refresh", syncFromCloud);
 
   if (document.readyState === "complete") {
     syncFromCloud();

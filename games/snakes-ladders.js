@@ -91,27 +91,12 @@
   /** Image tokens use value prefix + path under games/ (HTML is in games/) */
   const IMG_PREFIX = "__img:";
   const CHARACTER_OPTIONS = [
-    {
-      v: IMG_PREFIX + "images/character-babyca.png",
-      label: "Baby",
-    },
-    { v: IMG_PREFIX + "images/tilly-mascot.png", label: "Tilly" },
-    {
-      v: IMG_PREFIX + "images/character-baby-coolegg.png",
-      label: "Isaac",
-    },
-    {
-      v: IMG_PREFIX + "images/character-girl-blonde.png",
-      label: "Sofia",
-    },
-    {
-      v: IMG_PREFIX + "images/character-kelly.png",
-      label: "Kelly (Mummy)",
-    },
-    {
-      v: IMG_PREFIX + "images/character-freya.png",
-      label: "Freya",
-    },
+    { v: "__img:images/presets/preset-pip.jpg", label: "Pip" },
+    { v: "__img:images/presets/preset-fox.jpg", label: "Fox" },
+    { v: "__img:images/presets/preset-dino.jpg", label: "Dinosaur" },
+    { v: "__img:images/presets/preset-bun.jpg", label: "Bunny" },
+    { v: "__img:images/presets/preset-frog.jpg", label: "Frog" },
+    { v: "__img:images/presets/preset-moon.jpg", label: "Moon" },
   ];
 
   function characterLabelForValue(v) {

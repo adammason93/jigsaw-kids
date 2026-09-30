@@ -3,14 +3,13 @@
   "use strict";
 
   var FAV_KEY = "portalFavourites";
-  var SHELF_KEY = "jigsawKids_storybookShelf_v1";
   var STORY_URL = "games/storybook.html";
   var VIEWS = ["home", "stories", "games", "puzzles", "learning", "favourites", "search"];
 
   var GAMES = [
     { id: "jigsaw", title: "Picture Jigsaw", desc: "Put the pieces together to complete fun pictures.", href: "games/jigsaw.html", img: "games/images/portal/jigsaw.jpg", cats: ["puzzles"] },
     { id: "colouring", title: "Colouring Book", desc: "Choose a picture and bring it to life with colours.", href: "games/colouring.html", img: "games/images/portal/colouring.png", cats: ["creative"] },
-    { id: "storybook", title: "Your Story", desc: "Create your own story with your name and characters.", href: "games/storybook.html?from=portal", img: "games/images/portal/storybook-nook.jpg", cats: ["stories", "creative"] },
+    { id: "storybook", title: "Your Story", desc: "Create your own story with your name and characters.", href: "games/storybook.html?create=1", img: "games/images/portal/storybook-nook.jpg", cats: ["stories", "creative"] },
     { id: "characters", title: "My Characters", desc: "Turn a photo into a cuddly clay cartoon buddy.", href: "characters.html", emoji: "🎭", cats: ["stories", "creative"] },
     { id: "prompt-game", title: "Make a 3D Game", desc: "Describe a game and watch it come to life.", href: "games/prompt-game.html", img: "games/images/portal/prompt-game.svg", cats: ["creative"] },
     { id: "star-catcher", title: "Star Catcher", desc: "Catch the stars and beat your score!", href: "games/star-catcher.html", img: "games/images/portal/star-catcher.svg", cats: ["arcade"] },
@@ -40,20 +39,17 @@
     { file: "puppy.jpg", title: "Happy Puppy", pieces: 6, cats: ["animals"] },
     { file: "rocket.jpg", title: "Space Rocket", pieces: 24, cats: ["vehicles"] },
     { file: "kitten.jpg", title: "Cosy Kitten", pieces: 12, cats: ["animals"] },
-    { file: "sofia-tractor.png", title: "Sofia’s Tractor", pieces: 24, cats: ["vehicles", "characters"] },
     { file: "dolphin.jpg", title: "Dolphin Splash", pieces: 12, cats: ["animals"] },
     { file: "dino.jpg", title: "Dino Friend", pieces: 6, cats: ["animals"] },
-    { file: "sofia-baby-bedtime.png", title: "Bedtime", pieces: 12, cats: ["characters"] },
-    { file: "baby-sister-onesie.png", title: "Baby Sister", pieces: 6, cats: ["characters"] },
   ];
 
-  var PUZZLE_CHIPS = [["all", "All"], ["animals", "Animals"], ["vehicles", "Vehicles"], ["characters", "Characters"], ["fantasy", "Fantasy"]];
+  var PUZZLE_CHIPS = [["all", "All"], ["animals", "Animals"], ["vehicles", "Vehicles"], ["fantasy", "Fantasy"]];
   var LEVEL = { 6: ["Easy", "easy"], 12: ["Medium", "medium"], 24: ["Hard", "hard"] };
 
   var LEARN = [
     { id: "numbers", title: "Numbers", desc: "Count, add and race", icon: "🔢", tone: "yellow", cats: ["maths"], href: "games/math-race.html" },
     { id: "words", title: "Words", desc: "Find the hidden words", icon: "🔤", tone: "blue", cats: ["reading"], href: "games/word-search.html" },
-    { id: "writing", title: "Story Writing", desc: "Make up your own story", icon: "✏️", tone: "pink", cats: ["reading", "creativity"], href: "games/storybook.html?from=portal" },
+    { id: "writing", title: "Story Writing", desc: "Make up your own story", icon: "✏️", tone: "pink", cats: ["reading", "creativity"], href: "games/storybook.html?create=1" },
     { id: "colours", title: "Colours", desc: "Fun with colours", icon: "🎨", tone: "peach", cats: ["creativity"], href: "games/colouring.html" },
     { id: "memory", title: "Memory", desc: "Remember and match pairs", icon: "🧠", tone: "purple", cats: ["logic"], href: "games/memory.html" },
     { id: "problem", title: "Problem Solving", desc: "Join the dots, no crossing", icon: "🔗", tone: "teal", cats: ["logic"], href: "games/link-grid.html" },
@@ -90,14 +86,18 @@
 
   /* ---------- Favourites ---------- */
 
-  var favs = (function () {
+  var favs = [];
+
+  function loadFavs() {
     try {
       var a = JSON.parse(localStorage.getItem(FAV_KEY) || "[]");
-      return Array.isArray(a) ? a : [];
+      favs = Array.isArray(a) ? a : [];
     } catch (e) {
-      return [];
+      favs = [];
     }
-  })();
+  }
+
+  loadFavs();
 
   function isFav(id) {
     return favs.indexOf(id) >= 0;
@@ -133,12 +133,16 @@
     var thumb = g.img
       ? '<img src="' + esc(g.img) + '" alt="" loading="lazy" decoding="async" />'
       : '<span class="p-card__emoji" aria-hidden="true">' + g.emoji + "</span>";
+    var catName = { creative: "Creative", puzzles: "Puzzles", classic: "Logic", arcade: "Play", racing: "Play", stories: "Words" };
+    var cat = g.cats && g.cats[0] ? catName[g.cats[0]] || "" : "";
     var on = isFav(g.id);
     return (
       '<li class="p-card" data-game="' + esc(g.id) + '">' +
       '<a class="p-card__link" href="' + esc(g.href) + '">' +
       '<span class="p-card__img">' + thumb + "</span>" +
-      '<span class="p-card__body"><b class="p-card__title">' + esc(g.title) + "</b>" +
+      '<span class="p-card__body">' +
+      (cat ? '<span class="p-card__cat">' + esc(cat) + "</span>" : "") +
+      '<b class="p-card__title">' + esc(g.title) + "</b>" +
       (withPill ? pill("game") : '<span class="p-card__desc">' + esc(g.desc) + "</span>") +
       "</span></a>" +
       '<button type="button" class="p-fav' + (on ? " is-on" : "") + '" aria-pressed="' + on + '" aria-label="Favourite ' + esc(g.title) + '">' + HEART + "</button>" +
@@ -159,7 +163,7 @@
       '<span class="p-card__body">' +
       (withPill
         ? '<b class="p-card__title">' + esc(p.title) + "</b>" + pill("puzzle")
-        : '<span class="p-card__pieces"><span aria-hidden="true">🧩</span> ' + p.pieces + " pieces</span>" +
+        : '<span class="p-card__pieces">' + p.pieces + " pieces</span>" +
           '<span class="p-level p-level--' + lv[1] + '">' + lv[0] + "</span>") +
       "</span></a></li>"
     );
@@ -170,14 +174,14 @@
       return (
         '<li class="p-card">' +
         '<a class="p-card__link" href="' + esc(l.href) + '">' +
-        '<span class="p-card__img p-card__img--tone p-tone--' + l.tone + '"><span class="p-card__emoji" aria-hidden="true">' + l.icon + "</span></span>" +
+        '<span class="p-card__img p-card__img--tone p-tone--' + l.tone + '"><span class="p-card__emoji" aria-hidden="true">' + esc(l.title.charAt(0)) + "</span></span>" +
         '<span class="p-card__body"><b class="p-card__title">' + esc(l.title) + "</b>" + pill("learning") + "</span></a></li>"
       );
     }
     return (
       '<li class="p-learn__item p-tone--' + l.tone + '">' +
       '<a href="' + esc(l.href) + '">' +
-      '<span class="p-learn__icon" aria-hidden="true">' + l.icon + "</span>" +
+      '<span class="p-learn__icon" aria-hidden="true">' + esc(l.title.charAt(0)) + "</span>" +
       '<b class="p-learn__title">' + esc(l.title) + "</b>" +
       '<span class="p-learn__desc">' + esc(l.desc) + "</span></a></li>"
     );
@@ -285,33 +289,26 @@
 
   function newStoryCard() {
     return (
-      '<li class="p-card p-card--new"><a class="p-card__link" href="' + STORY_URL + '?from=portal">' +
+      '<li class="p-card p-card--new"><a class="p-card__link" href="' + STORY_URL + '?create=1">' +
       '<span class="p-card__img p-card__img--book p-card__img--new"><span aria-hidden="true">✨</span></span>' +
       '<span class="p-card__body"><b class="p-card__title">Make a new story</b><span class="p-card__desc">Starring you!</span></span></a></li>'
     );
   }
 
   function loadBooks(cb) {
-    function fromLs() {
-      try {
-        var d = JSON.parse(localStorage.getItem(SHELF_KEY) || "[]");
-        return Array.isArray(d) ? d : [];
-      } catch (e) {
-        return [];
-      }
-    }
     var store = window.StorybookShelfStore;
-    if (!store || typeof store.getJson !== "function") {
-      cb(fromLs());
+    var read = store && (store.getVisibleJson || store.getJson);
+    if (!read) {
+      cb([]);
       return;
     }
-    store
-      .getJson()
+    read
+      .call(store)
       .then(function (l) {
         cb(Array.isArray(l) ? l : []);
       })
       .catch(function () {
-        cb(fromLs());
+        cb([]);
       });
   }
 
@@ -398,19 +395,14 @@
       fillCover(art, b);
       copy.innerHTML =
         '<p class="p-feature__kicker">Your newest story</p><h2 class="p-feature__title"></h2>' +
-        '<p class="p-feature__meta"><span>📖 Story</span><span>' + pageCount(b) + "</span></p>" +
-        '<a class="p-feature__go" href="' + STORY_URL + "?book=" + encodeURIComponent(b.id) + '"><span aria-hidden="true">▶</span> Read now</a>';
+        '<p class="p-feature__meta"><span>Story</span><span>' + pageCount(b) + "</span></p>" +
+        '<a class="p-feature__go" href="' + STORY_URL + "?book=" + encodeURIComponent(b.id) + '">Read now</a>';
       copy.querySelector(".p-feature__title").textContent = String(b.title || "My Story");
     } else {
-      var img = document.createElement("img");
-      img.src = "games/images/portal/stories-night.jpg";
-      img.alt = "";
-      art.appendChild(img);
       copy.innerHTML =
-        '<p class="p-feature__kicker">Try a sample</p><h2 class="p-feature__title">The Star That Found a Home</h2>' +
-        '<p class="p-feature__meta"><span>📖 Story</span><span>Ages 3–6</span></p>' +
-        '<a class="p-feature__go" href="' + STORY_URL + '?sample=1"><span aria-hidden="true">▶</span> Read now</a>';
-      el.classList.add("is-sample");
+        '<p class="p-feature__kicker">Welcome to Wondii</p><h2 class="p-feature__title">Let’s create your first adventure</h2>' +
+        '<p class="p-feature__meta"><span>Your books will appear here</span></p>' +
+        '<a class="p-feature__go" href="' + STORY_URL + '?create=1">Create a story</a>';
     }
     el.appendChild(art);
     el.appendChild(copy);
@@ -436,7 +428,11 @@
     grid.textContent = "";
     list.forEach(function (b) { grid.appendChild(bookCard(b)); });
     grid.insertAdjacentHTML("beforeend", newStoryCard());
-    $("storyEmpty").hidden = true;
+    var empty = $("storyEmpty");
+    if (empty) {
+      empty.textContent = list.length ? "" : "Your books will appear here.";
+      empty.hidden = list.length > 0;
+    }
   }
 
   function renderRecommended() {
@@ -615,7 +611,23 @@
   renderStories();
   show(viewFromHash(), { keepScroll: true });
   refreshBooks();
-  window.addEventListener("kids-scorecard-refresh", refreshBooks);
+  window.addEventListener("kids-scorecard-refresh", function () {
+    loadFavs();
+    refreshBooks();
+    if (current === "favourites") renderFavourites();
+    if (current === "games" || current === "home") {
+      renderGames();
+      renderRecommended();
+    }
+  });
+  window.addEventListener("wondii-account-cleared", function () {
+    books = [];
+    favs = [];
+    renderStories();
+    renderRecommended();
+    renderFavourites();
+  });
+  document.addEventListener("wondii-org", refreshBooks);
   document.addEventListener("visibilitychange", function () {
     if (document.visibilityState === "visible") refreshBooks();
   });

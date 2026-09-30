@@ -1,0 +1,19 @@
+/* Canonical Wondii tokens. Pages and games should use these, not a local palette. */
+
+:root {
+  --w-ink: #141b4d;
+  --w-soft: #5c6284;
+  --w-paper: #f6f5fc;
+  --w-card: #fffdfb;
+  --w-line: rgba(20, 27, 77, 0.08);
+  --w-accent: var(--org-primary, var(--school-red, var(--w-ink)));
+  --w-on-accent: #fff;
+  --w-radius: 22px;
+  --w-radius-lg: 28px;
+  --w-shadow: 0 10px 26px rgba(20, 27, 77, 0.08);
+  --w-shadow-lg: 0 18px 50px rgba(20, 27, 77, 0.16);
+  --w-font: Nunito, system-ui, sans-serif;
+  --w-display: Fredoka, Nunito, sans-serif;
+  --w-ok: #0f9f6e;
+  --w-no: #e11d48;
+}
