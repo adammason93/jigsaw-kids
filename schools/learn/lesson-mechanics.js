@@ -99,8 +99,19 @@
     var revealed = !!(engine && engine.reveal);
     var paused = !!ctx.paused || !Core.allowsInput(engine && engine.status);
     var selected = selectedOf(ctx);
-    var who = selected && (selected.identity === "pupil" || selected.identity === "anonymous")
+    var part = (ctx.slide && ctx.slide.participation) || "";
+    var named = selected && (selected.identity === "pupil" || selected.identity === "anonymous");
+    var who = (part === "selected_pupil" || part === "spin" || !part) && named
       ? "<p class=\"lesson-kicker\">" + escape(selected.displayName) + "</p>" : "";
+    if ((part === "selected_pupil" || part === "spin") && !named) who = "<p class=\"lesson-kicker\">The selected pupil answers</p>";
+    var teams = engine && engine.teams || [];
+    var teamRow = "";
+    if (part === "team_turn" && teams.length) {
+      teamRow = "<div class=\"lesson-word-teams\" role=\"group\" aria-label=\"Team answering\"><p class=\"lesson-kicker\">Team turn</p>" + teams.map(function (team) {
+        var on = saved.activeTeamId === team.id ? " is-on" : "";
+        return "<button type=\"button\" class=\"lesson-quiet" + on + "\" data-team=\"" + escape(team.id) + "\">" + escape(team.name) + "</button>";
+      }).join("") + "</div>";
+    }
     var choices = quiz.choices.map(function (choice) {
       var right = (revealed || saved.correct) && choice.id === quiz.correct;
       var again = !right && saved.choice === choice.id && saved.correct === false;
@@ -111,7 +122,7 @@
       ? "<button type=\"button\" class=\"lesson-quiet\" id=\"lessonTry\">Try again</button>" : "";
     var explain = revealed && quiz.explain ? "<p class=\"lesson-cue\">" + escape(quiz.explain) + "</p>" : "";
     host.innerHTML = "<div class=\"lesson-question\"><p class=\"lesson-kicker\">" + escape((ctx.slide && ctx.slide.kicker) || "Quiz") + "</p>" + who +
-      "<h2 class=\"lesson-prompt\">" + escape(quiz.prompt) + "</h2><div class=\"lesson-choices\">" + choices + "</div>" + explain + againBtn + "</div>";
+      "<h2 class=\"lesson-prompt\">" + escape(quiz.prompt) + "</h2>" + teamRow + "<div class=\"lesson-choices\">" + choices + "</div>" + explain + againBtn + "</div>";
     Array.prototype.forEach.call(host.querySelectorAll("[data-choice]"), function (button) {
       listen(bag, button, "click", function () {
         if (paused || revealed) return;
@@ -119,6 +130,9 @@
         var outcome = Core.quizOutcome(ctx.slide, choiceId, {
           selected: selected,
           teams: engine && engine.teams,
+          teamMode: engine && engine.teamMode,
+          activeTeamId: saved.activeTeamId || "",
+          participation: (ctx.slide && ctx.slide.participation) || "",
           roundId: ctx.roundId
         });
         if (!outcome.ok) return;
@@ -129,7 +143,7 @@
         }
         play(ctx, {
           roundId: ctx.roundId,
-          mechanicState: { kind: "quiz", choice: choiceId, correct: outcome.correct },
+          mechanicState: { kind: "quiz", choice: choiceId, correct: outcome.correct, activeTeamId: saved.activeTeamId || "" },
           emission: {
             response: outcome.response,
             score: outcome.score,
@@ -142,6 +156,11 @@
             extra: extra
           }
         });
+      });
+    });
+    Array.prototype.forEach.call(host.querySelectorAll("[data-team]"), function (button) {
+      listen(bag, button, "click", function () {
+        play(ctx, { roundId: ctx.roundId, mechanicState: { kind: "quiz", activeTeamId: button.getAttribute("data-team"), choice: saved.choice, correct: saved.correct } });
       });
     });
     var retry = host.querySelector("#lessonTry");
@@ -260,8 +279,9 @@
       }
     }
     var teams = engine && engine.teams || [];
+    var wordPart = slide.participation || "";
     var teamRow = "";
-    if (teams.length > 1) {
+    if ((wordPart === "team_turn" || !wordPart) && teams.length > 1) {
       teamRow = "<div class=\"lesson-word-teams\" role=\"group\" aria-label=\"Team for this word\">" + teams.map(function (team) {
         var on = saved.activeTeamId === team.id ? " is-on" : "";
         return "<button type=\"button\" class=\"lesson-quiet" + on + "\" data-team=\"" + escape(team.id) + "\">" + escape(team.name) + " team</button>";
@@ -293,7 +313,9 @@
       var award = Core.wordAward(slide, result.word, {
         selected: person,
         teams: teams,
+        teamMode: engine && engine.teamMode,
         activeTeamId: saved.activeTeamId,
+        participation: slide.participation || "",
         roundId: ctx.roundId
       });
       var extra = "";

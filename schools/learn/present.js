@@ -9,7 +9,7 @@
   var journeyId = params.get("journey") || "";
   var memoryJourney = null;
   if (!journeyId && params.get("example") === "lights") {
-    location.replace("create.html?example=lights");
+    location.replace("create.html?quick=1" + (params.get("class") ? "&class=" + encodeURIComponent(params.get("class")) : ""));
   }
   if (!journeyId && params.get("example") === "mechanics" && window.WondiiMechanicCore) {
     memoryJourney = {
@@ -43,7 +43,10 @@
   }
 
   function session() {
-    return sessionCode ? Rooms.get(sessionCode) : null;
+    var current = sessionCode ? Rooms.get(sessionCode) : null;
+    if (current && !journeyId && current.journeyId) journeyId = current.journeyId;
+    if (current && current.classId && !params.get("class")) params.set("class", current.classId);
+    return current;
   }
 
   function slidesNow(current) {
@@ -142,6 +145,11 @@
       bindPreview();
       return;
     }
+    if (!current && params.get("preview") !== "1" && params.get("example") !== "mechanics") {
+      var backClass = params.get("class");
+      root.innerHTML = "<section class=\"class-sheet\"><h1>Choose an adventure</h1><p>Start from a saved adventure so the class and activities stay together.</p><p><a href=\"create.html" + (backClass ? "?class=" + encodeURIComponent(backClass) : "") + "\">Create or start an adventure</a></p></section>";
+      return;
+    }
     if (current && previous && current.code === previous.code) Shell.noteScore(current, previous);
     var pupils = classPupils();
     var org = orgBits();
@@ -173,8 +181,10 @@
       mysteryText: map.keyVocabulary && map.keyVocabulary[0] ? "A word from today: " + map.keyVocabulary[0] + "." : "Keep the idea you have just learned.",
       door: params.get("door") || "",
       doorText: (map.learningObjectives || [])[Number(params.get("door") || 1) - 1] || "Today's idea stays with the class.",
-      againHref: "present.html?journey=" + encodeURIComponent(journeyId) + (params.get("class") ? "&class=" + encodeURIComponent(params.get("class")) : ""),
+      againHref: "create.html?start=" + encodeURIComponent(journeyId) + (params.get("class") ? "&class=" + encodeURIComponent(params.get("class")) : ""),
+      resultsHref: current ? ("present.html?session=" + encodeURIComponent(current.code) + (params.get("class") ? "&class=" + encodeURIComponent(params.get("class")) : "")) : "#lessonSummary",
       classHref: params.get("class") ? "class.html?id=" + encodeURIComponent(params.get("class")) : "../../portal.html#classes",
+      homeHref: "../../portal.html",
       actions: actions
     });
     previous = current;
@@ -230,20 +240,31 @@
         return;
       }
       Rooms.setSlide(current.code, current.slide, true);
-      if (question && choice === question.correct) {
-        var engine = current.engine;
-        var teamId = null;
-        if (engine && engine.selectedParticipantId && engine.teamMode && engine.teamMode !== "none") {
-          engine.participants.forEach(function (person) {
-            if (person.id === engine.selectedParticipantId) teamId = person.teamId;
-          });
-        }
-        var awarded = Rooms.award(current.code, teamId, 1, "q-" + current.slide);
+      var engine = current.engine;
+      var selected = null;
+      if (engine && engine.selectedParticipantId) {
+        (engine.participants || []).forEach(function (person) {
+          if (person.id === engine.selectedParticipantId) selected = person;
+        });
+      }
+      var outcome = window.WondiiMechanicCore && question
+        ? WondiiMechanicCore.quizOutcome(slide, choice, {
+          selected: selected,
+          teams: engine && engine.teams,
+          teamMode: engine && engine.teamMode,
+          participation: (slide && slide.participation) || "",
+          roundId: "q-" + current.slide
+        })
+        : null;
+      if (outcome && outcome.correct && outcome.score) {
+        var awarded = Rooms.award(current.code, outcome.score.teamId, outcome.score.amount, outcome.score.reason);
         var teamName = "";
-        if (awarded && awarded.engine && teamId) {
-          awarded.engine.teams.forEach(function (team) { if (team.id === teamId) teamName = team.name; });
+        if (awarded && awarded.engine && outcome.score.teamId) {
+          awarded.engine.teams.forEach(function (team) { if (team.id === outcome.score.teamId) teamName = team.name; });
         }
-        Shell.noteFeedback("yes", "Great work!", teamName ? "+1 " + teamName + " team" : "");
+        Shell.noteFeedback("yes", "Great work!", teamName ? "+" + outcome.score.amount + " " + teamName + " team" : "+" + outcome.score.amount + " class reward");
+      } else if (outcome && outcome.correct) {
+        Shell.noteFeedback("yes", "Great work!", "");
       } else Shell.noteFeedback("again", "Nearly! Let's have another look.", "");
       paint();
     },
@@ -325,6 +346,35 @@
       paint();
     },
     fail: function () { Rooms.failRound(sessionCode); paint(); },
+    replay: function () {
+      var current = session();
+      var id = journeyId || (current && current.journeyId) || "";
+      var classId = params.get("class") || (current && current.classId) || "";
+      if (id) {
+        location.href = "create.html?start=" + encodeURIComponent(id) + (classId ? "&class=" + encodeURIComponent(classId) : "");
+        return;
+      }
+      if (!current) return;
+      var created = Rooms.createSession({
+        id: "replay",
+        classId: classId,
+        plan: { title: current.title, slides: current.slides || [] },
+        learningMap: { yearGroup: current.yearGroup, subject: current.subject, topic: current.topic },
+        organisationId: current.organisationId
+      }, current.mode || "board", false, {
+        classId: classId,
+        pupils: (current.participants || []).filter(function (person) {
+          return person.identity === "pupil" || person.identity === "anonymous";
+        }).map(function (person) {
+          return { id: person.pupilId || person.id, firstName: person.name, temporary: person.identity === "anonymous" };
+        }),
+        teamMode: current.engine && current.engine.teamMode || "none",
+        teamNames: current.engine && current.engine.teams ? current.engine.teams.map(function (team) { return team.name; }) : [],
+        begin: true
+      });
+      if (!created || created.code === current.code) return;
+      location.href = "present.html?session=" + created.code + "&fresh=1" + (classId ? "&class=" + encodeURIComponent(classId) : "");
+    },
     fullscreen: function () {
       if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
         var req = document.documentElement.requestFullscreen();

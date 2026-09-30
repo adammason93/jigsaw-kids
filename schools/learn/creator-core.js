@@ -213,9 +213,6 @@
     var next = (draft.away || []).filter(function (id) { return id !== pupilId; });
     if (away) next.push(pupilId);
     draft.away = next;
-    draft.teams = (draft.teams || []).map(function (team) {
-      return { id: team.id, name: team.name, pupilIds: (team.pupilIds || []).filter(function (id) { return id !== pupilId; }) };
-    });
     return draft;
   }
 
@@ -294,6 +291,7 @@
         choices: choices,
         correct: correct,
         points: points == null ? 1 : points,
+        participation: "whole_class",
         askSelected: false
       }
     };
@@ -402,9 +400,9 @@
       why: meta.description,
       config: {}
     };
-    if (meta.id === "quiz") activity.config = { kind: "multiple", prompt: "", choices: ["", ""], correct: "", points: 1, askSelected: false };
+    if (meta.id === "quiz") activity.config = { kind: "multiple", prompt: "", choices: ["", ""], correct: "", points: 1, participation: "whole_class", askSelected: false };
     if (meta.id === "spin") activity.config = { pool: "included", avoidRepeat: true, preferFresh: true };
-    if (meta.id === "word_search") activity.config = { title: draft.topic || "Word search", instruction: "Find the lesson words.", words: [], points: 1 };
+    if (meta.id === "word_search") activity.config = { title: draft.topic || "Word search", instruction: "Find the lesson words.", words: [], points: 1, participation: playMode(draft.playMode).engine === "none" ? "whole_class" : "team_turn" };
     if (meta.id === "story" || meta.id === "mystery" || meta.id === "doors") activity.config = { lines: [draft.topic || "Today's idea."] };
     draft.activities.push(activity);
     draft.minutes += meta.minutes;
@@ -461,7 +459,8 @@
         return {
           type: "question",
           kicker: activity.title || "Quiz",
-          teacherCue: quiz.askSelected ? "Ask the pupil Wondii has chosen." : "Choose an answer, then reveal it to the class.",
+          participation: quiz.participation || (quiz.askSelected ? "selected_pupil" : "whole_class"),
+          teacherCue: (quiz.participation === "selected_pupil" || quiz.askSelected) ? "Ask the pupil Wondii has chosen." : "Choose an answer, then reveal it to the class.",
           lines: activity.why ? [] : [],
           question: {
             id: activity.id,
@@ -487,6 +486,7 @@
         var search = activity.config || {};
         return {
           type: "word_search",
+          participation: (activity.config && activity.config.participation) || "whole_class",
           kicker: search.title || activity.title || "Word search",
           teacherCue: activity.why || "",
           lines: [search.instruction || "Find the words."],
@@ -526,6 +526,7 @@
         activities: JSON.parse(JSON.stringify(draft.activities || []))
       },
       playMode: draft.playMode,
+      teams: JSON.parse(JSON.stringify(draft.teams || [])),
       estimateMinutes: draft.minutes || 0,
       notes: draft.notes || "",
       adaptedFrom: draft.adaptedFrom || "",
@@ -553,9 +554,11 @@
     draft.source = { type: item.source && item.source.type || "", filename: item.source && item.source.filename || "", text: item.source && item.source.text || "", unsupported: false };
     draft.sourceKind = draft.source.type;
     draft.playMode = item.playMode || "whole_class";
+    draft.teams = JSON.parse(JSON.stringify(item.teams || []));
     draft.notes = item.notes || "";
     draft.activities = JSON.parse(JSON.stringify((item.plan && item.plan.activities) || []));
     if (!draft.activities.length && item.plan && item.plan.slides) draft.activities = activitiesFromSlides(item.plan.slides);
+    draft.activities = draft.activities.filter(function (activity) { return capability(activity.mechanic); });
     draft.minutes = draft.activities.reduce(function (sum, activity) { return sum + (activity.minutes || 0); }, 0);
     draft.saved = false;
     return draft;
@@ -572,10 +575,11 @@
           choices: (slide.question.choices || []).map(function (choice) { return typeof choice === "string" ? choice : choice.text; }),
           correct: slide.question.correct || "",
           points: slide.question.points == null ? 1 : slide.question.points,
-          askSelected: false
+          participation: slide.participation || "whole_class",
+          askSelected: slide.participation === "selected_pupil"
         };
       } else if (type === "word_search") {
-        activity.config = { title: slide.kicker || "", instruction: (slide.lines || [])[0] || "", words: slide.words || [], points: slide.points == null ? 1 : slide.points };
+        activity.config = { title: slide.kicker || "", instruction: (slide.lines || [])[0] || "", words: slide.words || [], points: slide.points == null ? 1 : slide.points, participation: slide.participation || "whole_class" };
       } else if (type === "spin") {
         activity.config = { pool: "included", avoidRepeat: slide.avoidRepeat !== false, preferFresh: slide.preferFresh !== false };
         activity.minutes = 1;
@@ -584,16 +588,97 @@
     }).filter(function (activity) { return capability(activity.mechanic); });
   }
 
+  var PARTICIPATION = [
+    { id: "whole_class", label: "Whole class", text: "The class answers together." },
+    { id: "selected_pupil", label: "Selected pupil", text: "The pupil already chosen answers." },
+    { id: "spin", label: "Spin a pupil", text: "Spin chooses who answers." },
+    { id: "team_turn", label: "Team turn", text: "The active team answers." },
+    { id: "teacher_class", label: "Teacher vs class", text: "The class plays against the teacher." }
+  ];
+
+  function participationOptions(mechanic, modeId) {
+    if (mechanic === "spin" || mechanic === "story" || mechanic === "mystery" || mechanic === "doors") return ["whole_class"];
+    var mode = playMode(modeId);
+    return PARTICIPATION.map(function (item) { return item.id; }).filter(function (id) {
+      if (id === "team_turn" && mode.engine === "none") return false;
+      if (id === "teacher_class" && mode.engine !== "teacher_class") return false;
+      return true;
+    });
+  }
+
+  function participationOf(activity) {
+    var config = (activity && activity.config) || {};
+    if (config.participation) return config.participation;
+    if (config.askSelected) return "selected_pupil";
+    return "whole_class";
+  }
+
+  function participationLabel(id) {
+    var i;
+    for (i = 0; i < PARTICIPATION.length; i++) if (PARTICIPATION[i].id === id) return PARTICIPATION[i].label;
+    return "Whole class";
+  }
+
+  function scoreCopy(activity, modeId) {
+    var config = (activity && activity.config) || {};
+    var points = config.points == null ? 1 : Number(config.points);
+    var part = participationOf(activity);
+    var teamed = playMode(modeId).engine !== "none";
+    if (!activity || activity.mechanic === "spin") return "Chooses who goes next.";
+    if (activity.mechanic !== "quiz" && activity.mechanic !== "word_search") return "The class follows this together.";
+    var unit = activity.mechanic === "word_search" ? " per word" : "";
+    if (part === "selected_pupil" || part === "spin") return "+" + points + unit + (teamed ? " to their team" : " class reward");
+    if (part === "team_turn") return "+" + points + unit + " to the active team";
+    if (part === "teacher_class") return "+" + points + unit + " to the class";
+    return "+" + points + unit + " class reward";
+  }
+
+  function libraryActions(item) {
+    if (!isCurrent(item)) return ["Update this adventure"];
+    return ["Start", "Preview", "Adapt", "Duplicate"];
+  }
+
+  function isCurrent(item) {
+    if (!item || item.creator !== "v2" || !item.plan || !item.plan.activities) return false;
+    return unsupportedMechanics(item).length === 0;
+  }
+
+  function unsupportedMechanics(item) {
+    var found = {};
+    var list = [];
+    var activities = (item && item.plan && item.plan.activities) || [];
+    var slides = (item && item.plan && item.plan.slides) || [];
+    activities.forEach(function (activity) {
+      var id = activity && activity.mechanic;
+      if (id && !capability(id) && !found[id]) { found[id] = 1; list.push(id); }
+    });
+    if (!activities.length) slides.forEach(function (slide) {
+      var id = slide && (slide.type === "question" ? "quiz" : slide.type);
+      if (id && !capability(id) && !found[id]) { found[id] = 1; list.push(id); }
+    });
+    return list;
+  }
+
   function sessionPlan(draft, room) {
     var here = takingPart(draft, room);
     var guests = (draft.guests || []).map(function (guest) {
       return { id: guest.id, firstName: guest.name, temporary: true };
     });
+    var people = here.concat(guests.map(function (guest) { return { id: guest.id, firstName: guest.firstName }; }));
     var mode = playMode(draft.playMode);
-    ensureTeams(draft, here.concat(guests.map(function (guest) { return { id: guest.id, firstName: guest.firstName }; })));
+    var working = { playMode: draft.playMode, teamStyle: draft.playMode === "custom" ? "custom" : "auto", teams: JSON.parse(JSON.stringify(draft.teams || [])) };
+    if (mode.engine !== "none") {
+      var present = {};
+      people.forEach(function (pupil) { present[pupil.id] = 1; });
+      if (working.teams.length) {
+        working.teams = working.teams.map(function (team) {
+          return { id: team.id, name: team.name, pupilIds: (team.pupilIds || []).filter(function (id) { return present[id]; }) };
+        });
+      } else ensureTeams(working, people);
+    } else working.teams = [];
     var assignments = [];
     if (mode.engine !== "none") {
-      (draft.teams || []).forEach(function (team, index) {
+      working.teams.forEach(function (team, index) {
         (team.pupilIds || []).forEach(function (id) { assignments.push({ id: id, teamIndex: index }); });
       });
     }
@@ -602,10 +687,11 @@
       pupils: here.map(function (pupil) { return { id: pupil.id, firstName: pupil.firstName }; }),
       guests: guests,
       teamMode: mode.engine,
-      teamNames: (draft.teams || []).map(function (team) { return team.name; }),
-      teamIds: null,
+      teamNames: working.teams.map(function (team) { return team.name; }),
+      teamIds: working.teams.map(function (team) { return team.id; }),
       assignments: mode.engine === "none" ? null : assignments,
-      begin: true
+      begin: true,
+      playMode: draft.playMode
     };
   }
 
@@ -638,6 +724,14 @@
     slidesFor: slidesFor,
     toAdventure: toAdventure,
     fromAdventure: fromAdventure,
-    sessionPlan: sessionPlan
+    sessionPlan: sessionPlan,
+    PARTICIPATION: PARTICIPATION,
+    participationOptions: participationOptions,
+    participationOf: participationOf,
+    participationLabel: participationLabel,
+    scoreCopy: scoreCopy,
+    libraryActions: libraryActions,
+    isCurrent: isCurrent,
+    unsupportedMechanics: unsupportedMechanics
   };
 });

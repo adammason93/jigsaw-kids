@@ -99,7 +99,7 @@
     var mode = scoreMode(view);
     if (!engine || mode === "class") {
       var total = engine ? engine.rewardTotal : (view && view.board ? view.board.reward : 0);
-      var reward = (view && view.board && view.board.rewardName) || "Class tokens";
+      var reward = (view && view.board && view.board.rewardName) || "Class reward";
       var bump = ui.bump && !ui.bump.teamId ? "<i class=\"lesson-plus\">+" + ui.bump.amount + "</i>" : "";
       return "<div class=\"lesson-score lesson-score--class" + (bump ? " is-up" : "") + "\"><span>" + escape(reward) + "</span><strong>" + total + "</strong>" + bump + "</div>";
     }
@@ -245,9 +245,10 @@
       var title = screen === "complete" ? "Adventure complete!" : "Lesson ended";
       var lead = screen === "ended" ? "What you finished has been kept." : "The class finished this adventure.";
       html = shell(model, "<section class=\"lesson-finish\" id=\"lessonSummary\"><p class=\"lesson-kicker\">" + escape(model.title) + "</p><h2>" + title + "</h2><p class=\"lesson-copy\">" + lead + "</p>" +
-        (teams || "<p class=\"lesson-score lesson-score--class\"><span>Class tokens</span><strong>" + (result.classReward || 0) + "</strong></p>") +
-        "<p class=\"lesson-copy\">" + (result.roundsCompleted || 0) + " rounds completed. " + ((result.participation && result.participation.joined) || 0) + " taking part.</p></section>", slides, slides.length ? slides.length - 1 : 0, "", screen === "complete" ? "Complete" : "Ended");
-      html = html.replace("</main>", "</main><div class=\"lesson-card-actions lesson-ready-go\"><a class=\"lesson-quiet\" href=\"../../portal.html#results\">View results</a><a class=\"lesson-quiet\" id=\"lessonAgain\" href=\"" + escape(model.againHref || "#") + "\">Play again</a><a class=\"lesson-go\" href=\"" + escape(model.classHref || "../../portal.html#classes") + "\">Back to class</a></div>");
+        (teams || "<p class=\"lesson-score lesson-score--class\"><span>Class reward</span><strong>" + (result.classReward || 0) + "</strong></p>") +
+        "<p class=\"lesson-copy\">" + (result.roundsCompleted || 0) + " of " + (result.roundsTotal || slides.length) + " rounds. " + ((result.participation && result.participation.joined) || 0) + " taking part.</p>" +
+        "<p class=\"lesson-copy\">" + ((result.responses && result.responses.correct) || 0) + " correct. " + ((result.responses && result.responses.incorrect) || 0) + " to look at again.</p></section>", slides, slides.length ? slides.length - 1 : 0, "", screen === "complete" ? "Complete" : "Ended");
+      html = html.replace("</main>", "</main><div class=\"lesson-card-actions lesson-ready-go\"><a class=\"lesson-quiet\" href=\"" + escape(model.resultsHref || "#lessonSummary") + "\">View results</a><button type=\"button\" class=\"lesson-quiet\" data-act=\"replay\">Play again</button><a class=\"lesson-quiet\" href=\"" + escape(model.classHref || "../../portal.html#classes") + "\">Back to class</a><a class=\"lesson-go\" href=\"" + escape(model.homeHref || "../../portal.html") + "\">Home</a></div>");
     } else if (screen === "transition") {
       var nextSlide = slides[ui.transition] || {};
       var scoreLine = scoresHtml(view);
@@ -399,6 +400,7 @@
         else if (act === "help") { ui.help = true; render(rootEl, model); }
         else if (act === "full" && model.actions.fullscreen) model.actions.fullscreen();
         else if (act === "end") { ui.end = true; render(rootEl, model); }
+        else if (act === "replay" && model.actions.replay) model.actions.replay();
       });
     });
     rootEl.querySelectorAll("[data-choose]").forEach(function (btn) {

@@ -303,7 +303,7 @@
       "<header class=\"room-top\"><div>" + year + "<h1>" + escape(room.name) + "</h1><p>" + count + " pupil" + (count === 1 ? "" : "s") + "</p></div></header>" +
       "<div class=\"t-actions\">" +
       "<a class=\"w-btn w-btn--primary\" href=\"create.html?class=" + q + "\">Create Adventure</a>" +
-      "<a class=\"w-btn w-btn--secondary\" href=\"present.html?example=lights&class=" + q + "\">Quick Game</a>" +
+      "<a class=\"w-btn w-btn--secondary\" href=\"create.html?quick=1&class=" + q + "\">Quick Game</a>" +
       "<a class=\"w-btn w-btn--quiet\" href=\"../../games/storybook.html?create=1&class=" + q + "\">Create Story</a></div>" +
       (welcome ? "<p class=\"w-note w-note--success\" id=\"welcomeBanner\">" + escape(room.name) + " is ready.</p>" : "") +
       (tab === "classroom" ? scene(room, view) + below(room) : "") +
@@ -384,7 +384,19 @@
     if (global.ClassRooms && ClassRooms.forJourney) {
       list.forEach(function (item) { sessions += ClassRooms.forJourney(item.id).length; });
     }
-    var todayHtml = today ? "<article class=\"w-card\"><h2 class=\"w-h3\">Continue</h2><p>" + escape((today.plan && today.plan.title) || (today.learningMap && today.learningMap.topic) || "Adventure") + "</p><a class=\"w-btn w-btn--secondary\" href=\"create.html?start=" + encodeURIComponent(today.id) + "&class=" + encodeURIComponent(room.id) + "\">Start adventure</a></article>" : "<article class=\"w-card\"><h2 class=\"w-h3\">Continue</h2><p>Adventures for this class show up here.</p></article>";
+    var live = null;
+    if (global.ClassRooms && ClassRooms.forJourney) {
+      list.forEach(function (item) {
+        ClassRooms.forJourney(item.id).forEach(function (session) {
+          if (session.classId && session.classId !== room.id) return;
+          var status = session.engineStatus || "";
+          if (status === "active" || status === "paused" || status === "waiting" || status === "recoverable_error") live = session;
+        });
+      });
+    }
+    var todayHtml = live
+      ? "<article class=\"w-card\"><h2 class=\"w-h3\">Continue lesson</h2><p>" + escape(live.title || "Lesson") + "</p><a class=\"w-btn w-btn--secondary\" href=\"present.html?session=" + encodeURIComponent(live.code) + "&class=" + encodeURIComponent(room.id) + "\">Continue lesson</a></article>"
+      : (today ? "<article class=\"w-card\"><h2 class=\"w-h3\">Start adventure</h2><p>" + escape((today.plan && today.plan.title) || (today.learningMap && today.learningMap.topic) || "Adventure") + "</p><a class=\"w-btn w-btn--secondary\" href=\"create.html?start=" + encodeURIComponent(today.id) + "&class=" + encodeURIComponent(room.id) + "\">Start adventure</a></article>" : "<article class=\"w-card\"><h2 class=\"w-h3\">Start adventure</h2><p>Adventures for this class show up here.</p></article>");
     return "<div class=\"room-below t-grid\">" + todayHtml + "<article class=\"w-card\"><h2 class=\"w-h3\">In the room</h2><p>" + (sessions ? sessions + " class session" + (sessions === 1 ? "" : "s") + " on this account." : "Sessions appear after this class takes part.") + "</p><p class=\"t-actions\"><button type=\"button\" class=\"w-btn w-btn--quiet\" id=\"startLesson\">Saved lessons</button><button type=\"button\" class=\"w-btn w-btn--quiet\" id=\"choosePupils\">" + (chooseOn ? "Done choosing" : "Choose pupils") + "</button><button type=\"button\" class=\"w-btn w-btn--quiet\" id=\"spinSomeone\">Choose someone</button></p></article></div>";
   }
 

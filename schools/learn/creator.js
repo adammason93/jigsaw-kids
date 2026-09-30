@@ -19,6 +19,7 @@
   var buildAt = -1;
   var notice = "";
   var dirty = false;
+  var returnStep = "";
 
   function escape(value) {
     return String(value == null ? "" : value).replace(/[&<>"]/g, function (ch) {
@@ -185,7 +186,7 @@
     var total = room ? (room.pupils || []).length : 0;
     var people = room ? "<p><strong>" + here + " of " + total + " pupils taking part</strong> <button type=\"button\" class=\"creator-text\" id=\"manage\">Manage</button></p>" + manager(room) : "";
     return progress() + "<h1>Who is it for?</h1>" + known + level + people +
-      actions(["<button type=\"button\" class=\"creator-quiet\" data-go=\"source\">Back</button>", "<button type=\"button\" class=\"creator-go\" data-go=\"play\">Continue</button>"]);
+      actions(["<button type=\"button\" class=\"creator-quiet\" data-go=\"source\">Back</button>", "<button type=\"button\" class=\"creator-go\" data-go=\"" + (draft.quick ? "quick" : "play") + "\">Continue</button>"]);
   }
 
   function manager(room) {
@@ -214,8 +215,12 @@
         "<button type=\"button\" class=\"creator-quiet\" id=\"ownTeams\">Choose teams myself</button>" +
         teamBoard(people, room) + "</section>";
     }
+    var back = returnStep === "confirm" ? "confirm" : "class";
+    var primary = returnStep === "confirm"
+      ? "<button type=\"button\" class=\"creator-go\" id=\"saveSetup\">Use this setup</button>"
+      : "<button type=\"button\" class=\"creator-go\" id=\"build\">Build my adventure</button>";
     return progress() + "<h1>How should the class play?</h1><div class=\"creator-modes\">" + modes + "</div>" + teams +
-      actions(["<button type=\"button\" class=\"creator-quiet\" data-go=\"class\">Back</button>", "<button type=\"button\" class=\"creator-go\" id=\"build\">Build my adventure</button>"]);
+      actions(["<button type=\"button\" class=\"creator-quiet\" data-go=\"" + back + "\">Back</button>", primary]);
   }
 
   function teamBoard(people, room) {
@@ -269,8 +274,10 @@
     var picker = adding ? "<div class=\"creator-paths\">" + Core.capabilities(Mechanics).map(function (item) {
       return "<button type=\"button\" class=\"creator-path\" data-add=\"" + item.id + "\"><strong>" + escape(item.name) + "</strong><span>" + escape(item.description) + "</span></button>";
     }).join("") + "</div>" : "<button type=\"button\" class=\"creator-text\" id=\"addActivity\">+ Add activity</button>";
+    var nextStep = draft.quick ? "attendance" : "review";
+    var backStep = draft.quick ? "quick" : "play";
     return progress() + "<h1>Your adventure</h1><p>About " + (draft.minutes || 0) + " minutes</p>" + stale + "<div class=\"creator-plan\">" + cards + "</div>" + picker +
-      actions(["<button type=\"button\" class=\"creator-quiet\" data-go=\"play\">Back</button>", "<button type=\"button\" class=\"creator-go\" data-go=\"review\">Review</button>"]);
+      actions(["<button type=\"button\" class=\"creator-quiet\" data-go=\"" + backStep + "\">Back</button>", "<button type=\"button\" class=\"creator-go\" data-go=\"" + nextStep + "\">" + (draft.quick ? "Continue" : "Review") + "</button>"]);
   }
 
   function editForm(activity, index) {
@@ -291,78 +298,156 @@
       } else {
         fields += "<label class=\"creator-field\">Correct answer<select id=\"editCorrect\"><option value=\"true\"" + (config.correct === "true" ? " selected" : "") + ">True</option><option value=\"false\"" + (config.correct === "false" ? " selected" : "") + ">False</option></select></label>";
       }
-      fields += "<label class=\"creator-field\">Points<input id=\"editPoints\" type=\"number\" min=\"0\" max=\"5\" value=\"" + escape(config.points == null ? 1 : config.points) + "\" /></label>" +
-        "<label><input id=\"editAsk\" type=\"checkbox\"" + (config.askSelected ? " checked" : "") + " /> Ask the selected pupil when someone has been chosen</label>";
+      fields += "<label class=\"creator-field\">Points<input id=\"editPoints\" type=\"number\" min=\"0\" max=\"5\" value=\"" + escape(config.points == null ? 1 : config.points) + "\" /></label>" + whoField(activity);
     } else if (activity.mechanic === "spin") {
       fields += "<label><input id=\"editRepeat\" type=\"checkbox\"" + (config.avoidRepeat !== false ? " checked" : "") + " /> Avoid choosing the same pupil twice in a row</label>" +
         "<label><input id=\"editFresh\" type=\"checkbox\"" + (config.preferFresh !== false ? " checked" : "") + " /> Prefer pupils who have not had a turn</label>";
     } else if (activity.mechanic === "word_search") {
       fields += "<label class=\"creator-field\">Instruction<input id=\"editInstruction\" value=\"" + escape(config.instruction || "") + "\" /></label>" +
         "<label class=\"creator-field\">Words, one on each line<textarea id=\"editWords\">" + escape((config.words || []).join("\n")) + "</textarea></label>" +
-        "<label class=\"creator-field\">Points per word<input id=\"editPoints\" type=\"number\" min=\"0\" max=\"5\" value=\"" + escape(config.points == null ? 1 : config.points) + "\" /></label>";
+        "<label class=\"creator-field\">Points per word<input id=\"editPoints\" type=\"number\" min=\"0\" max=\"5\" value=\"" + escape(config.points == null ? 1 : config.points) + "\" /></label>" + whoField(activity);
     } else {
       fields += "<label class=\"creator-field\">What the class sees<textarea id=\"editLines\">" + escape((config.lines || []).join("\n")) + "</textarea></label>";
     }
     return "<section class=\"creator-card\"><h2>Edit</h2>" + fields + actions(["<button type=\"button\" class=\"creator-go\" id=\"saveEdit\" data-index=\"" + index + "\">Save activity</button>", "<button type=\"button\" class=\"creator-quiet\" id=\"closeEdit\">Close</button>"]) + "</section>";
   }
 
+  function whoField(activity) {
+    var options = Core.participationOptions(activity.mechanic, draft.playMode);
+    if (!options.length || (options.length === 1 && activity.mechanic !== "quiz" && activity.mechanic !== "word_search")) return "";
+    var current = Core.participationOf(activity);
+    return "<label class=\"creator-field\">Who answers?<select id=\"editPart\">" + options.map(function (id) {
+      return "<option value=\"" + escape(id) + "\"" + (id === current ? " selected" : "") + ">" + escape(Core.participationLabel(id)) + "</option>";
+    }).join("") + "</select></label>";
+  }
+
   function review() {
     var room = roomById(draft.classId);
+    var mode = Core.playMode(draft.playMode);
     var problems = Core.issues(draft, Mechanics);
-    var line = (draft.activities || []).map(function (activity, index) {
-      var preview = activity.mechanic === "quiz" ? activity.config.prompt : activity.mechanic === "word_search" ? (activity.config.words || []).join(", ") : activity.title;
-      return "<li><strong>" + (index + 1) + ". " + escape(activity.title) + "</strong> · " + escape(activity.purpose || activity.mechanic) + "<br />" + escape(preview || "") + "</li>";
+    var cards = (draft.activities || []).map(function (activity, index) {
+      var part = Core.participationOf(activity);
+      var prev = index ? draft.activities[index - 1] : null;
+      var follow = activity.mechanic === "spin" ? "<p>Chooses who goes next.</p>" : "";
+      if (prev && prev.mechanic === "spin" && (part === "selected_pupil" || part === "spin")) follow = "<p>The selected pupil answers.</p>";
+      var detail = activity.mechanic === "quiz"
+        ? ((activity.config && activity.config.prompt) || "Question not written yet")
+        : activity.mechanic === "word_search"
+          ? (((activity.config && activity.config.words) || []).length + " lesson words")
+          : (activity.purpose || activity.title || "");
+      return "<article class=\"creator-activity\"><p class=\"creator-note\">" + (index + 1) + "</p><div><strong>" + escape(activity.title || activity.mechanic) + "</strong>" +
+        "<p>" + escape(detail) + "</p>" + follow +
+        "<p>Participation: " + escape(Core.participationLabel(part)) + "</p>" +
+        "<p>Scoring: " + escape(Core.scoreCopy(activity, draft.playMode)) + "</p>" +
+        "<button type=\"button\" class=\"creator-quiet\" data-edit=\"" + index + "\">Edit</button></div></article>";
     }).join("");
     return progress() + "<h1>" + escape(draft.title || "Review") + "</h1>" +
       "<p>" + escape(draft.subject || "Subject not set") + " · " + escape(draft.year || "Learning level not set") + "</p>" +
-      "<p>" + escape(room ? room.name : "No class") + " · " + escape(Core.playMode(draft.playMode).title) + "</p>" +
-      "<p>" + (room ? Core.takingPart(draft, room).length + " of " + room.pupils.length + " pupils" : "No class pupils") + "</p>" +
-      "<p>About " + (draft.minutes || 0) + " minutes</p>" +
-      ((draft.goals || []).length ? "<p>Goal: " + escape(draft.goals[0]) + "</p>" : "") +
-      (draft.notes ? "<p>" + escape(draft.notes) + "</p>" : "") +
-      "<ol class=\"creator-plan\">" + line + "</ol>" +
+      "<p>" + escape(room ? room.name : "No class") + " · " + (room ? room.pupils.length + " pupils" : "No pupils") + "</p>" +
+      "<p>About " + (draft.minutes || 0) + " minutes · " + escape(mode.title) + "</p>" +
+      "<div class=\"creator-plan\">" + cards + "</div>" +
       (problems.length ? "<p class=\"creator-warn\">" + escape(problems[0]) + "</p>" : "") +
       "<label class=\"creator-field\">Teacher notes<textarea id=\"notes\">" + escape(draft.notes || "") + "</textarea></label>" +
       actions([
         "<button type=\"button\" class=\"creator-go\" id=\"startNow\">Start now</button>",
         "<button type=\"button\" class=\"creator-quiet\" id=\"saveLibrary\">Save to library</button>",
-        "<button type=\"button\" class=\"creator-quiet\" data-go=\"activities\">Edit</button>"
+        "<button type=\"button\" class=\"creator-quiet\" data-go=\"activities\">Edit plan</button>"
       ]);
   }
 
-  function ready() {
+  function attendance() {
     var room = roomById(draft.classId);
-    var here = room ? Core.takingPart(draft, room) : [];
-    var awayCount = room ? room.pupils.length - here.length : 0;
-    var faces = here.slice(0, 8).map(function (pupil) {
-      return "<span class=\"creator-pupil\"><img src=\"" + escape(portrait(pupil, room)) + "\" alt=\"\" /><span>" + escape(pupil.firstName) + "</span></span>";
+    var away = {};
+    (draft.away || []).forEach(function (id) { away[id] = 1; });
+    var rows = room ? (room.pupils || []).map(function (pupil) {
+      var off = !!away[pupil.id];
+      return "<button type=\"button\" class=\"creator-pupil" + (off ? " is-away" : "") + "\" data-away=\"" + escape(pupil.id) + "\">" +
+        "<img src=\"" + escape(portrait(pupil, room)) + "\" alt=\"\" /><span>" + escape(pupil.firstName) + "</span><small>" + (off ? "Away" : "Here") + "</small></button>";
+    }).join("") : "<p>No class is saved on this adventure yet.</p>";
+    var here = room ? Core.takingPart(draft, room).length : 0;
+    var total = room ? room.pupils.length : 0;
+    var guests = (draft.guests || []).map(function (guest) { return escape(guest.name); }).join(", ");
+    return "<p class=\"w-kicker\">Attendance</p><h1>Who's here today?</h1>" +
+      (room ? "<p>" + escape(room.name) + "</p>" : "") +
+      "<div class=\"creator-pupils\">" + rows + "</div>" +
+      "<p><strong>" + here + " of " + total + " here today</strong></p>" +
+      "<label class=\"creator-field\">Add a visitor<input id=\"guest\" maxlength=\"24\" /></label>" +
+      "<button type=\"button\" class=\"creator-quiet\" id=\"addGuest\">Add visitor</button>" +
+      "<p class=\"creator-note\">" + (guests ? "Visitors today: " + guests + ". " : "") + "A visitor stays in this session only.</p>" +
+      actions(["<button type=\"button\" class=\"creator-go\" data-go=\"confirm\">Continue</button>", "<button type=\"button\" class=\"creator-quiet\" data-go=\"review\">Back</button>"]);
+  }
+
+  function teamHeading(name) {
+    if (!name) return "Team";
+    return /team/i.test(name) ? name : name + " Team";
+  }
+
+  function confirmPlay() {
+    var room = roomById(draft.classId);
+    var plan = Core.sessionPlan(draft, room);
+    var mode = Core.playMode(draft.playMode);
+    var copy = "Playing together as one class.";
+    if (mode.id === "individual") copy = "Children will take turns during activities.";
+    else if (mode.id === "teacher_class") copy = "Teacher vs Class";
+    else if (mode.engine !== "none") copy = (plan.teamNames || []).map(teamHeading).join(" vs ") || mode.title;
+    var byId = {};
+    if (room) (room.pupils || []).forEach(function (pupil) { byId[pupil.id] = pupil; });
+    (draft.guests || []).forEach(function (guest) { byId[guest.id] = { id: guest.id, firstName: guest.name }; });
+    var faces = mode.engine === "none" ? "" : (plan.teamNames || []).map(function (name, index) {
+      var ids = [];
+      (plan.assignments || []).forEach(function (row) { if (row.teamIndex === index) ids.push(row.id); });
+      var kids = ids.map(function (id) {
+        var pupil = byId[id];
+        if (!pupil) return "";
+        return "<span class=\"creator-pupil\"><img src=\"" + escape(portrait(pupil, room)) + "\" alt=\"\" /><span>" + escape(pupil.firstName) + "</span></span>";
+      }).join("");
+      return "<section class=\"creator-card\"><h2>" + escape(teamHeading(name)) + "</h2><div class=\"creator-pupils\">" + kids + "</div></section>";
     }).join("");
-    var modes = Core.PLAY.map(function (mode) {
-      return "<button type=\"button\" class=\"creator-mode" + (draft.playMode === mode.id ? " is-now" : "") + "\" data-mode=\"" + mode.id + "\"><strong>" + escape(mode.title) + "</strong></button>";
-    }).join("");
-    return "<p class=\"w-kicker\">Ready to start</p><h1>" + escape(room ? room.name + " is ready" : draft.title || "Ready") + "</h1>" +
-      "<div class=\"creator-pupils\">" + faces + "</div><p><strong>" + here.length + " pupils here</strong></p>" +
-      "<p>" + (awayCount ? awayCount + " pupils away" : "Everyone is here") + " <button type=\"button\" class=\"creator-text\" id=\"manage\">Who's away today?</button></p>" +
-      manager(room) +
-      "<h2>How are we playing?</h2><div class=\"creator-modes\">" + modes + "</div>" +
-      "<label class=\"creator-field\">Add a visiting pupil<input id=\"guest\" maxlength=\"24\" /></label><button type=\"button\" class=\"creator-quiet\" id=\"addGuest\">Add temporary name</button>" +
-      "<p class=\"creator-note\">" + (draft.guests || []).map(function (guest) { return escape(guest.name); }).join(", ") + "</p>" +
-      actions(["<button type=\"button\" class=\"creator-go\" id=\"begin\">Start adventure</button>", "<button type=\"button\" class=\"creator-quiet\" data-go=\"review\">Back</button>"]);
+    return "<p class=\"w-kicker\">Ready</p><h1>" + escape(draft.title || "Today's adventure") + "</h1><p>" + escape(copy) + "</p>" + faces +
+      actions([
+        "<button type=\"button\" class=\"creator-go\" id=\"begin\">Start adventure</button>",
+        "<button type=\"button\" class=\"creator-quiet\" id=\"changeSetup\">Change setup</button>",
+        "<button type=\"button\" class=\"creator-quiet\" data-go=\"attendance\">Back</button>"
+      ]);
+  }
+
+  function quickStep() {
+    var room = roomById(draft.classId);
+    var picks = [
+      ["quiz", "Quiz", "One question for this class."],
+      ["spin", "Spin a pupil", "Choose someone who is here."],
+      ["word_search", "Word search", "Find a few words together."]
+    ];
+    return "<h1>Quick game</h1><p>" + escape(room ? room.name + " is already selected." : "Choose a class, then pick a game.") + "</p><div class=\"creator-paths\">" +
+      picks.map(function (item) {
+        return "<button type=\"button\" class=\"creator-path\" data-quick=\"" + item[0] + "\"><strong>" + escape(item[1]) + "</strong><span>" + escape(item[2]) + "</span></button>";
+      }).join("") + "</div>" +
+      (room ? "" : "<p><button type=\"button\" class=\"creator-quiet\" data-go=\"class\">Choose a class</button></p>");
+  }
+
+  function ready() {
+    return attendance();
   }
 
   function libraryView() {
     var cards = library().map(function (item) {
       var map = item.learningMap || {};
+      var current = Core.isCurrent(item);
       var count = (item.plan && item.plan.activities && item.plan.activities.length) || (item.plan && item.plan.slides && item.plan.slides.length) || 0;
-      return "<article class=\"creator-card\"><h2>" + escape(item.title || (item.plan && item.plan.title) || "Adventure") + "</h2>" +
+      var buttons = Core.libraryActions(item).map(function (label) {
+        var classBit = item.classId ? "&class=" + encodeURIComponent(item.classId) : "";
+        if (label === "Start") return "<a class=\"creator-go\" href=\"create.html?start=" + encodeURIComponent(item.id) + classBit + "\">Start</a>";
+        if (label === "Preview") return "<a class=\"creator-quiet\" href=\"present.html?journey=" + encodeURIComponent(item.id) + "&preview=1\">Preview</a>";
+        if (label === "Adapt") return "<a class=\"creator-quiet\" href=\"create.html?adapt=" + encodeURIComponent(item.id) + "\">Adapt</a>";
+        if (label === "Duplicate") return "<button type=\"button\" class=\"creator-quiet\" data-copy=\"" + escape(item.id) + "\">Duplicate</button>";
+        if (label === "Update this adventure") return "<a class=\"creator-go\" href=\"create.html?adapt=" + encodeURIComponent(item.id) + "\">Update this adventure</a>";
+        return "";
+      }).join("");
+      return "<article class=\"creator-card\"><p class=\"creator-note\">" + (current ? "Current adventure" : "Older adventure") + "</p><h2>" + escape(item.title || (item.plan && item.plan.title) || "Adventure") + "</h2>" +
         "<p>" + escape(map.subject || "") + " " + escape(map.yearGroup || "") + " · " + count + " activities · " + escape(item.estimateMinutes ? item.estimateMinutes + " min" : "") + "</p>" +
         (item.className ? "<p class=\"creator-note\">" + escape(item.className) + "</p>" : "") +
-        actions([
-          "<a class=\"creator-go\" href=\"create.html?start=" + encodeURIComponent(item.id) + (item.classId ? "&class=" + encodeURIComponent(item.classId) : "") + "\">Start</a>",
-          "<a class=\"creator-quiet\" href=\"present.html?journey=" + encodeURIComponent(item.id) + "&preview=1\">Preview</a>",
-          "<a class=\"creator-quiet\" href=\"create.html?adapt=" + encodeURIComponent(item.id) + "\">Adapt</a>",
-          "<button type=\"button\" class=\"creator-quiet\" data-copy=\"" + escape(item.id) + "\">Duplicate</button>"
-        ]) + "</article>";
+        (current ? "" : "<p>This adventure uses an older format. Updating makes a new copy and leaves the original as it is.</p>") +
+        actions([buttons]) + "</article>";
     }).join("");
     return "<h1>Your adventures</h1>" + (cards || "<p>No saved adventures for this school yet.</p>") +
       "<p><a class=\"creator-go\" href=\"create.html\">Create a learning adventure</a></p>";
@@ -381,7 +466,9 @@
       : step === "play" ? playStep()
       : step === "activities" ? activities()
       : step === "review" ? review()
-      : step === "ready" ? ready()
+      : step === "attendance" || step === "ready" ? attendance()
+      : step === "confirm" ? confirmPlay()
+      : step === "quick" ? quickStep()
       : home();
     if (notice) html = "<p class=\"creator-note\" role=\"status\">" + escape(notice) + "</p>" + html;
     root.innerHTML = "<div class=\"creator\">" + html + "</div>";
@@ -421,7 +508,11 @@
       var correct = document.getElementById("editCorrect");
       activity.config.correct = correct ? correct.value : "";
       activity.config.points = Number((document.getElementById("editPoints") || {}).value || 1);
-      activity.config.askSelected = !!(document.getElementById("editAsk") || {}).checked;
+      var part = document.getElementById("editPart");
+      if (part) {
+        activity.config.participation = part.value;
+        activity.config.askSelected = part.value === "selected_pupil";
+      }
     } else if (activity.mechanic === "spin") {
       activity.config.avoidRepeat = !!(document.getElementById("editRepeat") || {}).checked;
       activity.config.preferFresh = !!(document.getElementById("editFresh") || {}).checked;
@@ -429,6 +520,8 @@
       activity.config.instruction = (document.getElementById("editInstruction") || {}).value || "";
       activity.config.words = String((document.getElementById("editWords") || {}).value || "").split(/\n/).map(function (word) { return word.trim(); }).filter(Boolean);
       activity.config.points = Number((document.getElementById("editPoints") || {}).value || 1);
+      var wordPart = document.getElementById("editPart");
+      if (wordPart) activity.config.participation = wordPart.value;
       activity.config.title = activity.title;
     } else {
       activity.config.lines = String((document.getElementById("editLines") || {}).value || "").split(/\n/).filter(Boolean);
@@ -596,10 +689,46 @@
     });
     var build = document.getElementById("build");
     if (build) build.addEventListener("click", beginBuild);
+    var saveSetup = document.getElementById("saveSetup");
+    if (saveSetup) saveSetup.addEventListener("click", function () {
+      Core.ensureTeams(draft, Core.takingPart(draft, roomById(draft.classId)));
+      returnStep = "";
+      go("confirm");
+    });
+    var changeSetup = document.getElementById("changeSetup");
+    if (changeSetup) changeSetup.addEventListener("click", function () {
+      returnStep = "confirm";
+      go("play");
+    });
+    root.querySelectorAll("[data-quick]").forEach(function (button) {
+      button.addEventListener("click", function () {
+        var mechanic = button.getAttribute("data-quick");
+        draft.activities = [];
+        draft.quick = true;
+        draft.title = draft.title || "Quick game";
+        Core.addActivity(draft, mechanic, Mechanics);
+        var activity = draft.activities[0];
+        if (activity && mechanic === "quiz") {
+          activity.config.prompt = "What is 2 × 2?";
+          activity.config.choices = ["3", "4", "5", "6"];
+          activity.config.correct = "4";
+          activity.config.participation = "whole_class";
+        }
+        if (activity && mechanic === "word_search") {
+          activity.config.words = ["STAR", "MOON", "SUN"];
+        }
+        editing = mechanic === "spin" ? -1 : 0;
+        go(mechanic === "spin" ? "attendance" : "activities");
+      });
+    });
     var rebuild = document.getElementById("rebuild");
     if (rebuild) rebuild.addEventListener("click", beginBuild);
     root.querySelectorAll("[data-edit]").forEach(function (button) {
-      button.addEventListener("click", function () { editing = Number(button.getAttribute("data-edit")); paint(); });
+      button.addEventListener("click", function () {
+        editing = Number(button.getAttribute("data-edit"));
+        if (step === "review") step = "activities";
+        paint();
+      });
     });
     root.querySelectorAll("[data-dup]").forEach(function (button) {
       button.addEventListener("click", function () { Core.duplicateActivity(draft, Number(button.getAttribute("data-dup"))); mark(); });
@@ -650,8 +779,8 @@
     if (start) start.addEventListener("click", function () {
       var problems = Core.issues(draft, Mechanics);
       if (problems.length) { notice = problems[0]; paint(); return; }
-      persistAdventure();
-      go("ready");
+      if (!draft.quick) persistAdventure();
+      go("attendance");
     });
     var guest = document.getElementById("addGuest");
     if (guest) guest.addEventListener("click", function () {
@@ -662,13 +791,26 @@
     if (begin) begin.addEventListener("click", function () {
       var problems = Core.issues(draft, Mechanics);
       if (problems.length) { notice = problems[0]; paint(); return; }
-      var adventure = persistAdventure();
-      if (!window.ClassRooms || !adventure) { notice = "The lesson could not be started."; paint(); return; }
+      var adventure = draft.quick ? Core.toAdventure(draft, org().organisationId || null) : persistAdventure();
+      if (!adventure) {
+        notice = "This adventure could not be saved on this account, so it was not started.";
+        paint();
+        return;
+      }
+      if (!window.ClassRooms) {
+        notice = "The session could not be created. The adventure is still saved.";
+        paint();
+        return;
+      }
       var plan = Core.sessionPlan(draft, roomById(draft.classId));
       var created = ClassRooms.createSession(adventure, "board", false, plan);
-      if (!created) { notice = "The lesson could not be started."; paint(); return; }
+      if (!created) {
+        notice = draft.quick ? "The session could not be created." : "The session could not be created. The adventure is still saved.";
+        paint();
+        return;
+      }
       clearLocal();
-      location.href = "present.html?session=" + created.code + "&fresh=1";
+      location.href = "present.html?session=" + created.code + "&fresh=1" + (draft.classId ? "&class=" + encodeURIComponent(draft.classId) : "");
     });
     root.querySelectorAll("[data-copy]").forEach(function (button) {
       button.addEventListener("click", function () {
@@ -691,22 +833,45 @@
     else if (params.get("adapt")) {
       var original = findAdventure(params.get("adapt"));
       if (original) {
+        var dropped = Core.unsupportedMechanics(original);
         draft = Core.fromAdventure(original);
+        var keptTeams = JSON.parse(JSON.stringify(draft.teams || []));
+        var keptMode = draft.playMode;
         applyEntryClass();
         if (!params.get("class") && original.classId) Core.setClass(draft, roomById(original.classId));
+        if (keptTeams.length) {
+          draft.teams = keptTeams;
+          draft.playMode = keptMode;
+        }
+        if (dropped.length) notice = "This copy left out activities that cannot be played yet: " + dropped.join(", ") + ". The original adventure is unchanged.";
         step = "activities";
-      }
+      } else notice = "This adventure could not be opened on this account.";
     } else if (params.get("start")) {
       var existing = findAdventure(params.get("start"));
-      if (existing) {
+      if (!existing) notice = "This adventure could not be opened on this account.";
+      else if (!Core.isCurrent(existing)) {
+        notice = "This is an older adventure. Update it before it can be played. The original stays as it is.";
+        step = "library";
+      } else {
         draft = Core.fromAdventure(existing);
         draft.id = existing.id;
         draft.adaptedFrom = "";
         draft.saved = true;
+        var keptTeams = JSON.parse(JSON.stringify(draft.teams || []));
+        var keptMode = draft.playMode;
         if (params.get("class")) Core.setClass(draft, roomById(params.get("class")));
         else if (existing.classId) Core.setClass(draft, roomById(existing.classId));
-        step = "ready";
+        if (keptTeams.length) {
+          draft.teams = keptTeams;
+          draft.playMode = keptMode;
+        }
+        step = "attendance";
       }
+    } else if (params.get("quick") === "1") {
+      draft.quick = true;
+      draft.title = "Quick game";
+      applyEntryClass();
+      step = draft.classId ? "quick" : "class";
     } else if (params.get("example") === "lights" || params.get("template")) {
       draft.source.text = Learn && Learn.SAMPLE ? Learn.SAMPLE : "Year 4 science. Electricity. Key vocabulary: circuit, battery, switch, current.";
       draft.sourceKind = "describe";
@@ -723,5 +888,33 @@
     paint();
   }
 
-  boot();
+  var booted = false;
+  function openBuilder() {
+    var view = org();
+    if (!view.organisationId && view.status !== "ready") {
+      root.innerHTML = "<div class=\"creator\"><p class=\"creator-note\">Opening your school…</p></div>";
+      if (window.WondiiOrg && WondiiOrg.subscribe && !openBuilder.waiting) {
+        openBuilder.waiting = true;
+        WondiiOrg.subscribe(function () { openBuilder(); });
+      }
+      return;
+    }
+    if (!window.__wondiiAccountReady && window.KidsScoreCloud) {
+      root.innerHTML = "<div class=\"creator\"><p class=\"creator-note\">Opening your school…</p></div>";
+      if (!openBuilder.account) {
+        openBuilder.account = true;
+        window.addEventListener("wondii-account-scope", function () { openBuilder(); });
+        setTimeout(function () {
+          window.__wondiiAccountReady = true;
+          openBuilder();
+        }, 2500);
+      }
+      return;
+    }
+    if (booted) return;
+    booted = true;
+    boot();
+  }
+
+  openBuilder();
 })();

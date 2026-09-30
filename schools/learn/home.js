@@ -196,11 +196,11 @@
 
   function createLinks(classId) {
     var adventure = "schools/learn/create.html" + (classId ? "?class=" + encodeURIComponent(classId) : "");
-    var game = "schools/learn/present.html?example=lights" + (classId ? "&class=" + encodeURIComponent(classId) : "");
+    var game = "schools/learn/create.html?quick=1" + (classId ? "&class=" + encodeURIComponent(classId) : "");
     var story = "games/storybook.html?create=1" + (classId ? "&class=" + encodeURIComponent(classId) : "");
     return [
       [adventure, "Learning Adventure", "Turn today's lesson into an adventure."],
-      [game, "Quick Game", "Open the prepared classroom game."],
+      [game, "Quick Game", "Quiz, spin, or a word search with this class."],
       [story, "Create Story", "Start a story on this account."]
     ];
   }
@@ -215,16 +215,34 @@
     return book.classes.length === 1 ? book.classes[0].id : "";
   }
 
+  function liveSession(sessions) {
+    var i;
+    for (i = 0; i < sessions.length; i++) {
+      var status = sessions[i].engineStatus || "";
+      if (status === "active" || status === "paused" || status === "recoverable_error" || status === "waiting") return sessions[i];
+    }
+    return null;
+  }
+
+  function currentAdventure(item) {
+    if (!item || item.creator !== "v2" || !item.plan || !item.plan.activities || !item.plan.activities.length) return false;
+    var known = { quiz: 1, spin: 1, word_search: 1, story: 1, mystery: 1, doors: 1 };
+    return item.plan.activities.every(function (activity) { return activity && known[activity.mechanic]; });
+  }
+
   function recentBlock(lessons, sessions) {
     var bits = [];
-    var adventure = readyLessons()[0];
-    if (adventure) {
-      var start = "schools/learn/create.html?start=" + encodeURIComponent(adventure.id) + (adventure.classId ? "&class=" + encodeURIComponent(adventure.classId) : "");
-      bits.push("<a class=\"w-card w-card--interactive\" href=\"" + start + "\"><p class=\"w-kicker\">Adventure</p><strong>" + escape(lessonTitle(adventure)) + "</strong></a>");
+    var live = liveSession(sessions);
+    if (live && live.code) {
+      var resume = "schools/learn/present.html?session=" + encodeURIComponent(live.code) + (live.classId ? "&class=" + encodeURIComponent(live.classId) : "");
+      bits.push("<a class=\"w-card w-card--interactive\" href=\"" + resume + "\"><p class=\"w-kicker\">Continue lesson</p><strong>" + escape(live.title || live.code) + "</strong><p>Round still open</p></a>");
     }
-    var session = sessions[0];
-    if (session) {
-      bits.push("<article class=\"w-card\"><p class=\"w-kicker\">Session</p><strong>" + escape(session.title || session.code || "Class session") + "</strong><p>" + escape(session.status || "Saved on this account") + "</p></article>");
+    var adventure = readyLessons()[0];
+    if (adventure && currentAdventure(adventure)) {
+      var start = "schools/learn/create.html?start=" + encodeURIComponent(adventure.id) + (adventure.classId ? "&class=" + encodeURIComponent(adventure.classId) : "");
+      bits.push("<a class=\"w-card w-card--interactive\" href=\"" + start + "\"><p class=\"w-kicker\">Start adventure</p><strong>" + escape(lessonTitle(adventure)) + "</strong></a>");
+    } else if (adventure) {
+      bits.push("<a class=\"w-card w-card--interactive\" href=\"schools/learn/create.html?library=1\"><p class=\"w-kicker\">Older adventure</p><strong>" + escape(lessonTitle(adventure)) + "</strong><p>Update it before starting</p></a>");
     }
     if (!bits.length) {
       return "<div class=\"w-empty\"><p class=\"w-empty__title\">Nothing to continue yet</p><p>Create a Learning Adventure from your lesson material.</p></div>";
@@ -279,11 +297,11 @@
 
   function libraryView(view, lessons) {
     var cards = lessons.map(function (item) {
-      var ready = item.status === "ready";
+      var ready = item.status === "ready" && currentAdventure(item);
       var href = ready
         ? "schools/learn/create.html?start=" + encodeURIComponent(item.id) + (item.classId ? "&class=" + encodeURIComponent(item.classId) : "")
-        : "schools/learn/create.html?library=1";
-      var meta = [(item.learningMap && item.learningMap.yearGroup) || "", ready ? "Ready" : "Draft"].filter(Boolean).join(" · ");
+        : (item.creator === "v2" ? "schools/learn/create.html?library=1" : "schools/learn/create.html?adapt=" + encodeURIComponent(item.id));
+      var meta = [(item.learningMap && item.learningMap.yearGroup) || "", ready ? "Start" : (currentAdventure(item) ? "Draft" : "Update this adventure")].filter(Boolean).join(" · ");
       return "<a class=\"w-card w-card--interactive\" href=\"" + href + "\"><p class=\"w-kicker\">Learning Adventure</p><strong>" + escape(lessonTitle(item)) + "</strong><p>" + escape(meta) + "</p></a>";
     }).join("");
     var stories = "<a class=\"w-card w-card--interactive\" href=\"#stories\"><p class=\"w-kicker\">Stories / Books</p><strong>Stories on this account</strong><p>Open the story shelf. A book is not marked against a pupil yet.</p></a>";
@@ -296,7 +314,8 @@
   function resultsView(view, sessions) {
     var rows = sessions.slice(0, 12).map(function (session) {
       var when = session.createdAt ? new Date(session.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short" }) : "";
-      return "<article class=\"w-card\"><strong>" + escape(session.title || session.code || "Class session") + "</strong><p>" + escape([session.status, when].filter(Boolean).join(" · ")) + "</p></article>";
+      var href = session.code ? "schools/learn/present.html?session=" + encodeURIComponent(session.code) + (session.classId ? "&class=" + encodeURIComponent(session.classId) : "") : "#results";
+      return "<a class=\"w-card w-card--interactive\" href=\"" + href + "\"><strong>" + escape(session.title || session.code || "Class session") + "</strong><p>" + escape([session.status, when].filter(Boolean).join(" · ")) + "</p></a>";
     }).join("");
     return "<header class=\"t-section\"><h1 class=\"w-title\">Results</h1><p class=\"w-lead\">Class sessions on this account. This is participation, not attainment.</p></header>" +
       (rows ? "<div class=\"t-grid\">" + rows + "</div>" : "<div class=\"w-empty\"><p class=\"w-empty__title\">No results yet</p><p>Results will appear after your class completes an activity.</p></div>");

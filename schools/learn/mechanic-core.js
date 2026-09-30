@@ -90,12 +90,22 @@
     return null;
   }
 
+  function configuredParticipation(config, ctx) {
+    ctx = ctx || {};
+    if (ctx.participation) return ctx.participation;
+    var slide = config || {};
+    if (slide.participation) return slide.participation;
+    if (slide.question && slide.question.participation) return slide.question.participation;
+    return "";
+  }
+
   function quizOutcome(config, choiceId, ctx) {
     ctx = ctx || {};
     var quiz = normaliseQuiz(config);
     if (!quiz.ok) return quiz;
     var correct = String(choiceId) === String(quiz.correct);
-    var person = answeringPerson(ctx);
+    var mode = configuredParticipation(config, ctx);
+    var person = (!mode || mode === "selected_pupil" || mode === "spin") ? answeringPerson(ctx) : null;
     var response = {
       participantId: person ? person.id : "",
       classVoice: !person,
@@ -103,10 +113,25 @@
       value: String(choiceId),
       correct: correct
     };
-    var teamId = person && person.teamId ? person.teamId : null;
     var score = null;
-    if (correct && quiz.points > 0 && (!(ctx.teams && ctx.teams.length) || teamId)) {
-      score = { teamId: teamId, amount: quiz.points, reason: "quiz-" + (ctx.roundId || "round") };
+    if (correct && quiz.points > 0) {
+      if (!mode) {
+        var teamId = person && person.teamId ? person.teamId : null;
+        if (!(ctx.teams && ctx.teams.length) || teamId) {
+          score = { teamId: teamId, amount: quiz.points, reason: "quiz-" + (ctx.roundId || "round") };
+        }
+      } else {
+        var target = scoreTarget({
+          teams: ctx.teams || [],
+          teamMode: ctx.teamMode || ((ctx.teams && ctx.teams.length) ? "two" : "none"),
+          participants: person ? [person] : [],
+          selectedParticipantId: person ? person.id : null,
+          activeTeamId: ctx.activeTeamId || null
+        }, mode === "spin" ? "selected_pupil" : mode);
+        if (target.kind === "team" || target.kind === "class") {
+          score = { teamId: target.teamId, amount: quiz.points, reason: "quiz-" + (ctx.roundId || "round") };
+        }
+      }
     }
     return { ok: true, correct: correct, quiz: quiz, response: response, score: score };
   }
@@ -308,11 +333,48 @@
     return path;
   }
 
+  function scoreTarget(engine, participation) {
+    engine = engine || {};
+    var teams = engine.teams || [];
+    var teamed = teams.length && engine.teamMode && engine.teamMode !== "none";
+    if (participation === "selected_pupil") {
+      var chosen = null;
+      (engine.participants || []).forEach(function (item) {
+        if (item.id === engine.selectedParticipantId) chosen = item;
+      });
+      if (chosen && chosen.teamId && teamed) return { teamId: chosen.teamId, kind: "team" };
+      if (!teamed) return { teamId: null, kind: "class" };
+      return { teamId: null, kind: "none" };
+    }
+    if (participation === "team_turn") {
+      return engine.activeTeamId ? { teamId: engine.activeTeamId, kind: "team" } : { teamId: null, kind: "none" };
+    }
+    if (participation === "teacher_class") {
+      var classTeam = null;
+      teams.forEach(function (team) { if (team.name === "Class") classTeam = team; });
+      return classTeam ? { teamId: classTeam.id, kind: "team" } : { teamId: null, kind: "none" };
+    }
+    return { teamId: null, kind: "class" };
+  }
+
   function wordAward(config, word, ctx) {
     ctx = ctx || {};
     config = config || {};
     var points = config.points == null ? 1 : Number(config.points);
     if (config.score === "none" || !points || points < 0) return null;
+    var mode = configuredParticipation(config, ctx);
+    if (mode) {
+      var person = mode === "selected_pupil" || mode === "spin" ? answeringPerson(ctx) : null;
+      var target = scoreTarget({
+        teams: ctx.teams || [],
+        teamMode: ctx.teamMode || ((ctx.teams && ctx.teams.length) ? "two" : "none"),
+        participants: person ? [person] : [],
+        selectedParticipantId: person ? person.id : null,
+        activeTeamId: ctx.activeTeamId || null
+      }, mode === "spin" ? "selected_pupil" : mode);
+      if (target.kind !== "team" && target.kind !== "class") return null;
+      return { teamId: target.teamId, amount: points, reason: "word-" + (ctx.roundId || "round") + "-" + word };
+    }
     var teamId = ctx.activeTeamId || (ctx.selected && ctx.selected.teamId) || null;
     if (ctx.teams && ctx.teams.length && !teamId) return null;
     return { teamId: teamId || null, amount: points, reason: "word-" + (ctx.roundId || "round") + "-" + word };
@@ -433,6 +495,7 @@
     generateWordSearch: generateWordSearch,
     checkPath: checkPath,
     linePath: linePath,
+    scoreTarget: scoreTarget,
     wordAward: wordAward,
     wordResponse: wordResponse,
     commitMechanic: commitMechanic,

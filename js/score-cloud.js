@@ -254,8 +254,14 @@
     for (i = 0; i < pending.length; i++) copyIfEmpty(pending[i]);
   }
 
+  function accountReady() {
+    global.__wondiiAccountReady = true;
+    try { global.dispatchEvent(new CustomEvent("wondii-account-scope")); } catch (e) {}
+  }
+
   function bindShelfUser(uid) {
     bindAccountScope(uid);
+    accountReady();
     var st = global.StorybookShelfStore;
     if (st && typeof st.bindUser === "function") {
       st.bindUser(uid || null);
