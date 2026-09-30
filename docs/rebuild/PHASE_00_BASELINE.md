@@ -119,3 +119,25 @@ Registry, game matrix, and design-debt findings were not reclassified. A pointer
 ## Checkpoint
 
 Phase 0 is complete. Phase 1 has not started.
+
+### Git safety checkpoint
+
+Recorded after the baseline, on 30 September 2026. Not pushed.
+
+| | |
+| --- | --- |
+| Branch | `wondii-restructure-2026-09-30` |
+| Checkpoint commit | `0ef77cc8ac7e57f8a83e30094bd5595a972aa9d6` |
+| Message | checkpoint: Wondii pre-restructure baseline |
+| Files in that commit | 241 (school product, audits, tokens, shell, Ramsden, organisation SQL, class artwork) |
+| Pushed | No |
+
+The checkpoint includes `schools/`, `js/organisation.js`, `ramsden.html`, `css/wondii-tokens.css`, `css/wondii-p1.css`, `games/wondii-shell.js`, the audit docs, and both organisation migration files.
+
+Deliberately not in the checkpoint commit:
+
+- `js/score-config.js` — unchanged from `main`, so it was not part of this commit. It is already tracked. It holds a browser-public Supabase URL, an anon JWT (`role` is `anon`), a login email, and edge-function slugs. No service-role key, no API secret, and no password value.
+- `.env` and `.env.*` — already in `.gitignore`. None were present to stage.
+- `.wrangler`, `.dev.vars*`, `node_modules/`, `supabase/.temp/`, `.claude/` — already ignored. `.gitignore` was not changed.
+
+This documentation update is a follow-up commit so the recorded hash does not leave the tree dirty.
