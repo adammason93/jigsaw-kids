@@ -1,6 +1,5 @@
-/* Classroom sessions are separate from the saved Learning Adventure.
-   This pilot keeps the live session in the browser that started it, and
-   echoes a public snapshot when Supabase Realtime is reachable.
+/* Classroom sessions delegate to WondiiSessionEngine.
+   The saved adventure stays untouched. This file keeps the existing presenter shape.
    Demonstration pupils are marked demo:true and are not real children. */
 (function (global) {
   "use strict";
@@ -31,6 +30,48 @@
     return slide.question || QUESTION;
   }
 
+  function engineApi() {
+    return global.WondiiSessionEngine;
+  }
+
+  function saveEngine(state) {
+    var view = engineApi().toPresenter(state);
+    var list = readAll().map(function (item) { return item.code === view.code ? view : item; });
+    if (!list.some(function (item) { return item.code === view.code; })) list.unshift(view);
+    writeAll(list);
+    publish(view);
+    watchLive(view);
+    return view;
+  }
+
+  function withEngine(session) {
+    if (!session || !engineApi()) return null;
+    var stored = null;
+    readAll().forEach(function (item) { if (item.code === session.code) stored = item; });
+    var latest = stored && stored.engine && stored.engine.sessionId ? stored.engine : null;
+    var inline = session.engine && session.engine.sessionId ? session.engine : null;
+    if (latest && inline) return latest.updatedAt > inline.updatedAt ? latest : inline;
+    if (latest || inline) return latest || inline;
+    var adopted = engineApi().adoptPresenter(session);
+    return adopted.ok ? adopted.state : null;
+  }
+
+  function watchLive(view) {
+    var data = global.WondiiSchoolData;
+    if (!data || !data.watchSession || !view || !view.engine) return;
+    if (view.engineStatus !== "active" && view.engine.status !== "active") {
+      if (data.stopWatch) data.stopWatch();
+      return;
+    }
+    data.watchSession(view.engine.sessionId, function (bundle) {
+      var current = get(view.code);
+      var state = current && withEngine(current);
+      if (!state) return;
+      var merged = engineApi().ingestRemote(state, bundle);
+      if (merged.ok && merged.changed) saveEngine(merged.state);
+    });
+  }
+
   function deck() {
     var img = "../../games/images/schools/demo/";
     return [
@@ -56,6 +97,7 @@
   function writeAll(list) {
     localStorage.setItem(KEY, JSON.stringify(list));
     if (global.WondiiSchoolData) global.WondiiSchoolData.syncSessions(list);
+    try { global.dispatchEvent(new Event("wondii-session")); } catch (e) {}
     try {
       if (global.BroadcastChannel) {
         var bus = new BroadcastChannel("wondii-class");
@@ -92,77 +134,127 @@
     };
   }
 
+  function roundsFromSlides(slides) {
+    return slides.map(function (slide) {
+      var mechanic = slide.type === "question" ? "quiz" : (slide.type || "story");
+      return { mechanic: mechanic, config: slide };
+    });
+  }
+
   function createSession(journey, mode, allowNames, options) {
     options = options || {};
     var meta = journeyMeta(journey);
-    var stamp = new Date().toISOString();
     var slides = journey.plan && journey.plan.slides && journey.plan.slides.length
       ? JSON.parse(JSON.stringify(journey.plan.slides))
       : (journey.demoElectricity ? deck() : []);
-    if (journey.questionEdits) {
-      slides.forEach(function (slide) {
-        var question = questionOf(slide);
-        var edit = question && journey.questionEdits[question.id];
-        if (!edit) return;
-        slide.question = JSON.parse(JSON.stringify(question));
-        if (edit.prompt) slide.question.prompt = edit.prompt;
-        if (edit.explain) slide.question.explain = edit.explain;
-        if (edit.correct) slide.question.correct = edit.correct;
-        if (edit.choices) slide.question.choices = edit.choices;
+    slides.forEach(function (slide) {
+      if (slide.type !== "question") return;
+      var question = JSON.parse(JSON.stringify(questionOf(slide)));
+      var edit = journey.questionEdits && journey.questionEdits[question.id];
+      if (edit) {
+        if (edit.prompt) question.prompt = edit.prompt;
+        if (edit.explain) question.explain = edit.explain;
+        if (edit.correct) question.correct = edit.correct;
+        if (edit.choices) question.choices = edit.choices;
+      }
+      slide.question = question;
+    });
+    var Eng = engineApi();
+    var created = Eng.createSession({
+      sessionCode: code(),
+      organisationId: meta.organisationId,
+      classId: journey.classId || options.classId || null,
+      mode: mode,
+      allowNames: !!allowNames,
+      adventure: {
+        id: meta.journeyId,
+        organisationId: meta.organisationId,
+        title: meta.title,
+        version: journey.updatedAt || null,
+        yearGroup: meta.yearGroup,
+        subject: meta.subject,
+        topic: meta.topic,
+        rounds: roundsFromSlides(slides)
+      }
+    });
+    if (!created.ok) return null;
+    var state = created.state;
+    var board = options.board || null;
+    if (board && board.roster) {
+      board.roster.forEach(function (pupil) {
+        var pupilId = Eng.isUuid(pupil.id) ? pupil.id : null;
+        var added = Eng.addParticipant(state, {
+          id: pupil.id || pupilId || Eng.uuid(),
+          displayName: pupil.firstName || pupil.name || "Explorer",
+          identity: pupilId ? "pupil" : "anonymous",
+          pupilId: pupilId,
+          organisationId: state.organisationId,
+          classId: state.classId
+        });
+        if (added.ok) state = added.state;
       });
     }
-    var session = {
-      id: global.WondiiSchoolDomain && global.WondiiSchoolDomain.uuid ? global.WondiiSchoolDomain.uuid() : ("ses_" + Date.now().toString(36)),
-      code: code(),
-      journeyId: meta.journeyId,
-      title: meta.title,
-      yearGroup: meta.yearGroup,
-      subject: meta.subject,
-      topic: meta.topic,
-      organisationId: meta.organisationId,
-      mode: mode === "board" ? "board" : mode === "independent" ? "independent" : "live",
-      status: mode === "board" ? "playing" : "waiting",
-      board: options.board || null,
-      phase: "waiting",
-      slide: 0,
-      reveal: false,
-      allowNames: !!allowNames,
-      groupCount: options.groups || 0,
-      slides: slides,
-      participants: [],
-      responses: [],
-      demo: false,
-      createdAt: stamp,
-      startedAt: null,
-      endedAt: null,
-      expiresAt: new Date(Date.now() + 4 * 60 * 60 * 1000).toISOString()
-    };
-    if (session.groupCount) {
-      for (var team = 1; team <= session.groupCount; team++) {
-        session.participants.push({
-          id: "team_" + team,
-          name: "Team " + team,
-          avatarId: "fox",
-          demo: false,
-          claimed: false,
-          joinedAt: null,
-          completedAt: null
+    var groupCount = options.groups || (board && board.teams ? board.teams.length : 0);
+    if (groupCount) {
+      var names = [];
+      var n;
+      for (n = 1; n <= groupCount; n++) {
+        names.push(board && board.teams && board.teams[n - 1] ? board.teams[n - 1].name : "Team " + n);
+      }
+      var teams = Eng.createTeams(state, {
+        mode: groupCount === 2 ? "two" : "multiple",
+        names: names,
+        assign: !!(board && board.teams && board.teams.length)
+      });
+      if (teams.ok) state = teams.state;
+      if (!board) {
+        state.teams.forEach(function (team) {
+          var seat = Eng.addParticipant(state, {
+            id: team.id,
+            displayName: team.name,
+            identity: "team",
+            teamId: team.id,
+            claimed: false
+          });
+          if (seat.ok) state = seat.state;
         });
       }
     }
-    var list = readAll();
-    list.unshift(session);
-    writeAll(list);
-    publish(session);
-    return session;
+    if (board) {
+      var kept = Eng.keepMechanic(state, board);
+      if (kept.ok) state = kept.state;
+    }
+    return saveEngine(state);
   }
 
   function replace(session) {
-    var list = readAll().map(function (item) { return item.code === session.code ? session : item; });
-    if (!list.some(function (item) { return item.code === session.code; })) list.unshift(session);
-    writeAll(list);
-    publish(session);
-    return session;
+    var state = withEngine(session);
+    if (!state) return session;
+    var Eng = engineApi();
+    if (session.board && session.board.phase === "play" && state.status === "waiting" && state.mode === "board") {
+      var started = Eng.startSession(state);
+      if (started.ok) state = started.state;
+    }
+    if (session.reveal && !state.reveal) {
+      var shown = Eng.revealAnswer(state);
+      if (shown.ok) state = shown.state;
+    }
+    if (!session.reveal && state.reveal) {
+      var hidden = Eng.hideAnswer(state);
+      if (hidden.ok) state = hidden.state;
+    }
+    if (session.board && session.board.currentId && session.board.currentId !== state.selectedParticipantId) {
+      var picked = state.participants.filter(function (person) { return person.id === session.board.currentId; })[0];
+      if (picked) {
+        var selected = Eng.selectParticipant(state, picked.id);
+        if (selected.ok) state = selected.state;
+      }
+    }
+    if (session.board) {
+      var kept = Eng.keepMechanic(state, session.board);
+      if (kept.ok) state = kept.state;
+    }
+    return saveEngine(state);
   }
 
   function get(joinCode) {
@@ -236,16 +328,14 @@
         return { needsTeam: true, teams: session.groupCount, title: session.title, code: session.code, yearGroup: session.yearGroup, subject: session.subject, topic: session.topic };
       }
       var index = Number(options.team) - 1;
-      var teamPerson = session.participants[index];
-      if (!teamPerson) return { error: "Choose a team from the list." };
-      if (teamPerson.claimed) return { error: "That team is already in." };
-      teamPerson.claimed = true;
-      teamPerson.joinedAt = new Date().toISOString();
-      replace(session);
+      var claimed = engineApi().claimTeam(withEngine(session), index);
+      if (!claimed.ok) return { error: claimed.error === "team_taken" ? "That team is already in." : "Choose a team from the list." };
+      var view = saveEngine(claimed.state);
+      var teamPerson = view.participants[index];
       clearFails();
-      try { sessionStorage.setItem(SELF_KEY, JSON.stringify({ code: session.code, participantId: teamPerson.id })); } catch (e) {}
-      sendCloud({ type: "join", code: session.code, participant: teamPerson });
-      return { session: session, participant: teamPerson };
+      try { sessionStorage.setItem(SELF_KEY, JSON.stringify({ code: view.code, participantId: teamPerson.id })); } catch (e) {}
+      sendCloud({ type: "join", code: view.code, participant: teamPerson });
+      return { session: view, participant: teamPerson };
     }
     if (!open(session) || session.status !== "waiting") {
       if (session && session.status === "active") return { error: "That class has already started." };
@@ -254,22 +344,19 @@
     }
     var name = session.allowNames ? cleanName(options && options.name) : "";
     if (session.allowNames && options && options.name && !name) return { error: "Use a short first name, with letters only." };
-    var person = {
-      id: "p_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5),
-      name: name || generatedName(session),
-      avatarId: (options && options.avatarId) || "fox",
-      demo: false,
-      joinedAt: new Date().toISOString(),
-      completedAt: null
-    };
-    session.participants.push(person);
-    replace(session);
+    var added = engineApi().addParticipant(withEngine(session), {
+      displayName: name || generatedName(session),
+      identity: "anonymous"
+    });
+    if (!added.ok) return { error: "That code is not open. Check it with your teacher." };
+    var view = saveEngine(added.state);
+    var person = view.participants[view.participants.length - 1];
     clearFails();
     try {
-      sessionStorage.setItem(SELF_KEY, JSON.stringify({ code: session.code, participantId: person.id }));
+      sessionStorage.setItem(SELF_KEY, JSON.stringify({ code: view.code, participantId: person.id }));
     } catch (e) {}
-    sendCloud({ type: "join", code: session.code, participant: person });
-    return { session: session, participant: person };
+    sendCloud({ type: "join", code: view.code, participant: person });
+    return { session: view, participant: person };
   }
 
   function self() {
@@ -282,34 +369,28 @@
       sendCloud({ type: "answer", code: String(joinCode || "").trim().toUpperCase(), participantId: participantId, choice: choice });
       return { pending: true };
     }
-    if (session.status !== "active" || session.reveal) return { error: "Answers are closed." };
+    if (session.engineStatus !== "active" && session.status !== "active") return { error: "Answers are closed." };
+    if (session.reveal) return { error: "Answers are closed." };
     var slide = slidesOf(session)[session.slide];
     var question = questionOf(slide);
     if (!question) return { error: "There is no question on the class screen yet." };
     var known = { A: 1, B: 1, C: 1 };
     if (!known[choice]) return { error: "Choose A, B or C." };
-    var already = session.responses.some(function (row) {
-      return row.participantId === participantId && row.questionId === question.id;
-    });
-    if (already) return { error: "You have already answered.", session: session };
-    session.responses.push({
-      id: "r_" + Date.now().toString(36),
+    var recorded = engineApi().recordResponse(withEngine(session), {
       participantId: participantId,
-      questionId: question.id,
-      response: choice,
-      isCorrect: choice === question.correct,
-      submittedAt: new Date().toISOString(),
-      demo: false
+      responseType: "choice",
+      value: choice,
+      correct: choice === question.correct
     });
-    replace(session);
-    sendCloud({ type: "answer", code: session.code, participantId: participantId, choice: choice });
-    return { session: session };
+    if (!recorded.ok || recorded.duplicate) return { error: "You have already answered.", session: session };
+    var view = saveEngine(recorded.state);
+    sendCloud({ type: "answer", code: view.code, participantId: participantId, choice: choice });
+    return { session: view };
   }
 
   function addDemoClass(joinCode) {
     var session = get(joinCode);
-    if (!session || session.status !== "waiting" || session.demo) return session;
-    session.demo = true;
+    if (!session || (session.engineStatus !== "waiting" && session.status !== "waiting") || session.demo) return session;
     var firstQuestion = QUESTION;
     slidesOf(session).some(function (slide) {
       var question = questionOf(slide);
@@ -319,84 +400,89 @@
     });
     var plan = [17, 4, 3];
     var letters = ["A", "B", "C"];
+    var people = [];
     var made = 0;
     letters.forEach(function (letter, index) {
       for (var n = 0; n < plan[index]; n++) {
         made += 1;
-        var person = {
+        people.push({
           id: "demo_" + letter + "_" + n,
-          name: "Explorer " + made,
-          avatarId: made % 2 ? "fox" : "alex",
-          demo: true,
-          joinedAt: new Date().toISOString(),
-          completedAt: null
-        };
-        session.participants.push(person);
-        session.responses.push({
-          id: "demo_r_" + person.id,
-          participantId: person.id,
-          questionId: firstQuestion.id,
+          displayName: "Explorer " + made,
           response: letter,
-          isCorrect: letter === firstQuestion.correct,
-          submittedAt: new Date().toISOString(),
-          demo: true
+          correct: letter === firstQuestion.correct
         });
       }
     });
     for (var extra = 0; extra < 4; extra++) {
       made += 1;
-      session.participants.push({
-        id: "demo_wait_" + extra,
-        name: "Explorer " + made,
-        avatarId: "alex",
-        demo: true,
-        joinedAt: new Date().toISOString(),
-        completedAt: null
-      });
+      people.push({ id: "demo_wait_" + extra, displayName: "Explorer " + made });
     }
-    return replace(session);
+    var seeded = engineApi().seedDemo(withEngine(session), people);
+    if (!seeded.ok) return session;
+    return saveEngine(seeded.state);
   }
 
   function removeParticipant(joinCode, participantId) {
     var session = get(joinCode);
-    if (!session || session.status !== "waiting") return session;
-    session.participants = session.participants.filter(function (person) { return person.id !== participantId; });
-    session.responses = session.responses.filter(function (row) { return row.participantId !== participantId; });
-    return replace(session);
+    if (!session) return session;
+    var removed = engineApi().removeParticipant(withEngine(session), participantId);
+    if (!removed.ok) return session;
+    return saveEngine(removed.state);
   }
 
   function start(joinCode) {
     var session = get(joinCode);
     if (!session) return null;
-    session.status = "active";
-    session.phase = "story";
-    session.slide = 0;
-    session.reveal = false;
-    session.startedAt = new Date().toISOString();
-    return replace(session);
+    var started = engineApi().startSession(withEngine(session));
+    if (!started.ok) return session;
+    return saveEngine(started.state);
   }
 
   function setSlide(joinCode, slide, reveal) {
     var session = get(joinCode);
     if (!session || (session.status !== "active" && session.status !== "playing")) return session;
     var slides = slidesOf(session);
-    session.slide = Math.max(0, Math.min(slides.length - 1, slide));
-    session.reveal = !!reveal;
-    var current = slides[session.slide];
-    session.phase = current.type === "question" ? (session.reveal ? "results" : "question") : "story";
-    return replace(session);
+    var index = Math.max(0, Math.min(slides.length - 1, slide));
+    var moved = engineApi().setCurrentMechanic(withEngine(session), index);
+    if (!moved.ok && !moved.duplicate) return session;
+    var state = moved.state;
+    if (reveal) {
+      var shown = engineApi().revealAnswer(state);
+      if (shown.ok) state = shown.state;
+    }
+    return saveEngine(state);
+  }
+
+  function complete(joinCode) {
+    var session = get(joinCode);
+    if (!session) return null;
+    var finished = engineApi().completeSession(withEngine(session));
+    if (!finished.ok) return session;
+    return saveEngine(finished.state);
   }
 
   function end(joinCode) {
     var session = get(joinCode);
     if (!session) return null;
-    session.status = "completed";
-    session.phase = "completed";
-    session.endedAt = new Date().toISOString();
-    session.participants.forEach(function (person) {
-      if (!person.completedAt) person.completedAt = session.endedAt;
-    });
-    return replace(session);
+    var finished = engineApi().endSession(withEngine(session));
+    if (!finished.ok) return session;
+    return saveEngine(finished.state);
+  }
+
+  function award(joinCode, teamId, amount, reason) {
+    var session = get(joinCode);
+    if (!session) return null;
+    var given = engineApi().awardPoints(withEngine(session), teamId, amount, reason);
+    if (!given.ok) return session;
+    return saveEngine(given.state);
+  }
+
+  function chooseParticipant(joinCode, participantId) {
+    var session = get(joinCode);
+    if (!session) return null;
+    var picked = engineApi().selectParticipant(withEngine(session), participantId);
+    if (!picked.ok) return session;
+    return saveEngine(picked.state);
   }
 
   function totals(session, questionId) {
@@ -449,6 +535,7 @@
   function subscribe(fn) {
     function run() { fn(); }
     global.addEventListener("storage", run);
+    global.addEventListener("wondii-session", run);
     var bus = null;
     try {
       if (global.BroadcastChannel) {
@@ -458,6 +545,7 @@
     } catch (e) {}
     return function () {
       global.removeEventListener("storage", run);
+      global.removeEventListener("wondii-session", run);
       if (bus) bus.close();
     };
   }
@@ -570,6 +658,9 @@
     start: start,
     setSlide: setSlide,
     end: end,
+    complete: complete,
+    award: award,
+    chooseParticipant: chooseParticipant,
     totals: totals,
     answered: answered,
     summary: summary,

@@ -92,6 +92,30 @@
     }
   }
 
+  function sessionView(row, teams, participants, events, local, org) {
+    var Eng = global.WondiiSessionEngine;
+    var snap = row.snapshot || {};
+    if (Eng && snap.kind === "play") {
+      if (local && local.engine && local.engine.sessionId) {
+        var merged = Eng.ingestRemote(local.engine, { participants: participants, events: events });
+        if (merged.ok) return Eng.toPresenter(merged.state);
+      }
+      var hydrated = Eng.rehydrate({ session: row, teams: teams, participants: participants, events: events });
+      if (hydrated.ok) return Eng.toPresenter(hydrated.state);
+    }
+    snap.id = row.id;
+    snap.code = row.code;
+    snap.mode = row.mode;
+    snap.status = row.status;
+    snap.phase = row.phase;
+    snap.slide = row.slide_index;
+    snap.classId = row.class_id || "";
+    snap.journeyId = row.adventure_id || snap.journeyId || "";
+    snap.demo = row.demo;
+    snap.organisationId = org;
+    return snap;
+  }
+
   function pull(done) {
     var db = client();
     var org = orgNow();
@@ -105,10 +129,13 @@
       db.from("school_classes").select("id, name, year_label").eq("organisation_id", org).order("created_at"),
       db.from("school_pupils").select("id, class_id, display_name, presentation, look, seat").eq("organisation_id", org),
       db.from("school_adventures").select("id, class_id, title, subject, year_label, objectives, source_note, config, created_at, updated_at").eq("organisation_id", org),
-      db.from("school_sessions").select("id, class_id, adventure_id, code, mode, status, phase, slide_index, selected_pupil_id, reward_total, demo, snapshot, started_at, completed_at, created_at").eq("organisation_id", org)
+      db.from("school_sessions").select("id, class_id, adventure_id, code, mode, status, phase, slide_index, selected_pupil_id, reward_total, demo, snapshot, started_at, completed_at, created_at").eq("organisation_id", org),
+      db.from("school_teams").select("id, session_id, name, sort_order, points").eq("organisation_id", org),
+      db.from("school_participants").select("id, session_id, pupil_id, team_id, display_name, kind").eq("organisation_id", org),
+      db.from("school_events").select("id, session_id, scope, team_id, pupil_id, participant_id, mechanic, result, points, demo, created_at").eq("organisation_id", org)
     ]).then(function (parts) {
       pulling = false;
-      if (parts.some(function (part) { return part.error; })) {
+      if (parts.slice(0, 4).some(function (part) { return part.error; })) {
         if (done) done();
         return;
       }
@@ -148,19 +175,16 @@
         if (pendingAdventures.length) syncAdventures(mergedAdventures);
         var pendingSessions = readJson(SES_PENDING, []);
         if (!Array.isArray(pendingSessions)) pendingSessions = [];
+        var teamRows = parts[4] && !parts[4].error ? parts[4].data || [] : [];
+        var peopleRows = parts[5] && !parts[5].error ? parts[5].data || [] : [];
+        var eventRows = parts[6] && !parts[6].error ? parts[6].data || [] : [];
+        function rowsFor(list, sessionId) {
+          return list.filter(function (item) { return item.session_id === sessionId; });
+        }
+        var localById = {};
+        localSessions.forEach(function (item) { if (item && item.id) localById[item.id] = item; });
         var sessions = (parts[3].data || []).map(function (row) {
-          var snap = row.snapshot || {};
-          snap.id = row.id;
-          snap.code = row.code;
-          snap.mode = row.mode;
-          snap.status = row.status;
-          snap.phase = row.phase;
-          snap.slide = row.slide_index;
-          snap.classId = row.class_id || "";
-          snap.journeyId = row.adventure_id || snap.journeyId || "";
-          snap.demo = row.demo;
-          snap.organisationId = org;
-          return snap;
+          return sessionView(row, rowsFor(teamRows, row.id), rowsFor(peopleRows, row.id), rowsFor(eventRows, row.id), localById[row.id], org);
         });
         if (!pendingSessions.length && !sessions.length && localSessions.length) pendingSessions = localSessions;
         var mergedSessions = Domain.mergeLists(sessions, pendingSessions);
@@ -309,30 +333,42 @@
     var db = client();
     var org = orgNow();
     if (!db || !org || !userId || !canTeach(roleNow()) || !Array.isArray(list)) return;
+    var Eng = global.WondiiSessionEngine;
+    if (!Eng) return;
     list.forEach(function (session) {
-      if (session && !Domain.isUuid(session.id)) session.id = Domain.uuid();
+      if (session && session.engine && !Domain.isUuid(session.engine.sessionId)) session.engine.sessionId = Domain.uuid();
+      if (session && !Domain.isUuid(session.id)) session.id = session.engine && session.engine.sessionId ? session.engine.sessionId : Domain.uuid();
     });
     writeJson("wondii-class-sessions", list);
     var rows = [];
+    var teamRows = [];
+    var peopleRows = [];
+    var eventRows = [];
     list.forEach(function (session) {
-      if (!Domain.isUuid(session.id) || !session.code) return;
-      rows.push({
-        id: session.id,
-        organisation_id: org,
-        created_by: userId,
-        class_id: Domain.isUuid(session.classId) ? session.classId : null,
-        adventure_id: Domain.isUuid(session.journeyId) ? session.journeyId : null,
-        code: String(session.code).slice(0, 12),
-        mode: session.mode || "board",
-        status: session.status || "playing",
-        phase: session.phase || "waiting",
-        slide_index: Number(session.slide) || 0,
-        selected_pupil_id: Domain.isUuid(session.selectedPupilId) ? session.selectedPupilId : null,
-        reward_total: session.board && Number(session.board.reward) || 0,
-        demo: !!session.demo,
-        snapshot: session,
-        started_at: session.startedAt || null,
-        completed_at: session.endedAt || null
+      var state = session && session.engine;
+      if ((!state || !state.snapshot) && Eng && session) {
+        var adopted = Eng.adoptPresenter(session);
+        if (adopted.ok) state = adopted.state;
+      }
+      if (!state || !Domain.isUuid(state.sessionId) || !state.sessionCode) return;
+      var packed = Eng.toRows(state);
+      packed.session.organisation_id = org;
+      packed.session.created_by = userId;
+      packed.session.code = String(packed.session.code || "").slice(0, 12);
+      if (!Domain.isUuid(packed.session.class_id)) packed.session.class_id = null;
+      rows.push(packed.session);
+      packed.teams.forEach(function (team) {
+        team.organisation_id = org;
+        teamRows.push(team);
+      });
+      packed.participants.forEach(function (person) {
+        person.organisation_id = org;
+        peopleRows.push(person);
+      });
+      packed.events.forEach(function (event) {
+        event.organisation_id = org;
+        if (!Domain.isUuid(event.class_id)) event.class_id = null;
+        eventRows.push(event);
       });
     });
     if (!rows.length) return;
@@ -343,29 +379,55 @@
         finish("sessions", SES_PENDING, false);
         return;
       }
-      finish("sessions", SES_PENDING, true);
-      list.forEach(function (session) {
-        if (!Domain.isUuid(session.id) || session.demo) return;
-        var pupilIds = {};
-        var book = readJson("wondii-school-classes", { classes: [] });
-        (book.classes || []).forEach(function (room) {
-          (room.pupils || []).forEach(function (pupil) { pupilIds[pupil.id] = 1; });
-        });
-        (session.responses || []).forEach(function (response) {
-          if (response.persistedEvent) return;
-          var event = Domain.eventForResponse(session, response, pupilIds);
-          if (!event) return;
-          response.persistedEvent = true;
-          event.organisation_id = org;
-          event.session_id = session.id;
-          event.class_id = Domain.isUuid(session.classId) ? session.classId : null;
-          event.adventure_id = Domain.isUuid(session.journeyId) ? session.journeyId : null;
-          db.from("school_events").insert(event).then(function (inserted) {
-            if (inserted.error) response.persistedEvent = false;
-          });
+      var teams = teamRows.length
+        ? db.from("school_teams").upsert(teamRows, { onConflict: "id" })
+        : Promise.resolve({ error: null });
+      return teams.then(function (teamSaved) {
+        if (teamSaved.error) {
+          finish("sessions", SES_PENDING, false);
+          return;
+        }
+        var people = peopleRows.length
+          ? db.from("school_participants").upsert(peopleRows, { onConflict: "id" })
+          : Promise.resolve({ error: null });
+        return people.then(function (peopleSaved) {
+          if (peopleSaved.error) {
+            finish("sessions", SES_PENDING, false);
+            return;
+          }
+          finish("sessions", SES_PENDING, true);
+          if (eventRows.length) db.from("school_events").upsert(eventRows, { onConflict: "id" });
         });
       });
+    }).catch(function () {
+      finish("sessions", SES_PENDING, false);
     });
+  }
+
+  var watchTimer = null;
+
+  function stopWatch() {
+    if (watchTimer) clearInterval(watchTimer);
+    watchTimer = null;
+  }
+
+  function watchSession(sessionId, onData) {
+    stopWatch();
+    var db = client();
+    if (!db || !sessionId || !onData) return;
+    function tick() {
+      var liveDb = client();
+      if (!liveDb) return;
+      Promise.all([
+        liveDb.from("school_participants").select("id, pupil_id, team_id, display_name, kind").eq("session_id", sessionId),
+        liveDb.from("school_events").select("id, scope, team_id, pupil_id, participant_id, mechanic, result, points, demo, created_at").eq("session_id", sessionId)
+      ]).then(function (parts) {
+        if (parts[0].error || parts[1].error) return;
+        onData({ participants: parts[0].data || [], events: parts[1].data || [] });
+      }).catch(function () {});
+    }
+    tick();
+    watchTimer = setInterval(tick, 4000);
   }
 
   function bind() {
@@ -399,6 +461,8 @@
     syncClasses: syncClasses,
     syncAdventures: syncAdventures,
     syncSessions: syncSessions,
+    watchSession: watchSession,
+    stopWatch: stopWatch,
     state: function () { return syncState; }
   };
 })(window);

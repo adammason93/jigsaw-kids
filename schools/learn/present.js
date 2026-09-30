@@ -68,7 +68,7 @@
     else if (params.get("preview") === "1" && !current) root.innerHTML = viewStage(null);
     else if (mode === "assign" && !current) root.innerHTML = viewAssign();
     else if (current && current.status === "waiting") root.innerHTML = viewLobby(current);
-    else if (current && current.status === "completed") root.innerHTML = viewResults(current);
+    else if (current && (current.status === "completed" || current.status === "ended")) root.innerHTML = viewResults(current);
     else if (params.get("preview") === "1" && !current && params.get("play") !== "1") root.innerHTML = viewGate();
     else if (!current && params.get("preview") !== "1") root.innerHTML = viewRoster();
     else if (current && current.mode === "board" && current.board && current.board.phase !== "play") root.innerHTML = viewGate();
@@ -410,7 +410,7 @@
     }
     var next = current.slide + delta;
     if (next >= slides.length) {
-      Rooms.end(current.code);
+      Rooms.complete(current.code);
       paint();
       return;
     }
@@ -511,7 +511,7 @@
       var current = session();
       params.set("mystery", "1");
       if (current && current.board) {
-        window.Classroom.award(current.board, "mystery");
+        Rooms.award(current.code, null, 1, "mystery");
         Rooms.replace(current);
       }
       if (!current) history.replaceState(null, "", location.pathname + "?" + params.toString());
@@ -522,7 +522,7 @@
         params.set("door", btn.getAttribute("data-door"));
         var current = session();
         if (current && current.board) {
-          window.Classroom.award(current.board, "door");
+          Rooms.award(current.code, null, 1, "door");
           Rooms.replace(current);
         }
         if (!current) history.replaceState(null, "", location.pathname + "?" + params.toString());
@@ -552,7 +552,7 @@
         }
         if (current.mode === "board" && current.board && window.Classroom) {
           var question = liveQuestion(slidesNow(current)[current.slide] || {});
-          if (question && btn.getAttribute("data-pick") === question.correct) window.Classroom.award(current.board, "q-" + current.slide);
+          if (question && btn.getAttribute("data-pick") === question.correct) Rooms.award(current.code, null, 1, "q-" + current.slide);
           current.reveal = true;
           Rooms.replace(current);
           paint();
