@@ -223,4 +223,21 @@ assert.ok(!visible.some(function (item) { return item.title === "Other school ad
 var guess = Mechanics.scoreTarget({ teams: [{ id: "red", name: "Red" }, { id: "blue", name: "Blue" }], teamMode: "two", participants: [], selectedParticipantId: null, activeTeamId: "" }, "team_turn");
 assert.strictEqual(guess.kind, "none");
 
+var createHtml = fs.readFileSync(path.join(__dirname, "../schools/learn/create.html"), "utf8");
+var creatorJs = fs.readFileSync(path.join(__dirname, "../schools/learn/creator.js"), "utf8");
+var worker = fs.readFileSync(path.join(__dirname, "../workers-site/index.ts"), "utf8");
+var sw = fs.readFileSync(path.join(__dirname, "../sw.js"), "utf8");
+assert.strictEqual(createHtml.indexOf("flow.js"), -1);
+assert.strictEqual(createHtml.indexOf("create.js"), -1);
+assert.ok(createHtml.indexOf("creator.js?v=3") !== -1);
+assert.ok(creatorJs.indexOf("What are we learning today?") !== -1);
+assert.ok(creatorJs.indexOf("Tell Wondii what you would like your class to learn.") !== -1);
+assert.strictEqual(creatorJs.indexOf("Groups or devices"), -1);
+assert.strictEqual(creatorJs.indexOf("Quick create"), -1);
+assert.ok(worker.indexOf("learnDocument") !== -1);
+assert.ok(sw.indexOf("jigsaw-kids-v368") !== -1);
+["Groups or devices", "Share with teacher", "Use next year", "Saved in this browser.", "Quick create", "Guided create", "Use with my class does not copy the adventure"].forEach(function (label) {
+  assert.strictEqual(createHtml.indexOf(label), -1);
+});
+
 console.log("teacher-journey.test.js ok");

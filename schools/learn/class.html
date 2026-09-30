@@ -24,5 +24,10 @@
   <script src="session.js?v=8"></script>
   <script src="classroom.js?v=1"></script>
   <script src="class-room.js?v=13"></script>
+  <script>
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/sw.js", { scope: "/" }).catch(function () {});
+    }
+  </script>
 </body>
 </html>

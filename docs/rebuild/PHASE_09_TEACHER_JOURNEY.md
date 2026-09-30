@@ -83,3 +83,17 @@ No schema change.
 ## Files
 
 Creator, lesson shell, mechanics, presenter, home, class room, score-cloud account-ready signal, portal and create script versions, this audit, the visual registry rows that were rechecked, and design debt. No family game files.
+
+## Live deployment remediation
+
+This was found in real use of wondii.co.uk after Phase 9 was committed locally and before that commit had been deployed. The teacher could open three creator screens from what looked like the same journey. That is preserved here. The original Phase 9 report above describes the source that was committed. It did not describe the HTML that was still live.
+
+Root cause: `/schools/learn/create.html` and `/schools/learn/create` were already one document. Cloudflare returns 307 from the `.html` address to the extensionless address. The deployed file loaded `flow.js?v=5` and `create.js?v=11`. `creator.js` was not on the live site. `create.js` ignores `start`, so Start adventure opened whichever draft step was already saved. Step `idea` showed "What are we learning today?". `library=1` showed the old library, including Quick create and Guided create. Step `ready` showed Start with class, Groups or devices, Share with teacher, Use next year, Number game, and Matching game. The service worker was network-first, cache `jigsaw-kids-v367`, and did not keep a successful copy of that HTML. The old screens were the deployed file.
+
+Canonical creator script: `schools/learn/create.html` loads `creator.js?v=3`. It does not load `flow.js` or `create.js`. Those files remain in the repository and are not referenced by a current teacher page.
+
+Route repair: Create opens on "What are we learning today?". A class already on the URL stays selected and Continue goes to play. Create without a class goes to "Who is it for?". Quick Game with a class opens Quiz, Spin a pupil, and Word search. `create.html?start=<id>` loads that saved adventure and opens attendance. It does not open an unrelated browser draft. Preview stays on `present.html?journey=<id>&preview=1` and does not create a session. Adapt makes a new draft and leaves the original saved. `present.html?journey=<id>` redirects to `create.html?start=<id>`. Continue lesson stays on `present.html?session=<code>`.
+
+Service worker: cache name is `jigsaw-kids-v368`. Create, present, and class register `/sw.js`. A learn navigation reloads from the network. When the new worker activates, an open learn tab loads again. Old precaches are deleted.
+
+Live verification on 30 Sep 2026 after deploy: `https://wondii.co.uk/schools/learn/create` returns `creator.js?v=3` and does not return `flow.js` or `create.js`. `create.html` redirects to that same document. Present returns `present.js?v=18`. `sw.js` reports `jigsaw-kids-v368`. Local browser checks of the same routes showed the lesson screen, a class already selected, the class picker when no class was on the URL, the quick-game picker, attendance for `start`, preview with no session, an adapt copy that left the original in the library, a present journey redirect into start, and a resume of session `ELQQ-9HQ3`. None of those screens rendered Groups or devices, Share with teacher, Use next year, Quick create, Guided create, Number game, Matching game, or Saved in this browser.

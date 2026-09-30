@@ -11,8 +11,8 @@
   var DRAFT_KEY = "wondii-creator-draft-v2";
   var params = new URLSearchParams(location.search);
   var draft = Core.blankDraft();
-  var step = "home";
-  var sourcePanel = "";
+  var step = "source";
+  var sourcePanel = "describe";
   var manage = false;
   var editing = -1;
   var adding = false;
@@ -146,27 +146,28 @@
 
   function source() {
     var text = draft.source.text || "";
-    var body = "";
-    if (sourcePanel === "upload") {
-      body = "<div class=\"creator-drop\"><p><strong>Upload lesson material</strong></p><p class=\"creator-note\">Wondii can read a plain text file. PDF, Word, and photos can be stored, but the words are not read yet.</p>" +
-        "<input id=\"lessonFile\" type=\"file\" accept=\".txt,text/plain,.pdf,.docx,.png,.jpg,.jpeg,.webp\" />" +
-        (draft.source.unsupported ? "<p class=\"creator-warn\">" + escape(draft.source.filename || "That file") + " is not read as text. Paste the lesson instead.</p>" : "") +
-        "</div>";
-    } else if (sourcePanel === "paste") {
-      body = "<label class=\"creator-field\">Paste your worksheet, lesson notes or learning material here.<textarea id=\"lessonText\">" + escape(text) + "</textarea></label>";
-    } else if (sourcePanel === "describe") {
-      body = "<label class=\"creator-field\">Describe the lesson<textarea id=\"lessonText\" placeholder=\"Year 4 science lesson about electrical circuits. We have already covered conductors and insulators and I want a fun recap.\">" + escape(text) + "</textarea></label>";
-    } else {
-      body = "<label class=\"creator-field\">Subject<input id=\"subject\" value=\"" + escape(draft.subject) + "\" /></label>" +
-        "<label class=\"creator-field\">Year<select id=\"year\">" + ["", "Year 1", "Year 2", "Year 3", "Year 4", "Year 5", "Year 6"].map(function (year) {
-          return "<option" + (draft.year === year ? " selected" : "") + ">" + escape(year || "Choose a year") + "</option>";
-        }).join("") + "</select></label>" +
-        "<label class=\"creator-field\">Topic<input id=\"topic\" value=\"" + escape(draft.topic) + "\" /></label>" +
-        "<label class=\"creator-field\">Learning goal<textarea id=\"goal\">" + escape((draft.goals || [])[0] || "") + "</textarea></label>";
-    }
-    return progress() + "<h1>What are we learning?</h1>" + body +
-      (draft.notice ? "<p class=\"creator-note\">" + escape(draft.notice) + "</p>" : "") +
-      actions(["<button type=\"button\" class=\"creator-quiet\" data-go=\"home\">Back</button>", "<button type=\"button\" class=\"creator-go\" id=\"sourceNext\">Continue</button>"]);
+    var room = roomById(draft.classId);
+    var known = room
+      ? "<p class=\"creator-note\">For " + escape(room.name) + " · " + (room.pupils || []).length + " pupil" + ((room.pupils || []).length === 1 ? "" : "s") + ".</p>"
+      : "";
+    var saved = loadLocal();
+    var recover = saved && saved.id !== draft.id && (saved.source && saved.source.text || (saved.activities || []).length)
+      ? "<section class=\"creator-card\"><h2>Continue your draft</h2><p>" + escape(saved.title || "An unfinished adventure") + "</p>" +
+        actions(["<button type=\"button\" class=\"creator-go\" id=\"keepDraft\">Continue that draft</button>", "<button type=\"button\" class=\"creator-quiet\" id=\"dropDraft\">Start something new</button>"]) + "</section>"
+      : "";
+    var fileNote = draft.source.filename ? "<p class=\"creator-note\">Added: " + escape(draft.source.filename) + "</p>" : "";
+    var warn = draft.source.unsupported ? "<p class=\"creator-warn\">" + escape(draft.source.filename || "That file") + " is kept with the lesson. Paste the important lines so Wondii can use them.</p>" : "";
+    return recover + progress() + "<h1>What are we learning today?</h1>" +
+      "<p class=\"creator-note\">Tell Wondii what you would like your class to learn.</p>" +
+      known +
+      "<label class=\"creator-field\">The lesson<textarea id=\"lessonText\" placeholder=\"20 minute fractions recap using pizzas.\">" + escape(text) + "</textarea></label>" +
+      actions(["<button type=\"button\" class=\"creator-go\" id=\"sourceNext\">Continue</button>"]) +
+      "<p class=\"creator-note\">or give Wondii something to work from</p>" +
+      "<div class=\"creator-drop\"><p><strong>Already have something prepared?</strong></p>" +
+      "<p class=\"creator-note\">Drop a worksheet, lesson plan, photo, PDF, or Word file. Plain text is read straight away. PDF, Word, and photos are kept with the adventure. Paste the important lines so Wondii can use them.</p>" +
+      "<input id=\"lessonFile\" type=\"file\" accept=\".txt,text/plain,.pdf,.docx,.png,.jpg,.jpeg,.webp\" /></div>" +
+      fileNote + warn +
+      (draft.notice ? "<p class=\"creator-note\">" + escape(draft.notice) + "</p>" : "");
   }
 
   function classStep() {
@@ -599,18 +600,20 @@
     var next = document.getElementById("sourceNext");
     if (next) next.addEventListener("click", function () {
       readSourceFields();
-      if (sourcePanel !== "manual") {
-        var before = (draft.activities || []).length;
-        var analysis = Core.analyseSource(draft.source.text);
-        if (!analysis.ok && sourcePanel !== "upload") {
-          notice = analysis.message;
-          paint();
-          return;
-        }
-        if (analysis.ok) Core.applyAnalysis(draft, analysis);
-        if (before) draft.stale = true;
+      var text = (draft.source.text || "").trim();
+      if (text.length < 12 && !draft.source.filename) {
+        notice = "Add a little more about the lesson.";
+        paint();
+        return;
       }
-      go("class");
+      var before = (draft.activities || []).length;
+      if (text.length >= 12) {
+        var analysis = Core.analyseSource(text);
+        if (analysis.ok) Core.applyAnalysis(draft, analysis);
+      }
+      if (before) draft.stale = true;
+      draft.sourceKind = "describe";
+      go(draft.classId ? "play" : "class");
     });
     root.querySelectorAll("[data-class]").forEach(function (button) {
       button.addEventListener("click", function () {
@@ -872,6 +875,10 @@
       draft.title = "Quick game";
       applyEntryClass();
       step = draft.classId ? "quick" : "class";
+    } else if (params.get("guided") === "1") {
+      applyEntryClass();
+      step = "source";
+      sourcePanel = "describe";
     } else if (params.get("example") === "lights" || params.get("template")) {
       draft.source.text = Learn && Learn.SAMPLE ? Learn.SAMPLE : "Year 4 science. Electricity. Key vocabulary: circuit, battery, switch, current.";
       draft.sourceKind = "describe";

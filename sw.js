@@ -1,5 +1,5 @@
 /* Minimal offline shell — network-first, cache as fallback for same-origin */
-const CACHE = "jigsaw-kids-v367";
+const CACHE = "jigsaw-kids-v368";
 const SHELL = [
   "./index.html",
   "./portal.html",
@@ -185,21 +185,33 @@ self.addEventListener("activate", function (e) {
             return caches.delete(k);
           })
       );
+    }).then(function () {
+      return self.clients.claim();
+    }).then(function () {
+      return self.clients.matchAll({ type: "window" });
+    }).then(function (clients) {
+      clients.forEach(function (client) {
+        if (/\/schools\/learn\/(create|present|class|join)(\.html)?\/?(\?|#|$)/.test(client.url)) {
+          client.navigate(client.url);
+        }
+      });
     })
   );
-  self.clients.claim();
 });
 
 self.addEventListener("fetch", function (e) {
   if (e.request.method !== "GET" || e.request.url.indexOf("http") !== 0) {
     return;
   }
+  var learnPage = e.request.mode === "navigate" && /\/schools\/learn\/(create|present|class|join)(\.html)?\/?(?:\?|#|$)/.test(e.request.url);
+  var request = learnPage ? new Request(e.request, { cache: "reload" }) : e.request;
   e.respondWith(
-    fetch(e.request)
+    fetch(request)
       .then(function (r) {
         return r;
       })
       .catch(function () {
+        if (learnPage) return caches.match("./portal.html");
         return caches.match(e.request).then(function (c) {
           return c || caches.match("./portal.html");
         });

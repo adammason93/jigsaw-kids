@@ -30,5 +30,10 @@
   <script src="lesson-mechanics.js?v=4"></script>
   <script src="lesson-shell.js?v=5"></script>
   <script src="present.js?v=18"></script>
+  <script>
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/sw.js", { scope: "/" }).catch(function () {});
+    }
+  </script>
 </body>
 </html>
