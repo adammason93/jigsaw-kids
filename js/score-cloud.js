@@ -45,6 +45,7 @@
   /** Private on this device per account. Cloud copies already live in that account's storage folder. */
   var ACCOUNT_LOCAL_KEYS = [
     "jigsawKidsColouringV1",
+    "jigsawKidsColouringAutoSaveV1",
     "jigsawKids_storybookShelf_v1",
     "wondii-learning-draft",
     "wondii-learning-adventures",
@@ -1620,6 +1621,7 @@
     onScoreSaved: function () {
       schedulePush();
     },
+    bindAccountScope: bindAccountScope,
     isConfigured: isConfigured,
     /** cb(session|null, err) — err set when the sync library or network could not be reached. */
     signOut: function (cb) {

@@ -1,6 +1,6 @@
 # Wondii visual surface registry
 
-Rebuild programme: Phase 0 baseline is `docs/rebuild/PHASE_00_BASELINE.md`. Phase 1 (`docs/rebuild/PHASE_01_DATA_FOUNDATION.md`) changed persistence. Phase 2 (`docs/rebuild/PHASE_02_DESIGN_SYSTEM.md`) added an opt-in design system. Phase 3 (`docs/rebuild/PHASE_03_SCHOOL_PORTAL.md`) rebuilt the teacher portal shell and class experience. Phase 5 (`docs/rebuild/PHASE_05_LESSON_SHELL.md`) rebuilt the classroom player. Family game rows are unchanged. The historical surface counts below were not recounted.
+Rebuild programme: Phase 0 baseline is `docs/rebuild/PHASE_00_BASELINE.md`. Phase 1 (`docs/rebuild/PHASE_01_DATA_FOUNDATION.md`) changed persistence. Phase 2 (`docs/rebuild/PHASE_02_DESIGN_SYSTEM.md`) added an opt-in design system. Phase 3 (`docs/rebuild/PHASE_03_SCHOOL_PORTAL.md`) rebuilt the teacher portal shell and class experience. Phase 5 (`docs/rebuild/PHASE_05_LESSON_SHELL.md`) rebuilt the classroom player. Phase 8 reclassified only the pilot game rows that were opened in a browser. Other family rows are unchanged. The historical surface counts below were not recounted.
 
 Discovery only. No screens were redesigned in this pass.
 
@@ -454,11 +454,11 @@ Shell chrome is shared. Each board is its own product. States below are ones the
 
 | ID | Surface | Route | Component | File | Parent | Reach | State | Gen | Tokens | Problems | Refactor | Priority |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| GME-001 | How to play | any of the 19 games | `.wondii-modal` | `games/wondii-shell.js`, `wondii-shell.css` | game nav | ? button | help | MIXED | PARTIAL | Hides the page lede and shows it here. Does not style the board. | Keep as shell help | P2 |
-| GME-002 | Scores disclosure | games that contain `.gsc` | `details.wondii-scores` | `wondii-shell.js`, `js/game-scorecard.js` | game | Scores summary | scoreboard | MIXED | PARTIAL | Wraps the old scorecard. Does not replace it. | One scoreboard | P1 |
-| GME-003 | Memory setup | `/games/memory.html` | `#screenSetup` | `memory.html`, `memory.css`, `memory.js` | memory | Open | setup | LEGACY | NO | Shell only adds chrome. | Game shell later | P1 |
-| GME-004 | Memory play | memory | `#screenPlay` | `memory.html` | memory | Start | playing | LEGACY | NO | Own board. | P1 | P1 |
-| GME-005 | Memory win line | memory | `#memoryWin` | `memory.html` | play | All pairs | completion | LEGACY | NO | Inline status, not a results page. | P1 | P1 |
+| GME-001 | How to play | unmigrated family games | `.wondii-modal` | `games/wondii-shell.js`, `wondii-shell.css` | game nav | ? button | help | MIXED | PARTIAL | Pilots use the GameShell help dialog instead. This modal remains on unmigrated games. | Keep for legacy games | P2 |
+| GME-002 | Scores disclosure | unmigrated games that contain `.gsc` | `details.wondii-scores` | `wondii-shell.js`, `js/game-scorecard.js` | game | Scores summary | scoreboard | MIXED | PARTIAL | Pilots hide `.gsc`. Storage still uses game-scorecard where the page links it. | One scoreboard on legacy games | P1 |
+| GME-003 | Memory setup | `/games/memory.html` | `#screenSetup` | `memory.html`, `memory.css`, `memory.js`, `game-shell.css` | GameShell | Open | setup | MIXED | PARTIAL | Opened at 1920, 1280, and 1024. Shell header is Fredoka and Nunito. Size cards and board CSS are still the old studio. | Board later | P1 |
+| GME-004 | Memory play | memory | `#screenPlay` | `memory.html` | GameShell | Start | playing | MIXED | PARTIAL | Opened at 1280. Duplicate play-header back button is hidden. Cards are the old board. | Board later | P1 |
+| GME-005 | Memory win line | memory | `#memoryWin` and shell dialog | `memory.html`, `game-shell.js` | play | All pairs | completion | MIXED | PARTIAL | Played to a clear board at 1280. Shell dialog repeats the status sentence. | Board later | P1 |
 | GME-006 | Snakes setup | `/games/snakes-ladders.html` | `#screenSetup` | `snakes-ladders.html` | snakes | Open | setup | LEGACY | NO | `snakes-ladders.css` has 155 hexes. | P1 | P1 |
 | GME-007 | Snakes play | snakes | `#screenGame` | `snakes-ladders.html` | snakes | Start | playing | LEGACY | NO | Own board. | P1 | P1 |
 | GME-008 | Snakes win | snakes | `#screenWin` | `snakes-ladders.html` | snakes | Finish | results | LEGACY | NO | Own win screen. | P1 | P1 |
@@ -467,9 +467,9 @@ Shell chrome is shared. Each board is its own product. States below are ones the
 | GME-011 | Snap rules | snap | `#snapRulesModal` | `snap.html` | snap | Rules | help | LEGACY | NO | Second help beside GME-001. | P2 | P2 |
 | GME-012 | Connect Four setup | `/games/connect-four.html` | `#screenSetup` | `connect-four.html` | connect four | Open | setup | LEGACY | NO | Win screen not found in HTML. | P1 | P1 |
 | GME-013 | Connect Four play | connect four | `#screenPlay` | `connect-four.html` | connect four | Start | playing | LEGACY | NO | Completion needs a runtime look. | P1 | P1 |
-| GME-014 | Noughts setup | `/games/noughts-crosses.html` | `#screenSetup` | `noughts-crosses.html` | noughts | Open | setup | LEGACY | NO | Own CSS, 57 hexes. | P1 | P1 |
-| GME-015 | Noughts play | noughts | `#screenPlay` | `noughts-crosses.html` | noughts | Start | playing | LEGACY | NO | Side stats on the board. | P1 | P1 |
-| GME-016 | Noughts win | noughts | `#tttWinOverlay` | `noughts-crosses.html` | play | Win or draw | results | LEGACY | NO | Own overlay. | P1 | P1 |
+| GME-014 | Noughts setup | `/games/noughts-crosses.html` | `#screenSetup` | `noughts-crosses.html`, `game-shell.css` | GameShell | Open | setup | MIXED | PARTIAL | Opened at 1920, 1280, and 1024. Modes and character faces stay. Help dialog opened at 1280. | Board later | P1 |
+| GME-015 | Noughts play | noughts | `#screenPlay` | `noughts-crosses.html` | GameShell | Start | playing | MIXED | PARTIAL | Opened at 1280 after Start. Side portraits stay. | Board later | P1 |
+| GME-016 | Noughts win | noughts | shell dialog | `game-shell.js` | play | Win | results | MIXED | PARTIAL | A friend-mode win was played at 1280. The old overlay is hidden. A draw was not opened separately. | Draw shot later | P1 |
 | GME-017 | Math Race setup | `/games/math-race.html` | `#screenSetup` | `math-race.html` | math race | Open | setup | LEGACY | NO | `math-race.css` 105 hexes. | P1 | P1 |
 | GME-018 | Math Race play | math race | `#screenPlay` | `math-race.html` | math race | Start | playing | LEGACY | NO | Own track. | P1 | P1 |
 | GME-019 | Math Race question | math race | `#questionModal` | `math-race.html` | play | A sum | question | LEGACY | NO | Correct and incorrect branches not separated in HTML. | P1 | P1 |
@@ -480,15 +480,15 @@ Shell chrome is shared. Each board is its own product. States below are ones the
 | GME-024 | Runner crash | runner | `#overlay` | `runner.html` | runner | Hit | results | LEGACY | NO | "Ouch!" overlay. | P1 | P1 |
 | GME-025 | Rock paper scissors play | `/games/rock-paper-scissors.html` | app | `rock-paper-scissors.js` | rps | Open | playing | LEGACY | NO | Countdown is inside play. | P1 | P1 |
 | GME-026 | Rock paper scissors win | rps | `#rpsWinOverlay` | `rock-paper-scissors.html` | rps | Round end | results | LEGACY | NO | Own overlay. | P1 | P1 |
-| GME-027 | Snake play | `/games/snake-arcade.html` | canvas | `snake-arcade.js` | snake | Open | playing | LEGACY | NO | Own CSS. | P1 | P1 |
-| GME-028 | Snake game over | snake | `#snakeOverlay` | `snake-arcade.js` | snake | Collision | results | LEGACY | NO | Title set to "Game over". | P1 | P1 |
+| GME-027 | Snake play | `/games/snake-arcade.html` | canvas | `snake-arcade.js`, `game-shell.css` | GameShell | Arrow | playing | MIXED | PARTIAL | Opened at 1920, 1280, and 1024. Pause dialog opened at 1280 and the canvas loop stopped. Arrow keys and on-screen buttons work. The canvas itself is not a cell grid. | Canvas access later | P1 |
+| GME-028 | Snake game over | snake | shell dialog | `game-shell.js` | snake | Wall | results | MIXED | PARTIAL | Played into the wall at 1280. Dialog said "Game over. Score 0". The old overlay is hidden. A refresh starts a new run. | Canvas access later | P1 |
 | GME-029 | Marble play | `/games/marble-tilt.html` | `#app` | `marble-tilt.html` | marble | Open | playing | LEGACY | NO | End node exists. | P1 | P1 |
 | GME-030 | Marble end | marble | `#tiltEnd` | `marble-tilt.html` | marble | Finish | completion | UNKNOWN | NO | Node exists. Contents not read as a full results screen. | P1 | P1 |
 | GME-031 | Jigsaw setup | `/games/jigsaw.html` | `.jz-setup` | `jigsaw.html`, `jigsaw.css`, `jigsaw.js` | jigsaw | Open | setup | LEGACY | NO | Emoji stars in the title. Root `jigsaw.js` is the live script. | P1 | P1 |
 | GME-032 | Jigsaw intro | jigsaw | `#boardIntro` | `jigsaw.html` | board | Before pieces | intro | LEGACY | NO | Same page as the board. | P2 | P2 |
 | GME-033 | Jigsaw play | jigsaw | `#board` `#playArea` | `jigsaw.html` | jigsaw | Start | playing | LEGACY | NO | Completion state not named in the HTML sample. | P1 | P1 |
-| GME-034 | Word search | `/games/word-search.html` | `.word-search-app` | `word-search.html`, `word-search.css`, `word-search.js` | word search | Open | playing | LEGACY | NO | No setup/results ids found. `word-search.css` 56 hexes. | P1 | P1 |
-| GME-035 | Colouring studio | `/games/colouring.html` | `.colour-app` | `colouring.html`, `colouring.css` | colouring | Open | playing | LEGACY | NO | `#templateOverlay` is art, not a dialog. 84 hexes in CSS. | P1 | P1 |
+| GME-034 | Word search | `/games/word-search.html` | `.word-search-app` | `word-search.html`, `word-search.css`, `word-search.js`, `game-shell.css` | GameShell | Open | playing | MIXED | PARTIAL | Fresh grid opened at 1920, 1280, and 1024. One word found, then all six, at 1280. Result dialog said "You found every word!". Help opened at 1280. | Board later | P1 |
+| GME-035 | Colouring studio | `/games/colouring.html` | `.colour-app` | `colouring.html`, `colouring.css`, `game-shell.css` | GameShell | Open | playing | MIXED | PARTIAL | Blank canvas at 1920, 1280, and 1024. A stroke and a saved "Red boat" thumbnail were opened at 1280 with an account bound. No score. Studio CSS remains. | Studio later | P1 |
 | GME-036 | Block stack | `/games/block-stack.html` | `#board` | `block-stack.html`, `block-stack.css` | block stack | Open | playing | LEGACY | NO | End state not found in HTML. | P1 | P1 |
 | GME-037 | Zuma | `/games/zuma.html` | `.zuma-app` | `zuma.html`, `zuma.css` | zuma | Open | playing | LEGACY | NO | End state not found in HTML. | P1 | P1 |
 | GME-038 | Drive Mad | `/games/drive-mad.html` | `.drive-mad-app` | `drive-mad.html`, `drive-mad.css` | drive mad | Open | playing | LEGACY | NO | End state not found in HTML. | P1 | P1 |

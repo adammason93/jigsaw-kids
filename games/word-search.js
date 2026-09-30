@@ -8,8 +8,8 @@
    * Kid-friendly words, 4–5 letters only. Each new game picks a random handful from here.
    */
   const WORD_POOL = [
-    "SOFIA",
-    "TILLY",
+    "SMILE",
+    "TRAIN",
     "APPLE",
     "BABY",
     "BALL",

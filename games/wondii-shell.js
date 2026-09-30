@@ -4,6 +4,8 @@
 
   var file = (location.pathname.split("/").pop() || "").split("?")[0];
   if (file === "storybook.html") return;
+  if (document.documentElement.getAttribute("data-game-shell") === "v2") return;
+  if (document.body && document.body.getAttribute("data-game-shell") === "v2") return;
 
   var THEME = {
     "colouring.html": ["creative", "Creative"],

@@ -8,7 +8,7 @@ The debt below is still open. Phase 2 did not migrate the 182 surfaces. Phase 3 
 
 Phase 3 removed the teacher-home size wizard, the per-pupil wizard on that dashboard, and `window.confirm` for removing a pupil. Family Stories, Games, Puzzles, Learning, My World, and Favourites stay in the DOM and are hidden only while an organisation is loaded. Custom organisation nav links are hidden in that same state so they are not extra primary items.
 
-Still later: storybook, family catalogues, school settings sheets, Ramsden microsite CSS, electricity demo, deleting a whole class, and a results experience beyond the session list. Creator V2 is the create route. `flow.js` and `create.js` remain in the repo and are not loaded. `present.html?edit=1` is still the older question form. The classroom player chrome is the Phase 5 lesson shell. Quiz, Spin a pupil, and Word Search are canonical mechanics. Story, mystery, and doors are still adapters. The 19 family games, including family Word Search, are unchanged.
+Still later: storybook, family catalogues, school settings sheets, Ramsden microsite CSS, electricity demo, deleting a whole class, and a results experience beyond the session list. Creator V2 is the create route. `flow.js` and `create.js` remain in the repo and are not loaded. `present.html?edit=1` is still the older question form. The classroom player chrome is the Phase 5 lesson shell. Quiz, Spin a pupil, and Word Search are canonical mechanics. Story, mystery, and doors are still adapters. Five family pilots now use GameShell V2: Noughts and Crosses, Memory, family Word Search, Colouring, and Snake. Their boards still use their own CSS. The other family games stay on `wondii-shell`. Family Word Search does not use the classroom word-search generator.
 
 A surface moves LEGACY → IN PROGRESS → MIGRATED → VISUALLY VERIFIED only after it is checked against `docs/WONDII_VISUAL_SURFACE_REGISTRY.md`. A header change does not migrate the board behind it.
 
@@ -33,11 +33,11 @@ The teacher path changes visual product in the middle.
 3. Storybook (STR-001–STR-017) is a third product: `storybook-app.css` (190 hexes) plus `storybook-wondii.css` (83). The reader font is picked from Fredoka, Schoolbell, Sniglet, Kalam, Patrick Hand, or Comic Neue.
 4. Family home (FAM-005) still uses emoji as the tile icons (`📖` `🎮` `🧩` `💡`) while the teacher home in the same portal uses the school cards.
 5. The old present results kicker is gone. Completion is the lesson shell and links to portal `#results`. The teacher question form (`?edit=1`) still uses `class.css`.
-6. Account-scoped scores and the Link Grid completion flag do not match. `linkGridCompletedLevels` is plain `localStorage`.
+6. `linkGridCompletedLevels` is still the raw key at the call site. `score-cloud.js` scopes it, and the colouring autosave preference, when an account is bound. Signed-out writes to those keys are dropped.
 
 ## P1 — legacy customer-facing UI
 
-1. All 19 family play boards. `wondii-shell` is chrome only. Largest own stylesheets: `snakes-ladders.css` 155 hexes, `math-race.css` 105, `snap.css` 97, `colouring.css` 84, `noughts-crosses.css` 57, `connect-four.css` 57, `word-search.css` 56, `memory.css` 40, `jigsaw.css` 42, `runner.css` 39. `runner.js` itself has about 98 hex matches.
+1. Unmigrated family play boards still use `wondii-shell` as chrome only. The five pilots use GameShell V2 for the frame and still keep their own board CSS. Largest own stylesheets: `snakes-ladders.css` 155 hexes, `math-race.css` 105, `snap.css` 97, `colouring.css` 84, `noughts-crosses.css` 57, `connect-four.css` 57, `word-search.css` 56, `memory.css` 40, `jigsaw.css` 42, `runner.css` 39. `runner.js` itself has about 98 hex matches.
 2. `characters.html` (FAM-012–FAM-016), its own modal and about 34 hexes in the page.
 3. Electricity demo (SCH-015–SCH-023), own CSS, hardcoded `#c41230`, and a back link aimed at Ramsden.
 4. Ramsden microsite (SCH-007–SCH-014). The accent is written into the page and `schools/ramsden.js` instead of coming only from the organisation record.
@@ -49,7 +49,7 @@ The teacher path changes visual product in the middle.
 
 1. Public homepage `welcome.css` (88 hexes) and portal `portal.css` (82) plus `portal-app.css` (51) plus `home.css` (60) plus `portal-gate.css` (18). One account, five stylesheets.
 2. `org-portal.css` (72 hexes) is the newest school skin and still not tokens. It sits on top of portal CSS.
-3. `wondii-shell.css` (10 hexes) loads Fredoka and Nunito again per game.
+3. `wondii-shell.css` still loads Fredoka and Nunito on unmigrated games. GameShell V2 (`games/game-shell.css`) is the frame for the five pilots. `js/game-scorecard.js` is still the stored score adapter. Pilots hide the visible `.gsc` card. Unmigrated games still show it. Canvas games (Snake, Colouring, and the unmigrated arcade boards) are not keyboard cell grids.
 4. Storybook wondii layer on top of the old app CSS.
 5. `flow.js` still contains the old step list, but that file is not on the create route.
 6. Native `window.confirm` for removing a pupil (CLS-015). Ending a lesson is now a dialog in the lesson shell (CLS-034).

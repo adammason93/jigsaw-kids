@@ -6,7 +6,7 @@
   var STORY_URL = "games/storybook.html";
   var VIEWS = ["home", "stories", "games", "puzzles", "learning", "favourites", "search"];
 
-  var GAMES = [
+  var GAMES = window.WondiiGamePlatform ? window.WondiiGamePlatform.portalCards() : [
     { id: "jigsaw", title: "Picture Jigsaw", desc: "Put the pieces together to complete fun pictures.", href: "games/jigsaw.html", img: "games/images/portal/jigsaw.jpg", cats: ["puzzles"] },
     { id: "colouring", title: "Colouring Book", desc: "Choose a picture and bring it to life with colours.", href: "games/colouring.html", img: "games/images/portal/colouring.png", cats: ["creative"] },
     { id: "storybook", title: "Your Story", desc: "Create your own story with your name and characters.", href: "games/storybook.html?create=1", img: "games/images/portal/storybook-nook.jpg", cats: ["stories", "creative"] },
