@@ -1,0 +1,145 @@
+/* Teacher portal shell. Family navigation stays for accounts with no school. */
+
+.teacher-nav,
+.teacher-tabs { display: none; }
+
+body.org-on .p-side__family,
+body.org-on #orgNav,
+body.org-on #pSearchBtn { display: none; }
+
+body.org-on .p-app a.p-side__link.is-active[data-teacher],
+body.org-on .teacher-tabs a.is-active {
+  color: var(--w-text-primary, #141b4d);
+  background: var(--school-primary-soft, #f6f1ea);
+}
+
+body.org-on .teacher-nav:not([hidden]) {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.teacher-nav a,
+.room-bar a {
+  min-height: 44px;
+}
+
+.t-school {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0 0 1.1rem;
+}
+.t-school img {
+  width: 2.75rem;
+  height: 2.75rem;
+  object-fit: contain;
+  border-radius: 12px;
+  background: #fff;
+}
+.t-mark {
+  width: auto;
+  height: 2rem;
+  background: transparent;
+}
+.t-school strong { display: block; font-family: Fredoka, Nunito, sans-serif; font-size: 1.25rem; }
+.t-school span { color: var(--w-text-muted, #5c6284); font-size: 0.84rem; font-weight: 700; }
+
+.t-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(15.5rem, 1fr));
+  gap: 0.9rem;
+}
+.t-class {
+  display: grid;
+  gap: 0.35rem;
+  align-items: start;
+  justify-items: start;
+  color: inherit;
+  text-decoration: none;
+  min-height: 11rem;
+}
+.t-class .w-btn { justify-self: stretch; width: 100%; }
+.t-class strong { font-family: Fredoka, Nunito, sans-serif; font-size: 1.25rem; }
+.t-class em { color: var(--w-text-muted, #5c6284); font-style: normal; font-weight: 700; }
+.t-actions { display: flex; flex-wrap: wrap; gap: 0.6rem; margin: 0.2rem 0 1rem; }
+.t-section { margin: 1.4rem 0; }
+.t-section h2 { margin: 0 0 0.7rem; }
+
+.room-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem 0.9rem;
+  align-items: center;
+  margin: 0 0 0.8rem;
+}
+.room-bar a {
+  display: inline-flex;
+  align-items: center;
+  color: var(--w-text-primary, #141b4d);
+  font-weight: 800;
+  text-decoration: none;
+}
+.room-bar a[aria-current="page"] {
+  color: var(--w-text-primary, #141b4d);
+  box-shadow: inset 0 -2px 0 var(--school-accent, var(--w-color-brand, #141b4d));
+}
+.room-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.9rem;
+  margin: 0.2rem 0 1rem;
+}
+.room-tools a {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  color: var(--w-text-muted, #5c6284);
+  font-weight: 800;
+  text-decoration: none;
+}
+.room-tools a[aria-current="page"] {
+  color: var(--w-text-primary, #141b4d);
+  box-shadow: inset 0 -2px 0 var(--school-accent, var(--w-color-brand, #141b4d));
+}
+.room-people { display: grid; gap: 0.55rem; list-style: none; margin: 0; padding: 0; }
+.room-people li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem 0.7rem;
+  align-items: center;
+  min-height: 44px;
+}
+
+@media (max-width: 900px) {
+  body.org-on .org-lockup span { white-space: normal; }
+  body.org-on .p-tabs:not(.teacher-tabs) { display: none; }
+  body.org-on .teacher-tabs:not([hidden]) {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 50;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    padding: 0.4rem 0.4rem calc(0.4rem + env(safe-area-inset-bottom));
+    background: rgba(255, 255, 255, 0.96);
+    box-shadow: 0 -6px 20px rgba(20, 27, 77, 0.08);
+  }
+  body.org-on .teacher-tabs a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    border-radius: 14px;
+    color: var(--w-text-muted, #5c6284);
+    font-weight: 800;
+    font-size: 0.78rem;
+    text-decoration: none;
+  }
+  .t-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 640px) {
+  .t-actions .w-btn { width: 100%; }
+}

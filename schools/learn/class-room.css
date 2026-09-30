@@ -9,13 +9,16 @@ button, input, select { font: inherit; }
 .room-top p { margin: 0; font-weight: 800; color: #5c6284; }
 .room-actions { display: flex; flex-wrap: wrap; gap: 0.45rem; justify-content: flex-end; }
 .room-go, .room-ghost { min-height: 44px; padding: 0 1rem; border-radius: 999px; font-weight: 800; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; }
-.room-go { border: 0; background: var(--room-accent, var(--w-ink)); color: #fff; }
+.room-go { border: 0; background: var(--w-action-primary, #141b4d); color: #fff; }
 .room-ghost { border: 0; background: #fff; color: var(--ink); box-shadow: 0 6px 16px rgba(20, 27, 77, 0.06); }
 .room-tabs { display: flex; gap: 0.35rem; flex-wrap: wrap; margin: 0 0 0.8rem; }
 .room-tabs a { min-height: 40px; padding: 0.45rem 0.8rem; border-radius: 999px; text-decoration: none; color: var(--ink); font-weight: 800; }
 .room-tabs a.is-on { background: #fff; box-shadow: inset 0 -2px 0 var(--room-accent); }
 .room-stage { position: relative; border-radius: 28px; overflow: hidden; background: #f3eadf; box-shadow: 0 16px 40px rgba(20, 27, 77, 0.08); }
 .room-frame { position: relative; }
+@media (max-height: 820px) {
+  .room-frame { max-height: calc(100vh - 220px); overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; }
+}
 .room-stage img.room-bg { display: block; width: 100%; height: auto; }
 .room-board { position: absolute; left: 47%; top: 22%; width: 22%; text-align: center; color: #f7f4ea; pointer-events: none; text-shadow: 0 1px 0 rgba(20, 27, 77, 0.25); }
 .room-board strong { display: block; font-family: Fredoka, Nunito, sans-serif; font-size: clamp(1rem, 2vw, 1.7rem); }
@@ -44,10 +47,10 @@ button, input, select { font: inherit; }
   70% { opacity: 1; transform: rotate(1.5deg); }
   100% { opacity: 0; transform: none; }
 }
-.seat-name { position: absolute; left: 50%; bottom: 92%; transform: translateX(-50%); background: #fff; color: var(--ink); border-radius: 999px; padding: 0.12rem 0.55rem; font-weight: 800; font-size: 0.82rem; white-space: nowrap; opacity: 0; pointer-events: none; box-shadow: 0 6px 16px rgba(20, 27, 77, 0.12); }
+.seat-name { position: absolute; left: 50%; bottom: 92%; transform: translateX(-50%); background: #fff; color: var(--ink); border-radius: 999px; padding: 0.12rem 0.55rem; font-weight: 800; font-size: 0.82rem; white-space: nowrap; opacity: 1; pointer-events: none; box-shadow: 0 6px 16px rgba(20, 27, 77, 0.12); }
 .seat.is-hot .seat-name, .seat.is-selected .seat-name, .seat:focus-visible .seat-name { opacity: 1; }
 .seat.is-selected img, .seat.is-hot img { filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.95)); }
-.seat.is-turn img { filter: drop-shadow(0 0 12px var(--room-accent)); }
+.seat.is-turn img { filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.95)); }
 .room-empty { position: absolute; left: 50%; top: 58%; transform: translate(-50%, -50%); width: min(28rem, 86%); background: rgba(255,255,255,0.94); border-radius: 24px; padding: 1.2rem; text-align: center; }
 .room-empty h2 { font-family: Fredoka, Nunito, sans-serif; margin: 0 0 0.4rem; }
 .room-banner, .room-turn { margin: 0.8rem 0 0; background: #fff; border-radius: 18px; padding: 0.8rem 1rem; font-weight: 800; }
@@ -64,7 +67,7 @@ button, input, select { font: inherit; }
 .room-card-float { position: fixed; right: 1rem; bottom: 1rem; width: min(22rem, calc(100% - 2rem)); z-index: 30; }
 .room-lessons { margin-top: 0.8rem; }
 .look-chips { display: flex; flex-wrap: wrap; gap: 0.3rem; }
-.look-chip { min-height: 36px; padding: 0 0.7rem; border: 0; border-radius: 999px; background: #f7f5fb; font-weight: 800; cursor: pointer; }
+.look-chip { min-height: 44px; padding: 0 0.8rem; border: 0; border-radius: 999px; background: #f7f5fb; font-weight: 800; cursor: pointer; }
 .look-chip.is-on { background: var(--ink); color: #fff; }
 .seat.is-alive .seat-idle { animation: room-idle 1.2s ease-in-out; }
 @keyframes room-idle { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
@@ -72,7 +75,7 @@ button, input, select { font: inherit; }
   .seat.is-alive .seat-idle { animation: none; }
   .seat.is-wave .seat-arm, .seat.is-wave .seat-wave { animation: none; opacity: 0; }
 }
-@media (max-width: 800px) {
+@media (max-width: 640px) {
   .room-top, .room-below { display: block; }
   .room-stage, .room-full { display: none; }
   .room-fallback { display: block; }

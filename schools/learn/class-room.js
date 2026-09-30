@@ -23,6 +23,9 @@
   var idleTimer = 0;
   var cooling = {};
   var reduced = global.matchMedia && global.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var pendingRemove = "";
+  var editId = "";
+  var editSnapshot = null;
 
   var BODIES = ["brown-short", "black-short", "blonde-short", "auburn-short", "brown-long", "black-long", "blonde-long", "auburn-long"];
   var ARM_PIVOT = {};
@@ -127,8 +130,12 @@
     return hair + "-" + length;
   }
 
+  function roomYear(room) {
+    return (room && (room.yearLabel || room.name)) || "";
+  }
+
   function artKey(pupil, room) {
-    return agePrefix(room && room.name) + bodyOf(pupil);
+    return agePrefix(roomYear(room)) + bodyOf(pupil);
   }
 
   function art(pupil, wave, room) {
@@ -246,11 +253,12 @@
 
   function paint() {
     var view = orgView();
-    if (view.primaryColour) document.documentElement.style.setProperty("--room-accent", view.primaryColour);
+    if (view.primaryColour) document.documentElement.style.setProperty("--school-accent", view.primaryColour);
     var book = loadBook();
     var room = findRoom(book);
     if (!room) {
-      root.innerHTML = "<main class=\"room-page\"><a class=\"room-back\" href=\"../../portal.html#home\">Back to classes</a><h1>This class is not on this account</h1><p>Classes belong to the signed-in teacher. Nothing from another account is shown here.</p></main>";
+      root.innerHTML = "<main class=\"room-page w-page\" data-w-context=\"schools\">" + shellNav("classes") +
+        "<div class=\"w-empty\"><p class=\"w-empty__title\">This class is not on this account</p><p>Classes belong to the signed-in teacher.</p></div></main>";
       return;
     }
     if (ensure(room)) saveBook(book);
@@ -259,41 +267,93 @@
     scheduleIdle();
   }
 
+  function shellNav(current) {
+    var links = [
+      ["home", "Home"],
+      ["classes", "Classes"],
+      ["create", "Create"],
+      ["library", "Library"],
+      ["results", "Results"]
+    ];
+    return "<nav class=\"room-bar\" aria-label=\"School\">" + links.map(function (item) {
+      var on = item[0] === current ? " aria-current=\"page\"" : "";
+      return "<a href=\"../../portal.html#" + item[0] + "\"" + on + ">" + item[1] + "</a>";
+    }).join("") + "</nav>";
+  }
+
+  function rememberClass(room) {
+    try {
+      sessionStorage.setItem("wondii-class-context", JSON.stringify({
+        classId: room.id,
+        name: room.name,
+        yearLabel: room.yearLabel || ""
+      }));
+    } catch (e) {}
+  }
+
   function page(room, view) {
+    rememberClass(room);
     var count = room.pupils.length;
     var welcome = params.get("welcome") === "1";
-    return "<main class=\"room-page\">" +
-      "<a class=\"room-back\" href=\"../../portal.html#home\">Back to classes</a>" +
-      "<header class=\"room-top\"><div><p>" + count + " pupil" + (count === 1 ? "" : "s") + "</p><h1>" + escape(room.name) + "</h1></div>" +
-      "<div class=\"room-actions\"><a class=\"room-go\" href=\"create.html?class=" + encodeURIComponent(room.id) + "\">Create an adventure</a>" +
-      "<button type=\"button\" class=\"room-ghost\" id=\"startLesson\">Start a lesson</button>" +
-      "<button type=\"button\" class=\"room-ghost\" id=\"choosePupils\">" + (chooseOn ? "Done choosing" : "Choose pupils") + "</button>" +
-      "<a class=\"room-ghost\" href=\"?id=" + encodeURIComponent(room.id) + "&tab=pupils\">Edit class</a></div></header>" +
-      tabs(room) +
-      (welcome ? "<p class=\"room-banner\" id=\"welcomeBanner\">" + (count > 1 ? "Your class is ready. " + count + " explorers have joined " + escape(room.name) + "." : (count === 1 ? "Welcome, " + escape(room.pupils[0].firstName) + "." : "Your classroom is ready.")) + "</p>" : "") +
-      (tab === "classroom" ? scene(room, view) + below(room) + strip(room) : "") +
+    var year = room.yearLabel ? "<p class=\"w-kicker\">" + escape(room.yearLabel) + "</p>" : "";
+    var q = encodeURIComponent(room.id);
+    return "<main class=\"room-page w-page\" data-w-context=\"schools\">" +
+      shellNav("classes") +
+      schoolLockup(view) +
+      "<header class=\"room-top\"><div>" + year + "<h1>" + escape(room.name) + "</h1><p>" + count + " pupil" + (count === 1 ? "" : "s") + "</p></div></header>" +
+      "<div class=\"t-actions\">" +
+      "<a class=\"w-btn w-btn--primary\" href=\"create.html?class=" + q + "\">Create Adventure</a>" +
+      "<a class=\"w-btn w-btn--secondary\" href=\"present.html?example=lights&class=" + q + "\">Quick Game</a>" +
+      "<a class=\"w-btn w-btn--quiet\" href=\"../../games/storybook.html?create=1&class=" + q + "\">Create Story</a></div>" +
+      (welcome ? "<p class=\"w-note w-note--success\" id=\"welcomeBanner\">" + escape(room.name) + " is ready.</p>" : "") +
+      (tab === "classroom" ? scene(room, view) + below(room) : "") +
+      tools(room) +
       (tab === "pupils" ? pupilsTab(room) : "") +
+      (tab === "characters" ? charactersTab(room) : "") +
       (tab === "groups" ? groupsTab(room) : "") +
       (tab === "progress" ? progressTab(room) : "") +
+      (tab === "past" ? pastTab(room) : "") +
       (tab === "settings" ? settingsTab(room) : "") +
       (cardId ? card(room) : "") +
       (lessonsOpen ? lessonPicker(room) : "") +
+      removeDialog(room) +
+      editDialog(room) +
       "</main>";
   }
 
-  function tabs(room) {
-    var items = ["classroom", "pupils", "groups", "progress", "settings"];
-    return "<nav class=\"room-tabs\">" + items.map(function (item) {
-      var on = item === tab ? " is-on" : "";
-      return "<a class=\"" + on.trim() + "\" href=\"?id=" + encodeURIComponent(room.id) + "&tab=" + item + "\">" + item.charAt(0).toUpperCase() + item.slice(1) + "</a>";
+  function schoolLockup(view) {
+    var name = (view && view.organisationName) || "";
+    var logo = view && view.logoUrl ? "<img src=\"" + escape(view.logoUrl) + "\" alt=\"\" />" : "";
+    if (!name && !logo) return "<div class=\"t-school\"><img class=\"t-mark\" src=\"../../games/images/brand/wondi-wordmark.svg\" alt=\"Wondii\" /></div>";
+    return "<div class=\"t-school\"><img class=\"t-mark\" src=\"../../games/images/brand/wondi-wordmark.svg\" alt=\"Wondii\" />" + logo +
+      "<div><strong>" + escape(name || "School") + "</strong><span>Wondii Schools</span></div></div>";
+  }
+
+  function tools(room) {
+    var items = [
+      ["classroom", "Classroom"],
+      ["pupils", "Pupils"],
+      ["characters", "Characters"],
+      ["progress", "Progress"],
+      ["past", "Past activities"],
+      ["settings", "Settings"]
+    ];
+    return "<nav class=\"room-tools\" aria-label=\"Class tools\">" + items.map(function (item) {
+      var on = item[0] === tab ? " aria-current=\"page\"" : "";
+      return "<a href=\"?id=" + encodeURIComponent(room.id) + "&tab=" + item[0] + "\"" + on + ">" + item[1] + "</a>";
     }).join("") + "</nav>";
   }
 
   function scene(room, view) {
     var logo = view && view.logoUrl ? "<img src=\"" + escape(view.logoUrl) + "\" alt=\"\" />" : "";
+    var overflow = 0;
     var seats = room.pupils.map(function (pupil) {
-      var seat = seatById(pupil.seat) || SEATS[0];
-      var scale = ageScale(room.name);
+      var seat = seatById(pupil.seat);
+      if (!seat) {
+        overflow += 1;
+        seat = { x: 6 + ((overflow - 1) % 8) * 11, y: 2 + Math.floor((overflow - 1) / 8) * 8, w: 8 };
+      }
+      var scale = ageScale(roomYear(room));
       var hot = pupil.id === selectedId ? " is-selected is-hot" : "";
       if (chosen[pupil.id]) hot += " is-turn";
       var arm = armArt(pupil, room);
@@ -324,8 +384,8 @@
     if (global.ClassRooms && ClassRooms.forJourney) {
       list.forEach(function (item) { sessions += ClassRooms.forJourney(item.id).length; });
     }
-    var todayHtml = today ? "<article class=\"room-card\"><h2>Today's adventure</h2><p>" + escape((today.plan && today.plan.title) || (today.learningMap && today.learningMap.topic) || "Adventure") + "</p><a class=\"room-go\" href=\"present.html?journey=" + encodeURIComponent(today.id) + "&class=" + encodeURIComponent(room.id) + "\">Start adventure</a></article>" : "<article class=\"room-card\"><h2>Today's adventure</h2><p>Adventures you create for this class show up here.</p><a class=\"room-go\" href=\"create.html?class=" + encodeURIComponent(room.id) + "\">Create an adventure</a></article>";
-    return "<div class=\"room-below\">" + todayHtml + "<article class=\"room-card\"><h2>This week</h2><p>" + (sessions ? sessions + " class session" + (sessions === 1 ? "" : "s") + " on this account." : "Present a lesson and this will show how many times the class took part.") + "</p><button type=\"button\" class=\"room-ghost\" id=\"spinSomeone\">Choose someone</button> <button type=\"button\" class=\"room-ghost\" id=\"spinSkip\">Someone else</button></article></div>";
+    var todayHtml = today ? "<article class=\"w-card\"><h2 class=\"w-h3\">Continue</h2><p>" + escape((today.plan && today.plan.title) || (today.learningMap && today.learningMap.topic) || "Adventure") + "</p><a class=\"w-btn w-btn--secondary\" href=\"present.html?journey=" + encodeURIComponent(today.id) + "&class=" + encodeURIComponent(room.id) + "\">Start adventure</a></article>" : "<article class=\"w-card\"><h2 class=\"w-h3\">Continue</h2><p>Adventures for this class show up here.</p></article>";
+    return "<div class=\"room-below t-grid\">" + todayHtml + "<article class=\"w-card\"><h2 class=\"w-h3\">In the room</h2><p>" + (sessions ? sessions + " class session" + (sessions === 1 ? "" : "s") + " on this account." : "Sessions appear after this class takes part.") + "</p><p class=\"t-actions\"><button type=\"button\" class=\"w-btn w-btn--quiet\" id=\"startLesson\">Saved lessons</button><button type=\"button\" class=\"w-btn w-btn--quiet\" id=\"choosePupils\">" + (chooseOn ? "Done choosing" : "Choose pupils") + "</button><button type=\"button\" class=\"w-btn w-btn--quiet\" id=\"spinSomeone\">Choose someone</button></p></article></div>";
   }
 
   function strip(room) {
@@ -337,20 +397,55 @@
     return "<section><h2>Your pupils · " + room.pupils.length + "</h2><div class=\"room-strip\">" + buttons + more + "</div></section>";
   }
 
+  function pupilRow(room, pupil) {
+    return "<li><img class=\"w-avatar w-avatar--sm\" src=\"" + art(pupil, false, room) + "\" alt=\"\" /><strong>" + escape(pupil.firstName) + "</strong>" +
+      "<button type=\"button\" class=\"w-btn w-btn--quiet\" data-edit=\"" + escape(pupil.id) + "\">Character</button>" +
+      "<button type=\"button\" class=\"w-btn w-btn--quiet\" data-remove=\"" + escape(pupil.id) + "\">Remove</button></li>";
+  }
+
   function pupilsTab(room) {
-    var rows = room.pupils.map(function (pupil) {
-      var who = pupil.presentation === "girl" || pupil.presentation === "boy" ? pupil.presentation : presentationOf(pupil.firstName);
-      return "<li><img src=\"" + art(pupil, false, room) + "\" alt=\"\" /><strong>" + escape(pupil.firstName) + "</strong><span>" + escape(TABLE_NAME[pupil.group] || "") + "</span>" +
-        "<button type=\"button\" class=\"look-chip" + (who === "girl" ? " is-on" : "") + "\" data-who=\"girl\" data-id=\"" + escape(pupil.id) + "\">Girl</button>" +
-        "<button type=\"button\" class=\"look-chip" + (who === "boy" ? " is-on" : "") + "\" data-who=\"boy\" data-id=\"" + escape(pupil.id) + "\">Boy</button>" +
-        "<button type=\"button\" data-card=\"" + escape(pupil.id) + "\">View</button>" +
-        "<button type=\"button\" class=\"room-ghost\" data-remove=\"" + escape(pupil.id) + "\">Remove</button></li>";
+    var rows = room.pupils.map(function (pupil) { return pupilRow(room, pupil); }).join("");
+    var empty = room.pupils.length ? "" : "<div class=\"w-empty\"><p class=\"w-empty__title\">No pupils yet</p><p>Add first names below. One child on each line.</p></div>";
+    return "<section class=\"w-panel\"><h2 class=\"w-h2\">Pupils</h2>" + empty +
+      "<ul class=\"room-people\">" + rows + "</ul>" +
+      "<h3 class=\"w-h3\">Add pupils</h3>" +
+      "<label class=\"w-field\">First names<textarea class=\"w-input\" id=\"pasteNames\" rows=\"6\" placeholder=\"One first name on each line\"></textarea>" +
+      "<p class=\"w-help\" id=\"pastePreview\">Names will appear here.</p></label>" +
+      "<p><button type=\"button\" class=\"w-btn w-btn--primary\" id=\"saveNames\">Add these pupils</button></p>" +
+      "<h3 class=\"w-h3\">Add one pupil</h3>" +
+      "<label class=\"w-field\">First name<input class=\"w-input\" id=\"newPupil\" maxlength=\"24\" /></label>" +
+      "<p>Girl or boy</p><div class=\"w-segment\"><button type=\"button\" id=\"pickGirl\">Girl</button><button type=\"button\" id=\"pickBoy\">Boy</button></div>" +
+      "<p><button type=\"button\" class=\"w-btn w-btn--secondary\" id=\"savePupil\">Add pupil</button></p></section>";
+  }
+
+  function charactersTab(room) {
+    var rows = room.pupils.map(function (pupil) { return pupilRow(room, pupil); }).join("");
+    return "<section class=\"w-panel\"><h2 class=\"w-h2\">Characters</h2><p>Each pupil has a character. You can use the class before changing any of them.</p>" +
+      (rows ? "<ul class=\"room-people\">" + rows + "</ul>" : "<div class=\"w-empty\"><p class=\"w-empty__title\">No characters yet</p><p>Add pupils and Wondii gives each one a character.</p></div>") +
+      "</section>";
+  }
+
+  function classSessions(room) {
+    var list = [];
+    try {
+      var raw = JSON.parse(localStorage.getItem("wondii-class-sessions") || "[]");
+      if (!Array.isArray(raw)) return list;
+      raw.forEach(function (session) {
+        if (!session || session.demo) return;
+        if (session.classId === room.id) list.push(session);
+      });
+    } catch (e) {}
+    return list;
+  }
+
+  function pastTab(room) {
+    var rows = classSessions(room).map(function (session) {
+      var when = session.createdAt ? new Date(session.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short" }) : "";
+      return "<article class=\"w-card\"><strong>" + escape(session.title || session.code || "Class session") + "</strong><p>" + escape([session.status, when].filter(Boolean).join(" · ")) + "</p></article>";
     }).join("");
-    return "<section class=\"room-panel\"><h2>Pupils</h2><ul class=\"room-list\">" + (rows || "<li>No pupils yet.</li>") + "</ul>" +
-      "<h2>Add a pupil</h2><label>First name <input id=\"newPupil\" maxlength=\"24\" /></label>" +
-      "<p>Girl or boy</p><div class=\"look-chips\"><button type=\"button\" class=\"look-chip\" id=\"pickGirl\">Girl</button><button type=\"button\" class=\"look-chip\" id=\"pickBoy\">Boy</button></div>" +
-      "<p><button type=\"button\" class=\"room-ghost\" id=\"randomLook\">Randomise character</button> <button type=\"button\" class=\"room-go\" id=\"savePupil\">Add pupil</button></p>" +
-      "<p>A name like Sofia starts as a girl. A name like Jack starts as a boy. Switch it if you need to.</p></section>";
+    return "<section><h2 class=\"w-h2\">Past activities</h2>" +
+      (rows ? "<div class=\"t-grid\">" + rows + "</div>" : "<div class=\"w-empty\"><p class=\"w-empty__title\">No activities yet</p><p>Results will appear after your class completes an activity.</p></div>") +
+      "</section>";
   }
 
   function groupsTab(room) {
@@ -372,9 +467,48 @@
   }
 
   function settingsTab(room) {
-    return "<section class=\"room-panel\"><h2>Class settings</h2><label>Class name <input id=\"renameClass\" maxlength=\"40\" value=\"" + escape(room.name) + "\" /></label>" +
-      "<p><button type=\"button\" class=\"room-go\" id=\"saveName\">Save name</button></p>" +
-      "<p>The class name sets the age of the pictures. Y3 and Year 3 look about 6 to 7. Year 1 looks younger. Year 6 looks older. Hair and seats stay the same.</p></section>";
+    var years = ["Reception", "Year 1", "Year 2", "Year 3", "Year 4", "Year 5", "Year 6"].map(function (year) {
+      return "<option" + (room.yearLabel === year ? " selected" : "") + ">" + year + "</option>";
+    }).join("");
+    return "<section class=\"w-panel\"><h2 class=\"w-h2\">Settings</h2>" +
+      "<label class=\"w-field\">Class name<input class=\"w-input\" id=\"renameClass\" maxlength=\"40\" value=\"" + escape(room.name) + "\" /></label>" +
+      "<label class=\"w-field\">Year or group<select class=\"w-input\" id=\"renameYear\"><option value=\"\">Not set</option>" + years + "</select></label>" +
+      "<p><button type=\"button\" class=\"w-btn w-btn--primary\" id=\"saveName\">Save</button></p>" +
+      "<p><a href=\"?id=" + encodeURIComponent(room.id) + "&tab=groups\">Tables</a></p>" +
+      "<p class=\"w-help\">The year sets how old the characters look. Removing a whole class is not available yet.</p></section>";
+  }
+
+  function removeDialog(room) {
+    if (!pendingRemove) return "";
+    var pupil = room.pupils.filter(function (item) { return item.id === pendingRemove; })[0];
+    if (!pupil) return "";
+    return "<dialog class=\"w-dialog\" id=\"removePupil\" aria-labelledby=\"removeTitle\"><div class=\"w-dialog__body\">" +
+      "<h2 class=\"w-h2\" id=\"removeTitle\">Remove " + escape(pupil.firstName) + "?</h2>" +
+      "<p>" + escape(pupil.firstName) + " will leave " + escape(room.name) + ".</p>" +
+      "<div class=\"w-dialog__actions\"><button type=\"button\" class=\"w-btn w-btn--quiet\" id=\"removeCancel\">Cancel</button>" +
+      "<button type=\"button\" class=\"w-btn w-btn--danger\" id=\"removeConfirm\">Remove</button></div></div></dialog>";
+  }
+
+  function chipRow(list, trait, current) {
+    return list.map(function (item) {
+      var on = item.id === current ? " is-on\" aria-pressed=\"true" : "\" aria-pressed=\"false";
+      return "<button type=\"button\" class=\"look-chip" + on + "\" data-trait=\"" + trait + "\" data-value=\"" + item.id + "\">" + item.label + "</button>";
+    }).join("");
+  }
+
+  function editDialog(room) {
+    if (!editId) return "";
+    var pupil = room.pupils.filter(function (item) { return item.id === editId; })[0];
+    if (!pupil) return "";
+    var who = pupil.presentation === "girl" || pupil.presentation === "boy" ? pupil.presentation : "";
+    return "<dialog class=\"w-dialog\" id=\"editPupil\" aria-labelledby=\"editTitle\"><div class=\"w-dialog__body\">" +
+      "<h2 class=\"w-h2\" id=\"editTitle\">" + escape(pupil.firstName) + "</h2>" +
+      "<img class=\"w-avatar w-avatar--lg\" src=\"" + art(pupil, false, room) + "\" alt=\"\" />" +
+      "<p>Girl or boy</p><div class=\"w-segment\">" + chipRow([{ id: "girl", label: "Girl" }, { id: "boy", label: "Boy" }], "presentation", who) + "</div>" +
+      "<p>Hair</p><div class=\"w-segment\">" + chipRow([{ id: "brown", label: "Brown" }, { id: "black", label: "Black" }, { id: "blonde", label: "Blonde" }, { id: "auburn", label: "Auburn" }], "hair", pupil.hair || "brown") + "</div>" +
+      "<p>Eyes</p><div class=\"w-segment\">" + chipRow([{ id: "brown", label: "Brown" }, { id: "blue", label: "Blue" }, { id: "green", label: "Green" }], "eyes", pupil.eyes || "brown") + "</div>" +
+      "<div class=\"w-dialog__actions\"><button type=\"button\" class=\"w-btn w-btn--quiet\" id=\"editCancel\">Close</button>" +
+      "<button type=\"button\" class=\"w-btn w-btn--primary\" id=\"editSave\">Save</button></div></div></dialog>";
   }
 
   function card(room) {
@@ -553,16 +687,27 @@
     });
     root.querySelectorAll("[data-remove]").forEach(function (button) {
       button.addEventListener("click", function () {
-        var id = button.getAttribute("data-remove");
-        var pupil = room.pupils.filter(function (item) { return item.id === id; })[0];
+        pendingRemove = button.getAttribute("data-remove") || "";
+        paint();
+      });
+    });
+    root.querySelectorAll("[data-edit]").forEach(function (button) {
+      button.addEventListener("click", function () {
+        var pupil = room.pupils.filter(function (item) { return item.id === button.getAttribute("data-edit"); })[0];
         if (!pupil) return;
-        if (!global.confirm("Remove " + pupil.firstName + " from this class?")) return;
-        room.pupils = room.pupils.filter(function (item) { return item.id !== id; });
-        if (selectedId === id) { selectedId = ""; turnName = ""; }
-        if (cardId === id) cardId = "";
-        if (chosen[id]) delete chosen[id];
-        forgetPupil(room, id);
-        saveBook(book);
+        editId = pupil.id;
+        editSnapshot = { presentation: pupil.presentation || "", hair: pupil.hair, length: pupil.length, eyes: pupil.eyes };
+        paint();
+      });
+    });
+    root.querySelectorAll("[data-trait]").forEach(function (button) {
+      button.addEventListener("click", function () {
+        var pupil = room.pupils.filter(function (item) { return item.id === editId; })[0];
+        if (!pupil) return;
+        var trait = button.getAttribute("data-trait");
+        var value = button.getAttribute("data-value");
+        pupil[trait] = value;
+        if (trait === "presentation") pupil.length = value === "girl" ? "long" : "short";
         paint();
       });
     });
@@ -636,11 +781,112 @@
     var saveName = document.getElementById("saveName");
     if (saveName) saveName.addEventListener("click", function () {
       var name = String(document.getElementById("renameClass").value || "").trim().slice(0, 40);
+      var year = String(document.getElementById("renameYear").value || "");
       if (!name) return;
       room.name = name;
+      room.yearLabel = year;
       saveBook(book);
       paint();
     });
+    var paste = document.getElementById("pasteNames");
+    var pastePreview = document.getElementById("pastePreview");
+    function namesFromPaste() {
+      var names = [];
+      String(paste && paste.value || "").split(/\n/).forEach(function (line) {
+        var name = firstName(line);
+        if (name && names.length < 35) names.push(name);
+      });
+      return names;
+    }
+    if (paste && pastePreview) paste.addEventListener("input", function () {
+      var names = namesFromPaste();
+      pastePreview.textContent = names.length ? names.length + " pupil" + (names.length === 1 ? "" : "s") + ": " + names.join(", ") : "Names will appear here.";
+    });
+    var saveNames = document.getElementById("saveNames");
+    if (saveNames) saveNames.addEventListener("click", function () {
+      var names = namesFromPaste();
+      if (!names.length) return;
+      names.forEach(function (name, index) {
+        var who = presentationOf(name);
+        var hairs = ["brown", "black", "blonde", "auburn"];
+        room.pupils.push({
+          id: uid("pup_"),
+          firstName: name,
+          hair: hairs[index % hairs.length],
+          length: who === "girl" ? "long" : "short",
+          eyes: "brown",
+          presentation: who,
+          seat: "",
+          group: ""
+        });
+      });
+      ensure(room);
+      saveBook(book);
+      paint();
+    });
+    function showDialog(id) {
+      var dialog = document.getElementById(id);
+      if (dialog && dialog.showModal && !dialog.open) dialog.showModal();
+    }
+    var removeCancel = document.getElementById("removeCancel");
+    if (removeCancel) removeCancel.addEventListener("click", function () {
+      pendingRemove = "";
+      paint();
+    });
+    var removeConfirm = document.getElementById("removeConfirm");
+    if (removeConfirm) removeConfirm.addEventListener("click", function () {
+      var id = pendingRemove;
+      pendingRemove = "";
+      var pupil = room.pupils.filter(function (item) { return item.id === id; })[0];
+      if (!pupil) { paint(); return; }
+      room.pupils = room.pupils.filter(function (item) { return item.id !== id; });
+      if (selectedId === id) { selectedId = ""; turnName = ""; }
+      if (cardId === id) cardId = "";
+      if (editId === id) editId = "";
+      if (chosen[id]) delete chosen[id];
+      forgetPupil(room, id);
+      saveBook(book);
+      paint();
+    });
+    var editCancel = document.getElementById("editCancel");
+    if (editCancel) editCancel.addEventListener("click", function () {
+      var pupil = room.pupils.filter(function (item) { return item.id === editId; })[0];
+      if (pupil && editSnapshot) {
+        pupil.presentation = editSnapshot.presentation;
+        pupil.hair = editSnapshot.hair;
+        pupil.length = editSnapshot.length;
+        pupil.eyes = editSnapshot.eyes;
+      }
+      editId = "";
+      editSnapshot = null;
+      paint();
+    });
+    var editSave = document.getElementById("editSave");
+    if (editSave) editSave.addEventListener("click", function () {
+      editId = "";
+      editSnapshot = null;
+      saveBook(book);
+      paint();
+    });
+    showDialog("removePupil");
+    showDialog("editPupil");
+    var removeDialogNode = document.getElementById("removePupil");
+    if (removeDialogNode) {
+      removeDialogNode.addEventListener("cancel", function (event) {
+        event.preventDefault();
+        pendingRemove = "";
+        paint();
+      });
+      var cancelBtn = document.getElementById("removeCancel");
+      if (cancelBtn) cancelBtn.focus();
+    }
+    var editDialogNode = document.getElementById("editPupil");
+    if (editDialogNode) {
+      editDialogNode.addEventListener("cancel", function (event) {
+        event.preventDefault();
+        editCancel && editCancel.click();
+      });
+    }
     if (params.get("welcome") === "1") {
       params.delete("welcome");
       history.replaceState(null, "", "?" + params.toString());

@@ -190,6 +190,10 @@
     document.querySelectorAll("[data-org-open]").forEach(function (manage) {
       manage.hidden = !view.organisation;
     });
+    var teacherNav = document.getElementById("teacherNav");
+    if (teacherNav) teacherNav.hidden = !view.organisation;
+    var teacherTabs = document.getElementById("teacherTabs");
+    if (teacherTabs) teacherTabs.hidden = !view.organisation;
     var banner = document.getElementById("orgBanner");
     if (banner) {
       banner.hidden = !state.notice;

@@ -1,6 +1,6 @@
 # Wondii visual surface registry
 
-Rebuild programme: Phase 0 baseline is `docs/rebuild/PHASE_00_BASELINE.md`. Phase 1 (`docs/rebuild/PHASE_01_DATA_FOUNDATION.md`) changed persistence. Phase 2 (`docs/rebuild/PHASE_02_DESIGN_SYSTEM.md`) added an opt-in design system. Only the rows below that name a Phase 2 pilot were touched. The other rows are unchanged.
+Rebuild programme: Phase 0 baseline is `docs/rebuild/PHASE_00_BASELINE.md`. Phase 1 (`docs/rebuild/PHASE_01_DATA_FOUNDATION.md`) changed persistence. Phase 2 (`docs/rebuild/PHASE_02_DESIGN_SYSTEM.md`) added an opt-in design system. Phase 3 (`docs/rebuild/PHASE_03_SCHOOL_PORTAL.md`) rebuilt the teacher portal shell and class experience. Only the rows below that name a Phase 2 pilot or a Phase 3 surface were touched. The other rows are unchanged.
 
 Discovery only. No screens were redesigned in this pass.
 
@@ -13,7 +13,7 @@ Worktree copies under `.claude/worktrees/` are not product surfaces. They are no
 | Field | Meaning |
 | --- | --- |
 | Generation | `LEGACY` old per-page styling. `MIXED` newer chrome or school layout still using its own CSS. `CURRENT` latest school look (class room, teacher home, new adventure steps). `UNKNOWN` markup does not show the state. |
-| Tokens | `YES` only if the surface reads shared design tokens. There is no token file in this repo, so every row is `NO` or `PARTIAL`. `PARTIAL` means it uses a shared stylesheet (`wondii-shell.css`, `org-portal.css`, `class-room.css`) that still hardcodes values. |
+| Tokens | `YES` when the surface is built from `css/wondii-tokens.css` and `css/wondii-system.css`. `PARTIAL` means some of it still uses an older stylesheet (`org-portal.css`, `class-room.css`, `wondii-shell.css`). |
 | Runtime | `REQUIRED` means this audit did not open that state in a browser. Code inspection is not a visual sign-off. |
 
 `CURRENT` is not awarded for a logo, a navy hex, or a shared header. Play boards behind `wondii-shell` stay `LEGACY`.
@@ -113,12 +113,13 @@ Styles: `welcome.css`.
 portal.html
  ├── #portalGate          portal-gate.js
  ├── #orgBoot
- ├── side nav + #orgNav   js/organisation.js
+ ├── side nav + #teacherNav   Home, Classes, Create, Library, Results when an organisation is loaded
+ ├── #orgNav              custom organisation links, hidden while the teacher nav is on
  ├── [data-view=home|stories|games|puzzles|learning|favourites|search]
  │    └── portal.js renderHome/renderStories/renderGames/renderPuzzles/renderLearning/renderFavourites/renderSearch
- ├── #orgToday            schools/learn/home.js shell()  (only when an organisation is loaded)
- │    ├── hero / class cards
- │    └── class wizard    sizeStep(), pupilStep()
+ ├── #orgToday            schools/learn/home.js  (only when an organisation is loaded)
+ │    ├── #home #classes #create #library #results
+ │    └── #addClassDialog name, year, paste names
  ├── #orgOnboard #orgHello #orgSettings
  └── home-cast.js cast strip on the family home
 ```
@@ -335,9 +336,9 @@ Teacher home and org sheets live inside `portal.html`. Ramsden and the electrici
 
 | ID | Surface | Route | Component | File | Parent | Reach | State | Gen | Tokens | Problems | Refactor | Priority |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| SCH-001 | Teacher today | `#home` when org loaded | `home.js` `shell()` into `#orgToday` | `schools/learn/home.js`, `schools/org-portal.css` | portal | Signed-in org member | classes, adventures, quick actions | CURRENT | PARTIAL | Phase 2 pilot: hero actions, lesson search, and the empty-class note use the system. Class cards, quick actions, and the wizard still use `org-portal.css`. The signed-in dashboard was not opened in a browser; the pilot markup was rendered with the same stylesheets. | Tokenise the remaining cards | P1 |
-| SCH-002 | New class size | portal | `sizeStep()` | `home.js` | teacher today | Add a class | wizard step | CURRENT | PARTIAL | Modal built as HTML string. | Shared sheet | P2 |
-| SCH-003 | New class pupils | portal | `pupilStep()` | `home.js` | wizard | After size | names and look | CURRENT | PARTIAL | Portrait helper duplicated with class room, present, and flow. | One portrait helper | P1 |
+| SCH-001 | Teacher home | `#home` when org loaded | `home.js` `homeView()` into `#orgToday` | `schools/learn/home.js`, `schools/learn/teacher-shell.css` | portal | Signed-in org member | create, classes, continue | CURRENT | YES | Phase 3. Rendered in Chrome at desktop, tablet, and 16:9 with the Ramsdens organisation logo and `#c01818` accent. Signed-in portal was not opened. Family nav is hidden only while an organisation is loaded. | P3 | P3 |
+| SCH-002 | Add class | `#classes` | `#addClassDialog` | `home.js` | classes | Add class | dialog | CURRENT | YES | Name, year, and one first name per line. The old size-then-every-pupil wizard is gone. Dialog rendered. Create was checked in a local fixture, not against a signed-in cloud save. | P3 | P3 |
+| SCH-003 | Class list | `#classes` | `classCard()` | `home.js` | teacher home | Classes | list / empty | CURRENT | YES | Open class is the card action. Year badge uses the school accent. Rendered. | P3 | P3 |
 | SCH-004 | School onboard | portal | `#orgOnboard` | `portal.html`, `js/organisation.js` | portal | First school create | sheet | CURRENT | PARTIAL | Logo, colour, site, preview. | P2 | P2 |
 | SCH-005 | School ready | portal | `#orgHello` | `portal.html` | portal | After create | sheet | CURRENT | PARTIAL | Invite entry point. | P3 | P3 |
 | SCH-006 | School settings | portal | `#orgSettings` | `portal.html`, `organisation.js` | portal | Settings / School | sheet: logo, colour, hero, team, starters, nav | CURRENT | PARTIAL | This is the only admin-like UI. It is school-admin, not a Wondii staff console. | P2 | P2 |
@@ -358,26 +359,29 @@ Teacher home and org sheets live inside `portal.html`. Ramsden and the electrici
 | SCH-021 | Electricity build | same | `viewEngineering` | `electricity.js` | journey | Build step | build | LEGACY | NO | One-off. | P1 | P1 |
 | SCH-022 | Electricity done | same | `viewDone` | `electricity.js` | journey | Finish | completion | LEGACY | NO | Own ending. | P1 | P1 |
 | SCH-023 | Electricity more | same | `viewMore` | `electricity.js` | journey | After done | extra | LEGACY | NO | Not opened. | P2 | P2 |
+| SCH-024 | Create entry | `#create` | `createView()` | `home.js` | portal | Create nav | three cards | CURRENT | YES | Links to the existing adventure, prepared game, and storybook routes. Those destinations were not redesigned. Rendered. | P3 | P3 |
+| SCH-025 | Library entry | `#library` | `libraryView()` | `home.js` | portal | Library nav | adventures and stories link | CURRENT | YES | Lists saved adventures. Stories open the existing `#stories` shelf. Rendered. | P3 | P3 |
+| SCH-026 | Results entry | `#results` | `resultsView()` | `home.js` | portal | Results nav | sessions or empty | CURRENT | YES | Real session rows only. No charts. A session row was rendered. The empty results sentence is the same copy as an empty continue state. | P3 | P3 |
 
 ## Classroom and live lesson
 
 | ID | Surface | Route | Component | File | Parent | Reach | State | Gen | Tokens | Problems | Refactor | Priority |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| CLS-001 | Class missing | `/teacher/class` | `paint()` empty branch | `class-room.js` | class | Bad or foreign class id | empty | CURRENT | PARTIAL | Copy is correct. Layout is a plain `room-page`. | P2 | P2 |
-| CLS-002 | Classroom floor | `class.html?tab=classroom` | `scene()` | `class-room.js`, `class-room.css` | page | Open a class | playing / idle | CURRENT | PARTIAL | Inline seat positions. Wave is CSS. Full-screen button. | Shared room frame | P1 |
-| CLS-003 | Classroom empty | same | `scene()` `.room-empty` | `class-room.js` | scene | Class with no pupils | empty | CURRENT | PARTIAL | Not reopened. | P2 | P2 |
+| CLS-001 | Class missing | `/teacher/class` | `paint()` empty branch | `class-room.js` | class | Bad or foreign class id | empty | CURRENT | YES | Uses the empty component and the teacher nav. Not opened against a foreign signed-in class. | P3 | P3 |
+| CLS-002 | Classroom floor | `class.html?tab=classroom` | `scene()` | `class-room.js`, `class-room.css` | page | Open a class | playing / idle | CURRENT | PARTIAL | Phase 3: names stay visible, wave stays on hover or selection, full screen remains. Rendered at desktop, tablet, and 16:9 with Ramsdens branding. Seat positions are still the existing floor layout. Primary actions are navy. | P3 | P3 |
+| CLS-003 | Classroom empty | same | `scene()` `.room-empty` | `class-room.js` | scene | Class with no pupils | empty | CURRENT | PARTIAL | Rendered. Add pupils stays on the floor. | P3 | P3 |
 | CLS-004 | Welcome banner | `?welcome=1` | `.room-banner` | `class-room.js` | page | After class create | banner | CURRENT | PARTIAL | Not reopened. | P3 | P3 |
 | CLS-005 | Choose pupils | classroom tab | `.room-banner` `#chooseContinue` | `class-room.js` | scene | Choose pupils | selection | CURRENT | PARTIAL | Not a designed modal. | P2 | P2 |
 | CLS-006 | Turn line | classroom tab | `.room-turn` | `class-room.js` | scene | After choose someone | status | CURRENT | PARTIAL | Text line, not a scoreboard. | P2 | P2 |
 | CLS-007 | Today and week cards | classroom tab | `below()` | `class-room.js` | page | Classroom tab | cards | CURRENT | PARTIAL | Start adventure jumps to `present.html`, a different visual system. | P0 | P0 |
 | CLS-008 | Pupil strip | classroom tab | `strip()` | `class-room.js` | page | Classroom tab | list | CURRENT | PARTIAL | Duplicates pupil faces. | P3 | P3 |
-| CLS-009 | Pupils tab | `?tab=pupils` | `pupilsTab()` | `class-room.js` | page | Pupils tab | list / add | CURRENT | PARTIAL | Girl/Boy chips. Remove uses `window.confirm`. | P1 | P1 |
+| CLS-009 | Pupils tab | `?tab=pupils` | `pupilsTab()` | `class-room.js` | page | Pupils tab | list / paste / one name | CURRENT | YES | Paste names, preview, then add. One-at-a-time add remains. Rendered, including a 390px width. Bulk add of three names persisted across a reload in the local fixture. | P3 | P3 |
 | CLS-010 | Tables tab | `?tab=groups` | `groupsTab()` | `class-room.js` | page | Groups tab | selects | CURRENT | PARTIAL | Tables, not a visual seating chart. | P2 | P2 |
 | CLS-011 | Progress tab | `?tab=progress` | `progressTab()` | `class-room.js` | page | Progress tab | participation | CURRENT | PARTIAL | Participation counts, not attainment. | P2 | P2 |
-| CLS-012 | Class settings | `?tab=settings` | `settingsTab()` | `class-room.js` | page | Settings tab | rename | CURRENT | PARTIAL | Age copy only. | P3 | P3 |
-| CLS-013 | Pupil card | class | `card()` | `class-room.js` | page | Tap a pupil | overlay | CURRENT | PARTIAL | Float card, not a shared dialog. | P2 | P2 |
+| CLS-012 | Class settings | `?tab=settings` | `settingsTab()` | `class-room.js` | page | Settings tab | name and year | CURRENT | YES | Saves class name and year. Deleting a whole class is not available. Not separately screenshotted. | P3 | P3 |
+| CLS-013 | Character edit | `?tab=characters` | `editDialog()` | `class-room.js` | page | Character | dialog | CURRENT | YES | Hair, eyes, and girl or boy. Rendered for Maya. Saving writes the same pupil record. Not a second character store. | P3 | P3 |
 | CLS-014 | Lesson picker | class | `lessonPicker()` | `class-room.js` | page | Start a lesson | overlay | CURRENT | PARTIAL | Links into present.html. | P1 | P1 |
-| CLS-015 | Remove confirm | class | `window.confirm` | `class-room.js` | pupils or card | Remove | native dialog | UNKNOWN | NO | Browser chrome, not Wondii. | Designed confirm | P2 |
+| CLS-015 | Remove pupil | class | `#removePupil` | `class-room.js` | pupils or card | Remove | dialog | CURRENT | YES | Canonical dialog. Rendered. Cancel is focused. Confirm was not clicked in the fixture, so a deleted row was not reloaded. | P3 | P3 |
 | CLS-016 | Assign mode | `present.html?assign=1` | `viewAssign()` | `present.js`, `class.css` | present | Other ways to teach | setup | MIXED | NO | Older class.css system. | One player shell | P0 |
 | CLS-017 | Lobby | present | `viewLobby()` | `present.js` | present | Live session before start | lobby | MIXED | NO | Not opened. | P0 | P0 |
 | CLS-018 | Roster | present | `viewRoster()` | `present.js` | present | Roster step | roster | MIXED | NO | Uses `classroom.js` animal avatars (`pip` `fox` `dino` `bun` `frog` `moon`), not floor sprites. | P0 | P0 |
@@ -531,11 +535,12 @@ These IDs are already in the tables. Listed once so overlays are not mistaken fo
 | PUB-012 | dialog |
 | FAM-001 FAM-002 FAM-003 | auth dialog |
 | FAM-014 FAM-015 FAM-016 | character modal |
-| SCH-002 SCH-003 | class wizard |
+| SCH-002 | add class dialog |
+| SCH-003 | class cards |
 | SCH-004 SCH-005 SCH-006 | org sheets |
 | CLS-013 | pupil card |
 | CLS-014 | lesson picker |
-| CLS-015 | native confirm |
+| CLS-015 | remove pupil dialog |
 | CLS-033 | teacher details |
 | CLS-034 | end confirm (inline) |
 | CLS-035 | join chip |
@@ -590,4 +595,4 @@ Searched. These are not separate games or screens:
 
 CURRENT rows are SCH-001–006, CLS-001–014, ADV-001–006 and ADV-010–012 (29). They are the latest school UI. They still hardcode colour and type. They are not a finished design system.
 
-UNKNOWN is CLS-015 (the browser confirm) and GME-030 (marble end node).
+UNKNOWN is GME-030 (marble end node). CLS-015 is now the remove-pupil dialog.

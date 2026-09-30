@@ -1,10 +1,14 @@
 # Wondii design debt
 
-Rebuild programme: Phase 0 baseline is `docs/rebuild/PHASE_00_BASELINE.md`. Phase 1 data foundation is `docs/rebuild/PHASE_01_DATA_FOUNDATION.md`. Phase 2 design system is `docs/rebuild/PHASE_02_DESIGN_SYSTEM.md`.
+Rebuild programme: Phase 0 baseline is `docs/rebuild/PHASE_00_BASELINE.md`. Phase 1 data foundation is `docs/rebuild/PHASE_01_DATA_FOUNDATION.md`. Phase 2 design system is `docs/rebuild/PHASE_02_DESIGN_SYSTEM.md`. Phase 3 teacher portal is `docs/rebuild/PHASE_03_SCHOOL_PORTAL.md`.
 
 `css/wondii-tokens.css` is the canonical token set. `css/wondii-system.css` is the opt-in component layer. `css/wondii-p1.css` is an earlier skin that restyles old class names. It is not the design system. The internal reference is `/design-system.html`.
 
-The debt below is still open. Phase 2 did not migrate the 182 surfaces. It piloted the public home-bar buttons, the teacher-today hero and empty class state, and the join screens.
+The debt below is still open. Phase 2 did not migrate the 182 surfaces. Phase 3 replaced the teacher dashboard wizard and the class-page confirm with the shared shell. It did not migrate the adventure creator, the lesson player, the family game boards, or the Ramsden public page.
+
+Phase 3 removed the teacher-home size wizard, the per-pupil wizard on that dashboard, and `window.confirm` for removing a pupil. Family Stories, Games, Puzzles, Learning, My World, and Favourites stay in the DOM and are hidden only while an organisation is loaded. Custom organisation nav links are hidden in that same state so they are not extra primary items.
+
+Still later: adventure creator (`create.js` / `flow.js`), lesson player (`present.js`), storybook, family catalogues, school settings sheets, Ramsden microsite CSS, electricity demo, deleting a whole class, and a results experience beyond the session list.
 
 A surface moves LEGACY → IN PROGRESS → MIGRATED → VISUALLY VERIFIED only after it is checked against `docs/WONDII_VISUAL_SURFACE_REGISTRY.md`. A header change does not migrate the board behind it.
 
