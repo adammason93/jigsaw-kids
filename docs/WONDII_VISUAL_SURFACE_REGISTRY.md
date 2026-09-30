@@ -1,6 +1,6 @@
 # Wondii visual surface registry
 
-Rebuild programme: Phase 0 baseline is `docs/rebuild/PHASE_00_BASELINE.md`. Phase 1 (`docs/rebuild/PHASE_01_DATA_FOUNDATION.md`) changed persistence. Phase 2 (`docs/rebuild/PHASE_02_DESIGN_SYSTEM.md`) added an opt-in design system. Phase 3 (`docs/rebuild/PHASE_03_SCHOOL_PORTAL.md`) rebuilt the teacher portal shell and class experience. Only the rows below that name a Phase 2 pilot or a Phase 3 surface were touched. The other rows are unchanged.
+Rebuild programme: Phase 0 baseline is `docs/rebuild/PHASE_00_BASELINE.md`. Phase 1 (`docs/rebuild/PHASE_01_DATA_FOUNDATION.md`) changed persistence. Phase 2 (`docs/rebuild/PHASE_02_DESIGN_SYSTEM.md`) added an opt-in design system. Phase 3 (`docs/rebuild/PHASE_03_SCHOOL_PORTAL.md`) rebuilt the teacher portal shell and class experience. Phase 5 (`docs/rebuild/PHASE_05_LESSON_SHELL.md`) rebuilt the classroom player. Family game rows are unchanged. The historical surface counts below were not recounted.
 
 Discovery only. No screens were redesigned in this pass.
 
@@ -382,28 +382,28 @@ Teacher home and org sheets live inside `portal.html`. Ramsden and the electrici
 | CLS-013 | Character edit | `?tab=characters` | `editDialog()` | `class-room.js` | page | Character | dialog | CURRENT | YES | Hair, eyes, and girl or boy. Rendered for Maya. Saving writes the same pupil record. Not a second character store. | P3 | P3 |
 | CLS-014 | Lesson picker | class | `lessonPicker()` | `class-room.js` | page | Start a lesson | overlay | CURRENT | PARTIAL | Links into present.html. | P1 | P1 |
 | CLS-015 | Remove pupil | class | `#removePupil` | `class-room.js` | pupils or card | Remove | dialog | CURRENT | YES | Canonical dialog. Rendered. Cancel is focused. Confirm was not clicked in the fixture, so a deleted row was not reloaded. | P3 | P3 |
-| CLS-016 | Assign mode | `present.html?assign=1` | `viewAssign()` | `present.js`, `class.css` | present | Other ways to teach | setup | MIXED | NO | Older class.css system. | One player shell | P0 |
-| CLS-017 | Lobby | present | `viewLobby()` | `present.js` | present | Live session before start | lobby | MIXED | NO | Not opened. | P0 | P0 |
-| CLS-018 | Roster | present | `viewRoster()` | `present.js` | present | Roster step | roster | MIXED | NO | Uses `classroom.js` animal avatars (`pip` `fox` `dino` `bun` `frog` `moon`), not floor sprites. | P0 | P0 |
-| CLS-019 | Adventure gate | present | `viewGate()` | `present.js` | present | Open a journey | intro | MIXED | NO | Different intro from the class-room card. | P0 | P0 |
-| CLS-020 | Stage story | present | `storyHtml()` | `present.js` | viewStage | Story slide | playing | MIXED | NO | Inline styles in the stage header. | P0 | P0 |
-| CLS-021 | Stage question | present | `questionHtml()` | `present.js` | viewStage | Question slide | question hidden | MIXED | NO | Draft questions unless electricity demo. | P0 | P0 |
-| CLS-022 | Answer revealed right | present | `questionHtml()` `.is-right` | `present.js` | question | Reveal or pick correct | correct | MIXED | NO | Not opened. | P0 | P0 |
-| CLS-023 | Answer revealed wrong | present | `questionHtml()` try again | `present.js` | question | Reveal wrong pick | incorrect | MIXED | NO | Not opened. | P0 | P0 |
-| CLS-024 | Answer bars | present | `.class-bars` | `present.js` | question | Live session reveal | scoreboard | MIXED | NO | Inline bar width. | P1 | P1 |
-| CLS-025 | Spin | present | `spinHtml()` | `present.js`, `classroom.js` | viewStage | Spin slide or board | playing | MIXED | NO | Not a separate Spin game. Portrait from animal avatars or `pupil.portrait`. | P0 | P0 |
-| CLS-026 | Mystery closed | present | `mysteryHtml()` | `present.js` | viewStage | Mystery slide | playing | MIXED | NO | Not a Mystery Box product. | P1 | P1 |
-| CLS-027 | Mystery open | `?mystery=1` | `mysteryHtml()` | `present.js` | mystery | Open it | reward | MIXED | NO | Not opened. | P1 | P1 |
-| CLS-028 | Doors | present | `doorsHtml()` | `present.js` | viewStage | Doors slide | playing | MIXED | NO | Three buttons, not a Pick a Door game. | P1 | P1 |
-| CLS-029 | Door result | `?door=` | `doorsHtml()` | `present.js` | doors | After a door | feedback | MIXED | NO | Not opened. | P1 | P1 |
-| CLS-030 | Stage complete | present | `doneHtml()` | `present.js` | viewStage | Last slide | completion | MIXED | NO | Reward line from board. | P0 | P0 |
-| CLS-031 | Adventure missing | present | `viewStage()` empty | `present.js` | present | Journey not on this account | error | MIXED | NO | Plain sheet. | P2 | P2 |
-| CLS-032 | Reward bar | present | `rewardBar()` | `present.js` | viewStage | Board mode | progress | MIXED | NO | Pips, not a team scoreboard. | P1 | P1 |
-| CLS-033 | Teacher tools | present | `details.class-tools` | `present.js` | viewStage | Teacher summary | overlay | MIXED | NO | Full screen, skip, end. | Shared teacher controls | P1 |
-| CLS-034 | End confirm | present | `#endYes` | `present.js` | viewStage | End session | confirm | MIXED | NO | Inline paragraph, not a dialog. | P2 | P2 |
-| CLS-035 | Join chip | present | `.class-joinchip` | `present.js` | viewStage | Live mode | overlay | MIXED | NO | Not opened. | P2 | P2 |
-| CLS-036 | Results | present | `viewResults()` | `present.js` | present | Session ended | results | MIXED | NO | Kicker colour `#c41230` inline. | P0 | P0 |
-| CLS-037 | Teacher preview | `?preview=1` | `viewPreview()` | `present.js` | present | Preview | edit | MIXED | NO | Inline navy buttons. Must not write analytics. | P1 | P1 |
+| CLS-016 | Assign mode | present | roster in `WondiiLessonShell` | `lesson-shell.js`, `lesson-shell.css` | present | Before start | setup | CURRENT | PARTIAL | Phase 5. Who is here, team mode, start on the board or with a code. Rendered at 1920×1080 with Ramsdens name and logo. | P3 | P3 |
+| CLS-017 | Lobby | present | join screen | `lesson-shell.js` | present | Live session before start | waiting | CURRENT | PARTIAL | Phase 5. Large join code and joined count. Rendered. Pupil `/join` is still CLS-038. | P3 | P3 |
+| CLS-018 | Roster | present | roster | `lesson-shell.js` | present | Who is taking part | roster | CURRENT | PARTIAL | Phase 5. Known pupils use the class portrait files, not animal avatars. Rendered. | P3 | P3 |
+| CLS-019 | Adventure gate | present | ready screen | `lesson-shell.js` | present | Board session before play | intro | CURRENT | PARTIAL | Phase 5. "Are you ready?" Rendered. | P3 | P3 |
+| CLS-020 | Stage story | present | story adapter | `lesson-mechanics.js` | LessonStage | Story round | playing | CURRENT | PARTIAL | Phase 5 chrome. Story is an adapter, not a rebuilt mechanic. Rendered at 1920×1080, 1366×768, and tablet landscape. | P3 | P3 |
+| CLS-021 | Stage question | present | question adapter | `lesson-mechanics.js` | LessonStage | Question round | question | CURRENT | PARTIAL | Phase 5. Large prompt and choices. Rendered at 1920×1080 and 1280×720. | P3 | P3 |
+| CLS-022 | Answer revealed right | present | correct feedback | `lesson-mechanics.js`, `lesson-shell.js` | question | Correct pick | correct | CURRENT | PARTIAL | Phase 5. Green "Great work!" and score note. Rendered. Not a red school accent. | P3 | P3 |
+| CLS-023 | Answer revealed wrong | present | try-again feedback | `lesson-mechanics.js`, `lesson-shell.js` | question | Other pick | incorrect | CURRENT | PARTIAL | Phase 5. Warm "Nearly!" copy. Rendered. | P3 | P3 |
+| CLS-024 | Answer bars | present | not in the shell | `lesson-shell.js` | question | Live choice totals | absent | MIXED | NO | Per-choice bars were not carried into the lesson shell. Classroom scores are the scoreboard. | P2 | P2 |
+| CLS-025 | Spin | present | spin adapter | `lesson-mechanics.js` | LessonStage | Spin round | playing | MIXED | PARTIAL | Draws inside the stage. Not a redesigned spin mechanic. Not separately screenshotted. | P1 | P1 |
+| CLS-026 | Mystery closed | present | mystery adapter | `lesson-mechanics.js` | LessonStage | Mystery round | playing | MIXED | PARTIAL | Adapter only. Not separately screenshotted. | P1 | P1 |
+| CLS-027 | Mystery open | `?mystery=1` | mystery adapter | `lesson-mechanics.js`, `present.js` | mystery | After open | reward | MIXED | PARTIAL | Same adapter. Not separately screenshotted. | P1 | P1 |
+| CLS-028 | Doors | present | door adapter | `lesson-mechanics.js` | LessonStage | Door round | playing | MIXED | PARTIAL | Three labelled doors inside the stage. Not separately screenshotted. | P1 | P1 |
+| CLS-029 | Door result | `?door=` | door adapter | `lesson-mechanics.js`, `present.js` | doors | After a door | feedback | MIXED | PARTIAL | Same adapter. Not separately screenshotted. | P1 | P1 |
+| CLS-030 | Stage complete | present | completion screen | `lesson-shell.js` | present | Session completed | completion | CURRENT | PARTIAL | Phase 5. Uses the engine result. No attainment. Rendered. | P3 | P3 |
+| CLS-031 | Adventure missing | present | empty roster | `present.js`, `lesson-shell.js` | present | Journey not on this account | empty | MIXED | PARTIAL | Falls through to the roster with a generic title. Not screenshotted as its own state. | P2 | P2 |
+| CLS-032 | Reward bar | present | scoreboard | `lesson-shell.js` | LessonStage | During play | scores | CURRENT | PARTIAL | Phase 5. Class tokens and Red team / Blue team with words, not colour alone. Both rendered. Teacher-versus-class and three-plus teams use the same row and were not separate shots. | P3 | P3 |
+| CLS-033 | Teacher tools | present | teacher menu | `lesson-shell.js` | dock | Secondary controls | overlay | CURRENT | PARTIAL | Phase 5. Pause, skip, help, full screen, choose pupil, +1/−1, end. Rendered. One large primary button stays in the dock. | P3 | P3 |
+| CLS-034 | End confirm | present | end dialog | `lesson-shell.js` | stage | End lesson | confirm | CURRENT | PARTIAL | Phase 5 dialog. Rendered. | P3 | P3 |
+| CLS-035 | Join chip | present | join screen | `lesson-shell.js` | present | Live waiting | waiting | CURRENT | PARTIAL | Phase 5. Same screen as CLS-017. Rendered with a large code. | P3 | P3 |
+| CLS-036 | Results | present | completion handoff | `lesson-shell.js` | present | After the lesson | results | CURRENT | PARTIAL | Phase 5 completion screen links to portal `#results`. That list was not redesigned. Rendered. | P3 | P3 |
+| CLS-037 | Teacher preview | `?edit=1` | `viewPreview()` | `present.js`, `class.css` | present | Question edits | edit | MIXED | NO | Still the older question form. Not the lesson player. Must not write analytics. | P1 | P1 |
 | CLS-038 | Join code | `/join` | `viewCode()` | `join.js`, `css/wondii-system.css` | join | Pupil opens join | setup | MIXED | YES | Phase 2 pilot. Rendered. | P1 | P1 |
 | CLS-039 | Join waiting | `/join` | `viewWait()` | `join.js` | join | After a code | waiting | MIXED | YES | Phase 2 pilot. Same system as the code screen. Not opened against a live session. | P1 | P1 |
 | CLS-040 | Join live | `/join` | `viewLive()` | `join.js` | join | Session started | playing | MIXED | YES | Phase 2 pilot. Classroom-scale choices. Not opened against a live session. | P1 | P1 |
@@ -541,9 +541,9 @@ These IDs are already in the tables. Listed once so overlays are not mistaken fo
 | CLS-013 | pupil card |
 | CLS-014 | lesson picker |
 | CLS-015 | remove pupil dialog |
-| CLS-033 | teacher details |
-| CLS-034 | end confirm (inline) |
-| CLS-035 | join chip |
+| CLS-033 | teacher menu |
+| CLS-034 | end lesson dialog |
+| CLS-035 | join waiting screen |
 | ADV-011 | activity sheet |
 | GME-001 | help modal |
 | GME-002 | scores disclosure |

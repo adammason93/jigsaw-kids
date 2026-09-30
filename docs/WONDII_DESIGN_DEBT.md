@@ -4,11 +4,11 @@ Rebuild programme: Phase 0 baseline is `docs/rebuild/PHASE_00_BASELINE.md`. Phas
 
 `css/wondii-tokens.css` is the canonical token set. `css/wondii-system.css` is the opt-in component layer. `css/wondii-p1.css` is an earlier skin that restyles old class names. It is not the design system. The internal reference is `/design-system.html`.
 
-The debt below is still open. Phase 2 did not migrate the 182 surfaces. Phase 3 replaced the teacher dashboard wizard and the class-page confirm with the shared shell. It did not migrate the adventure creator, the lesson player, the family game boards, or the Ramsden public page.
+The debt below is still open. Phase 2 did not migrate the 182 surfaces. Phase 3 replaced the teacher dashboard wizard and the class-page confirm with the shared shell. Phase 5 replaced the adventure player chrome with `WondiiLessonShell`. It did not migrate the adventure creator, the family game boards, or the Ramsden public page.
 
 Phase 3 removed the teacher-home size wizard, the per-pupil wizard on that dashboard, and `window.confirm` for removing a pupil. Family Stories, Games, Puzzles, Learning, My World, and Favourites stay in the DOM and are hidden only while an organisation is loaded. Custom organisation nav links are hidden in that same state so they are not extra primary items.
 
-Still later: adventure creator (`create.js` / `flow.js`), lesson player (`present.js`), storybook, family catalogues, school settings sheets, Ramsden microsite CSS, electricity demo, deleting a whole class, and a results experience beyond the session list.
+Still later: adventure creator (`create.js` / `flow.js`), storybook, family catalogues, school settings sheets, Ramsden microsite CSS, electricity demo, deleting a whole class, and a results experience beyond the session list. The classroom player chrome is the Phase 5 lesson shell. Story, question, spin, mystery, and doors still draw through adapters in `lesson-mechanics.js`. Word search is a titled placeholder. `present.html?edit=1` is still the older question form.
 
 A surface moves LEGACY → IN PROGRESS → MIGRATED → VISUALLY VERIFIED only after it is checked against `docs/WONDII_VISUAL_SURFACE_REGISTRY.md`. A header change does not migrate the board behind it.
 
@@ -28,11 +28,11 @@ This audit's score, from the registry:
 
 The teacher path changes visual product in the middle.
 
-1. Class room (`class-room.css`, CLS-002–CLS-014) and the adventure player (`class.css`, `present.js`, CLS-016–CLS-037) are different systems. "Start adventure" leaves the floor and opens another stylesheet, another header, and animal avatars instead of the floor sprites.
+1. Class room (`class-room.css`, CLS-002–CLS-014) and the lesson player are still different layouts. "Start adventure" leaves the floor. The player is now `WondiiLessonShell` and uses the class portraits. It is not the floor scene.
 2. Two creators share `create.html`. `flow.js` is the short path. `create.js` still renders a full guided creator when `library`, `guided`, `prefs`, `feedback`, `pace`, `custom`, `adapt`, `template`, `example`, or `demo` is set (ADV-013–ADV-029). `viewGenerating()` is a timed wait.
 3. Storybook (STR-001–STR-017) is a third product: `storybook-app.css` (190 hexes) plus `storybook-wondii.css` (83). The reader font is picked from Fredoka, Schoolbell, Sniglet, Kalam, Patrick Hand, or Comic Neue.
 4. Family home (FAM-005) still uses emoji as the tile icons (`📖` `🎮` `🧩` `💡`) while the teacher home in the same portal uses the school cards.
-5. Results (`viewResults`) hardcodes Ramsden red `#c41230` on a screen that is not Ramsden-specific. Preview buttons hardcode navy `#141b4d` inline.
+5. The old present results kicker is gone. Completion is the lesson shell and links to portal `#results`. The teacher question form (`?edit=1`) still uses `class.css`.
 6. Account-scoped scores and the Link Grid completion flag do not match. `linkGridCompletedLevels` is plain `localStorage`.
 
 ## P1 — legacy customer-facing UI
@@ -43,7 +43,7 @@ The teacher path changes visual product in the middle.
 4. Ramsden microsite (SCH-007–SCH-014). The accent is written into the page and `schools/ramsden.js` instead of coming only from the organisation record.
 5. Join (CLS-038–CLS-042) uses `class.css`, not the class room.
 6. Portal catalogues (FAM-006–FAM-011) and the storybook shelf are different book and game cards.
-7. `classroom.js` avatars are preset animals. Class pupils on the floor use `games/images/schools/room/kid-*.webp`. The spin slide does not use those faces unless `pupil.portrait` is set.
+7. `classroom.js` still has preset animal avatars for older board helpers. The lesson shell shows a known pupil's class portrait. An anonymous joiner gets an initial, not a stored portrait.
 
 ## P2 — mixed design
 
@@ -52,7 +52,7 @@ The teacher path changes visual product in the middle.
 3. `wondii-shell.css` (10 hexes) loads Fredoka and Nunito again per game.
 4. Storybook wondii layer on top of the old app CSS.
 5. Adventure steps ADV-007–ADV-009 are still in `flow.js` `STEPS` beside the short path.
-6. Native `window.confirm` for removing a pupil (CLS-015). Present end-session is an inline paragraph (CLS-034).
+6. Native `window.confirm` for removing a pupil (CLS-015). Ending a lesson is now a dialog in the lesson shell (CLS-034).
 7. Help is duplicated: shell modal (GME-001) and Snap's own rules modal (GME-011).
 
 ## P3 — polish
@@ -73,7 +73,7 @@ The teacher path changes visual product in the middle.
 | Quiet button | `.room-ghost`, `.learn-ghost`, `.teach-quiet`, `.class-ghost` | Same role |
 | Book card | Portal `renderStories`, storybook `#sbShelf` | Same library, two cards |
 | Game card | Portal `renderGames` / `renderPuzzles` | Catalogue only. Not a play board |
-| Score | `game-scorecard.js`, `rewardBar()`, `viewResults()`, noughts side stats, RPS overlay score | Five score UIs |
+| Score | `game-scorecard.js`, lesson-shell scoreboard, portal results list, noughts side stats, RPS overlay score | Family boards and the classroom still differ |
 | Help | `wondii-modal`, `#snapRulesModal`, storybook step read-aloud | Overlapping |
 | Adventure library | Teacher today, `viewSaved`, `viewLibrary` | Three lists of the same drafts |
 | Lesson quiz | `questionHtml`, electricity `viewQuiz` | Two quiz UIs |
@@ -94,28 +94,19 @@ Build shared pieces only where the registry shows the same job repeated. Do not 
 | Class card and portrait | The three cards and four portrait helpers | — |
 | Empty, loading, error | Boot, class missing, adventure missing, library hints, `#sbBusy`, character `#chBusy` | — |
 | Book card | Portal stories and storybook shelf | Reader spread |
-| Scoreboard | Family `.gsc`, present reward pips, results sheet | Participation tab, which is not a score |
-| Teacher controls | `details.class-tools` | — |
-| Result screen | `#screenWin`, `#screenLose`, overlays, `doneHtml`, `viewResults` | — |
+| Scoreboard | Family `.gsc` still. Classroom scores are the lesson shell. | Participation tab, which is not a score |
+| Teacher controls | Lesson shell dock and teacher menu | Family game controls |
+| Result screen | `#screenWin`, `#screenLose`, overlays. Classroom completion is the lesson shell. | Portal `#results` list |
 
 ### Classroom shell
 
-A classroom shell is appropriate. A family-game shell already exists and is the wrong place to pretend the boards match.
+`WondiiLessonShell` is the classroom player (`schools/learn/lesson-shell.js`, `lesson-shell.css`, `lesson-mechanics.js`). `present.js` paints that shell. It reads `WondiiSessionEngine` and does not calculate scores.
 
-Call the classroom one `WondiiLessonShell` (the file set is lessons, not the 19 arcade games). It would wrap `viewStage` only:
+What it owns: title, school name and logo, round progress, the stage, the scoreboard, the teacher dock, pause, join waiting, recovery, recoverable error, round transition, completion, and the end dialog.
 
-- School type and colour from the organisation, not a hardcoded Ramsden red
-- Title, year, slide count
-- `rewardBar` and any future team row
-- Teacher controls, including a real confirm
-- 16:9 frame, the same idea as `.room-frame`
-- Correct, incorrect, and reward states as slots
-- Pause, completion, and the results handoff
-- One full-screen control
+What it does not own: story, quiz, spin, mystery, and doors as redesigned mechanics. Those are adapters. Word search is a placeholder card. `?edit=1` is still the old question form. Family `wondii-shell.js` stays the family header.
 
-`questionHtml`, `storyHtml`, `spinHtml`, `mysteryHtml`, and `doorsHtml` would stay the mechanics inside it. Electricity would stay outside until someone decides the demo is a lesson rather than a microsite page.
-
-`wondii-shell.js` should stay the family header. Extending it with a scoreboard and teacher controls would mix the portal games with the classroom. Do not build either shell until a migration phase says so.
+School accent is identity (logo, name, a progress underline). Primary buttons stay navy. Correct and try-again colours stay semantic.
 
 ## Tokens today
 

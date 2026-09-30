@@ -194,7 +194,11 @@
         if (added.ok) state = added.state;
       });
     }
-    var groupCount = options.groups || (board && board.teams ? board.teams.length : 0);
+    if (options.teamMode && options.teamMode !== "none") {
+      var named = Eng.createTeams(state, { mode: options.teamMode, names: options.teamNames, assign: true });
+      if (named.ok) state = named.state;
+    }
+    var groupCount = options.teamMode ? 0 : (options.groups || (board && board.teams ? board.teams.length : 0));
     if (groupCount) {
       var names = [];
       var n;
@@ -485,6 +489,34 @@
     return saveEngine(picked.state);
   }
 
+  function applyEngine(joinCode, fn) {
+    var session = get(joinCode);
+    if (!session) return null;
+    var result = fn(withEngine(session));
+    if (!result || !result.ok || result.changed === false) return session;
+    return saveEngine(result.state);
+  }
+
+  function pause(joinCode) {
+    return applyEngine(joinCode, function (state) { return engineApi().pauseSession(state); });
+  }
+
+  function resume(joinCode) {
+    return applyEngine(joinCode, function (state) { return engineApi().resumeSession(state); });
+  }
+
+  function skipRound(joinCode) {
+    return applyEngine(joinCode, function (state) { return engineApi().skipRound(state); });
+  }
+
+  function takePoints(joinCode, teamId, amount, reason) {
+    return applyEngine(joinCode, function (state) { return engineApi().removePoints(state, teamId, amount, reason); });
+  }
+
+  function recover(joinCode) {
+    return applyEngine(joinCode, function (state) { return engineApi().recoverSession(state); });
+  }
+
   function totals(session, questionId) {
     var id = questionId || QUESTION.id;
     var counts = { A: 0, B: 0, C: 0 };
@@ -660,7 +692,12 @@
     end: end,
     complete: complete,
     award: award,
+    takePoints: takePoints,
     chooseParticipant: chooseParticipant,
+    pause: pause,
+    resume: resume,
+    skipRound: skipRound,
+    recover: recover,
     totals: totals,
     answered: answered,
     summary: summary,
