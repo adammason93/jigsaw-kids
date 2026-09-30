@@ -4,11 +4,11 @@ Rebuild programme: Phase 0 baseline is `docs/rebuild/PHASE_00_BASELINE.md`. Phas
 
 `css/wondii-tokens.css` is the canonical token set. `css/wondii-system.css` is the opt-in component layer. `css/wondii-p1.css` is an earlier skin that restyles old class names. It is not the design system. The internal reference is `/design-system.html`.
 
-The debt below is still open. Phase 2 did not migrate the 182 surfaces. Phase 3 replaced the teacher dashboard wizard and the class-page confirm with the shared shell. Phase 5 replaced the adventure player chrome with `WondiiLessonShell`. It did not migrate the adventure creator, the family game boards, or the Ramsden public page.
+The debt below is still open. Phase 2 did not migrate the 182 surfaces. Phase 3 replaced the teacher dashboard wizard and the class-page confirm with the shared shell. Phase 5 replaced the adventure player chrome with `WondiiLessonShell`. Phase 7 replaced the create route with Creator V2. It did not migrate the family game boards or the Ramsden public page.
 
 Phase 3 removed the teacher-home size wizard, the per-pupil wizard on that dashboard, and `window.confirm` for removing a pupil. Family Stories, Games, Puzzles, Learning, My World, and Favourites stay in the DOM and are hidden only while an organisation is loaded. Custom organisation nav links are hidden in that same state so they are not extra primary items.
 
-Still later: adventure creator (`create.js` / `flow.js`), storybook, family catalogues, school settings sheets, Ramsden microsite CSS, electricity demo, deleting a whole class, and a results experience beyond the session list. The classroom player chrome is the Phase 5 lesson shell. Quiz, Spin a pupil, and Word Search are canonical mechanics. Story, mystery, and doors are still adapters. `present.html?edit=1` is still the older question form. The 19 family games, including family Word Search, are unchanged.
+Still later: storybook, family catalogues, school settings sheets, Ramsden microsite CSS, electricity demo, deleting a whole class, and a results experience beyond the session list. Creator V2 is the create route. `flow.js` and `create.js` remain in the repo and are not loaded. `present.html?edit=1` is still the older question form. The classroom player chrome is the Phase 5 lesson shell. Quiz, Spin a pupil, and Word Search are canonical mechanics. Story, mystery, and doors are still adapters. The 19 family games, including family Word Search, are unchanged.
 
 A surface moves LEGACY → IN PROGRESS → MIGRATED → VISUALLY VERIFIED only after it is checked against `docs/WONDII_VISUAL_SURFACE_REGISTRY.md`. A header change does not migrate the board behind it.
 
@@ -29,7 +29,7 @@ This audit's score, from the registry:
 The teacher path changes visual product in the middle.
 
 1. Class room (`class-room.css`, CLS-002–CLS-014) and the lesson player are still different layouts. "Start adventure" leaves the floor. The player is now `WondiiLessonShell` and uses the class portraits. It is not the floor scene.
-2. Two creators share `create.html`. `flow.js` is the short path. `create.js` still renders a full guided creator when `library`, `guided`, `prefs`, `feedback`, `pace`, `custom`, `adapt`, `template`, `example`, or `demo` is set (ADV-013–ADV-029). `viewGenerating()` is a timed wait.
+2. `flow.js` and `create.js` are no longer loaded by `create.html`. They remain in the repo. Creator V2 is the only route. Old query flags such as `guided` and `prefs` open the new opening screen.
 3. Storybook (STR-001–STR-017) is a third product: `storybook-app.css` (190 hexes) plus `storybook-wondii.css` (83). The reader font is picked from Fredoka, Schoolbell, Sniglet, Kalam, Patrick Hand, or Comic Neue.
 4. Family home (FAM-005) still uses emoji as the tile icons (`📖` `🎮` `🧩` `💡`) while the teacher home in the same portal uses the school cards.
 5. The old present results kicker is gone. Completion is the lesson shell and links to portal `#results`. The teacher question form (`?edit=1`) still uses `class.css`.
@@ -51,7 +51,7 @@ The teacher path changes visual product in the middle.
 2. `org-portal.css` (72 hexes) is the newest school skin and still not tokens. It sits on top of portal CSS.
 3. `wondii-shell.css` (10 hexes) loads Fredoka and Nunito again per game.
 4. Storybook wondii layer on top of the old app CSS.
-5. Adventure steps ADV-007–ADV-009 are still in `flow.js` `STEPS` beside the short path.
+5. `flow.js` still contains the old step list, but that file is not on the create route.
 6. Native `window.confirm` for removing a pupil (CLS-015). Ending a lesson is now a dialog in the lesson shell (CLS-034).
 7. Help is duplicated: shell modal (GME-001) and Snap's own rules modal (GME-011).
 

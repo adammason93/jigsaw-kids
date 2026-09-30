@@ -214,6 +214,7 @@
     var slides = (view && view.slides && view.slides.length) ? view.slides : (model.slides || []);
     var index = view ? view.slide || 0 : (model.slideIndex || 0);
     if (index >= slides.length) index = Math.max(0, slides.length - 1);
+    if (model.fresh) ui.entered = true;
     var flags = { preview: !!model.preview, edit: !!model.edit, offerRecover: !model.preview && !!view && !!view.startedAt };
     var screen = screenFor(view, ui, flags);
     var slide = slides[index] || null;

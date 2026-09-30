@@ -205,23 +205,37 @@
     if (!created.ok) return null;
     var state = created.state;
     var board = options.board || null;
-    if (board && board.roster) {
-      board.roster.forEach(function (pupil) {
-        var pupilId = Eng.isUuid(pupil.id) ? pupil.id : null;
-        var added = Eng.addParticipant(state, {
-          id: pupil.id || pupilId || Eng.uuid(),
-          displayName: pupil.firstName || pupil.name || "Explorer",
-          identity: pupilId ? "pupil" : "anonymous",
-          pupilId: pupilId,
-          organisationId: state.organisationId,
-          classId: state.classId
-        });
-        if (added.ok) state = added.state;
+    var people = options.pupils || (board && board.roster) || [];
+    people.concat(options.guests || []).forEach(function (pupil) {
+      var pupilId = !pupil.temporary && Eng.isUuid(pupil.id) ? pupil.id : null;
+      var added = Eng.addParticipant(state, {
+        id: pupil.id || pupilId || Eng.uuid(),
+        displayName: pupil.firstName || pupil.name || "Explorer",
+        identity: pupil.temporary ? "anonymous" : (pupilId ? "pupil" : "anonymous"),
+        pupilId: pupilId,
+        organisationId: state.organisationId,
+        classId: state.classId
+      });
+      if (added.ok) state = added.state;
+    });
+    if (options.teamMode && options.teamMode !== "none") {
+      var named = Eng.createTeams(state, {
+        mode: options.teamMode,
+        names: options.teamNames,
+        ids: options.teamIds,
+        assign: !options.assignments
+      });
+      if (named.ok) state = named.state;
+      (options.assignments || []).forEach(function (row) {
+        var team = state.teams[row.teamIndex];
+        if (!team) return;
+        var assigned = Eng.assignTeam(state, row.id, team.id);
+        if (assigned.ok) state = assigned.state;
       });
     }
-    if (options.teamMode && options.teamMode !== "none") {
-      var named = Eng.createTeams(state, { mode: options.teamMode, names: options.teamNames, assign: true });
-      if (named.ok) state = named.state;
+    if (options.begin) {
+      var begun = Eng.startSession(state);
+      if (begun.ok) state = begun.state;
     }
     var groupCount = options.teamMode ? 0 : (options.groups || (board && board.teams ? board.teams.length : 0));
     if (groupCount) {

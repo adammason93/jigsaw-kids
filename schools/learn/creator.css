@@ -1,0 +1,132 @@
+/* Teacher adventure creator. Sits on the Phase 2 tokens. */
+
+body.creator-app {
+  margin: 0;
+  background: var(--w-surface-page, #f6f5fc);
+  color: var(--w-ink, #141b4d);
+  font-family: var(--w-font, Nunito, sans-serif);
+}
+
+.creator-bar {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: center;
+  padding: 0.8rem 1.2rem;
+  background: #fff;
+  border-bottom: 1px solid var(--w-line, rgba(20, 27, 77, 0.08));
+}
+.creator-bar a { color: var(--w-ink, #141b4d); font-weight: 800; text-decoration: none; }
+
+.creator {
+  width: min(920px, calc(100% - 2rem));
+  margin: 0 auto;
+  padding: 1.2rem 0 3rem;
+}
+.creator h1, .creator h2 { font-family: var(--w-display, Fredoka, sans-serif); margin: 0.2rem 0; }
+.creator h1 { font-size: 2rem; }
+.creator p { line-height: 1.45; }
+
+.creator-progress { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0 0 1rem; padding: 0; list-style: none; }
+.creator-progress button, .creator-progress span {
+  border: 0;
+  background: transparent;
+  color: var(--w-soft, #5c6284);
+  font: inherit;
+  font-weight: 800;
+  min-height: 44px;
+  padding: 0.4rem 0.7rem;
+  border-radius: 999px;
+}
+.creator-progress .is-now { background: var(--w-color-brand-soft, #e7e9f4); color: var(--w-ink, #141b4d); }
+.creator-progress .is-done button { color: var(--w-ink, #141b4d); }
+
+.creator-paths, .creator-classes, .creator-modes, .creator-plan { display: grid; gap: 0.7rem; }
+.creator-paths { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+.creator-card, .creator-path, .creator-class, .creator-mode, .creator-activity {
+  background: #fff;
+  border: 1px solid var(--w-line, rgba(20, 27, 77, 0.08));
+  border-radius: 18px;
+  padding: 0.9rem 1rem;
+  text-align: left;
+}
+.creator-path, .creator-class, .creator-mode {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  min-height: 44px;
+}
+.creator-path strong, .creator-class strong, .creator-mode strong, .creator-activity strong { display: block; font-size: 1.05rem; }
+.creator-path span, .creator-class span, .creator-mode span, .creator-note { color: var(--w-soft, #5c6284); font-weight: 700; }
+
+.creator-go, .creator-quiet, .creator-text {
+  font: inherit;
+  font-weight: 800;
+  border-radius: 999px;
+  min-height: 44px;
+  padding: 0.55rem 1rem;
+  cursor: pointer;
+}
+.creator-go { background: #141b4d; color: #fff; border: 0; }
+.creator-quiet, .creator-text { background: #fff; color: #141b4d; border: 1px solid rgba(20, 27, 77, 0.16); }
+.creator-actions { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 1rem; }
+
+.creator-field { display: grid; gap: 0.35rem; margin: 0.8rem 0; font-weight: 800; }
+.creator-field textarea, .creator-field input, .creator-field select {
+  font: inherit;
+  width: 100%;
+  box-sizing: border-box;
+  border-radius: 14px;
+  border: 1px solid rgba(20, 27, 77, 0.16);
+  padding: 0.7rem 0.8rem;
+}
+.creator-field textarea { min-height: 9rem; }
+
+.creator-known { display: flex; justify-content: space-between; gap: 1rem; align-items: center; }
+.creator-pupils, .creator-teams { display: flex; flex-wrap: wrap; gap: 0.45rem; }
+.creator-pupil, .creator-team {
+  display: grid;
+  justify-items: center;
+  gap: 0.2rem;
+  width: auto;
+  min-width: 5.6rem;
+  max-width: 12rem;
+  min-height: 44px;
+  border-radius: 16px;
+  border: 1px solid rgba(20, 27, 77, 0.12);
+  background: #fff;
+  font: inherit;
+  font-weight: 800;
+  color: inherit;
+  padding: 0.4rem;
+}
+.creator-pupil img, .creator-face {
+  width: 3.2rem;
+  height: 3.2rem;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--w-color-brand-soft, #e7e9f4);
+}
+.creator-pupil.is-away { opacity: 0.45; }
+.creator-pupil small { font-weight: 700; color: var(--w-soft, #5c6284); }
+.creator-picks { display: flex; flex-wrap: wrap; gap: 0.25rem; justify-content: center; }
+.creator-picks button { font: inherit; font-size: 0.75rem; font-weight: 800; min-height: 36px; border-radius: 999px; border: 1px solid rgba(20, 27, 77, 0.16); background: #fff; }
+
+.creator-activity { display: grid; grid-template-columns: auto 1fr; gap: 0.4rem 0.8rem; align-items: start; }
+.creator-activity header { display: flex; justify-content: space-between; gap: 0.6rem; }
+.creator-activity .creator-actions { grid-column: 1 / -1; margin: 0; }
+.creator-warn { color: #9a6230; font-weight: 800; }
+
+.creator-drop {
+  border: 1.5px dashed rgba(20, 27, 77, 0.25);
+  border-radius: 18px;
+  padding: 1.2rem;
+  background: #fff;
+}
+.creator-steps { list-style: none; padding: 0; }
+.creator-steps li { padding: 0.35rem 0; font-weight: 800; }
+
+@media (max-width: 720px) {
+  .creator h1 { font-size: 1.6rem; }
+  .creator-known { align-items: flex-start; flex-direction: column; }
+}

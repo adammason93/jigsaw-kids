@@ -412,22 +412,22 @@ Teacher home and org sheets live inside `portal.html`. Ramsden and the electrici
 
 ## Adventure creator
 
-Default path is `flow.js`. Legacy path is `create.js` when a query flag is present.
+`create.html` now loads Creator V2 (`creator.js`). `flow.js` and `create.js` are no longer on that route. Rows below that still name those files are the retired journey.
 
 | ID | Surface | Route | Component | File | Parent | Reach | State | Gen | Tokens | Problems | Refactor | Priority |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| ADV-001 | Idea | `create.html` | `viewIdea()` | `flow.js`, `create.css` | create | Open create, or `?class=` | setup | CURRENT | PARTIAL | Prompt plus file drop. PDF/Word/photos are not read. | P1 | P1 |
-| ADV-002 | Material | create | `viewMaterial()` | `flow.js` | create | After a file | review upload | CURRENT | PARTIAL | Still in `STEPS`. Easy to miss. | P1 | P1 |
-| ADV-003 | Class pick | create | `viewClass()` | `flow.js` | create | Several classes | selection | CURRENT | PARTIAL | Face cards differ from teacher class cards. | P1 | P1 |
-| ADV-004 | Understood | create | `viewFound()` | `flow.js` | create | After analyse | review | CURRENT | PARTIAL | Keyword analyse, not a live model. | P0 | P0 |
-| ADV-005 | Choices | create | `viewChoices()` | `flow.js` | create | Make changes | form | CURRENT | PARTIAL | Time, playfulness, characters. | P1 | P1 |
+| ADV-001 | Opening | `create.html` | home | `creator.js` | create | Open create | setup | CURRENT | YES | Three paths plus start from scratch. Rendered at 1440 and 1280. | — | P1 |
+| ADV-002 | Upload | create | source upload | `creator.js` | create | Upload lesson material | upload | CURRENT | YES | Plain text is read. PDF, Word, and photos are marked unread. | — | P1 |
+| ADV-003 | Class | create | class step | `creator.js` | create | After the lesson | selection | CURRENT | YES | Preselected class, year list, and learning level. Rendered. | — | P1 |
+| ADV-004 | Understood | create | retired | `flow.js` | create | Not on the route | review | LEGACY | NO | Keyword review is now part of the lesson step. | — | P2 |
+| ADV-005 | Play | create | play step | `creator.js` | create | How should the class play | modes | CURRENT | YES | Six teaching modes. Two-team and custom team screens rendered. | — | P1 |
 | ADV-006 | Advanced fields | choices | `editFields()` | `flow.js` | choices | Advanced edit | form | CURRENT | PARTIAL | Extra fields inside choices. | P2 | P2 |
 | ADV-007 | Older adventure step | create | `viewAdventure()` | `flow.js` | create | `STEPS` includes it | editor | MIXED | PARTIAL | Still registered. Not the short path. | P1 | P1 |
 | ADV-008 | Personal | create | `viewPersonal()` | `flow.js` | create | Step personal | editor | MIXED | PARTIAL | Older step. | P2 | P2 |
-| ADV-009 | Review | create | `viewReview()` | `flow.js` | create | Step review | review | MIXED | PARTIAL | Older step. | P2 | P2 |
-| ADV-010 | Storyboard | create | `viewStory()` | `flow.js` | create | After build | ready | CURRENT | PARTIAL | Magic edit is phrase matching. Cast faces. | P0 | P0 |
-| ADV-011 | Activity sheet | storyboard | `sheet()` | `flow.js` | viewStory | Replace activity | overlay | CURRENT | PARTIAL | Picker of template ids, not game engines. | P1 | P1 |
-| ADV-012 | Saved | create | `viewSaved()` | `flow.js` | create | Save for later | success | CURRENT | PARTIAL | Not opened this audit. | P2 | P2 |
+| ADV-009 | Review | create | review | `creator.js` | create | After activities | review | CURRENT | YES | Title, class, play mode, and the real activity list. | — | P1 |
+| ADV-010 | Activities | create | activities | `creator.js` | create | Build my adventure | plan | CURRENT | YES | Quiz, spin, and word search cards. Rendered at 1440 and 1280. | — | P1 |
+| ADV-011 | Add activity | create | picker | `creator.js` | activities | + Add activity | picker | CURRENT | YES | Uses the mechanic capability list. Matching and sequencing are not offered. | — | P1 |
+| ADV-012 | Library | `create.html?library=1` | library | `creator.js` | create | Your adventures | list | CURRENT | YES | Start, preview, adapt, and duplicate. | — | P1 |
 | ADV-013 | Legacy quick | `?custom=1` or guided entry | `viewQuick()` | `create.js` | create | Query flag | setup | LEGACY | NO | Second creator on the same URL. | Remove when flow covers it | P0 |
 | ADV-014 | Legacy pace | `?pace=1` | `viewPace()` | `create.js` | create | Query | form | LEGACY | NO | Same. | P1 | P1 |
 | ADV-015 | Legacy suggest | create.js path | `viewSuggest()` | `create.js` | create | Guided | list | LEGACY | NO | Same. | P1 | P1 |
@@ -443,8 +443,8 @@ Default path is `flow.js`. Legacy path is `create.js` when a query flag is prese
 | ADV-025 | Legacy characters | create.js path | `viewCharacters()` | `create.js` | create | Guided | picker | LEGACY | NO | Not the class-room cast. | P1 | P1 |
 | ADV-026 | Legacy plan | create.js path | `viewPlan()` | `create.js` | create | Guided | review | LEGACY | NO | Same. | P1 | P1 |
 | ADV-027 | Legacy confirm | create.js path | `viewConfirm()` | `create.js` | create | Guided | confirm | LEGACY | NO | Same. | P2 | P2 |
-| ADV-028 | Legacy generating | create.js path | `viewGenerating()` | `create.js` | create | Generate | loading | LEGACY | NO | Timed wait, not a live model. | P0 | P0 |
-| ADV-029 | Legacy ready and library | `?library=1` and `viewReady()` | `viewReady()` `viewLibrary()` | `create.js` | create | Library query or guided end | results / list | LEGACY | NO | Second library beside flow saved and teacher today. | P0 | P0 |
+| ADV-028 | Building | create | build progress | `creator.js` | create | Build my adventure | progress | CURRENT | YES | Four real stages. Not a live model. | — | P1 |
+| ADV-029 | Ready to start | create | ready | `creator.js` | create | Start now | attendance | CURRENT | YES | Class characters, who's away, and play mode. Rendered at 1440 and tablet width. | — | P1 |
 
 Template ids in `teach.js` (quick_quiz, vocabulary, story, stem, retrieval, exit_ticket, starter, matching, sequencing, end_topic) are planner cards. They are not playable games. They appear inside ADV-011 and ADV-023.
 

@@ -219,7 +219,7 @@
     var bits = [];
     var adventure = readyLessons()[0];
     if (adventure) {
-      var start = "schools/learn/present.html?journey=" + encodeURIComponent(adventure.id) + (adventure.classId ? "&class=" + encodeURIComponent(adventure.classId) : "");
+      var start = "schools/learn/create.html?start=" + encodeURIComponent(adventure.id) + (adventure.classId ? "&class=" + encodeURIComponent(adventure.classId) : "");
       bits.push("<a class=\"w-card w-card--interactive\" href=\"" + start + "\"><p class=\"w-kicker\">Adventure</p><strong>" + escape(lessonTitle(adventure)) + "</strong></a>");
     }
     var session = sessions[0];
@@ -281,7 +281,7 @@
     var cards = lessons.map(function (item) {
       var ready = item.status === "ready";
       var href = ready
-        ? "schools/learn/present.html?journey=" + encodeURIComponent(item.id) + (item.classId ? "&class=" + encodeURIComponent(item.classId) : "")
+        ? "schools/learn/create.html?start=" + encodeURIComponent(item.id) + (item.classId ? "&class=" + encodeURIComponent(item.classId) : "")
         : "schools/learn/create.html?library=1";
       var meta = [(item.learningMap && item.learningMap.yearGroup) || "", ready ? "Ready" : "Draft"].filter(Boolean).join(" · ");
       return "<a class=\"w-card w-card--interactive\" href=\"" + href + "\"><p class=\"w-kicker\">Learning Adventure</p><strong>" + escape(lessonTitle(item)) + "</strong><p>" + escape(meta) + "</p></a>";

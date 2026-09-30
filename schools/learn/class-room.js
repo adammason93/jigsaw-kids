@@ -384,7 +384,7 @@
     if (global.ClassRooms && ClassRooms.forJourney) {
       list.forEach(function (item) { sessions += ClassRooms.forJourney(item.id).length; });
     }
-    var todayHtml = today ? "<article class=\"w-card\"><h2 class=\"w-h3\">Continue</h2><p>" + escape((today.plan && today.plan.title) || (today.learningMap && today.learningMap.topic) || "Adventure") + "</p><a class=\"w-btn w-btn--secondary\" href=\"present.html?journey=" + encodeURIComponent(today.id) + "&class=" + encodeURIComponent(room.id) + "\">Start adventure</a></article>" : "<article class=\"w-card\"><h2 class=\"w-h3\">Continue</h2><p>Adventures for this class show up here.</p></article>";
+    var todayHtml = today ? "<article class=\"w-card\"><h2 class=\"w-h3\">Continue</h2><p>" + escape((today.plan && today.plan.title) || (today.learningMap && today.learningMap.topic) || "Adventure") + "</p><a class=\"w-btn w-btn--secondary\" href=\"create.html?start=" + encodeURIComponent(today.id) + "&class=" + encodeURIComponent(room.id) + "\">Start adventure</a></article>" : "<article class=\"w-card\"><h2 class=\"w-h3\">Continue</h2><p>Adventures for this class show up here.</p></article>";
     return "<div class=\"room-below t-grid\">" + todayHtml + "<article class=\"w-card\"><h2 class=\"w-h3\">In the room</h2><p>" + (sessions ? sessions + " class session" + (sessions === 1 ? "" : "s") + " on this account." : "Sessions appear after this class takes part.") + "</p><p class=\"t-actions\"><button type=\"button\" class=\"w-btn w-btn--quiet\" id=\"startLesson\">Saved lessons</button><button type=\"button\" class=\"w-btn w-btn--quiet\" id=\"choosePupils\">" + (chooseOn ? "Done choosing" : "Choose pupils") + "</button><button type=\"button\" class=\"w-btn w-btn--quiet\" id=\"spinSomeone\">Choose someone</button></p></article></div>";
   }
 
@@ -525,7 +525,7 @@
     var list = lessons();
     var rows = list.slice(0, 6).map(function (item) {
       var title = (item.plan && item.plan.title) || (item.learningMap && item.learningMap.topic) || "Lesson";
-      return "<p><a class=\"room-go\" href=\"present.html?journey=" + encodeURIComponent(item.id) + "&class=" + encodeURIComponent(room.id) + "\">" + escape(title) + "</a></p>";
+      return "<p><a class=\"room-go\" href=\"create.html?start=" + encodeURIComponent(item.id) + "&class=" + encodeURIComponent(room.id) + "\">" + escape(title) + "</a></p>";
     }).join("");
     return "<section class=\"room-panel room-lessons\"><h2>Start a lesson</h2>" + (rows || "<p>No saved lessons on this account yet.</p>") +
       "<p><a class=\"room-ghost\" href=\"create.html?class=" + encodeURIComponent(room.id) + "\">Create an adventure</a> <button type=\"button\" class=\"room-ghost\" id=\"closeLessons\">Close</button></p></section>";

@@ -8,9 +8,8 @@
   var params = new URLSearchParams(location.search);
   var journeyId = params.get("journey") || "";
   var memoryJourney = null;
-  if (!journeyId && params.get("example") === "lights" && window.WondiiLearn && WondiiLearn.openExample) {
-    memoryJourney = WondiiLearn.openExample("lights");
-    if (memoryJourney) journeyId = memoryJourney.id;
+  if (!journeyId && params.get("example") === "lights") {
+    location.replace("create.html?example=lights");
   }
   if (!journeyId && params.get("example") === "mechanics" && window.WondiiMechanicCore) {
     memoryJourney = {
@@ -19,6 +18,9 @@
       learningMap: { yearGroup: "Year 4", subject: "Science", topic: "Electricity" }
     };
     journeyId = memoryJourney.id;
+  }
+  if (params.get("journey") && params.get("preview") !== "1" && params.get("edit") !== "1" && params.get("example") !== "mechanics" && !params.get("session")) {
+    location.replace("create.html?start=" + encodeURIComponent(params.get("journey")) + (params.get("class") ? "&class=" + encodeURIComponent(params.get("class")) : ""));
   }
   var sessionCode = (params.get("session") || "").toUpperCase();
   var journey = null;
@@ -146,6 +148,11 @@
     var slide = currentSlide(current);
     var question = slide && (slide.type === "question" || slide.type === "quiz") ? liveQuestion(slide) : null;
     var map = journey && journey.learningMap ? journey.learningMap : {};
+    var fresh = params.get("fresh") === "1";
+    if (fresh) {
+      params.delete("fresh");
+      history.replaceState(null, "", location.pathname + "?" + params.toString());
+    }
     Shell.render(root, {
       title: (current && current.title) || (journey && journey.plan && journey.plan.title) || map.topic || "Today's adventure",
       year: (current && current.yearGroup) || map.yearGroup || "",
@@ -155,6 +162,7 @@
       slides: slidesNow(current),
       slideIndex: Number(params.get("slide") || "0"),
       preview: params.get("preview") === "1" && !current,
+      fresh: fresh,
       pupils: pupils,
       portraits: portraits(pupils),
       joined: current && current.engine && window.WondiiSessionEngine ? WondiiSessionEngine.joinedCount(current.engine) : (current ? current.participants.length : 0),
