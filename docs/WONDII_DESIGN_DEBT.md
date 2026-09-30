@@ -1,8 +1,10 @@
 # Wondii design debt
 
-Rebuild programme: Phase 0 baseline is `docs/rebuild/PHASE_00_BASELINE.md`. Phase 1 data foundation is `docs/rebuild/PHASE_01_DATA_FOUNDATION.md`. School classes, pupils, adventures, and sessions now have database tables. The browser keys are a cache plus a one-time import, not the authority, when a teacher is signed into an organisation. Visual debt below is unchanged. `css/wondii-tokens.css` exists. The P1 skin does not retire this file.
+Rebuild programme: Phase 0 baseline is `docs/rebuild/PHASE_00_BASELINE.md`. Phase 1 data foundation is `docs/rebuild/PHASE_01_DATA_FOUNDATION.md`. Phase 2 design system is `docs/rebuild/PHASE_02_DESIGN_SYSTEM.md`.
 
-Discovery only. Nothing here has been refactored. Priorities match the registry.
+`css/wondii-tokens.css` is the canonical token set. `css/wondii-system.css` is the opt-in component layer. `css/wondii-p1.css` is an earlier skin that restyles old class names. It is not the design system. The internal reference is `/design-system.html`.
+
+The debt below is still open. Phase 2 did not migrate the 182 surfaces. It piloted the public home-bar buttons, the teacher-today hero and empty class state, and the join screens.
 
 A surface moves LEGACY → IN PROGRESS → MIGRATED → VISUALLY VERIFIED only after it is checked against `docs/WONDII_VISUAL_SURFACE_REGISTRY.md`. A header change does not migrate the board behind it.
 

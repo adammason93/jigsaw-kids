@@ -24,37 +24,37 @@
   }
 
   function viewCode() {
-    return "<p class=\"class-kicker\">Wondii</p><h1>Join your adventure</h1>" +
-      "<label for=\"joinCode\">Class code</label><input id=\"joinCode\" autocomplete=\"off\" value=\"" + escape(code) + "\" aria-label=\"Class code\" />" +
-      "<label for=\"joinName\">First name</label><input id=\"joinName\" autocomplete=\"given-name\" maxlength=\"40\" aria-label=\"First name\" />" +
-      "<button type=\"button\" class=\"class-btn\" id=\"joinGo\">Join</button>" +
-      "<p id=\"joinNote\" class=\"class-lead\">" + escape(noteText) + "</p>";
+    return "<div class=\"w-join\"><p class=\"w-kicker\">Wondii</p><h1 class=\"w-title\">Join your adventure</h1>" +
+      "<label class=\"w-field\" for=\"joinCode\">Class code<input id=\"joinCode\" class=\"w-input--code\" autocomplete=\"off\" value=\"" + escape(code) + "\" aria-label=\"Class code\" /></label>" +
+      "<label class=\"w-field\" for=\"joinName\">First name<input id=\"joinName\" autocomplete=\"given-name\" maxlength=\"40\" aria-label=\"First name\" /></label>" +
+      "<button type=\"button\" class=\"w-btn w-btn--primary w-btn--block\" id=\"joinGo\">Join</button>" +
+      "<p id=\"joinNote\" class=\"w-note" + (noteText ? " w-note--again" : "") + "\">" + escape(noteText) + "</p></div>";
   }
 
   function viewWait(current) {
-    return "<p class=\"class-kicker\">You're in</p><h1>Waiting for your teacher…</h1>" +
-      "<p class=\"class-copy\">" + escape(current.session.title || "Your adventure") + "</p>" +
-      "<p class=\"class-lead\">" + escape(current.participant.name) + "</p>" +
-      "<p class=\"class-lead\">Look at the class screen. Your teacher will start the lesson.</p>";
+    return "<div class=\"w-join\"><p class=\"w-kicker\">You're in</p><h1 class=\"w-title\">Waiting for your teacher…</h1>" +
+      "<p class=\"w-lead\">" + escape(current.session.title || "Your adventure") + "</p>" +
+      "<p class=\"w-h3\">" + escape(current.participant.name) + "</p>" +
+      "<p class=\"w-note w-note--info\">Look at the class screen. Your teacher will start the lesson.</p></div>";
   }
 
   function viewLive(current) {
     var session = current.session;
     if (session.question && !session.reveal) {
       var q = session.question;
-      return "<p class=\"class-kicker\">Your answer</p><h1>" + escape(q.prompt) + "</h1><div class=\"class-choices\">" +
+      return "<div class=\"w-join\" data-w-context=\"room\"><p class=\"w-kicker\">Your answer</p><h1 class=\"w-display\">" + escape(q.prompt) + "</h1><div class=\"w-choices\">" +
         (q.choices || []).map(function (choice) {
-          return "<button type=\"button\" class=\"class-choice\" data-choice=\"" + escape(choice.id) + "\"><b>" + escape(choice.id) + "</b><span>" + escape(choice.text) + "</span></button>";
-        }).join("") + "</div><p id=\"joinNote\" class=\"class-lead\">" + escape(noteText) + "</p>";
+          return "<button type=\"button\" class=\"w-choice\" data-choice=\"" + escape(choice.id) + "\"><b>" + escape(choice.id) + "</b><span>" + escape(choice.text) + "</span></button>";
+        }).join("") + "</div><p id=\"joinNote\" class=\"w-note w-note--info\">" + escape(noteText) + "</p></div>";
     }
     if (session.reveal && session.explain) {
-      return "<p class=\"class-kicker\">Answer</p><h1>" + escape(session.explain) + "</h1><p class=\"class-lead\">Look at the class screen for the class result.</p>";
+      return "<div class=\"w-join\"><p class=\"w-kicker\">Answer</p><h1 class=\"w-title\">" + escape(session.explain) + "</h1><p class=\"w-note w-note--correct\">Look at the class screen for the class result.</p></div>";
     }
-    return "<p class=\"class-kicker\">Look at the class screen</p><h1>" + escape(session.title || "Your adventure") + "</h1><p class=\"class-lead\">Your teacher is moving the lesson on.</p>";
+    return "<div class=\"w-join\"><p class=\"w-kicker\">Look at the class screen</p><h1 class=\"w-title\">" + escape(session.title || "Your adventure") + "</h1><p class=\"w-note w-note--info\">Your teacher is moving the lesson on.</p></div>";
   }
 
   function viewDone(session) {
-    return "<p class=\"class-kicker\">Complete</p><h1>You finished.</h1><p class=\"class-lead\">" + escape((session && session.title) || "Great exploring.") + "</p>";
+    return "<div class=\"w-join\"><p class=\"w-kicker\">Complete</p><h1 class=\"w-title\">You finished.</h1><p class=\"w-note w-note--success\">" + escape((session && session.title) || "Great exploring.") + "</p></div>";
   }
 
   function refresh() {

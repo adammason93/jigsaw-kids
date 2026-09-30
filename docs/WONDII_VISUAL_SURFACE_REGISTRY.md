@@ -1,6 +1,6 @@
 # Wondii visual surface registry
 
-Rebuild programme: Phase 0 baseline is `docs/rebuild/PHASE_00_BASELINE.md`. Phase 1 (`docs/rebuild/PHASE_01_DATA_FOUNDATION.md`) changed persistence, not these visual rows.
+Rebuild programme: Phase 0 baseline is `docs/rebuild/PHASE_00_BASELINE.md`. Phase 1 (`docs/rebuild/PHASE_01_DATA_FOUNDATION.md`) changed persistence. Phase 2 (`docs/rebuild/PHASE_02_DESIGN_SYSTEM.md`) added an opt-in design system. Only the rows below that name a Phase 2 pilot were touched. The other rows are unchanged.
 
 Discovery only. No screens were redesigned in this pass.
 
@@ -293,7 +293,7 @@ Styles: `storybook-app.css` then `storybook-wondii.css`. No `wondii-shell`.
 
 | ID | Surface | Route | Component | File | Parent | Reach | State | Gen | Tokens | Problems | Refactor | Priority |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| PUB-001 | Home bar | `/` | `o-bar` | `index.html` | index | Open the site | nav | MIXED | NO | Own `welcome.css` (88 hexes). Separate from school CSS. | Share nav tokens when a token file exists | P2 |
+| PUB-001 | Home bar | `/` | `o-bar` | `index.html` | index | Open the site | nav | MIXED | PARTIAL | Phase 2 pilot: Log in and Register use `w-btn`. The bar layout and the rest of the homepage stay in `welcome.css`. Rendered on desktop and a tablet width. | P2 |
 | PUB-002 | Hero | `/` | `o-hero` | `index.html` | index | First screen | default | MIXED | NO | Marketing layout, not the school system. | Leave until marketing is in scope | P3 |
 | PUB-003 | Feature band | `/#features` | `o-features` | `index.html` | index | Scroll | default | MIXED | NO | Same stylesheet. | P3 | P3 |
 | PUB-004 | Name band | `/` | `o-name` | `index.html` | index | Scroll | default | MIXED | NO | Same stylesheet. | P3 | P3 |
@@ -335,7 +335,7 @@ Teacher home and org sheets live inside `portal.html`. Ramsden and the electrici
 
 | ID | Surface | Route | Component | File | Parent | Reach | State | Gen | Tokens | Problems | Refactor | Priority |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| SCH-001 | Teacher today | `#home` when org loaded | `home.js` `shell()` into `#orgToday` | `schools/learn/home.js`, `schools/org-portal.css` | portal | Signed-in org member | classes, adventures, quick actions | CURRENT | PARTIAL | Latest school dashboard. `org-portal.css` still has 72 hexes. Class cards differ from adventure class cards. | Tokenise; one class card | P1 |
+| SCH-001 | Teacher today | `#home` when org loaded | `home.js` `shell()` into `#orgToday` | `schools/learn/home.js`, `schools/org-portal.css` | portal | Signed-in org member | classes, adventures, quick actions | CURRENT | PARTIAL | Phase 2 pilot: hero actions, lesson search, and the empty-class note use the system. Class cards, quick actions, and the wizard still use `org-portal.css`. The signed-in dashboard was not opened in a browser; the pilot markup was rendered with the same stylesheets. | Tokenise the remaining cards | P1 |
 | SCH-002 | New class size | portal | `sizeStep()` | `home.js` | teacher today | Add a class | wizard step | CURRENT | PARTIAL | Modal built as HTML string. | Shared sheet | P2 |
 | SCH-003 | New class pupils | portal | `pupilStep()` | `home.js` | wizard | After size | names and look | CURRENT | PARTIAL | Portrait helper duplicated with class room, present, and flow. | One portrait helper | P1 |
 | SCH-004 | School onboard | portal | `#orgOnboard` | `portal.html`, `js/organisation.js` | portal | First school create | sheet | CURRENT | PARTIAL | Logo, colour, site, preview. | P2 | P2 |
@@ -400,11 +400,11 @@ Teacher home and org sheets live inside `portal.html`. Ramsden and the electrici
 | CLS-035 | Join chip | present | `.class-joinchip` | `present.js` | viewStage | Live mode | overlay | MIXED | NO | Not opened. | P2 | P2 |
 | CLS-036 | Results | present | `viewResults()` | `present.js` | present | Session ended | results | MIXED | NO | Kicker colour `#c41230` inline. | P0 | P0 |
 | CLS-037 | Teacher preview | `?preview=1` | `viewPreview()` | `present.js` | present | Preview | edit | MIXED | NO | Inline navy buttons. Must not write analytics. | P1 | P1 |
-| CLS-038 | Join code | `/join` | `viewCode()` | `join.js`, `class.css` | join | Pupil opens join | setup | MIXED | NO | Own join views. | P1 | P1 |
-| CLS-039 | Join waiting | `/join` | `viewWait()` | `join.js` | join | After a code | waiting | MIXED | NO | Not opened. | P1 | P1 |
-| CLS-040 | Join live | `/join` | `viewLive()` | `join.js` | join | Session started | playing | MIXED | NO | Not opened. | P1 | P1 |
-| CLS-041 | Join teams | `/join` | `viewTeams()` | `join.js` | join | Team mode | teams | MIXED | NO | Not opened. | P1 | P1 |
-| CLS-042 | Join done | `/join` | `viewDone()` | `join.js` | join | Session ended | results | MIXED | NO | Not opened. | P1 | P1 |
+| CLS-038 | Join code | `/join` | `viewCode()` | `join.js`, `css/wondii-system.css` | join | Pupil opens join | setup | MIXED | YES | Phase 2 pilot. Rendered. | P1 | P1 |
+| CLS-039 | Join waiting | `/join` | `viewWait()` | `join.js` | join | After a code | waiting | MIXED | YES | Phase 2 pilot. Same system as the code screen. Not opened against a live session. | P1 | P1 |
+| CLS-040 | Join live | `/join` | `viewLive()` | `join.js` | join | Session started | playing | MIXED | YES | Phase 2 pilot. Classroom-scale choices. Not opened against a live session. | P1 | P1 |
+| CLS-041 | Join teams | `/join` | — | `join.js` | join | Team mode | teams | MIXED | NO | No team view in the current join page. | P1 | P1 |
+| CLS-042 | Join done | `/join` | `viewDone()` | `join.js` | join | Session ended | results | MIXED | YES | Phase 2 pilot. Not opened against a live session. | P1 | P1 |
 
 ## Adventure creator
 

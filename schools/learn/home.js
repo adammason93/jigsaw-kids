@@ -180,8 +180,8 @@
 
   function shell(school, book, shown, lessons, activity, query, view) {
     return "<div class=\"teach-dash\">" +
-      "<header class=\"teach-hello\"><div><p>" + greeting() + "</p><h1>Ready to inspire your class today?</h1></div>" +
-      "<label class=\"teach-search\"><span class=\"visually-hidden\">Search lessons</span><input id=\"teachSearch\" type=\"search\" placeholder=\"Search lessons\" value=\"" + escape(query) + "\" /></label></header>" +
+      "<header class=\"teach-hello\"><div><p>" + greeting() + "</p><h1 class=\"w-title\">Ready to inspire your class today?</h1></div>" +
+      "<label class=\"teach-search w-field w-search\"><span class=\"visually-hidden\">Search lessons</span><input id=\"teachSearch\" class=\"w-input\" type=\"search\" placeholder=\"Search lessons\" value=\"" + escape(query) + "\" /></label></header>" +
       "<div class=\"teach-top\">" + hero(book) + classesPanel(book, view) + "</div>" +
       quick(book) +
       wizardHtml(view) +
@@ -191,10 +191,10 @@
   function hero(book) {
     var href = "schools/learn/create.html";
     if (book && book.classes && book.classes.length === 1) href += "?class=" + encodeURIComponent(book.classes[0].id);
-    return "<article class=\"teach-hero\"><img src=\"games/images/schools/teach-hero.jpg\" alt=\"\" /><div><h2>Create a Learning Adventure</h2>" +
-      "<p>Tell Wondii what you are teaching. It already knows your class.</p>" +
-      "<a class=\"teach-go\" href=\"" + href + "\">Create an adventure</a> " +
-      "<a class=\"teach-quiet\" href=\"schools/learn/present.html?example=lights\">See how it works</a></div></article>";
+    return "<article class=\"teach-hero\"><img src=\"games/images/schools/teach-hero.jpg\" alt=\"\" /><div><h2 class=\"w-h2\">Create a Learning Adventure</h2>" +
+      "<p class=\"w-lead\">Tell Wondii what you are teaching. It already knows your class.</p>" +
+      "<a class=\"teach-go w-btn w-btn--primary\" href=\"" + href + "\">Create an adventure</a> " +
+      "<a class=\"teach-quiet w-btn w-btn--quiet\" href=\"schools/learn/present.html?example=lights\">See how it works</a></div></article>";
   }
 
   function classesPanel(book) {
@@ -205,7 +205,7 @@
       return "<a class=\"teach-class\" href=\"schools/learn/class.html?id=" + encodeURIComponent(room.id) + "\"><span class=\"teach-faces\">" + (faces || "<span class=\"teach-faces__empty\"></span>") + "</span><strong>" + escape(room.name) + "</strong><em>" + room.pupils.length + " pupil" + (room.pupils.length === 1 ? "" : "s") + "</em></a>";
     }).join("");
     return "<aside class=\"teach-classes\"><div class=\"teach-classes__head\"><h2>Your classes</h2></div>" +
-      (cards || "<p>Add a class and Wondii will ask for each child.</p>") +
+      (cards || "<div class=\"w-empty\"><p class=\"w-empty__title\">No classes yet</p><p>Add a class and Wondii will ask for each child.</p></div>") +
       "<button type=\"button\" class=\"teach-link\" id=\"addClass\">Add a class</button></aside>";
   }
 
