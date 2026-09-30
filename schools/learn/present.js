@@ -454,8 +454,17 @@
     paint();
   });
 
+  document.addEventListener("wondii-school-data", function () { paint(); });
   Rooms.subscribe(paint);
   Rooms.connectCloud(function () { paint(); });
-  paint();
+  if (window.__wondiiAccountReady || !window.KidsScoreCloud) {
+    paint();
+  } else {
+    if (sessionCode) {
+      root.innerHTML = "<section class=\"class-sheet\"><p class=\"class-kicker\">Lesson</p><h1>Opening the lesson…</h1></section>";
+    }
+    window.addEventListener("wondii-account-scope", function () { paint(); });
+    setTimeout(function () { paint(); }, 2500);
+  }
   window.WondiiPresent = { reload: paint };
 })();

@@ -117,6 +117,20 @@
   }
 
   function pull(done) {
+    if (global.KidsScoreCloud && !global.__wondiiAccountReady) {
+      var waiters = pull.waiters || (pull.waiters = []);
+      if (done) waiters.push(done);
+      if (!pull.waiting) {
+        pull.waiting = true;
+        global.addEventListener("wondii-account-scope", function () {
+          pull.waiting = false;
+          var queued = pull.waiters || [];
+          pull.waiters = [];
+          pull(function () { queued.forEach(function (fn) { fn(); }); });
+        });
+      }
+      return;
+    }
     var db = client();
     var org = orgNow();
     if (!db || !org || !userId || pulling) {
