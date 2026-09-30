@@ -56,6 +56,9 @@
     "wondii-class-sessions",
     "wondii-board-names",
     "wondii-school-classes",
+    "wondii-school-pending",
+    "wondii-school-pending-adventures",
+    "wondii-school-pending-sessions",
   ];
 
   var ACCOUNT_PREFIXES = ["wondii-fave:"];

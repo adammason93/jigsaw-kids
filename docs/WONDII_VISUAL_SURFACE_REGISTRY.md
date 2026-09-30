@@ -1,6 +1,6 @@
 # Wondii visual surface registry
 
-Rebuild programme: Phase 0 baseline is `docs/rebuild/PHASE_00_BASELINE.md` (30 September 2026). That phase did not reclassify these rows.
+Rebuild programme: Phase 0 baseline is `docs/rebuild/PHASE_00_BASELINE.md`. Phase 1 (`docs/rebuild/PHASE_01_DATA_FOUNDATION.md`) changed persistence, not these visual rows.
 
 Discovery only. No screens were redesigned in this pass.
 

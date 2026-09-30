@@ -74,6 +74,7 @@
   }
 
   function uid(prefix) {
+    if (global.WondiiSchoolDomain && global.WondiiSchoolDomain.uuid) return global.WondiiSchoolDomain.uuid();
     return prefix + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
   }
 
@@ -157,6 +158,7 @@
   function saveBook(book) {
     memory = book;
     try { localStorage.setItem(KEY, JSON.stringify(book)); } catch (e) {}
+    if (global.WondiiSchoolData) global.WondiiSchoolData.syncClasses(book);
   }
 
   function findRoom(book) {

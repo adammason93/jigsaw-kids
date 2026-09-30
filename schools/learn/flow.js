@@ -39,6 +39,7 @@
 
   function saveClassBook(book) {
     try { localStorage.setItem("wondii-school-classes", JSON.stringify(book)); } catch (e) {}
+    if (global.WondiiSchoolData) global.WondiiSchoolData.syncClasses(book);
   }
 
   function roomOf(id) {

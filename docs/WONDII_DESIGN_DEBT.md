@@ -1,6 +1,6 @@
 # Wondii design debt
 
-Rebuild programme: Phase 0 baseline is `docs/rebuild/PHASE_00_BASELINE.md` (30 September 2026). Debt below is the audit. One line is now stale: `css/wondii-tokens.css` exists in the working tree and is untracked. The P1 skin does not retire the debt in this file.
+Rebuild programme: Phase 0 baseline is `docs/rebuild/PHASE_00_BASELINE.md`. Phase 1 data foundation is `docs/rebuild/PHASE_01_DATA_FOUNDATION.md`. School classes, pupils, adventures, and sessions now have database tables. The browser keys are a cache plus a one-time import, not the authority, when a teacher is signed into an organisation. Visual debt below is unchanged. `css/wondii-tokens.css` exists. The P1 skin does not retire this file.
 
 Discovery only. Nothing here has been refactored. Priorities match the registry.
 

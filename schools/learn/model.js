@@ -49,6 +49,7 @@
   var YEAR_GROUPS = ["Year 1", "Year 2", "Year 3", "Year 4", "Year 5", "Year 6"];
 
   function uid() {
+    if (global.WondiiSchoolDomain && global.WondiiSchoolDomain.uuid) return global.WondiiSchoolDomain.uuid();
     return "lj_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
   }
 
@@ -124,6 +125,7 @@
 
   function saveLibrary(list) {
     writeJson(LIBRARY_KEY, list);
+    if (global.WondiiSchoolData) global.WondiiSchoolData.syncAdventures(list);
   }
 
   function visibleLibrary() {

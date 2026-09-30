@@ -8,7 +8,6 @@
   var KEY = "wondii-class-sessions";
   var FAIL_KEY = "wondii-join-fails";
   var SELF_KEY = "wondii-join-self";
-  var WORDS = ["FOX", "STAR", "LAMP", "GLOW", "WIRE", "CELL", "BOLT", "MOON"];
   var QUESTION = {
     id: "gap",
     objective: "Complete circuits",
@@ -56,6 +55,7 @@
 
   function writeAll(list) {
     localStorage.setItem(KEY, JSON.stringify(list));
+    if (global.WondiiSchoolData) global.WondiiSchoolData.syncSessions(list);
     try {
       if (global.BroadcastChannel) {
         var bus = new BroadcastChannel("wondii-class");
@@ -69,11 +69,14 @@
     var taken = {};
     readAll().forEach(function (item) { taken[item.code] = true; });
     var next = "";
-    for (var i = 0; i < 20; i++) {
-      next = WORDS[Math.floor(Math.random() * WORDS.length)] + "-" + String(100 + Math.floor(Math.random() * 900));
+    var i;
+    for (i = 0; i < 8; i++) {
+      next = global.WondiiSchoolDomain && global.WondiiSchoolDomain.classroomCode
+        ? global.WondiiSchoolDomain.classroomCode()
+        : "WOND-" + String(1000 + Math.floor(Math.random() * 9000));
       if (!taken[next]) return next;
     }
-    return "LAMP-" + String(Date.now()).slice(-3);
+    return next;
   }
 
   function journeyMeta(journey) {
@@ -109,7 +112,7 @@
       });
     }
     var session = {
-      id: "ses_" + Date.now().toString(36),
+      id: global.WondiiSchoolDomain && global.WondiiSchoolDomain.uuid ? global.WondiiSchoolDomain.uuid() : ("ses_" + Date.now().toString(36)),
       code: code(),
       journeyId: meta.journeyId,
       title: meta.title,
