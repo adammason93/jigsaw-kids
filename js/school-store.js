@@ -214,6 +214,28 @@
       document.body.insertBefore(note, document.body.firstChild);
     }
     note.textContent = "This school work is still on this device. Wondii could not save it yet.";
+    if (!note.querySelector("button")) {
+      var retry = document.createElement("button");
+      retry.type = "button";
+      retry.textContent = "Retry save";
+      retry.style.cssText = "margin-left:12px;min-height:36px;padding:6px 12px;border:0;border-radius:999px;background:#141b4d;color:#fff;font:700 14px Nunito,sans-serif;";
+      retry.addEventListener("click", function () { retrySaves(); });
+      note.appendChild(retry);
+    }
+  }
+
+  function retrySaves() {
+    var jobs = [];
+    var classes = readJson(PENDING_KEY, null);
+    var adventures = readJson(ADV_PENDING, []);
+    var sessions = readJson(SES_PENDING, []);
+    if (classes && classes.classes && classes.classes.length) jobs.push(syncClasses(classes));
+    if (Array.isArray(adventures) && adventures.length) jobs.push(syncAdventures(adventures));
+    if (Array.isArray(sessions) && sessions.length) jobs.push(syncSessions(sessions));
+    if (!jobs.length) return Promise.resolve(syncState !== "failed");
+    return Promise.all(jobs).then(function () {
+      return syncState !== "failed";
+    });
   }
 
   function refreshSync() {
@@ -264,12 +286,12 @@
         pupilRows.push(Domain.pupilRow(org, room, pupil));
       });
     });
-    if (!classRows.length) return Promise.resolve();
+    if (!classRows.length) return Promise.resolve(true);
     hold("classes", PENDING_KEY, { classes: book.classes || [] });
-    return db.from("school_classes").upsert(classRows, { onConflict: "id" }).then(function (saved) {
+    return track(db.from("school_classes").upsert(classRows, { onConflict: "id" }).then(function (saved) {
       if (saved.error) {
         finish("classes", PENDING_KEY, false);
-        return;
+        return false;
       }
       var pupils = pupilRows.length
         ? db.from("school_pupils").upsert(pupilRows, { onConflict: "id" })
@@ -277,29 +299,55 @@
       return pupils.then(function (pupilSaved) {
         if (pupilSaved.error) {
           finish("classes", PENDING_KEY, false);
-          return;
+          return false;
         }
         finish("classes", PENDING_KEY, true);
-        if (!hydrated) return;
-        book.classes.forEach(function (room) {
-          var keep = (room.pupils || []).map(function (pupil) { return pupil.id; });
-          db.from("school_pupils").select("id").eq("class_id", room.id).then(function (existing) {
-            if (existing.error || !existing.data) return;
-            existing.data.forEach(function (row) {
-              if (keep.indexOf(row.id) === -1) db.from("school_pupils").delete().eq("id", row.id);
+        if (hydrated) {
+          book.classes.forEach(function (room) {
+            var keep = (room.pupils || []).map(function (pupil) { return pupil.id; });
+            db.from("school_pupils").select("id").eq("class_id", room.id).then(function (existing) {
+              if (existing.error || !existing.data) return;
+              existing.data.forEach(function (row) {
+                if (keep.indexOf(row.id) === -1) db.from("school_pupils").delete().eq("id", row.id);
+              });
             });
           });
-        });
+        }
+        return true;
       });
     }).catch(function () {
       finish("classes", PENDING_KEY, false);
-    });
+      return false;
+    }));
+  }
+
+  function ensureUser() {
+    var db = client();
+    if (!db) return Promise.resolve(false);
+    if (userId) return Promise.resolve(true);
+    return db.auth.getSession().then(function (res) {
+      var session = res.data && res.data.session;
+      userId = session && session.user ? session.user.id : "";
+      return !!userId;
+    }).catch(function () { return false; });
   }
 
   function syncAdventures(list) {
+    if (!userId && client()) {
+      return ensureUser().then(function (ready) {
+        return ready ? syncAdventures(list) : Promise.resolve(false);
+      });
+    }
     var db = client();
     var org = orgNow();
-    if (!db || !org || !userId || !canTeach(roleNow()) || !Array.isArray(list)) return;
+    if (!Array.isArray(list)) return Promise.resolve(false);
+    if (!db || !org || !userId || !canTeach(roleNow())) {
+      if (org && canTeach(roleNow()) && list.length) {
+        hold("adventures", ADV_PENDING, list.filter(function (item) { return item && Domain.isUuid(item.id); }));
+        finish("adventures", ADV_PENDING, false);
+      }
+      return Promise.resolve(false);
+    }
     list.forEach(function (item) {
       if (item && !Domain.isUuid(item.id)) item.id = Domain.uuid();
     });
@@ -319,26 +367,48 @@
         config: item
       };
     });
-    if (!rows.length) return;
+    if (!rows.length) return Promise.resolve(true);
     var kept = list.filter(function (item) { return Domain.isUuid(item.id); });
     hold("adventures", ADV_PENDING, kept);
-    db.from("school_adventures").upsert(rows, { onConflict: "id" }).then(function (saved) {
-      finish("adventures", ADV_PENDING, !saved.error);
+    return track(db.from("school_adventures").upsert(rows, { onConflict: "id" }).then(function (saved) {
+      var ok = !saved.error;
+      finish("adventures", ADV_PENDING, ok);
+      return ok;
     }).catch(function () {
       finish("adventures", ADV_PENDING, false);
-    });
+      return false;
+    }));
   }
 
   function syncSessions(list) {
+    if (!userId && client()) {
+      return track(ensureUser().then(function (ready) {
+        return ready ? syncSessions(list) : false;
+      }));
+    }
     var db = client();
     var org = orgNow();
-    if (!db || !org || !userId || !canTeach(roleNow()) || !Array.isArray(list)) return;
+    if (!Array.isArray(list)) return track(Promise.resolve(false));
+    if (!db || !org || !userId || !canTeach(roleNow())) {
+      if (org && canTeach(roleNow()) && list.length) {
+        hold("sessions", SES_PENDING, list);
+        finish("sessions", SES_PENDING, false);
+      }
+      return track(Promise.resolve(false));
+    }
     var Eng = global.WondiiSessionEngine;
-    if (!Eng) return;
+    if (!Eng) return track(Promise.resolve(false));
     list.forEach(function (session) {
       if (session && session.engine && !Domain.isUuid(session.engine.sessionId)) session.engine.sessionId = Domain.uuid();
       if (session && !Domain.isUuid(session.id)) session.id = session.engine && session.engine.sessionId ? session.engine.sessionId : Domain.uuid();
     });
+    list.forEach(function (session) {
+      if ((!session.engine || !session.engine.snapshot) && Eng) {
+        var adopted = Eng.adoptPresenter(session);
+        if (adopted.ok) session.engine = adopted.state;
+      }
+    });
+    if (Domain.separateMemberships) Domain.separateMemberships(list);
     writeJson("wondii-class-sessions", list);
     var rows = [];
     var teamRows = [];
@@ -371,13 +441,13 @@
         eventRows.push(event);
       });
     });
-    if (!rows.length) return;
+    if (!rows.length) return track(Promise.resolve(true));
     var keptSessions = list.filter(function (session) { return Domain.isUuid(session.id) && session.code; });
     hold("sessions", SES_PENDING, keptSessions);
-    db.from("school_sessions").upsert(rows, { onConflict: "id" }).then(function (saved) {
+    return track(db.from("school_sessions").upsert(rows, { onConflict: "id" }).then(function (saved) {
       if (saved.error) {
         finish("sessions", SES_PENDING, false);
-        return;
+        return false;
       }
       var teams = teamRows.length
         ? db.from("school_teams").upsert(teamRows, { onConflict: "id" })
@@ -385,7 +455,7 @@
       return teams.then(function (teamSaved) {
         if (teamSaved.error) {
           finish("sessions", SES_PENDING, false);
-          return;
+          return false;
         }
         var people = peopleRows.length
           ? db.from("school_participants").upsert(peopleRows, { onConflict: "id" })
@@ -393,15 +463,28 @@
         return people.then(function (peopleSaved) {
           if (peopleSaved.error) {
             finish("sessions", SES_PENDING, false);
-            return;
+            return false;
           }
           finish("sessions", SES_PENDING, true);
           if (eventRows.length) db.from("school_events").upsert(eventRows, { onConflict: "id" });
+          return true;
         });
       });
     }).catch(function () {
       finish("sessions", SES_PENDING, false);
+      return false;
+    }));
+  }
+
+  var inflight = Promise.resolve(true);
+
+  function track(promise) {
+    inflight = Promise.resolve(promise).then(function (ok) {
+      return ok !== false && syncState !== "failed";
+    }, function () {
+      return false;
     });
+    return inflight;
   }
 
   var watchTimer = null;
@@ -463,6 +546,8 @@
     syncSessions: syncSessions,
     watchSession: watchSession,
     stopWatch: stopWatch,
+    whenSaved: function () { return inflight; },
+    retry: retrySaves,
     state: function () { return syncState; }
   };
 })(window);

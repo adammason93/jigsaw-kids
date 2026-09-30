@@ -210,7 +210,7 @@
     people.concat(options.guests || []).forEach(function (pupil) {
       var pupilId = !pupil.temporary && Eng.isUuid(pupil.id) ? pupil.id : null;
       var added = Eng.addParticipant(state, {
-        id: pupil.id || pupilId || Eng.uuid(),
+        id: Eng.uuid(),
         displayName: pupil.firstName || pupil.name || "Explorer",
         identity: pupil.temporary ? "anonymous" : (pupilId ? "pupil" : "anonymous"),
         pupilId: pupilId,
@@ -223,14 +223,18 @@
       var named = Eng.createTeams(state, {
         mode: options.teamMode,
         names: options.teamNames,
-        ids: options.teamIds,
         assign: !options.assignments
       });
       if (named.ok) state = named.state;
       (options.assignments || []).forEach(function (row) {
         var team = state.teams[row.teamIndex];
         if (!team) return;
-        var assigned = Eng.assignTeam(state, row.id, team.id);
+        var person = null;
+        state.participants.forEach(function (item) {
+          if (item.pupilId === row.id || item.id === row.id) person = item;
+        });
+        if (!person) return;
+        var assigned = Eng.assignTeam(state, person.id, team.id);
         if (assigned.ok) state = assigned.state;
       });
     }

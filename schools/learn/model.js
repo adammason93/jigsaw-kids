@@ -125,7 +125,10 @@
 
   function saveLibrary(list) {
     writeJson(LIBRARY_KEY, list);
-    if (global.WondiiSchoolData) global.WondiiSchoolData.syncAdventures(list);
+    if (!global.WondiiSchoolData || !global.WondiiSchoolData.syncAdventures) return Promise.resolve(true);
+    return Promise.resolve(global.WondiiSchoolData.syncAdventures(list)).then(function (ok) {
+      return ok !== false;
+    });
   }
 
   function visibleLibrary() {
@@ -141,10 +144,10 @@
     });
   }
 
-  function upsertLibrary(journey) {
-    var list = library().filter(function (item) { return item.id !== journey.id; });
+  function upsertLibrary(journey, previousId) {
+    var list = library().filter(function (item) { return item.id !== journey.id && item.id !== previousId; });
     list.unshift(JSON.parse(JSON.stringify(journey)));
-    saveLibrary(list);
+    return saveLibrary(list);
   }
 
   function archive(id) {

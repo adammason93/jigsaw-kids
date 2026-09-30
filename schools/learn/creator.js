@@ -88,13 +88,25 @@
     try { localStorage.removeItem(DRAFT_KEY); } catch (e) {}
   }
 
+  function classIsCurrent() {
+    return !!(draft.classId && roomById(draft.classId));
+  }
+
   function persistAdventure() {
-    if (!Learn || !Learn.upsertLibrary) return null;
+    if (!Learn || !Learn.upsertLibrary) return Promise.resolve({ adventure: null, reason: "save" });
+    if (!classIsCurrent()) return Promise.resolve({ adventure: null, reason: "class" });
+    var previousId = draft.id;
+    if (window.WondiiSchoolDomain && !WondiiSchoolDomain.isUuid(draft.id)) draft.id = WondiiSchoolDomain.uuid();
     var adventure = Core.toAdventure(draft, org().organisationId || null);
-    Learn.upsertLibrary(adventure);
-    draft.saved = true;
+    adventure.classId = draft.classId;
     saveLocal();
-    return adventure;
+    return Promise.resolve(Learn.upsertLibrary(adventure, previousId)).then(function (ok) {
+      if (!ok) return { adventure: null, reason: "save" };
+      draft.saved = true;
+      dirty = false;
+      saveLocal();
+      return { adventure: adventure, reason: "" };
+    });
   }
 
   function mark() {
@@ -828,10 +840,19 @@
       if (notesBox) draft.notes = notesBox.value;
       var problems = Core.issues(draft, Mechanics);
       if (problems.length) { notice = problems[0]; paint(); return; }
-      persistAdventure();
-      notice = "Saved to your school library.";
-      step = "library";
-      paint();
+      save.disabled = true;
+      persistAdventure().then(function (result) {
+        if (result.reason === "class") {
+          notice = "Choose a class from this school before saving.";
+          step = "class";
+          paint();
+          return;
+        }
+        if (!result.adventure) { paint(); return; }
+        notice = "Saved to your school library.";
+        step = "library";
+        paint();
+      });
     });
     var start = document.getElementById("startNow");
     if (start) start.addEventListener("click", function () {
@@ -849,28 +870,47 @@
     if (begin) begin.addEventListener("click", function () {
       var problems = Core.issues(draft, Mechanics);
       if (problems.length) { notice = problems[0]; paint(); return; }
-      var adventure = draft.quick ? Core.toAdventure(draft, org().organisationId || null) : persistAdventure();
-      if (!adventure) {
-        notice = "This adventure could not be saved on this account, so it was not started.";
-        paint();
-        return;
-      }
-      if (!window.ClassRooms) {
-        notice = "The session could not be created. The adventure is still saved.";
-        paint();
-        return;
-      }
-      var plan = Core.sessionPlan(draft, roomById(draft.classId));
-      var created = ClassRooms.createSession(adventure, "board", false, plan);
-      if (!created) {
-        notice = draft.quick ? "The session could not be created." : "The session could not be created. The adventure is still saved.";
-        paint();
-        return;
-      }
-      clearLocal();
-      dirty = false;
-      draft.saved = true;
-      location.href = "present.html?session=" + created.code + "&fresh=1" + (draft.classId ? "&class=" + encodeURIComponent(draft.classId) : "");
+      begin.disabled = true;
+      var saving = draft.quick
+        ? Promise.resolve({ adventure: Core.toAdventure(draft, org().organisationId || null), reason: "" })
+        : persistAdventure();
+      saving.then(function (result) {
+        if (result.reason === "class") {
+          notice = "Choose a class from this school before starting.";
+          step = "class";
+          paint();
+          return;
+        }
+        var adventure = result.adventure;
+        if (!adventure) { paint(); return; }
+        if (!window.ClassRooms) {
+          notice = "The session could not be created. The adventure is still saved.";
+          paint();
+          return;
+        }
+        var created = draft.pendingSessionCode ? ClassRooms.get(draft.pendingSessionCode) : null;
+        var freshSession = !created;
+        if (!created) {
+          var plan = Core.sessionPlan(draft, roomById(draft.classId));
+          created = ClassRooms.createSession(adventure, "board", false, plan);
+        }
+        if (!created) {
+          notice = draft.quick ? "The session could not be created." : "The session could not be created. The adventure is still saved.";
+          paint();
+          return;
+        }
+        draft.pendingSessionCode = created.code;
+        var follow = freshSession && window.WondiiSchoolData && WondiiSchoolData.whenSaved
+          ? WondiiSchoolData.whenSaved()
+          : (window.WondiiSchoolData && WondiiSchoolData.retry ? WondiiSchoolData.retry() : Promise.resolve(true));
+        return follow.then(function (ok) {
+          if (!ok || (window.WondiiSchoolData && WondiiSchoolData.state() === "failed")) { paint(); return; }
+          clearLocal();
+          dirty = false;
+          draft.saved = true;
+          location.href = "present.html?session=" + created.code + "&fresh=1" + (draft.classId ? "&class=" + encodeURIComponent(draft.classId) : "");
+        });
+      });
     });
     root.querySelectorAll("[data-copy]").forEach(function (button) {
       button.addEventListener("click", function () {

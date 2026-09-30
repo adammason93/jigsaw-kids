@@ -87,6 +87,23 @@ var mergedSessions = Domain.mergeLists([remoteSession], [pendingSession, remoteS
 assert.strictEqual(mergedSessions.length, 2);
 assert.strictEqual(Domain.sessionsStayDistinct(mergedSessions[0], mergedSessions[1]), true);
 
+var pupil = "dddddddd-dddd-4ddd-8ddd-dddddddddddd";
+var first = { engine: { teams: [], participants: [{ id: pupil, pupilId: pupil, displayName: "Amelia" }], events: [], responses: [], selectedParticipantId: pupil } };
+var second = { engine: { teams: [], participants: [{ id: pupil, pupilId: pupil, displayName: "Amelia" }], events: [{ participantId: pupil }], responses: [], selectedParticipantId: pupil } };
+Domain.separateMemberships([first, second]);
+assert.notStrictEqual(first.engine.participants[0].id, second.engine.participants[0].id);
+assert.strictEqual(first.engine.participants[0].pupilId, pupil);
+assert.strictEqual(second.engine.participants[0].pupilId, pupil);
+assert.strictEqual(second.engine.selectedParticipantId, second.engine.participants[0].id);
+assert.strictEqual(second.engine.events[0].participantId, second.engine.participants[0].id);
+var packedIds = {};
+[first, second].forEach(function (session) {
+  session.engine.participants.forEach(function (person) {
+    assert.strictEqual(packedIds[person.id], undefined);
+    packedIds[person.id] = 1;
+  });
+});
+
 var sampleCode = Domain.classroomCode();
 assert.ok(/^[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{4}-[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{4}$/.test(sampleCode), sampleCode);
 assert.strictEqual(/[01IO]/.test(sampleCode), false);

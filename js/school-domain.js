@@ -178,6 +178,47 @@
     return book;
   }
 
+  function separateMemberships(sessions) {
+    var seenTeams = {};
+    var seenPeople = {};
+    (sessions || []).forEach(function (session) {
+      var state = session && session.engine;
+      if (!state) return;
+      (state.teams || []).forEach(function (team) {
+        var previous = team.id;
+        if (!previous || !isUuid(previous) || seenTeams[previous]) {
+          var nextTeam = uuid();
+          (state.participants || []).forEach(function (person) {
+            if (person.teamId === previous) person.teamId = nextTeam;
+          });
+          (state.events || []).forEach(function (event) {
+            if (event.teamId === previous) event.teamId = nextTeam;
+          });
+          team.id = nextTeam;
+          previous = nextTeam;
+        }
+        seenTeams[previous] = 1;
+      });
+      (state.participants || []).forEach(function (person) {
+        var previousId = person.id;
+        if (!previousId || !isUuid(previousId) || seenPeople[previousId]) {
+          var nextPerson = uuid();
+          (state.events || []).forEach(function (event) {
+            if (event.participantId === previousId) event.participantId = nextPerson;
+          });
+          (state.responses || []).forEach(function (row) {
+            if (row.participantId === previousId) row.participantId = nextPerson;
+          });
+          if (state.selectedParticipantId === previousId) state.selectedParticipantId = nextPerson;
+          person.id = nextPerson;
+          previousId = nextPerson;
+        }
+        seenPeople[previousId] = 1;
+      });
+    });
+    return sessions;
+  }
+
   function mergeLists(remote, pending) {
     var out = (remote || []).slice();
     var seen = {};
@@ -200,6 +241,7 @@
     sessionsStayDistinct: sessionsStayDistinct,
     classroomCode: classroomCode,
     mergeBooks: mergeBooks,
-    mergeLists: mergeLists
+    mergeLists: mergeLists,
+    separateMemberships: separateMemberships
   };
 });

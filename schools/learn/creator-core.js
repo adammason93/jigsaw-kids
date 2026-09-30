@@ -27,6 +27,12 @@
     return prefix + "_" + Math.random().toString(36).slice(2, 8);
   }
 
+  function adventureId() {
+    var cryptoObj = typeof crypto !== "undefined" ? crypto : null;
+    if (cryptoObj && cryptoObj.randomUUID) return cryptoObj.randomUUID();
+    return uid("adv");
+  }
+
   function playMode(id) {
     for (var i = 0; i < PLAY.length; i++) if (PLAY[i].id === id) return PLAY[i];
     return PLAY[0];
@@ -48,7 +54,7 @@
 
   function blankDraft() {
     return {
-      id: uid("adv"),
+      id: adventureId(),
       status: "draft",
       sourceKind: "",
       source: { type: "", filename: "", text: "", unsupported: false },
@@ -959,7 +965,7 @@
   function fromAdventure(item) {
     var draft = blankDraft();
     if (!item) return draft;
-    draft.id = uid("adv");
+    draft.id = adventureId();
     draft.adaptedFrom = item.id || "";
     draft.status = "draft";
     draft.title = item.title || (item.plan && item.plan.title) || "";
