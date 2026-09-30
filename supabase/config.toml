@@ -15,3 +15,6 @@ verify_jwt = false
 
 [functions.game-maker]
 verify_jwt = false
+
+[functions.learn-generate]
+verify_jwt = true

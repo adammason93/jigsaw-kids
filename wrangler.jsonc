@@ -12,5 +12,8 @@
   },
   "compatibility_flags": [
     "nodejs_compat"
-  ]
+  ],
+  "vars": {
+    "SUPABASE_URL": "https://enuzrcjnrxwglacivlnu.supabase.co"
+  }
 }

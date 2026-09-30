@@ -806,7 +806,7 @@
   function placeholderText(value) {
     var text = String(value || "").trim().toLowerCase();
     if (!text) return true;
-    return text === "question not written yet" || text === "this quiz needs a question." || text === "question goes here" || text === "add question" || text === "tbc" || text === "todo" || text === "a question from the lesson you provided.";
+    return text === "question not written yet" || text === "this quiz needs a question." || text === "question goes here" || text === "add question" || text === "tbc" || text === "todo" || text === "example question" || text === "insert answer" || text === "a question from the lesson you provided.";
   }
 
   function activityIssue(activity, registry) {

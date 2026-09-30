@@ -51,7 +51,7 @@
     var kind = source.kind || source.questionType || source.type || "";
     var prompt = String(source.prompt || config.prompt || "").trim();
     var promptKey = prompt.toLowerCase();
-    if (!promptKey || promptKey === "question" || promptKey === "question not written yet" || promptKey === "this quiz needs a question." || promptKey === "question goes here" || promptKey === "add question" || promptKey === "tbc" || promptKey === "todo" || promptKey === "a question from the lesson you provided.") {
+    if (!promptKey || promptKey === "question" || promptKey === "question not written yet" || promptKey === "this quiz needs a question." || promptKey === "question goes here" || promptKey === "add question" || promptKey === "example question" || promptKey === "insert answer" || promptKey === "tbc" || promptKey === "todo" || promptKey === "a question from the lesson you provided.") {
       return { ok: false, error: "quiz_prompt", kind: "multiple", prompt: prompt, choices: [] };
     }
     var explain = String(source.explain || "");

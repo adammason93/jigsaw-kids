@@ -19,6 +19,8 @@
   var confirmRemove = -1;
   var adding = false;
   var buildAt = -1;
+  var buildLine = "";
+  var generationToken = 0;
   var notice = "";
   var dirty = false;
   var returnStep = "";
@@ -238,12 +240,21 @@
         teamBoard(people, room) + "</section>";
     }
     var back = returnStep === "confirm" ? "confirm" : "class";
-    var primary = returnStep === "confirm"
-      ? "<button type=\"button\" class=\"creator-go\" id=\"saveSetup\">Use this setup</button>"
-      : "<button type=\"button\" class=\"creator-go\" id=\"build\">" + (draft.generationError ? "Try again" : "Build my adventure") + "</button>";
-    var failed = draft.generationError
-      ? "<p class=\"creator-warn\" role=\"status\">We couldn't finish one of the activities. Try again, or edit the lesson.</p><p><button type=\"button\" class=\"creator-quiet\" data-go=\"source\">Edit lesson</button></p>"
-      : "";
+    var failed = draft.generationError === "failed"
+      ? "<section class=\"creator-card\" role=\"status\"><h2>Wondii couldn't finish this adventure.</h2>" +
+        actions([
+          "<button type=\"button\" class=\"creator-go\" id=\"build\">Try again</button>",
+          "<button type=\"button\" class=\"creator-quiet\" data-go=\"source\">Edit lesson</button>",
+          "<button type=\"button\" class=\"creator-quiet\" id=\"buildManual\">Build manually</button>"
+        ]) + "</section>"
+      : (draft.generationError
+        ? "<p class=\"creator-warn\" role=\"status\">We couldn't finish one of the activities. Try again, or edit the lesson.</p><p><button type=\"button\" class=\"creator-quiet\" data-go=\"source\">Edit lesson</button></p>"
+        : "");
+    var primary = draft.generationError === "failed"
+      ? ""
+      : (returnStep === "confirm"
+        ? "<button type=\"button\" class=\"creator-go\" id=\"saveSetup\">Use this setup</button>"
+        : "<button type=\"button\" class=\"creator-go\" id=\"build\">" + (draft.generationError ? "Try again" : "Build my adventure") + "</button>");
     return progress() + "<h1>How should the class play?</h1>" + failed + "<div class=\"creator-modes\">" + modes + "</div>" + teams +
       actions(["<button type=\"button\" class=\"creator-quiet\" data-go=\"" + back + "\">Back</button>", primary]);
   }
@@ -282,7 +293,7 @@
 
   function activities() {
     if (buildAt >= 0) {
-      return progress() + "<h1>Building your adventure</h1><p>Creating activities and writing the questions.</p>";
+      return progress() + "<h1>" + escape(buildLine || "Understanding your lesson…") + "</h1><p>Wondii is preparing the adventure. It will not start until you review it.</p>";
     }
     var stale = draft.stale ? "<p class=\"creator-warn\">The lesson text changed. <button type=\"button\" class=\"creator-text\" id=\"rebuild\">Rebuild activities</button></p>" : "";
     var last = draft.activities.length - 1;
@@ -574,31 +585,81 @@
     editing = -1;
   }
 
+  function applyBrain(adventure) {
+    draft.activities = adventure.activities || [];
+    draft.minutes = adventure.estimateMinutes || draft.activities.reduce(function (sum, activity) { return sum + (activity.minutes || 0); }, 0);
+    if (adventure.subject) draft.subject = adventure.subject;
+    if (adventure.topic) draft.topic = adventure.topic;
+    if (adventure.title) draft.title = adventure.title;
+    if (adventure.objectives && adventure.objectives.length) draft.goals = adventure.objectives.slice();
+    if (adventure.vocabulary && adventure.vocabulary.length) draft.vocabulary = adventure.vocabulary.slice();
+    draft.generation = adventure.meta || { fallbackUsed: false };
+    draft.generationError = "";
+  }
+
+  function useLibrary() {
+    Core.recommend(draft);
+    var problems = Core.validateAdventure(draft, Mechanics);
+    if (problems.length || !(draft.activities || []).length) {
+      draft.activities = [];
+      draft.minutes = 0;
+      draft.generationError = "failed";
+      draft.generation = { fallbackUsed: true };
+      notice = "";
+      step = "play";
+      return;
+    }
+    draft.generationError = "";
+    draft.generation = { fallbackUsed: true, repairUsed: false };
+    notice = "Wondii built this from its lesson library.";
+    step = "activities";
+  }
+
   function beginBuild() {
     readSourceFields();
+    var token = ++generationToken;
     buildAt = 0;
+    buildLine = "Understanding your lesson…";
     draft.generationError = "";
     notice = "";
+    step = "activities";
     paint();
-    setTimeout(function () {
-      var analysis = Core.analyseSource(draft.source.text || ((draft.goals || [])[0] || draft.topic || ""));
-      if (analysis.ok) Core.applyAnalysis(draft, analysis);
-      draft.vocabulary = draft.vocabulary || [];
-      Core.recommend(draft);
-      draft.stale = false;
+    var lines = ["Understanding your lesson…", "Planning the adventure…", "Writing the challenges…", "Checking everything…"];
+    var lineAt = 0;
+    var timer = setInterval(function () {
+      if (token !== generationToken || buildAt < 0) { clearInterval(timer); return; }
+      lineAt = Math.min(lineAt + 1, lines.length - 1);
+      buildLine = lines[lineAt];
+      paint();
+    }, 1600);
+    var analysis = Core.analyseSource(draft.source.text || ((draft.goals || [])[0] || draft.topic || ""));
+    if (analysis.ok) Core.applyAnalysis(draft, analysis);
+    var room = roomById(draft.classId);
+    var here = Core.takingPart(draft, room).length;
+    var Brain = window.WondiiLessonBrain;
+    var ctx = Brain ? Brain.contextFrom(draft, {
+      organisationId: org().organisationId || "",
+      pupilCount: here,
+      availableMechanics: Core.capabilities(Mechanics).map(function (item) { return item.id; })
+    }) : null;
+    var pending = Brain && ctx ? Brain.request(ctx) : Promise.resolve({ ok: false, category: "unauthorised" });
+    pending.then(function (result) {
+      if (token !== generationToken) return;
+      clearInterval(timer);
       buildAt = -1;
-      var problems = Core.validateAdventure(draft, Mechanics);
-      if (problems.length) {
-        draft.activities = [];
-        draft.minutes = 0;
-        draft.generationError = "incomplete";
-        notice = "";
-        step = "play";
-        paint();
-        return;
+      if (result && result.ok && result.adventure) {
+        applyBrain(result.adventure);
+        var problems = Core.validateAdventure(draft, Mechanics);
+        if (!problems.length) {
+          draft.stale = false;
+          go("activities");
+          return;
+        }
       }
-      go("activities");
-    }, 400);
+      useLibrary();
+      draft.stale = false;
+      paint();
+    });
   }
 
   function bind() {
@@ -736,6 +797,17 @@
     });
     var build = document.getElementById("build");
     if (build) build.addEventListener("click", beginBuild);
+    var manual = document.getElementById("buildManual");
+    if (manual) manual.addEventListener("click", function () {
+      generationToken += 1;
+      buildAt = -1;
+      draft.activities = [];
+      draft.minutes = 0;
+      draft.generationError = "";
+      notice = "";
+      adding = true;
+      go("activities");
+    });
     var saveSetup = document.getElementById("saveSetup");
     if (saveSetup) saveSetup.addEventListener("click", function () {
       Core.ensureTeams(draft, Core.takingPart(draft, roomById(draft.classId)));
