@@ -387,11 +387,11 @@ Teacher home and org sheets live inside `portal.html`. Ramsden and the electrici
 | CLS-018 | Roster | present | roster | `lesson-shell.js` | present | Who is taking part | roster | CURRENT | PARTIAL | Phase 5. Known pupils use the class portrait files, not animal avatars. Rendered. | P3 | P3 |
 | CLS-019 | Adventure gate | present | ready screen | `lesson-shell.js` | present | Board session before play | intro | CURRENT | PARTIAL | Phase 5. "Are you ready?" Rendered. | P3 | P3 |
 | CLS-020 | Stage story | present | story adapter | `lesson-mechanics.js` | LessonStage | Story round | playing | CURRENT | PARTIAL | Phase 5 chrome. Story is an adapter, not a rebuilt mechanic. Rendered at 1920×1080, 1366×768, and tablet landscape. | P3 | P3 |
-| CLS-021 | Stage question | present | question adapter | `lesson-mechanics.js` | LessonStage | Question round | question | CURRENT | PARTIAL | Phase 5. Large prompt and choices. Rendered at 1920×1080 and 1280×720. | P3 | P3 |
-| CLS-022 | Answer revealed right | present | correct feedback | `lesson-mechanics.js`, `lesson-shell.js` | question | Correct pick | correct | CURRENT | PARTIAL | Phase 5. Green "Great work!" and score note. Rendered. Not a red school accent. | P3 | P3 |
-| CLS-023 | Answer revealed wrong | present | try-again feedback | `lesson-mechanics.js`, `lesson-shell.js` | question | Other pick | incorrect | CURRENT | PARTIAL | Phase 5. Warm "Nearly!" copy. Rendered. | P3 | P3 |
+| CLS-021 | Stage question | present | canonical quiz | `mechanic-core.js`, `lesson-mechanics.js` | LessonStage | Quiz round | question | CURRENT | PARTIAL | Phase 6. Multiple choice (2 and 4 shown) and true/false. Rendered at 1920×1080 and 1280×720. Letters plus words. | P3 | P3 |
+| CLS-022 | Answer revealed right | present | quiz plus shell feedback | `lesson-mechanics.js`, `lesson-shell.js` | question | Correct pick | correct | CURRENT | PARTIAL | Phase 6. Green choice, shell "Great work!", team point on the scoreboard. Rendered. | P3 | P3 |
+| CLS-023 | Answer revealed wrong | present | quiz plus shell feedback | `lesson-mechanics.js`, `lesson-shell.js` | question | Other pick | incorrect | CURRENT | PARTIAL | Phase 6. Warm choice and "Nearly! Let's have another look." Rendered. | P3 | P3 |
 | CLS-024 | Answer bars | present | not in the shell | `lesson-shell.js` | question | Live choice totals | absent | MIXED | NO | Per-choice bars were not carried into the lesson shell. Classroom scores are the scoreboard. | P2 | P2 |
-| CLS-025 | Spin | present | spin adapter | `lesson-mechanics.js` | LessonStage | Spin round | playing | MIXED | PARTIAL | Draws inside the stage. Not a redesigned spin mechanic. Not separately screenshotted. | P1 | P1 |
+| CLS-025 | Spin | present | canonical spin | `mechanic-core.js`, `lesson-mechanics.js` | LessonStage | Spin round | playing | CURRENT | PARTIAL | Phase 6. Class portraits or initials, not animal avatars. Rendered with 2 pupils and with a 30-pupil class. Reduced motion keeps the chosen name static. | P3 | P3 |
 | CLS-026 | Mystery closed | present | mystery adapter | `lesson-mechanics.js` | LessonStage | Mystery round | playing | MIXED | PARTIAL | Adapter only. Not separately screenshotted. | P1 | P1 |
 | CLS-027 | Mystery open | `?mystery=1` | mystery adapter | `lesson-mechanics.js`, `present.js` | mystery | After open | reward | MIXED | PARTIAL | Same adapter. Not separately screenshotted. | P1 | P1 |
 | CLS-028 | Doors | present | door adapter | `lesson-mechanics.js` | LessonStage | Door round | playing | MIXED | PARTIAL | Three labelled doors inside the stage. Not separately screenshotted. | P1 | P1 |
@@ -565,14 +565,14 @@ Searched. These are not separate games or screens:
 
 | Name | What exists instead |
 | --- | --- |
-| Quick Quiz, Retrieval, Exit ticket, Lesson starter | `teach.js` template ids. Played, if at all, as `present.js` `questionHtml` or the electricity demo. |
-| Spin & Answer, Wheel of Wonder | `spinHtml()` inside the adventure stage. |
+| Quick Quiz, Retrieval, Exit ticket, Lesson starter | `teach.js` template ids. A question slide is the lesson-shell quiz. |
+| Spin & Answer, Wheel of Wonder | Classroom spin is the lesson-shell mechanic. |
 | Pick a Door | `doorsHtml()`. |
 | Mystery Box | `mysteryHtml()`. |
 | Match It, Sort It, Sequencing | template ids `matching` and `sequencing`. No match board or sort board. |
 | Treasure Hunt, Race to the Finish, Boss Battle, Picture Reveal, Crossword, True or False, Drag & Drop | No file, route, or renderer. |
 | Number Quiz | Math Race is the family game. Electricity `viewMaths` is the demo. |
-| Word Search as a lesson | Family game is `word-search.html`. Lesson template `word_search` is not that file. |
+| Word Search as a lesson | Classroom grid is `lesson-mechanics.js` inside the lesson shell. Family `word-search.html` is unchanged (GME-034). |
 | Memory Game as a lesson | Family game is `memory.html`. Not mounted in the adventure player. |
 
 ## Unreachable or unused files

@@ -8,7 +8,7 @@ The debt below is still open. Phase 2 did not migrate the 182 surfaces. Phase 3 
 
 Phase 3 removed the teacher-home size wizard, the per-pupil wizard on that dashboard, and `window.confirm` for removing a pupil. Family Stories, Games, Puzzles, Learning, My World, and Favourites stay in the DOM and are hidden only while an organisation is loaded. Custom organisation nav links are hidden in that same state so they are not extra primary items.
 
-Still later: adventure creator (`create.js` / `flow.js`), storybook, family catalogues, school settings sheets, Ramsden microsite CSS, electricity demo, deleting a whole class, and a results experience beyond the session list. The classroom player chrome is the Phase 5 lesson shell. Story, question, spin, mystery, and doors still draw through adapters in `lesson-mechanics.js`. Word search is a titled placeholder. `present.html?edit=1` is still the older question form.
+Still later: adventure creator (`create.js` / `flow.js`), storybook, family catalogues, school settings sheets, Ramsden microsite CSS, electricity demo, deleting a whole class, and a results experience beyond the session list. The classroom player chrome is the Phase 5 lesson shell. Quiz, Spin a pupil, and Word Search are canonical mechanics. Story, mystery, and doors are still adapters. `present.html?edit=1` is still the older question form. The 19 family games, including family Word Search, are unchanged.
 
 A surface moves LEGACY → IN PROGRESS → MIGRATED → VISUALLY VERIFIED only after it is checked against `docs/WONDII_VISUAL_SURFACE_REGISTRY.md`. A header change does not migrate the board behind it.
 
@@ -104,7 +104,7 @@ Build shared pieces only where the registry shows the same job repeated. Do not 
 
 What it owns: title, school name and logo, round progress, the stage, the scoreboard, the teacher dock, pause, join waiting, recovery, recoverable error, round transition, completion, and the end dialog.
 
-What it does not own: story, quiz, spin, mystery, and doors as redesigned mechanics. Those are adapters. Word search is a placeholder card. `?edit=1` is still the old question form. Family `wondii-shell.js` stays the family header.
+Quiz, Spin a pupil, and Word Search now mount inside the stage. Story, mystery, and doors are still adapters. `?edit=1` is still the old question form. Family `wondii-shell.js` stays the family header. Family Word Search stays `games/word-search.html`.
 
 School accent is identity (logo, name, a progress underline). Primary buttons stay navy. Correct and try-again colours stay semantic.
 

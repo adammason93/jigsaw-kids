@@ -136,9 +136,34 @@
 
   function roundsFromSlides(slides) {
     return slides.map(function (slide) {
-      var mechanic = slide.type === "question" ? "quiz" : (slide.type || "story");
+      var type = slide.type || "story";
+      var mechanic = type;
+      if (type === "question" || type === "quiz" || type === "boolean" || type === "true_false") mechanic = "quiz";
+      if (type === "word-search" || type === "word_search") mechanic = "word_search";
       return { mechanic: mechanic, config: slide };
     });
+  }
+
+  function applyMechanic(code, packet) {
+    var state = withEngine(get(code));
+    if (!state) return null;
+    var Eng = engineApi();
+    var Core = global.WondiiMechanicCore;
+    var committed = Core && Core.commitMechanic
+      ? Core.commitMechanic(Eng, state, packet || {})
+      : { ok: false, state: state };
+    if (!committed.ok) return null;
+    saveEngine(committed.state);
+    return Eng.toPresenter(committed.state);
+  }
+
+  function failRound(code) {
+    var state = withEngine(get(code));
+    if (!state) return null;
+    var failed = engineApi().markFailed(state, "This activity could not start.");
+    if (!failed.ok) return null;
+    saveEngine(failed.state);
+    return engineApi().toPresenter(failed.state);
   }
 
   function createSession(journey, mode, allowNames, options) {
@@ -697,6 +722,8 @@
     pause: pause,
     resume: resume,
     skipRound: skipRound,
+    applyMechanic: applyMechanic,
+    failRound: failRound,
     recover: recover,
     totals: totals,
     answered: answered,

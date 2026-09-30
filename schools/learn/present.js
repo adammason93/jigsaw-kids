@@ -12,6 +12,14 @@
     memoryJourney = WondiiLearn.openExample("lights");
     if (memoryJourney) journeyId = memoryJourney.id;
   }
+  if (!journeyId && params.get("example") === "mechanics" && window.WondiiMechanicCore) {
+    memoryJourney = {
+      id: "fixture-mechanics",
+      plan: { title: "Electricity Adventure", slides: WondiiMechanicCore.fixtureSlides() },
+      learningMap: { yearGroup: "Year 4", subject: "Science", topic: "Electricity" }
+    };
+    journeyId = memoryJourney.id;
+  }
   var sessionCode = (params.get("session") || "").toUpperCase();
   var journey = null;
   var previous = null;
@@ -296,6 +304,19 @@
       else Rooms.takePoints(sessionCode, teamId || null, 1, reason);
       paint();
     },
+    play: function (packet) {
+      var current = session();
+      if (!current) return;
+      Rooms.applyMechanic(current.code, packet || {});
+      if (packet && packet.clearFeedback) Shell.clearFeedback();
+      if (packet && packet.feedback) Shell.noteFeedback(packet.feedback.kind, packet.feedback.text, packet.feedback.extra || "");
+      if (packet && packet.done) {
+        var latest = session();
+        if (latest && latest.slide < (latest.slides || []).length - 1) Shell.queueTransition();
+      }
+      paint();
+    },
+    fail: function () { Rooms.failRound(sessionCode); paint(); },
     fullscreen: function () {
       if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
         var req = document.documentElement.requestFullscreen();

@@ -123,6 +123,7 @@
       actionIds: {},
       reveal: false,
       mechanicRuntime: null,
+      mechanicStore: {},
       demo: false,
       result: null,
       error: "",
@@ -756,6 +757,19 @@
     return done(next);
   }
 
+  function readMechanicState(state, roundId) {
+    if (!state || !state.mechanicStore || !roundId) return null;
+    return state.mechanicStore[roundId] ? clone(state.mechanicStore[roundId]) : null;
+  }
+
+  function saveMechanicState(state, roundId, data) {
+    if (!state || !roundId) return reject(state, "missing");
+    var next = clone(state);
+    next.mechanicStore = next.mechanicStore || {};
+    next.mechanicStore[roundId] = data ? clone(data) : null;
+    return done(stamp(next));
+  }
+
   function joinedCount(state) {
     if (!state) return 0;
     return state.participants.filter(function (person) {
@@ -943,6 +957,7 @@
     state.endedAt = row.status === "ended" ? row.completed_at : null;
     state.reveal = state.phase === "reveal";
     state.demo = !!row.demo;
+    if (bundle.mechanicStore && typeof bundle.mechanicStore === "object") state.mechanicStore = clone(bundle.mechanicStore);
     state.teams = (bundle.teams || []).map(function (team) {
       return {
         id: team.id,
@@ -1147,6 +1162,8 @@
     mechanicContext: mechanicContext,
     applyMechanicResult: applyMechanicResult,
     keepMechanic: keepMechanic,
+    readMechanicState: readMechanicState,
+    saveMechanicState: saveMechanicState,
     joinedCount: joinedCount,
     ingestRemote: ingestRemote,
     toRows: toRows,

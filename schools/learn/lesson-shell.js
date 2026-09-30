@@ -34,14 +34,15 @@
   function activityName(mechanic) {
     var names = {
       story: "Story", quiz: "Quiz", question: "Quiz", spin: "Spin", mystery: "Mystery",
-      doors: "Pick a door", "word-search": "Word search", done: "Finish", complete: "Finish"
+      doors: "Pick a door", "word-search": "Word search", word_search: "Word search", done: "Finish", complete: "Finish"
     };
     return names[mechanic] || "Activity";
   }
 
   function slideMechanic(slide) {
     if (!slide) return "story";
-    if (slide.type === "question") return "quiz";
+    if (slide.type === "question" || slide.type === "quiz" || slide.type === "boolean" || slide.type === "true_false") return "quiz";
+    if (slide.type === "word-search" || slide.type === "word_search") return "word_search";
     return slide.type || "story";
   }
 
@@ -75,11 +76,13 @@
   function helpText(mechanic) {
     var copy = {
       story: "Read this part together. Next moves the class on.",
-      quiz: "The class chooses an answer. A correct answer can add one point to the selected pupil's team.",
-      spin: "Spin chooses someone who is here. Teacher can pick a different pupil.",
+      quiz: "Choose an answer, then reveal it to the class.",
+      question: "Choose an answer, then reveal it to the class.",
+      spin: "Choose a pupil at random from today's participants.",
       mystery: "Open it when the class is ready, then continue.",
       doors: "The class picks one door. The idea is for everyone.",
-      "word-search": "This activity is in the lesson. Continue when you are ready to move on."
+      "word-search": "Drag across a word to find it in the grid.",
+      word_search: "Drag across a word to find it in the grid."
     };
     return copy[mechanic] || "Next moves to the following activity. Pause keeps the lesson where it is.";
   }
@@ -218,6 +221,8 @@
     var primary = "";
     var statusText = "";
 
+    var mechanicsApi = globalThis.WondiiLessonMechanics;
+    if (mechanicsApi && mechanicsApi.destroy) mechanicsApi.destroy();
     if (screen === "roster") {
       html = shell(model, rosterHtml(model), [], 0, "", model.year || "");
     } else     if (screen === "ready") {
@@ -250,6 +255,10 @@
     } else {
       considerPupil(model, screen);
       var drawn = stageBody(model, slide, index);
+      if (drawn.invalid && model.actions && model.actions.fail && ui.failRound !== index) {
+        ui.failRound = index;
+        setTimeout(function () { model.actions.fail(); }, 0);
+      }
       var mechanic = slideMechanic(slide);
       statusText = activityName(mechanic);
       if (screen === "paused") {
@@ -283,7 +292,40 @@
     var scoreSlot = rootEl.querySelector("#lessonScores");
     if (scoreSlot && view) scoreSlot.innerHTML = scoresHtml(view);
     bind(rootEl, model, screen, slides, index);
+    attachMechanic(rootEl, model, screen, slides, index);
     return screen;
+  }
+
+  function attachMechanic(rootEl, model, screen, slides, index) {
+    if (screen !== "stage" && screen !== "paused") return;
+    var host = rootEl.querySelector("#lessonMechanic");
+    var api = globalThis.WondiiLessonMechanics;
+    if (!host || !api || !api.mount) return;
+    var engine = model.view && model.view.engine;
+    var round = engine && engine.rounds ? engine.rounds[index] : null;
+    var handle = api.mount(host, {
+      mechanic: slideMechanic(slides[index]),
+      slide: slides[index],
+      view: model.view,
+      portraits: model.portraits || {},
+      paused: screen === "paused",
+      reduced: reduced(),
+      roundId: round ? round.id : "",
+      actions: model.actions || {}
+    });
+    if (handle && handle.persist && model.actions && model.actions.play) {
+      var packet = handle.persist;
+      handle.persist = null;
+      model.actions.play(packet);
+    }
+  }
+
+  function queueTransition() {
+    if (!lastModel || !lastModel.view) return;
+    var slides = lastModel.view.slides || [];
+    var index = lastModel.view.slide || 0;
+    if (index >= slides.length - 1) return;
+    ui.transition = index + 1;
   }
 
   function considerPupil(model, screen) {
@@ -486,6 +528,7 @@
     clearFeedback: clearFeedback,
     resetFlow: resetFlow,
     enter: function () { ui.entered = true; },
+    queueTransition: queueTransition,
     helpText: helpText
   };
 });

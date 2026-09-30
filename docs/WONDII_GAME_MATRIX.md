@@ -1,6 +1,6 @@
 # Wondii game matrix
 
-Rebuild programme: Phase 0 baseline is `docs/rebuild/PHASE_00_BASELINE.md` (30 September 2026). No game moved to a lesson shell or a session engine.
+Rebuild programme: Phase 0 baseline is `docs/rebuild/PHASE_00_BASELINE.md` (30 September 2026). Family games stay on `wondii-shell`. Classroom Quiz, Spin a pupil, and Word Search now run in the lesson shell.
 
 Discovery only. Cells are what the source shows. `Runtime` means the markup does not name that state, so it was not invented. This audit did not play the games.
 
@@ -32,19 +32,20 @@ Shared scorecard (`js/game-scorecard.js`) is linked from: Memory, Snakes and Lad
 | Star Catcher | Catch stars | `games/star-catcher.html` | No | No | Single page | Runtime | No | Runtime | Runtime | LEGACY board, MIXED chrome | Yes | `wondii-shell` |
 | Prompt game | Make a 3D game | `games/prompt-game.html`, `prompt-game.css` | No | No | Single page | Runtime | No | Runtime | Runtime | LEGACY board, MIXED chrome | Yes | `wondii-shell` |
 
-## Adventure stage mechanics
+## Classroom mechanics
 
-These render inside `present.js` `viewStage()`. They are not separate apps and they do not use `wondii-shell`. Data helpers live in `schools/learn/classroom.js` (`blankBoard`, animal avatars `pip` `fox` `dino` `bun` `frog` `moon`).
+These run inside `WondiiLessonShell`, not inside the family game shell. Scores and the selected pupil belong to `WondiiSessionEngine`.
 
 | Game | Implementation | File | Setup | Intro | Playing | Feedback | Scoreboard | Completion | Results | Legacy/current | Needs redesign | Shared components |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Story slide | Picture and lines | `present.js` `storyHtml()` | `viewAssign` | `viewGate` | Slide | No | `rewardBar()` in board mode | `doneHtml()` | `viewResults()` | MIXED | Yes | `class.css`, `classroom.js` |
-| Class question | A/B/C | `present.js` `questionHtml()` | Assign / roster | Gate | Hidden answer | `.is-right`, "Nearly", try again | `.class-bars` when live | `doneHtml()` | `viewResults()` | MIXED | Yes | `class.css`, `session.js` |
-| Spin for an explorer | One pupil's turn | `present.js` `spinHtml()` | Board roster | Gate | Spin button | Chosen face | `rewardBar()` | `doneHtml()` | `viewResults()` | MIXED | Yes | `classroom.js` avatars, not floor sprites |
-| Mystery | Open a fact | `present.js` `mysteryHtml()` | No | Gate | Closed | Opened fact | `rewardBar()` | `doneHtml()` | `viewResults()` | MIXED | Yes | `class.css` |
-| Pick a door | Three doors | `present.js` `doorsHtml()` | No | Gate | Three buttons | One learning-objective line | `rewardBar()` | `doneHtml()` | `viewResults()` | MIXED | Yes | `class.css` |
+| Story slide | Picture and lines | `lesson-mechanics.js` adapter | Roster | Ready | Slide | No | Lesson scoreboard | Shell transition | Shell completion | MIXED adapter | Yes | Lesson shell |
+| Quiz | Multiple choice and true/false | `mechanic-core.js`, `lesson-mechanics.js` | Roster | Ready | Choices | Shell correct / try again | Engine scores | Shell transition | Shell completion | CURRENT | Later types only | Lesson shell, session engine |
+| Spin a pupil | Selector from participants | `mechanic-core.js`, `lesson-mechanics.js` | Roster | Ready | Spin | Shell pupil moment | Engine scores | Shell transition | Shell completion | CURRENT | No | Class portraits, lesson shell |
+| Word search | Letter grid | `mechanic-core.js`, `lesson-mechanics.js` | Roster | Ready | Drag or keyboard | Shell feedback | Engine scores | Shell transition | Shell completion | CURRENT | No | Lesson shell. Not `games/word-search.html` |
+| Mystery | Open a fact | `lesson-mechanics.js` adapter | No | Ready | Closed | Opened fact | Engine scores | Shell transition | Shell completion | MIXED adapter | Yes | Lesson shell |
+| Pick a door | Three doors | `lesson-mechanics.js` adapter | No | Ready | Three buttons | One line | Engine scores | Shell transition | Shell completion | MIXED adapter | Yes | Lesson shell |
 
-Teacher controls on every stage: `details.class-tools` (full screen, another explorer, end). End confirm is an inline paragraph, not a dialog.
+Family Word Search (`games/word-search.html`) is a separate game. It was not restyled.
 
 The class-room floor (`class-room.js` `scene()`) is not one of these games. "Choose someone" on that page only sets a turn line. The spin UI is on the present stage.
 
@@ -78,9 +79,9 @@ No `wondii-shell`. Fonts are chosen per book from a local list.
 
 ## Not implementations
 
-No file, renderer, or route was found for: Treasure Hunt, Race to the Finish, Boss Battle, Picture Reveal, Crossword, True or False, Drag & Drop, Wheel of Wonder (as its own app), Match It, Sort It.
+No separate game file was found for: Treasure Hunt, Race to the Finish, Boss Battle, Picture Reveal, Crossword, Drag & Drop, Wheel of Wonder (as its own app), Match It, Sort It. Classroom true/false is a quiz kind, not its own game.
 
-`teach.js` ids `quick_quiz`, `vocabulary`, `story`, `stem`, `retrieval`, `exit_ticket`, `starter`, `matching`, `sequencing`, `end_topic` are planner cards. Matching and sequencing have no board. A quiz card becomes `questionHtml` only when a slide of type `question` is built.
+`teach.js` ids `quick_quiz`, `vocabulary`, `story`, `stem`, `retrieval`, `exit_ticket`, `starter`, `matching`, `sequencing`, `end_topic` are planner cards. Matching and sequencing have no board. A quiz card becomes a lesson-shell quiz when the slide type is `question`.
 
 ## Counts
 
@@ -89,7 +90,7 @@ No file, renderer, or route was found for: Treasure Hunt, Race to the Finish, Bo
 | Family game implementations | 19 |
 | Family game visual states named in the registry (GME-003–GME-043) | 41 |
 | Shared game chrome surfaces (help, scores wrap) | 2 |
-| Adventure stage mechanics | 5 |
+| Classroom mechanics in the lesson shell | 6 |
 | Electricity demo stages | 9 |
 | States marked Runtime or UNKNOWN in the family matrix | see Runtime column above |
 

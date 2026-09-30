@@ -1,0 +1,83 @@
+/* Mechanic presentation inside the lesson stage. */
+.lesson-mechanic { width: min(1280px, 100%); }
+.lesson-question .lesson-prompt,
+.lesson-choice span,
+.lesson-spin-name,
+.lesson-word { overflow-wrap: anywhere; }
+.lesson-spin-strip {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 28px;
+  min-height: 220px;
+  margin: 12px 0 20px;
+}
+.lesson-spin-face { width: 150px; text-align: center; opacity: 0.72; }
+.lesson-spin-face .lesson-initial { width: 96px; height: 96px; font-size: 2.6rem; }
+.lesson-spin-face.is-chosen { width: 210px; opacity: 1; }
+.lesson-spin-face .lesson-face,
+.lesson-spin-face .lesson-initial { margin: 0 auto; }
+.lesson-spin-name {
+  margin: 8px 0 0;
+  font-family: Fredoka, Nunito, sans-serif;
+  font-size: 1.15rem;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+.lesson-spin-face.is-chosen .lesson-spin-name { white-space: normal; font-size: clamp(1.6rem, 3vw, 2.4rem); }
+.lesson-mechanic.is-spinning .lesson-spin-face { animation: lesson-pass 1.2s ease; }
+@keyframes lesson-pass { from { transform: translateY(16px); opacity: 0.15; } to { transform: none; } }
+.lesson-words {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(180px, 280px);
+  gap: 24px;
+  align-items: start;
+}
+.lesson-words.is-paused { pointer-events: none; }
+.lesson-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--ws-cols), minmax(42px, 1fr));
+  gap: 6px;
+  touch-action: none;
+  user-select: none;
+}
+.lesson-cell {
+  min-width: 42px;
+  min-height: 48px;
+  padding: 0;
+  border-radius: 12px;
+  background: #fff;
+  color: #141b4d;
+  font-family: Fredoka, Nunito, sans-serif;
+  font-size: clamp(1.15rem, 2vw, 1.7rem);
+}
+.lesson-cell.is-hot { background: #e7eef8; border-color: #141b4d; }
+.lesson-cell.is-found { background: #e5f6ef; border-color: #0f9f6e; }
+.lesson-cell.is-focus { outline: 4px solid #141b4d; }
+.lesson-wordlist { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.lesson-word {
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: #fff;
+  font-size: clamp(1.15rem, 1.8vw, 1.5rem);
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+.lesson-word.is-found { background: #e5f6ef; text-decoration: line-through; }
+.lesson-word-teams { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 12px; }
+.lesson-word-teams .is-on { background: #141b4d; color: #fff; }
+@media (max-height: 820px) {
+  .lesson { gap: 8px; padding: 12px; }
+  .lesson-cell { min-height: 34px; min-width: 0; font-size: 1.2rem; }
+  .lesson-grid { gap: 4px; }
+  .lesson-spin-strip { min-height: 160px; }
+}
+@media (max-width: 1400px) {
+  .lesson-words { grid-template-columns: 1fr; }
+  .lesson-wordlist { order: -1; grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lesson-mechanic.is-spinning .lesson-spin-face { animation: none; }
+}
