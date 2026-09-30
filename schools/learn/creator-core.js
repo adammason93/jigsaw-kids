@@ -70,6 +70,8 @@
       activities: [],
       notes: "",
       minutes: 0,
+      targetMinutes: 0,
+      generationError: "",
       notice: "",
       adaptedFrom: "",
       saved: false
@@ -89,9 +91,9 @@
 
   function subjectFrom(text) {
     var lower = String(text || "").toLowerCase();
-    if (/science|electric|plant|force|magnet|space|habitat/.test(lower)) return "Science";
+    if (/science|electric|plant|force|magnet|space|habitat|water cycle|evaporation|condensation/.test(lower)) return "Science";
     if (/\bmaths\b|mathematics|fraction|addition|times table|subtraction|multiplication/.test(lower)) return "Maths";
-    if (/\benglish\b|phonics|grammar|spelling|comprehension/.test(lower)) return "English";
+    if (/\benglish\b|phonics|grammar|spelling|comprehension|\bsh\b|\bch\b/.test(lower)) return "English";
     if (/history|roman|tudor|viking|victorians/.test(lower)) return "History";
     if (/geograph|river|map skills/.test(lower)) return "Geography";
     return "";
@@ -101,6 +103,8 @@
     var lower = String(text || "").toLowerCase();
     if (/electric/.test(lower)) return "Electricity";
     if (/fraction/.test(lower)) return "Fractions";
+    if (/water cycle|evaporation|condensation/.test(lower)) return "Water cycle";
+    if (/phonics|\bsh\b|\bch\b/.test(lower)) return "Phonics";
     if (/magnet/.test(lower)) return "Magnets";
     var line = String(text || "").split(/\n/).map(function (part) { return part.trim(); }).filter(Boolean)[0] || "";
     if (line.length > 48) return "";
@@ -154,6 +158,7 @@
     var topic = topicFrom(source);
     var goals = linesAfter(source, "objective").slice(0, 4);
     var vocabulary = wordsFrom(source);
+    var requested = requestedMinutes(source);
     return {
       ok: true,
       subject: subject,
@@ -164,8 +169,37 @@
       yearStated: !!year,
       goals: goals,
       vocabulary: vocabulary,
+      requestedMinutes: requested,
+      durationStated: requested > 0,
+      example: exampleFrom(source),
+      graphemes: graphemesFrom(source),
       notice: "Wondii only filled what the lesson text states. Check anything that looks uncertain."
     };
+  }
+
+  function requestedMinutes(text) {
+    var match = String(text || "").match(/\b(\d{1,3})\s*(?:min|mins|minute|minutes)\b/i);
+    var minutes = match ? Number(match[1]) : 0;
+    if (!minutes || minutes < 5 || minutes > 90) return 0;
+    return minutes;
+  }
+
+  function exampleFrom(text) {
+    var match = String(text || "").toLowerCase().match(/\busing\s+([a-z][a-z\s]{1,28})/);
+    if (!match) return "";
+    return match[1].replace(/\b(for|with|and|the|a|an|to)\b[\s\S]*$/, "").replace(/[.?!].*$/, "").trim();
+  }
+
+  function graphemesFrom(text) {
+    var lower = String(text || "").toLowerCase();
+    return ["sh", "ch", "th", "ng", "ai", "ee", "oa", "oo"].filter(function (grapheme) {
+      return new RegExp("\\b" + grapheme + "\\b").test(lower);
+    });
+  }
+
+  function yearNumber(year) {
+    var match = String(year || "").match(/([1-6])/);
+    return match ? Number(match[1]) : 2;
   }
 
   function applyAnalysis(draft, analysis) {
@@ -178,6 +212,9 @@
     }
     if (analysis.goals.length) draft.goals = analysis.goals.slice();
     if (analysis.vocabulary.length) draft.vocabulary = analysis.vocabulary.slice();
+    draft.targetMinutes = analysis.durationStated ? analysis.requestedMinutes : (draft.targetMinutes || 15);
+    draft.example = analysis.example || "";
+    draft.graphemes = analysis.graphemes || [];
     draft.notice = analysis.notice;
     if (!draft.title) draft.title = draft.topic ? draft.topic + " adventure" : "Learning adventure";
     return draft;
@@ -297,67 +334,213 @@
     };
   }
 
-  function recommend(draft) {
-    var words = (draft.vocabulary || []).slice(0, 12);
-    var topic = draft.topic || "today's lesson";
-    var activities = [];
-    if (words.length >= 2) {
-      activities.push(quizFrom("Which word belongs with " + topic + "?", [
-        words[0], words[1], words[2] || "CLOUD", words[3] || "PENCIL"
-      ].filter(function (word, index, list) { return list.indexOf(word) === index; }).slice(0, 4), words[0], 1));
-      activities[0].title = "Quick start";
-      activities[0].minutes = 2;
-      activities[0].why = "A quick check using a word from the lesson.";
-    } else if ((draft.goals || [])[0]) {
-      activities.push(quizFrom(draft.goals[0], null, "true", 1));
-      activities[0].config.kind = "boolean";
-      activities[0].config.choices = ["True", "False"];
-      activities[0].config.correct = "true";
-      activities[0].title = "Quick start";
-      activities[0].minutes = 2;
-      activities[0].why = "A true or false check from the learning goal. Confirm it before the lesson.";
-    } else {
-      activities.push(quizFrom("", ["Yes", "No"], "", 1));
-      activities[0].title = "Quick start";
-    }
-    activities.push({
+  function thingWord(example) {
+    var word = String(example || "").trim().toLowerCase();
+    if (!word) return "shape";
+    if (word.slice(-3) === "ies") return word.slice(0, -3) + "y";
+    if (word.slice(-1) === "s" && word.length > 3) return word.slice(0, -1);
+    return word;
+  }
+
+  function generationContext(draft, extra) {
+    extra = extra || {};
+    var target = draft.targetMinutes || 15;
+    return {
+      source: (draft.source && draft.source.text) || "",
+      year: draft.year || draft.classYear || "",
+      yearNumber: yearNumber(draft.year || draft.classYear),
+      classId: draft.classId || "",
+      className: draft.className || "",
+      subject: draft.subject || "",
+      topic: draft.topic || "today's lesson",
+      example: draft.example || "",
+      graphemes: draft.graphemes || [],
+      vocabulary: (draft.vocabulary || []).slice(),
+      goals: (draft.goals || []).slice(),
+      targetMinutes: target,
+      playMode: draft.playMode || "whole_class",
+      teams: JSON.parse(JSON.stringify(draft.teams || [])),
+      pupils: extra.pupils || [],
+      teacher: extra.teacher || null,
+      interests: extra.interests || []
+    };
+  }
+
+  function durationBand(target) {
+    var tol = Math.max(3, Math.round(target * 0.2));
+    return { low: Math.max(5, target - tol), high: target + tol };
+  }
+
+  function titledQuiz(title, prompt, choices, correct, why) {
+    var activity = quizFrom(prompt, choices, correct, 1);
+    activity.title = title;
+    activity.minutes = 4;
+    activity.why = why || prompt;
+    activity.config.participation = "whole_class";
+    return activity;
+  }
+
+  function spinActivity() {
+    return {
       id: uid("spin"),
       mechanic: "spin",
       purpose: "Choose a pupil",
-      title: "Pick an explorer",
+      title: "Choose someone",
       minutes: 1,
-      why: "Choose someone from the class to take part.",
+      why: "Wondii chooses a pupil who is here today.",
       config: { pool: "included", avoidRepeat: true, preferFresh: true }
-    });
-    if (words.length >= 2) {
-      activities.push(quizFrom("True or false: " + (draft.goals[0] || (words[0] + " is part of " + topic + ".")), ["True", "False"], "true", 1));
-      activities[activities.length - 1].title = "Check understanding";
-      activities[activities.length - 1].config.kind = "boolean";
-      activities[activities.length - 1].config.correct = "true";
-    }
-    if (words.length >= 2) {
-      activities.push({
-        id: uid("word"),
-        mechanic: "word_search",
-        purpose: "Vocabulary recap",
-        title: "Key word hunt",
-        minutes: 6,
-        why: "Practise the key vocabulary from your lesson.",
-        config: { title: topic, instruction: "Find the lesson words.", words: words.slice(0, 12), points: 1 }
+    };
+  }
+
+  function searchActivity(title, words, topic) {
+    return {
+      id: uid("word"),
+      mechanic: "word_search",
+      purpose: "Vocabulary recap",
+      title: title,
+      minutes: 6,
+      why: "Find the words from this lesson.",
+      config: {
+        title: topic,
+        instruction: "Find the words from this lesson.",
+        words: words.slice(0, 8),
+        points: 1,
+        participation: "whole_class"
+      }
+    };
+  }
+
+  function readingActivity(mechanic, title, lines, minutes) {
+    return {
+      id: uid(mechanic),
+      mechanic: mechanic,
+      purpose: mechanic === "story" ? "Introduce the idea" : mechanic === "mystery" ? "A surprise recall" : "Choose together",
+      title: title,
+      minutes: minutes,
+      why: lines[0],
+      config: { lines: lines }
+    };
+  }
+
+  function contentFor(ctx) {
+    var topic = ctx.topic || "today's lesson";
+    var thing = thingWord(ctx.example);
+    var early = ctx.yearNumber <= 2;
+    var questions = [];
+    var words = [];
+    var story = [];
+    var mystery = [];
+    if (topic === "Fractions") {
+      words = ["HALF", "QUARTER", "EQUAL", "WHOLE", "SHARE", "PART"];
+      if (thing !== "shape") {
+        var extra = thing.toUpperCase().replace(/[^A-Z]/g, "");
+        if (extra.length >= 3 && extra.length <= 14 && words.indexOf(extra) === -1) words.push(extra);
+      }
+      story = ["Today we are learning about fractions.", "We will look at halves and quarters" + (thing === "shape" ? "." : " of a " + thing + ".")];
+      questions.push(titledQuiz("Fair shares", "A " + thing + " is shared fairly between 2 people. What does each person get?", ["A half", "The whole " + thing, "Nothing", "Three pieces"], "A half", "The class names a half when something is shared between two."));
+      questions.push(titledQuiz("Four equal pieces", "A " + thing + " is cut into 4 equal pieces. What is one piece called?", ["A quarter", "A half", "A whole", "A pair"], "A quarter", "The class names one piece of four as a quarter."));
+      questions.push(titledQuiz("Which is more?", "Which is more of the " + thing + "?", ["A half", "A quarter", "None of it", "Two wholes"], "A half", "The class compares a half and a quarter."));
+      if (!early) {
+        questions.push(titledQuiz("Two quarters", "Two quarters of a " + thing + " make...", ["A half", "A whole", "Nothing", "Three wholes"], "A half", "The class sees that two quarters make a half."));
+      }
+      mystery = ["A half is bigger than a quarter."];
+    } else if (topic === "Phonics") {
+      var sounds = ctx.graphemes.length ? ctx.graphemes : ["sh", "ch"];
+      var banks = {
+        sh: ["SHIP", "SHOP", "FISH", "SHELL"],
+        ch: ["CHIP", "CHAT", "CHIN", "MUCH"],
+        th: ["THIS", "THAT", "THIN", "MOTH"],
+        ng: ["RING", "SING", "KING", "SONG"],
+        ai: ["RAIN", "TAIL", "PAIN", "WAIT"],
+        ee: ["TREE", "FEET", "SEED", "KEEP"],
+        oa: ["BOAT", "GOAT", "ROAD", "COAT"],
+        oo: ["MOON", "BOOK", "FOOD", "POOL"]
+      };
+      sounds.forEach(function (sound) { words = words.concat(banks[sound] || []); });
+      story = ["Today we are listening for " + sounds.join(" and ") + ".", "The class will spot those sounds in words."];
+      sounds.slice(0, 3).forEach(function (sound) {
+        var bank = banks[sound] || ["SHIP"];
+        questions.push(titledQuiz(sound.toUpperCase() + " words", "Which word uses the sound " + sound + "?", [bank[0], "DOG", "LEG", "SUN"], bank[0], "The class finds a word with " + sound + "."));
       });
+      if (sounds.length >= 2) {
+        questions.push(titledQuiz("Spot the sound", "Which word uses " + sounds[1] + ", not " + sounds[0] + "?", [(banks[sounds[1]] || ["CHAT"])[0], (banks[sounds[0]] || ["SHIP"])[0], "MAT", "PEN"], (banks[sounds[1]] || ["CHAT"])[0], "The class tells " + sounds[0] + " and " + sounds[1] + " apart."));
+      }
+      mystery = ["Listen for the sound at the start of the word."];
+    } else if (topic === "Water cycle") {
+      words = ["EVAPORATION", "CONDENSATION", "RAIN", "CLOUD", "WATER", "COLLECT"];
+      story = ["Water moves from puddles to clouds and back again.", "That journey is called the water cycle."];
+      questions.push(titledQuiz("Puddle to air", "Water rising from a puddle into the air is called...", ["Evaporation", "Freezing", "Digging", "Melting"], "Evaporation", "The class names evaporation."));
+      questions.push(titledQuiz("Making a cloud", "Water droplets gathering to make a cloud is called...", ["Condensation", "Evaporation", "Boiling", "Digging"], "Condensation", "The class names condensation."));
+      questions.push(titledQuiz("Rain falling", "Water falling from a cloud is called...", ["Precipitation", "Evaporation", "Collection", "Melting"], "Precipitation", "The class names rain falling as precipitation."));
+      if (ctx.yearNumber >= 3) questions.push(titledQuiz("Back to the river", "Water flowing back into rivers and the sea is called...", ["Collection", "Evaporation", "Freezing", "Digging"], "Collection", "The class names the return of water as collection."));
+      mystery = ["The same water can rise, make a cloud, and fall again."];
+    } else if (topic === "Electricity" || (ctx.vocabulary || []).length >= 3) {
+      words = (ctx.vocabulary || []).slice(0, 8);
+      if (words.length < 3) words = ["CIRCUIT", "BATTERY", "SWITCH", "BULB"];
+      var shown = words.slice(0, 4).map(function (word) { return word.charAt(0) + word.slice(1).toLowerCase(); });
+      story = ["Today the class is learning about " + topic + ".", "The important words include " + shown.slice(0, 3).join(", ") + "."];
+      questions.push(titledQuiz("Lesson words", "Which word belongs with " + topic + "?", [shown[0], "Pillow", "Sandwich", "Sock"], shown[0], "The class picks a word from the lesson."));
+      if (shown[1]) questions.push(titledQuiz("Another lesson word", "Which of these is also from " + topic + "?", [shown[1], "Pillow", "Sandwich", "Sock"], shown[1], "The class finds another lesson word."));
+      if ((ctx.goals || [])[0]) questions.push(titledQuiz("Learning goal", ctx.goals[0] + " True or false?", ["True", "False"], "True", "The class checks the learning goal."));
+      mystery = ["A complete path is needed before a bulb can light."];
+    } else {
+      story = ["Today the class is learning about " + topic + "."];
+      questions.push(titledQuiz("What are we learning?", "What is this lesson about?", [topic, "Playtime", "Home time", "The register"], topic, "The class says what the lesson is about."));
+      mystery = ["Keep the main idea from today's lesson."];
     }
-    if (words.length >= 3) {
-      activities.push(quizFrom("Which of these is also from " + topic + "?", [words[1], words[0], "TABLE", "RIVER"].filter(function (word, index, list) {
-        return list.indexOf(word) === index;
-      }).slice(0, 4), words[1], 1));
-      activities[activities.length - 1].title = "Final challenge";
+    return { questions: questions, words: words, story: story, mystery: mystery, title: topic + " recap" };
+  }
+
+  function packActivities(ctx, bank) {
+    var band = durationBand(ctx.targetMinutes);
+    var activities = [];
+    var sum = 0;
+    var quizzes = bank.questions.slice();
+    function add(activity) {
+      if (sum + activity.minutes > band.high) return false;
+      activities.push(activity);
+      sum += activity.minutes;
+      return true;
+    }
+    function need() { return sum < band.low; }
+    if (ctx.targetMinutes >= 12 && bank.story.length) add(readingActivity("story", ctx.topic + " together", bank.story, 3));
+    if (quizzes.length) add(quizzes.shift());
+    if (bank.words.length >= 3) add(searchActivity("Find the words", bank.words, ctx.topic));
+    if (ctx.targetMinutes >= 8) add(spinActivity());
+    while (need() && quizzes.length) {
+      if (!add(quizzes.shift())) break;
+    }
+    if (need() && bank.mystery.length) add(readingActivity("mystery", "Remember this", bank.mystery, 2));
+    if (need()) add(readingActivity("doors", "Choose one", [
+      "Look at the first idea from " + ctx.topic + ".",
+      "Look at another idea from " + ctx.topic + ".",
+      "Say the main idea in your own words."
+    ], 2));
+    if (!activities.length || !activities.some(function (activity) { return activity.mechanic === "quiz" && activity.config.prompt; })) {
+      return { ok: false, activities: [], message: "We couldn't finish one of the activities." };
     }
     activities.forEach(function (activity) {
       var meta = capability(activity.mechanic);
       if (meta && !activity.purpose) activity.purpose = meta.purpose;
+      if (activity.mechanic === "word_search" && playMode(ctx.playMode).engine !== "none") activity.config.participation = "team_turn";
     });
-    draft.activities = activities;
-    draft.minutes = activities.reduce(function (sum, activity) { return sum + (activity.minutes || 0); }, 0);
+    return { ok: true, activities: activities, minutes: sum, title: bank.title };
+  }
+
+  function recommend(draft, extra) {
+    var ctx = generationContext(draft, extra);
+    var built = packActivities(ctx, contentFor(ctx));
+    draft.targetMinutes = ctx.targetMinutes;
+    if (!built.ok) {
+      draft.activities = [];
+      draft.minutes = 0;
+      draft.generationError = built.message;
+      return draft;
+    }
+    draft.generationError = "";
+    draft.activities = built.activities;
+    draft.minutes = built.minutes;
+    if (!draft.title || draft.title === "Learning adventure") draft.title = built.title;
     return draft;
   }
 
@@ -409,12 +592,18 @@
     return draft;
   }
 
+  function placeholderText(value) {
+    var text = String(value || "").trim().toLowerCase();
+    if (!text) return true;
+    return text === "question not written yet" || text === "this quiz needs a question." || text === "question goes here" || text === "add question" || text === "tbc" || text === "todo" || text === "a question from the lesson you provided.";
+  }
+
   function activityIssue(activity, registry) {
     if (!activity || !capability(activity.mechanic, registry)) return "This activity cannot be played.";
     if (activity.mechanic === "quiz") {
       var quiz = activity.config || {};
       var kind = quiz.kind === "boolean" ? "boolean" : "multiple";
-      if (!String(quiz.prompt || "").trim()) return "This quiz needs a question.";
+      if (placeholderText(quiz.prompt)) return "This quiz needs a question.";
       if (kind === "boolean") {
         if (quiz.correct !== "true" && quiz.correct !== "false") return "This quiz needs a correct answer.";
         return "";
@@ -435,7 +624,22 @@
       if (long) return long + " is too long. Use 14 letters or fewer.";
       return "";
     }
+    if (activity.mechanic === "story" || activity.mechanic === "mystery" || activity.mechanic === "doors") {
+      var lines = ((activity.config && activity.config.lines) || []).map(function (line) { return String(line || "").trim(); }).filter(Boolean);
+      if (!lines.length || lines.some(placeholderText)) return "This activity needs something for the class to read.";
+    }
     return "";
+  }
+
+  function validateActivity(activity, registry) {
+    var message = activityIssue(activity, registry);
+    return { ok: !message, message: message };
+  }
+
+  function validateAdventure(input, registry) {
+    var activities = input && input.activities ? input.activities : (input && input.plan && input.plan.activities);
+    if (!activities) return [];
+    return issues({ activities: activities }, registry);
   }
 
   function issues(draft, registry) {
@@ -527,6 +731,7 @@
       },
       playMode: draft.playMode,
       teams: JSON.parse(JSON.stringify(draft.teams || [])),
+      targetMinutes: draft.targetMinutes || 0,
       estimateMinutes: draft.minutes || 0,
       notes: draft.notes || "",
       adaptedFrom: draft.adaptedFrom || "",
@@ -551,6 +756,7 @@
     draft.yearSource = draft.year ? "stated" : "";
     draft.goals = (map.learningObjectives || []).slice();
     draft.vocabulary = (map.keyVocabulary || []).slice();
+    draft.targetMinutes = item.targetMinutes || 0;
     draft.source = { type: item.source && item.source.type || "", filename: item.source && item.source.filename || "", text: item.source && item.source.text || "", unsupported: false };
     draft.sourceKind = draft.source.type;
     draft.playMode = item.playMode || "whole_class";
@@ -720,6 +926,9 @@
     removeActivity: removeActivity,
     addActivity: addActivity,
     activityIssue: activityIssue,
+    validateActivity: validateActivity,
+    validateAdventure: validateAdventure,
+    generationContext: generationContext,
     issues: issues,
     slidesFor: slidesFor,
     toAdventure: toAdventure,

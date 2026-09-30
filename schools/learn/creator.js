@@ -15,6 +15,8 @@
   var sourcePanel = "describe";
   var manage = false;
   var editing = -1;
+  var openMore = -1;
+  var confirmRemove = -1;
   var adding = false;
   var buildAt = -1;
   var notice = "";
@@ -101,6 +103,8 @@
     step = next;
     manage = false;
     editing = -1;
+    openMore = -1;
+    confirmRemove = -1;
     adding = false;
     saveLocal();
     paint();
@@ -219,8 +223,11 @@
     var back = returnStep === "confirm" ? "confirm" : "class";
     var primary = returnStep === "confirm"
       ? "<button type=\"button\" class=\"creator-go\" id=\"saveSetup\">Use this setup</button>"
-      : "<button type=\"button\" class=\"creator-go\" id=\"build\">Build my adventure</button>";
-    return progress() + "<h1>How should the class play?</h1><div class=\"creator-modes\">" + modes + "</div>" + teams +
+      : "<button type=\"button\" class=\"creator-go\" id=\"build\">" + (draft.generationError ? "Try again" : "Build my adventure") + "</button>";
+    var failed = draft.generationError
+      ? "<p class=\"creator-warn\" role=\"status\">We couldn't finish one of the activities. Try again, or edit the lesson.</p><p><button type=\"button\" class=\"creator-quiet\" data-go=\"source\">Edit lesson</button></p>"
+      : "";
+    return progress() + "<h1>How should the class play?</h1>" + failed + "<div class=\"creator-modes\">" + modes + "</div>" + teams +
       actions(["<button type=\"button\" class=\"creator-quiet\" data-go=\"" + back + "\">Back</button>", primary]);
   }
 
@@ -245,32 +252,40 @@
     return helper + "<div class=\"creator-pupils\">" + cards + "</div>";
   }
 
+  function experienceLine(activity) {
+    if (activity.mechanic === "quiz") return (activity.config && activity.config.prompt) || "";
+    if (activity.mechanic === "word_search") return (activity.config && activity.config.instruction) || "Find the words from this lesson.";
+    if (activity.mechanic === "spin") return "Wondii chooses a pupil who is here today.";
+    return ((activity.config && activity.config.lines) || [])[0] || activity.why || "";
+  }
+
   function activities() {
     if (buildAt >= 0) {
-      var labels = ["Reading lesson material", "Finding key vocabulary", "Creating activities", "Final checks"];
-      return "<h1>Building your adventure</h1><ul class=\"creator-steps\">" + labels.map(function (label, index) {
-        var mark = index < buildAt ? "✓" : index === buildAt ? "●" : "○";
-        return "<li>" + mark + " " + label + "</li>";
-      }).join("") + "</ul>";
+      return progress() + "<h1>Building your adventure</h1><p>Creating activities and writing the questions.</p>";
     }
     var stale = draft.stale ? "<p class=\"creator-warn\">The lesson text changed. <button type=\"button\" class=\"creator-text\" id=\"rebuild\">Rebuild activities</button></p>" : "";
+    var last = draft.activities.length - 1;
     var cards = (draft.activities || []).map(function (activity, index) {
       var issue = Core.activityIssue(activity, Mechanics);
-      var preview = activity.mechanic === "quiz" ? (activity.config.prompt || "Question not written yet")
-        : activity.mechanic === "word_search" ? ((activity.config.words || []).slice(0, 4).join(", ") || "No words yet")
-        : activity.mechanic === "spin" ? "Someone from today's class"
-        : (activity.config.lines || [])[0] || activity.title;
-      return "<article class=\"creator-activity\"><p class=\"creator-note\">" + (index + 1) + "</p><div><header><strong>" + escape(activity.title || activity.mechanic) + "</strong><span>" + (activity.minutes || 0) + " min</span></header>" +
-        "<p>" + escape(activity.purpose || "") + "</p><p>" + escape(preview) + "</p>" +
+      var meta = Core.capability(activity.mechanic);
+      var kind = meta ? meta.name : activity.mechanic;
+      var moreId = "activity-more-" + index;
+      var moves = (index > 0 ? "<button type=\"button\" role=\"menuitem\" data-up=\"" + index + "\">Move up</button>" : "") +
+        (index < last ? "<button type=\"button\" role=\"menuitem\" data-down=\"" + index + "\">Move down</button>" : "");
+      var remove = confirmRemove === index
+        ? "<p id=\"remove-ask-" + index + "\">Remove this activity?</p><button type=\"button\" role=\"menuitem\" data-remove=\"" + index + "\">Remove</button><button type=\"button\" role=\"menuitem\" data-keep=\"" + index + "\">Keep</button>"
+        : "<button type=\"button\" role=\"menuitem\" data-ask-remove=\"" + index + "\">Remove</button>";
+      return "<article class=\"creator-activity\"><div><header><strong>" + escape(activity.title || kind) + "</strong><span>" + (activity.minutes || 0) + " min</span></header>" +
+        "<p class=\"creator-note\">" + escape(kind) + " · " + escape(Core.participationLabel(Core.participationOf(activity))) + "</p>" +
+        "<p>" + escape(experienceLine(activity)) + "</p>" +
         (issue ? "<p class=\"creator-warn\">" + escape(issue) + "</p>" : "") +
-        "<p class=\"creator-note\">" + escape(activity.why || "") + "</p></div>" +
-        actions([
-          "<button type=\"button\" class=\"creator-quiet\" data-edit=\"" + index + "\">Edit</button>",
-          "<button type=\"button\" class=\"creator-quiet\" data-dup=\"" + index + "\">Duplicate</button>",
-          "<button type=\"button\" class=\"creator-quiet\" data-up=\"" + index + "\">Move up</button>",
-          "<button type=\"button\" class=\"creator-quiet\" data-down=\"" + index + "\">Move down</button>",
-          "<button type=\"button\" class=\"creator-quiet\" data-remove=\"" + index + "\">Remove</button>"
-        ]) + (editing === index ? editForm(activity, index) : "") + "</article>";
+        "<div class=\"creator-more\">" +
+        "<button type=\"button\" class=\"creator-quiet\" data-edit=\"" + index + "\">Edit</button>" +
+        "<button type=\"button\" class=\"creator-quiet\" data-more=\"" + index + "\" aria-haspopup=\"menu\" aria-label=\"More actions\" aria-expanded=\"" + (openMore === index ? "true" : "false") + "\" aria-controls=\"" + moreId + "\">More</button>" +
+        "<div class=\"creator-menu\" id=\"" + moreId + "\" role=\"menu\"" + (openMore === index ? "" : " hidden") + ">" +
+        "<button type=\"button\" role=\"menuitem\" data-dup=\"" + index + "\">Duplicate</button>" + moves + remove +
+        "</div></div></div>" +
+        (editing === index ? editForm(activity, index) : "") + "</article>";
     }).join("");
     var picker = adding ? "<div class=\"creator-paths\">" + Core.capabilities(Mechanics).map(function (item) {
       return "<button type=\"button\" class=\"creator-path\" data-add=\"" + item.id + "\"><strong>" + escape(item.name) + "</strong><span>" + escape(item.description) + "</span></button>";
@@ -331,11 +346,7 @@
       var prev = index ? draft.activities[index - 1] : null;
       var follow = activity.mechanic === "spin" ? "<p>Chooses who goes next.</p>" : "";
       if (prev && prev.mechanic === "spin" && (part === "selected_pupil" || part === "spin")) follow = "<p>The selected pupil answers.</p>";
-      var detail = activity.mechanic === "quiz"
-        ? ((activity.config && activity.config.prompt) || "Question not written yet")
-        : activity.mechanic === "word_search"
-          ? (((activity.config && activity.config.words) || []).length + " lesson words")
-          : (activity.purpose || activity.title || "");
+      var detail = experienceLine(activity);
       return "<article class=\"creator-activity\"><p class=\"creator-note\">" + (index + 1) + "</p><div><strong>" + escape(activity.title || activity.mechanic) + "</strong>" +
         "<p>" + escape(detail) + "</p>" + follow +
         "<p>Participation: " + escape(Core.participationLabel(part)) + "</p>" +
@@ -347,9 +358,13 @@
       "<p>" + escape(room ? room.name : "No class") + " · " + (room ? room.pupils.length + " pupils" : "No pupils") + "</p>" +
       "<p>About " + (draft.minutes || 0) + " minutes · " + escape(mode.title) + "</p>" +
       "<div class=\"creator-plan\">" + cards + "</div>" +
-      (problems.length ? "<p class=\"creator-warn\">" + escape(problems[0]) + "</p>" : "") +
+      (problems.length ? "<p class=\"creator-warn\" role=\"status\">We couldn't finish one of the activities. Try again, edit the lesson, or remove the activity that is not ready.</p>" : "") +
       "<label class=\"creator-field\">Teacher notes<textarea id=\"notes\">" + escape(draft.notes || "") + "</textarea></label>" +
-      actions([
+      actions(problems.length ? [
+        "<button type=\"button\" class=\"creator-go\" id=\"rebuild\">Try again</button>",
+        "<button type=\"button\" class=\"creator-quiet\" data-go=\"source\">Edit lesson</button>",
+        "<button type=\"button\" class=\"creator-quiet\" data-go=\"activities\">Edit plan</button>"
+      ] : [
         "<button type=\"button\" class=\"creator-go\" id=\"startNow\">Start now</button>",
         "<button type=\"button\" class=\"creator-quiet\" id=\"saveLibrary\">Save to library</button>",
         "<button type=\"button\" class=\"creator-quiet\" data-go=\"activities\">Edit plan</button>"
@@ -533,28 +548,28 @@
   function beginBuild() {
     readSourceFields();
     buildAt = 0;
+    draft.generationError = "";
+    notice = "";
     paint();
-    var jobs = [
-      function () {
-        var analysis = Core.analyseSource(draft.source.text || ((draft.goals || [])[0] || draft.topic || ""));
-        if (analysis.ok) Core.applyAnalysis(draft, analysis);
-      },
-      function () { draft.vocabulary = draft.vocabulary || []; },
-      function () { Core.recommend(draft); draft.stale = false; },
-      function () { notice = Core.issues(draft, Mechanics)[0] || ""; }
-    ];
-    function tick() {
-      if (buildAt >= jobs.length) {
-        buildAt = -1;
-        go("activities");
+    setTimeout(function () {
+      var analysis = Core.analyseSource(draft.source.text || ((draft.goals || [])[0] || draft.topic || ""));
+      if (analysis.ok) Core.applyAnalysis(draft, analysis);
+      draft.vocabulary = draft.vocabulary || [];
+      Core.recommend(draft);
+      draft.stale = false;
+      buildAt = -1;
+      var problems = Core.validateAdventure(draft, Mechanics);
+      if (problems.length) {
+        draft.activities = [];
+        draft.minutes = 0;
+        draft.generationError = "incomplete";
+        notice = "";
+        step = "play";
+        paint();
         return;
       }
-      jobs[buildAt]();
-      buildAt += 1;
-      paint();
-      setTimeout(tick, 30);
-    }
-    setTimeout(tick, 30);
+      go("activities");
+    }, 400);
   }
 
   function bind() {
@@ -737,13 +752,36 @@
       button.addEventListener("click", function () { Core.duplicateActivity(draft, Number(button.getAttribute("data-dup"))); mark(); });
     });
     root.querySelectorAll("[data-remove]").forEach(function (button) {
-      button.addEventListener("click", function () { Core.removeActivity(draft, Number(button.getAttribute("data-remove"))); mark(); });
+      button.addEventListener("click", function () {
+        Core.removeActivity(draft, Number(button.getAttribute("data-remove")));
+        confirmRemove = -1;
+        openMore = -1;
+        mark();
+      });
+    });
+    root.querySelectorAll("[data-more]").forEach(function (button) {
+      button.addEventListener("click", function () {
+        var index = Number(button.getAttribute("data-more"));
+        openMore = openMore === index ? -1 : index;
+        confirmRemove = -1;
+        paint();
+        if (openMore === index) {
+          var item = document.querySelector("#activity-more-" + index + " [role='menuitem']");
+          if (item) item.focus();
+        }
+      });
     });
     root.querySelectorAll("[data-up]").forEach(function (button) {
-      button.addEventListener("click", function () { Core.moveActivity(draft, Number(button.getAttribute("data-up")), -1); mark(); });
+      button.addEventListener("click", function () { Core.moveActivity(draft, Number(button.getAttribute("data-up")), -1); openMore = -1; mark(); });
     });
     root.querySelectorAll("[data-down]").forEach(function (button) {
-      button.addEventListener("click", function () { Core.moveActivity(draft, Number(button.getAttribute("data-down")), 1); mark(); });
+      button.addEventListener("click", function () { Core.moveActivity(draft, Number(button.getAttribute("data-down")), 1); openMore = -1; mark(); });
+    });
+    root.querySelectorAll("[data-ask-remove]").forEach(function (button) {
+      button.addEventListener("click", function () { confirmRemove = Number(button.getAttribute("data-ask-remove")); paint(); });
+    });
+    root.querySelectorAll("[data-keep]").forEach(function (button) {
+      button.addEventListener("click", function () { confirmRemove = -1; paint(); });
     });
     var add = document.getElementById("addActivity");
     if (add) add.addEventListener("click", function () { adding = true; paint(); });
@@ -887,6 +925,15 @@
       applyEntryClass();
       step = "class";
     } else applyEntryClass();
+    document.addEventListener("keydown", function (event) {
+      if (event.key !== "Escape" || openMore < 0) return;
+      var back = openMore;
+      openMore = -1;
+      confirmRemove = -1;
+      paint();
+      var button = document.querySelector("[data-more='" + back + "']");
+      if (button) button.focus();
+    });
     window.addEventListener("beforeunload", function (event) {
       if (!dirty || draft.saved) return;
       event.preventDefault();

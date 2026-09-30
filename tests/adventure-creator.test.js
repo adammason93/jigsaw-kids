@@ -194,6 +194,85 @@ var names = started.state.participants.map(function (person) { return person.dis
 assert.ok(names.indexOf("Amelia") !== -1);
 assert.ok(names.indexOf("Noah") === -1);
 assert.strictEqual(year1.pupils.length, 4);
+var pizza = Core.blankDraft();
+pizza.source.text = "20 minute fractions recap using pizzas.";
+Core.setClass(pizza, year1);
+Core.applyAnalysis(pizza, Core.analyseSource(pizza.source.text));
+assert.strictEqual(pizza.year, "Year 1");
+assert.strictEqual(pizza.classId, year1.id);
+assert.strictEqual(pizza.targetMinutes, 20);
+Core.recommend(pizza);
+assert.strictEqual(pizza.generationError, "");
+assert.ok(pizza.minutes >= 16 && pizza.minutes <= 24);
+assert.ok(pizza.minutes !== pizza.targetMinutes || pizza.activities.length > 1);
+assert.strictEqual(Core.validateAdventure(pizza, Mechanics).length, 0);
+var pizzaBlob = JSON.stringify(pizza.activities).toLowerCase();
+["question not written yet", "this quiz needs a question", "question goes here", "add question", "tbc", "todo"].forEach(function (label) {
+  assert.strictEqual(pizzaBlob.indexOf(label), -1);
+});
+var pizzaQuizzes = pizza.activities.filter(function (item) { return item.mechanic === "quiz"; });
+assert.ok(pizzaQuizzes.length >= 2);
+pizzaQuizzes.forEach(function (item) {
+  assert.ok(String(item.config.prompt).length > 8);
+  assert.ok(item.config.choices.indexOf(item.config.correct) !== -1);
+  assert.ok(/half|quarter|pizza/i.test(item.config.prompt + " " + item.title));
+});
+var pizzaWords = pizza.activities.filter(function (item) { return item.mechanic === "word_search"; })[0];
+assert.ok(pizzaWords);
+assert.ok(pizzaWords.config.words.indexOf("HALF") !== -1);
+assert.strictEqual(pizza.classId, year1.id);
+
+var phonics = Core.blankDraft();
+phonics.source.text = "10 minute phonics recap on sh and ch.";
+Core.setClass(phonics, year1);
+Core.applyAnalysis(phonics, Core.analyseSource(phonics.source.text));
+assert.strictEqual(phonics.targetMinutes, 10);
+assert.strictEqual(phonics.topic, "Phonics");
+Core.recommend(phonics);
+assert.ok(phonics.minutes >= 8 && phonics.minutes <= 12);
+assert.strictEqual(Core.issues(phonics, Mechanics).length, 0);
+assert.ok(JSON.stringify(phonics.activities).toLowerCase().indexOf("pizza") === -1);
+assert.ok(/sh|ch/i.test(JSON.stringify(phonics.activities)));
+
+var waterRoom = room();
+waterRoom.yearLabel = "Year 3";
+waterRoom.name = "Year 3";
+var water = Core.blankDraft();
+water.source.text = "30 minute Year 3 lesson on the water cycle.";
+Core.setClass(water, waterRoom);
+Core.applyAnalysis(water, Core.analyseSource(water.source.text));
+assert.strictEqual(water.year, "Year 3");
+assert.strictEqual(water.targetMinutes, 30);
+Core.recommend(water);
+assert.ok(water.minutes >= 24 && water.minutes <= 36);
+assert.strictEqual(Core.issues(water, Mechanics).length, 0);
+assert.ok(/evaporation|condensation|precipitation|cloud/i.test(JSON.stringify(water.activities)));
+assert.notStrictEqual(water.activities[0].title, pizza.activities[0].title);
+
+var emptyQuiz = Core.quizFrom ? null : Core.blankDraft();
+emptyQuiz.activities = [{ mechanic: "quiz", title: "Quiz", minutes: 4, config: { kind: "multiple", prompt: "", choices: ["Yes", "No"], correct: "", points: 1 } }];
+assert.ok(Core.validateActivity(emptyQuiz.activities[0], Mechanics).ok === false);
+assert.ok(Core.validateAdventure(emptyQuiz, Mechanics).length > 0);
+emptyQuiz.activities[0].config.prompt = "Question not written yet";
+emptyQuiz.activities[0].config.correct = "Yes";
+assert.ok(Core.activityIssue(emptyQuiz.activities[0], Mechanics));
+
+var beforeMinutes = pizza.minutes;
+var firstId = pizza.activities[0].id;
+var firstPrompt = pizza.activities[0].config && pizza.activities[0].config.prompt;
+Core.moveActivity(pizza, 0, 1);
+assert.strictEqual(pizza.activities[1].id, firstId);
+if (firstPrompt) assert.strictEqual(pizza.activities[1].config.prompt, firstPrompt);
+var countBefore = pizza.activities.length;
+Core.duplicateActivity(pizza, 1);
+assert.strictEqual(pizza.activities.length, countBefore + 1);
+assert.notStrictEqual(pizza.activities[1].id, pizza.activities[2].id);
+assert.strictEqual(pizza.activities[2].config.prompt, pizza.activities[1].config.prompt);
+Core.removeActivity(pizza, 2);
+assert.strictEqual(pizza.activities.length, countBefore);
+assert.ok(pizza.minutes < beforeMinutes + pizza.activities[1].minutes);
+assert.strictEqual(pizza.targetMinutes, 20);
+
 var seen = {};
 started.state.participants.forEach(function (person) {
   if (person.identity !== "pupil") return;

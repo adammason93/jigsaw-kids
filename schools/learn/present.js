@@ -193,6 +193,7 @@
   var actions = {
     startBoard: function (spec) {
       if (!journey || !window.Classroom) return;
+      if (window.WondiiCreatorCore && WondiiCreatorCore.validateAdventure(journey, window.WondiiMechanicCore).length) return;
       var created = Rooms.createSession(journey, "board", false, {
         board: boardFrom(spec),
         classId: params.get("class") || journey.classId || null,
@@ -202,6 +203,7 @@
     },
     startJoin: function () {
       if (!journey) return;
+      if (window.WondiiCreatorCore && WondiiCreatorCore.validateAdventure(journey, window.WondiiMechanicCore).length) return;
       var created = Rooms.createSession(journey, "live", false, { classId: params.get("class") || journey.classId || null });
       goSession(created);
     },
