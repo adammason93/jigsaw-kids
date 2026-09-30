@@ -23,6 +23,11 @@
   var dirty = false;
   var returnStep = "";
 
+  function pupilCount(count) {
+    var n = Number(count) || 0;
+    return n + " pupil" + (n === 1 ? "" : "s");
+  }
+
   function escape(value) {
     return String(value == null ? "" : value).replace(/[&<>"]/g, function (ch) {
       return { "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;" }[ch];
@@ -177,11 +182,11 @@
   function classStep() {
     var room = roomById(draft.classId);
     var known = room
-      ? "<section class=\"creator-card creator-known\"><div><p class=\"creator-note\">For</p><h2>" + escape(room.name) + "</h2><p>" + (room.pupils || []).length + " pupils</p>" +
+      ? "<section class=\"creator-card creator-known\"><div><p class=\"creator-note\">For</p><h2>" + escape(room.name) + "</h2><p>" + pupilCount((room.pupils || []).length) + "</p>" +
         (draft.classYear ? "<p class=\"creator-note\">Class year " + escape(draft.classYear) + "</p>" : "") + "</div>" +
         "<button type=\"button\" class=\"creator-quiet\" id=\"changeClass\">Change</button></section>"
       : "<div class=\"creator-classes\">" + classes().map(function (item) {
-        return "<button type=\"button\" class=\"creator-class\" data-class=\"" + escape(item.id) + "\"><strong>" + escape(item.name) + "</strong><span>" + (item.pupils || []).length + " pupils</span></button>";
+        return "<button type=\"button\" class=\"creator-class\" data-class=\"" + escape(item.id) + "\"><strong>" + escape(item.name) + "</strong><span>" + pupilCount((item.pupils || []).length) + "</span></button>";
       }).join("") + "<button type=\"button\" class=\"creator-class\" data-class=\"\"><strong>No class yet</strong><span>Continue without a class, or create one.</span></button></div>" +
         (classes().length ? "" : "<p><a class=\"creator-go\" href=\"../../portal.html#classes\">Create a class</a></p>");
     var level = "<label class=\"creator-field\">Learning level<select id=\"level\">" + ["", "Year 1", "Year 2", "Year 3", "Year 4", "Year 5", "Year 6"].map(function (year) {
@@ -189,7 +194,7 @@
     }).join("") + "</select></label><p class=\"creator-note\">This is the lesson level. It does not change the class year.</p>";
     var here = room ? Core.takingPart(draft, room).length : 0;
     var total = room ? (room.pupils || []).length : 0;
-    var people = room ? "<p><strong>" + here + " of " + total + " pupils taking part</strong> <button type=\"button\" class=\"creator-text\" id=\"manage\">Manage</button></p>" + manager(room) : "";
+    var people = room ? "<p><strong>" + here + " of " + total + " " + (total === 1 ? "pupil" : "pupils") + " taking part</strong> <button type=\"button\" class=\"creator-text\" id=\"manage\">Manage</button></p>" + manager(room) : "";
     return progress() + "<h1>Who is it for?</h1>" + known + level + people +
       actions(["<button type=\"button\" class=\"creator-quiet\" data-go=\"source\">Back</button>", "<button type=\"button\" class=\"creator-go\" data-go=\"" + (draft.quick ? "quick" : "play") + "\">Continue</button>"]);
   }
@@ -253,7 +258,11 @@
   }
 
   function experienceLine(activity) {
-    if (activity.mechanic === "quiz") return (activity.config && activity.config.prompt) || "";
+    if (activity.mechanic === "quiz") {
+      var prompt = (activity.config && activity.config.prompt) || "";
+      var count = activity.config && activity.config.questions ? activity.config.questions.length : 0;
+      return count > 1 ? prompt + " · " + count + " questions" : prompt;
+    }
     if (activity.mechanic === "word_search") return (activity.config && activity.config.instruction) || "Find the words from this lesson.";
     if (activity.mechanic === "spin") return "Wondii chooses a pupil who is here today.";
     return ((activity.config && activity.config.lines) || [])[0] || activity.why || "";
@@ -355,7 +364,7 @@
     }).join("");
     return progress() + "<h1>" + escape(draft.title || "Review") + "</h1>" +
       "<p>" + escape(draft.subject || "Subject not set") + " · " + escape(draft.year || "Learning level not set") + "</p>" +
-      "<p>" + escape(room ? room.name : "No class") + " · " + (room ? room.pupils.length + " pupils" : "No pupils") + "</p>" +
+      "<p>" + escape(room ? room.name : "No class") + " · " + (room ? pupilCount(room.pupils.length) : "No pupils") + "</p>" +
       "<p>About " + (draft.minutes || 0) + " minutes · " + escape(mode.title) + "</p>" +
       "<div class=\"creator-plan\">" + cards + "</div>" +
       (problems.length ? "<p class=\"creator-warn\" role=\"status\">We couldn't finish one of the activities. Try again, edit the lesson, or remove the activity that is not ready.</p>" : "") +
@@ -529,6 +538,14 @@
         activity.config.participation = part.value;
         activity.config.askSelected = part.value === "selected_pupil";
       }
+      if (activity.config.questions && activity.config.questions.length) {
+        activity.config.questions[0].prompt = activity.config.prompt;
+        activity.config.questions[0].choices = activity.config.choices.slice();
+        activity.config.questions[0].correct = activity.config.correct;
+        activity.config.questions[0].kind = activity.config.kind;
+      }
+      activity.minutes = Math.max(2, (activity.config.questions || []).length || 1);
+      draft.minutes = draft.activities.reduce(function (total, item) { return total + (item.minutes || 0); }, 0);
     } else if (activity.mechanic === "spin") {
       activity.config.avoidRepeat = !!(document.getElementById("editRepeat") || {}).checked;
       activity.config.preferFresh = !!(document.getElementById("editFresh") || {}).checked;
@@ -851,6 +868,8 @@
         return;
       }
       clearLocal();
+      dirty = false;
+      draft.saved = true;
       location.href = "present.html?session=" + created.code + "&fresh=1" + (draft.classId ? "&class=" + encodeURIComponent(draft.classId) : "");
     });
     root.querySelectorAll("[data-copy]").forEach(function (button) {
@@ -885,12 +904,22 @@
           draft.playMode = keptMode;
         }
         if (dropped.length) notice = "This copy left out activities that cannot be played yet: " + dropped.join(", ") + ". The original adventure is unchanged.";
+        if (Core.validateAdventure(draft, Mechanics).length) notice = "This adventure needs a quick repair before the class can play it.";
         step = "activities";
       } else notice = "This adventure could not be opened on this account.";
     } else if (params.get("start")) {
       var existing = findAdventure(params.get("start"));
       if (!existing) notice = "This adventure could not be opened on this account.";
-      else if (!Core.isCurrent(existing)) {
+      else if (Core.needsRepair(existing)) {
+        draft = Core.fromAdventure(existing);
+        draft.id = existing.id;
+        draft.adaptedFrom = "";
+        draft.saved = false;
+        if (params.get("class")) Core.setClass(draft, roomById(params.get("class")));
+        else if (existing.classId) Core.setClass(draft, roomById(existing.classId));
+        notice = "This adventure needs a quick repair before the class can play it.";
+        step = "activities";
+      } else if (!Core.isCurrent(existing)) {
         notice = "This is an older adventure. Update it before it can be played. The original stays as it is.";
         step = "library";
       } else {

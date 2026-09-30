@@ -168,6 +168,7 @@
 
   function createSession(journey, mode, allowNames, options) {
     options = options || {};
+    if (global.WondiiCreatorCore && WondiiCreatorCore.adventurePlayable && !WondiiCreatorCore.adventurePlayable(journey)) return null;
     var meta = journeyMeta(journey);
     var slides = journey.plan && journey.plan.slides && journey.plan.slides.length
       ? JSON.parse(JSON.stringify(journey.plan.slides))

@@ -87,23 +87,31 @@
     return name;
   }
 
+  function pupilCountCopy(count) {
+    var n = Number(count) || 0;
+    if (n === 1) return "1 pupil today";
+    return n + " pupils today";
+  }
+
   function mountQuiz(host, ctx) {
     var bag = [];
-    var quiz = Core.normaliseQuiz(ctx.slide || {});
+    var saved = stored(ctx) || {};
+    var list = (ctx.slide && ctx.slide.questions && ctx.slide.questions.length) ? ctx.slide.questions : [(ctx.slide && ctx.slide.question) || {}];
+    var index = Math.max(0, Math.min(Number(saved.index) || 0, list.length - 1));
+    var quiz = Core.normaliseQuiz({ question: list[index], participation: ctx.slide && ctx.slide.participation });
     if (!quiz.ok) {
       if (ctx.actions && ctx.actions.fail) ctx.actions.fail();
       return { destroy: function () { bag.forEach(function (fn) { fn(); }); } };
     }
     var engine = engineOf(ctx);
-    var saved = stored(ctx) || {};
-    var revealed = !!(engine && engine.reveal);
+    var revealed = !!(saved.answers && saved.answers[String(index)]);
     var paused = !!ctx.paused || !Core.allowsInput(engine && engine.status);
     var selected = selectedOf(ctx);
     var part = (ctx.slide && ctx.slide.participation) || "";
     var named = selected && (selected.identity === "pupil" || selected.identity === "anonymous");
-    var who = (part === "selected_pupil" || part === "spin" || !part) && named
-      ? "<p class=\"lesson-kicker\">" + escape(selected.displayName) + "</p>" : "";
-    if ((part === "selected_pupil" || part === "spin") && !named) who = "<p class=\"lesson-kicker\">The selected pupil answers</p>";
+    var who = (part === "selected_pupil" || part === "spin") && named
+      ? "<p class=\"lesson-kicker\">" + escape(selected.displayName) + ", you're up!</p>" : "";
+    if ((part === "selected_pupil" || part === "spin") && !named) who = "<p class=\"lesson-kicker\">Spin chooses who answers.</p>";
     var teams = engine && engine.teams || [];
     var teamRow = "";
     if (part === "team_turn" && teams.length) {
@@ -121,13 +129,14 @@
     var againBtn = !paused && !revealed && saved.choice && saved.correct === false
       ? "<button type=\"button\" class=\"lesson-quiet\" id=\"lessonTry\">Try again</button>" : "";
     var explain = revealed && quiz.explain ? "<p class=\"lesson-cue\">" + escape(quiz.explain) + "</p>" : "";
-    host.innerHTML = "<div class=\"lesson-question\"><p class=\"lesson-kicker\">" + escape((ctx.slide && ctx.slide.kicker) || "Quiz") + "</p>" + who +
+    var counter = list.length > 1 ? "<p class=\"lesson-qcount\">Question " + (index + 1) + " of " + list.length + "</p>" : "";
+    host.innerHTML = "<div class=\"lesson-question\"><p class=\"lesson-kicker\">" + escape((ctx.slide && ctx.slide.kicker) || "Quiz") + "</p>" + counter + who +
       "<h2 class=\"lesson-prompt\">" + escape(quiz.prompt) + "</h2>" + teamRow + "<div class=\"lesson-choices\">" + choices + "</div>" + explain + againBtn + "</div>";
     Array.prototype.forEach.call(host.querySelectorAll("[data-choice]"), function (button) {
       listen(bag, button, "click", function () {
         if (paused || revealed) return;
         var choiceId = button.getAttribute("data-choice");
-        var outcome = Core.quizOutcome(ctx.slide, choiceId, {
+        var outcome = Core.quizOutcome({ question: list[index], participation: ctx.slide && ctx.slide.participation }, choiceId, {
           selected: selected,
           teams: engine && engine.teams,
           teamMode: engine && engine.teamMode,
@@ -141,31 +150,43 @@
           var called = teamCalled(engine && engine.teams, outcome.score.teamId);
           extra = called ? "+" + outcome.score.amount + " " + called + " team" : "+" + outcome.score.amount;
         }
+        var answers = saved.answers ? JSON.parse(JSON.stringify(saved.answers)) : {};
+        answers[String(index)] = { choice: choiceId, correct: outcome.correct };
         play(ctx, {
           roundId: ctx.roundId,
-          mechanicState: { kind: "quiz", choice: choiceId, correct: outcome.correct, activeTeamId: saved.activeTeamId || "" },
+          mechanicState: { kind: "quiz", index: index, answers: answers, choice: choiceId, correct: outcome.correct, activeTeamId: saved.activeTeamId || "" },
           emission: {
             response: outcome.response,
             score: outcome.score,
-            actionId: "quiz-" + ctx.roundId + "-" + choiceId + "-" + Date.now()
+            actionId: "quiz-" + ctx.roundId + "-q" + index + "-" + choiceId
           },
           reveal: outcome.correct,
           feedback: {
             kind: outcome.correct ? "yes" : "again",
-            text: outcome.correct ? "Great work!" : "Nearly! Let's have another look.",
-            extra: extra
+            text: outcome.correct ? "Brilliant!" : "Nearly!",
+            extra: quiz.explain || extra
           }
         });
       });
     });
     Array.prototype.forEach.call(host.querySelectorAll("[data-team]"), function (button) {
       listen(bag, button, "click", function () {
-        play(ctx, { roundId: ctx.roundId, mechanicState: { kind: "quiz", activeTeamId: button.getAttribute("data-team"), choice: saved.choice, correct: saved.correct } });
+        var next = JSON.parse(JSON.stringify(saved));
+        next.kind = "quiz";
+        next.index = index;
+        next.activeTeamId = button.getAttribute("data-team");
+        play(ctx, { roundId: ctx.roundId, mechanicState: next });
       });
     });
     var retry = host.querySelector("#lessonTry");
     listen(bag, retry, "click", function () {
-      play(ctx, { roundId: ctx.roundId, mechanicState: { kind: "quiz" }, clearFeedback: true });
+      var next = JSON.parse(JSON.stringify(saved));
+      next.kind = "quiz";
+      next.index = index;
+      if (next.answers) delete next.answers[String(index)];
+      next.choice = "";
+      next.correct = null;
+      play(ctx, { roundId: ctx.roundId, mechanicState: next, clearFeedback: true });
     });
     return { destroy: function () { bag.forEach(function (fn) { fn(); }); } };
   }
@@ -179,6 +200,30 @@
       "<p class=\"lesson-spin-name\">" + escape(person ? person.displayName : "") + "</p></div>";
   }
 
+  function wheelRotation(people, id, spins) {
+    var n = Math.max(people.length, 1);
+    var index = 0;
+    people.forEach(function (person, i) { if (person && person.id === id) index = i; });
+    var center = ((index + 0.5) / n) * 360;
+    return (spins || 0) * 360 - center;
+  }
+
+  function wheelHtml(people, rotation) {
+    var n = Math.max(people.length, 1);
+    var colors = ["#ffe08a", "#b7e4c7", "#a8d8ff", "#ffc2d1", "#d7c4f8", "#ffd6a5"];
+    var stops = [];
+    var labels = [];
+    var i;
+    for (i = 0; i < n; i++) {
+      var person = people[i] || { displayName: "" };
+      stops.push(colors[i % colors.length] + " " + ((i / n) * 100) + "% " + (((i + 1) / n) * 100) + "%");
+      var angle = ((i + 0.5) / n) * 360;
+      labels.push("<span class=\"lesson-wheel-label\" style=\"transform: rotate(" + angle + "deg) translateY(-132px)\"><b style=\"transform: rotate(" + (-angle) + "deg)\">" + escape(person.displayName || "") + "</b></span>");
+    }
+    return "<div class=\"lesson-wheel-stage\"><div class=\"lesson-wheel-pointer\" aria-hidden=\"true\"></div>" +
+      "<div class=\"lesson-wheel\" style=\"transform: rotate(" + rotation + "deg); background: conic-gradient(" + stops.join(", ") + ")\">" + labels.join("") + "</div></div>";
+  }
+
   function mountSpin(host, ctx) {
     var bag = [];
     var timer = 0;
@@ -186,31 +231,23 @@
     var people = Core.eligiblePeople(engine && engine.participants);
     var saved = stored(ctx) || { kind: "spin", order: [], cursor: 0, lastId: "", picked: [] };
     var selected = selectedOf(ctx);
-    if (selected && (selected.identity === "pupil" || selected.identity === "anonymous")) saved.lastId = selected.id;
-    var order = saved.order && saved.order.length ? saved.order : people.map(function (person) { return person.id; });
-    var focusId = selected && (selected.identity === "pupil" || selected.identity === "anonymous") ? selected.id : (saved.lastId || "");
-    var windowPeople = focusId ? Core.spinWindow(people, order, focusId) : people.slice(0, 5);
+    var already = selected && (selected.identity === "pupil" || selected.identity === "anonymous") ? selected.id : (saved.lastId || "");
     var paused = !!ctx.paused || !Core.allowsInput(engine && engine.status);
-    var strip = windowPeople.map(function (person) {
-      return faceHtml(person, ctx.portraits, person && person.id === focusId);
-    }).join("");
-    var count = people.length ? "<p class=\"lesson-copy\">" + people.length + " pupils today</p>" : "<p class=\"lesson-copy\">Add the class, then spin.</p>";
+    var shown = people.length ? people : [{ id: "", displayName: "Pupil" }];
+    var rotation = already ? wheelRotation(shown, already, 0) : 0;
+    var count = people.length ? "<p class=\"lesson-copy\">" + pupilCountCopy(people.length) + "</p>" : "<p class=\"lesson-copy\">Add the class, then spin.</p>";
+    var result = already ? "<p class=\"lesson-wheel-result\">" + escape((selected && selected.displayName) || "") + "</p>" : "";
+    var button = already ? "" : "<button type=\"button\" class=\"lesson-go lesson-go--stage\" id=\"lessonSpin\"" + (paused || !people.length ? " disabled" : "") + ">Spin</button>";
     host.innerHTML = "<div class=\"lesson-spin\"><p class=\"lesson-kicker\">" + escape((ctx.slide && ctx.slide.kicker) || "Spin a pupil") + "</p>" +
-      lines(ctx.slide) + count + "<div class=\"lesson-spin-strip\" aria-live=\"polite\">" + strip + "</div>" +
-      "<button type=\"button\" class=\"lesson-go lesson-go--stage\" id=\"lessonSpin\"" + (paused || !people.length ? " disabled" : "") + ">Spin</button></div>";
-    var button = host.querySelector("#lessonSpin");
-    listen(bag, button, "click", function () {
-      if (paused) return;
+      lines(ctx.slide) + count + wheelHtml(shown, rotation) + result + button + "</div>";
+    var spinButton = host.querySelector("#lessonSpin");
+    listen(bag, spinButton, "click", function () {
+      if (paused || already || spinButton.disabled) return;
+      spinButton.disabled = true;
       var plan = Core.spinNext(engine.participants, saved, (engine.sessionId || "spin") + ":" + ctx.roundId, ctx.slide || {});
       if (!plan.ok) return;
-      var landed = null;
-      people.forEach(function (person) { if (person.id === plan.id) landed = person; });
-      var stripNode = host.querySelector(".lesson-spin-strip");
-      if (stripNode) {
-        stripNode.innerHTML = Core.spinWindow(people, plan.state.order, plan.id).map(function (person) {
-          return faceHtml(person, ctx.portraits, person && person.id === plan.id);
-        }).join("");
-      }
+      var wheel = host.querySelector(".lesson-wheel");
+      var target = wheelRotation(people, plan.id, 4);
       function finish() {
         play(ctx, {
           roundId: ctx.roundId,
@@ -218,11 +255,15 @@
           emission: { participantId: plan.id, actionId: "spin-" + ctx.roundId + "-" + plan.state.cursor }
         });
       }
-      if (ctx.reduced) finish();
-      else {
-        host.classList.add("is-spinning");
-        timer = setTimeout(finish, 1400);
+      if (ctx.reduced) {
+        finish();
+        return;
       }
+      if (wheel && wheel.style) {
+        wheel.style.transition = "transform 3.2s cubic-bezier(.12,.72,.08,1)";
+        wheel.style.transform = "rotate(" + target + "deg)";
+      }
+      timer = setTimeout(finish, 3300);
     });
     return {
       destroy: function () {
@@ -437,5 +478,5 @@
     return { mode: "story", html: story(slide || {}) };
   }
 
-  return { render: render, mount: mount, destroy: destroyCurrent };
+  return { render: render, mount: mount, destroy: destroyCurrent, pupilsToday: pupilCountCopy };
 });

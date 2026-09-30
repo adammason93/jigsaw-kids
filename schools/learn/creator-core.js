@@ -106,6 +106,8 @@
     if (/water cycle|evaporation|condensation/.test(lower)) return "Water cycle";
     if (/phonics|\bsh\b|\bch\b/.test(lower)) return "Phonics";
     if (/magnet/.test(lower)) return "Magnets";
+    var times = lower.match(/\b(\d{1,2})\s*times tables?\b/);
+    if (times && Number(times[1]) >= 2 && Number(times[1]) <= 12) return times[1] + " times table";
     var line = String(text || "").split(/\n/).map(function (part) { return part.trim(); }).filter(Boolean)[0] || "";
     if (line.length > 48) return "";
     return line.replace(/[.?!]$/, "");
@@ -371,13 +373,100 @@
     return { low: Math.max(5, target - tol), high: target + tol };
   }
 
-  function titledQuiz(title, prompt, choices, correct, why) {
-    var activity = quizFrom(prompt, choices, correct, 1);
+  function questionSpec(prompt, choices, correct, explain, kind) {
+    return {
+      prompt: prompt,
+      choices: choices,
+      correct: correct,
+      explain: explain || "",
+      kind: kind || "multiple"
+    };
+  }
+
+  function numericChoices(answer, step) {
+    var correct = String(answer);
+    var seen = {};
+    var rest = [];
+    [step, -step, step * 2, -step * 2, 1, -1, step * 3, 2, -2].forEach(function (delta) {
+      var n = answer + delta;
+      if (n <= 0 || seen[n] || String(n) === correct) return;
+      seen[n] = 1;
+      rest.push(String(n));
+    });
+    return [rest[0], correct, rest[1], rest[2]].filter(Boolean);
+  }
+
+  function timesQuestions(factor, year) {
+    var max = year <= 2 ? 5 : 12;
+    var list = [];
+    var n;
+    for (n = 1; n <= max; n++) {
+      var product = factor * n;
+      list.push(questionSpec(
+        "What is " + factor + " × " + n + "?",
+        numericChoices(product, factor),
+        String(product),
+        factor + " × " + n + " = " + product
+      ));
+    }
+    if (year <= 4) {
+      var pieces = [];
+      var i;
+      for (i = 0; i < 3; i++) pieces.push(String(factor));
+      list.push(questionSpec(
+        "What is " + pieces.join(" + ") + "?",
+        numericChoices(factor * 3, factor),
+        String(factor * 3),
+        pieces.join(" + ") + " = " + (factor * 3)
+      ));
+    }
+    list.push(questionSpec(
+      factor + " bags contain " + factor + " apples each. How many apples altogether?",
+      numericChoices(factor * factor, factor),
+      String(factor * factor),
+      factor + " groups of " + factor + " make " + (factor * factor) + "."
+    ));
+    list.push(questionSpec(
+      "Which number is missing? " + factor + ", " + (factor * 2) + ", " + (factor * 3) + ", __, " + (factor * 5),
+      numericChoices(factor * 4, factor),
+      String(factor * 4),
+      "The missing number is " + (factor * 4) + "."
+    ));
+    list.push(questionSpec(
+      "Which multiplication gives " + (factor * 6) + "?",
+      [factor + " × 6", factor + " × 4", (factor + 1) + " × 6", factor + " × 8"],
+      factor + " × 6",
+      factor + " × 6 = " + (factor * 6)
+    ));
+    if (year >= 3) {
+      var left = factor + 3;
+      list.push(questionSpec(
+        "True or false: " + left + " × " + factor + " = " + (left * factor),
+        ["True", "False"],
+        "true",
+        left + " × " + factor + " = " + (left * factor),
+        "boolean"
+      ));
+    }
+    return list;
+  }
+
+  function makeQuiz(title, specs, why, participation) {
+    var first = specs[0];
+    var activity = quizFrom(first.prompt, first.choices, first.correct, 1);
     activity.title = title;
-    activity.minutes = 4;
-    activity.why = why || prompt;
-    activity.config.participation = "whole_class";
+    activity.why = why || first.explain || first.prompt;
+    activity.config.kind = first.kind === "boolean" ? "boolean" : "multiple";
+    activity.config.questions = specs;
+    activity.config.explain = first.explain || "";
+    activity.config.participation = participation || "whole_class";
+    activity.minutes = Math.max(2, specs.length);
     return activity;
+  }
+
+  function storyMinutes(lines) {
+    var words = lines.join(" ").split(/\s+/).filter(Boolean).length;
+    return Math.max(2, Math.min(4, Math.round(words / 18) || 2));
   }
 
   function spinActivity() {
@@ -437,11 +526,16 @@
         if (extra.length >= 3 && extra.length <= 14 && words.indexOf(extra) === -1) words.push(extra);
       }
       story = ["Today we are learning about fractions.", "We will look at halves and quarters" + (thing === "shape" ? "." : " of a " + thing + ".")];
-      questions.push(titledQuiz("Fair shares", "A " + thing + " is shared fairly between 2 people. What does each person get?", ["A half", "The whole " + thing, "Nothing", "Three pieces"], "A half", "The class names a half when something is shared between two."));
-      questions.push(titledQuiz("Four equal pieces", "A " + thing + " is cut into 4 equal pieces. What is one piece called?", ["A quarter", "A half", "A whole", "A pair"], "A quarter", "The class names one piece of four as a quarter."));
-      questions.push(titledQuiz("Which is more?", "Which is more of the " + thing + "?", ["A half", "A quarter", "None of it", "Two wholes"], "A half", "The class compares a half and a quarter."));
+      questions.push(questionSpec("A " + thing + " is shared fairly between 2 people. What does each person get?", ["A half", "The whole " + thing, "Nothing", "Three pieces"], "A half", "Each person gets a half."));
+      questions.push(questionSpec("A " + thing + " is cut into 4 equal pieces. What is one piece called?", ["A quarter", "A half", "A whole", "A pair"], "A quarter", "One of four equal pieces is a quarter."));
+      questions.push(questionSpec("Which is more of the " + thing + "?", ["A half", "A quarter", "None of it", "Two wholes"], "A half", "A half is more than a quarter."));
+      questions.push(questionSpec("A " + thing + " is shared fairly between 4 people. What does each person get?", ["A quarter", "A half", "A whole", "Nothing"], "A quarter", "Each person gets a quarter."));
+      questions.push(questionSpec("How many halves make a whole " + thing + "?", ["2", "4", "1", "3"], "2", "Two halves make one whole."));
+      questions.push(questionSpec("How many quarters make a whole " + thing + "?", ["4", "2", "3", "1"], "4", "Four quarters make one whole."));
+      questions.push(questionSpec("Which of these is one quarter?", ["1 of 4 equal pieces", "1 of 2 equal pieces", "The whole " + thing, "3 pieces that are not equal"], "1 of 4 equal pieces", "A quarter is 1 of 4 equal pieces."));
+      questions.push(questionSpec("Two halves of a " + thing + " make...", ["A whole " + thing, "A quarter", "Nothing", "Three wholes"], "A whole " + thing, "Two halves make one whole."));
       if (!early) {
-        questions.push(titledQuiz("Two quarters", "Two quarters of a " + thing + " make...", ["A half", "A whole", "Nothing", "Three wholes"], "A half", "The class sees that two quarters make a half."));
+        questions.push(questionSpec("Two quarters of a " + thing + " make...", ["A half", "A whole", "Nothing", "Three wholes"], "A half", "Two quarters make a half."));
       }
       mystery = ["A half is bigger than a quarter."];
     } else if (topic === "Phonics") {
@@ -460,63 +554,121 @@
       story = ["Today we are listening for " + sounds.join(" and ") + ".", "The class will spot those sounds in words."];
       sounds.slice(0, 3).forEach(function (sound) {
         var bank = banks[sound] || ["SHIP"];
-        questions.push(titledQuiz(sound.toUpperCase() + " words", "Which word uses the sound " + sound + "?", [bank[0], "DOG", "LEG", "SUN"], bank[0], "The class finds a word with " + sound + "."));
+        questions.push(questionSpec("Which word uses the sound " + sound + "?", [bank[0], "DOG", "LEG", "SUN"], bank[0], bank[0] + " uses the sound " + sound + "."));
+        if (bank[1]) questions.push(questionSpec("Which other word uses the sound " + sound + "?", [bank[1], "MAP", "CUP", "RED"], bank[1], bank[1] + " uses the sound " + sound + "."));
       });
       if (sounds.length >= 2) {
-        questions.push(titledQuiz("Spot the sound", "Which word uses " + sounds[1] + ", not " + sounds[0] + "?", [(banks[sounds[1]] || ["CHAT"])[0], (banks[sounds[0]] || ["SHIP"])[0], "MAT", "PEN"], (banks[sounds[1]] || ["CHAT"])[0], "The class tells " + sounds[0] + " and " + sounds[1] + " apart."));
+        questions.push(questionSpec("Which word uses " + sounds[1] + ", not " + sounds[0] + "?", [(banks[sounds[1]] || ["CHAT"])[0], (banks[sounds[0]] || ["SHIP"])[0], "MAT", "PEN"], (banks[sounds[1]] || ["CHAT"])[0], "That word uses " + sounds[1] + "."));
       }
       mystery = ["Listen for the sound at the start of the word."];
     } else if (topic === "Water cycle") {
       words = ["EVAPORATION", "CONDENSATION", "RAIN", "CLOUD", "WATER", "COLLECT"];
       story = ["Water moves from puddles to clouds and back again.", "That journey is called the water cycle."];
-      questions.push(titledQuiz("Puddle to air", "Water rising from a puddle into the air is called...", ["Evaporation", "Freezing", "Digging", "Melting"], "Evaporation", "The class names evaporation."));
-      questions.push(titledQuiz("Making a cloud", "Water droplets gathering to make a cloud is called...", ["Condensation", "Evaporation", "Boiling", "Digging"], "Condensation", "The class names condensation."));
-      questions.push(titledQuiz("Rain falling", "Water falling from a cloud is called...", ["Precipitation", "Evaporation", "Collection", "Melting"], "Precipitation", "The class names rain falling as precipitation."));
-      if (ctx.yearNumber >= 3) questions.push(titledQuiz("Back to the river", "Water flowing back into rivers and the sea is called...", ["Collection", "Evaporation", "Freezing", "Digging"], "Collection", "The class names the return of water as collection."));
+      questions.push(questionSpec("Water rising from a puddle into the air is called...", ["Evaporation", "Freezing", "Digging", "Melting"], "Evaporation", "That change is called evaporation."));
+      questions.push(questionSpec("Water droplets gathering to make a cloud is called...", ["Condensation", "Evaporation", "Boiling", "Digging"], "Condensation", "That change is called condensation."));
+      questions.push(questionSpec("Water falling from a cloud is called...", ["Precipitation", "Evaporation", "Collection", "Melting"], "Precipitation", "Rain falling is precipitation."));
+      questions.push(questionSpec("What heats the water in a puddle?", ["The sun", "The moon", "A pencil", "A book"], "The sun", "The sun warms the water."));
+      questions.push(questionSpec("Clouds are made of...", ["Tiny water droplets", "Dry sand", "Rocks", "Leaves"], "Tiny water droplets", "Clouds are made of tiny water droplets."));
+      questions.push(questionSpec("The water cycle can...", ["Happen again and again", "Happen only once", "Stop the rain forever", "Remove all water"], "Happen again and again", "The same water can move around again."));
+      questions.push(questionSpec("A puddle drying up in the sun is...", ["Evaporation", "Collection", "Freezing", "Digging"], "Evaporation", "The water rises as evaporation."));
+      questions.push(questionSpec("Rain, snow and hail are all...", ["Precipitation", "Evaporation", "Condensation", "Collection"], "Precipitation", "Water falling from clouds is precipitation."));
+      if (ctx.yearNumber >= 3) {
+        questions.push(questionSpec("Water flowing back into rivers and the sea is called...", ["Collection", "Evaporation", "Freezing", "Digging"], "Collection", "Water returning is collection."));
+        questions.push(questionSpec("Which comes first when a puddle warms up?", ["Evaporation", "Collection", "A river", "Digging"], "Evaporation", "Warm water evaporates first."));
+        questions.push(questionSpec("True or false: clouds are made from water.", ["True", "False"], "true", "Clouds are made from water.", "boolean"));
+        questions.push(questionSpec("Water vapour cooling into droplets is...", ["Condensation", "Evaporation", "Digging", "Melting a rock"], "Condensation", "Cooling vapour makes condensation."));
+        questions.push(questionSpec("Where does collected water often end up?", ["Rivers and the sea", "Inside a pencil", "On the moon", "In a book"], "Rivers and the sea", "Collected water flows to rivers and the sea."));
+        questions.push(questionSpec("What drives the water cycle?", ["The sun", "A ruler", "A chair", "A sock"], "The sun", "The sun gives the water cycle its energy."));
+        questions.push(questionSpec("Snow falling from a cloud is a kind of...", ["Precipitation", "Evaporation", "Collection", "Digging"], "Precipitation", "Snow falling is precipitation."));
+        questions.push(questionSpec("After it rains, water in rivers is part of...", ["Collection", "Evaporation only", "A times table", "A magnet"], "Collection", "Rivers collecting water is collection."));
+      }
       mystery = ["The same water can rise, make a cloud, and fall again."];
     } else if (topic === "Electricity" || (ctx.vocabulary || []).length >= 3) {
       words = (ctx.vocabulary || []).slice(0, 8);
       if (words.length < 3) words = ["CIRCUIT", "BATTERY", "SWITCH", "BULB"];
       var shown = words.slice(0, 4).map(function (word) { return word.charAt(0) + word.slice(1).toLowerCase(); });
       story = ["Today the class is learning about " + topic + ".", "The important words include " + shown.slice(0, 3).join(", ") + "."];
-      questions.push(titledQuiz("Lesson words", "Which word belongs with " + topic + "?", [shown[0], "Pillow", "Sandwich", "Sock"], shown[0], "The class picks a word from the lesson."));
-      if (shown[1]) questions.push(titledQuiz("Another lesson word", "Which of these is also from " + topic + "?", [shown[1], "Pillow", "Sandwich", "Sock"], shown[1], "The class finds another lesson word."));
-      if ((ctx.goals || [])[0]) questions.push(titledQuiz("Learning goal", ctx.goals[0] + " True or false?", ["True", "False"], "True", "The class checks the learning goal."));
+      questions.push(questionSpec("Which word belongs with " + topic + "?", [shown[0], "Pillow", "Sandwich", "Sock"], shown[0], shown[0] + " belongs with " + topic + "."));
+      if (shown[1]) questions.push(questionSpec("Which of these is also from " + topic + "?", [shown[1], "Pillow", "Sandwich", "Sock"], shown[1], shown[1] + " is from " + topic + "."));
+      if (shown[2]) questions.push(questionSpec("Which word is from today's " + topic + " lesson?", [shown[2], "Pillow", "Sandwich", "Sock"], shown[2], shown[2] + " is from the lesson."));
+      if ((ctx.goals || [])[0]) questions.push(questionSpec(ctx.goals[0] + " True or false?", ["True", "False"], "true", ctx.goals[0], "boolean"));
       mystery = ["A complete path is needed before a bulb can light."];
     } else {
-      story = ["Today the class is learning about " + topic + "."];
-      questions.push(titledQuiz("What are we learning?", "What is this lesson about?", [topic, "Playtime", "Home time", "The register"], topic, "The class says what the lesson is about."));
-      mystery = ["Keep the main idea from today's lesson."];
+      var timesMatch = String(topic).match(/^(\d{1,2}) times table$/);
+      if (timesMatch) {
+        var factor = Number(timesMatch[1]);
+        story = [
+          "The " + factor + " times table is groups of " + factor + ".",
+          factor + " groups of 3 means " + factor + " + " + factor + " + " + factor + ", which equals " + (factor * 3) + "."
+        ];
+        questions = timesQuestions(factor, ctx.yearNumber);
+        mystery = ["Groups of " + factor + " help the class remember the " + factor + " times table."];
+      } else {
+        story = ["Today the class is learning about " + topic + "."];
+        questions.push(questionSpec("What is this lesson about?", [topic, "Playtime", "Home time", "The register"], topic, "This lesson is about " + topic + "."));
+        questions.push(questionSpec("Which idea belongs with " + topic + "?", [topic, "Playtime", "Home time", "The register"], topic, topic + " is the lesson idea."));
+        mystery = ["Keep the main idea from today's lesson."];
+      }
     }
-    return { questions: questions, words: words, story: story, mystery: mystery, title: topic + " recap" };
+    return {
+      questions: questions,
+      words: words,
+      story: story,
+      mystery: mystery,
+      title: topic + " recap",
+      quizTitle: topic + " challenge",
+      followTitle: "Your turn"
+    };
   }
 
   function packActivities(ctx, bank) {
     var band = durationBand(ctx.targetMinutes);
     var activities = [];
     var sum = 0;
-    var quizzes = bank.questions.slice();
+    var specs = (bank.questions || []).slice();
     function add(activity) {
-      if (sum + activity.minutes > band.high) return false;
+      if (!activity || sum + activity.minutes > band.high) return false;
       activities.push(activity);
       sum += activity.minutes;
       return true;
     }
-    function need() { return sum < band.low; }
-    if (ctx.targetMinutes >= 12 && bank.story.length) add(readingActivity("story", ctx.topic + " together", bank.story, 3));
-    if (quizzes.length) add(quizzes.shift());
-    if (bank.words.length >= 3) add(searchActivity("Find the words", bank.words, ctx.topic));
-    if (ctx.targetMinutes >= 8) add(spinActivity());
-    while (need() && quizzes.length) {
-      if (!add(quizzes.shift())) break;
+    function takeQuiz(title, count, participation) {
+      if (count < 1 || !specs.length) return false;
+      var batch = specs.splice(0, Math.min(count, specs.length));
+      return add(makeQuiz(title, batch, batch[0].explain, participation));
     }
-    if (need() && bank.mystery.length) add(readingActivity("mystery", "Remember this", bank.mystery, 2));
-    if (need()) add(readingActivity("doors", "Choose one", [
+    if (ctx.targetMinutes >= 12 && bank.story.length) {
+      add(readingActivity("story", ctx.topic + " together", bank.story, storyMinutes(bank.story)));
+    }
+    var wantSpin = ctx.targetMinutes >= 8;
+    var search = null;
+    if (bank.words.length >= 3) {
+      search = searchActivity("Find the words", bank.words, ctx.topic);
+      search.minutes = Math.min(6, Math.max(3, Math.round(bank.words.length * 0.8)));
+    }
+    var reserved = (wantSpin ? 1 : 0) + (search ? search.minutes : 0);
+    var quizRoom = Math.max(0, band.high - sum - reserved);
+    var aim = Math.min(quizRoom, Math.max(2, ctx.targetMinutes - sum - reserved));
+    var keep = wantSpin && specs.length > 3 ? 2 : 0;
+    var mainCount = Math.min(Math.max(0, specs.length - keep), Math.max(2, Math.round(aim * (wantSpin ? 0.6 : 1))));
+    if (mainCount < 1) mainCount = Math.min(specs.length, Math.max(aim, 1));
+    takeQuiz(bank.quizTitle || (ctx.topic + " challenge"), mainCount, "whole_class");
+    if (search) add(search);
+    if (wantSpin) add(spinActivity());
+    var followAim = Math.min(band.high - sum, Math.max(0, ctx.targetMinutes - sum));
+    if (followAim >= 2 && specs.length) {
+      takeQuiz(bank.followTitle || "Your turn", Math.min(specs.length, followAim), wantSpin ? "selected_pupil" : "whole_class");
+    }
+    while (sum < band.low && specs.length) {
+      if (!takeQuiz(ctx.topic + " practice", Math.min(specs.length, Math.max(2, band.high - sum)), "whole_class")) break;
+    }
+    if (sum < band.low && bank.mystery.length) add(readingActivity("mystery", "Remember this", bank.mystery, 2));
+    if (sum < band.low) add(readingActivity("doors", "Choose one", [
       "Look at the first idea from " + ctx.topic + ".",
       "Look at another idea from " + ctx.topic + ".",
       "Say the main idea in your own words."
     ], 2));
-    if (!activities.length || !activities.some(function (activity) { return activity.mechanic === "quiz" && activity.config.prompt; })) {
+    if (!activities.length || !activities.some(function (activity) { return activity.mechanic === "quiz" && activity.config && activity.config.prompt && !placeholderText(activity.config.prompt); })) {
       return { ok: false, activities: [], message: "We couldn't finish one of the activities." };
     }
     activities.forEach(function (activity) {
@@ -592,6 +744,59 @@
     return draft;
   }
 
+  function questionIssue(item) {
+    item = item || {};
+    if (placeholderText(item.prompt)) return "This quiz needs a question.";
+    var kind = item.kind === "boolean" ? "boolean" : "multiple";
+    if (kind === "boolean") {
+      if (String(item.correct) !== "true" && String(item.correct) !== "false") return "This quiz needs a correct answer.";
+      return "";
+    }
+    var choices = (item.choices || []).map(function (choice) { return String(choice || "").trim(); }).filter(Boolean);
+    if (choices.length < 2) return "Add at least two answers.";
+    if (choices.length > 6) return "Use up to six answers.";
+    if (!item.correct || choices.indexOf(String(item.correct)) === -1) return "This quiz needs a correct answer.";
+    return "";
+  }
+
+  function questionPlayable(item) {
+    return !questionIssue(item);
+  }
+
+  function slidesPlayable(slides) {
+    return (slides || []).every(function (slide) {
+      if (!slide || (slide.type !== "question" && slide.type !== "quiz")) return true;
+      var list = slide.questions && slide.questions.length ? slide.questions : [slide.question || {}];
+      return list.length > 0 && list.every(function (item) {
+        var choices = (item.choices || []).map(function (choice) {
+          return typeof choice === "string" ? choice : choice.text;
+        });
+        return questionPlayable({
+          prompt: item.prompt,
+          choices: choices,
+          correct: item.correct,
+          kind: item.kind
+        });
+      });
+    });
+  }
+
+  function adventurePlayable(journey) {
+    if (!journey) return false;
+    if (journey.demoElectricity) return true;
+    if (journey.plan && journey.plan.activities && journey.plan.activities.length && validateAdventure(journey).length) return false;
+    var slides = journey.plan && journey.plan.slides;
+    if (slides && slides.length) return slidesPlayable(slides);
+    return !!(journey.plan && journey.plan.activities && journey.plan.activities.length);
+  }
+
+  function needsRepair(item) {
+    if (!item || !item.plan) return false;
+    if (item.plan.activities && item.plan.activities.length) return validateAdventure(item).length > 0;
+    if (item.plan.slides && item.plan.slides.length) return !slidesPlayable(item.plan.slides);
+    return false;
+  }
+
   function placeholderText(value) {
     var text = String(value || "").trim().toLowerCase();
     if (!text) return true;
@@ -602,16 +807,14 @@
     if (!activity || !capability(activity.mechanic, registry)) return "This activity cannot be played.";
     if (activity.mechanic === "quiz") {
       var quiz = activity.config || {};
-      var kind = quiz.kind === "boolean" ? "boolean" : "multiple";
-      if (placeholderText(quiz.prompt)) return "This quiz needs a question.";
-      if (kind === "boolean") {
-        if (quiz.correct !== "true" && quiz.correct !== "false") return "This quiz needs a correct answer.";
-        return "";
+      var head = questionIssue({ prompt: quiz.prompt, choices: quiz.choices, correct: quiz.correct, kind: quiz.kind });
+      if (head) return head;
+      var extra = (quiz.questions || []).slice(1);
+      var q;
+      for (q = 0; q < extra.length; q++) {
+        var extraIssue = questionIssue(extra[q]);
+        if (extraIssue) return extraIssue;
       }
-      var choices = (quiz.choices || []).map(function (choice) { return String(choice || "").trim(); }).filter(Boolean);
-      if (choices.length < 2) return "Add at least two answers.";
-      if (choices.length > 6) return "Use up to six answers.";
-      if (!quiz.correct || choices.indexOf(quiz.correct) === -1) return "This quiz needs a correct answer.";
       return "";
     }
     if (activity.mechanic === "word_search") {
@@ -656,24 +859,37 @@
     return (draft.activities || []).map(function (activity) {
       if (activity.mechanic === "quiz") {
         var quiz = activity.config || {};
-        var boolean = quiz.kind === "boolean";
-        var choices = boolean
-          ? [{ id: "true", text: "True" }, { id: "false", text: "False" }]
-          : (quiz.choices || []).map(function (choice) { return String(choice || "").trim(); }).filter(Boolean);
+        var specs = (quiz.questions && quiz.questions.length) ? quiz.questions : [{
+          prompt: quiz.prompt,
+          choices: quiz.choices,
+          correct: quiz.correct,
+          kind: quiz.kind,
+          explain: quiz.explain || ""
+        }];
+        function slideQuestion(item, index) {
+          var boolean = item.kind === "boolean";
+          var choices = boolean
+            ? [{ id: "true", text: "True" }, { id: "false", text: "False" }]
+            : (item.choices || []).map(function (choice) { return String(choice || "").trim(); }).filter(Boolean);
+          return {
+            id: activity.id + "-q" + index,
+            kind: boolean ? "boolean" : "multiple",
+            prompt: item.prompt,
+            choices: choices,
+            correct: boolean ? item.correct : item.correct,
+            explain: item.explain || "",
+            points: quiz.points == null ? 1 : Number(quiz.points)
+          };
+        }
+        var questions = specs.map(slideQuestion);
         return {
           type: "question",
           kicker: activity.title || "Quiz",
           participation: quiz.participation || (quiz.askSelected ? "selected_pupil" : "whole_class"),
-          teacherCue: (quiz.participation === "selected_pupil" || quiz.askSelected) ? "Ask the pupil Wondii has chosen." : "Choose an answer, then reveal it to the class.",
-          lines: activity.why ? [] : [],
-          question: {
-            id: activity.id,
-            kind: boolean ? "boolean" : "multiple",
-            prompt: quiz.prompt,
-            choices: choices,
-            correct: boolean ? quiz.correct : quiz.correct,
-            points: quiz.points == null ? 1 : Number(quiz.points)
-          }
+          teacherCue: (quiz.participation === "selected_pupil" || quiz.askSelected) ? "Ask the pupil Wondii has chosen." : "Choose an answer, then move to the next question.",
+          lines: [],
+          questions: questions,
+          question: questions[0]
         };
       }
       if (activity.mechanic === "spin") {
@@ -691,7 +907,7 @@
         return {
           type: "word_search",
           participation: (activity.config && activity.config.participation) || "whole_class",
-          kicker: search.title || activity.title || "Word search",
+          kicker: activity.title || "Word search",
           teacherCue: activity.why || "",
           lines: [search.instruction || "Find the words."],
           words: (search.words || []).slice(),
@@ -701,7 +917,7 @@
       return {
         type: activity.mechanic,
         kicker: activity.title || "Activity",
-        teacherCue: activity.why || "",
+        teacherCue: "",
         lines: (activity.config && activity.config.lines) || [activity.title || ""]
       };
     });
@@ -846,7 +1062,8 @@
 
   function isCurrent(item) {
     if (!item || item.creator !== "v2" || !item.plan || !item.plan.activities) return false;
-    return unsupportedMechanics(item).length === 0;
+    if (unsupportedMechanics(item).length) return false;
+    return validateAdventure(item).length === 0;
   }
 
   function unsupportedMechanics(item) {
@@ -928,6 +1145,9 @@
     activityIssue: activityIssue,
     validateActivity: validateActivity,
     validateAdventure: validateAdventure,
+    slidesPlayable: slidesPlayable,
+    adventurePlayable: adventurePlayable,
+    needsRepair: needsRepair,
     generationContext: generationContext,
     issues: issues,
     slidesFor: slidesFor,

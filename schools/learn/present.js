@@ -145,6 +145,12 @@
       bindPreview();
       return;
     }
+    if (current && window.WondiiCreatorCore && WondiiCreatorCore.slidesPlayable && !WondiiCreatorCore.slidesPlayable(slidesNow(current))) {
+      var repairId = journeyId || current.journeyId || "";
+      var repairClass = params.get("class") || current.classId || "";
+      root.innerHTML = "<section class=\"class-sheet\"><h1>This adventure needs a quick repair</h1><p>The class cannot play this one yet. Open it in the creator and build it again.</p><p><a href=\"create.html?start=" + encodeURIComponent(repairId) + (repairClass ? "&class=" + encodeURIComponent(repairClass) : "") + "\">Back to the creator</a></p></section>";
+      return;
+    }
     if (!current && params.get("preview") !== "1" && params.get("example") !== "mechanics") {
       var backClass = params.get("class");
       root.innerHTML = "<section class=\"class-sheet\"><h1>Choose an adventure</h1><p>Start from a saved adventure so the class and activities stay together.</p><p><a href=\"create.html" + (backClass ? "?class=" + encodeURIComponent(backClass) : "") + "\">Create or start an adventure</a></p></section>";
@@ -335,6 +341,28 @@
       else Rooms.takePoints(sessionCode, teamId || null, 1, reason);
       paint();
     },
+    nextQuestion: function () {
+      var current = session();
+      if (!current || !current.engine) return;
+      var round = current.engine.rounds && current.engine.rounds[current.slide || 0];
+      if (!round) return;
+      var saved = window.WondiiSessionEngine && WondiiSessionEngine.readMechanicState
+        ? WondiiSessionEngine.readMechanicState(current.engine, round.id) || {}
+        : {};
+      Rooms.applyMechanic(current.code, {
+        roundId: round.id,
+        hide: true,
+        mechanicState: {
+          kind: "quiz",
+          index: (Number(saved.index) || 0) + 1,
+          answers: saved.answers || {},
+          activeTeamId: saved.activeTeamId || ""
+        },
+        clearFeedback: true
+      });
+      Shell.clearFeedback();
+      paint();
+    },
     play: function (packet) {
       var current = session();
       if (!current) return;
@@ -350,15 +378,10 @@
     fail: function () { Rooms.failRound(sessionCode); paint(); },
     replay: function () {
       var current = session();
-      var id = journeyId || (current && current.journeyId) || "";
-      var classId = params.get("class") || (current && current.classId) || "";
-      if (id) {
-        location.href = "create.html?start=" + encodeURIComponent(id) + (classId ? "&class=" + encodeURIComponent(classId) : "");
-        return;
-      }
       if (!current) return;
+      var classId = params.get("class") || current.classId || "";
       var created = Rooms.createSession({
-        id: "replay",
+        id: current.journeyId || journeyId || "replay",
         classId: classId,
         plan: { title: current.title, slides: current.slides || [] },
         learningMap: { yearGroup: current.yearGroup, subject: current.subject, topic: current.topic },

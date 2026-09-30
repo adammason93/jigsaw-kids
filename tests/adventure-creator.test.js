@@ -288,4 +288,92 @@ assert.strictEqual(session.engine.status, "active");
 assert.ok(session.engine.participants.some(function (person) { return person.displayName === "Amelia"; }));
 assert.ok(!session.engine.participants.some(function (person) { return person.displayName === "Noah"; }));
 
+var times = Core.blankDraft();
+times.source.text = "15 min maths lesson 4 times table adventure";
+Core.setClass(times, year1);
+Core.applyAnalysis(times, Core.analyseSource(times.source.text));
+assert.strictEqual(times.year, "Year 1");
+assert.strictEqual(times.targetMinutes, 15);
+assert.strictEqual(times.topic, "4 times table");
+assert.strictEqual(times.subject, "Maths");
+Core.recommend(times);
+assert.strictEqual(times.generationError, "");
+assert.strictEqual(times.targetMinutes, 15);
+assert.ok(times.minutes >= 12 && times.minutes <= 18);
+assert.strictEqual(Core.validateAdventure(times, Mechanics).length, 0);
+assert.ok(times.activities.length >= 3);
+var timesBlob = JSON.stringify(times.activities).toLowerCase();
+["question not written yet", "this quiz needs a question", "question goes here", "add question", "tbc", "todo"].forEach(function (label) {
+  assert.strictEqual(timesBlob.indexOf(label), -1);
+});
+var timesQuizzes = times.activities.filter(function (item) { return item.mechanic === "quiz"; });
+assert.ok(timesQuizzes.length >= 1);
+var questionTotal = 0;
+timesQuizzes.forEach(function (item) {
+  var list = item.config.questions || [];
+  assert.ok(list.length >= 1);
+  if (item.minutes >= 4) assert.ok(list.length >= 4);
+  list.forEach(function (question) {
+    questionTotal += 1;
+    assert.ok(String(question.prompt).length > 8);
+    assert.ok(question.choices.length >= 2);
+    if (question.kind === "boolean") assert.ok(question.correct === "true" || question.correct === "false");
+    else assert.ok(question.choices.indexOf(question.correct) !== -1);
+    assert.ok(!/this quiz needs a question/i.test(question.prompt));
+  });
+});
+assert.ok(questionTotal >= 4);
+var timesSpin = times.activities.filter(function (item) { return item.mechanic === "spin"; })[0];
+assert.ok(timesSpin);
+assert.strictEqual(timesSpin.config.pool, "included");
+assert.strictEqual(timesSpin.minutes, 1);
+var timesAdventure = Core.toAdventure(times, "org-a");
+assert.ok(Core.adventurePlayable(timesAdventure));
+assert.ok(Core.slidesPlayable(timesAdventure.plan.slides));
+var timesSession = global.ClassRooms.createSession(timesAdventure, "board", false, Core.sessionPlan(times, year1));
+assert.ok(timesSession);
+assert.notStrictEqual(timesSession.code, "");
+var again = global.ClassRooms.createSession(timesAdventure, "board", false, Core.sessionPlan(times, year1));
+assert.ok(again);
+assert.notStrictEqual(again.code, timesSession.code);
+
+var broken = Core.toAdventure(Core.blankDraft(), "org-a");
+broken.creator = "v2";
+broken.plan.activities = [{ mechanic: "quiz", title: "Quiz", minutes: 4, config: { kind: "multiple", prompt: "", choices: ["Yes", "No"], correct: "", points: 1 } }];
+broken.plan.slides = [{ type: "question", question: { prompt: "", choices: ["Yes", "No"], correct: "" } }];
+assert.ok(Core.needsRepair(broken));
+assert.strictEqual(Core.isCurrent(broken), false);
+assert.strictEqual(global.ClassRooms.createSession(broken, "board", false, {}), null);
+broken.plan.activities[0].config.prompt = "This quiz needs a question.";
+broken.plan.activities[0].config.correct = "Yes";
+assert.ok(Core.activityIssue(broken.plan.activities[0], Mechanics));
+assert.strictEqual(global.ClassRooms.createSession(broken, "board", false, {}), null);
+
+var MechanicsUi = require("../schools/learn/lesson-mechanics.js");
+assert.strictEqual(MechanicsUi.pupilsToday(0), "0 pupils today");
+assert.strictEqual(MechanicsUi.pupilsToday(1), "1 pupil today");
+assert.strictEqual(MechanicsUi.pupilsToday(2), "2 pupils today");
+
+var scored = Engine.createSession({
+  sessionCode: "SCORE1",
+  adventure: { id: "adv", title: "Score", rounds: [{ mechanic: "quiz", config: { type: "question" } }] }
+});
+assert.strictEqual(scored.ok, true);
+var liveScore = Engine.startSession(scored.state);
+assert.strictEqual(liveScore.ok, true);
+var firstAward = Engine.awardPoints(liveScore.state, null, 1, "quiz-q0", "quiz-round-q0-A");
+assert.strictEqual(firstAward.ok, true);
+assert.strictEqual(firstAward.state.rewardTotal, 1);
+var repeatAward = Engine.awardPoints(firstAward.state, null, 1, "quiz-q0", "quiz-round-q0-A");
+assert.strictEqual(repeatAward.changed, false);
+assert.strictEqual(repeatAward.state.rewardTotal, 1);
+var keptSpin = Engine.saveMechanicState(liveScore.state, "round-spin", { kind: "spin", lastId: "pupil-1", cursor: 1 });
+assert.strictEqual(keptSpin.ok, true);
+assert.strictEqual(Engine.readMechanicState(keptSpin.state, "round-spin").lastId, "pupil-1");
+
+var storeSrc = require("fs").readFileSync(require("path").join(__dirname, "../js/school-store.js"), "utf8");
+var unload = storeSrc.slice(storeSrc.indexOf("beforeunload"), storeSrc.indexOf("WondiiSchoolData"));
+assert.ok(unload.indexOf('syncState === "failed"') !== -1);
+assert.strictEqual(unload.indexOf("saving"), -1);
+
 console.log("adventure creator tests passed");

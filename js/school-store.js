@@ -450,7 +450,7 @@
   }
 
   global.addEventListener("beforeunload", function (event) {
-    if (syncState === "failed" || syncState === "saving") {
+    if (syncState === "failed") {
       event.preventDefault();
       event.returnValue = "";
     }

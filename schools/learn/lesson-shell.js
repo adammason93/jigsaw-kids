@@ -113,7 +113,7 @@
 
   function progressHtml(slides, index) {
     return "<ol class=\"lesson-progress\">" + (slides || []).map(function (slide, i) {
-      var name = activityName(slideMechanic(slide));
+      var name = (slide && slide.kicker) || activityName(slideMechanic(slide));
       var state = i < index ? "is-done" : i === index ? "is-now" : "";
       return "<li class=\"" + state + "\"><span>" + escape(name) + "</span></li>";
     }).join("") + "</ol>";
@@ -136,7 +136,7 @@
 
   function dockHtml(primary, menuOpen) {
     return "<footer class=\"lesson-dock\"><div class=\"lesson-dock-scores\" id=\"lessonScores\"></div><div class=\"lesson-dock-actions\">" +
-      "<button type=\"button\" class=\"lesson-go\" id=\"lessonPrimary\">" + escape(primary) + "</button>" +
+      (primary ? "<button type=\"button\" class=\"lesson-go\" id=\"lessonPrimary\">" + escape(primary) + "</button>" : "") +
       "<button type=\"button\" class=\"lesson-menu\" id=\"lessonMenu\" aria-expanded=\"" + (menuOpen ? "true" : "false") + "\">Teacher</button></div></footer>";
   }
 
@@ -246,13 +246,14 @@
       var lead = screen === "ended" ? "What you finished has been kept." : "The class finished this adventure.";
       html = shell(model, "<section class=\"lesson-finish\" id=\"lessonSummary\"><p class=\"lesson-kicker\">" + escape(model.title) + "</p><h2>" + title + "</h2><p class=\"lesson-copy\">" + lead + "</p>" +
         (teams || "<p class=\"lesson-score lesson-score--class\"><span>Class reward</span><strong>" + (result.classReward || 0) + "</strong></p>") +
-        "<p class=\"lesson-copy\">" + (result.roundsCompleted || 0) + " of " + (result.roundsTotal || slides.length) + " rounds. " + ((result.participation && result.participation.joined) || 0) + " taking part.</p>" +
+        "<p class=\"lesson-copy\">" + (result.roundsCompleted || 0) + " of " + (result.roundsTotal || slides.length) + " rounds. " + (((result.participation && result.participation.knownPupils) || 0) + ((result.participation && result.participation.anonymousJoiners) || 0)) + " taking part.</p>" +
         "<p class=\"lesson-copy\">" + ((result.responses && result.responses.correct) || 0) + " correct. " + ((result.responses && result.responses.incorrect) || 0) + " to look at again.</p></section>", slides, slides.length ? slides.length - 1 : 0, "", screen === "complete" ? "Complete" : "Ended");
       html = html.replace("</main>", "</main><div class=\"lesson-card-actions lesson-ready-go\"><a class=\"lesson-quiet\" href=\"" + escape(model.resultsHref || "#lessonSummary") + "\">View results</a><button type=\"button\" class=\"lesson-quiet\" data-act=\"replay\">Play again</button><a class=\"lesson-quiet\" href=\"" + escape(model.classHref || "../../portal.html#classes") + "\">Back to class</a><a class=\"lesson-go\" href=\"" + escape(model.homeHref || "../../portal.html") + "\">Home</a></div>");
     } else if (screen === "transition") {
       var nextSlide = slides[ui.transition] || {};
       var scoreLine = scoresHtml(view);
-      html = shell(model, "<section class=\"lesson-transition\"><p class=\"lesson-kicker\">Round " + (index + 1) + " complete</p>" + scoreLine + "<h2>Next up</h2><p class=\"lesson-prompt\">" + escape(activityName(slideMechanic(nextSlide))) + "</p></section>", slides, index, "Continue", "Between activities");
+      var nextTitle = nextSlide.kicker || activityName(slideMechanic(nextSlide));
+      html = shell(model, "<section class=\"lesson-transition\"><p class=\"lesson-kicker\">Round " + (index + 1) + " complete</p>" + scoreLine + "<h2>" + escape(nextTitle) + "</h2><p class=\"lesson-copy\">Next up</p></section>", slides, index, "Continue", "Between activities");
       primary = "Continue";
     } else {
       considerPupil(model, screen);
@@ -262,12 +263,13 @@
         setTimeout(function () { model.actions.fail(); }, 0);
       }
       var mechanic = slideMechanic(slide);
-      statusText = activityName(mechanic);
+      var progress = quizProgress(view, slide, index);
+      statusText = (slide && slide.kicker) || activityName(mechanic);
       if (screen === "paused") {
         statusText = "Paused";
         primary = "Resume";
-      } else if (view && view.reveal && model.pick && model.question && model.pick === model.question.correct) primary = "Next";
-      else if (mechanic === "quiz" && !(view && view.reveal)) primary = "Reveal";
+      } else if (mechanic === "quiz" && progress.answered && progress.index < progress.count - 1) primary = "Next question";
+      else if (mechanic === "quiz" && !progress.answered) primary = "";
       else if (index >= slides.length - 1) primary = "Finish";
       else primary = "Next";
       var inner = "<div class=\"lesson-play lesson-play--" + drawn.mode + "\">" + drawn.html + "</div>";
@@ -455,6 +457,16 @@
     if (model.actions.startBoard) model.actions.startBoard(rosterSpec(rootEl));
   }
 
+  function quizProgress(view, slide, index) {
+    var questions = slide && slide.questions && slide.questions.length ? slide.questions : (slide && slide.question ? [slide.question] : []);
+    var engine = view && view.engine;
+    var round = engine && engine.rounds ? engine.rounds[index] : null;
+    var saved = engine && round && engine.mechanicStore ? engine.mechanicStore[round.id] : null;
+    var qIndex = saved && saved.index ? Number(saved.index) : 0;
+    var answered = !!(saved && saved.answers && saved.answers[String(qIndex)]);
+    return { count: questions.length || 1, index: qIndex, answered: answered };
+  }
+
   function primary(model, slides, index) {
     var view = model.view;
     var slide = slides[index];
@@ -469,7 +481,13 @@
       if (model.actions.resume) model.actions.resume();
       return;
     }
-    if (mechanic === "quiz" && view && !view.reveal) {
+    var progress = quizProgress(view, slide, index);
+    if (mechanic === "quiz" && progress.answered && progress.index < progress.count - 1) {
+      if (model.actions.nextQuestion) model.actions.nextQuestion();
+      return;
+    }
+    if (mechanic === "quiz" && !progress.answered) return;
+    if (mechanic === "quiz" && view && !view.reveal && progress.count < 2) {
       if (model.actions.reveal) model.actions.reveal();
       return;
     }
