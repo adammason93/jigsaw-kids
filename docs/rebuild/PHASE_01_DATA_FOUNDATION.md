@@ -206,7 +206,7 @@ Not changed, and not treated as done:
 - Story image public read and story jobs without `user_id` remain later security work.
 - The signed-in teacher path was not clicked through in a browser.
 
-Implementation commit: recorded in the following documentation commit once the hash exists.
+Implementation commit: `c00dd90a2fca3cbacb8e56f172f0229c5d5829c7` on `wondii-restructure-2026-09-30`. Not pushed.
 
 ## Files
 
