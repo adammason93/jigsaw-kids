@@ -95,6 +95,7 @@
   }
 
   function persistAdventure() {
+    if (Core.brokenLesson(draft)) return Promise.resolve({ adventure: null, reason: "content" });
     if (!Learn || !Learn.upsertLibrary) return Promise.resolve({ adventure: null, reason: "save" });
     if (!classIsCurrent()) return Promise.resolve({ adventure: null, reason: "class" });
     var previousId = draft.id;
@@ -287,7 +288,12 @@
       return count > 1 ? prompt + " · " + count + " questions" : prompt;
     }
     if (activity.mechanic === "word_search") return (activity.config && activity.config.instruction) || "Find the words from this lesson.";
-    if (activity.mechanic === "spin") return "Wondii chooses a pupil who is here today.";
+    if (activity.mechanic === "spin") return (activity.config && activity.config.prompt) || "Wondii chooses a pupil who is here today.";
+    if (activity.mechanic === "doors") {
+      var door = activity.config || {};
+      var labels = (door.choices && door.choices.length ? door.choices : door.lines) || [];
+      return [door.prompt].concat(labels).filter(Boolean).join(" · ");
+    }
     return ((activity.config && activity.config.lines) || [])[0] || activity.why || "";
   }
 
@@ -348,8 +354,14 @@
       }
       fields += "<label class=\"creator-field\">Points<input id=\"editPoints\" type=\"number\" min=\"0\" max=\"5\" value=\"" + escape(config.points == null ? 1 : config.points) + "\" /></label>" + whoField(activity);
     } else if (activity.mechanic === "spin") {
-      fields += "<label><input id=\"editRepeat\" type=\"checkbox\"" + (config.avoidRepeat !== false ? " checked" : "") + " /> Avoid choosing the same pupil twice in a row</label>" +
+      fields += "<label class=\"creator-field\">What the pupil answers<input id=\"editPrompt\" value=\"" + escape((config.prompt) || "") + "\" /></label>" +
+        "<label><input id=\"editRepeat\" type=\"checkbox\"" + (config.avoidRepeat !== false ? " checked" : "") + " /> Avoid choosing the same pupil twice in a row</label>" +
         "<label><input id=\"editFresh\" type=\"checkbox\"" + (config.preferFresh !== false ? " checked" : "") + " /> Prefer pupils who have not had a turn</label>";
+    } else if (activity.mechanic === "doors") {
+      var doorLabels = (config.choices && config.choices.length ? config.choices : config.lines) || [];
+      fields += "<label class=\"creator-field\">Question<input id=\"editPrompt\" value=\"" + escape(config.prompt || "") + "\" /></label>" +
+        "<label class=\"creator-field\">Three choices, one on each line<textarea id=\"editLines\">" + escape(doorLabels.join("\n")) + "</textarea></label>" +
+        "<label class=\"creator-field\">What each choice reveals, one on each line<textarea id=\"editReveals\">" + escape((config.reveals || []).join("\n")) + "</textarea></label>";
     } else if (activity.mechanic === "word_search") {
       fields += "<label class=\"creator-field\">Instruction<input id=\"editInstruction\" value=\"" + escape(config.instruction || "") + "\" /></label>" +
         "<label class=\"creator-field\">Words, one on each line<textarea id=\"editWords\">" + escape((config.words || []).join("\n")) + "</textarea></label>" +
@@ -376,19 +388,39 @@
     var cards = (draft.activities || []).map(function (activity, index) {
       var part = Core.participationOf(activity);
       var prev = index ? draft.activities[index - 1] : null;
-      var follow = activity.mechanic === "spin" ? "<p>Chooses who goes next.</p>" : "";
+      var follow = "";
+      if (activity.mechanic === "spin" && !(activity.config && activity.config.prompt)) follow = "<p>The chosen pupil needs a question.</p>";
       if (prev && prev.mechanic === "spin" && (part === "selected_pupil" || part === "spin")) follow = "<p>The selected pupil answers.</p>";
       var detail = experienceLine(activity);
+      var purpose = activity.purpose && activity.purpose !== activity.mechanic ? activity.purpose : "";
       return "<article class=\"creator-activity\"><p class=\"creator-note\">" + (index + 1) + "</p><div><strong>" + escape(activity.title || activity.mechanic) + "</strong>" +
+        (purpose ? "<p>" + escape(purpose) + "</p>" : "") +
         "<p>" + escape(detail) + "</p>" + follow +
         "<p>Participation: " + escape(Core.participationLabel(part)) + "</p>" +
         "<p>Scoring: " + escape(Core.scoreCopy(activity, draft.playMode)) + "</p>" +
         "<button type=\"button\" class=\"creator-quiet\" data-edit=\"" + index + "\">Edit</button></div></article>";
     }).join("");
-    return progress() + "<h1>" + escape(draft.title || "Review") + "</h1>" +
-      "<p>" + escape(draft.subject || "Subject not set") + " · " + escape(draft.year || "Learning level not set") + "</p>" +
+    var objective = (draft.goals || [])[0] || "";
+    var knowledge = (draft.lessonPlan && draft.lessonPlan.keyKnowledge) || [];
+    var story = draft.storyPlan || {};
+    var beatNames = { beginning: "Arrival", goal: "The mission", development: "What happens", discovery: "Discovery", application: "Use the idea", resolution: "The way home", debrief: "What we discovered" };
+    var journey = (draft.activities || []).map(function (activity, index) {
+      var beat = activity.scene && beatNames[activity.scene.beat];
+      var role = activity.config && activity.config.role;
+      return "<li>" + escape((beat ? beat + " — " : "") + (activity.title || activity.mechanic || "Scene")) + (role ? " · " + escape(role) : "") + "</li>";
+    }).join("");
+    var ageLine = draft.year || "";
+    if (draft.yearAssumption) ageLine = draft.yearAssumption + " assumed, because no class year was set";
+    return progress() + "<h1>" + escape((story.title) || draft.title || "Review") + "</h1>" +
+      "<p>" + escape(draft.subject || "Subject not set") + " · " + escape(ageLine || "Learning level not set") + "</p>" +
+      (objective ? "<p><strong>Objective.</strong> " + escape(objective) + "</p>" : "") +
+      (story.mission ? "<p><strong>Mission.</strong> " + escape(story.mission) + "</p>" : "") +
+      (story.premise ? "<p>" + escape(story.premise) + "</p>" : "") +
+      (journey ? "<p><strong>Journey.</strong></p><ol class=\"creator-plan\">" + journey + "</ol>" : "") +
       "<p>" + escape(room ? room.name : "No class") + " · " + (room ? pupilCount(room.pupils.length) : "No pupils") + "</p>" +
       "<p>About " + (draft.minutes || 0) + " minutes · " + escape(mode.title) + "</p>" +
+      (knowledge.length ? "<p><strong>Key knowledge.</strong> " + escape(knowledge.join(" ")) + "</p>" : "") +
+      (globalThis.WondiiVisuals && WondiiVisuals.reviewHtml ? WondiiVisuals.reviewHtml(draft) : "") +
       "<div class=\"creator-plan\">" + cards + "</div>" +
       (problems.length ? "<p class=\"creator-warn\" role=\"status\">We couldn't finish one of the activities. Try again, edit the lesson, or remove the activity that is not ready.</p>" : "") +
       "<label class=\"creator-field\">Teacher notes<textarea id=\"notes\">" + escape(draft.notes || "") + "</textarea></label>" +
@@ -570,8 +602,16 @@
       activity.minutes = Math.max(2, (activity.config.questions || []).length || 1);
       draft.minutes = draft.activities.reduce(function (total, item) { return total + (item.minutes || 0); }, 0);
     } else if (activity.mechanic === "spin") {
+      activity.config.prompt = (document.getElementById("editPrompt") || {}).value || "";
       activity.config.avoidRepeat = !!(document.getElementById("editRepeat") || {}).checked;
       activity.config.preferFresh = !!(document.getElementById("editFresh") || {}).checked;
+      activity.why = activity.config.prompt || activity.why;
+    } else if (activity.mechanic === "doors") {
+      var labels = String((document.getElementById("editLines") || {}).value || "").split(/\n/).map(function (line) { return line.trim(); }).filter(Boolean).slice(0, 3);
+      activity.config.prompt = (document.getElementById("editPrompt") || {}).value || "";
+      activity.config.choices = labels;
+      activity.config.lines = labels.slice();
+      activity.config.reveals = String((document.getElementById("editReveals") || {}).value || "").split(/\n/).map(function (line) { return line.trim(); }).filter(Boolean).slice(0, 3);
     } else if (activity.mechanic === "word_search") {
       activity.config.instruction = (document.getElementById("editInstruction") || {}).value || "";
       activity.config.words = String((document.getElementById("editWords") || {}).value || "").split(/\n/).map(function (word) { return word.trim(); }).filter(Boolean);
@@ -593,18 +633,23 @@
     if (adventure.title) draft.title = adventure.title;
     if (adventure.objectives && adventure.objectives.length) draft.goals = adventure.objectives.slice();
     if (adventure.vocabulary && adventure.vocabulary.length) draft.vocabulary = adventure.vocabulary.slice();
+    draft.lessonPlan = adventure.lessonPlan || null;
+    draft.storyPlan = adventure.storyPlan || null;
+    draft.visualAssets = adventure.visualAssets || null;
+    draft.yearAssumption = adventure.yearAssumed ? (adventure.yearAssumption || "Year 3, about 7 to 8 years old") : "";
     draft.generation = adventure.meta || { fallbackUsed: false };
     draft.generationError = "";
   }
 
-  function useLibrary() {
+  function useLibrary(stage) {
     Core.recommend(draft);
+    var broken = Core.brokenLesson(draft);
     var problems = Core.validateAdventure(draft, Mechanics);
-    if (problems.length || !(draft.activities || []).length) {
+    if (broken || problems.length || !(draft.activities || []).length) {
       draft.activities = [];
       draft.minutes = 0;
       draft.generationError = "failed";
-      draft.generation = { fallbackUsed: true };
+      draft.generation = { fallbackUsed: true, stage: stage || "EDUCATIONAL_VALIDATION_FAILED" };
       notice = "";
       step = "play";
       return;
@@ -615,23 +660,107 @@
     step = "activities";
   }
 
+  function createWorld(token) {
+    var Visuals = window.WondiiVisualAdventure;
+    var orgId = org().organisationId || "";
+    buildAt = 0;
+    buildLine = "Creating the world...";
+    if (!Visuals || !Visuals.visualsAllowed({ organisationId: orgId }) || !Visuals.planVisualAssets) {
+      buildAt = -1;
+      go("activities");
+      return;
+    }
+    var adventure = {
+      title: draft.title || "",
+      topic: draft.topic || "",
+      subject: draft.subject || "",
+      yearGroup: draft.year || "",
+      year: draft.year || "",
+      storyPlan: draft.storyPlan || null,
+      lessonPlan: draft.lessonPlan || null,
+      activities: draft.activities || []
+    };
+    var room = roomById(draft.classId);
+    var featured = Visuals.bindFeatured ? Visuals.bindFeatured((room && room.pupils) || [], draft.year, draft.storyPlan) : [];
+    draft.featuredCast = featured;
+    adventure.avatarRefs = Visuals.avatarRefs ? Visuals.avatarRefs(featured) : [];
+    var planned = [];
+    try { planned = Visuals.planVisualAssets(adventure) || []; } catch (e) { planned = []; }
+    var queue = (adventure.avatarRefs.length ? [] : ["characters"]).concat(planned.map(function (asset) { return asset.id; }));
+    var pictures = [];
+    var sheetPath = "";
+    var cloud = window.KidsScoreCloud;
+    var sync = window.SCORE_SYNC || {};
+    function finish() {
+      if (token !== generationToken) return;
+      draft.visualAssets = pictures;
+      if (Visuals.stampActivities) Visuals.stampActivities(draft.activities, pictures);
+      if (window.WondiiVisuals && WondiiVisuals.bind) WondiiVisuals.bind(pictures);
+      buildAt = -1;
+      go("activities");
+    }
+    function stepAsset(index) {
+      if (token !== generationToken) return;
+      if (index >= queue.length) { finish(); return; }
+      var id = queue[index];
+      buildLine = id === "characters" ? "Creating the characters..." : "Creating the world...";
+      paint();
+      function send(sessionToken) {
+        var headers = { "Content-Type": "application/json" };
+        if (sessionToken) headers.Authorization = "Bearer " + sessionToken;
+        if (sync.supabaseAnonKey) headers.apikey = sync.supabaseAnonKey;
+        var control = typeof AbortSignal !== "undefined" && AbortSignal.timeout ? { signal: AbortSignal.timeout(120000) } : {};
+        return fetch("/api/learn/visuals", {
+          method: "POST",
+          headers: headers,
+          body: JSON.stringify({
+            organisationId: orgId,
+            mode: "lesson",
+            adventure: adventure,
+            assetId: id,
+            avatarRefs: adventure.avatarRefs || [],
+            referencePath: id === "characters" ? "" : sheetPath
+          }),
+          signal: control.signal
+        }).then(function (res) { return res.json(); }).catch(function () { return null; });
+      }
+      function take(body) {
+        var asset = body && body.asset;
+        if (id === "characters") {
+          if (asset && asset.storagePath) sheetPath = asset.storagePath;
+        } else if (asset) pictures.push(asset);
+        else pictures.push({ id: id, status: "failed", fallback: true, usedByScenes: [] });
+        stepAsset(index + 1);
+      }
+      if (!cloud || !cloud.getSession) { take(null); return; }
+      cloud.getSession(function (session) {
+        var sessionToken = session && session.access_token;
+        if (!sessionToken) take(null);
+        else send(sessionToken).then(take);
+      });
+    }
+    buildLine = "Creating the world...";
+    paint();
+    stepAsset(0);
+  }
+
   function beginBuild() {
     readSourceFields();
     var token = ++generationToken;
     buildAt = 0;
-    buildLine = "Understanding your lesson…";
+    var lines = ["Planning your lesson...", "Shaping the mission...", "Building the adventure...", "Checking everything..."];
+    var lineAt = 0;
+    buildLine = lines[0];
     draft.generationError = "";
     notice = "";
     step = "activities";
     paint();
-    var lines = ["Understanding your lesson…", "Planning the adventure…", "Writing the challenges…", "Checking everything…"];
-    var lineAt = 0;
     var timer = setInterval(function () {
       if (token !== generationToken || buildAt < 0) { clearInterval(timer); return; }
       lineAt = Math.min(lineAt + 1, lines.length - 1);
       buildLine = lines[lineAt];
       paint();
-    }, 1600);
+    }, 8000);
     var analysis = Core.analyseSource(draft.source.text || ((draft.goals || [])[0] || draft.topic || ""));
     if (analysis.ok) Core.applyAnalysis(draft, analysis);
     var room = roomById(draft.classId);
@@ -646,17 +775,17 @@
     pending.then(function (result) {
       if (token !== generationToken) return;
       clearInterval(timer);
-      buildAt = -1;
       if (result && result.ok && result.adventure) {
         applyBrain(result.adventure);
         var problems = Core.validateAdventure(draft, Mechanics);
-        if (!problems.length) {
+        if (!problems.length && !Core.brokenLesson(draft)) {
           draft.stale = false;
-          go("activities");
+          createWorld(token);
           return;
         }
       }
-      useLibrary();
+      buildAt = -1;
+      useLibrary(result && result.stage);
       draft.stale = false;
       paint();
     });
@@ -920,6 +1049,13 @@
           paint();
           return;
         }
+        if (result.reason === "content") {
+          notice = "Wondii couldn't finish this adventure.";
+          draft.generationError = "failed";
+          step = "play";
+          paint();
+          return;
+        }
         if (!result.adventure) { paint(); return; }
         notice = "Saved to your school library.";
         step = "library";
@@ -930,6 +1066,13 @@
     if (start) start.addEventListener("click", function () {
       var problems = Core.issues(draft, Mechanics);
       if (problems.length) { notice = problems[0]; paint(); return; }
+      if (Core.brokenLesson(draft)) {
+        notice = "Wondii couldn't finish this adventure.";
+        draft.generationError = "failed";
+        step = "play";
+        paint();
+        return;
+      }
       if (!draft.quick) persistAdventure();
       go("attendance");
     });
@@ -950,6 +1093,13 @@
         if (result.reason === "class") {
           notice = "Choose a class from this school before starting.";
           step = "class";
+          paint();
+          return;
+        }
+        if (result.reason === "content") {
+          notice = "Wondii couldn't finish this adventure.";
+          draft.generationError = "failed";
+          step = "play";
           paint();
           return;
         }
@@ -1066,6 +1216,9 @@
       applyEntryClass();
       step = "class";
     } else applyEntryClass();
+    document.addEventListener("wondii-visuals", function () {
+      if (step === "review") paint();
+    });
     document.addEventListener("keydown", function (event) {
       if (event.key !== "Escape" || openMore < 0) return;
       var back = openMore;

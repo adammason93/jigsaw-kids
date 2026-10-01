@@ -1,0 +1,61 @@
+{
+  "prototype": "year5-volcano-9.8b",
+  "enabledGlobally": false,
+  "model": "gpt-image-2.5-sunburst",
+  "size": "1536x864",
+  "quality": "high",
+  "note": "Development prototype. Image generation stays off for ordinary teacher requests.",
+  "assets": [
+    {
+      "id": "characters",
+      "type": "character_sheet",
+      "status": "ready",
+      "publicUrl": "https://enuzrcjnrxwglacivlnu.supabase.co/storage/v1/object/public/wondii_adventure_visuals/c90e0da5-3ba7-4c25-9e78-9519ffbc6f39/year5-volcano-9.8b/characters-ef7c18b0.jpg",
+      "storagePath": "c90e0da5-3ba7-4c25-9e78-9519ffbc6f39/year5-volcano-9.8b/characters-ef7c18b0.jpg",
+      "bytes": 148122,
+      "ms": 24701,
+      "promptStrategy": "wondii-style-character-sheet",
+      "usedByScenes": ["Arrival", "The Pressure Builds", "The Final Presentation"],
+      "usage": { "text_tokens": 653, "image_tokens_in": 1688, "image_tokens_out": 1078 }
+    },
+    {
+      "id": "opening",
+      "type": "story_scene",
+      "status": "ready",
+      "publicUrl": "https://enuzrcjnrxwglacivlnu.supabase.co/storage/v1/object/public/wondii_adventure_visuals/c90e0da5-3ba7-4c25-9e78-9519ffbc6f39/year5-volcano-9.8b/opening-ffc87891.jpg",
+      "storagePath": "c90e0da5-3ba7-4c25-9e78-9519ffbc6f39/year5-volcano-9.8b/opening-ffc87891.jpg",
+      "bytes": 305739,
+      "ms": 30358,
+      "promptStrategy": "character-sheet-identity-new-composition",
+      "shot": "wide establishing",
+      "uiSafeArea": "LOWER_LEFT",
+      "usage": { "text_tokens": 1128, "image_tokens_in": 2984, "image_tokens_out": 1078 }
+    },
+    {
+      "id": "discovery",
+      "type": "teaching_visual",
+      "status": "ready",
+      "publicUrl": "https://enuzrcjnrxwglacivlnu.supabase.co/storage/v1/object/public/wondii_adventure_visuals/c90e0da5-3ba7-4c25-9e78-9519ffbc6f39/year5-volcano-9.8b/discovery-8210240d.jpg",
+      "storagePath": "c90e0da5-3ba7-4c25-9e78-9519ffbc6f39/year5-volcano-9.8b/discovery-8210240d.jpg",
+      "bytes": 263480,
+      "ms": 30864,
+      "promptStrategy": "character-sheet-identity-new-composition",
+      "shot": "educational cutaway",
+      "uiSafeArea": "RIGHT",
+      "usage": { "text_tokens": 1141, "image_tokens_in": 2984, "image_tokens_out": 1078 }
+    },
+    {
+      "id": "resolution",
+      "type": "resolution",
+      "status": "ready",
+      "publicUrl": "https://enuzrcjnrxwglacivlnu.supabase.co/storage/v1/object/public/wondii_adventure_visuals/c90e0da5-3ba7-4c25-9e78-9519ffbc6f39/year5-volcano-9.8b/resolution-7cd9742a.jpg",
+      "storagePath": "c90e0da5-3ba7-4c25-9e78-9519ffbc6f39/year5-volcano-9.8b/resolution-7cd9742a.jpg",
+      "bytes": 228622,
+      "ms": 30057,
+      "promptStrategy": "character-sheet-identity-new-composition",
+      "shot": "medium-wide mission completion",
+      "uiSafeArea": "LOWER_RIGHT",
+      "usage": { "text_tokens": 1152, "image_tokens_in": 2984, "image_tokens_out": 1078 }
+    }
+  ]
+}

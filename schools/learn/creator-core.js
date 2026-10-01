@@ -97,26 +97,80 @@
 
   function subjectFrom(text) {
     var lower = String(text || "").toLowerCase();
-    if (/science|electric|plant|force|magnet|space|habitat|water cycle|evaporation|condensation/.test(lower)) return "Science";
+    if (/science|electric|plant|force|gravity|volcano|magnet|space|habitat|water cycle|evaporation|condensation/.test(lower)) return "Science";
     if (/\bmaths\b|mathematics|fraction|addition|times table|subtraction|multiplication/.test(lower)) return "Maths";
-    if (/\benglish\b|phonics|grammar|spelling|comprehension|\bsh\b|\bch\b/.test(lower)) return "English";
+    if (/\benglish\b|phonics|grammar|adjective|sentence|writing|spelling|comprehension|\bsh\b|\bch\b/.test(lower)) return "English";
     if (/history|roman|tudor|viking|victorians/.test(lower)) return "History";
     if (/geograph|river|map skills/.test(lower)) return "Geography";
     return "";
   }
 
-  function topicFrom(text) {
-    var lower = String(text || "").toLowerCase();
-    if (/electric/.test(lower)) return "Electricity";
-    if (/fraction/.test(lower)) return "Fractions";
-    if (/water cycle|evaporation|condensation/.test(lower)) return "Water cycle";
-    if (/phonics|\bsh\b|\bch\b/.test(lower)) return "Phonics";
-    if (/magnet/.test(lower)) return "Magnets";
-    var times = lower.match(/\b(\d{1,2})\s*times tables?\b/);
+  function titleCaseTopic(topic) {
+    return String(topic || "").split(/\s+/).filter(Boolean).map(function (word, index) {
+      if (index && /^(of|and|the|a|an)$/i.test(word)) return word.toLowerCase();
+      return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+    }).join(" ");
+  }
+
+  function interpretLesson(text) {
+    var raw = String(text || "").replace(/\s+/g, " ").trim();
+    var minutesMatch = raw.match(/\b(\d{1,3})\s*(?:min|mins|minute|minutes)\b/i);
+    var minutes = minutesMatch ? Number(minutesMatch[1]) : 0;
+    if (minutes < 5 || minutes > 90) minutes = 0;
+    var topic = raw.replace(/\b(\d{1,3})\s*(?:min|mins|minute|minutes)\b/ig, " ");
+    topic = topic.replace(/\byear\s*[1-6]\b/ig, " ");
+    var sweep;
+    for (sweep = 0; sweep < 3; sweep++) {
+      topic = topic.replace(/\s+/g, " ").trim();
+      topic = topic.replace(/^(?:please\s+)?(?:let'?s\s+)?(?:do\s+)?(?:a\s+)?(?:quick\s+)?(?:recap|lesson|teach|teaching|learn|learning|introducing|introduction)\s+(?:me\s+)?(?:about|of|on|to)?\s*/i, "");
+      topic = topic.replace(/^(?:about|on|for|to)\s+/i, "");
+      topic = topic.replace(/\b(?:for|about|on)(?:\s+(?:a\s+)?(?:quick\s+)?(?:lesson|recap|adventure)?)?\s*$/i, " ");
+    }
+    topic = topic.replace(/\b(?:quick|please|lesson|lessons|recap|learn|learning|teach|teaching|introducing|introduction|about|mins|minute|minutes)\b/ig, " ");
+    topic = topic.replace(/[^a-z0-9' -]/gi, " ").replace(/\s+/g, " ").trim();
+    topic = topic.replace(/^(?:children|pupils|kids|class)\s+/i, "");
+    topic = topic.replace(/^(?:what|why|how)\s+/i, "");
+    topic = topic.replace(/\s+(?:for|about|on|in)$/i, "");
+    topic = topic.replace(/\s+(?:does|do)$/i, "");
+    topic = topic.replace(/^(?:the|a|an)\s+/i, "");
+    topic = topic.replace(/\s+/g, " ").trim();
+    topic = titleCaseTopic(topic);
+    return {
+      raw: raw,
+      topic: topic,
+      title: topic ? topic + " Adventure" : "",
+      minutes: minutes
+    };
+  }
+
+  function broadPack(concept) {
+    var lower = String(concept || "").toLowerCase().replace(/\s+using\s+.+$/, "").trim();
+    if (lower === "fraction" || lower === "fractions") return "Fractions";
+    if (lower === "electricity" || lower === "electric") return "Electricity";
+    if (lower === "water cycle") return "Water cycle";
+    if (lower === "phonics") return "Phonics";
+    if (lower === "magnet" || lower === "magnets") return "Magnets";
+    var times = lower.match(/^(\d{1,2}) times tables?$/);
     if (times && Number(times[1]) >= 2 && Number(times[1]) <= 12) return times[1] + " times table";
-    var line = String(text || "").split(/\n/).map(function (part) { return part.trim(); }).filter(Boolean)[0] || "";
-    if (line.length > 48) return "";
-    return line.replace(/[.?!]$/, "");
+    return "";
+  }
+
+  function topicFrom(text) {
+    var raw = String(text || "");
+    var lower = raw.toLowerCase();
+    var specific = interpretLesson(raw).topic;
+    var times = (specific + " " + lower).match(/\b(\d{1,2})\s*times tables?\b/i);
+    if (times && Number(times[1]) >= 2 && Number(times[1]) <= 12) return times[1] + " times table";
+    var packed = broadPack(specific);
+    if (packed) return packed;
+    if (/\bphonics\b/.test(lower) && (!specific || /^phonics\b/i.test(specific))) return "Phonics";
+    if (!specific) {
+      if (/electric/.test(lower)) return "Electricity";
+      if (/water cycle|evaporation|condensation/.test(lower)) return "Water cycle";
+      if (/magnet/.test(lower)) return "Magnets";
+    }
+    if (/electric/.test(lower) && /\belectricity\b/.test(lower) && specific.split(/\s+/).length > 6) return "Electricity";
+    return specific;
   }
 
   function linesAfter(text, label) {
@@ -179,6 +233,7 @@
       vocabulary: vocabulary,
       requestedMinutes: requested,
       durationStated: requested > 0,
+      title: topic ? topic + " Adventure" : "",
       example: exampleFrom(source),
       graphemes: graphemesFrom(source),
       notice: "Wondii only filled what the lesson text states. Check anything that looks uncertain."
@@ -224,7 +279,10 @@
     draft.example = analysis.example || "";
     draft.graphemes = analysis.graphemes || [];
     draft.notice = analysis.notice;
-    if (!draft.title) draft.title = draft.topic ? draft.topic + " adventure" : "Learning adventure";
+    var raw = String(draft.source && draft.source.text || "").replace(/\s+/g, " ").trim().toLowerCase();
+    var current = String(draft.title || "").trim().toLowerCase();
+    var automatic = !current || current === "learning adventure" || (raw && current.indexOf(raw) !== -1);
+    if (automatic && analysis.title) draft.title = analysis.title;
     return draft;
   }
 
@@ -475,15 +533,21 @@
     return Math.max(2, Math.min(4, Math.round(words / 18) || 2));
   }
 
-  function spinActivity() {
+  function spinActivity(topic) {
+    var name = topic && topic !== "today's lesson" ? topic : "this lesson";
     return {
       id: uid("spin"),
       mechanic: "spin",
       purpose: "Choose a pupil",
       title: "Choose someone",
       minutes: 1,
-      why: "Wondii chooses a pupil who is here today.",
-      config: { pool: "included", avoidRepeat: true, preferFresh: true }
+      why: "The chosen pupil answers about " + name + ".",
+      config: {
+        pool: "included",
+        avoidRepeat: true,
+        preferFresh: true,
+        prompt: "Can you name one thing you know about " + name + "?"
+      }
     };
   }
 
@@ -525,6 +589,7 @@
     var words = [];
     var story = [];
     var mystery = [];
+    var objective = "";
     if (topic === "Fractions") {
       words = ["HALF", "QUARTER", "EQUAL", "WHOLE", "SHARE", "PART"];
       if (thing !== "shape") {
@@ -544,6 +609,7 @@
         questions.push(questionSpec("Two quarters of a " + thing + " make...", ["A half", "A whole", "Nothing", "Three wholes"], "A half", "Two quarters make a half."));
       }
       mystery = ["A half is bigger than a quarter."];
+      objective = "Understand that a whole can be shared into equal halves and quarters.";
     } else if (topic === "Phonics") {
       var sounds = ctx.graphemes.length ? ctx.graphemes : ["sh", "ch"];
       var banks = {
@@ -567,6 +633,7 @@
         questions.push(questionSpec("Which word uses " + sounds[1] + ", not " + sounds[0] + "?", [(banks[sounds[1]] || ["CHAT"])[0], (banks[sounds[0]] || ["SHIP"])[0], "MAT", "PEN"], (banks[sounds[1]] || ["CHAT"])[0], "That word uses " + sounds[1] + "."));
       }
       mystery = ["Listen for the sound at the start of the word."];
+      objective = "Hear and spot today's sounds in words.";
     } else if (topic === "Water cycle") {
       words = ["EVAPORATION", "CONDENSATION", "RAIN", "CLOUD", "WATER", "COLLECT"];
       story = ["Water moves from puddles to clouds and back again.", "That journey is called the water cycle."];
@@ -589,16 +656,18 @@
         questions.push(questionSpec("After it rains, water in rivers is part of...", ["Collection", "Evaporation only", "A times table", "A magnet"], "Collection", "Rivers collecting water is collection."));
       }
       mystery = ["The same water can rise, make a cloud, and fall again."];
+      objective = "Understand how water moves from puddles to clouds and back again.";
     } else if (topic === "Electricity" || (ctx.vocabulary || []).length >= 3) {
       words = (ctx.vocabulary || []).slice(0, 8);
       if (words.length < 3) words = ["CIRCUIT", "BATTERY", "SWITCH", "BULB"];
       var shown = words.slice(0, 4).map(function (word) { return word.charAt(0) + word.slice(1).toLowerCase(); });
       story = ["Today the class is learning about " + topic + ".", "The important words include " + shown.slice(0, 3).join(", ") + "."];
-      questions.push(questionSpec("Which word belongs with " + topic + "?", [shown[0], "Pillow", "Sandwich", "Sock"], shown[0], shown[0] + " belongs with " + topic + "."));
-      if (shown[1]) questions.push(questionSpec("Which of these is also from " + topic + "?", [shown[1], "Pillow", "Sandwich", "Sock"], shown[1], shown[1] + " is from " + topic + "."));
-      if (shown[2]) questions.push(questionSpec("Which word is from today's " + topic + " lesson?", [shown[2], "Pillow", "Sandwich", "Sock"], shown[2], shown[2] + " is from the lesson."));
+      questions.push(questionSpec("Which word belongs with " + topic + "?", [shown[0], "Shadow", "Echo", "Friction"], shown[0], shown[0] + " belongs with " + topic + "."));
+      if (shown[1]) questions.push(questionSpec("Which of these is also from " + topic + "?", [shown[1], "Shadow", "Echo", "Friction"], shown[1], shown[1] + " is from " + topic + "."));
+      if (shown[2]) questions.push(questionSpec("Which word is from today's " + topic + " lesson?", [shown[2], "Shadow", "Echo", "Friction"], shown[2], shown[2] + " is from the lesson."));
       if ((ctx.goals || [])[0]) questions.push(questionSpec(ctx.goals[0] + " True or false?", ["True", "False"], "true", ctx.goals[0], "boolean"));
       mystery = ["A complete path is needed before a bulb can light."];
+      objective = "Use the important words from " + topic + ".";
     } else {
       var timesMatch = String(topic).match(/^(\d{1,2}) times table$/);
       if (timesMatch) {
@@ -609,11 +678,10 @@
         ];
         questions = timesQuestions(factor, ctx.yearNumber);
         mystery = ["Groups of " + factor + " help the class remember the " + factor + " times table."];
+        objective = "Remember the " + factor + " times table.";
       } else {
-        story = ["Today the class is learning about " + topic + "."];
-        questions.push(questionSpec("What is this lesson about?", [topic, "Playtime", "Home time", "The register"], topic, "This lesson is about " + topic + "."));
-        questions.push(questionSpec("Which idea belongs with " + topic + "?", [topic, "Playtime", "Home time", "The register"], topic, topic + " is the lesson idea."));
-        mystery = ["Keep the main idea from today's lesson."];
+        story = [];
+        mystery = [];
       }
     }
     return {
@@ -621,6 +689,7 @@
       words: words,
       story: story,
       mystery: mystery,
+      objective: objective,
       title: topic + " recap",
       quizTitle: topic + " challenge",
       followTitle: "Your turn"
@@ -660,7 +729,7 @@
     if (mainCount < 1) mainCount = Math.min(specs.length, Math.max(aim, 1));
     takeQuiz(bank.quizTitle || (ctx.topic + " challenge"), mainCount, "whole_class");
     if (search) add(search);
-    if (wantSpin) add(spinActivity());
+    if (wantSpin) add(spinActivity(ctx.topic));
     var followAim = Math.min(band.high - sum, Math.max(0, ctx.targetMinutes - sum));
     if (followAim >= 2 && specs.length) {
       takeQuiz(bank.followTitle || "Your turn", Math.min(specs.length, followAim), wantSpin ? "selected_pupil" : "whole_class");
@@ -669,11 +738,6 @@
       if (!takeQuiz(ctx.topic + " practice", Math.min(specs.length, Math.max(2, band.high - sum)), "whole_class")) break;
     }
     if (sum < band.low && bank.mystery.length) add(readingActivity("mystery", "Remember this", bank.mystery, 2));
-    if (sum < band.low) add(readingActivity("doors", "Choose one", [
-      "Look at the first idea from " + ctx.topic + ".",
-      "Look at another idea from " + ctx.topic + ".",
-      "Say the main idea in your own words."
-    ], 2));
     if (!activities.length || !activities.some(function (activity) { return activity.mechanic === "quiz" && activity.config && activity.config.prompt && !placeholderText(activity.config.prompt); })) {
       return { ok: false, activities: [], message: "We couldn't finish one of the activities." };
     }
@@ -682,7 +746,7 @@
       if (meta && !activity.purpose) activity.purpose = meta.purpose;
       if (activity.mechanic === "word_search" && playMode(ctx.playMode).engine !== "none") activity.config.participation = "team_turn";
     });
-    return { ok: true, activities: activities, minutes: sum, title: bank.title };
+    return { ok: true, activities: activities, minutes: sum, title: bank.title, objective: bank.objective || "" };
   }
 
   function recommend(draft, extra) {
@@ -699,6 +763,9 @@
     draft.activities = built.activities;
     draft.minutes = built.minutes;
     if (!draft.title || draft.title === "Learning adventure") draft.title = built.title;
+    if (!(draft.goals || []).length) {
+      draft.goals = [built.objective || ("Understand " + (draft.topic || "the lesson") + ".")];
+    }
     return draft;
   }
 
@@ -815,11 +882,19 @@
       var quiz = activity.config || {};
       var head = questionIssue({ prompt: quiz.prompt, choices: quiz.choices, correct: quiz.correct, kind: quiz.kind });
       if (head) return head;
-      var extra = (quiz.questions || []).slice(1);
+      var asked = [quiz].concat(quiz.questions || []);
       var q;
-      for (q = 0; q < extra.length; q++) {
-        var extraIssue = questionIssue(extra[q]);
+      for (q = 0; q < asked.length; q++) {
+        var extraIssue = q === 0 ? "" : questionIssue(asked[q]);
         if (extraIssue) return extraIssue;
+        var choices = (asked[q].choices || []).map(function (choice) { return String(choice || "").trim().toLowerCase(); });
+        if (choices.indexOf("playtime") !== -1 || choices.indexOf("home time") !== -1 || choices.indexOf("the register") !== -1) {
+          return "This question needs real answers from the lesson.";
+        }
+        var prompt = String(asked[q].prompt || "").trim().toLowerCase();
+        if (prompt === "what is this lesson about?" || prompt.indexOf("which idea belongs with ") === 0) {
+          return "This question does not teach the topic.";
+        }
       }
       return "";
     }
@@ -834,8 +909,18 @@
       return "";
     }
     if (activity.mechanic === "story" || activity.mechanic === "mystery" || activity.mechanic === "doors") {
-      var lines = ((activity.config && activity.config.lines) || []).map(function (line) { return String(line || "").trim(); }).filter(Boolean);
+      var doorChoices = activity.mechanic === "doors" && activity.config && activity.config.choices && activity.config.choices.length
+        ? activity.config.choices
+        : ((activity.config && activity.config.lines) || []);
+      var lines = doorChoices.map(function (line) { return String(line || "").trim(); }).filter(Boolean);
       if (!lines.length || lines.some(placeholderText)) return "This activity needs something for the class to read.";
+      if (activity.mechanic === "mystery" && /^keep the main idea from today/i.test(lines.join(" "))) return "Remember this needs a fact from the lesson.";
+      if (activity.mechanic === "doors") {
+        if (lines.length < 3) return "Choose one needs three real options.";
+        if (lines.some(function (line) { return /^door\s*[123]$/i.test(line) || /^look at the (first|another) idea/i.test(line); })) {
+          return "Each choice needs a real option from the lesson.";
+        }
+      }
     }
     return "";
   }
@@ -843,6 +928,22 @@
   function validateActivity(activity, registry) {
     var message = activityIssue(activity, registry);
     return { ok: !message, message: message };
+  }
+
+  function brokenLesson(draft) {
+    var raw = String(draft && draft.source && draft.source.text || "").replace(/\s+/g, " ").trim().toLowerCase();
+    var activities = (draft && draft.activities) || [];
+    if (!activities.length) return "Add at least one activity.";
+    if (!(draft.goals || []).length) return "The lesson needs a learning objective.";
+    if (!String(draft.title || "").trim()) return "The lesson needs a title.";
+    var blob = JSON.stringify(activities).toLowerCase();
+    if (raw.length >= 12 && blob.indexOf(raw) !== -1) return "The lesson repeated the teacher's request instead of teaching the topic.";
+    var i;
+    for (i = 0; i < activities.length; i++) {
+      var issue = activityIssue(activities[i]);
+      if (issue) return issue;
+    }
+    return "";
   }
 
   function validateAdventure(input, registry) {
@@ -861,8 +962,80 @@
     return list;
   }
 
+  function castRoles(people, characters, seed) {
+    var roles = (characters || []).filter(function (role) {
+      return role && role.id && !/\b(villain|fool|idiot|stupid|culprit|failure)\b/i.test(role.label || "");
+    }).slice(0, 3);
+    var names = (people || []).map(function (person) {
+      return {
+        id: person.id || "",
+        name: person.firstName || person.displayName || person.name || ""
+      };
+    }).filter(function (person) { return person.name && person.name !== "Pupil"; });
+    var n = 0;
+    String(seed || "wondii").split("").forEach(function (ch, index) { n = (n + ch.charCodeAt(0) * (index + 1)) % 997; });
+    var start = names.length ? n % names.length : 0;
+    var cast = {};
+    roles.forEach(function (role, index) {
+      var person = index < names.length ? names[(start + index) % names.length] : null;
+      cast[String(role.id).toLowerCase()] = {
+        roleId: role.id,
+        label: role.label || "",
+        name: person ? person.name : "",
+        participantId: person ? person.id : ""
+      };
+    });
+    return cast;
+  }
+
+  function speakStory(text, cast) {
+    return String(text == null ? "" : text).replace(/\{\{\s*([a-z0-9_-]+)\s*\}\}/gi, function (_match, id) {
+      var key = String(id || "").toLowerCase();
+      var person = cast && cast[key];
+      if (person && person.name) return person.name;
+      if (person && person.label) return person.label;
+      return id;
+    });
+  }
+
+  function speakSlides(slides, cast) {
+    return (slides || []).map(function (slide) {
+      var copy = JSON.parse(JSON.stringify(slide || {}));
+      ["kicker", "prompt", "teacherCue", "reveal", "role", "mission", "adventureTitle"].forEach(function (key) {
+        if (typeof copy[key] === "string") copy[key] = speakStory(copy[key], cast);
+      });
+      copy.speaker = "";
+      if (copy.role && cast) {
+        Object.keys(cast).forEach(function (key) {
+          var person = cast[key];
+          if (!copy.speaker && person && person.name && String(person.label || "").toLowerCase() === String(copy.role).toLowerCase()) {
+            copy.speaker = person.name;
+          }
+        });
+      }
+      if (Array.isArray(copy.lines)) copy.lines = copy.lines.map(function (line) { return speakStory(line, cast); });
+      if (Array.isArray(copy.choices)) copy.choices = copy.choices.map(function (line) { return speakStory(line, cast); });
+      if (Array.isArray(copy.reveals)) copy.reveals = copy.reveals.map(function (line) { return speakStory(line, cast); });
+      if (copy.question && typeof copy.question === "object") {
+        if (copy.question.prompt) copy.question.prompt = speakStory(copy.question.prompt, cast);
+        if (copy.question.explain) copy.question.explain = speakStory(copy.question.explain, cast);
+        if (Array.isArray(copy.question.choices)) {
+          copy.question.choices = copy.question.choices.map(function (choice) {
+            if (choice && typeof choice === "object") {
+              var next = JSON.parse(JSON.stringify(choice));
+              if (next.text) next.text = speakStory(next.text, cast);
+              return next;
+            }
+            return speakStory(choice, cast);
+          });
+        }
+      }
+      return copy;
+    });
+  }
+
   function slidesFor(draft) {
-    return (draft.activities || []).map(function (activity) {
+    var slides = (draft.activities || []).map(function (activity) {
       if (activity.mechanic === "quiz") {
         var quiz = activity.config || {};
         var specs = (quiz.questions && quiz.questions.length) ? quiz.questions : [{
@@ -898,14 +1071,19 @@
           question: questions[0]
         };
       }
-      if (activity.mechanic === "spin") {
+          if (activity.mechanic === "spin") {
+        var ask = activity.config && activity.config.prompt;
+        var bare = !ask || ask.length < 12 || /^spin for (a pupil|someone who is here)\.?$/i.test(String(ask).trim()) || /^you'?re up[.!]?$/i.test(String(ask).trim());
         return {
           type: "spin",
-          kicker: activity.title || "Spin a pupil",
-          teacherCue: "Spin for someone who is here.",
+          kicker: activity.title || "Choose someone",
+          teacherCue: bare ? "" : ask,
+          prompt: bare ? "" : ask,
+          role: (activity.config && activity.config.role) || "",
+          reveal: (activity.config && activity.config.reveal) || "",
           avoidRepeat: activity.config && activity.config.avoidRepeat !== false,
           preferFresh: !activity.config || activity.config.preferFresh !== false,
-          lines: ["Spin for a pupil."]
+          lines: bare ? [] : [ask]
         };
       }
       if (activity.mechanic === "word_search") {
@@ -920,13 +1098,63 @@
           points: search.points == null ? 1 : Number(search.points)
         };
       }
+      var doorConfig = activity.config || {};
+      var doorChoices = doorConfig.choices && doorConfig.choices.length ? doorConfig.choices : (doorConfig.lines || []);
       return {
         type: activity.mechanic,
         kicker: activity.title || "Activity",
-        teacherCue: "",
-        lines: (activity.config && activity.config.lines) || [activity.title || ""]
+        teacherCue: activity.mechanic === "doors" ? (doorConfig.prompt || "") : "",
+        prompt: activity.mechanic === "doors" ? (doorConfig.prompt || "") : "",
+        lines: activity.mechanic === "doors" ? doorChoices : (doorConfig.lines || [activity.title || ""]),
+        choices: activity.mechanic === "doors" ? doorChoices : undefined,
+        reveals: activity.mechanic === "doors" ? (doorConfig.reveals || []) : undefined
       };
     });
+    slides.forEach(function (slide, index) {
+      var activity = (draft.activities || [])[index] || {};
+      var scene = activity.scene || {};
+      var story = draft.storyPlan || {};
+      slide.mission = story.mission || "";
+      slide.adventureTitle = story.title || "";
+      slide.beat = scene.beat || "";
+      slide.kind = scene.kind || "";
+      slide.visualBrief = scene.visualBrief || null;
+      slide.visualAssetId = scene.visualAssetId || "";
+      if (!slide.role && scene.roleId) {
+        (story.characters || []).forEach(function (role) {
+          if (String(role.id) === String(scene.roleId)) slide.role = role.label || "";
+        });
+      }
+      if (scene.characterId) slide.characterId = scene.characterId;
+      else if (scene.roleId || slide.role) {
+        (story.characters || []).forEach(function (role, roleIndex) {
+          var same = (scene.roleId && String(role.id) === String(scene.roleId)) || (slide.role && String(role.label || "").toLowerCase() === String(slide.role).toLowerCase());
+          if (same) slide.characterId = role.characterId || ["CHARACTER_A", "CHARACTER_B", "CHARACTER_C"][roleIndex] || "";
+        });
+      }
+      if (scene.worldEffect) slide.worldEffect = scene.worldEffect;
+      if (scene.interaction) slide.interaction = scene.interaction;
+      if (scene.interactions && scene.interactions.length) slide.interactions = scene.interactions;
+      if (scene.visualAction && scene.visualAction.type) slide.visualAction = scene.visualAction;
+      else if (slide.type === "question") slide.visualAction = { type: "predict" };
+      else if (slide.type === "spin") slide.visualAction = { type: "point" };
+      else if (slide.type === "doors") slide.visualAction = { type: "choose" };
+      else if (slide.type === "mystery" || slide.beat === "debrief") slide.visualAction = { type: "sequence" };
+      else if (slide.beat === "discovery" || slide.beat === "development" || slide.kind === "teach") slide.visualAction = { type: "inspect" };
+      else if (slide.beat === "application") slide.visualAction = { type: "compare" };
+      else slide.visualAction = { type: "reveal" };
+      if (slide.type !== "spin" || slide.prompt) return;
+      var next = slides[index + 1];
+      var question = next && (next.question || (next.questions && next.questions[0]));
+      var part = next && next.participation;
+      if (!question || !question.prompt) return;
+      if (part !== "selected_pupil" && part !== "spin") return;
+      slide.prompt = question.prompt;
+      slide.teacherCue = question.prompt;
+      slide.lines = [question.prompt];
+      if (!slide.reveal && question.explain) slide.reveal = question.explain;
+    });
+    return slides;
   }
 
   function toAdventure(draft, orgId) {
@@ -944,7 +1172,15 @@
         yearGroup: draft.year || "",
         topic: draft.topic || "",
         learningObjectives: (draft.goals || []).slice(),
-        keyVocabulary: (draft.vocabulary || []).slice()
+        keyVocabulary: (draft.vocabulary || []).slice(),
+        yearAssumption: draft.yearAssumption || "",
+        keyKnowledge: (draft.lessonPlan && draft.lessonPlan.keyKnowledge) || [],
+        lessonPlan: draft.lessonPlan || null,
+        storyPlan: draft.storyPlan || null,
+        visualAssets: draft.visualAssets || null,
+        featuredCast: (draft.featuredCast || []).map(function (item) {
+          return { characterId: item.characterId, avatarId: item.avatarId, pupilId: item.pupilId || "", roleLabel: item.roleLabel || "" };
+        })
       },
       plan: {
         title: draft.title || draft.topic || "Learning adventure",
@@ -978,6 +1214,11 @@
     draft.yearSource = draft.year ? "stated" : "";
     draft.goals = (map.learningObjectives || []).slice();
     draft.vocabulary = (map.keyVocabulary || []).slice();
+    draft.yearAssumption = map.yearAssumption || "";
+    draft.lessonPlan = map.lessonPlan || null;
+    draft.storyPlan = map.storyPlan || null;
+    draft.featuredCast = map.featuredCast || [];
+    draft.visualAssets = map.visualAssets || null;
     draft.targetMinutes = item.targetMinutes || 0;
     draft.source = { type: item.source && item.source.type || "", filename: item.source && item.source.filename || "", text: item.source && item.source.text || "", unsupported: false };
     draft.sourceKind = draft.source.type;
@@ -1009,8 +1250,22 @@
       } else if (type === "word_search") {
         activity.config = { title: slide.kicker || "", instruction: (slide.lines || [])[0] || "", words: slide.words || [], points: slide.points == null ? 1 : slide.points, participation: slide.participation || "whole_class" };
       } else if (type === "spin") {
-        activity.config = { pool: "included", avoidRepeat: slide.avoidRepeat !== false, preferFresh: slide.preferFresh !== false };
+        activity.config = {
+          pool: "included",
+          avoidRepeat: slide.avoidRepeat !== false,
+          preferFresh: slide.preferFresh !== false,
+          prompt: (slide.lines || [])[0] || ""
+        };
         activity.minutes = 1;
+      } else if (type === "doors") {
+        var labels = (slide.choices && slide.choices.length ? slide.choices : slide.lines) || [];
+        activity.config = {
+          prompt: slide.prompt || slide.teacherCue || "",
+          choices: labels.slice(),
+          lines: labels.slice(),
+          reveals: (slide.reveals || []).slice()
+        };
+        activity.minutes = 2;
       } else activity.config = { lines: slide.lines || [] };
       return activity;
     }).filter(function (activity) { return capability(activity.mechanic); });
@@ -1144,6 +1399,8 @@
     ensureTeams: ensureTeams,
     assignPupil: assignPupil,
     recommend: recommend,
+    interpretLesson: interpretLesson,
+    brokenLesson: brokenLesson,
     moveActivity: moveActivity,
     duplicateActivity: duplicateActivity,
     removeActivity: removeActivity,
@@ -1156,6 +1413,9 @@
     needsRepair: needsRepair,
     generationContext: generationContext,
     issues: issues,
+    castRoles: castRoles,
+    speakStory: speakStory,
+    speakSlides: speakSlides,
     slidesFor: slidesFor,
     toAdventure: toAdventure,
     fromAdventure: fromAdventure,

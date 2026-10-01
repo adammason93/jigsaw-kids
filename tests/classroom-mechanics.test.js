@@ -334,6 +334,62 @@ assert.strictEqual(spinTimer, 0);
 global.setTimeout = oldSet;
 global.clearTimeout = oldClear;
 
+var spinSlide = {
+  type: "spin",
+  kicker: "Choose someone",
+  prompt: "Can you name something in this classroom that gravity is pulling towards Earth?",
+  role: "Gravity Scientist",
+  reveal: "Gravity pulls objects towards Earth.",
+  lines: ["Can you name something in this classroom that gravity is pulling towards Earth?"]
+};
+var spun = Engine.selectParticipant(session([spinSlide], "none"), amelia, "spin-task");
+assert.strictEqual(spun.ok, true);
+var spunView = Engine.toPresenter(spun.state);
+var pickedHost = {
+  innerHTML: "",
+  className: "",
+  classList: { add: function () {}, remove: function () {} },
+  querySelectorAll: function () { return []; },
+  querySelector: function () { return null; },
+  addEventListener: function () {},
+  removeEventListener: function () {}
+};
+Mechanics.mount(pickedHost, {
+  mechanic: "spin",
+  slide: spinSlide,
+  view: spunView,
+  roundId: spunView.engine.rounds[0].id,
+  actions: {}
+});
+assert.ok(pickedHost.innerHTML.indexOf("Mission control has chosen...") !== -1);
+assert.ok(pickedHost.innerHTML.indexOf("Amelia") !== -1);
+assert.ok(pickedHost.innerHTML.indexOf("Gravity Scientist") !== -1);
+assert.ok(pickedHost.innerHTML.indexOf("Can you name something in this classroom that gravity is pulling towards Earth?") !== -1);
+assert.ok(pickedHost.innerHTML.indexOf("Show the idea") !== -1);
+assert.strictEqual(pickedHost.innerHTML.indexOf("You're up!"), -1);
+
+Shell.resetFlow();
+Shell.enter();
+var taskHost = {
+  innerHTML: "",
+  querySelector: function () { return null; },
+  querySelectorAll: function () { return []; }
+};
+Shell.render(taskHost, { title: "Gravity Adventure", view: spunView, actions: {} });
+assert.ok(taskHost.innerHTML.indexOf("Mission control has chosen...") !== -1);
+assert.ok(taskHost.innerHTML.indexOf("Amelia") !== -1);
+assert.ok(taskHost.innerHTML.indexOf("Gravity Scientist") !== -1);
+assert.ok(taskHost.innerHTML.indexOf("Can you name something in this classroom that gravity is pulling towards Earth?") !== -1);
+assert.strictEqual(taskHost.innerHTML.indexOf("You're up!"), -1);
+
+var bare = Engine.selectParticipant(session([{ type: "spin", kicker: "Choose someone", lines: ["Spin for a pupil."] }], "none"), amelia, "spin-bare");
+Shell.resetFlow();
+Shell.enter();
+var bareHost = { innerHTML: "", querySelector: function () { return null; }, querySelectorAll: function () { return []; } };
+Shell.render(bareHost, { title: "Gravity Adventure", view: Engine.toPresenter(bare.state), actions: {} });
+assert.strictEqual(bareHost.innerHTML.indexOf("You're up!"), -1);
+assert.strictEqual(bareHost.innerHTML.indexOf("lesson-moment"), -1);
+
 var shellHost = {
   innerHTML: "",
   querySelector: function () { return null; },
@@ -345,5 +401,67 @@ Shell.enter();
 Shell.render(shellHost, { title: "Electricity Adventure", view: shellView, actions: {} });
 assert.ok(shellHost.innerHTML.indexOf("lessonMechanic") !== -1);
 assert.ok(shellHost.innerHTML.indexOf("Which material conducts electricity?") === -1);
+
+var immersed = Mechanics.render({
+  type: "story",
+  beat: "discovery",
+  mission: "Discover what causes earthquakes and how the ground moves.",
+  kicker: "Look more closely",
+  speaker: "Sofia",
+  role: "Earth Explorer",
+  lines: [
+    "Discover what causes earthquakes and how the ground moves.",
+    "The Earth's outer layer is made of huge pieces that move very slowly."
+  ]
+}, { immersed: true });
+assert.ok(immersed.html.indexOf("lesson-act--inspect") !== -1);
+assert.ok(immersed.html.indexOf("Sofia") !== -1);
+assert.ok(immersed.html.indexOf("Earth Explorer") !== -1);
+assert.strictEqual(immersed.html.indexOf("Discover what causes earthquakes and how the ground moves."), -1);
+assert.ok(immersed.html.indexOf("huge pieces") !== -1);
+var focused = Mechanics.render({
+  type: "story",
+  beat: "discovery",
+  speaker: "Jack",
+  role: "Earth Explorer",
+  characterId: "CHARACTER_A",
+  focusLook: "a yellow field jacket · a notebook",
+  lines: ["You're our Earth Explorer. Which part should we investigate?"]
+}, { immersed: true });
+assert.ok(focused.html.indexOf("lesson-focus") !== -1);
+assert.ok(focused.html.indexOf("yellow field jacket") !== -1);
+assert.ok(focused.html.indexOf("lesson-swatch") !== -1);
+assert.strictEqual(focused.html.indexOf("<img"), -1);
+assert.ok(focused.html.indexOf("Jack, you're our Earth Explorer") !== -1);
+assert.ok(focused.html.indexOf("Jack · Earth Explorer") !== -1);
+var moveLayer = Mechanics.layerHtml({
+  interaction: {
+    type: "move",
+    instruction: "Can you move the plate?",
+    teachingReveal: "The plates moved suddenly.",
+    responseEffect: { type: "shake", educationalPurpose: "A sudden slip makes the ground shake." }
+  }
+}, { step: 0, stuck: false, slipped: false });
+assert.ok(moveLayer.indexOf("lesson-move") !== -1);
+assert.ok(moveLayer.indexOf("lesson-push") !== -1);
+assert.strictEqual(moveLayer.indexOf("Emma"), -1);
+var slipped = Mechanics.layerHtml({
+  interaction: {
+    type: "move",
+    instruction: "Can you move the plate?",
+    responseEffect: { type: "shake", educationalPurpose: "A sudden slip makes the ground shake." }
+  }
+}, { step: 0, stuck: true, slipped: true });
+assert.ok(slipped.indexOf("is-slip") !== -1);
+assert.ok(slipped.indexOf("lesson-dust") !== -1);
+var spot = Mechanics.layerHtml({ interaction: { type: "hotspot", instruction: "Look more closely" } }, { step: 0 });
+assert.ok(spot.indexOf("data-world=\"spot\"") !== -1);
+assert.strictEqual(Mechanics.actionOf({ type: "question" }).type, "predict");
+assert.strictEqual(Mechanics.actionOf({ beat: "resolution" }).type, "reveal");
+
+var css = require("fs").readFileSync(require("path").join(__dirname, "../schools/learn/lesson-shell.css"), "utf8");
+assert.ok(css.indexOf("min(68ch, 72vw)") !== -1);
+assert.ok(css.indexOf(".lesson.has-world .lesson-go") !== -1);
+assert.ok(css.indexOf("color: #fff;") !== -1);
 
 console.log("classroom mechanics tests passed");

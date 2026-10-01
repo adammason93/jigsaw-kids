@@ -31,28 +31,162 @@
     }).join("");
   }
 
-  function story(slide) {
-    return "<div class=\"lesson-story\">" +
-      (slide.image ? "<img class=\"lesson-scene\" src=\"" + escape(slide.image) + "\" alt=\"" + escape(slide.alt || "") + "\" />" : "") +
-      "<div><p class=\"lesson-kicker\">" + escape(slide.kicker || "Story") + "</p>" + lines(slide) +
-      (slide.teacherCue ? "<p class=\"lesson-cue\">" + escape(slide.teacherCue) + "</p>" : "") +
+  function beatLabel(beat) {
+    return {
+      beginning: "Arrival",
+      goal: "The mission",
+      development: "What happens",
+      discovery: "Discovery",
+      application: "Use what you know",
+      resolution: "The way home",
+      debrief: "What we discovered"
+    }[beat] || "";
+  }
+
+  function sceneNote(slide, ctx) {
+    if (ctx && ctx.immersed) return "";
+    var mission = slide && slide.mission ? "<p class=\"lesson-cue\">" + escape(slide.mission) + "</p>" : "";
+    var beat = beatLabel(slide && slide.beat);
+    return mission + (beat ? "<p class=\"lesson-kicker\">" + escape(beat) + "</p>" : "");
+  }
+
+  function actionOf(slide) {
+    if (slide && slide.visualAction && slide.visualAction.type) return slide.visualAction;
+    var type = slide && slide.type;
+    var beat = slide && slide.beat;
+    if (type === "question") return { type: "predict" };
+    if (type === "spin") return { type: "point" };
+    if (type === "doors") return { type: "choose" };
+    if (type === "mystery" || beat === "debrief") return { type: "sequence" };
+    if (beat === "discovery" || beat === "development" || (slide && slide.kind === "teach")) return { type: "inspect" };
+    if (beat === "application") return { type: "compare" };
+    return { type: "reveal" };
+  }
+
+  function echoOfMission(line, mission) {
+    var plain = String(line || "").toLowerCase().replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ").trim();
+    var goal = String(mission || "").toLowerCase().replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ").trim();
+    if (plain.length < 18 || goal.length < 18) return false;
+    return plain.indexOf(goal.slice(0, 36)) !== -1 || goal.indexOf(plain.slice(0, 36)) !== -1;
+  }
+
+  function usefulLines(slide, ctx) {
+    var list = (slide && slide.lines || []).map(function (line) { return String(line || "").trim(); }).filter(Boolean);
+    if (ctx && ctx.immersed) {
+      list = list.filter(function (line) { return !echoOfMission(line, slide.mission); });
+      if (!list.length) list = (slide.lines || []).map(function (line) { return String(line || "").trim(); }).filter(Boolean).slice(0, 1);
+      list = list.slice(0, 2);
+    }
+    return list;
+  }
+
+  function focusHtml(slide) {
+    if (!slide || !slide.focusLook) return "";
+    var swatch = slide.characterId ? "<i class=\"lesson-swatch\" data-character=\"" + escape(slide.characterId) + "\"></i>" : "";
+    return "<em class=\"lesson-focus\">" + swatch + escape(slide.focusLook) + "</em>";
+  }
+
+  function faceOf(slide) {
+    return slide && slide.portrait ? "<img class=\"lesson-avatar\" src=\"" + escape(slide.portrait) + "\" alt=\"\" />" : "";
+  }
+
+  function pupilLine(slide) {
+    if (!slide || !slide.speaker) return "";
+    var label = slide.role ? (slide.speaker + " · " + slide.role) : slide.speaker;
+    return "<p class=\"lesson-pupil\">" + faceOf(slide) + "<strong>" + escape(label) + "</strong>" + focusHtml(slide) + "</p>";
+  }
+
+  function interactionsOf(slide) {
+    var list = [];
+    if (slide && Array.isArray(slide.interactions) && slide.interactions.length) list = slide.interactions.slice();
+    else if (slide && slide.interaction && slide.interaction.type) list = [slide.interaction];
+    return list.filter(function (item) { return item && item.type; });
+  }
+
+  function currentInteraction(slide, state) {
+    var steps = interactionsOf(slide);
+    if (!steps.length) return null;
+    var step = Math.max(0, Math.min(Number(state && state.step) || 0, steps.length - 1));
+    return steps[step];
+  }
+
+  function againScaffold(quiz, choiceId) {
+    var picked = "";
+    ((quiz && quiz.choices) || []).forEach(function (choice) {
+      if (choice && choice.id === choiceId) picked = String(choice.text || "").trim();
+    });
+    if (!picked) return "Look again at what is moving, then try once more. The story stays on this path.";
+    return picked + " does not make this happen. Look again at what is moving, then try once more.";
+  }
+
+  function spokenTo(name, text) {
+    var line = String(text || "").trim();
+    var who = String(name || "").trim();
+    if (!who || !line) return line;
+    if (line.toLowerCase().indexOf(who.toLowerCase()) !== -1) return line;
+    return who + ", " + line.charAt(0).toLowerCase() + line.slice(1);
+  }
+
+  function story(slide, ctx) {
+    ctx = ctx || {};
+    var action = actionOf(slide);
+    var shown = usefulLines(slide, ctx);
+    if (ctx.immersed && slide.speaker && shown.length) shown = shown.map(function (line, index) {
+      return index === 0 ? spokenTo(slide.speaker, line) : line;
+    });
+    var current = ctx.immersed ? currentInteraction(slide, ctx.interact) : null;
+    var slipped = ctx.interact && ctx.interact.slipped;
+    if (current && current.type === "move" && !slipped) shown = [current.instruction || "Push one side."];
+    if (current && current.type === "move" && slipped) shown = [current.teachingReveal || shown[0] || ""];
+    if (current && (current.type === "hotspot" || current.type === "tap-to-reveal") && ctx.interact && ctx.interact.revealed && current.teachingReveal) {
+      shown = [current.teachingReveal];
+    }
+    var body = shown.map(function (line) { return "<p class=\"lesson-copy\">" + escape(line) + "</p>"; }).join("");
+    var lead = beatLabel(slide && slide.beat) || (slide && slide.kicker) || "Story";
+    if (ctx.immersed && current && current.type === "move") lead = current.instruction || "Push";
+    else if (ctx.immersed && action.type === "inspect") lead = "Look closely";
+    if (ctx.immersed && action.type === "compare") lead = "Compare";
+    if (ctx.immersed && action.type === "sequence") {
+      body = "<ol class=\"lesson-recap\">" + shown.map(function (line) { return "<li>" + escape(line) + "</li>"; }).join("") + "</ol>";
+    } else if (ctx.immersed && action.type === "compare" && shown.length > 1) {
+      body = "<div class=\"lesson-compare\"><p>" + escape(shown[0]) + "</p><p>" + escape(shown[1]) + "</p></div>";
+    } else if (ctx.immersed && action.type === "hotspot") {
+      body = "<details class=\"lesson-hotspot\"><summary>Look here</summary>" + body + "</details>";
+    }
+    var actType = current && current.type === "move" ? "move" : action.type;
+    return "<div class=\"lesson-story lesson-act lesson-act--" + escape(actType) + "\">" +
+      (slide.image && !ctx.immersed ? "<img class=\"lesson-scene\" src=\"" + escape(slide.image) + "\" alt=\"" + escape(slide.alt || "") + "\" />" : "") +
+      "<div>" + sceneNote(slide, ctx) + pupilLine(slide) + "<p class=\"lesson-kicker\">" + escape(lead) + "</p>" + body +
+      (slide.teacherCue && !ctx.immersed ? "<p class=\"lesson-cue\">" + escape(slide.teacherCue) + "</p>" : "") +
       "</div></div>";
   }
 
   function mystery(slide, ctx) {
     var open = !!ctx.mysteryOpen;
-    return "<div class=\"lesson-mystery\"><p class=\"lesson-kicker\">" + escape(slide.kicker || "Mystery") + "</p>" + lines(slide) +
-      (open ? "<p class=\"lesson-react lesson-react--yes\">" + escape(ctx.mysteryText || "Keep the idea you have just learned.") + "</p>" : "<button type=\"button\" class=\"lesson-go lesson-go--stage\" id=\"lessonMystery\">Open it</button>") +
+    var fact = (slide.lines || []).map(function (line) { return String(line || "").trim(); }).filter(Boolean).join(" ");
+    var reveal = fact || (ctx && ctx.mysteryText) || "";
+    return "<div class=\"lesson-mystery lesson-act lesson-act--sequence\">" + sceneNote(slide, ctx) + pupilLine(slide) + "<p class=\"lesson-kicker\">" + escape((ctx && ctx.immersed) ? "What we discovered" : (slide.kicker || "What we discovered")) + "</p>" +
+      (open ? "<p class=\"lesson-react lesson-react--yes\">" + escape(reveal) + "</p>" : "<button type=\"button\" class=\"lesson-go lesson-go--stage\" id=\"lessonMystery\">Open it</button>") +
       "</div>";
   }
 
   function doors(slide, ctx) {
-    var row = [1, 2, 3].map(function (n) {
+    var labels = (slide.choices && slide.choices.length ? slide.choices : (slide.lines || [])).slice(0, 3);
+    var prompt = slide.prompt || slide.teacherCue || "The class chooses one.";
+    var row = [0, 1, 2].map(function (index) {
+      var n = index + 1;
       var on = String(ctx.door || "") === String(n);
-      return "<button type=\"button\" class=\"lesson-door" + (on ? " is-on" : "") + "\" data-door=\"" + n + "\"><span>Door</span><strong>" + n + "</strong></button>";
+      var label = labels[index] || ("Choice " + n);
+      return "<button type=\"button\" class=\"lesson-door" + (on ? " is-on" : "") + "\" data-door=\"" + n + "\"><span>" + escape(label) + "</span></button>";
     }).join("");
-    return "<div class=\"lesson-doors\"><p class=\"lesson-kicker\">" + escape(slide.kicker || "Pick a door") + "</p><p class=\"lesson-copy\">The class chooses one door.</p><div class=\"lesson-door-row\">" + row + "</div>" +
-      (ctx.door ? "<p class=\"lesson-react\">" + escape(ctx.doorText || "Today's idea stays with the class.") + "</p>" : "") +
+    var reveal = "";
+    if (ctx.door) {
+      var picked = Number(ctx.door) - 1;
+      reveal = (slide.reveals && slide.reveals[picked]) || "";
+    }
+    var decision = slide.kind === "decision" ? "<p class=\"lesson-copy\">The class decides.</p>" : "";
+    return "<div class=\"lesson-doors lesson-act lesson-act--choose\">" + sceneNote(slide, ctx) + pupilLine(slide) + "<p class=\"lesson-kicker\">" + escape((ctx && ctx.immersed) ? "Choose" : (slide.kicker || "Choose one")) + "</p>" + (ctx && ctx.immersed ? "" : decision) + "<p class=\"lesson-copy\">" + escape(prompt) + "</p><div class=\"lesson-door-row\">" + row + "</div>" +
+      (reveal ? "<p class=\"lesson-react\">" + escape(reveal) + "</p>" : "") +
       "</div>";
   }
 
@@ -120,17 +254,26 @@
         return "<button type=\"button\" class=\"lesson-quiet" + on + "\" data-team=\"" + escape(team.id) + "\">" + escape(team.name) + "</button>";
       }).join("") + "</div>";
     }
+    var immersed = !!(host.closest && host.closest(".has-world, .has-fallback"));
     var choices = quiz.choices.map(function (choice) {
       var right = (revealed || saved.correct) && choice.id === quiz.correct;
       var again = !right && saved.choice === choice.id && saved.correct === false;
-      var label = quiz.kind === "boolean" ? escape(choice.text) : "<b>" + escape(choice.id) + "</b><span>" + escape(choice.text) + "</span>";
+      var label = quiz.kind === "boolean" || immersed ? "<span>" + escape(choice.text) + "</span>" : "<b>" + escape(choice.id) + "</b><span>" + escape(choice.text) + "</span>";
       return "<button type=\"button\" class=\"lesson-choice" + (right ? " is-right" : "") + (again ? " is-again" : "") + "\" data-choice=\"" + escape(choice.id) + "\"" + (paused || revealed ? " disabled" : "") + ">" + label + "</button>";
     }).join("");
     var againBtn = !paused && !revealed && saved.choice && saved.correct === false
       ? "<button type=\"button\" class=\"lesson-quiet\" id=\"lessonTry\">Try again</button>" : "";
-    var explain = revealed && quiz.explain ? "<p class=\"lesson-cue\">" + escape(quiz.explain) + "</p>" : "";
+    var explain = "";
     var counter = list.length > 1 ? "<p class=\"lesson-qcount\">Question " + (index + 1) + " of " + list.length + "</p>" : "";
-    host.innerHTML = "<div class=\"lesson-question\"><p class=\"lesson-kicker\">" + escape((ctx.slide && ctx.slide.kicker) || "Quiz") + "</p>" + counter + who +
+    var kicker = (ctx.slide && ctx.slide.kicker) || (immersed ? "Make your prediction" : "Quiz");
+    if (immersed && /^quiz$/i.test(kicker)) kicker = "Make your prediction";
+    if (immersed) kicker = "Make your prediction";
+    if (immersed && (named || (ctx.slide && ctx.slide.speaker))) {
+      var pupilName = named ? selected.displayName : ctx.slide.speaker;
+      var pupilRole = (ctx.slide && ctx.slide.role) || "";
+      who = "<p class=\"lesson-pupil\">" + faceOf(ctx.slide) + "<strong>" + escape(pupilRole ? pupilName + " · " + pupilRole : pupilName) + "</strong>" + focusHtml(ctx.slide) + "</p>";
+    }
+    host.innerHTML = "<div class=\"lesson-question\"><p class=\"lesson-kicker\">" + escape(kicker) + "</p>" + (immersed ? "" : counter) + who +
       "<h2 class=\"lesson-prompt\">" + escape(quiz.prompt) + "</h2>" + teamRow + "<div class=\"lesson-choices\">" + choices + "</div>" + explain + againBtn + "</div>";
     Array.prototype.forEach.call(host.querySelectorAll("[data-choice]"), function (button) {
       listen(bag, button, "click", function () {
@@ -161,7 +304,11 @@
             actionId: "quiz-" + ctx.roundId + "-q" + index + "-" + choiceId
           },
           reveal: outcome.correct,
-          feedback: {
+          feedback: immersed ? {
+            kind: outcome.correct ? "yes" : "again",
+            text: outcome.correct ? "That matches what we can see." : "Look again.",
+            extra: outcome.correct ? (quiz.explain || "Carry on with what the class can see.") : againScaffold(quiz, choiceId)
+          } : {
             kind: outcome.correct ? "yes" : "again",
             text: outcome.correct ? "Brilliant!" : "Nearly!",
             extra: quiz.explain || extra
@@ -235,11 +382,46 @@
     var paused = !!ctx.paused || !Core.allowsInput(engine && engine.status);
     var shown = people.length ? people : [{ id: "", displayName: "Pupil" }];
     var rotation = already ? wheelRotation(shown, already, 0) : 0;
+    var slide = ctx.slide || {};
+    var name = (selected && selected.displayName) || "";
+    var task = String(slide.prompt || (slide.lines && slide.lines[0]) || "").trim();
     var count = people.length ? "<p class=\"lesson-copy\">" + pupilCountCopy(people.length) + "</p>" : "<p class=\"lesson-copy\">Add the class, then spin.</p>";
-    var result = already ? "<p class=\"lesson-wheel-result\">" + escape((selected && selected.displayName) || "") + "</p>" : "";
-    var button = already ? "" : "<button type=\"button\" class=\"lesson-go lesson-go--stage\" id=\"lessonSpin\"" + (paused || !people.length ? " disabled" : "") + ">Spin</button>";
-    host.innerHTML = "<div class=\"lesson-spin\"><p class=\"lesson-kicker\">" + escape((ctx.slide && ctx.slide.kicker) || "Spin a pupil") + "</p>" +
-      lines(ctx.slide) + count + wheelHtml(shown, rotation) + result + button + "</div>";
+    var chosen = "";
+    var immersed = !!(host.closest && host.closest(".has-world, .has-fallback"));
+    if (already && name) {
+      if (slide.role && immersed) {
+        chosen = "<p class=\"lesson-pupil\">" + faceOf(slide) + "<strong>" + escape(name + " · " + slide.role) + "</strong>" + focusHtml(slide) + "</p>" +
+          (task ? "<p class=\"lesson-copy\">" + escape(spokenTo(name, task)) + "</p>" : "");
+      } else if (slide.role) {
+        chosen = "<p class=\"lesson-kicker\">Mission control has chosen...</p>" +
+          "<p class=\"lesson-spin-name\">" + escape(name) + "</p>" +
+          "<p class=\"lesson-kicker\">" + escape(slide.role) + "</p>" +
+          (task ? "<p class=\"lesson-copy\">" + escape(task) + "</p>" : "");
+      } else {
+        chosen = "<p class=\"lesson-kicker\">" + escape(name) + "</p>" +
+          (task ? "<p class=\"lesson-copy\">" + escape(task) + "</p>" : "");
+      }
+      if (slide.reveal) {
+        chosen += "<button type=\"button\" class=\"lesson-go lesson-go--stage\" id=\"lessonSpinReveal\">Show the idea</button>" +
+          "<p class=\"lesson-react lesson-react--yes\" id=\"lessonSpinIdea\" hidden>" + escape(slide.reveal) + "</p>";
+      }
+    }
+    var castName = (already && name) || (immersed && slide.speaker) || "";
+    if (immersed && castName && slide.role && !chosen) {
+      chosen = "<p class=\"lesson-pupil\">" + faceOf(slide) + "<strong>" + escape(castName + " · " + slide.role) + "</strong>" + focusHtml(slide) + "</p>" +
+        (task ? "<p class=\"lesson-copy\">" + escape(spokenTo(castName, task)) + "</p>" : "");
+    }
+    var named = already || (immersed && castName);
+    var button = named ? "" : "<button type=\"button\" class=\"lesson-go lesson-go--stage\" id=\"lessonSpin\"" + (paused || !people.length ? " disabled" : "") + ">" + (immersed ? "Choose someone" : "Spin") + "</button>";
+    var intro = already || (immersed && castName) ? "" : "<p class=\"lesson-copy\">" + (immersed ? "Someone in the class will look." : "Spin to choose someone.") + "</p>";
+    host.innerHTML = "<div class=\"lesson-spin lesson-act lesson-act--point\"><p class=\"lesson-kicker\">" + escape(immersed ? (slide.role || "Look closely") : (slide.kicker || "Choose someone")) + "</p>" +
+      intro + (already || immersed ? "" : count) + (immersed ? "" : wheelHtml(shown, rotation)) + chosen + button + "</div>";
+    var revealButton = host.querySelector("#lessonSpinReveal");
+    listen(bag, revealButton, "click", function () {
+      var idea = host.querySelector("#lessonSpinIdea");
+      if (idea) idea.hidden = false;
+      revealButton.hidden = true;
+    });
     var spinButton = host.querySelector("#lessonSpin");
     listen(bag, spinButton, "click", function () {
       if (paused || already || spinButton.disabled) return;
@@ -460,6 +642,30 @@
     return current;
   }
 
+  function layerHtml(slide, state) {
+    var steps = interactionsOf(slide);
+    if (!steps.length) return "";
+    var step = Math.max(0, Math.min(Number(state && state.step) || 0, steps.length - 1));
+    var current = steps[step];
+    if (!current) return "";
+    if ((current.type === "hotspot" || current.type === "tap-to-reveal") && state && state.revealed && steps[step + 1] && steps[step + 1].type === "move") {
+      current = steps[step + 1];
+    }
+    if (current.type === "move" || current.type === "drag") {
+      var stage = state && state.slipped ? "slip" : (state && state.stuck ? "meet" : "apart");
+      return "<div class=\"lesson-layer\" data-interaction=\"move\">" +
+        "<div class=\"lesson-move is-" + stage + "\">" +
+        "<svg class=\"lesson-move-svg\" viewBox=\"0 0 640 280\" aria-hidden=\"true\"><rect class=\"lesson-slab lesson-slab-a\" x=\"36\" y=\"78\" width=\"250\" height=\"124\" rx=\"22\"></rect><rect class=\"lesson-slab lesson-slab-b\" x=\"354\" y=\"78\" width=\"250\" height=\"124\" rx=\"22\"></rect></svg>" +
+        (stage === "slip" ? "<p class=\"lesson-dust\" aria-hidden=\"true\"></p>" : "<button type=\"button\" class=\"lesson-go lesson-push\" data-world=\"push\">" + escape(current.instruction || "Push") + "</button>") +
+        "</div></div>";
+    }
+    if (current.type === "hotspot" || current.type === "tap-to-reveal" || current.type === "inspect") {
+      if (state && state.revealed) return "<div class=\"lesson-layer is-lit\" data-interaction=\"hotspot\"></div>";
+      return "<div class=\"lesson-layer\" data-interaction=\"hotspot\"><button type=\"button\" class=\"lesson-spot\" data-world=\"spot\">" + escape(current.instruction || "Look more closely") + "</button></div>";
+    }
+    return "";
+  }
+
   function render(slide, ctx) {
     ctx = ctx || {};
     var type = (slide && slide.type) || ctx.mechanic || "story";
@@ -475,8 +681,8 @@
     if (type === "mystery") return { mode: "game", html: mystery(slide || {}, ctx) };
     if (type === "doors") return { mode: "game", html: doors(slide || {}, ctx) };
     if (type === "done" || type === "complete") return { mode: "celebration", html: "<div class=\"lesson-pending\"><p class=\"lesson-kicker\">Finish</p>" + lines(slide) + "</div>" };
-    return { mode: "story", html: story(slide || {}) };
+    return { mode: "story", html: story(slide || {}, ctx) };
   }
 
-  return { render: render, mount: mount, destroy: destroyCurrent, pupilsToday: pupilCountCopy };
+  return { render: render, mount: mount, destroy: destroyCurrent, pupilsToday: pupilCountCopy, actionOf: actionOf, interactionsOf: interactionsOf, layerHtml: layerHtml };
 });

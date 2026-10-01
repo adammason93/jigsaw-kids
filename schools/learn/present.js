@@ -56,6 +56,31 @@
     return [];
   }
 
+  function storyNow() {
+    var map = journey && journey.learningMap;
+    return (map && map.storyPlan) || null;
+  }
+
+  function castBook() {
+    try { return JSON.parse(localStorage.getItem("wondii-session-cast") || "{}"); } catch (e) { return {}; }
+  }
+
+  function writeCast(code, characterId, participantId) {
+    if (!code || !characterId || !participantId) return;
+    var book = castBook();
+    book[code] = book[code] || {};
+    book[code][characterId] = participantId;
+    localStorage.setItem("wondii-session-cast", JSON.stringify(book));
+  }
+
+  function characterOn(current) {
+    var slide = (current.slides || [])[current.slide || 0] || {};
+    if (slide.characterId) return slide.characterId;
+    var adventure = window.WondiiVisualAdventure;
+    if (!slide.role || !adventure || !adventure.characterForRole) return "";
+    return adventure.characterForRole(storyNow(), slide.role);
+  }
+
   function liveQuestion(slide) {
     var question = (slide && Rooms.questionOf(slide)) || Rooms.QUESTION;
     var edits = journey && journey.questionEdits && journey.questionEdits[question.id];
@@ -162,6 +187,7 @@
     var slide = currentSlide(current);
     var question = slide && (slide.type === "question" || slide.type === "quiz") ? liveQuestion(slide) : null;
     var map = journey && journey.learningMap ? journey.learningMap : {};
+    if (window.WondiiVisuals && WondiiVisuals.bind) WondiiVisuals.bind(map.visualAssets || []);
     var fresh = params.get("fresh") === "1";
     if (fresh) {
       params.delete("fresh");
@@ -169,6 +195,9 @@
     }
     Shell.render(root, {
       title: (current && current.title) || (journey && journey.plan && journey.plan.title) || map.topic || "Today's adventure",
+      storyPlan: map.storyPlan || null,
+      featuredCast: map.featuredCast || [],
+      visualAssets: map.visualAssets || null,
       year: (current && current.yearGroup) || map.yearGroup || "",
       orgName: org.name,
       orgLogo: org.logo,
@@ -179,6 +208,7 @@
       fresh: fresh,
       pupils: pupils,
       portraits: portraits(pupils),
+      castOverrides: (current && castBook()[current.code]) || {},
       joined: current && current.engine && window.WondiiSessionEngine ? WondiiSessionEngine.joinedCount(current.engine) : (current ? current.participants.length : 0),
       question: question,
       pick: params.get("pick") || "",
@@ -334,7 +364,13 @@
     retry: function () { Rooms.recover(sessionCode); Rooms.resume(sessionCode); paint(); },
     end: function () { Rooms.end(sessionCode); paint(); },
     complete: function () { Rooms.complete(sessionCode); paint(); },
-    choose: function (id) { Rooms.chooseParticipant(sessionCode, id); paint(); },
+    choose: function (id) {
+      var current = session();
+      var characterId = current ? characterOn(current) : "";
+      Rooms.chooseParticipant(sessionCode, id);
+      if (current && characterId) writeCast(current.code, characterId, id);
+      paint();
+    },
     adjust: function (teamId, delta) {
       var reason = "teacher-" + Date.now();
       if (delta > 0) Rooms.award(sessionCode, teamId || null, 1, reason);
@@ -366,7 +402,11 @@
     play: function (packet) {
       var current = session();
       if (!current) return;
+      var characterId = characterOn(current);
       Rooms.applyMechanic(current.code, packet || {});
+      if (packet && packet.emission && packet.emission.participantId && characterId) {
+        writeCast(current.code, characterId, packet.emission.participantId);
+      }
       if (packet && packet.clearFeedback) Shell.clearFeedback();
       if (packet && packet.feedback) Shell.noteFeedback(packet.feedback.kind, packet.feedback.text, packet.feedback.extra || "");
       if (packet && packet.done) {

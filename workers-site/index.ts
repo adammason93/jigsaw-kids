@@ -31,6 +31,7 @@ export default {
       return serveDocument(request, "/schools/learn/join.html", env);
     }
     if (url.pathname === "/api/learn/generate") return generateLesson(request, env);
+    if (url.pathname === "/api/learn/visuals") return learnVisuals(request, env);
     const learnPage = learnDocument(url.pathname);
     if (learnPage) return serveDocument(request, learnPage, env);
     return env.ASSETS.fetch(request);
@@ -78,6 +79,36 @@ async function generateLesson(request: Request, env: Env): Promise<Response> {
   try { payload = JSON.parse(text); } catch (_error) { payload = { ok: false, category: "provider" }; }
   if (!payload || typeof payload !== "object" || (payload.ok !== true && !payload.category)) payload = { ok: false, category: "provider" };
   return Response.json(payload, { status: payload.ok ? 200 : upstream.status || 502, headers: { "Cache-Control": "no-store" } });
+}
+
+async function learnVisuals(request: Request, env: Env): Promise<Response> {
+  if (request.method === "OPTIONS") return new Response(null, { status: 204 });
+  if (request.method !== "POST") {
+    return Response.json({ ok: false, category: "method" }, { status: 405, headers: { "Cache-Control": "no-store" } });
+  }
+  const auth = request.headers.get("Authorization") || "";
+  const apiKey = request.headers.get("apikey") || "";
+  if (!auth || !apiKey) {
+    return Response.json({ ok: false, category: "unauthorised" }, { status: 401, headers: { "Cache-Control": "no-store" } });
+  }
+  const base = (env.SUPABASE_URL || "https://enuzrcjnrxwglacivlnu.supabase.co").replace(/\/$/, "");
+  const body = await request.text();
+  let upstream: Response;
+  try {
+    upstream = await fetch(base + "/functions/v1/learn-visuals", {
+      method: "POST",
+      headers: { Authorization: auth, apikey: apiKey, "Content-Type": "application/json" },
+      body
+    });
+  } catch (_error) {
+    return Response.json({ ok: true, enabledGlobally: false, generated: false, reason: "visual_request_failed" }, { headers: { "Cache-Control": "no-store" } });
+  }
+  const text = await upstream.text();
+  try {
+    return Response.json(JSON.parse(text), { status: upstream.status, headers: { "Cache-Control": "no-store" } });
+  } catch (_error) {
+    return Response.json({ ok: true, enabledGlobally: false, generated: false, reason: "visual_request_failed" }, { headers: { "Cache-Control": "no-store" } });
+  }
 }
 
 async function serveDocument(request: Request, assetPath: string, env: Env): Promise<Response> {
