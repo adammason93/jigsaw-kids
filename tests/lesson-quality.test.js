@@ -414,7 +414,7 @@ assert.strictEqual(merged.slots.apply.instruction, "Move the plates until they s
 assert.notStrictEqual(merged.slots.apply.instruction, kept.slots.apply.instruction);
 var produced = acceptSlots("English", "adjectives", "Year 3", adjectiveKnowledge, {
   instruction: "Write three sentences using adjectives.",
-  knowledgeUsed: "Adjectives describe nouns.",
+  knowledgeUsed: "Adjectives add detail to a sentence.",
   successCondition: "Sentences include at least one adjective each.",
   teachingConnection: "This task uses adjectives to enhance sentences."
 });

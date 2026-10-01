@@ -7,7 +7,7 @@ var sourcePath = path.join(__dirname, "../js/lesson-brain.js");
 var source = fs.readFileSync(sourcePath, "utf8");
 var patched = source.replace(
   "accept: accept,",
-  "accept: accept, _audit: { knowledgeLink: knowledgeLink, applyReady: applyReady, applySlotIssues: applySlotIssues, doingTask: doingTask, bareTask: bareTask, recallOnly: recallOnly, selectionOnly: selectionOnly },"
+  "accept: accept, _audit: { knowledgeLink: knowledgeLink, applyReady: applyReady, applyAlignment: applyAlignment, applySlotIssues: applySlotIssues, doingTask: doingTask, bareTask: bareTask, recallOnly: recallOnly, selectionOnly: selectionOnly },"
 );
 var loaded = new Module(sourcePath);
 loaded.filename = sourcePath;
@@ -28,20 +28,19 @@ function activity(row) {
 function judge(row) {
   var slot = { requiredKnowledge: row.requiredKnowledge };
   var item = activity(row);
+  var aligned = audit.applyAlignment(item, row.requiredKnowledge);
   var issues = audit.applySlotIssues(item, slot);
-  var knowledgeIssue = issues.filter(function (issue) {
-    return /apply slot/.test(issue);
-  });
   return {
+    status: aligned.status,
+    reason: aligned.reason,
+    matchedKnowledge: aligned.matchedKnowledge,
+    evidence: aligned.evidence,
     ready: audit.applyReady(item, row.requiredKnowledge),
     doingTask: audit.doingTask(row.instruction),
     bareTask: audit.bareTask(row.instruction),
     recallOnly: audit.recallOnly(row.instruction),
     selectionOnly: audit.selectionOnly(row.instruction),
-    namedLink: audit.knowledgeLink(row.knowledgeUsed, row.requiredKnowledge),
-    instructionLink: audit.knowledgeLink(row.instruction, [row.knowledgeUsed]),
-    issues: knowledgeIssue,
-    rejects: knowledgeIssue.length > 0
+    issues: issues
   };
 }
 
@@ -284,44 +283,114 @@ var cases = [
   }
 ];
 
-var counts = { trueAccept: 0, trueReject: 0, falseAccept: 0, falseReject: 0 };
+var SEMANTIC = "The apply slot needs semantic knowledge alignment.";
+var KNOWLEDGE = "The apply slot does not use the taught knowledge.";
+var counts = { pass: 0, fail: 0, unresolved: 0, definiteCorrect: 0, definiteFalseAccepts: 0, definiteFalseRejects: 0, unresolvedTrueApplications: 0, unresolvedWeakApplications: 0 };
 cases.forEach(function (row) {
   var result = judge(row);
-  var validator = result.rejects ? "reject" : "accept";
-  var kind = validator === row.educational
-    ? (validator === "accept" ? "trueAccept" : "trueReject")
-    : (validator === "accept" ? "falseAccept" : "falseReject");
-  counts[kind] += 1;
-  row.validator = validator;
-  row.kind = kind;
+  row.status = result.status;
+  row.reason = result.reason;
   row.issues = result.issues;
-  row.gates = {
-    doingTask: result.doingTask,
-    bareTask: result.bareTask,
-    recallOnly: result.recallOnly,
-    selectionOnly: result.selectionOnly,
-    namedLink: result.namedLink,
-    instructionLink: result.instructionLink
-  };
+  row.gates = result;
+  counts[result.status] += 1;
+  if (result.status === "pass" && row.educational === "accept") counts.definiteCorrect += 1;
+  else if (result.status === "fail" && row.educational === "reject") counts.definiteCorrect += 1;
+  else if (result.status === "pass" && row.educational === "reject") counts.definiteFalseAccepts += 1;
+  else if (result.status === "fail" && row.educational === "accept") counts.definiteFalseRejects += 1;
+  else if (result.status === "unresolved" && row.educational === "accept") counts.unresolvedTrueApplications += 1;
+  else if (result.status === "unresolved" && row.educational === "reject") counts.unresolvedWeakApplications += 1;
 });
 
 if (process.env.AUDIT_PRINT === "1") {
   cases.forEach(function (row) {
-    console.log([row.bucket, row.id, row.subject, "edu=" + row.educational, "val=" + row.validator, row.kind, (row.issues || []).join("; "), "doing=" + row.gates.doingTask, "bare=" + row.gates.bareTask, "recall=" + row.gates.recallOnly, "named=" + JSON.stringify(row.gates.namedLink), "instr=" + JSON.stringify(row.gates.instructionLink)].join(" | "));
+    console.log([row.id, "edu=" + row.educational, "status=" + row.status, "reason=" + row.reason, (row.issues || []).join("; ")].join(" | "));
   });
   console.log(JSON.stringify(counts));
 }
 
 assert.strictEqual(cases.length, 26);
-cases.forEach(function (row) {
-  assert.ok(row.validator === "accept" || row.validator === "reject");
-  assert.ok(row.educational === "accept" || row.educational === "reject");
+assert.strictEqual(counts.definiteFalseAccepts, 0);
+["sci-globe-direct", "maths-multiply-direct", "english-nouns-direct", "history-metals-direct", "geo-sort-direct"].forEach(function (id) {
+  var row = cases.filter(function (item) { return item.id === id; })[0];
+  assert.strictEqual(row.status, "pass", id);
 });
+["sci-volcano-topic", "maths-fraction-topic", "english-adjective-topic", "history-roman-topic", "geo-weather-topic"].forEach(function (id) {
+  var row = cases.filter(function (item) { return item.id === id; })[0];
+  assert.notStrictEqual(row.status, "pass", id);
+  assert.strictEqual(row.status, "fail", id);
+});
+["sci-wrong-sentence", "history-wrong-sentence", "maths-wrong-sentence"].forEach(function (id) {
+  var row = cases.filter(function (item) { return item.id === id; })[0];
+  assert.strictEqual(row.status, "fail", id);
+  assert.ok(row.issues.join(" ").indexOf(KNOWLEDGE) !== -1, id);
+  assert.ok(row.issues.join(" ").indexOf(SEMANTIC) === -1, id);
+});
+["sci-daylight-paraphrase", "maths-portion-paraphrase", "history-goods-paraphrase", "geo-pattern-paraphrase"].forEach(function (id) {
+  var row = cases.filter(function (item) { return item.id === id; })[0];
+  assert.strictEqual(row.status, "unresolved", id);
+  assert.ok(row.issues.indexOf(SEMANTIC) !== -1, id);
+  assert.ok(row.issues.join(" ").indexOf(KNOWLEDGE) === -1, id);
+});
+assert.strictEqual(cases.filter(function (row) { return row.id === "english-size-colour"; })[0].status, "pass");
+["sci-recall", "english-recall", "history-tell-reason", "sci-sort-cards", "geo-move-this", "english-choose-pupil"].forEach(function (id) {
+  var row = cases.filter(function (item) { return item.id === id; })[0];
+  assert.strictEqual(row.status, "fail", id);
+  assert.ok(row.issues.join(" ").indexOf(SEMANTIC) === -1, id);
+});
+var explain = cases.filter(function (row) { return row.id === "sci-explain-restates"; })[0];
+assert.notStrictEqual(explain.status, "pass");
 var live = cases.filter(function (row) { return row.id === "live-day-night"; })[0];
-assert.strictEqual(live.validator, "reject");
+assert.notStrictEqual(live.status, "pass");
+assert.strictEqual(live.status, "fail");
 assert.strictEqual(live.gates.doingTask, true);
 assert.strictEqual(live.gates.selectionOnly, false);
 assert.strictEqual(live.gates.recallOnly, false);
-assert.ok(live.issues.join(" ").indexOf("does not use the taught knowledge") !== -1);
+assert.ok(live.issues.join(" ").indexOf(KNOWLEDGE) !== -1);
+assert.ok(live.issues.join(" ").indexOf(SEMANTIC) === -1);
+assert.ok(counts.pass >= 5);
+assert.ok(counts.fail >= 8);
+
+var Brain = loaded.exports;
+var paraphrase = cases.filter(function (row) { return row.id === "sci-daylight-paraphrase"; })[0];
+var plan = Brain.normalisePlan({
+  learningObjective: paraphrase.requiredKnowledge[0],
+  subject: "Science",
+  topic: "day and night",
+  keyKnowledge: paraphrase.requiredKnowledge,
+  lessonArc: [{ purpose: "teach" }, { purpose: "check" }]
+}, { subject: "Science", topic: "day and night", yearGroup: "Year 5", requestedMinutes: 15, pupilCount: 4, lessonBrief: { concepts: [], intent: "explain" }, lessonText: "day and night" }).plan;
+var frame = { subject: "Science", topic: "day and night", yearGroup: "Year 5", requestedMinutes: 15, pupilCount: 4, lessonBrief: { concepts: [], intent: "explain" }, lessonPlan: plan };
+frame.lessonSkeleton = Brain.lessonSkeleton(plan, frame);
+frame.storyPlan = Brain.storyFromPlan(plan, frame);
+var repair = JSON.parse(Brain.slotRepairBrief(frame, ["hook", "apply"], [SEMANTIC, "The opening states the explanation before the class has investigated."], {
+  slots: { apply: { instruction: paraphrase.instruction } }
+}).user);
+var applySpec = repair.slotsToRewrite.filter(function (spec) { return spec.slotType === "APPLY"; })[0];
+var hookSpec = repair.slotsToRewrite.filter(function (spec) { return spec.slotType === "HOOK"; })[0];
+assert.deepStrictEqual(applySpec.failure, [SEMANTIC]);
+assert.ok(hookSpec.failure.indexOf(SEMANTIC) === -1);
+assert.strictEqual(frame.lessonSkeleton.map(function (slot) { return slot.id; }).join(","), "hook,investigate,teach,apply,check,resolution,recap");
+assert.strictEqual(frame.lessonSkeleton[3].mechanic, "story");
+assert.strictEqual(frame.lessonSkeleton[3].interactionIntent, "move");
+var families = {
+  Maths: ["compare", "match"],
+  English: ["compare", "sort"],
+  History: ["inspect", "sequence"],
+  Geography: ["compare", "sort"],
+  Science: ["inspect", "move"]
+};
+Object.keys(families).forEach(function (subject) {
+  var familyPlan = Brain.normalisePlan({
+    learningObjective: "Use the idea.",
+    subject: subject,
+    topic: "idea",
+    keyKnowledge: ["The class uses one taught idea in the task."],
+    lessonArc: [{ purpose: "teach" }, { purpose: "check" }]
+  }, { subject: subject, topic: "idea", yearGroup: "Year 4", requestedMinutes: 15, pupilCount: 4 }).plan;
+  var family = Brain.lessonSkeleton(familyPlan, { subject: subject, topic: "idea", yearGroup: "Year 4", requestedMinutes: 15, pupilCount: 4 });
+  assert.strictEqual(family[1].interactionIntent, families[subject][0], subject);
+  assert.strictEqual(family[3].interactionIntent, families[subject][1], subject);
+  assert.strictEqual(family[3].mechanic, "story", subject);
+});
 
 module.exports = { cases: cases, counts: counts };

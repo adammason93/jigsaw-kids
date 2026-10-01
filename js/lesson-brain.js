@@ -425,13 +425,76 @@
     return knowledgeLink(instruction, required) || "";
   }
 
-  function applyReady(activity, required) {
+  function linkBits(text) {
+    var seen = {};
+    return linkWords(text).filter(function (word) {
+      if (word.length < 4 || seen[word]) return false;
+      seen[word] = 1;
+      return true;
+    });
+  }
+
+  function hitBits(instruction, sentence) {
+    var used = linkWords(instruction);
+    return linkBits(sentence).filter(function (bit) {
+      return used.some(function (word) { return sameWord(word, bit); });
+    });
+  }
+
+  var RESTATE = {
+    explain: 1, describe: 1, describing: 1, tell: 1, tells: 1, say: 1, says: 1,
+    state: 1, states: 1, name: 1, names: 1, recall: 1, define: 1, discuss: 1
+  };
+
+  function restatesNamed(instruction, sentence) {
+    var words = linkWords(instruction).filter(function (word) { return word.length >= 4; });
+    if (!words.some(function (word) { return RESTATE[word]; })) return false;
+    var sentenceWords = linkWords(sentence);
+    return !words.some(function (word) {
+      if (RESTATE[word]) return false;
+      return !sentenceWords.some(function (bit) { return sameWord(word, bit); });
+    });
+  }
+
+  function applyAlignment(activity, required) {
     var instruction = applyInstructionOf(activity);
-    var matched = applyMatched(activity, required);
-    if (!matched) return "";
-    if (!knowledgeLink(instruction, [matched])) return "";
-    if (!doingTask(instruction) || bareTask(instruction) || recallOnly(instruction) || selectionOnly(instruction)) return "";
-    return matched;
+    var named = activity && activity.knowledgeUsed || "";
+    var sentences = (required || []).filter(Boolean);
+    if (recallOnly(instruction)) return { status: "fail", reason: "recall-only", matchedKnowledge: "", evidence: [] };
+    if (selectionOnly(instruction)) return { status: "fail", reason: "pupil-selection", matchedKnowledge: "", evidence: [] };
+    if (bareTask(instruction)) return { status: "fail", reason: "bare-interaction", matchedKnowledge: "", evidence: [] };
+    if (!doingTask(instruction)) return { status: "fail", reason: "not-an-action", matchedKnowledge: "", evidence: [] };
+    var matched = applyMatched(activity, sentences);
+    if (named && !matched) return { status: "fail", reason: "knowledge-unidentified", matchedKnowledge: "", evidence: [] };
+    if (!matched) return { status: "unresolved", reason: "no-named-knowledge", matchedKnowledge: "", evidence: [] };
+    var hits = hitBits(instruction, matched);
+    var bits = linkBits(matched);
+    var ratio = bits.length ? hits.length / bits.length : 0;
+    var competitor = "";
+    var competitorHits = 0;
+    sentences.forEach(function (sentence) {
+      if (sentence === matched) return;
+      var otherHits = hitBits(instruction, sentence);
+      var otherBits = linkBits(sentence);
+      var otherRatio = otherBits.length ? otherHits.length / otherBits.length : 0;
+      if (otherHits.length > hits.length && otherRatio > ratio && ratio < 0.5 && otherHits.length > competitorHits) {
+        competitor = sentence;
+        competitorHits = otherHits.length;
+      }
+    });
+    if (competitor) return { status: "fail", reason: "different-knowledge", matchedKnowledge: matched, evidence: hits };
+    if (restatesNamed(instruction, matched)) return { status: "unresolved", reason: "restatement", matchedKnowledge: matched, evidence: hits };
+    if (hits.length >= 2 || (hits.length >= 1 && bits.length > 0 && hits.length === bits.length && bits.length <= 2)) {
+      return { status: "pass", reason: "relation-covered", matchedKnowledge: matched, evidence: hits };
+    }
+    if (hits.length === 1 && bits.length >= 3) return { status: "fail", reason: "topic-word-only", matchedKnowledge: matched, evidence: hits };
+    if (!hits.length) return { status: "unresolved", reason: "no-lexical-overlap", matchedKnowledge: matched, evidence: [] };
+    return { status: "unresolved", reason: "partial-overlap", matchedKnowledge: matched, evidence: hits };
+  }
+
+  function applyReady(activity, required) {
+    var aligned = applyAlignment(activity, required);
+    return aligned.status === "pass" ? aligned.matchedKnowledge : "";
   }
 
   function settleApply(activity, slot) {
@@ -455,11 +518,11 @@
     if (clean(instruction).split(/\s+/).filter(Boolean).length >= 4 && (!interaction || !clean(interaction.target))) {
       issues.push("The apply slot has no interaction target.");
     }
-    var named = activity && activity.knowledgeUsed || "";
-    if (named && !knowledgeLink(named, required)) issues.push("The apply slot does not use the taught knowledge.");
-    else if (!applyReady(activity, required)) {
-      if (recallOnly(instruction)) issues.push("The apply slot asks for recall instead of using the knowledge.");
-      else if (selectionOnly(instruction)) issues.push("The apply slot selects a pupil instead of using the knowledge.");
+    var aligned = applyAlignment(activity, required);
+    if (aligned.status === "unresolved") issues.push("The apply slot needs semantic knowledge alignment.");
+    else if (aligned.status === "fail") {
+      if (aligned.reason === "recall-only") issues.push("The apply slot asks for recall instead of using the knowledge.");
+      else if (aligned.reason === "pupil-selection") issues.push("The apply slot selects a pupil instead of using the knowledge.");
       else issues.push("The apply slot does not use the taught knowledge.");
     }
     var success = clean(activity && activity.successCondition);
