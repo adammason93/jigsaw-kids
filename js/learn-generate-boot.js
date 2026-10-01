@@ -1,4 +1,4 @@
-const lessonSource = await fetch("https://wondii.co.uk/js/lesson-brain.js?v=30").then((res) => {
+const lessonSource = await fetch("https://wondii.co.uk/js/lesson-brain.js?v=31").then((res) => {
   if (!res.ok) throw new Error("lesson_script");
   return res.text();
 });
@@ -193,6 +193,11 @@ globalThis.handleGenerate = async (req) => {
       lines: ((apply.config && apply.config.lines) || []).slice(0, 3).map((line) => clip(line, 180))
     };
   }
+  function hookLines(result) {
+    const activities = result && result.adventure && result.adventure.activities || result && result.previous && result.previous.activities || [];
+    const hook = activities.find((activity) => activity && activity.slotId === "hook");
+    return hook ? ((hook.config && hook.config.lines) || []).slice(0, 4).map((line) => clip(line, 180)) : [];
+  }
   function diagnosis(raw, result, skeleton, extra) {
     const applySlot = (skeleton || []).find((slot) => slot.id === "apply") || {};
     const slotIds = result && result.slotIds || [];
@@ -329,14 +334,24 @@ globalThis.handleGenerate = async (req) => {
     logMeta({ stage: "CONTENT_VALIDATE", attemptId, repair: false, model, issues: (accepted.issues || []).slice(0, 8) });
     logMeta({ stage: "CONTENT_REQUEST", attemptId, repair: true, model, repairAction: "slot", slotIds: accepted.slotIds || [] });
     const slotStarted = Date.now();
-    const second = await callModel(brain.slotRepairBrief(framed, accepted.slotIds || [], accepted.issues || [], accepted.previous), apiKey, model, 28e3);
+    const repairBrief = brain.slotRepairBrief(framed, accepted.slotIds || [], accepted.issues || [], accepted.previous);
+    const repairUser = JSON.parse(repairBrief.user);
+    const second = await callModel(repairBrief, apiKey, model, 28e3);
     repairMs += Date.now() - slotStarted;
     logMeta({ stage: "CONTENT_VALIDATE", attemptId, repair: true, model, repairMs, repairAction: "slot" });
     const repairedSlots = accepted.slotIds || [];
     const applyRepair = repairedSlots.indexOf("apply") !== -1;
     const durationRepair = repairedSlots.some((id) => id !== "apply");
     const repaired = brain.accept(brain.mergeSlotContent(accepted.previous, second), framed);
-    const trace = diagnosis(first, accepted, skeleton, { repairModelApply: applyModel(second), repairSlots: second && second.slots ? Object.keys(second.slots) : [], finalApply: applyActivity(repaired), finalIssues: (repaired.issues || []).slice(0, 8) });
+    const trace = diagnosis(first, accepted, skeleton, {
+      repairModelApply: applyModel(second),
+      repairSlots: second && second.slots ? Object.keys(second.slots) : [],
+      repairSpecs: (repairUser.slotsToRewrite || []).map((spec) => ({ slotType: spec.slotType, failure: spec.failure || [] })),
+      repairHook: slotModel(second, "hook"),
+      finalHook: hookLines(repaired),
+      finalApply: applyActivity(repaired),
+      finalIssues: (repaired.issues || []).slice(0, 8)
+    });
     if (repaired.ok && repaired.adventure) {
       const timing = { durationMs: Date.now() - started, planMs, storyMs, contentMs, repairMs, repairUsed: true, repairKind: "slot", structuralOk: repaired.structuralOk !== false, storyFallback, storyFirstPass, storyRepaired, repairedSlots, applyRepair, durationRepair, diagnosis: trace };
       logMeta({ stage: "COMPLETE", category: "ok", ms: timing.durationMs, repair: true, repairKind: "slot", structuralOk: true, model, attemptId, planMs, contentMs, repairMs, applyRepair, durationRepair });

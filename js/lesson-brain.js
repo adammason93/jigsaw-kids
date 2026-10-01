@@ -554,23 +554,61 @@
     return { slots: map, title: (patch && patch.title) || (previous && previous.title), objectives: (patch && patch.objectives) || (previous && previous.objectives) };
   }
 
-  function slotIdsFrom(issues, activities) {
+  function ownIssue(slotIssues, slotId, message) {
+    if (!slotIssues || !slotId || !message) return;
+    if (!slotIssues[slotId]) slotIssues[slotId] = [];
+    if (slotIssues[slotId].indexOf(message) === -1) slotIssues[slotId].push(message);
+  }
+
+  function slotsOwnedBy(issue, activities) {
+    var text = String(issue || "");
     var ids = [];
     function add(id) {
       if (id && ids.indexOf(id) === -1) ids.push(id);
     }
+    var named = text.match(/The (hook|investigate|teach|apply|check|resolution|recap) slot/);
+    if (named) add(named[1]);
+    var match = text.match(/Activity (\d+)/);
+    if (match) add((activities[Number(match[1]) - 1] || {}).slotId);
+    if (/opening states/.test(text)) add("hook");
+    if (/investigate slot|missing the investigate/.test(text)) add("investigate");
+    if (/apply slot|missing the apply|apply stage/.test(text)) add("apply");
+    if (/correct answer|explanation of the reason|wrong answer|what happens|misconception|no real question|not one of the choices|at least two choices/.test(text)) add("check");
+    if (/does not teach |does not explain it|enough teaching|cause is not taught/.test(text)) add("teach");
+    if (/debrief does not|recap does not|needs a fact/.test(text)) add("recap");
+    return ids;
+  }
+
+  function slotIssuesFrom(issues, activities, preset) {
+    var map = {};
+    Object.keys(preset || {}).forEach(function (id) {
+      (preset[id] || []).forEach(function (message) { ownIssue(map, id, message); });
+    });
     (issues || []).forEach(function (issue) {
-      var text = String(issue || "");
-      var named = text.match(/The (hook|investigate|teach|apply|check|resolution|recap) slot/);
-      if (named) add(named[1]);
-      var match = text.match(/Activity (\d+)/);
-      if (match) add((activities[Number(match[1]) - 1] || {}).slotId);
-      if (/opening states/.test(text)) add("hook");
-      if (/investigate slot|missing the investigate/.test(text)) add("investigate");
-      if (/apply slot|missing the apply|apply stage/.test(text)) add("apply");
-      if (/correct answer|explanation of the reason|wrong answer|what happens|misconception|no real question|not one of the choices|at least two choices/.test(text)) add("check");
-      if (/does not teach |does not explain it|enough teaching|cause is not taught/.test(text)) add("teach");
-      if (/debrief does not|recap does not|needs a fact/.test(text)) add("recap");
+      var placed = false;
+      Object.keys(map).forEach(function (id) {
+        if (map[id].indexOf(issue) !== -1) placed = true;
+      });
+      if (placed) return;
+      slotsOwnedBy(issue, activities).forEach(function (id) { ownIssue(map, id, issue); });
+    });
+    return map;
+  }
+
+  function slotIdsFrom(issues, activities) {
+    var ids = [];
+    var map = issues && issues.slotIssues;
+    (issues || []).forEach(function (issue) {
+      var owned = [];
+      if (map) {
+        Object.keys(map).forEach(function (id) {
+          if (map[id].indexOf(issue) !== -1) owned.push(id);
+        });
+      }
+      if (!owned.length) owned = slotsOwnedBy(issue, activities);
+      owned.forEach(function (id) {
+        if (ids.indexOf(id) === -1) ids.push(id);
+      });
     });
     return ids;
   }
@@ -714,6 +752,14 @@
     return brief;
   }
 
+  function failuresForSlot(slotId, issues, activities) {
+    var map = issues && issues.slotIssues;
+    if (map) return (map[slotId] || []).slice();
+    return (issues || []).filter(function (issue) {
+      return slotsOwnedBy(issue, activities).indexOf(slotId) !== -1;
+    });
+  }
+
   function slotRepairBrief(ctx, slotIds, issues, previous) {
     var skeleton = (ctx && ctx.lessonSkeleton) || [];
     var wanted = slotIds && slotIds.length ? slotIds : [];
@@ -733,7 +779,7 @@
         requiredKnowledge: slot.requiredKnowledge || [],
         interactionFamily: slot.interactionIntent || "",
         originalInstruction: now.instruction || (now.lines || []).join(" "),
-        failure: (issues || []).filter(function (issue) { return String(issue).toLowerCase().indexOf(slot.id) !== -1; }),
+        failure: failuresForSlot(slot.id, issues, (previous && previous.activities) || []),
         output: slot.id === "apply"
           ? { instruction: "", knowledgeUsed: "", successCondition: "", teachingConnection: "", target: "" }
           : { title: "", lines: [] }
@@ -745,7 +791,15 @@
       ? "Return JSON { slots } for only the listed slot ids. The APPLY task MUST require the pupil to use this knowledge: " + ((apply.requiredKnowledge || []).join(" | ") || "the taught idea") + ". The mechanic and interaction family cannot change. Return instruction, knowledgeUsed, successCondition, and teachingConnection for that slot. knowledgeUsed must name one requiredKnowledge item. A bare sort, move, or sequence is invalid."
       : "Return JSON { slots } for only the listed slot ids.";
     if (specs.some(function (spec) { return spec.slotType !== "APPLY"; })) {
-      instruction += " For any other listed slot, add the missing participation turns up to minimumParticipation. Each turn is one short sentence: a teacher prompt, an observation, a pupil action, a check, or a retrieval. Do not pad with a long paragraph. Do not copy teaching into a slot that already has it.";
+      var otherFailures = [];
+      specs.forEach(function (spec) {
+        if (spec.slotType === "APPLY") return;
+        (spec.failure || []).forEach(function (item) { otherFailures.push(String(item)); });
+      });
+      instruction += " For any other listed slot, correct only the failures listed for that slot. Those failure texts are the reason that slot must change.";
+      if (otherFailures.some(function (item) { return /enough participation/.test(item); })) {
+        instruction += " If a failure says the slot does not have enough participation, add the missing turns up to minimumParticipation. Each turn is one short sentence: a teacher prompt, an observation, a pupil action, a check, or a retrieval. Do not pad with a long paragraph. Do not copy teaching into a slot that already has it.";
+      }
     }
     instruction += " Do not return activities, mechanics, beats, or a new stage.";
     brief.user = JSON.stringify({
@@ -2079,7 +2133,7 @@
     return issues;
   }
 
-  function educationalIssues(activities, ctx) {
+  function educationalIssues(activities, ctx, owners) {
     var issues = structuralIssues(activities);
     var blob = blobOf(activities);
     var topic = clean(ctx.topic || "", 120);
@@ -2184,7 +2238,12 @@
     substanceIssues(activities, ctx).forEach(function (issue) { issues.push(issue); });
     if (journeyOrderIssue(activities)) issues.push("The mission ends before the class has learned and checked the idea.");
     shallowAssessment(activities, ctx).forEach(function (issue) { issues.push(issue); });
-    if (spoilsDiscovery(activities, ctx)) issues.push("The opening states the explanation before the class has investigated.");
+    if (spoilsDiscovery(activities, ctx)) {
+      var openingIssue = "The opening states the explanation before the class has investigated.";
+      issues.push(openingIssue);
+      var opener = (activities || [])[0];
+      ownIssue(owners, (opener && opener.slotId) || "hook", openingIssue);
+    }
     storyIssues(activities, ctx).forEach(function (issue) { issues.push(issue); });
     stageIssues(activities, ctx).forEach(function (issue) { issues.push(issue); });
     return issues;
@@ -2606,17 +2665,25 @@
         settleApply(activity, applySlot);
       });
     }
-    var issues = educationalIssues(activities, issueCtx);
+    var owners = {};
+    var issues = educationalIssues(activities, issueCtx, owners);
     if (ctx.lessonSkeleton) {
       activities.forEach(function (activity) {
         if (activity.slotId === "investigate") {
           var looked = ((activity.config && activity.config.lines) || []).join(" ");
-          if (looked.split(/\s+/).filter(Boolean).length < 6 || bareSpin(looked)) issues.push("The investigate slot does not ask the class to look.");
+          if (looked.split(/\s+/).filter(Boolean).length < 6 || bareSpin(looked)) {
+            var lookIssue = "The investigate slot does not ask the class to look.";
+            issues.push(lookIssue);
+            ownIssue(owners, activity.slotId, lookIssue);
+          }
         }
         if (activity.slotId === "apply") {
           var applySlot = null;
           ctx.lessonSkeleton.forEach(function (slot) { if (slot.id === "apply") applySlot = slot; });
-          applySlotIssues(activity, applySlot).forEach(function (issue) { issues.push(issue); });
+          applySlotIssues(activity, applySlot).forEach(function (issue) {
+            issues.push(issue);
+            ownIssue(owners, activity.slotId, issue);
+          });
         }
       });
     }
@@ -2626,7 +2693,9 @@
     }
     if (issues.length) {
       var structure = ctx.lessonSkeleton ? skeletonDrift(activities, ctx.lessonSkeleton) : [];
-      return { ok: false, structuralOk: !structure.length, slotIds: slotIdsFrom(issues, activities), issues: structure.concat(issues), previous: parsed };
+      var reported = structure.concat(issues);
+      reported.slotIssues = slotIssuesFrom(reported, activities, owners);
+      return { ok: false, structuralOk: !structure.length, slotIds: slotIdsFrom(reported, activities), slotIssues: reported.slotIssues, issues: reported, previous: parsed };
     }
     var objectiveSource = parsed.objectives || parsed.learningObjectives || parsed.learningObjective || parsed.objective || ctx.learningObjectives || [];
     if (!Array.isArray(objectiveSource)) objectiveSource = [objectiveSource];

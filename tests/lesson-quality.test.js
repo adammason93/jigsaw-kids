@@ -455,6 +455,39 @@ var spinApply = acceptSlots("English", "adjectives", "Year 3", adjectiveKnowledg
   teachingConnection: "A pupil is selected."
 });
 assert.ok((spinApply.issues || []).join(" ").indexOf("selects a pupil") !== -1);
+var openingIssue = "The opening states the explanation before the class has investigated.";
+var applyIssue = "The apply slot does not use the taught knowledge.";
+var checkIssue = "The correct answer is the effect, not the cause.";
+var routed = JSON.parse(Brain.slotRepairBrief(shortFrame, ["hook", "apply", "check"], [openingIssue, applyIssue, checkIssue], shortAccept.previous).user);
+var routedHook = routed.slotsToRewrite.filter(function (spec) { return spec.slotType === "HOOK"; })[0];
+var routedApply = routed.slotsToRewrite.filter(function (spec) { return spec.slotType === "APPLY"; })[0];
+var routedCheck = routed.slotsToRewrite.filter(function (spec) { return spec.slotType === "CHECK"; })[0];
+assert.deepStrictEqual(routedHook.failure, [openingIssue]);
+assert.deepStrictEqual(routedApply.failure, [applyIssue]);
+assert.deepStrictEqual(routedCheck.failure, [checkIssue]);
+assert.ok(routed.instruction.indexOf("Those failure texts are the reason that slot must change.") !== -1);
+assert.ok(openingIssue.indexOf("hook") === -1);
+var spoiledSlots = filledSlots(romanKnowledge, {
+  instruction: "Draw a picture of something the Romans wanted from Britain.",
+  knowledgeUsed: "The Romans came to Britain because they wanted its metals and farmland.",
+  successCondition: "The drawing shows metals or farmland.",
+  teachingConnection: "The drawing uses a reason the Romans came."
+});
+spoiledSlots.hook = { lines: ["The Romans came to Britain because they wanted its metals and farmland."] };
+var spoiledFrame = { subject: "History", topic: "Romans", yearGroup: "Year 4", requestedMinutes: 15, pupilCount: 4, lessonBrief: { concepts: ["romans"], intent: "why" }, lessonText: "teach why the Romans came to Britain", lessonPlan: shortPlan };
+spoiledFrame.lessonSkeleton = Brain.lessonSkeleton(shortPlan, spoiledFrame);
+spoiledFrame.storyPlan = Brain.storyFromPlan(shortPlan, spoiledFrame);
+var spoiledAccept = Brain.accept({ title: "Roman mission", objectives: [romanKnowledge[0]], slots: spoiledSlots }, spoiledFrame);
+assert.ok((spoiledAccept.slotIds || []).indexOf("hook") !== -1);
+assert.ok((spoiledAccept.issues || []).indexOf(openingIssue) !== -1);
+assert.ok((spoiledAccept.slotIssues.hook || []).indexOf(openingIssue) !== -1);
+var spoiledRepair = JSON.parse(Brain.slotRepairBrief(spoiledFrame, spoiledAccept.slotIds, spoiledAccept.issues, spoiledAccept.previous).user);
+var spoiledHook = spoiledRepair.slotsToRewrite.filter(function (spec) { return spec.slotType === "HOOK"; })[0];
+assert.ok(spoiledHook);
+assert.ok(spoiledHook.failure.indexOf(openingIssue) !== -1);
+spoiledRepair.slotsToRewrite.forEach(function (spec) {
+  if (spec.slotType !== "HOOK") assert.ok(spec.failure.indexOf(openingIssue) === -1);
+});
 
 var creator = fs.readFileSync(path.join(__dirname, "../schools/learn/creator.js"), "utf8");
 assert.ok(creator.indexOf("Key knowledge.") !== -1);
