@@ -400,7 +400,7 @@
   }
 
   function doingTask(instruction) {
-    return /\b(sort|group|classify|separate|match|pair|move|push|slide|drag|show|slip|sequence|order|arrange|compare|inspect|look|observe|point|find|predict|use|uses|label|build|choose|explain|decide|shade|complete|finish|identify|spot)\b/i.test(instruction || "");
+    return /\b(sort|group|classify|separate|match|pair|move|push|slide|drag|show|slip|sequence|order|arrange|compare|inspect|look|observe|point|find|predict|use|uses|using|label|build|choose|explain|decide|shade|complete|finish|identify|spot|create|creating|write|writing|draw|drawing|make|making)\b/i.test(instruction || "");
   }
 
   function bareTask(instruction) {

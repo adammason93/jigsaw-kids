@@ -380,6 +380,81 @@ assert.strictEqual(repair.user.indexOf("Activity 4"), -1);
 var durationRepair = Brain.slotRepairBrief(shortFrame, ["teach"], ["The teach slot does not have enough participation for its time."], shortAccept.previous);
 assert.ok(durationRepair.user.indexOf("minimumParticipation") !== -1);
 assert.ok(durationRepair.user.indexOf("long paragraph") !== -1);
+var applyRepairBrief = JSON.parse(repair.user);
+var applySpec = applyRepairBrief.slotsToRewrite[0];
+assert.strictEqual(applySpec.slotType, "APPLY");
+assert.strictEqual(applySpec.subject, "History");
+assert.strictEqual(applySpec.year, "Year 4");
+assert.ok(applySpec.requiredKnowledge.length >= 1);
+assert.strictEqual(applySpec.interactionFamily, "sequence");
+assert.ok(applySpec.originalInstruction);
+assert.ok(applySpec.failure.join(" ").indexOf("apply slot") !== -1);
+assert.ok(applySpec.output.knowledgeUsed === "");
+assert.ok(Object.prototype.hasOwnProperty.call(applySpec.output, "successCondition"));
+assert.ok(Object.prototype.hasOwnProperty.call(applySpec.output, "teachingConnection"));
+var kept = {
+  title: "Kept mission",
+  slots: {
+    hook: { lines: ["The ground starts to rumble in the town."] },
+    investigate: { lines: ["Look at the place where the pieces meet before anyone explains it."], instruction: "Look where the pieces meet." },
+    teach: { lines: ["The Earth's surface is made of huge pieces called plates.", "The plates push, stick, and then slip."] },
+    apply: { instruction: "Sort the cards.", knowledgeUsed: "Sort the cards." },
+    check: { prompt: "Why does the ground shake?", choices: ["The plates slip.", "The wind blows."], correct: "The plates slip.", explain: "The plates slip after they were stuck." },
+    resolution: { lines: ["The class can leave once the shaking is understood."] },
+    recap: { lines: ["The plates push, stick, and then slip."] }
+  }
+};
+var merged = Brain.mergeSlotContent(kept, { slots: { apply: { instruction: "Move the plates until they stick and then slip.", knowledgeUsed: "The plates push, stick, and then slip.", successCondition: "The plates have slipped.", teachingConnection: "The move uses the plate idea.", target: "model" } } });
+["hook", "investigate", "teach", "check", "resolution", "recap"].forEach(function (id) {
+  assert.deepStrictEqual(merged.slots[id].lines, kept.slots[id].lines || []);
+  if (kept.slots[id].prompt) assert.strictEqual(merged.slots[id].prompt, kept.slots[id].prompt);
+  if (kept.slots[id].correct) assert.strictEqual(merged.slots[id].correct, kept.slots[id].correct);
+});
+assert.strictEqual(merged.slots.apply.instruction, "Move the plates until they stick and then slip.");
+assert.notStrictEqual(merged.slots.apply.instruction, kept.slots.apply.instruction);
+var produced = acceptSlots("English", "adjectives", "Year 3", adjectiveKnowledge, {
+  instruction: "Write three sentences using adjectives.",
+  knowledgeUsed: "Adjectives describe nouns.",
+  successCondition: "Sentences include at least one adjective each.",
+  teachingConnection: "This task uses adjectives to enhance sentences."
+});
+assert.strictEqual(produced.ok, true, (produced.issues || []).join("; "));
+var drawn = acceptSlots("Science", "volcanoes", "Year 3", ["A volcano has a magma chamber, which holds molten rock.", "When pressure builds up, magma rises through the vent and erupts."], {
+  instruction: "Draw a diagram that shows the magma chamber and the vent of a volcano.",
+  knowledgeUsed: "A volcano has a magma chamber, which holds molten rock.",
+  successCondition: "The diagram shows the magma chamber and vent clearly labeled.",
+  teachingConnection: "This task uses the magma chamber just taught."
+});
+assert.strictEqual(drawn.ok, true, (drawn.issues || []).join("; "));
+var created = acceptSlots("Maths", "equivalent fractions", "Year 4", ["Fractions represent parts of a whole.", "Equivalent fractions are different fractions that represent the same amount."], {
+  instruction: "Create two equivalent fractions using numbers of your choice.",
+  knowledgeUsed: "Equivalent fractions are different fractions that represent the same amount.",
+  successCondition: "The pupil shows two fractions that are equivalent.",
+  teachingConnection: "This task uses equivalent fractions."
+});
+assert.strictEqual(created.ok, true, (created.issues || []).join("; "));
+var bareNamed = acceptSlots("English", "adjectives", "Year 3", adjectiveKnowledge, {
+  instruction: "Sort the cards.",
+  knowledgeUsed: "Adjectives describe nouns.",
+  successCondition: "The cards have been sorted.",
+  teachingConnection: "The sort follows the teaching."
+});
+assert.strictEqual(bareNamed.ok, false);
+assert.ok((bareNamed.issues || []).join(" ").indexOf("does not use the taught knowledge") !== -1);
+var recallApply = acceptSlots("English", "adjectives", "Year 3", adjectiveKnowledge, {
+  instruction: "What is an adjective?",
+  knowledgeUsed: "Adjectives describe nouns.",
+  successCondition: "The pupil says the definition.",
+  teachingConnection: "This recalls the definition."
+});
+assert.ok((recallApply.issues || []).join(" ").indexOf("asks for recall") !== -1);
+var spinApply = acceptSlots("English", "adjectives", "Year 3", adjectiveKnowledge, {
+  instruction: "Choose a pupil to have a turn.",
+  knowledgeUsed: "Adjectives describe nouns.",
+  successCondition: "A pupil is chosen.",
+  teachingConnection: "A pupil is selected."
+});
+assert.ok((spinApply.issues || []).join(" ").indexOf("selects a pupil") !== -1);
 
 var creator = fs.readFileSync(path.join(__dirname, "../schools/learn/creator.js"), "utf8");
 assert.ok(creator.indexOf("Key knowledge.") !== -1);

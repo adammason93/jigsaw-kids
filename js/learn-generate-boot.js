@@ -1,4 +1,4 @@
-const lessonSource = await fetch("https://wondii.co.uk/js/lesson-brain.js?v=29").then((res) => {
+const lessonSource = await fetch("https://wondii.co.uk/js/lesson-brain.js?v=30").then((res) => {
   if (!res.ok) throw new Error("lesson_script");
   return res.text();
 });
@@ -151,6 +151,64 @@ globalThis.handleGenerate = async (req) => {
       };
     });
   }
+  function clip(value, max) {
+    return String(value == null ? "" : value).replace(/\s+/g, " ").trim().slice(0, max || 220);
+  }
+  function applyModel(raw) {
+    const slot = raw && raw.slots && raw.slots.apply;
+    if (!slot || typeof slot !== "object") return null;
+    return {
+      instruction: clip(slot.instruction),
+      target: clip(slot.target, 80),
+      knowledgeUsed: clip(slot.knowledgeUsed),
+      successCondition: clip(slot.successCondition),
+      teachingConnection: clip(slot.teachingConnection),
+      lines: Array.isArray(slot.lines) ? slot.lines.slice(0, 3).map((line) => clip(line, 180)) : []
+    };
+  }
+  function slotModel(raw, id) {
+    const slot = raw && raw.slots && raw.slots[id];
+    if (!slot || typeof slot !== "object") return null;
+    return {
+      instruction: clip(slot.instruction),
+      lines: Array.isArray(slot.lines) ? slot.lines.slice(0, 4).map((line) => clip(line, 180)) : [],
+      prompt: clip(slot.prompt),
+      correct: clip(slot.correct, 120),
+      knowledgeUsed: clip(slot.knowledgeUsed)
+    };
+  }
+  function applyActivity(result) {
+    const activities = result && result.adventure && result.adventure.activities || result && result.previous && result.previous.activities || [];
+    const apply = activities.find((activity) => activity && activity.slotId === "apply");
+    if (!apply) return null;
+    const interaction = apply.scene && apply.scene.interaction || {};
+    return {
+      mechanic: clip(apply.mechanic, 40),
+      instruction: clip(apply.applyInstruction || interaction.instruction || ((apply.config && apply.config.lines) || []).join(" ")),
+      target: clip(interaction.target, 80),
+      interactionType: clip(apply.learningInteraction && apply.learningInteraction.type, 40),
+      knowledgeUsed: clip(apply.knowledgeUsed),
+      successCondition: clip(apply.successCondition),
+      teachingConnection: clip(apply.teachingConnection),
+      lines: ((apply.config && apply.config.lines) || []).slice(0, 3).map((line) => clip(line, 180))
+    };
+  }
+  function diagnosis(raw, result, skeleton, extra) {
+    const applySlot = (skeleton || []).find((slot) => slot.id === "apply") || {};
+    const slotIds = result && result.slotIds || [];
+    return {
+      modelSlots: raw && raw.slots && typeof raw.slots === "object" ? Object.keys(raw.slots) : [],
+      modelApply: applyModel(raw),
+      failedSlots: slotIds.map((id) => ({ id, model: slotModel(raw, id) })),
+      materialisedApply: applyActivity(result),
+      requiredKnowledge: (applySlot.requiredKnowledge || []).slice(0, 6).map((item) => clip(item, 180)),
+      interactionFamily: clip(applySlot.interactionIntent, 40),
+      mechanic: clip(applySlot.mechanic, 40),
+      issues: (result && result.issues || []).slice(0, 8),
+      slotIds,
+      ...(extra || {})
+    };
+  }
   function failStage(issues) {
     const text = (issues || []).join(" ");
     if (/correct answer|no real question|needs three|needs a reveal|door number|needs something|no activities|not valid structured/.test(text)) return "SCHEMA_VALIDATION_FAILED";
@@ -198,13 +256,17 @@ globalThis.handleGenerate = async (req) => {
     let storyMs = 0;
     let storyPlan = brain.storyFromPlan(planned.plan, withPlan);
     let storyFallback = false;
+    let storyFirstPass = false;
+    let storyRepaired = false;
     try {
       logMeta({ stage: "STORY_REQUEST", attemptId, repair: false, model, planMs });
       const storyStarted = Date.now();
       const firstStory = await callModel(brain.storyBrief(withPlan, planned.plan), apiKey, model, 18e3);
       storyMs = Date.now() - storyStarted;
       let story = brain.normaliseStory(firstStory, withPlan);
+      if (story.ok) storyFirstPass = true;
       if (!story.ok) {
+        storyRepaired = true;
         logMeta({ stage: "STORY_VALIDATE", category: "invalid", repair: true, model, attemptId, storyMs, issues: (story.issues || []).slice(0, 8) });
         const storyRepairStarted = Date.now();
         const secondStory = await callModel(brain.storyRepairBrief(withPlan, story.issues || [], story.previous), apiKey, model, 18e3);
@@ -247,8 +309,9 @@ globalThis.handleGenerate = async (req) => {
       });
       return json({ ok: false, category: "invalid", stage: "STRUCTURAL_VALIDATION_FAILED", issues: (accepted.issues || []).slice(0, 8), meta: { structuralOk: false, repairKind: "none", repairUsed: false } });
     }
+    const routeMeta = { planFirstPass: !planRepaired, planRepaired, storyFirstPass, storyRepaired, storyFallback };
     if (accepted.ok && accepted.adventure) {
-      const timing = { durationMs: Date.now() - started, planMs, storyMs, contentMs, repairMs, repairUsed: false, repairKind: "none", structuralOk: true, planRepaired, storyFallback, repairedSlots: [], applyRepair: false, durationRepair: false };
+      const timing = { durationMs: Date.now() - started, planMs, storyMs, contentMs, repairMs, repairUsed: false, repairKind: "none", structuralOk: true, planRepaired, storyFallback, storyFirstPass, storyRepaired, repairedSlots: [], applyRepair: false, durationRepair: false, diagnosis: diagnosis(first, accepted, skeleton, { repairModelApply: null, finalApply: applyActivity(accepted) }) };
       logMeta({ stage: "COMPLETE", category: "ok", ms: timing.durationMs, repair: false, repairKind: "none", structuralOk: true, planRepaired, model, attemptId, planMs, contentMs, repairMs });
       return json({ ok: true, adventure: accepted.adventure, stage: "COMPLETE", meta: timing });
     }
@@ -273,8 +336,9 @@ globalThis.handleGenerate = async (req) => {
     const applyRepair = repairedSlots.indexOf("apply") !== -1;
     const durationRepair = repairedSlots.some((id) => id !== "apply");
     const repaired = brain.accept(brain.mergeSlotContent(accepted.previous, second), framed);
+    const trace = diagnosis(first, accepted, skeleton, { repairModelApply: applyModel(second), repairSlots: second && second.slots ? Object.keys(second.slots) : [], finalApply: applyActivity(repaired), finalIssues: (repaired.issues || []).slice(0, 8) });
     if (repaired.ok && repaired.adventure) {
-      const timing = { durationMs: Date.now() - started, planMs, storyMs, contentMs, repairMs, repairUsed: true, repairKind: "slot", structuralOk: repaired.structuralOk !== false, storyFallback, repairedSlots, applyRepair, durationRepair };
+      const timing = { durationMs: Date.now() - started, planMs, storyMs, contentMs, repairMs, repairUsed: true, repairKind: "slot", structuralOk: repaired.structuralOk !== false, storyFallback, storyFirstPass, storyRepaired, repairedSlots, applyRepair, durationRepair, diagnosis: trace };
       logMeta({ stage: "COMPLETE", category: "ok", ms: timing.durationMs, repair: true, repairKind: "slot", structuralOk: true, model, attemptId, planMs, contentMs, repairMs, applyRepair, durationRepair });
       return json({ ok: true, adventure: repaired.adventure, stage: "COMPLETE", meta: timing });
     }
@@ -291,7 +355,7 @@ globalThis.handleGenerate = async (req) => {
       repairAction: "slot",
       output: digest(second)
     });
-    return json({ ok: false, category: "invalid", stage, issues: (repaired.issues || []).slice(0, 8), meta: { structuralOk: repaired.structuralOk !== false, repairKind: "slot", repairUsed: true, repairedSlots, applyRepair, durationRepair } });
+    return json({ ok: false, category: "invalid", stage, issues: (repaired.issues || []).slice(0, 8), meta: { structuralOk: repaired.structuralOk !== false, repairKind: "slot", repairUsed: true, repairedSlots, applyRepair, durationRepair, ...routeMeta, diagnosis: trace } });
   } catch (error) {
     const category = error.category || "provider";
     const stage = category === "parse" ? phase === "PLAN_REQUEST" ? "PLAN_PARSE" : phase === "STORY_REQUEST" ? "STORY_PARSE" : "CONTENT_PARSE" : category === "timeout" ? phase : "AI_REQUEST_FAILED";
