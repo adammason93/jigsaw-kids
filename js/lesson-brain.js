@@ -509,7 +509,84 @@
     if (activity.scene && activity.scene.interaction) activity.scene.interaction.successCondition = clean(activity.successCondition, 40);
   }
 
-  function applySlotIssues(activity, slot) {
+  function applySemanticInput(activity, slot, ctx) {
+    return {
+      instruction: applyInstructionOf(activity),
+      knowledgeUsed: activity && activity.knowledgeUsed || "",
+      requiredKnowledge: ((slot && slot.requiredKnowledge) || []).slice(0, 6),
+      successCondition: activity && activity.successCondition || "",
+      teachingConnection: activity && activity.teachingConnection || "",
+      subject: ctx && ctx.subject || "",
+      yearGroup: ctx && ctx.yearGroup || ""
+    };
+  }
+
+  function applySemanticBrief(input) {
+    var payload = {
+      instruction: clean(input && input.instruction, 180),
+      knowledgeUsed: clean(input && input.knowledgeUsed, 180),
+      requiredKnowledge: textList(input && input.requiredKnowledge, 180, 6),
+      successCondition: clean(input && input.successCondition, 180),
+      teachingConnection: clean(input && input.teachingConnection, 180),
+      subject: clean(input && input.subject, 80),
+      yearGroup: clean(input && input.yearGroup, 40)
+    };
+    return {
+      system: [
+        "You judge only the task explicitly required by instruction. Do not imagine later activities, future uses, or follow-up work for the pupil's answer. Return one JSON object and nothing else.",
+        "Classify the relationship between this instruction and knowledgeUsed as exactly one of reproduce, apply, or unrelated.",
+        "reproduce means the instruction asks the pupil to give back substantially the taught knowledge itself. That includes recall, stating, naming, defining, explaining the named fact itself, describing the named fact itself, paraphrasing the named fact, or answering a direct question whose answer is essentially knowledgeUsed.",
+        "apply means the instruction requires the taught knowledge as information so that some other requested result or action is correct. The knowledge is a tool for classification, selection, construction, manipulation, representation, comparison, prediction, inference, or solving a new case. It is not substantially the requested outcome itself.",
+        "unrelated means the instruction does not genuinely require the named knowledge. That includes topic-only overlap, a generic activity, an action that could be completed without the named knowledge, or a semantic mismatch.",
+        "A question is not reproduce by itself. A physical action, a drawing, or a topic word is not apply by itself. The reason must mention only what this instruction requires.",
+        "Do not rewrite the task. Do not choose a mechanic, an interaction, or a fact. Do not judge the rest of the lesson.",
+        "JSON shape: {\"relationship\": \"reproduce\" or \"apply\" or \"unrelated\", \"reason\": \"one short sentence\"}."
+      ].join(" "),
+      user: JSON.stringify(payload)
+    };
+  }
+
+  function applySemanticDecision(relationship) {
+    var name = typeof relationship === "string" ? relationship.trim().toLowerCase() : "";
+    if (name === "apply") return { ok: true, relationship: "apply", outcome: "semantic-pass", issue: "" };
+    if (name === "reproduce") return { ok: true, relationship: "reproduce", outcome: "semantic-reproduce", issue: "The apply slot reproduces the named taught knowledge instead of applying it." };
+    if (name === "unrelated") return { ok: true, relationship: "unrelated", outcome: "semantic-unrelated", issue: "The apply slot can be completed without using the named taught knowledge." };
+    return { ok: false, relationship: null, outcome: "semantic-error", issue: "The apply slot needs semantic knowledge alignment." };
+  }
+
+  function parseApplySemantic(raw) {
+    var body = raw;
+    if (typeof raw === "string") {
+      try { body = JSON.parse(raw); } catch (e) { body = null; }
+    }
+    if (!body || typeof body !== "object" || Array.isArray(body)) return { ok: false, relationship: null, reason: "" };
+    var decision = applySemanticDecision(body.relationship);
+    if (!decision.ok) return { ok: false, relationship: null, reason: "" };
+    return { ok: true, relationship: decision.relationship, reason: clean(body.reason, 240) };
+  }
+
+  function applyReportOf(activities, ctx) {
+    if (!ctx || !ctx.lessonSkeleton) return null;
+    var activity = null;
+    var slot = null;
+    (activities || []).forEach(function (item) { if (item && item.slotId === "apply") activity = item; });
+    ctx.lessonSkeleton.forEach(function (item) { if (item && item.id === "apply") slot = item; });
+    if (!activity) return null;
+    var aligned = applyAlignment(activity, (slot && slot.requiredKnowledge) || []);
+    return { deterministicStatus: aligned.status, deterministicReason: aligned.reason };
+  }
+
+  function applyJudgePlan(result) {
+    if (!result) return "skip";
+    if (result.ok) return "skip-pass";
+    if (result.structuralOk === false) return "skip-structure";
+    var status = result.applyAlignment && result.applyAlignment.deterministicStatus;
+    if (status === "unresolved") return "judge";
+    if (status === "pass") return "skip-pass";
+    return "skip-fail";
+  }
+
+  function applySlotIssues(activity, slot, ctx) {
     var issues = [];
     var instruction = applyInstructionOf(activity);
     var required = (slot && slot.requiredKnowledge) || [];
@@ -519,8 +596,12 @@
       issues.push("The apply slot has no interaction target.");
     }
     var aligned = applyAlignment(activity, required);
-    if (aligned.status === "unresolved") issues.push("The apply slot needs semantic knowledge alignment.");
-    else if (aligned.status === "fail") {
+    var given = ctx && ctx.applySemantic;
+    if (aligned.status === "unresolved") {
+      var decision = applySemanticDecision(given && given.relationship);
+      if (decision.ok && decision.issue) issues.push(decision.issue);
+      else if (!decision.ok) issues.push(decision.issue);
+    } else if (aligned.status === "fail") {
       if (aligned.reason === "recall-only") issues.push("The apply slot asks for recall instead of using the knowledge.");
       else if (aligned.reason === "pupil-selection") issues.push("The apply slot selects a pupil instead of using the knowledge.");
       else issues.push("The apply slot does not use the taught knowledge.");
@@ -2743,7 +2824,7 @@
         if (activity.slotId === "apply") {
           var applySlot = null;
           ctx.lessonSkeleton.forEach(function (slot) { if (slot.id === "apply") applySlot = slot; });
-          applySlotIssues(activity, applySlot).forEach(function (issue) {
+          applySlotIssues(activity, applySlot, issueCtx).forEach(function (issue) {
             issues.push(issue);
             ownIssue(owners, activity.slotId, issue);
           });
@@ -2754,22 +2835,23 @@
     if (ctx.yearGroup && parsed.yearGroup && yearDigit(parsed.yearGroup) && yearDigit(parsed.yearGroup) !== yearDigit(ctx.yearGroup)) {
       issues.push("The plan changed the year group.");
     }
+    var applyReport = applyReportOf(activities, ctx);
     if (issues.length) {
       var structure = ctx.lessonSkeleton ? skeletonDrift(activities, ctx.lessonSkeleton) : [];
       var reported = structure.concat(issues);
       reported.slotIssues = slotIssuesFrom(reported, activities, owners);
-      return { ok: false, structuralOk: !structure.length, slotIds: slotIdsFrom(reported, activities), slotIssues: reported.slotIssues, issues: reported, previous: parsed };
+      return { ok: false, structuralOk: !structure.length, slotIds: slotIdsFrom(reported, activities), slotIssues: reported.slotIssues, issues: reported, previous: parsed, applyAlignment: applyReport };
     }
     var objectiveSource = parsed.objectives || parsed.learningObjectives || parsed.learningObjective || parsed.objective || ctx.learningObjectives || [];
     if (!Array.isArray(objectiveSource)) objectiveSource = [objectiveSource];
     var objectives = objectiveSource.map(function (item) { return clean(item, 240); }).filter(Boolean).slice(0, 6);
     var plannedObjective = clean((ctx.lessonPlan && ctx.lessonPlan.learningObjective) || "", 240);
     if (!objectives.length && plannedObjective) objectives = [plannedObjective];
-    if (!objectives.length) return { ok: false, issues: ["The lesson needs a learning objective."], previous: parsed };
+    if (!objectives.length) return { ok: false, issues: ["The lesson needs a learning objective."], previous: parsed, applyAlignment: applyReport };
     var title = withoutRequest(clean(parsed.title, 80), request, requestReplacement(request, ctx.topic || ""));
     var rawRequest = request;
     if (rawRequest.length >= 12 && title.toLowerCase().indexOf(rawRequest) !== -1) {
-      return { ok: false, issues: ["The title repeated the teacher's request."], previous: parsed };
+      return { ok: false, issues: ["The title repeated the teacher's request."], previous: parsed, applyAlignment: applyReport };
     }
     var sum = activities.reduce(function (total, activity) { return total + activity.minutes; }, 0);
     var lessonPlan = ctx.lessonPlan || parsed.lessonPlan || null;
@@ -2791,8 +2873,97 @@
         activities: activities,
         targetMinutes: Number(ctx.requestedMinutes) || sum,
         estimateMinutes: sum
-      }
+      },
+      applyAlignment: applyReport
     };
+  }
+
+  function alignmentMeta(first, final, calls) {
+    var last = calls.length ? calls[calls.length - 1] : null;
+    var ms = 0;
+    calls.forEach(function (call) { ms += call.ms || 0; });
+    return {
+      deterministicStatus: first && first.deterministicStatus || "",
+      deterministicReason: first && first.deterministicReason || "",
+      finalDeterministicStatus: final && final.deterministicStatus || "",
+      finalDeterministicReason: final && final.deterministicReason || "",
+      semanticJudgeUsed: calls.length > 0,
+      semanticRelationship: last ? last.relationship : null,
+      semanticReason: last ? (last.reason || "") : "",
+      semanticOutcome: last ? last.outcome : null,
+      semanticMs: calls.length ? ms : null,
+      semanticCalls: calls.length,
+      semanticOutcomes: calls.map(function (call) { return call.outcome; })
+    };
+  }
+
+  function verdictOf(value) {
+    var ms = value && typeof value.ms === "number" ? value.ms : null;
+    if (!value || typeof value !== "object" || value.ok === false) {
+      return { ok: false, relationship: null, outcome: "semantic-error", reason: clean(value && value.reason, 80), ms: ms };
+    }
+    var decision = applySemanticDecision(value.relationship);
+    if (!decision.ok) return { ok: false, relationship: null, outcome: "semantic-error", reason: clean(value.reason, 80), ms: ms };
+    return { ok: true, relationship: decision.relationship, outcome: decision.outcome, reason: clean(value.reason, 240), ms: ms };
+  }
+
+  function resolveLessonContent(raw, ctx, ports) {
+    ports = ports || {};
+    var calls = [];
+    var repairedSlots = [];
+    function pack(result, repairUsed) {
+      return {
+        ok: !!result.ok,
+        adventure: result.adventure,
+        issues: result.issues,
+        structuralOk: result.structuralOk !== false,
+        slotIds: result.slotIds || [],
+        previous: result.previous,
+        repairUsed: !!repairUsed,
+        repairedSlots: repairedSlots.slice(),
+        applyAlignment: alignmentMeta(firstReport, result.applyAlignment, calls)
+      };
+    }
+    function judged(source, result) {
+      if (applyJudgePlan(result) !== "judge") return Promise.resolve(null);
+      var activity = null;
+      var slot = null;
+      (((result.previous && result.previous.activities) || (result.adventure && result.adventure.activities) || [])).forEach(function (item) {
+        if (item && item.slotId === "apply") activity = item;
+      });
+      ((ctx && ctx.lessonSkeleton) || []).forEach(function (item) { if (item && item.id === "apply") slot = item; });
+      return Promise.resolve().then(function () {
+        if (!ports.judge) return { ok: false, reason: "error", ms: null };
+        return ports.judge(applySemanticInput(activity, slot, ctx));
+      }).then(function (value) {
+        var verdict = verdictOf(value);
+        calls.push({ relationship: verdict.relationship, outcome: verdict.outcome, reason: verdict.reason, ms: verdict.ms });
+        if (!verdict.ok) return { stop: true, result: result };
+        var next = accept(source, Object.assign({}, ctx, { applySemantic: { relationship: verdict.relationship, reason: verdict.reason } }));
+        return { stop: false, result: next };
+      }).catch(function () {
+        calls.push({ relationship: null, outcome: "semantic-error", reason: "error", ms: null });
+        return { stop: true, result: result };
+      });
+    }
+    var accepted = accept(raw, ctx);
+    var firstReport = accepted.applyAlignment || null;
+    if (accepted.ok || accepted.structuralOk === false) return Promise.resolve(pack(accepted, false));
+    return judged(raw, accepted).then(function (firstJudge) {
+      if (firstJudge && firstJudge.stop) return pack(firstJudge.result, false);
+      if (firstJudge && firstJudge.result) accepted = firstJudge.result;
+      if (accepted.ok) return pack(accepted, false);
+      if (!ports.repair) return pack(accepted, false);
+      repairedSlots = (accepted.slotIds || []).slice();
+      return Promise.resolve(ports.repair(accepted)).then(function (second) {
+        var merged = mergeSlotContent(accepted.previous, second);
+        var repaired = accept(merged, ctx);
+        return judged(merged, repaired).then(function (secondJudge) {
+          if (secondJudge && secondJudge.result) repaired = secondJudge.result;
+          return pack(repaired, true);
+        });
+      });
+    });
   }
 
   function runPipeline(ctx, callModel) {
@@ -2974,6 +3145,12 @@
     contractArc: contractArc,
     qualityChecklist: qualityChecklist,
     accept: accept,
+    applySemanticBrief: applySemanticBrief,
+    applySemanticDecision: applySemanticDecision,
+    parseApplySemantic: parseApplySemantic,
+    applyJudgePlan: applyJudgePlan,
+    applySemanticInput: applySemanticInput,
+    resolveLessonContent: resolveLessonContent,
     runPipeline: runPipeline,
     request: request
   };

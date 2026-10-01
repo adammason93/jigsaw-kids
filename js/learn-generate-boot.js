@@ -1,4 +1,4 @@
-const lessonSource = await fetch("https://wondii.co.uk/js/lesson-brain.js?v=31").then((res) => {
+const lessonSource = await fetch("https://wondii.co.uk/js/lesson-brain.js?v=32").then((res) => {
   if (!res.ok) throw new Error("lesson_script");
   return res.text();
 });
@@ -41,7 +41,7 @@ async function teacherAllowed(orgId, auth, apiKey, base) {
   if (row.role !== "owner" && row.role !== "school_admin" && row.role !== "teacher") return "";
   return userId;
 }
-async function callModel(brief, apiKey, model, timeoutMs) {
+async function callModel(brief, apiKey, model, timeoutMs, temperature) {
   const control = new AbortController();
   const timer = setTimeout(function() {
     control.abort();
@@ -53,7 +53,7 @@ async function callModel(brief, apiKey, model, timeoutMs) {
       headers: { Authorization: "Bearer " + apiKey, "Content-Type": "application/json" },
       body: JSON.stringify({
         model,
-        temperature: 0.4,
+        temperature: typeof temperature === "number" ? temperature : 0.4,
         response_format: { type: "json_object" },
         messages: [
           { role: "system", content: brief.system },
@@ -301,76 +301,87 @@ globalThis.handleGenerate = async (req) => {
     const first = await callModel(brain.contentBrief(framed, planned.plan, storyPlan), apiKey, model, 28e3);
     const contentMs = Date.now() - contentStarted;
     logMeta({ stage: "CONTENT_VALIDATE", attemptId, repair: false, model, contentMs });
-    const accepted = brain.accept(first, framed);
-    if (accepted.structuralOk === false) {
+    let repairUser = null;
+    let repairRaw = null;
+    const resolved = await brain.resolveLessonContent(first, framed, {
+      judge: async (input) => {
+        const judgeStarted = Date.now();
+        try {
+          const payload = await callModel(brain.applySemanticBrief(input), apiKey, model, 12e3, 0);
+          const parsed = brain.parseApplySemantic(payload);
+          return { ok: parsed.ok, relationship: parsed.relationship, reason: parsed.reason, ms: Date.now() - judgeStarted };
+        } catch (error) {
+          return { ok: false, relationship: null, reason: error && error.category || "error", ms: Date.now() - judgeStarted };
+        }
+      },
+      repair: async (accepted) => {
+        const repairBrief = brain.slotRepairBrief(framed, accepted.slotIds || [], accepted.issues || [], accepted.previous);
+        repairUser = JSON.parse(repairBrief.user);
+        const slotStarted = Date.now();
+        repairRaw = await callModel(repairBrief, apiKey, model, 28e3);
+        repairMs += Date.now() - slotStarted;
+        return repairRaw;
+      }
+    });
+    const applyAlignment = resolved.applyAlignment || {};
+    logMeta({
+      stage: "APPLY_ALIGNMENT",
+      attemptId,
+      model,
+      deterministicStatus: applyAlignment.deterministicStatus || "",
+      deterministicReason: applyAlignment.deterministicReason || "",
+      semanticJudgeUsed: !!applyAlignment.semanticJudgeUsed,
+      semanticRelationship: applyAlignment.semanticRelationship || "",
+      semanticOutcome: applyAlignment.semanticOutcome || "",
+      semanticMs: applyAlignment.semanticMs,
+      semanticCalls: applyAlignment.semanticCalls || 0
+    });
+    if (resolved.structuralOk === false && !resolved.repairUsed) {
       logMeta({
         stage: "STRUCTURAL_VALIDATION_FAILED",
         category: "invalid",
         repair: false,
         model,
         attemptId,
-        issues: (accepted.issues || []).slice(0, 8),
+        issues: (resolved.issues || []).slice(0, 8),
         output: digest(first)
       });
-      return json({ ok: false, category: "invalid", stage: "STRUCTURAL_VALIDATION_FAILED", issues: (accepted.issues || []).slice(0, 8), meta: { structuralOk: false, repairKind: "none", repairUsed: false } });
+      return json({ ok: false, category: "invalid", stage: "STRUCTURAL_VALIDATION_FAILED", issues: (resolved.issues || []).slice(0, 8), meta: { structuralOk: false, repairKind: "none", repairUsed: false, applyAlignment } });
     }
-    const routeMeta = { planFirstPass: !planRepaired, planRepaired, storyFirstPass, storyRepaired, storyFallback };
-    if (accepted.ok && accepted.adventure) {
-      const timing = { durationMs: Date.now() - started, planMs, storyMs, contentMs, repairMs, repairUsed: false, repairKind: "none", structuralOk: true, planRepaired, storyFallback, storyFirstPass, storyRepaired, repairedSlots: [], applyRepair: false, durationRepair: false, diagnosis: diagnosis(first, accepted, skeleton, { repairModelApply: null, finalApply: applyActivity(accepted) }) };
-      logMeta({ stage: "COMPLETE", category: "ok", ms: timing.durationMs, repair: false, repairKind: "none", structuralOk: true, planRepaired, model, attemptId, planMs, contentMs, repairMs });
-      return json({ ok: true, adventure: accepted.adventure, stage: "COMPLETE", meta: timing });
-    }
-    logMeta({
-      stage: failStage(accepted.issues || []),
-      category: "invalid",
-      repair: false,
-      model,
-      attemptId,
-      structuralOk: true,
-      issues: (accepted.issues || []).slice(0, 8),
-      slotIds: accepted.slotIds || [],
-      output: digest(first)
-    });
-    logMeta({ stage: "CONTENT_VALIDATE", attemptId, repair: false, model, issues: (accepted.issues || []).slice(0, 8) });
-    logMeta({ stage: "CONTENT_REQUEST", attemptId, repair: true, model, repairAction: "slot", slotIds: accepted.slotIds || [] });
-    const slotStarted = Date.now();
-    const repairBrief = brain.slotRepairBrief(framed, accepted.slotIds || [], accepted.issues || [], accepted.previous);
-    const repairUser = JSON.parse(repairBrief.user);
-    const second = await callModel(repairBrief, apiKey, model, 28e3);
-    repairMs += Date.now() - slotStarted;
-    logMeta({ stage: "CONTENT_VALIDATE", attemptId, repair: true, model, repairMs, repairAction: "slot" });
-    const repairedSlots = accepted.slotIds || [];
+    const routeMeta = { planFirstPass: !planRepaired, planRepaired, storyFirstPass, storyRepaired, storyFallback, applyAlignment };
+    const repairedSlots = resolved.repairedSlots || [];
     const applyRepair = repairedSlots.indexOf("apply") !== -1;
     const durationRepair = repairedSlots.some((id) => id !== "apply");
-    const repaired = brain.accept(brain.mergeSlotContent(accepted.previous, second), framed);
-    const trace = diagnosis(first, accepted, skeleton, {
-      repairModelApply: applyModel(second),
-      repairSlots: second && second.slots ? Object.keys(second.slots) : [],
-      repairSpecs: (repairUser.slotsToRewrite || []).map((spec) => ({ slotType: spec.slotType, failure: spec.failure || [] })),
-      repairHook: slotModel(second, "hook"),
-      finalHook: hookLines(repaired),
-      finalApply: applyActivity(repaired),
-      finalIssues: (repaired.issues || []).slice(0, 8)
+    const trace = diagnosis(first, resolved, skeleton, {
+      repairModelApply: applyModel(repairRaw),
+      repairSlots: repairRaw && repairRaw.slots ? Object.keys(repairRaw.slots) : [],
+      repairSpecs: ((repairUser && repairUser.slotsToRewrite) || []).map((spec) => ({ slotType: spec.slotType, failure: spec.failure || [] })),
+      repairHook: slotModel(repairRaw, "hook"),
+      finalHook: hookLines(resolved),
+      finalApply: applyActivity(resolved),
+      finalIssues: (resolved.issues || []).slice(0, 8),
+      applyAlignment
     });
-    if (repaired.ok && repaired.adventure) {
-      const timing = { durationMs: Date.now() - started, planMs, storyMs, contentMs, repairMs, repairUsed: true, repairKind: "slot", structuralOk: repaired.structuralOk !== false, storyFallback, storyFirstPass, storyRepaired, repairedSlots, applyRepair, durationRepair, diagnosis: trace };
-      logMeta({ stage: "COMPLETE", category: "ok", ms: timing.durationMs, repair: true, repairKind: "slot", structuralOk: true, model, attemptId, planMs, contentMs, repairMs, applyRepair, durationRepair });
-      return json({ ok: true, adventure: repaired.adventure, stage: "COMPLETE", meta: timing });
+    if (resolved.ok && resolved.adventure) {
+      const timing = { durationMs: Date.now() - started, planMs, storyMs, contentMs, repairMs, repairUsed: !!resolved.repairUsed, repairKind: resolved.repairUsed ? "slot" : "none", structuralOk: true, planRepaired, storyFallback, storyFirstPass, storyRepaired, repairedSlots, applyRepair, durationRepair, applyAlignment, diagnosis: trace };
+      logMeta({ stage: "COMPLETE", category: "ok", ms: timing.durationMs, repair: !!resolved.repairUsed, repairKind: timing.repairKind, structuralOk: true, planRepaired, model, attemptId, planMs, contentMs, repairMs, applyRepair, durationRepair, semanticOutcome: applyAlignment.semanticOutcome || "" });
+      return json({ ok: true, adventure: resolved.adventure, stage: "COMPLETE", meta: timing });
     }
-    const stage = repaired.structuralOk === false ? "STRUCTURAL_VALIDATION_FAILED" : failStage(repaired.issues || []);
+    const stage = resolved.structuralOk === false ? "STRUCTURAL_VALIDATION_FAILED" : failStage(resolved.issues || []);
     logMeta({
       stage,
       category: "invalid",
       ms: Date.now() - started,
-      repair: true,
+      repair: !!resolved.repairUsed,
       model,
       attemptId,
-      structuralOk: repaired.structuralOk !== false,
-      issues: (repaired.issues || []).slice(0, 8),
-      repairAction: "slot",
-      output: digest(second)
+      structuralOk: resolved.structuralOk !== false,
+      issues: (resolved.issues || []).slice(0, 8),
+      repairAction: resolved.repairUsed ? "slot" : "none",
+      semanticOutcome: applyAlignment.semanticOutcome || "",
+      output: digest(repairRaw || first)
     });
-    return json({ ok: false, category: "invalid", stage, issues: (repaired.issues || []).slice(0, 8), meta: { structuralOk: repaired.structuralOk !== false, repairKind: "slot", repairUsed: true, repairedSlots, applyRepair, durationRepair, ...routeMeta, diagnosis: trace } });
+    return json({ ok: false, category: "invalid", stage, issues: (resolved.issues || []).slice(0, 8), meta: { structuralOk: resolved.structuralOk !== false, repairKind: resolved.repairUsed ? "slot" : "none", repairUsed: !!resolved.repairUsed, repairedSlots, applyRepair, durationRepair, ...routeMeta, diagnosis: trace } });
   } catch (error) {
     const category = error.category || "provider";
     const stage = category === "parse" ? phase === "PLAN_REQUEST" ? "PLAN_PARSE" : phase === "STORY_REQUEST" ? "STORY_PARSE" : "CONTENT_PARSE" : category === "timeout" ? phase : "AI_REQUEST_FAILED";
