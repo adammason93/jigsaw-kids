@@ -134,6 +134,202 @@
     return { intent: intent, relationship: relationship, concepts: concepts };
   }
 
+  var PRESENTATION = {
+    fun: 1, playful: 1, hands: 1, short: 1, quick: 1, please: 1, pls: 1,
+    something: 1, help: 1, understand: 1, understanding: 1, mins: 1, minute: 1, minutes: 1,
+    already: 1, know: 1, knows: 1, reteach: 1, reteaching: 1, forgetting: 1, keep: 1
+  };
+  var SUBJECT_NAMES = { science: "Science", maths: "Maths", mathematics: "Maths", english: "English", history: "History", geography: "Geography" };
+
+  function phraseList(value, max, limit) {
+    var list = Array.isArray(value) ? value : [];
+    var seen = {};
+    var out = [];
+    list.forEach(function (item) {
+      var text = clean(typeof item === "string" ? item : "", max || 80);
+      var key = text.toLowerCase();
+      if (!text || seen[key]) return;
+      seen[key] = 1;
+      out.push(text);
+    });
+    return out.slice(0, limit || 4);
+  }
+
+  function curriculumPhrase(phrase) {
+    var text = clean(phrase, 80);
+    if (text.length < 3) return false;
+    var parts = text.toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
+    if (!parts.length) return false;
+    if (parts.length === 1 && (PRESENTATION[parts[0]] || FUNCTION[parts[0]])) return false;
+    if (parts.every(function (part) { return PRESENTATION[part] || FUNCTION[part]; })) return false;
+    return true;
+  }
+
+  function listedAs(list, phrase) {
+    var key = clean(phrase, 80).toLowerCase();
+    return (list || []).some(function (item) { return clean(item, 80).toLowerCase() === key; });
+  }
+
+  function teacherIntentBrief(ctx) {
+    var raw = clean((ctx && (ctx.lessonText || ctx.teacherInstructions)) || "", 500);
+    return {
+      system: [
+        "You interpret one primary teacher's request. Return one JSON object and nothing else.",
+        "Do not write a lesson, stages, activities, mechanics, questions, or facts to teach.",
+        "Separate the request into distinct fields. A word is not a focus concept merely because it appears in the request.",
+        "learningGoal is one sentence: what pupils should understand or be able to do by the end of this lesson.",
+        "focusConcepts are one to four short curriculum ideas required for that new goal. They are ideas, not the teacher's instructions.",
+        "priorKnowledge is what the teacher says pupils already understand. Do not copy those items into focusConcepts.",
+        "exclusions are what the teacher says not to reteach. Do not copy those items into focusConcepts.",
+        "preferences are presentation requests such as fun, playful, hands-on, short, or story-based. They are not curriculum ideas.",
+        "durationMinutes is a number from 5 to 90, or null when no duration was asked for. A duration is not a curriculum idea.",
+        "yearGroup is Year 1 to Year 6 when the teacher names it, otherwise an empty string. Do not invent a year.",
+        "subject is Science, Maths, English, History, or Geography. If the teacher names one, keep it and set subjectConfidence to explicit.",
+        "If the teacher does not name a subject, set subject and subjectConfidence to inferred only when the topic is unmistakably that subject. Otherwise subject is an empty string and subjectConfidence is uncertain.",
+        "If the teacher names a misconception, keep the mistake out of focusConcepts and make learningGoal the idea that corrects it.",
+        "The lesson should build from what pupils already know toward the new goal. The new goal is the teaching target.",
+        "Do not invent a different topic. If the request is unclear, keep learningGoal close to what was asked and leave uncertain fields empty.",
+        "JSON shape: {\"yearGroup\":\"\",\"subject\":\"\",\"subjectConfidence\":\"explicit\" or \"inferred\" or \"uncertain\",\"learningGoal\":\"\",\"focusConcepts\":[],\"priorKnowledge\":[],\"exclusions\":[],\"preferences\":[],\"durationMinutes\":null}."
+      ].join(" "),
+      user: JSON.stringify({
+        request: raw,
+        statedYear: clean(ctx && ctx.yearGroup, 20),
+        statedSubject: clean(ctx && ctx.subject, 40),
+        statedMinutes: ctx && ctx.requestedMinutes || null
+      })
+    };
+  }
+
+  function normaliseTeacherIntent(raw, ctx) {
+    var body = raw && typeof raw === "object" ? raw : null;
+    var goal = clean(body && body.learningGoal, 240);
+    if (!body || goal.length < 12) return { ok: false, reason: "malformed" };
+    var prior = phraseList(body.priorKnowledge, 120, 4);
+    var exclusions = phraseList(body.exclusions, 120, 4);
+    var preferences = phraseList(body.preferences, 40, 4);
+    var focus = phraseList(body.focusConcepts, 80, 6).filter(function (phrase) {
+      return curriculumPhrase(phrase) && !listedAs(prior, phrase) && !listedAs(exclusions, phrase) && !listedAs(preferences, phrase);
+    }).slice(0, 4);
+    var minutes = body.durationMinutes;
+    if (typeof minutes === "string" && /^\d{1,3}$/.test(minutes.trim())) minutes = Number(minutes.trim());
+    if (typeof minutes !== "number" || minutes < 5 || minutes > 90) minutes = null;
+    var confidence = clean(body.subjectConfidence, 20).toLowerCase();
+    if (confidence !== "explicit" && confidence !== "inferred" && confidence !== "uncertain") confidence = "uncertain";
+    var subject = SUBJECT_NAMES[clean(body.subject, 40).toLowerCase()] || "";
+    if (!subject) confidence = subject ? confidence : "uncertain";
+    if (confidence === "uncertain") subject = "";
+    var year = clean(body.yearGroup, 20);
+    if (!/^Year\s*[1-6]$/i.test(year)) year = "";
+    else year = "Year " + year.replace(/\D/g, "");
+    if (ctx && ctx.yearGroup) year = ctx.yearGroup;
+    if (ctx && ctx.subject) {
+      subject = ctx.subject;
+      confidence = "explicit";
+    }
+    return {
+      ok: true,
+      yearGroup: year,
+      subject: subject,
+      subjectConfidence: confidence,
+      learningGoal: goal,
+      focusConcepts: focus,
+      priorKnowledge: prior,
+      exclusions: exclusions,
+      preferences: preferences,
+      durationMinutes: minutes
+    };
+  }
+
+  function explicitMinutes(ctx) {
+    var raw = String((ctx && (ctx.lessonText || ctx.teacherInstructions)) || "");
+    var match = raw.match(/\b(\d{1,3})\s*(?:min|mins|minute|minutes)\b/i);
+    if (!match) return 0;
+    var minutes = Number(match[1]);
+    return minutes >= 5 && minutes <= 90 ? minutes : 0;
+  }
+
+  function applyTeacherIntent(ctx, intent) {
+    ctx = ctx || {};
+    ctx.lessonBrief = ctx.lessonBrief || {};
+    if (!intent || !intent.ok) {
+      ctx.lessonBrief.teacherIntent = { ok: false, reason: (intent && intent.reason) || "malformed" };
+      ctx.lessonBrief.concepts = [];
+      ctx.lessonBrief.focusConcepts = [];
+      return ctx;
+    }
+    ctx.lessonBrief.teacherIntent = intent;
+    ctx.lessonBrief.learningGoal = intent.learningGoal;
+    ctx.lessonBrief.focusConcepts = intent.focusConcepts.slice();
+    ctx.lessonBrief.concepts = intent.focusConcepts.slice();
+    ctx.lessonBrief.priorKnowledge = intent.priorKnowledge.slice();
+    ctx.lessonBrief.exclusions = intent.exclusions.slice();
+    ctx.lessonBrief.preferences = intent.preferences.slice();
+    if (!ctx.subject && intent.subject && (intent.subjectConfidence === "inferred" || intent.subjectConfidence === "explicit")) {
+      ctx.subject = intent.subject;
+      ctx.lessonBrief.subject = intent.subject;
+    }
+    var stated = explicitMinutes(ctx);
+    if (!stated && intent.durationMinutes) {
+      ctx.requestedMinutes = intent.durationMinutes;
+      ctx.lessonBrief.durationMinutes = intent.durationMinutes;
+    }
+    return ctx;
+  }
+
+  function knowledgeLines(ctx) {
+    return ((ctx && ctx.lessonPlan && ctx.lessonPlan.keyKnowledge) || []).map(function (item) {
+      if (typeof item === "string") return item;
+      return (item && (item.text || item.statement)) || "";
+    }).filter(Boolean);
+  }
+
+  function conceptCoverageIssues(blob, ctx) {
+    blob = String(blob || "").toLowerCase();
+    var brief = (ctx && ctx.lessonBrief) || {};
+    var intent = brief.teacherIntent;
+    var topic = clean((ctx && ctx.topic) || "", 120);
+    var concepts = brief.concepts || [];
+    function mentioned(token) {
+      if (!token) return false;
+      if (blob.indexOf(token) !== -1) return true;
+      var stem = token;
+      if (token.length > 5 && /(?:ches|shes|xes|zes|ses|es)$/.test(token)) stem = token.replace(/es$/, "");
+      else if (token.length > 4 && token.slice(-1) === "s") stem = token.slice(0, -1);
+      else if (token.length > 5 && token.slice(-2) === "ed") stem = token.slice(0, -2);
+      else if (token.length > 6 && token.slice(-3) === "ing") stem = token.slice(0, -3);
+      if (stem !== token && stem.length > 3 && blob.indexOf(stem) !== -1) return true;
+      if (token.slice(-2) === "ed" && blob.indexOf(token.slice(0, -1)) !== -1) return true;
+      return false;
+    }
+    function looseHit(phrase) {
+      var text = clean(phrase, 180).toLowerCase();
+      if (!text) return false;
+      if (text.length > 12 && blob.indexOf(text) !== -1) return true;
+      var keys = contentWords(text).filter(function (word) {
+        return word.length >= 4 && !PRESENTATION[word];
+      });
+      return keys.some(mentioned);
+    }
+    if (intent && intent.ok) {
+      var targets = (intent.focusConcepts || []).concat(intent.learningGoal ? [intent.learningGoal] : []);
+      var facts = knowledgeLines(ctx);
+      if (targets.some(looseHit) || facts.some(looseHit)) return [];
+      return ["The activities do not teach the requested idea."];
+    }
+    if (intent && intent.ok === false) {
+      var planned = knowledgeLines(ctx);
+      if (planned.length && !planned.some(looseHit)) return ["The activities do not teach the planned knowledge."];
+      return [];
+    }
+    var tokens = concepts.length ? concepts.slice() : words(topic).filter(function (word) { return !FUNCTION[word]; });
+    var issues = [];
+    tokens.forEach(function (token) {
+      if (!mentioned(token)) issues.push("The activities do not teach " + token + ".");
+    });
+    if (!tokens.length && topic && blob.indexOf(topic.toLowerCase()) === -1) issues.push("The activities do not match the requested topic.");
+    return issues;
+  }
+
   function contextFrom(draft, extra) {
     extra = extra || {};
     draft = draft || {};
@@ -211,7 +407,8 @@
       "keyKnowledge is two to four short facts that are established and safe to teach. If you are unsure, choose a simpler true fact. Do not invent quotations, dates, or events. A simplified explanation must still be true. If the request is about a cause, or about how something forms, keyKnowledge is the steps of that mechanism in order. The first fact is not the whole answer in one sentence. For a young year, use a simple true model: the parts, how they move, and what that movement does. Do not teach the visible effect as the cause. The ground shaking is what an earthquake does, not why it happens.",
       "misconceptions are mistakes children of this age often make. priorKnowledge is what you will treat as already known, or an empty list.",
       "vocabulary is only the words worth teaching at this age.",
-      "lessonBrief.intent says whether this lesson is why, process, compare, definition, procedure, or explain. lessonBrief.concepts are the ideas to teach. Do not treat words such as between, difference, why, or how as the concept.",
+      "lessonBrief.intent says whether this lesson is why, process, compare, definition, procedure, or explain. When lessonBrief.teacherIntent is present, lessonBrief.learningGoal is the only new teaching target, lessonBrief.focusConcepts are the ideas to teach, lessonBrief.priorKnowledge is already known and may be the starting point, and lessonBrief.exclusions must not be retaught. lessonBrief.preferences and the duration are presentation, not keyKnowledge. Do not turn prior knowledge or an exclusion into the lesson target.",
+      "When teacherIntent is absent, lessonBrief.concepts are the ideas to teach. Do not treat words such as between, difference, why, or how as the concept.",
       "keyKnowledge items are strings or { text, knowledgeType }. knowledgeType is fact, cause, effect, reason, process, definition, comparison, or procedure. A why or process lesson needs at least one cause, reason, or process of six words or more. That item explains why, using because, when, so that, or and then. Do not only restate what is seen.",
       "lessonArc may name hook, investigate, teach, apply, check, resolution, and recap. The system places each keyKnowledge fact on the teach stage and the recap. The hook and the investigate stage must not contain it.",
       "Age changes the plan: vocabulary, how long the sentences are, how deep the explanation goes, the examples, and how hard the reasoning is. Year 1 and Year 2 key knowledge stays in everyday words.",
@@ -787,6 +984,16 @@
     return "structural";
   }
 
+  function pupilConceptLine(safe) {
+    var brief = (safe && safe.lessonBrief) || {};
+    var intent = brief.teacherIntent;
+    if (intent && intent.ok) {
+      return "Teach this learning goal. Paraphrase is fine: " + intent.learningGoal + ". Focus ideas: " + ((intent.focusConcepts || []).join("; ") || "the learning goal") + ". Pupils already know: " + ((intent.priorKnowledge || []).join("; ") || "nothing stated") + ". Do not reteach: " + ((intent.exclusions || []).join("; ") || "nothing stated") + ". Presentation only: " + ((intent.preferences || []).join(", ") || "none") + ". Do not copy the teacher's wording, and do not teach the presentation words or the duration.";
+    }
+    if (intent && intent.ok === false) return "Teach the lesson plan's key knowledge. Do not treat incidental words from the teacher's wording as ideas that must appear.";
+    return "The pupil-facing text must include every concept: " + ((((brief.concepts || []).filter(Boolean).length ? brief.concepts : words(brief.topic || (safe && safe.topic) || "").filter(function (word) { return !FUNCTION[word]; })).join(", ")) || "the topic") + ".";
+  }
+
   function contentBrief(ctx, plan, story) {
     var safe = forModel(ctx || {});
     var sourcePlan = plan || (ctx && ctx.lessonPlan) || null;
@@ -800,7 +1007,7 @@
     safe.lessonSkeleton = skeleton;
     var system = [
       "You are writing the words for a Wondii lesson. Return one JSON object and nothing else.",
-      "The pupil-facing text must include every concept: " + ((((safe.lessonBrief && safe.lessonBrief.concepts) || []).filter(Boolean).length ? safe.lessonBrief.concepts : words((safe.lessonBrief && safe.lessonBrief.topic) || safe.topic || "").filter(function (word) { return !FUNCTION[word]; })).join(", ") || "the topic") + ".",
+      pupilConceptLine(safe),
       "Do not return HTML, CSS, JavaScript, markdown, or a worksheet.",
       "lessonSkeleton is already decided. Return slots keyed by the skeleton ids. Do not return an activities array. Do not choose a mechanic, a beat, an order, or a new stage. A spin is not a slot.",
       "JSON shape: { title, objectives, slots: { hook, investigate, teach, apply, check, resolution, recap } }.",
@@ -809,7 +1016,7 @@
       "hook creates the unsolved problem and must not reveal the answer. investigate asks the class to look, using the slot's interactionIntent. It must not explain the answer and it must not be a pupil spin. teach states every requiredKnowledge fact in short sentences this age can hear. apply must make the pupil use at least one requiredKnowledge item through the slot's interactionIntent. instruction is that task. knowledgeUsed names the requiredKnowledge item the task uses. successCondition says what a finished action shows. teachingConnection says how the task follows the teaching. Sort the cards, move this, or put these in order is not an apply task unless the taught idea is in the instruction. Choosing a pupil is not the apply slot. check comes after teaching and assesses the taught idea. resolution is the mission outcome after the check. recap states the taught facts. Do not say that the screen is a recap or a mystery.",
       "A stage with mayRevealAnswer false must not state requiredKnowledge and must not use because, caused by, or due to. Do not add a fact that is not in keyKnowledge.",
       "For a why lesson, the check correct answer is the cause, reason, or process in keyKnowledge. The visible outcome can be the question or a wrong choice.",
-      "lessonBrief.concepts are the ideas the class must meet. Do not treat between, difference, why, or how as ideas to teach.",
+      "When teacherIntent is present, paraphrase the learning goal and the focus concepts. Do not make the class meet preference words, duration words, prior-knowledge labels, or exclusions. Otherwise lessonBrief.concepts are the ideas the class must meet. Do not treat between, difference, why, or how as ideas to teach.",
       "storyPlan is the setting and the mission. Do not turn the lesson into a lesson about stories unless lessonBrief.topic is about stories.",
       "Put the teaching in the teach slot before the first scored quiz.",
       "Sound like a teacher talking to the class. Use short, natural sentences. Do not start screens with Let's explore, Let's discover, Great job, Can you identify, or Which of the following.",
@@ -2281,23 +2488,19 @@
     var issues = structuralIssues(activities);
     var blob = blobOf(activities);
     var topic = clean(ctx.topic || "", 120);
+    var intent = ctx.lessonBrief && ctx.lessonBrief.teacherIntent;
     var concepts = (ctx.lessonBrief && ctx.lessonBrief.concepts) || [];
-    var tokens = concepts.length ? concepts.slice() : words(topic).filter(function (word) { return !FUNCTION[word]; });
-    function mentioned(token) {
-      if (blob.indexOf(token) !== -1) return true;
-      var stem = token;
-      if (token.length > 5 && /(?:ches|shes|xes|zes|ses|es)$/.test(token)) stem = token.replace(/es$/, "");
-      else if (token.length > 4 && token.slice(-1) === "s") stem = token.slice(0, -1);
-      else if (token.length > 5 && token.slice(-2) === "ed") stem = token.slice(0, -2);
-      else if (token.length > 6 && token.slice(-3) === "ing") stem = token.slice(0, -3);
-      if (stem !== token && stem.length > 3 && blob.indexOf(stem) !== -1) return true;
-      if (token.slice(-2) === "ed" && blob.indexOf(token.slice(0, -1)) !== -1) return true;
-      return false;
+    var tokens = [];
+    if (intent && intent.ok) {
+      (intent.focusConcepts || []).forEach(function (phrase) {
+        contentWords(phrase).forEach(function (word) {
+          if (tokens.indexOf(word) === -1) tokens.push(word);
+        });
+      });
+    } else if (!(intent && intent.ok === false)) {
+      tokens = concepts.length ? concepts.slice() : words(topic).filter(function (word) { return !FUNCTION[word]; });
     }
-    tokens.forEach(function (token) {
-      if (!mentioned(token)) issues.push("The activities do not teach " + token + ".");
-    });
-    if (!tokens.length && topic && blob.indexOf(topic.toLowerCase()) === -1) issues.push("The activities do not match the requested topic.");
+    conceptCoverageIssues(blob, ctx).forEach(function (issue) { issues.push(issue); });
     var year = yearDigit(ctx.yearGroup);
     var mentioned = blob.match(/year\s*([1-6])/i);
     if (year && mentioned && mentioned[1] !== year) issues.push("The lesson is written for Year " + mentioned[1] + " instead of Year " + year + ".");
@@ -3150,6 +3353,10 @@
     parseApplySemantic: parseApplySemantic,
     applyJudgePlan: applyJudgePlan,
     applySemanticInput: applySemanticInput,
+    teacherIntentBrief: teacherIntentBrief,
+    normaliseTeacherIntent: normaliseTeacherIntent,
+    applyTeacherIntent: applyTeacherIntent,
+    conceptCoverageIssues: conceptCoverageIssues,
     resolveLessonContent: resolveLessonContent,
     runPipeline: runPipeline,
     request: request

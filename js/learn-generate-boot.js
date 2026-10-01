@@ -1,4 +1,4 @@
-const lessonSource = await fetch("https://wondii.co.uk/js/lesson-brain.js?v=32").then((res) => {
+const lessonSource = await fetch("https://wondii.co.uk/js/lesson-brain.js?v=33").then((res) => {
   if (!res.ok) throw new Error("lesson_script");
   return res.text();
 });
@@ -219,8 +219,33 @@ globalThis.handleGenerate = async (req) => {
     if (/correct answer|no real question|needs three|needs a reveal|door number|needs something|no activities|not valid structured/.test(text)) return "SCHEMA_VALIDATION_FAILED";
     return "EDUCATIONAL_VALIDATION_FAILED";
   }
-  let phase = "PLAN_REQUEST";
+  function intentMeta(source) {
+    const intent = source && source.lessonBrief && source.lessonBrief.teacherIntent || {};
+    return {
+      ok: !!intent.ok,
+      learningGoal: clip(intent.learningGoal, 180),
+      focusConcepts: (intent.focusConcepts || []).slice(0, 4),
+      priorKnowledge: (intent.priorKnowledge || []).slice(0, 4),
+      exclusions: (intent.exclusions || []).slice(0, 4),
+      preferences: (intent.preferences || []).slice(0, 4),
+      subject: clip(intent.subject, 40),
+      subjectConfidence: clip(intent.subjectConfidence, 20),
+      durationMinutes: intent.durationMinutes || null
+    };
+  }
+  let phase = "TEACHER_INTENT";
   try {
+    let intentMs = 0;
+    try {
+      const intentStarted = Date.now();
+      const rawIntent = await callModel(brain.teacherIntentBrief(ctx), apiKey, model, 12e3, 0);
+      intentMs = Date.now() - intentStarted;
+      brain.applyTeacherIntent(ctx, brain.normaliseTeacherIntent(rawIntent, ctx));
+    } catch (intentError) {
+      brain.applyTeacherIntent(ctx, { ok: false, reason: intentError && intentError.category || "error" });
+    }
+    logMeta({ stage: "TEACHER_INTENT", attemptId, model, intentMs, teacherIntent: intentMeta(ctx) });
+    phase = "PLAN_REQUEST";
     logMeta({ stage: "PLAN_REQUEST", attemptId, repair: false, model, ...requestMeta(ctx) });
     const planStarted = Date.now();
     const firstPlan = await callModel(brain.planBrief(ctx), apiKey, model, 2e4);
@@ -253,7 +278,7 @@ globalThis.handleGenerate = async (req) => {
           attemptId,
           issues: (planned.issues || []).slice(0, 8)
         });
-        return json({ ok: false, category: "invalid", stage: "EDUCATIONAL_VALIDATION_FAILED" });
+        return json({ ok: false, category: "invalid", stage: "EDUCATIONAL_VALIDATION_FAILED", meta: { teacherIntent: intentMeta(ctx) } });
       }
     }
     const withPlan = Object.assign({}, ctx, { lessonPlan: planned.plan });
@@ -346,9 +371,9 @@ globalThis.handleGenerate = async (req) => {
         issues: (resolved.issues || []).slice(0, 8),
         output: digest(first)
       });
-      return json({ ok: false, category: "invalid", stage: "STRUCTURAL_VALIDATION_FAILED", issues: (resolved.issues || []).slice(0, 8), meta: { structuralOk: false, repairKind: "none", repairUsed: false, applyAlignment } });
+      return json({ ok: false, category: "invalid", stage: "STRUCTURAL_VALIDATION_FAILED", issues: (resolved.issues || []).slice(0, 8), meta: { structuralOk: false, repairKind: "none", repairUsed: false, applyAlignment, teacherIntent: intentMeta(ctx) } });
     }
-    const routeMeta = { planFirstPass: !planRepaired, planRepaired, storyFirstPass, storyRepaired, storyFallback, applyAlignment };
+    const routeMeta = { planFirstPass: !planRepaired, planRepaired, storyFirstPass, storyRepaired, storyFallback, applyAlignment, teacherIntent: intentMeta(ctx) };
     const repairedSlots = resolved.repairedSlots || [];
     const applyRepair = repairedSlots.indexOf("apply") !== -1;
     const durationRepair = repairedSlots.some((id) => id !== "apply");
@@ -363,7 +388,7 @@ globalThis.handleGenerate = async (req) => {
       applyAlignment
     });
     if (resolved.ok && resolved.adventure) {
-      const timing = { durationMs: Date.now() - started, planMs, storyMs, contentMs, repairMs, repairUsed: !!resolved.repairUsed, repairKind: resolved.repairUsed ? "slot" : "none", structuralOk: true, planRepaired, storyFallback, storyFirstPass, storyRepaired, repairedSlots, applyRepair, durationRepair, applyAlignment, diagnosis: trace };
+      const timing = { durationMs: Date.now() - started, planMs, storyMs, contentMs, repairMs, repairUsed: !!resolved.repairUsed, repairKind: resolved.repairUsed ? "slot" : "none", structuralOk: true, planRepaired, storyFallback, storyFirstPass, storyRepaired, repairedSlots, applyRepair, durationRepair, applyAlignment, teacherIntent: intentMeta(ctx), diagnosis: trace };
       logMeta({ stage: "COMPLETE", category: "ok", ms: timing.durationMs, repair: !!resolved.repairUsed, repairKind: timing.repairKind, structuralOk: true, planRepaired, model, attemptId, planMs, contentMs, repairMs, applyRepair, durationRepair, semanticOutcome: applyAlignment.semanticOutcome || "" });
       return json({ ok: true, adventure: resolved.adventure, stage: "COMPLETE", meta: timing });
     }
