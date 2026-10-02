@@ -1,4 +1,4 @@
-const lessonSource = await fetch("https://wondii.co.uk/js/lesson-brain.js?v=39").then((res) => {
+const lessonSource = await fetch("https://wondii.co.uk/js/lesson-brain.js?v=40").then((res) => {
   if (!res.ok) throw new Error("lesson_script");
   return res.text();
 });
@@ -239,6 +239,7 @@ globalThis.handleGenerate = async (req) => {
     return {
       ok: !!intent.ok,
       learningGoal: clip(intent.learningGoal, 180),
+      requiredEvidence: clip(intent.requiredEvidence, 220),
       focusConcepts: (intent.focusConcepts || []).slice(0, 4),
       priorKnowledge: (intent.priorKnowledge || []).slice(0, 4),
       exclusions: (intent.exclusions || []).slice(0, 4),
@@ -357,11 +358,24 @@ globalThis.handleGenerate = async (req) => {
       checkJudge: async (input) => {
         const judgeStarted = Date.now();
         try {
-          const payload = await callModel(brain.checkSemanticBrief(input), apiKey, model, 12e3, 0);
-          const parsed = brain.parseCheckSemantic(payload);
-          return { ok: parsed.ok, relationship: parsed.relationship, reason: parsed.reason, ms: Date.now() - judgeStarted };
+          const evidencePayload = await callModel(brain.checkEvidenceBrief(input), apiKey, model, 12e3, 0);
+          const evidence = brain.parseCheckEvidence(evidencePayload);
+          if (!evidence.ok) return { ok: false, coverage: null, reason: "malformed", ms: Date.now() - judgeStarted };
+          const coveragePayload = await callModel(brain.checkCoverageBrief({
+            requiredEvidence: input && input.requiredEvidence,
+            demonstratedEvidence: evidence.demonstratedEvidence
+          }), apiKey, model, 12e3, 0);
+          const coverage = brain.parseCheckCoverage(coveragePayload);
+          if (!coverage.ok) return { ok: false, coverage: null, reason: "malformed", ms: Date.now() - judgeStarted };
+          return {
+            ok: true,
+            coverage: coverage.coverage,
+            reason: coverage.reason,
+            demonstratedEvidence: evidence.demonstratedEvidence,
+            ms: Date.now() - judgeStarted
+          };
         } catch (error) {
-          return { ok: false, relationship: null, reason: error && error.category || "error", ms: Date.now() - judgeStarted };
+          return { ok: false, coverage: null, reason: error && error.category || "error", ms: Date.now() - judgeStarted };
         }
       },
       repair: async (accepted) => {

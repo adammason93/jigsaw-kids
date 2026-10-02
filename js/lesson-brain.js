@@ -188,8 +188,9 @@
         "If the teacher does not name a subject, set subject and subjectConfidence to inferred only when the topic is unmistakably that subject. Otherwise subject is an empty string and subjectConfidence is uncertain.",
         "If the teacher names a misconception, keep the mistake out of focusConcepts and make learningGoal the idea that corrects it.",
         "The lesson should build from what pupils already know toward the new goal. The new goal is the teaching target.",
+        "requiredEvidence is one short statement of what a pupil must show before the teacher can conclude the learning goal was achieved. Name the thinking the pupil does and the content or relationship that must be covered. A comparison names both sides. A sequence names the whole order, not one stage. Using or measuring is not replaced by naming or defining. Do not make the evidence harder than the goal. Do not turn prior knowledge, exclusions, or presentation preferences into the evidence unless they are the goal itself.",
         "Do not invent a different topic. If the request is unclear, keep learningGoal close to what was asked and leave uncertain fields empty.",
-        "JSON shape: {\"yearGroup\":\"\",\"subject\":\"\",\"subjectConfidence\":\"explicit\" or \"inferred\" or \"uncertain\",\"learningGoal\":\"\",\"focusConcepts\":[],\"priorKnowledge\":[],\"exclusions\":[],\"preferences\":[],\"durationMinutes\":null}."
+        "JSON shape: {\"yearGroup\":\"\",\"subject\":\"\",\"subjectConfidence\":\"explicit\" or \"inferred\" or \"uncertain\",\"learningGoal\":\"\",\"requiredEvidence\":\"\",\"focusConcepts\":[],\"priorKnowledge\":[],\"exclusions\":[],\"preferences\":[],\"durationMinutes\":null}."
       ].join(" "),
       user: JSON.stringify({
         request: raw,
@@ -207,6 +208,10 @@
     var prior = phraseList(body.priorKnowledge, 120, 4);
     var exclusions = phraseList(body.exclusions, 120, 4);
     var preferences = phraseList(body.preferences, 40, 4);
+    var evidence = clean(body.requiredEvidence, 280);
+    if (evidence.length < 16 || listedAs(prior, evidence) || listedAs(exclusions, evidence) || listedAs(preferences, evidence)) {
+      return { ok: false, reason: "missing-evidence" };
+    }
     var focus = phraseList(body.focusConcepts, 80, 6).filter(function (phrase) {
       return curriculumPhrase(phrase) && !listedAs(prior, phrase) && !listedAs(exclusions, phrase) && !listedAs(preferences, phrase);
     }).slice(0, 4);
@@ -232,6 +237,7 @@
       subject: subject,
       subjectConfidence: confidence,
       learningGoal: goal,
+      requiredEvidence: evidence,
       focusConcepts: focus,
       priorKnowledge: prior,
       exclusions: exclusions,
@@ -259,6 +265,7 @@
     }
     ctx.lessonBrief.teacherIntent = intent;
     ctx.lessonBrief.learningGoal = intent.learningGoal;
+    ctx.lessonBrief.requiredEvidence = intent.requiredEvidence;
     ctx.lessonBrief.focusConcepts = intent.focusConcepts.slice();
     ctx.lessonBrief.concepts = intent.focusConcepts.slice();
     ctx.lessonBrief.priorKnowledge = intent.priorKnowledge.slice();
@@ -407,7 +414,7 @@
       "keyKnowledge is two to four short facts that are established and safe to teach. If you are unsure, choose a simpler true fact. Do not invent quotations, dates, or events. A simplified explanation must still be true. If the request is about a cause, or about how something forms, keyKnowledge is the steps of that mechanism in order. The first fact is not the whole answer in one sentence. For a young year, use a simple true model: the parts, how they move, and what that movement does. Do not teach the visible effect as the cause. The ground shaking is what an earthquake does, not why it happens.",
       "misconceptions are mistakes children of this age often make. priorKnowledge is what you will treat as already known, or an empty list.",
       "vocabulary is only the words worth teaching at this age.",
-      "lessonBrief.intent says whether this lesson is why, process, compare, definition, procedure, or explain. When lessonBrief.teacherIntent is present, lessonBrief.learningGoal is the only new teaching target, lessonBrief.focusConcepts are the ideas to teach, lessonBrief.priorKnowledge is already known and may be the starting point, and lessonBrief.exclusions must not be retaught. lessonBrief.preferences and the duration are presentation, not keyKnowledge. Do not turn prior knowledge or an exclusion into the lesson target.",
+      "lessonBrief.intent says whether this lesson is why, process, compare, definition, procedure, or explain. When lessonBrief.teacherIntent is present, lessonBrief.learningGoal is the only new teaching target, lessonBrief.focusConcepts are the ideas to teach, lessonBrief.priorKnowledge is already known and may be the starting point, and lessonBrief.exclusions must not be retaught. lessonBrief.teacherIntent.requiredEvidence says what a correct check must show. It is not an extra keyKnowledge fact. lessonBrief.preferences and the duration are presentation, not keyKnowledge. Do not turn prior knowledge or an exclusion into the lesson target.",
       "When teacherIntent is absent, lessonBrief.concepts are the ideas to teach. Do not treat words such as between, difference, why, or how as the concept.",
       "keyKnowledge items are strings or { text, knowledgeType }. knowledgeType is fact, cause, effect, reason, process, definition, comparison, or procedure. A why or process lesson needs at least one cause, reason, or process of six words or more. That item explains why, using because, when, so that, or and then. Do not only restate what is seen.",
       "lessonArc may name hook, investigate, teach, apply, check, resolution, and recap. The system places each keyKnowledge fact on the teach stage and the recap. The hook and the investigate stage must not contain it.",
@@ -839,6 +846,12 @@
     return clean(intent.learningGoal, 240);
   }
 
+  function requiredEvidenceOf(ctx) {
+    var intent = ctx && ctx.lessonBrief && ctx.lessonBrief.teacherIntent;
+    if (!intent || intent.ok !== true) return "";
+    return clean(intent.requiredEvidence, 280);
+  }
+
   function checkQuestionOf(activity) {
     var config = (activity && activity.config) || {};
     var question = (config.questions && config.questions[0]) || config;
@@ -855,6 +868,7 @@
 
   function checkAlignment(activity, ctx) {
     if (!learningGoalOf(ctx)) return { status: "skip", reason: "no-learning-goal" };
+    if (!requiredEvidenceOf(ctx)) return { status: "fail", reason: "missing-evidence" };
     var question = checkQuestionOf(activity);
     var wordsInPrompt = question.prompt.split(/\s+/).filter(Boolean).length;
     if (wordsInPrompt < 4 || question.choices.length < 2 || !question.correct) {
@@ -866,12 +880,12 @@
     return { status: "unresolved", reason: "goal-alignment" };
   }
 
-  function checkSemanticDecision(relationship) {
-    var name = typeof relationship === "string" ? relationship.trim().toLowerCase() : "";
-    if (name === "aligned") return { ok: true, relationship: "aligned", outcome: "check-pass", issue: "" };
-    if (name === "prerequisite") return { ok: true, relationship: "prerequisite", outcome: "check-prerequisite", issue: "The check slot asks for a nearby definition instead of the learning goal." };
-    if (name === "unrelated") return { ok: true, relationship: "unrelated", outcome: "check-unrelated", issue: "The check slot does not test the learning goal." };
-    return { ok: false, relationship: null, outcome: "check-error", issue: "The check slot needs semantic goal alignment." };
+  function checkEvidenceDecision(coverage) {
+    var name = typeof coverage === "string" ? coverage.trim().toLowerCase() : "";
+    if (name === "sufficient") return { ok: true, coverage: "sufficient", outcome: "check-pass", issue: "" };
+    if (name === "partial") return { ok: true, coverage: "partial", outcome: "check-partial", issue: "The check slot leaves part of the required evidence untested." };
+    if (name === "unrelated") return { ok: true, coverage: "unrelated", outcome: "check-unrelated", issue: "The check slot does not test the required evidence." };
+    return { ok: false, coverage: null, outcome: "check-error", issue: "The check slot needs evidence alignment." };
   }
 
   function checkSlotIssues(activity, ctx) {
@@ -879,9 +893,10 @@
     if (aligned.status === "skip") return [];
     if (aligned.status === "fail") {
       if (aligned.reason === "incomplete-question") return ["The check slot has no real question."];
+      if (aligned.reason === "missing-evidence") return ["The check slot has no required evidence."];
       return ["The check slot does not say what learning it checks."];
     }
-    var decision = checkSemanticDecision(ctx && ctx.checkSemantic && ctx.checkSemantic.relationship);
+    var decision = checkEvidenceDecision(ctx && ctx.checkSemantic && ctx.checkSemantic.coverage);
     if (!decision.ok) return [decision.issue];
     if (decision.issue) return [decision.issue];
     return [];
@@ -903,68 +918,79 @@
     return "skip";
   }
 
-  function checkSemanticInput(activity, ctx, taught) {
+  function checkEvidenceInput(activity, ctx) {
     var question = checkQuestionOf(activity);
-    var intent = (ctx && ctx.lessonBrief && ctx.lessonBrief.teacherIntent) || {};
     return {
       yearGroup: (ctx && ctx.yearGroup) || "",
-      subject: (ctx && ctx.subject) || "",
-      learningGoal: learningGoalOf(ctx),
-      focusConcepts: (intent.focusConcepts || []).slice(0, 4),
-      requiredKnowledge: knowledgeLines(ctx).slice(0, 4),
-      taught: clean(taught, 400),
       prompt: question.prompt,
       choices: (question.choices || []).slice(0, 4),
       correct: question.correct,
-      explain: question.explain,
-      knowledgeChecked: question.knowledgeChecked,
-      successEvidence: question.successEvidence,
-      teachingConnection: question.teachingConnection
+      requiredEvidence: requiredEvidenceOf(ctx)
     };
   }
 
-  function checkSemanticBrief(input) {
+  function checkEvidenceBrief(input) {
     var payload = {
       yearGroup: clean(input && input.yearGroup, 40),
-      subject: clean(input && input.subject, 80),
-      learningGoal: clean(input && input.learningGoal, 240),
-      focusConcepts: textList(input && input.focusConcepts, 80, 4),
-      requiredKnowledge: textList(input && input.requiredKnowledge, 180, 4),
-      taught: clean(input && input.taught, 400),
       prompt: clean(input && input.prompt, 240),
       choices: textList(input && input.choices, 80, 4),
-      correct: clean(input && input.correct, 80),
-      explain: clean(input && input.explain, 240),
-      knowledgeChecked: clean(input && input.knowledgeChecked, 180),
-      successEvidence: clean(input && input.successEvidence, 180),
-      teachingConnection: clean(input && input.teachingConnection, 180)
+      correct: clean(input && input.correct, 80)
     };
     return {
       system: [
-        "You judge only whether a correct answer to this check is evidence that the pupil achieved the teacher's learningGoal. Return one JSON object and nothing else.",
-        "Ask this: if the pupil answers the prompt correctly, can we reasonably conclude they achieved the learning goal, including the action the goal asks for?",
-        "First name the action the learning goal requires and the action the correct answer performs. If they are not the same action, classify prerequisite. Identifying, naming, defining, or recalling is not measuring, sequencing a whole process, comparing two things, explaining a cause, writing, or using a mark or a tool. A goal that runs from a beginning to an end is not shown by one stage.",
-        "Compare the learningGoal, the prompt, and the correct answer. knowledgeChecked, successEvidence, and teachingConnection are the author's claims. They must not override the prompt and the correct answer.",
-        "Classify the relationship as exactly one of aligned, prerequisite, or unrelated.",
-        "aligned means a correct answer demonstrates the requested learning, or the same action on a smaller example. A smaller example of the same action can be aligned. A different, easier action cannot. The check does not need to repeat the whole apply task. It does not need to cover every fact in the lesson. It does need to show the central action. Do not rewrite the goal into an easier action. If the goal itself is only to identify, name, or define one thing, a simple identification or definition is aligned. Short year-group language can still be aligned.",
-        "prerequisite means a correct answer is related, but we still cannot conclude the pupil achieved the goal. Related to the goal is not evidence of the goal. The correct answer itself must be that evidence. Use prerequisite when the question names, defines, or recalls a piece instead of doing the action the goal names. That includes a definition when the goal is to use or apply, a label when the goal is to measure, one stage when the goal describes a process from a start to an end, one side when the goal compares two things, one component when the goal is to write or create a complete piece, identifying an example when the goal is to produce or use one, and naming a tool or a symbol when the goal is to use it. Knowing one part of a multi-part goal is prerequisite unless the goal itself asks only for that part.",
-        "unrelated means a correct answer shows knowledge outside the requested learning.",
-        "Do not rewrite the question. Do not choose a mechanic or another stage. Do not make the question harder than the year group.",
-        "JSON shape: {\"relationship\": \"aligned\" or \"prerequisite\" or \"unrelated\", \"reason\": \"one short sentence\"}."
+        "You state only what a correct answer to this question shows. Return one JSON object and nothing else.",
+        "You can see the year group, the question, the choices, and the correct answer. You cannot see a lesson, a teacher request, or a learning goal. Do not guess what a teacher hoped to teach.",
+        "demonstratedEvidence is one short statement of what we can reasonably conclude a pupil knows or can do solely because they answered this question correctly.",
+        "Be conservative. Do not claim a whole process, a comparison of two things, a measurement, a use of a tool or a mark, or an inference unless this question actually requires that.",
+        "Knowing the first stage is not knowing the whole order. Naming a label is not measuring. Defining a word is not using it. Stating one side is not comparing two things. Naming one part is not showing the whole structure.",
+        "Choosing from a list can still show inference, use, measurement, or representation when the correct answer itself requires that thinking. Say what the correct answer shows, not the name of the classroom action of ticking a box.",
+        "reason is one sentence about what the pupil actually does.",
+        "JSON shape: {\"demonstratedEvidence\":\"\",\"reason\":\"\"}."
       ].join(" "),
       user: JSON.stringify(payload)
     };
   }
 
-  function parseCheckSemantic(raw) {
+  function parseCheckEvidence(raw) {
     var body = raw;
     if (typeof raw === "string") {
       try { body = JSON.parse(raw); } catch (e) { body = null; }
     }
-    if (!body || typeof body !== "object" || Array.isArray(body)) return { ok: false, relationship: null, reason: "" };
-    var decision = checkSemanticDecision(body.relationship);
-    if (!decision.ok) return { ok: false, relationship: null, reason: "" };
-    return { ok: true, relationship: decision.relationship, reason: clean(body.reason, 240) };
+    if (!body || typeof body !== "object" || Array.isArray(body)) return { ok: false, demonstratedEvidence: "", reason: "" };
+    var evidence = clean(body.demonstratedEvidence, 280);
+    if (evidence.length < 8) return { ok: false, demonstratedEvidence: "", reason: "" };
+    return { ok: true, demonstratedEvidence: evidence, reason: clean(body.reason, 240) };
+  }
+
+  function checkCoverageBrief(input) {
+    var payload = {
+      requiredEvidence: clean(input && input.requiredEvidence, 280),
+      demonstratedEvidence: clean(input && input.demonstratedEvidence, 280)
+    };
+    return {
+      system: [
+        "You compare two statements of learning evidence. Return one JSON object and nothing else.",
+        "requiredEvidence is what the pupil must show. demonstratedEvidence is what a correct answer to one question shows. You cannot see the lesson, the question, the topic, or the teacher's request.",
+        "coverage is exactly one of sufficient, partial, or unrelated.",
+        "sufficient means the demonstrated evidence is enough to conclude the pupil achieved the required learning. A smaller example can be sufficient when it still shows the whole required skill or relationship.",
+        "partial means the demonstrated evidence is related, but a material part of requiredEvidence is still untested. That includes one stage instead of a whole order, one side instead of a comparison, one item when both are required, a definition instead of use, a label instead of a measurement, or one component instead of the requested structure.",
+        "unrelated means the demonstrated evidence does not test requiredEvidence.",
+        "Do not rewrite either statement. Do not add learning that neither statement contains.",
+        "JSON shape: {\"coverage\":\"sufficient\" or \"partial\" or \"unrelated\",\"reason\":\"one short sentence\"}."
+      ].join(" "),
+      user: JSON.stringify(payload)
+    };
+  }
+
+  function parseCheckCoverage(raw) {
+    var body = raw;
+    if (typeof raw === "string") {
+      try { body = JSON.parse(raw); } catch (e) { body = null; }
+    }
+    if (!body || typeof body !== "object" || Array.isArray(body)) return { ok: false, coverage: null, reason: "" };
+    var decision = checkEvidenceDecision(body.coverage);
+    if (!decision.ok) return { ok: false, coverage: null, reason: "" };
+    return { ok: true, coverage: decision.coverage, reason: clean(body.reason, 240) };
   }
 
   function slotIdOf(activity) {
@@ -1172,7 +1198,7 @@
       "JSON shape: { title, objectives, slots: { hook, investigate, teach, apply, check, resolution, recap } }.",
       "hook, investigate, teach, resolution, and recap use { title, lines }. lines is an array of short spoken sentences. investigate uses { instruction, target }. apply uses { instruction, target, knowledgeUsed, successCondition, teachingConnection }. check uses { title, prompt, choices, correct, explain, knowledgeChecked, successEvidence, teachingConnection }. choices are strings. correct is one of those strings copied exactly.",
       "Each slot already has minutes, minimumParticipation, and contentDepth. Meet that participation with short turns: a teacher prompt, an observation, a pupil action, a check, or a retrieval. Do not pad a slot into a long paragraph.",
-      "hook creates the unsolved problem and must not reveal the answer. investigate asks the class to look, using the slot's interactionIntent. It must not explain the answer and it must not be a pupil spin. teach states every requiredKnowledge fact in short sentences this age can hear. apply must make the pupil use at least one requiredKnowledge item through the slot's interactionIntent. instruction is that task. knowledgeUsed names the requiredKnowledge item the task uses. successCondition says what a finished action shows. teachingConnection says how the task follows the teaching. Sort the cards, move this, or put these in order is not an apply task unless the taught idea is in the instruction. Choosing a pupil is not the apply slot. check comes after teaching and assesses teacherIntent.learningGoal. A correct answer must be evidence that the pupil achieved that goal, not merely a nearby definition, label, tool name, isolated stage, or single component, unless the goal itself asks only for that identification or definition. knowledgeChecked names the learning the question tests. successEvidence says what a correct answer shows. teachingConnection says how the question follows the learning goal. Keep the question as easy to read as the year group. resolution is the mission outcome after the check. recap states the taught facts. Do not say that the screen is a recap or a mystery.",
+      "hook creates the unsolved problem and must not reveal the answer. investigate asks the class to look, using the slot's interactionIntent. It must not explain the answer and it must not be a pupil spin. teach states every requiredKnowledge fact in short sentences this age can hear. apply must make the pupil use at least one requiredKnowledge item through the slot's interactionIntent. instruction is that task. knowledgeUsed names the requiredKnowledge item the task uses. successCondition says what a finished action shows. teachingConnection says how the task follows the teaching. Sort the cards, move this, or put these in order is not an apply task unless the taught idea is in the instruction. Choosing a pupil is not the apply slot. check comes after teaching and assesses teacherIntent.requiredEvidence for teacherIntent.learningGoal. A correct answer must be sufficient evidence of requiredEvidence. One stage, one side, one component, a label, or a definition is not enough unless requiredEvidence itself asks only for that. knowledgeChecked names the learning the question tests. successEvidence says what a correct answer shows. teachingConnection says how the question follows the required evidence. Keep the question as easy to read as the year group. resolution is the mission outcome after the check. recap states the taught facts. Do not say that the screen is a recap or a mystery.",
       "A stage with mayRevealAnswer false must not state requiredKnowledge and must not use because, caused by, or due to. Do not add a fact that is not in keyKnowledge.",
       "For a why lesson, the check correct answer is the cause, reason, or process in keyKnowledge. The visible outcome can be the question or a wrong choice.",
       "When teacherIntent is present, paraphrase the learning goal and the focus concepts. Do not make the class meet preference words, duration words, prior-knowledge labels, or exclusions. Otherwise lessonBrief.concepts are the ideas the class must meet. Do not treat between, difference, why, or how as ideas to teach.",
@@ -1299,6 +1325,7 @@
       if (slot.id === "check") {
         var intent = ctx && ctx.lessonBrief && ctx.lessonBrief.teacherIntent;
         specs[specs.length - 1].learningGoal = learningGoalOf(ctx);
+        specs[specs.length - 1].requiredEvidence = requiredEvidenceOf(ctx);
         specs[specs.length - 1].focusConcepts = intent && intent.focusConcepts ? intent.focusConcepts.slice(0, 4) : [];
       }
     });
@@ -1310,7 +1337,7 @@
     var checkSpec = null;
     specs.forEach(function (spec) { if (spec.slotType === "CHECK") checkSpec = spec; });
     if (checkSpec) {
-      instruction += " The CHECK slot must stay a quiz. Rewrite only its prompt, choices, correct, explain, knowledgeChecked, successEvidence, and teachingConnection. The question must assess this learning goal: " + (checkSpec.learningGoal || "the requested learning") + ". A correct answer must be evidence the pupil achieved that goal. Do not merely ask for a definition, a label, an isolated fact, or a single component when the goal requires a higher or multi-part action. A smaller example is fine. Use words this year group can read. Do not make the question more abstract than the goal.";
+      instruction += " The CHECK slot must stay a quiz. Rewrite only its prompt, choices, correct, explain, knowledgeChecked, successEvidence, and teachingConnection. Year: " + (checkSpec.year || "") + ". Subject: " + (checkSpec.subject || "") + ". Learning goal: " + (checkSpec.learningGoal || "the requested learning") + ". Required evidence: " + (checkSpec.requiredEvidence || "the required evidence") + ". The evidence failure is: " + ((checkSpec.failure || []).join(" ") || "the correct answer is not sufficient evidence") + ". The replacement CHECK must make a correct answer sufficient evidence of requiredEvidence. Do not merely ask for one component. Use words this year group can read. Do not make the question harder than the required evidence.";
     }
     if (specs.some(function (spec) { return spec.slotType !== "APPLY"; })) {
       var otherFailures = [];
@@ -3258,6 +3285,7 @@
       semanticJudgeUsed: calls.length > 0,
       semanticRelationship: last ? last.relationship : null,
       semanticReason: last ? (last.reason || "") : "",
+      demonstratedEvidence: last ? (last.demonstratedEvidence || "") : "",
       semanticOutcome: last ? last.outcome : null,
       semanticMs: calls.length ? ms : null,
       semanticCalls: calls.length,
@@ -3278,11 +3306,18 @@
   function checkVerdictOf(value) {
     var ms = value && typeof value.ms === "number" ? value.ms : null;
     if (!value || typeof value !== "object" || value.ok === false) {
-      return { ok: false, relationship: null, outcome: "check-error", reason: clean(value && value.reason, 80), ms: ms };
+      return { ok: false, coverage: null, outcome: "check-error", reason: clean(value && value.reason, 80), demonstratedEvidence: "", ms: ms };
     }
-    var decision = checkSemanticDecision(value.relationship);
-    if (!decision.ok) return { ok: false, relationship: null, outcome: "check-error", reason: clean(value.reason, 80), ms: ms };
-    return { ok: true, relationship: decision.relationship, outcome: decision.outcome, reason: clean(value.reason, 240), ms: ms };
+    var decision = checkEvidenceDecision(value.coverage);
+    if (!decision.ok) return { ok: false, coverage: null, outcome: "check-error", reason: clean(value.reason, 80), demonstratedEvidence: "", ms: ms };
+    return {
+      ok: true,
+      coverage: decision.coverage,
+      outcome: decision.outcome,
+      reason: clean(value.reason, 240),
+      demonstratedEvidence: clean(value.demonstratedEvidence, 280),
+      ms: ms
+    };
   }
 
   function resolveLessonContent(raw, ctx, ports) {
@@ -3331,19 +3366,23 @@
     function judgedCheck(source, result) {
       if (checkJudgePlan(result) !== "judge") return Promise.resolve(null);
       var activity = null;
-      var taught = [];
       (((result.previous && result.previous.activities) || (result.adventure && result.adventure.activities) || [])).forEach(function (item) {
         if (item && item.slotId === "check") activity = item;
-        if (item && item.slotId === "teach") taught = taught.concat((item.config && item.config.lines) || []);
       });
       return Promise.resolve().then(function () {
         if (!ports.checkJudge) return { ok: false, reason: "error", ms: null };
-        return ports.checkJudge(checkSemanticInput(activity, ctx, taught.join(" ")));
+        return ports.checkJudge(checkEvidenceInput(activity, ctx));
       }).then(function (value) {
         var verdict = checkVerdictOf(value);
-        checkCalls.push({ relationship: verdict.relationship, outcome: verdict.outcome, reason: verdict.reason, ms: verdict.ms });
+        checkCalls.push({
+          relationship: verdict.coverage,
+          outcome: verdict.outcome,
+          reason: verdict.reason,
+          demonstratedEvidence: verdict.demonstratedEvidence,
+          ms: verdict.ms
+        });
         if (!verdict.ok) return { stop: true, result: result };
-        var nextCtx = Object.assign({}, ctx, { checkSemantic: { relationship: verdict.relationship, reason: verdict.reason } });
+        var nextCtx = Object.assign({}, ctx, { checkSemantic: { coverage: verdict.coverage, reason: verdict.reason, demonstratedEvidence: verdict.demonstratedEvidence } });
         if (heldApply) nextCtx.applySemantic = heldApply;
         return { stop: false, result: accept(source, nextCtx) };
       }).catch(function () {
@@ -3566,11 +3605,13 @@
     parseApplySemantic: parseApplySemantic,
     applyJudgePlan: applyJudgePlan,
     applySemanticInput: applySemanticInput,
-    checkSemanticBrief: checkSemanticBrief,
-    checkSemanticDecision: checkSemanticDecision,
-    parseCheckSemantic: parseCheckSemantic,
+    checkEvidenceBrief: checkEvidenceBrief,
+    checkCoverageBrief: checkCoverageBrief,
+    checkEvidenceDecision: checkEvidenceDecision,
+    parseCheckEvidence: parseCheckEvidence,
+    parseCheckCoverage: parseCheckCoverage,
     checkJudgePlan: checkJudgePlan,
-    checkSemanticInput: checkSemanticInput,
+    checkEvidenceInput: checkEvidenceInput,
     teacherIntentBrief: teacherIntentBrief,
     normaliseTeacherIntent: normaliseTeacherIntent,
     applyTeacherIntent: applyTeacherIntent,

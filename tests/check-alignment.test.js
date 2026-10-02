@@ -36,7 +36,12 @@ function frameFor(goal, year) {
     lessonBrief: {
       concepts: [],
       intent: "explain",
-      teacherIntent: { ok: true, learningGoal: goal, focusConcepts: ["the requested idea"] }
+      teacherIntent: {
+        ok: true,
+        learningGoal: goal,
+        requiredEvidence: "Pupil shows the whole requested learning: " + goal,
+        focusConcepts: ["the requested idea"]
+      }
     },
     lessonPlan: plan
   };
@@ -66,9 +71,9 @@ function rawFor(check) {
   };
 }
 
-function judged(goal, check, relationship, year) {
+function judged(goal, check, coverage, year) {
   var frame = frameFor(goal, year);
-  if (relationship) frame.checkSemantic = { relationship: relationship, reason: "test verdict" };
+  if (coverage) frame.checkSemantic = { coverage: coverage, reason: "test verdict" };
   return Brain.accept(rawFor(check), frame);
 }
 
@@ -87,30 +92,30 @@ var unresolved = judged(compareGoal, compareDefinition);
 assert.strictEqual(unresolved.ok, false, "A complete contract is not accepted before a verdict");
 assert.strictEqual(unresolved.checkAlignment.deterministicStatus, "unresolved");
 assert.strictEqual(unresolved.checkAlignment.deterministicReason, "goal-alignment");
-assert.ok((unresolved.issues || []).join(" ").indexOf("needs semantic goal alignment") !== -1);
+assert.ok((unresolved.issues || []).join(" ").indexOf("needs evidence alignment") !== -1);
 assert.strictEqual(Brain.checkJudgePlan(unresolved), "judge");
 
-rejects(judged(compareGoal, compareDefinition, "prerequisite"), "nearby definition");
+rejects(judged(compareGoal, compareDefinition, "partial"), "part of the required evidence");
 rejects(judged(
   "Explain what causes a puddle to dry up.",
   contract("What is the sun called?", "The sun."),
-  "prerequisite"
-), "nearby definition");
+  "partial"
+), "part of the required evidence");
 rejects(judged(
   "Sequence the stages of making a clay pot.",
   contract("What is the first thing you do?", "You get the clay."),
-  "prerequisite"
-), "nearby definition");
+  "partial"
+), "part of the required evidence");
 rejects(judged(
   "Measure the length of the desk with a ruler.",
   contract("What is a ruler?", "A tool for measuring length."),
-  "prerequisite"
-), "nearby definition");
+  "partial"
+), "part of the required evidence");
 
 var identify = judged(
   "Identify which object is a square.",
   contract("Which shape is a square?", "The shape with four equal sides."),
-  "aligned",
+  "sufficient",
   "Year 1"
 );
 assert.strictEqual(identify.ok, true, (identify.issues || []).join("; "));
@@ -118,14 +123,14 @@ assert.strictEqual(identify.ok, true, (identify.issues || []).join("; "));
 var definitionGoal = judged(
   "Define what a noun is.",
   contract("What is a noun?", "A noun is a naming word."),
-  "aligned"
+  "sufficient"
 );
 assert.strictEqual(definitionGoal.ok, true, (definitionGoal.issues || []).join("; "));
 
 var paraphrase = judged(
   "Explain why a plant bends towards the window.",
   contract("Why does the plant bend towards the window?", "It bends towards the light."),
-  "aligned"
+  "sufficient"
 );
 assert.strictEqual(paraphrase.ok, true, (paraphrase.issues || []).join("; "));
 
@@ -133,24 +138,24 @@ rejects(judged(
   "Explain why a plant bends towards the window.",
   contract("Which room is the plant kept in?", "The classroom."),
   "unrelated"
-), "does not test the learning goal");
+), "does not test the required evidence");
 
 var adversarial = [
-  ["Compare two historical accounts of the same event.", contract("What is a source?", "A source is a record from the past."), "prerequisite"],
-  ["Explain why condensation forms on a cold glass.", contract("What are the droplets on the glass?", "Water."), "prerequisite"],
-  ["Sequence the instructions for planting a seed.", contract("What is the first instruction?", "Fill the pot with soil."), "prerequisite"],
-  ["Measure the length of the ribbon accurately.", contract("What is this tool called?", "A ruler."), "prerequisite"],
-  ["Infer why the character hid the letter.", contract("Which feeling does the story state?", "She is sad."), "prerequisite"],
-  ["Identify the noun in a sentence.", contract("Which word is the noun in 'The dog ran'?", "dog"), "aligned"],
-  ["Define what evaporation means.", contract("What does evaporation mean?", "A liquid becomes a gas."), "aligned"],
-  ["Compare these two fractions.", contract("Which fraction is larger, 1/2 or 1/4?", "1/2 is larger."), "aligned"],
-  ["Explain why the puddle disappeared.", contract("Which explanation shows why the puddle disappeared?", "The water evaporated into the air."), "aligned"],
+  ["Compare two historical accounts of the same event.", contract("What is a source?", "A source is a record from the past."), "partial"],
+  ["Explain why condensation forms on a cold glass.", contract("What are the droplets on the glass?", "Water."), "partial"],
+  ["Sequence the instructions for planting a seed.", contract("What is the first instruction?", "Fill the pot with soil."), "partial"],
+  ["Measure the length of the ribbon accurately.", contract("What is this tool called?", "A ruler."), "partial"],
+  ["Infer why the character hid the letter.", contract("Which feeling does the story state?", "She is sad."), "partial"],
+  ["Identify the noun in a sentence.", contract("Which word is the noun in 'The dog ran'?", "dog"), "sufficient"],
+  ["Define what evaporation means.", contract("What does evaporation mean?", "A liquid becomes a gas."), "sufficient"],
+  ["Compare these two fractions.", contract("Which fraction is larger, 1/2 or 1/4?", "1/2 is larger."), "sufficient"],
+  ["Explain why the puddle disappeared.", contract("Which explanation shows why the puddle disappeared?", "The water evaporated into the air."), "sufficient"],
   ["Explain why the puddle disappeared.", contract("Which classroom is nearest the hall?", "The art room."), "unrelated"]
 ];
 adversarial.forEach(function (row) {
   var result = judged(row[0], row[1], row[2]);
-  if (row[2] === "aligned") assert.strictEqual(result.ok, true, row[0] + " " + (result.issues || []).join("; "));
-  else rejects(result, row[2] === "unrelated" ? "does not test the learning goal" : "nearby definition");
+  if (row[2] === "sufficient") assert.strictEqual(result.ok, true, row[0] + " " + (result.issues || []).join("; "));
+  else rejects(result, row[2] === "unrelated" ? "does not test the required evidence" : "part of the required evidence");
 });
 
 var thin = judged(compareGoal, {
@@ -172,41 +177,52 @@ assert.strictEqual(missingContract.checkAlignment.deterministicReason, "incomple
 assert.ok((missingContract.issues || []).join(" ").indexOf("does not say what learning it checks") !== -1);
 assert.strictEqual(Brain.checkJudgePlan(missingContract), "skip");
 
-var brief = Brain.checkSemanticBrief(Brain.checkSemanticInput(
-  { config: { questions: [compareDefinition] } },
-  frameFor(compareGoal),
-  "One habitat is wet and the other is dry."
-));
-assert.ok(brief.system.indexOf("aligned") !== -1);
-assert.ok(brief.system.indexOf("prerequisite") !== -1);
-assert.ok(brief.system.indexOf("unrelated") !== -1);
-assert.ok(brief.system.indexOf("year group") !== -1);
-assert.ok(brief.system.indexOf("Do not rewrite the question") !== -1);
-assert.ok(brief.system.indexOf("can we reasonably conclude") !== -1);
-assert.ok(brief.system.indexOf("If they are not the same action") !== -1);
-assert.ok(brief.system.indexOf("from a start to an end") !== -1);
-assert.ok(brief.system.indexOf("one component") !== -1);
-assert.ok(brief.system.indexOf("must not override the prompt") !== -1);
+var evidenceInput = Brain.checkEvidenceInput({ config: { questions: [compareDefinition] } }, frameFor(compareGoal));
+assert.deepStrictEqual(Object.keys(evidenceInput).sort(), ["choices", "correct", "prompt", "requiredEvidence", "yearGroup"]);
+var brief = Brain.checkEvidenceBrief(evidenceInput);
+var shown = JSON.parse(brief.user);
+assert.deepStrictEqual(Object.keys(shown).sort(), ["choices", "correct", "prompt", "yearGroup"]);
+assert.ok(brief.system.indexOf("cannot see a lesson") !== -1);
+assert.ok(brief.system.indexOf("demonstratedEvidence") !== -1);
 assert.strictEqual(brief.system.indexOf("reproduce"), -1);
 assert.strictEqual(brief.system.indexOf("frog"), -1);
 assert.strictEqual(brief.system.indexOf("acute"), -1);
 assert.strictEqual(brief.system.indexOf("speech mark"), -1);
-var parsed = Brain.parseCheckSemantic("{\"relationship\":\"aligned\",\"reason\":\"The answer shows the goal.\"}");
+var coverageBrief = Brain.checkCoverageBrief({
+  requiredEvidence: evidenceInput.requiredEvidence,
+  demonstratedEvidence: "Pupil can name what a habitat is.",
+  learningGoal: compareGoal,
+  prompt: compareDefinition.prompt
+});
+var compared = JSON.parse(coverageBrief.user);
+assert.deepStrictEqual(Object.keys(compared).sort(), ["demonstratedEvidence", "requiredEvidence"]);
+assert.ok(coverageBrief.system.indexOf("sufficient") !== -1);
+assert.ok(coverageBrief.system.indexOf("partial") !== -1);
+assert.ok(coverageBrief.system.indexOf("unrelated") !== -1);
+assert.strictEqual(coverageBrief.system.indexOf("reproduce"), -1);
+var parsed = Brain.parseCheckEvidence("{\"demonstratedEvidence\":\"Pupil knows the first stage.\",\"reason\":\"Names eggs.\"}");
 assert.strictEqual(parsed.ok, true);
-assert.strictEqual(parsed.relationship, "aligned");
-assert.strictEqual(Brain.parseCheckSemantic("{\"relationship\":\"apply\"}").ok, false);
-assert.strictEqual(Brain.checkSemanticDecision("prerequisite").outcome, "check-prerequisite");
+assert.ok(parsed.demonstratedEvidence.indexOf("first stage") !== -1);
+assert.strictEqual(Brain.parseCheckEvidence("{\"demonstratedEvidence\":\"\"}").ok, false);
+var covered = Brain.parseCheckCoverage("{\"coverage\":\"partial\",\"reason\":\"One side only.\"}");
+assert.strictEqual(covered.ok, true);
+assert.strictEqual(covered.coverage, "partial");
+assert.strictEqual(Brain.parseCheckCoverage("{\"coverage\":\"aligned\"}").ok, false);
+assert.strictEqual(Brain.checkEvidenceDecision("partial").outcome, "check-partial");
+assert.strictEqual(Brain.checkEvidenceDecision("sufficient").outcome, "check-pass");
 
-var checkRepair = JSON.parse(Brain.slotRepairBrief(frameFor(compareGoal, "Year 1"), ["check"], ["The check slot asks for a nearby definition instead of the learning goal."], { activities: [] }).user);
+var checkRepair = JSON.parse(Brain.slotRepairBrief(frameFor(compareGoal, "Year 1"), ["check"], ["The check slot leaves part of the required evidence untested."], { activities: [] }).user);
 var checkSpec = checkRepair.slotsToRewrite.filter(function (spec) { return spec.slotType === "CHECK"; })[0];
 assert.ok(checkSpec.output.prompt === "");
 assert.ok(Array.isArray(checkSpec.output.choices));
 assert.strictEqual(checkSpec.learningGoal, compareGoal);
+assert.ok(checkSpec.requiredEvidence.indexOf(compareGoal) !== -1);
 assert.ok(checkRepair.instruction.indexOf("must stay a quiz") !== -1);
 assert.ok(checkRepair.instruction.indexOf("year group can read") !== -1);
-assert.ok(checkRepair.instruction.indexOf("single component") !== -1);
-assert.ok(checkRepair.instruction.indexOf("evidence the pupil achieved") !== -1);
+assert.ok(checkRepair.instruction.indexOf("one component") !== -1);
+assert.ok(checkRepair.instruction.indexOf("sufficient evidence") !== -1);
 assert.ok(checkRepair.instruction.indexOf(compareGoal) !== -1);
+assert.ok(checkRepair.instruction.indexOf("part of the required evidence") !== -1);
 
 var applyOnly = JSON.parse(Brain.slotRepairBrief(frameFor(compareGoal), ["apply"], ["The apply slot does not use the taught knowledge."], { activities: [] }).user);
 assert.strictEqual(applyOnly.instruction.indexOf("CHECK slot must stay a quiz"), -1);
@@ -248,8 +264,8 @@ var better = contract(
 Promise.resolve().then(function () {
   return settle(compareGoal, compareDefinition, function (n) {
     return n === 1
-      ? { ok: true, relationship: "prerequisite", reason: "It only asks for a definition.", ms: 3 }
-      : { ok: true, relationship: "aligned", reason: "The correct answer compares the habitats.", ms: 4 };
+      ? { ok: true, coverage: "partial", reason: "It only asks for a definition.", demonstratedEvidence: "Pupil can define a habitat.", ms: 3 }
+      : { ok: true, coverage: "sufficient", reason: "The correct answer compares the habitats.", demonstratedEvidence: "Pupil compares two habitats.", ms: 4 };
   }, function () {
     return { slots: { check: better } };
   });
@@ -259,12 +275,13 @@ Promise.resolve().then(function () {
   assert.strictEqual(run.result.ok, true, (run.result.issues || []).join("; "));
   assert.deepStrictEqual(run.result.repairedSlots, ["check"]);
   assert.strictEqual(run.result.checkAlignment.semanticCalls, 2);
-  assert.deepStrictEqual(run.result.checkAlignment.semanticOutcomes, ["check-prerequisite", "check-pass"]);
+  assert.deepStrictEqual(run.result.checkAlignment.semanticOutcomes, ["check-partial", "check-pass"]);
+  assert.strictEqual(run.result.checkAlignment.demonstratedEvidence, "Pupil compares two habitats.");
   assert.strictEqual(run.result.applyAlignment.semanticCalls, 0);
   var quiz = run.result.adventure.activities.filter(function (activity) { return activity.slotId === "check"; })[0];
   assert.ok(quiz.config.questions[0].prompt.indexOf("differ") !== -1);
   return settle(compareGoal, compareDefinition, function () {
-    return { ok: true, relationship: "prerequisite", reason: "Still a definition.", ms: 2 };
+    return { ok: true, coverage: "partial", reason: "Still a definition.", demonstratedEvidence: "Pupil can define a habitat.", ms: 2 };
   }, function () {
     return { slots: { check: compareDefinition } };
   });
@@ -272,7 +289,7 @@ Promise.resolve().then(function () {
   assert.strictEqual(run.repairs, 1);
   assert.strictEqual(run.judges, 2);
   assert.strictEqual(run.result.ok, false);
-  assert.ok((run.result.issues || []).join(" ").indexOf("nearby definition") !== -1);
+  assert.ok((run.result.issues || []).join(" ").indexOf("part of the required evidence") !== -1);
   return settle(compareGoal, compareDefinition, function () {
     return { ok: false, reason: "error", ms: 1 };
   }, function () {

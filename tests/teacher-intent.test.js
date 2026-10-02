@@ -20,6 +20,7 @@ var shapesIntent = Brain.normaliseTeacherIntent({
   subject: "Maths",
   subjectConfidence: "explicit",
   learningGoal: "Identify squares, circles and triangles.",
+  requiredEvidence: "Pupil can identify squares, circles and triangles.",
   focusConcepts: ["squares", "circles", "triangles", "help"],
   priorKnowledge: [],
   exclusions: [],
@@ -37,6 +38,7 @@ var plantsIntent = Brain.normaliseTeacherIntent({
   subject: "Science",
   subjectConfidence: "explicit",
   learningGoal: "Explain why plants need water.",
+  requiredEvidence: "Pupil can explain why plants need water.",
   focusConcepts: ["pls", "why plants need water", "playful"],
   priorKnowledge: [],
   exclusions: [],
@@ -55,6 +57,7 @@ var sourcesIntent = Brain.normaliseTeacherIntent({
   subject: "History",
   subjectConfidence: "explicit",
   learningGoal: "Explain why two people can read the same source and disagree.",
+  requiredEvidence: "Pupil explains how two people can interpret the same source differently.",
   focusConcepts: ["mins", "why people can disagree about one source"],
   priorKnowledge: [],
   exclusions: [],
@@ -75,6 +78,7 @@ var statesIntent = Brain.normaliseTeacherIntent({
   subject: "Science",
   subjectConfidence: "explicit",
   learningGoal: "Understand how heating and cooling can change a material from one state to another.",
+  requiredEvidence: "Pupil explains how heating and cooling change a material from one state to another.",
   focusConcepts: ["solids, liquids and gases", "heating and cooling", "change of state"],
   priorKnowledge: ["solids, liquids and gases"],
   exclusions: ["reteaching definitions of the three states"],
@@ -94,6 +98,7 @@ var additionIntent = Brain.normaliseTeacherIntent({
   subject: "Maths",
   subjectConfidence: "explicit",
   learningGoal: "Addition can be done in either order.",
+  requiredEvidence: "Pupil can add two numbers in either order.",
   focusConcepts: ["counting on", "addition can be done in either order"],
   priorKnowledge: ["adding within 20"],
   exclusions: ["counting on"],
@@ -110,6 +115,7 @@ var punctuation = Brain.normaliseTeacherIntent({
   subject: "English",
   subjectConfidence: "inferred",
   learningGoal: "Choose a full stop or a question mark to end a sentence.",
+  requiredEvidence: "Pupil can choose a full stop or a question mark to end a sentence.",
   focusConcepts: ["full stops", "question marks"],
   priorKnowledge: [],
   exclusions: [],
@@ -125,6 +131,7 @@ var timeline = Brain.normaliseTeacherIntent({
   subject: "History",
   subjectConfidence: "inferred",
   learningGoal: "Put events from one life into the order they happened.",
+  requiredEvidence: "Pupil can place the events of one life in the order they happened.",
   focusConcepts: ["order of events in a life"],
   priorKnowledge: [],
   exclusions: [],
@@ -139,6 +146,7 @@ var weekend = Brain.normaliseTeacherIntent({
   subject: "",
   subjectConfidence: "uncertain",
   learningGoal: "Talk about what happened at the weekend.",
+  requiredEvidence: "Pupil can say what happened at the weekend.",
   focusConcepts: ["weekend events"],
   priorKnowledge: [],
   exclusions: [],
@@ -153,6 +161,7 @@ var stated = Brain.normaliseTeacherIntent({
   subject: "History",
   subjectConfidence: "inferred",
   learningGoal: "Explain why a castle was built on a hill.",
+  requiredEvidence: "Pupil can explain why a castle was built on a hill.",
   focusConcepts: ["why a castle was built on a hill"],
   priorKnowledge: [],
   exclusions: [],
@@ -165,6 +174,12 @@ assert.strictEqual(stated.subjectConfidence, "explicit");
 
 assert.strictEqual(Brain.normaliseTeacherIntent(null, ctxFor(shapes)).ok, false);
 assert.strictEqual(Brain.normaliseTeacherIntent({ learningGoal: "Too short" }, ctxFor(shapes)).ok, false);
+var missingEvidence = Brain.normaliseTeacherIntent({
+  learningGoal: "Identify squares, circles and triangles.",
+  focusConcepts: ["squares"]
+}, ctxFor(shapes));
+assert.strictEqual(missingEvidence.ok, false);
+assert.strictEqual(missingEvidence.reason, "missing-evidence");
 var failed = ctxFor(shapes, { yearGroup: "Year 1", subject: "Maths" });
 failed.lessonBrief.concepts = ["help", "understand"];
 Brain.applyTeacherIntent(failed, { ok: false, reason: "malformed" });
@@ -194,6 +209,10 @@ var brief = Brain.teacherIntentBrief(ctxFor(states, { yearGroup: "Year 4", subje
 assert.ok(brief.system.indexOf("Do not copy those items into focusConcepts") !== -1);
 assert.ok(brief.system.indexOf("They are not curriculum ideas") !== -1);
 assert.ok(brief.system.indexOf("Do not write a lesson") !== -1);
+assert.ok(brief.system.indexOf("requiredEvidence") !== -1);
+assert.ok(brief.system.indexOf("both sides") !== -1);
+assert.ok(brief.system.indexOf("whole order") !== -1);
+assert.strictEqual(shapesIntent.requiredEvidence.indexOf("squares, circles and triangles") !== -1, true);
 assert.strictEqual(brief.system.toLowerCase().indexOf("shadow"), -1);
 assert.strictEqual(brief.system.toLowerCase().indexOf("speech marks"), -1);
 assert.strictEqual(brief.system.toLowerCase().indexOf("backbone"), -1);
@@ -212,6 +231,7 @@ var lampIntent = Brain.normaliseTeacherIntent({
   subject: "Science",
   subjectConfidence: "explicit",
   learningGoal: "Show that a closed path makes the lamp glow.",
+  requiredEvidence: "Pupil shows that a closed path makes the lamp glow.",
   focusConcepts: ["closed path", "lamp"],
   priorKnowledge: ["a lamp is a light"],
   exclusions: ["what a lamp is"],
