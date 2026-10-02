@@ -247,10 +247,11 @@
     if (world && world.fallback) cls += " has-fallback";
     var safe = (world && world.safe) || ((world && (world.url || world.fallback)) ? "LOWER_LEFT" : "");
     if (safe) cls += " lesson-safe-" + String(safe).toLowerCase().replace(/[^a-z0-9]+/g, "-");
+    var layer = (world && world.layer) || "";
     var backdrop = "";
-    if (world && world.url) backdrop = "<div class=\"lesson-world" + (world.fx || "") + "\"><img class=\"lesson-world-plate\" alt=\"\" src=\"" + escape(world.url) + "\" />" + (world.layer || "") + "</div>";
-    else if (world && world.fallback) backdrop = "<div class=\"lesson-world lesson-world--fallback" + (world.fx || "") + "\">" + (world.layer || "") + "</div>";
-    return "<div class=\"lesson" + cls + "\">" + backdrop + topHtml(model, slides || [], index || 0, statusText) +
+    if (world && world.url) backdrop = "<div class=\"lesson-world" + (world.fx || "") + "\"><img class=\"lesson-world-plate\" alt=\"\" src=\"" + escape(world.url) + "\" /></div>";
+    else if (world && world.fallback) backdrop = "<div class=\"lesson-world lesson-world--fallback" + (world.fx || "") + "\"></div>";
+    return "<div class=\"lesson" + cls + "\">" + backdrop + layer + topHtml(model, slides || [], index || 0, statusText) +
       "<main class=\"lesson-stage\" id=\"lessonStage\">" + inner + "</main>" +
       (primary ? dockHtml(primary, ui.menu) : "") + menuHtml(model) + "</div>";
   }
@@ -412,19 +413,12 @@
       var mechanic = slideMechanic(slide);
       var progress = quizProgress(view, slide, index);
       statusText = (slide && slide.kicker) || activityName(mechanic);
+      var stepsNow = mechanicsApi && mechanicsApi.interactionsOf ? mechanicsApi.interactionsOf(slide) : [];
+      var stepNow = stepsNow[Math.max(0, Math.min(ui.play.step || 0, Math.max(0, stepsNow.length - 1)))] || null;
       if (screen === "paused") {
         statusText = "Paused";
         primary = "Resume";
-      } else if (mechanic === "quiz" && progress.answered && progress.index < progress.count - 1) primary = "Next question";
-      else if (mechanic === "quiz" && !progress.answered) primary = "";
-      else if (index >= slides.length - 1) primary = "Finish";
-      else primary = "Next";
-      var stepsNow = mechanicsApi && mechanicsApi.interactionsOf ? mechanicsApi.interactionsOf(slide) : [];
-      var stepNow = stepsNow[Math.max(0, Math.min(ui.play.step || 0, Math.max(0, stepsNow.length - 1)))] || null;
-      var waiting = false;
-      if (stepNow && (stepNow.type === "move" || stepNow.type === "drag") && !ui.play.slipped) waiting = true;
-      if (stepNow && (stepNow.type === "hotspot" || stepNow.type === "tap-to-reveal") && !ui.play.revealed) waiting = true;
-      if (waiting && screen !== "paused") primary = "";
+      } else primary = primaryLabel(slide, ui.play, index, slides.length, progress);
       var inner = (adventureNow(model) ? calloutHtml(slide) : "") + "<div class=\"lesson-play lesson-play--" + drawn.mode + "\">" + drawn.html + "</div>";
       if (screen === "paused") {
         inner += overlay("Paused", "<p class=\"lesson-copy\">The class is waiting. Scores stay as they are.</p>", "<button type=\"button\" class=\"lesson-go\" id=\"lessonUnpause\">Resume</button>");
@@ -664,12 +658,8 @@
         var steps = mechanics && mechanics.interactionsOf ? mechanics.interactionsOf(slides[index]) : [];
         var current = steps[ui.play.step] || {};
         if (kind === "spot") {
-          ui.play.revealed = true;
           if (current.responseEffect) playCue(current.responseEffect.type);
-          if (ui.play.step < steps.length - 1) {
-            ui.play.step += 1;
-            ui.play.revealed = false;
-          }
+          ui.play = completeSpot(ui.play, steps);
           render(rootEl, model);
         } else if (kind === "push") {
           if (!ui.play.stuck) {
@@ -728,6 +718,45 @@
   function startBoard(rootEl, model) {
     ui.entered = true;
     if (model.actions.startBoard) model.actions.startBoard(rosterSpec(rootEl));
+  }
+
+  function waitingOn(step, play) {
+    if (!step || !play) return false;
+    if ((step.type === "move" || step.type === "drag") && !play.slipped) return true;
+    if ((step.type === "hotspot" || step.type === "tap-to-reveal" || step.type === "inspect") && !play.revealed) return true;
+    return false;
+  }
+
+  function completeSpot(play, steps) {
+    var next = {
+      index: play.index,
+      step: play.step || 0,
+      stuck: !!play.stuck,
+      slipped: !!play.slipped,
+      revealed: true,
+      boomed: !!play.boomed
+    };
+    if (next.step < (steps || []).length - 1) {
+      next.step += 1;
+      next.revealed = false;
+    }
+    return next;
+  }
+
+  function primaryLabel(slide, play, index, total, quiz) {
+    var mechanic = slideMechanic(slide);
+    var progress = quiz || { answered: false, index: 0, count: 1 };
+    var label;
+    if (mechanic === "quiz" && progress.answered && progress.index < progress.count - 1) label = "Next question";
+    else if (mechanic === "quiz" && !progress.answered) label = "";
+    else if (index >= total - 1) label = "Finish";
+    else label = "Next";
+    var steps = [];
+    if (slide && Array.isArray(slide.interactions) && slide.interactions.length) steps = slide.interactions;
+    else if (slide && slide.interaction && slide.interaction.type) steps = [slide.interaction];
+    var step = steps[Math.max(0, Math.min((play && play.step) || 0, Math.max(0, steps.length - 1)))] || null;
+    if (waitingOn(step, play)) label = "";
+    return label;
   }
 
   function quizProgress(view, slide, index) {
@@ -814,6 +843,9 @@
 
   return {
     render: render,
+    waitingOn: waitingOn,
+    completeSpot: completeSpot,
+    primaryLabel: primaryLabel,
     screenFor: screenFor,
     scoreMode: scoreMode,
     activityName: activityName,

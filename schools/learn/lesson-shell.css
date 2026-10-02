@@ -303,6 +303,13 @@
 }
 .lesson.has-world > :not(.lesson-world),
 .lesson.has-fallback > :not(.lesson-world) { position: relative; z-index: 1; }
+.lesson.has-world > .lesson-layer,
+.lesson.has-fallback > .lesson-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+}
 .lesson.has-world > .lesson-panel,
 .lesson.has-fallback > .lesson-panel { position: absolute; z-index: 6; }
 .lesson.has-world .lesson-kicker,

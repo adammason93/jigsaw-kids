@@ -126,8 +126,148 @@
     }).join(" ");
   }
 
+  var STAGE_ORDER = ["hook", "investigate", "teach", "apply", "check", "resolution", "recap"];
+  var STAGE_SHOTS = {
+    hook: { shotType: "wide establishing", cameraDistance: "far", cameraAngle: "looking across the place", location: "the adventure setting", uiSafeArea: "LOWER_LEFT" },
+    investigate: { shotType: "closer inspection", cameraDistance: "medium", cameraAngle: "toward one detail", location: "the same place, a detail to notice", uiSafeArea: "RIGHT" },
+    teach: { shotType: "teaching view", cameraDistance: "medium-close", cameraAngle: "a clear model in the world", location: "inside the same adventure", uiSafeArea: "LOWER_RIGHT" },
+    apply: { shotType: "task scene", cameraDistance: "medium", cameraAngle: "the objects the task needs", location: "the same world, ready for the task", uiSafeArea: "LEFT" },
+    check: { shotType: "question scene", cameraDistance: "medium", cameraAngle: "the question in the world", location: "the same world, nothing marked as the answer", uiSafeArea: "LOWER_LEFT" },
+    resolution: { shotType: "mission payoff", cameraDistance: "medium-wide", cameraAngle: "eye level, back where it began", location: "the place the adventure began", uiSafeArea: "RIGHT" },
+    recap: { shotType: "closing gathering", cameraDistance: "near", cameraAngle: "after the payoff", location: "the same adventure, after the mission", uiSafeArea: "LOWER_RIGHT" }
+  };
+  var STAGE_LINES = {
+    hook: "Hook photograph. Establish this world and the unresolved mission. Do not reveal the teaching answer.",
+    investigate: "Investigate photograph. Stay in this same world. Show something the class can inspect, notice, compare, or question. Do not teach the answer yet.",
+    teach: "Teach photograph. Make the taught idea understandable while staying inside this adventure. Do not copy the investigate camera.",
+    apply: "Apply photograph. A new composition for the task. The objects the class must use are visible in the scene. Do not reuse the teaching composition.",
+    check: "Check photograph. A distinct scene for the question. Do not mark, circle, glow, or point at a correct choice. Do not arrange the picture so one answer is obvious. Do not show which choice is correct.",
+    resolution: "Resolution photograph. Show the payoff of completing the original mission. The place from the hook is recognisable. This is not the arrival camera and not the teaching model.",
+    recap: "Recap photograph. Close this same adventure and reinforce what was discovered. Do not reuse the resolution composition."
+  };
+
+  function stagedActivities(activities) {
+    var found = {};
+    (activities || []).forEach(function (activity) {
+      var id = String(activity && activity.slotId || "").toLowerCase();
+      if (STAGE_SHOTS[id] && !found[id]) found[id] = activity;
+    });
+    var complete = STAGE_ORDER.every(function (id) { return found[id]; });
+    return complete ? found : null;
+  }
+
+  function checkAnswerText(activity) {
+    var quiz = (activity && activity.config) || {};
+    var question = (quiz.questions && quiz.questions[0]) || {};
+    var value = quiz.correct != null ? quiz.correct : question.correct;
+    return String(value == null ? "" : value).trim();
+  }
+
+  function stripAnswer(text, answer) {
+    var value = String(text || "");
+    var token = String(answer || "").trim();
+    if (token.length < 3) return value;
+    var escaped = token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    return value.replace(new RegExp(escaped, "ig"), "").replace(/\s{2,}/g, " ").trim();
+  }
+
+  function stageBrief(slotId, activity, adventure) {
+    var story = (adventure && adventure.storyPlan) || {};
+    var continuity = story.continuity || {};
+    var scene = (activity && activity.scene) || {};
+    var visual = briefOf(activity);
+    var context = (activity && activity.visualContext) || {};
+    var interaction = (scene.interaction) || ((scene.interactions || [])[0]) || {};
+    var quiz = (activity && activity.config) || {};
+    var question = (quiz.questions && quiz.questions[0]) || {};
+    var setting = continuity.setting || story.setting || visual.setting || "";
+    var objects = (visual.importantObjects || []).slice();
+    (continuity.objects || []).forEach(function (item) {
+      if (objects.indexOf(item) < 0) objects.push(item);
+    });
+    (context.importantObjects || []).forEach(function (item) {
+      if (objects.indexOf(item) < 0) objects.push(item);
+    });
+    var evidence = "";
+    var answer = slotId === "check" ? checkAnswerText(activity) : "";
+    var action = visual.action || "";
+    var focus = visual.educationalFocus || "";
+    var task = null;
+    if (slotId === "hook") {
+      action = action || (activity && activity.config && activity.config.lines && activity.config.lines[0]) || story.mission || "";
+      focus = focus || "The mission is still unresolved.";
+    } else if (slotId === "investigate") {
+      action = action || (interaction.instruction || "") || (activity && activity.config && activity.config.lines && activity.config.lines[0]) || "";
+      focus = focus || "Something here can be noticed. The answer is not taught yet.";
+    } else if (slotId === "teach") {
+      action = action || (activity && activity.config && activity.config.lines && activity.config.lines[0]) || "";
+      focus = focus || (activity && activity.why) || context.concept || "";
+    } else if (slotId === "apply") {
+      action = (activity && activity.applyInstruction) || interaction.instruction || action;
+      focus = (activity && activity.knowledgeUsed) || (activity && activity.teachingConnection) || focus;
+      if (interaction.target && objects.indexOf(interaction.target) < 0) objects.push(interaction.target);
+      task = {
+        instruction: (activity && activity.applyInstruction) || interaction.instruction || "",
+        target: interaction.target || "",
+        knowledgeUsed: (activity && activity.knowledgeUsed) || "",
+        successCondition: (activity && activity.successCondition) || interaction.successCondition || "",
+        teachingConnection: (activity && activity.teachingConnection) || ""
+      };
+    } else if (slotId === "check") {
+      evidence = (activity && activity.requiredEvidence) || (adventure && adventure.requiredEvidence) || (adventure && adventure.lessonPlan && adventure.lessonPlan.requiredEvidence) || "";
+      evidence = stripAnswer(evidence, answer);
+      action = stripAnswer(question.prompt || quiz.prompt || "", answer);
+      focus = stripAnswer((question.teachingConnection || quiz.teachingConnection || ""), answer);
+      objects = objects.map(function (item) { return stripAnswer(item, answer); }).filter(Boolean);
+    } else if (slotId === "resolution") {
+      action = action || story.ending || "The original mission reaches its payoff.";
+      focus = focus || story.mission || "";
+    } else if (slotId === "recap") {
+      action = action || (activity && activity.config && activity.config.lines && activity.config.lines[0]) || "The class closes the same adventure.";
+      focus = focus || "What the class discovered.";
+    }
+    return {
+      setting: setting,
+      action: action,
+      educationalFocus: focus,
+      mood: visual.mood || (story && story.tone) || "",
+      importantObjects: objects.slice(0, 8),
+      task: task,
+      evidence: evidence
+    };
+  }
+
+  function stageAsset(slotId, activity, adventure) {
+    var brief = stageBrief(slotId, activity, adventure);
+    var shot = STAGE_SHOTS[slotId];
+    return {
+      id: slotId,
+      slotId: slotId,
+      type: slotId === "teach" ? "teaching_visual" : (slotId === "check" ? "question" : (slotId === "resolution" || slotId === "recap" ? slotId : "story_scene")),
+      usedByScenes: [activity.title || slotId],
+      generationRequired: true,
+      brief: {
+        setting: brief.setting,
+        action: brief.action,
+        educationalFocus: brief.educationalFocus,
+        mood: brief.mood,
+        importantObjects: brief.importantObjects
+      },
+      importantObjects: brief.importantObjects,
+      interaction: brief.task,
+      evidence: slotId === "check" ? brief.evidence || "" : "",
+      shot: shot,
+      uiSafeArea: shot.uiSafeArea,
+      status: "planned"
+    };
+  }
+
   function planVisualAssets(adventure) {
     var activities = (adventure && adventure.activities) || [];
+    var staged = stagedActivities(activities);
+    if (staged) {
+      return STAGE_ORDER.map(function (id) { return stageAsset(id, staged[id], adventure); });
+    }
     var opening = findBeat(activities, "beginning") || activities[0] || null;
     var discovery = findBeat(activities, "discovery") || findBeat(activities, "development");
     var resolution = findBeat(activities, "resolution");
@@ -844,19 +984,34 @@
       "Camera for this moment only: " + (shot.shotType || "a clear scene") + ", " + (shot.cameraDistance || "medium") + " distance. Change pose, expression, and staging.",
       asset && asset.id === "opening" ? "Arrival photograph. A wide view of the whole place. The characters are small in the landscape. This is not a close-up." : "",
       asset && asset.id === "discovery" ? "Teaching photograph. Move much closer than the arrival. A cutaway or a clear model of the idea fills the frame. Use a different angle. The characters stay small at the edge, looking at the idea." : "",
-      asset && asset.id === "resolution" ? "A new photograph, eye level, back at the exploration base. The place is recognisable through an opening, but this is not the arrival camera and not the cutaway." : "",
+      asset && asset.id === "resolution" && !(asset.slotId && STAGE_LINES[asset.slotId]) ? "A new photograph, eye level, back at the exploration base. The place is recognisable through an opening, but this is not the arrival camera and not the cutaway." : "",
+      asset && asset.slotId && STAGE_LINES[asset.slotId] ? STAGE_LINES[asset.slotId] : "",
+      asset && asset.interaction && asset.slotId === "apply" ? "Task instruction: " + (asset.interaction.instruction || "") + "." : "",
+      asset && asset.interaction && asset.slotId === "apply" && asset.interaction.target ? "The task objects must be visible: " + asset.interaction.target + "." : "",
+      asset && asset.interaction && asset.slotId === "apply" && asset.interaction.knowledgeUsed ? "The class uses this idea: " + asset.interaction.knowledgeUsed + "." : "",
+      asset && asset.interaction && asset.slotId === "apply" && asset.interaction.successCondition ? "The task is complete when: " + asset.interaction.successCondition + "." : "",
+      asset && asset.interaction && asset.slotId === "apply" && asset.interaction.teachingConnection ? "Teaching connection: " + asset.interaction.teachingConnection + "." : "",
+      asset && asset.slotId === "check" && asset.evidence ? "What the class is being asked to show: " + asset.evidence + "." : "",
       "Do not paint arrows, labels, or writing. A later layer adds those.",
       subjectPicture(adventure, asset),
       brief.action ? "What is happening: " + brief.action + "." : "",
       brief.educationalFocus ? "The class must be able to see this idea: " + brief.educationalFocus + "." : "",
       brief.mood ? "Mood: " + brief.mood + "." : "",
-      asset && asset.id === "opening" ? "This is the arrival. Show the place widely." : "Do not copy the arrival composition.",
+      asset && asset.id === "opening" ? "This is the arrival. Show the place widely." : (asset && asset.slotId && STAGE_LINES[asset.slotId] ? "" : "Do not copy the arrival composition."),
       "Leave " + (asset && asset.uiSafeArea || shot.uiSafeArea || "LOWER_LEFT") + " visually quiet for a panel. Keep faces, hands, and the teaching objects out of that area.",
       "Do not write a pupil's name. Do not base a face on a real child."
     ].filter(Boolean).join("\n");
   }
 
   function stampActivities(activities, assets) {
+    if (stagedActivities(activities)) {
+      (activities || []).forEach(function (activity) {
+        var id = String(activity && activity.slotId || "").toLowerCase();
+        activity.scene = activity.scene || {};
+        if (STAGE_SHOTS[id]) activity.scene.visualAssetId = id;
+      });
+      return activities;
+    }
     var planned = planVisualAssets({ activities: activities || [] });
     var byTitle = {};
     planned.forEach(function (asset) {
@@ -871,6 +1026,38 @@
       if (byTitle[title]) activity.scene.visualAssetId = byTitle[title];
     });
     return activities;
+  }
+
+  function scheduleVisualAssets(queue, request, done, limit) {
+    var cap = Math.max(1, Math.min(3, Number(limit) || 3));
+    var list = (queue || []).slice();
+    var character = list[0] === "characters";
+    var scenes = list.filter(function (id) { return id !== "characters"; });
+    var active = 0;
+    var peak = 0;
+    function run(ids, next) {
+      if (!ids.length) { next(); return; }
+      var index = 0;
+      var remaining = ids.length;
+      function launch() {
+        while (active < cap && index < ids.length) {
+          var id = ids[index];
+          index += 1;
+          active += 1;
+          if (active > peak) peak = active;
+          request(id, function () {
+            active -= 1;
+            remaining -= 1;
+            if (!remaining) next();
+            else launch();
+          });
+        }
+      }
+      launch();
+    }
+    function finish() { if (done) done({ peak: peak }); }
+    if (character) run(["characters"], function () { run(scenes, finish); });
+    else run(scenes, finish);
   }
 
   function attachResult(adventure, asset, result) {
@@ -1028,6 +1215,7 @@
     charactersForAdventure: charactersForAdventure,
     buildAdventurePrompt: buildAdventurePrompt,
     stampActivities: stampActivities,
+    scheduleVisualAssets: scheduleVisualAssets,
     attachResult: attachResult,
     volcanoPrototype: volcanoPrototype,
     assetType: assetType

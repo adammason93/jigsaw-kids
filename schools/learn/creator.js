@@ -691,18 +691,18 @@
     var sheetPath = "";
     var cloud = window.KidsScoreCloud;
     var sync = window.SCORE_SYNC || {};
+    var worldStarted = Date.now();
     function finish() {
       if (token !== generationToken) return;
       draft.visualAssets = pictures;
+      draft.visualTiming = { ms: Date.now() - worldStarted, count: queue.length, concurrency: 3 };
       if (Visuals.stampActivities) Visuals.stampActivities(draft.activities, pictures);
       if (window.WondiiVisuals && WondiiVisuals.bind) WondiiVisuals.bind(pictures);
       buildAt = -1;
       go("activities");
     }
-    function stepAsset(index) {
+    function requestAsset(id, done) {
       if (token !== generationToken) return;
-      if (index >= queue.length) { finish(); return; }
-      var id = queue[index];
       buildLine = id === "characters" ? "Creating the characters..." : "Creating the world...";
       paint();
       function send(sessionToken) {
@@ -730,7 +730,7 @@
           if (asset && asset.storagePath) sheetPath = asset.storagePath;
         } else if (asset) pictures.push(asset);
         else pictures.push({ id: id, status: "failed", fallback: true, usedByScenes: [] });
-        stepAsset(index + 1);
+        if (done) done();
       }
       if (!cloud || !cloud.getSession) { take(null); return; }
       cloud.getSession(function (session) {
@@ -741,7 +741,8 @@
     }
     buildLine = "Creating the world...";
     paint();
-    stepAsset(0);
+    if (Visuals.scheduleVisualAssets) Visuals.scheduleVisualAssets(queue, requestAsset, finish, 3);
+    else requestAsset(queue[0], finish);
   }
 
   function beginBuild() {

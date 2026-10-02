@@ -235,7 +235,7 @@ assert.ok(creatorJs.indexOf("Tell Wondii what you would like your class to learn
 assert.strictEqual(creatorJs.indexOf("Groups or devices"), -1);
 assert.strictEqual(creatorJs.indexOf("Quick create"), -1);
 assert.ok(worker.indexOf("learnDocument") !== -1);
-assert.ok(sw.indexOf("jigsaw-kids-v416") !== -1);
+assert.ok(sw.indexOf("jigsaw-kids-v417") !== -1);
 ["Groups or devices", "Share with teacher", "Use next year", "Saved in this browser.", "Quick create", "Guided create", "Use with my class does not copy the adventure"].forEach(function (label) {
   assert.strictEqual(createHtml.indexOf(label), -1);
 });

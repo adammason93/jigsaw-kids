@@ -1,4 +1,4 @@
-const visualSource = await fetch("https://wondii.co.uk/js/visual-adventure.js?v=8").then((res) => {
+const visualSource = await fetch("https://wondii.co.uk/js/visual-adventure.js?v=9").then((res) => {
   if (!res.ok) throw new Error("visual_script");
   return res.text();
 });
