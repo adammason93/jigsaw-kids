@@ -1,4 +1,4 @@
-const lessonSource = await fetch("https://wondii.co.uk/js/lesson-brain.js?v=35").then((res) => {
+const lessonSource = await fetch("https://wondii.co.uk/js/lesson-brain.js?v=36").then((res) => {
   if (!res.ok) throw new Error("lesson_script");
   return res.text();
 });
@@ -193,6 +193,21 @@ globalThis.handleGenerate = async (req) => {
       lines: ((apply.config && apply.config.lines) || []).slice(0, 3).map((line) => clip(line, 180))
     };
   }
+  function checkSnapshot(result) {
+    const activities = result && result.adventure && result.adventure.activities || result && result.previous && result.previous.activities || [];
+    const check = activities.find((activity) => activity && activity.slotId === "check");
+    if (!check) return null;
+    const config = check.config || {};
+    const question = (config.questions && config.questions[0]) || config;
+    return {
+      prompt: clip(question.prompt || config.prompt),
+      choices: Array.isArray(question.choices) ? question.choices.slice(0, 4).map((choice) => clip(choice, 80)) : [],
+      correct: clip(question.correct || config.correct, 80),
+      knowledgeChecked: clip(question.knowledgeChecked || config.knowledgeChecked),
+      successEvidence: clip(question.successEvidence || config.successEvidence),
+      teachingConnection: clip(question.teachingConnection || config.teachingConnection)
+    };
+  }
   function hookLines(result) {
     const activities = result && result.adventure && result.adventure.activities || result && result.previous && result.previous.activities || [];
     const hook = activities.find((activity) => activity && activity.slotId === "hook");
@@ -339,6 +354,16 @@ globalThis.handleGenerate = async (req) => {
           return { ok: false, relationship: null, reason: error && error.category || "error", ms: Date.now() - judgeStarted };
         }
       },
+      checkJudge: async (input) => {
+        const judgeStarted = Date.now();
+        try {
+          const payload = await callModel(brain.checkSemanticBrief(input), apiKey, model, 12e3, 0);
+          const parsed = brain.parseCheckSemantic(payload);
+          return { ok: parsed.ok, relationship: parsed.relationship, reason: parsed.reason, ms: Date.now() - judgeStarted };
+        } catch (error) {
+          return { ok: false, relationship: null, reason: error && error.category || "error", ms: Date.now() - judgeStarted };
+        }
+      },
       repair: async (accepted) => {
         const repairBrief = brain.slotRepairBrief(framed, accepted.slotIds || [], accepted.issues || [], accepted.previous);
         repairUser = JSON.parse(repairBrief.user);
@@ -361,6 +386,19 @@ globalThis.handleGenerate = async (req) => {
       semanticMs: applyAlignment.semanticMs,
       semanticCalls: applyAlignment.semanticCalls || 0
     });
+    const checkAlignment = resolved.checkAlignment || {};
+    logMeta({
+      stage: "CHECK_ALIGNMENT",
+      attemptId,
+      model,
+      deterministicStatus: checkAlignment.deterministicStatus || "",
+      deterministicReason: checkAlignment.deterministicReason || "",
+      semanticJudgeUsed: !!checkAlignment.semanticJudgeUsed,
+      semanticRelationship: checkAlignment.semanticRelationship || "",
+      semanticOutcome: checkAlignment.semanticOutcome || "",
+      semanticMs: checkAlignment.semanticMs,
+      semanticCalls: checkAlignment.semanticCalls || 0
+    });
     if (resolved.structuralOk === false && !resolved.repairUsed) {
       logMeta({
         stage: "STRUCTURAL_VALIDATION_FAILED",
@@ -371,9 +409,9 @@ globalThis.handleGenerate = async (req) => {
         issues: (resolved.issues || []).slice(0, 8),
         output: digest(first)
       });
-      return json({ ok: false, category: "invalid", stage: "STRUCTURAL_VALIDATION_FAILED", issues: (resolved.issues || []).slice(0, 8), meta: { structuralOk: false, repairKind: "none", repairUsed: false, applyAlignment, teacherIntent: intentMeta(ctx) } });
+      return json({ ok: false, category: "invalid", stage: "STRUCTURAL_VALIDATION_FAILED", issues: (resolved.issues || []).slice(0, 8), meta: { structuralOk: false, repairKind: "none", repairUsed: false, applyAlignment, checkAlignment, teacherIntent: intentMeta(ctx) } });
     }
-    const routeMeta = { planFirstPass: !planRepaired, planRepaired, storyFirstPass, storyRepaired, storyFallback, applyAlignment, teacherIntent: intentMeta(ctx) };
+    const routeMeta = { planFirstPass: !planRepaired, planRepaired, storyFirstPass, storyRepaired, storyFallback, applyAlignment, checkAlignment, teacherIntent: intentMeta(ctx) };
     const repairedSlots = resolved.repairedSlots || [];
     const applyRepair = repairedSlots.indexOf("apply") !== -1;
     const durationRepair = repairedSlots.some((id) => id !== "apply");
@@ -384,11 +422,13 @@ globalThis.handleGenerate = async (req) => {
       repairHook: slotModel(repairRaw, "hook"),
       finalHook: hookLines(resolved),
       finalApply: applyActivity(resolved),
+      finalCheck: checkSnapshot(resolved),
       finalIssues: (resolved.issues || []).slice(0, 8),
-      applyAlignment
+      applyAlignment,
+      checkAlignment
     });
     if (resolved.ok && resolved.adventure) {
-      const timing = { durationMs: Date.now() - started, planMs, storyMs, contentMs, repairMs, repairUsed: !!resolved.repairUsed, repairKind: resolved.repairUsed ? "slot" : "none", structuralOk: true, planRepaired, storyFallback, storyFirstPass, storyRepaired, repairedSlots, applyRepair, durationRepair, applyAlignment, teacherIntent: intentMeta(ctx), diagnosis: trace };
+      const timing = { durationMs: Date.now() - started, planMs, storyMs, contentMs, repairMs, repairUsed: !!resolved.repairUsed, repairKind: resolved.repairUsed ? "slot" : "none", structuralOk: true, planRepaired, storyFallback, storyFirstPass, storyRepaired, repairedSlots, applyRepair, durationRepair, applyAlignment, checkAlignment, teacherIntent: intentMeta(ctx), diagnosis: trace };
       logMeta({ stage: "COMPLETE", category: "ok", ms: timing.durationMs, repair: !!resolved.repairUsed, repairKind: timing.repairKind, structuralOk: true, planRepaired, model, attemptId, planMs, contentMs, repairMs, applyRepair, durationRepair, semanticOutcome: applyAlignment.semanticOutcome || "" });
       return json({ ok: true, adventure: resolved.adventure, stage: "COMPLETE", meta: timing });
     }

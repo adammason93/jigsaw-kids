@@ -550,7 +550,9 @@
       prompt: clean(question.prompt || config.prompt || raw.prompt, 240),
       choices: (question.choices || config.choices || raw.choices || []).map(function (choice) { return textOf(choice, 80); }).filter(Boolean).slice(0, 4),
       correct: textOf(question.correct || config.correct || raw.correct, 80),
-      explain: clean(question.explain || config.explain || raw.explain, 240)
+      explain: clean(question.explain || config.explain || raw.explain, 240),
+      knowledgeChecked: clean(question.knowledgeChecked || config.knowledgeChecked || raw.knowledgeChecked, 180),
+      successEvidence: clean(question.successEvidence || config.successEvidence || raw.successEvidence, 180)
     };
   }
 
@@ -831,6 +833,138 @@
     return issues;
   }
 
+  function learningGoalOf(ctx) {
+    var intent = ctx && ctx.lessonBrief && ctx.lessonBrief.teacherIntent;
+    if (!intent || intent.ok !== true) return "";
+    return clean(intent.learningGoal, 240);
+  }
+
+  function checkQuestionOf(activity) {
+    var config = (activity && activity.config) || {};
+    var question = (config.questions && config.questions[0]) || config;
+    return {
+      prompt: clean(question.prompt || config.prompt, 240),
+      choices: question.choices || config.choices || [],
+      correct: clean(question.correct || config.correct, 80),
+      explain: clean(question.explain || config.explain, 240),
+      knowledgeChecked: clean(question.knowledgeChecked || config.knowledgeChecked, 180),
+      successEvidence: clean(question.successEvidence || config.successEvidence, 180),
+      teachingConnection: clean(question.teachingConnection || config.teachingConnection, 180)
+    };
+  }
+
+  function checkAlignment(activity, ctx) {
+    if (!learningGoalOf(ctx)) return { status: "skip", reason: "no-learning-goal" };
+    var question = checkQuestionOf(activity);
+    var wordsInPrompt = question.prompt.split(/\s+/).filter(Boolean).length;
+    if (wordsInPrompt < 4 || question.choices.length < 2 || !question.correct) {
+      return { status: "fail", reason: "incomplete-question" };
+    }
+    if (!question.knowledgeChecked || !question.successEvidence || !question.teachingConnection) {
+      return { status: "fail", reason: "incomplete-contract" };
+    }
+    return { status: "unresolved", reason: "goal-alignment" };
+  }
+
+  function checkSemanticDecision(relationship) {
+    var name = typeof relationship === "string" ? relationship.trim().toLowerCase() : "";
+    if (name === "aligned") return { ok: true, relationship: "aligned", outcome: "check-pass", issue: "" };
+    if (name === "prerequisite") return { ok: true, relationship: "prerequisite", outcome: "check-prerequisite", issue: "The check slot asks for a nearby definition instead of the learning goal." };
+    if (name === "unrelated") return { ok: true, relationship: "unrelated", outcome: "check-unrelated", issue: "The check slot does not test the learning goal." };
+    return { ok: false, relationship: null, outcome: "check-error", issue: "The check slot needs semantic goal alignment." };
+  }
+
+  function checkSlotIssues(activity, ctx) {
+    var aligned = checkAlignment(activity, ctx);
+    if (aligned.status === "skip") return [];
+    if (aligned.status === "fail") {
+      if (aligned.reason === "incomplete-question") return ["The check slot has no real question."];
+      return ["The check slot does not say what learning it checks."];
+    }
+    var decision = checkSemanticDecision(ctx && ctx.checkSemantic && ctx.checkSemantic.relationship);
+    if (!decision.ok) return [decision.issue];
+    if (decision.issue) return [decision.issue];
+    return [];
+  }
+
+  function checkReportOf(activities, ctx) {
+    if (!ctx || !ctx.lessonSkeleton) return null;
+    var activity = null;
+    (activities || []).forEach(function (item) { if (item && item.slotId === "check") activity = item; });
+    if (!activity) return null;
+    var aligned = checkAlignment(activity, ctx);
+    return { deterministicStatus: aligned.status, deterministicReason: aligned.reason };
+  }
+
+  function checkJudgePlan(result) {
+    if (!result) return "skip";
+    var status = result.checkAlignment && result.checkAlignment.deterministicStatus;
+    if (status === "unresolved") return "judge";
+    return "skip";
+  }
+
+  function checkSemanticInput(activity, ctx, taught) {
+    var question = checkQuestionOf(activity);
+    var intent = (ctx && ctx.lessonBrief && ctx.lessonBrief.teacherIntent) || {};
+    return {
+      yearGroup: (ctx && ctx.yearGroup) || "",
+      subject: (ctx && ctx.subject) || "",
+      learningGoal: learningGoalOf(ctx),
+      focusConcepts: (intent.focusConcepts || []).slice(0, 4),
+      requiredKnowledge: knowledgeLines(ctx).slice(0, 4),
+      taught: clean(taught, 400),
+      prompt: question.prompt,
+      choices: (question.choices || []).slice(0, 4),
+      correct: question.correct,
+      explain: question.explain,
+      knowledgeChecked: question.knowledgeChecked,
+      successEvidence: question.successEvidence,
+      teachingConnection: question.teachingConnection
+    };
+  }
+
+  function checkSemanticBrief(input) {
+    var payload = {
+      yearGroup: clean(input && input.yearGroup, 40),
+      subject: clean(input && input.subject, 80),
+      learningGoal: clean(input && input.learningGoal, 240),
+      focusConcepts: textList(input && input.focusConcepts, 80, 4),
+      requiredKnowledge: textList(input && input.requiredKnowledge, 180, 4),
+      taught: clean(input && input.taught, 400),
+      prompt: clean(input && input.prompt, 240),
+      choices: textList(input && input.choices, 80, 4),
+      correct: clean(input && input.correct, 80),
+      explain: clean(input && input.explain, 240),
+      knowledgeChecked: clean(input && input.knowledgeChecked, 180),
+      successEvidence: clean(input && input.successEvidence, 180),
+      teachingConnection: clean(input && input.teachingConnection, 180)
+    };
+    return {
+      system: [
+        "You judge only whether this check question assesses the teacher's learningGoal. Return one JSON object and nothing else.",
+        "Look at the prompt and the correct answer. Do not treat knowledgeChecked as proof. The author may have named the right learning while asking an easier question.",
+        "Classify the relationship as exactly one of aligned, prerequisite, or unrelated.",
+        "aligned means a pupil who answers correctly has shown the learning goal, including when the wording is a paraphrase. If the goal itself is to identify, name, or define something, a simple identification or definition question is aligned. Short year-group language can still be aligned.",
+        "prerequisite means the question only asks for a definition, a label, a vocabulary item, a tool name, or one isolated fact when the goal asks pupils to compare, explain, sequence, infer, predict, measure, use, represent, or create.",
+        "unrelated means the question stays on the topic but does not test the learning goal.",
+        "Do not rewrite the question. Do not choose a mechanic or another stage. Do not make the question harder than the year group.",
+        "JSON shape: {\"relationship\": \"aligned\" or \"prerequisite\" or \"unrelated\", \"reason\": \"one short sentence\"}."
+      ].join(" "),
+      user: JSON.stringify(payload)
+    };
+  }
+
+  function parseCheckSemantic(raw) {
+    var body = raw;
+    if (typeof raw === "string") {
+      try { body = JSON.parse(raw); } catch (e) { body = null; }
+    }
+    if (!body || typeof body !== "object" || Array.isArray(body)) return { ok: false, relationship: null, reason: "" };
+    var decision = checkSemanticDecision(body.relationship);
+    if (!decision.ok) return { ok: false, relationship: null, reason: "" };
+    return { ok: true, relationship: decision.relationship, reason: clean(body.reason, 240) };
+  }
+
   function slotIdOf(activity) {
     var known = { hook: 1, investigate: 1, teach: 1, apply: 1, check: 1, resolution: 1, recap: 1 };
     var id = clean(activity && (activity.slotId || activity.purpose || activity.id), 24).toLowerCase();
@@ -879,7 +1013,7 @@
         };
       }
       var config = slot.mechanic === "quiz"
-        ? { points: 1, participation: "whole_class", questions: [{ prompt: content.prompt, choices: content.choices || [], correct: content.correct, explain: content.explain }] }
+        ? { points: 1, participation: "whole_class", questions: [{ prompt: content.prompt, choices: content.choices || [], correct: content.correct, explain: content.explain, knowledgeChecked: content.knowledgeChecked, successEvidence: content.successEvidence, teachingConnection: content.teachingConnection }] }
         : { lines: spoken };
       return {
         slotId: slot.id,
@@ -1034,9 +1168,9 @@
       "Do not return HTML, CSS, JavaScript, markdown, or a worksheet.",
       "lessonSkeleton is already decided. Return slots keyed by the skeleton ids. Do not return an activities array. Do not choose a mechanic, a beat, an order, or a new stage. A spin is not a slot.",
       "JSON shape: { title, objectives, slots: { hook, investigate, teach, apply, check, resolution, recap } }.",
-      "hook, investigate, teach, resolution, and recap use { title, lines }. lines is an array of short spoken sentences. investigate uses { instruction, target }. apply uses { instruction, target, knowledgeUsed, successCondition, teachingConnection }. check uses { title, prompt, choices, correct, explain }. choices are strings. correct is one of those strings copied exactly.",
+      "hook, investigate, teach, resolution, and recap use { title, lines }. lines is an array of short spoken sentences. investigate uses { instruction, target }. apply uses { instruction, target, knowledgeUsed, successCondition, teachingConnection }. check uses { title, prompt, choices, correct, explain, knowledgeChecked, successEvidence, teachingConnection }. choices are strings. correct is one of those strings copied exactly.",
       "Each slot already has minutes, minimumParticipation, and contentDepth. Meet that participation with short turns: a teacher prompt, an observation, a pupil action, a check, or a retrieval. Do not pad a slot into a long paragraph.",
-      "hook creates the unsolved problem and must not reveal the answer. investigate asks the class to look, using the slot's interactionIntent. It must not explain the answer and it must not be a pupil spin. teach states every requiredKnowledge fact in short sentences this age can hear. apply must make the pupil use at least one requiredKnowledge item through the slot's interactionIntent. instruction is that task. knowledgeUsed names the requiredKnowledge item the task uses. successCondition says what a finished action shows. teachingConnection says how the task follows the teaching. Sort the cards, move this, or put these in order is not an apply task unless the taught idea is in the instruction. Choosing a pupil is not the apply slot. check comes after teaching and assesses the taught idea. resolution is the mission outcome after the check. recap states the taught facts. Do not say that the screen is a recap or a mystery.",
+      "hook creates the unsolved problem and must not reveal the answer. investigate asks the class to look, using the slot's interactionIntent. It must not explain the answer and it must not be a pupil spin. teach states every requiredKnowledge fact in short sentences this age can hear. apply must make the pupil use at least one requiredKnowledge item through the slot's interactionIntent. instruction is that task. knowledgeUsed names the requiredKnowledge item the task uses. successCondition says what a finished action shows. teachingConnection says how the task follows the teaching. Sort the cards, move this, or put these in order is not an apply task unless the taught idea is in the instruction. Choosing a pupil is not the apply slot. check comes after teaching and assesses teacherIntent.learningGoal. A correct answer must be evidence of that goal, not a nearby definition, label, tool name, or isolated fact, unless the goal itself is to identify or define. knowledgeChecked names the learning the question tests. successEvidence says what a correct answer shows. teachingConnection says how the question follows the learning goal. Keep the question as easy to read as the year group. resolution is the mission outcome after the check. recap states the taught facts. Do not say that the screen is a recap or a mystery.",
       "A stage with mayRevealAnswer false must not state requiredKnowledge and must not use because, caused by, or due to. Do not add a fact that is not in keyKnowledge.",
       "For a why lesson, the check correct answer is the cause, reason, or process in keyKnowledge. The visible outcome can be the question or a wrong choice.",
       "When teacherIntent is present, paraphrase the learning goal and the focus concepts. Do not make the class meet preference words, duration words, prior-knowledge labels, or exclusions. Otherwise lessonBrief.concepts are the ideas the class must meet. Do not treat between, difference, why, or how as ideas to teach.",
@@ -1071,7 +1205,7 @@
     };
     skeleton.forEach(function (slot) {
       var fields = slot.mechanic === "quiz"
-        ? { title: { type: "string" }, prompt: { type: "string" }, choices: { type: "array", items: { type: "string" } }, correct: { type: "string" }, explain: { type: "string" } }
+        ? { title: { type: "string" }, prompt: { type: "string" }, choices: { type: "array", items: { type: "string" } }, correct: { type: "string" }, explain: { type: "string" }, knowledgeChecked: { type: "string" }, successEvidence: { type: "string" }, teachingConnection: { type: "string" } }
         : { title: { type: "string" }, lines: { type: "array", items: { type: "string" } }, instruction: { type: "string" }, target: { type: "string" } };
       if (slot.id === "apply") {
         fields.knowledgeUsed = { type: "string" };
@@ -1156,14 +1290,26 @@
         failure: failuresForSlot(slot.id, issues, (previous && previous.activities) || []),
         output: slot.id === "apply"
           ? { instruction: "", knowledgeUsed: "", successCondition: "", teachingConnection: "", target: "" }
-          : { title: "", lines: [] }
+          : slot.id === "check"
+            ? { prompt: "", choices: [], correct: "", explain: "", knowledgeChecked: "", successEvidence: "", teachingConnection: "" }
+            : { title: "", lines: [] }
       });
+      if (slot.id === "check") {
+        var intent = ctx && ctx.lessonBrief && ctx.lessonBrief.teacherIntent;
+        specs[specs.length - 1].learningGoal = learningGoalOf(ctx);
+        specs[specs.length - 1].focusConcepts = intent && intent.focusConcepts ? intent.focusConcepts.slice(0, 4) : [];
+      }
     });
     var apply = null;
     specs.forEach(function (spec) { if (spec.slotType === "APPLY") apply = spec; });
     var instruction = apply
       ? "Return JSON { slots } for only the listed slot ids. The APPLY task MUST require the pupil to use this knowledge: " + ((apply.requiredKnowledge || []).join(" | ") || "the taught idea") + ". The mechanic and interaction family cannot change. Return instruction, knowledgeUsed, successCondition, and teachingConnection for that slot. knowledgeUsed must name one requiredKnowledge item. A bare sort, move, or sequence is invalid."
       : "Return JSON { slots } for only the listed slot ids.";
+    var checkSpec = null;
+    specs.forEach(function (spec) { if (spec.slotType === "CHECK") checkSpec = spec; });
+    if (checkSpec) {
+      instruction += " The CHECK slot must stay a quiz. Rewrite only its prompt, choices, correct, explain, knowledgeChecked, successEvidence, and teachingConnection. The question must assess this learning goal: " + (checkSpec.learningGoal || "the requested learning") + ". A nearby definition, label, or tool name is not enough unless that goal itself is to identify or define. Use words this year group can read. Do not make the question more abstract than the goal.";
+    }
     if (specs.some(function (spec) { return spec.slotType !== "APPLY"; })) {
       var otherFailures = [];
       specs.forEach(function (spec) {
@@ -1542,7 +1688,16 @@
       }).filter(Boolean).slice(0, 4);
       correct = matchChoice(textOf(given, 80) || given, choices);
     }
-    return { prompt: prompt, choices: choices, correct: correct, explain: explain, kind: kind };
+    return {
+      prompt: prompt,
+      choices: choices,
+      correct: correct,
+      explain: explain,
+      kind: kind,
+      knowledgeChecked: clean(raw.knowledgeChecked, 180),
+      successEvidence: clean(raw.successEvidence, 180),
+      teachingConnection: clean(raw.teachingConnection, 180)
+    };
   }
 
   function playableMechanic(raw) {
@@ -1598,6 +1753,9 @@
         choices: specs[0].choices.slice(),
         correct: specs[0].correct,
         explain: specs[0].explain,
+        knowledgeChecked: specs[0].knowledgeChecked,
+        successEvidence: specs[0].successEvidence,
+        teachingConnection: specs[0].teachingConnection,
         points: Math.max(0, Math.min(5, Number(config.points == null ? 1 : config.points) || 0)),
         participation: part,
         askSelected: part === "selected_pupil",
@@ -3029,6 +3187,12 @@
             ownIssue(owners, activity.slotId, issue);
           });
         }
+        if (activity.slotId === "check") {
+          checkSlotIssues(activity, issueCtx).forEach(function (issue) {
+            issues.push(issue);
+            ownIssue(owners, activity.slotId, issue);
+          });
+        }
       });
     }
     if (dropped) issues.push("An activity uses a game Wondii cannot play.");
@@ -3036,11 +3200,12 @@
       issues.push("The plan changed the year group.");
     }
     var applyReport = applyReportOf(activities, ctx);
+    var checkReport = checkReportOf(activities, issueCtx);
     if (issues.length) {
       var structure = ctx.lessonSkeleton ? skeletonDrift(activities, ctx.lessonSkeleton) : [];
       var reported = structure.concat(issues);
       reported.slotIssues = slotIssuesFrom(reported, activities, owners);
-      return { ok: false, structuralOk: !structure.length, slotIds: slotIdsFrom(reported, activities), slotIssues: reported.slotIssues, issues: reported, previous: parsed, applyAlignment: applyReport };
+      return { ok: false, structuralOk: !structure.length, slotIds: slotIdsFrom(reported, activities), slotIssues: reported.slotIssues, issues: reported, previous: parsed, applyAlignment: applyReport, checkAlignment: checkReport };
     }
     var objectiveSource = parsed.objectives || parsed.learningObjectives || parsed.learningObjective || parsed.objective || ctx.learningObjectives || [];
     if (!Array.isArray(objectiveSource)) objectiveSource = [objectiveSource];
@@ -3074,7 +3239,8 @@
         targetMinutes: Number(ctx.requestedMinutes) || sum,
         estimateMinutes: sum
       },
-      applyAlignment: applyReport
+      applyAlignment: applyReport,
+      checkAlignment: checkReport
     };
   }
 
@@ -3107,10 +3273,22 @@
     return { ok: true, relationship: decision.relationship, outcome: decision.outcome, reason: clean(value.reason, 240), ms: ms };
   }
 
+  function checkVerdictOf(value) {
+    var ms = value && typeof value.ms === "number" ? value.ms : null;
+    if (!value || typeof value !== "object" || value.ok === false) {
+      return { ok: false, relationship: null, outcome: "check-error", reason: clean(value && value.reason, 80), ms: ms };
+    }
+    var decision = checkSemanticDecision(value.relationship);
+    if (!decision.ok) return { ok: false, relationship: null, outcome: "check-error", reason: clean(value.reason, 80), ms: ms };
+    return { ok: true, relationship: decision.relationship, outcome: decision.outcome, reason: clean(value.reason, 240), ms: ms };
+  }
+
   function resolveLessonContent(raw, ctx, ports) {
     ports = ports || {};
     var calls = [];
+    var checkCalls = [];
     var repairedSlots = [];
+    var heldApply = null;
     function pack(result, repairUsed) {
       return {
         ok: !!result.ok,
@@ -3121,7 +3299,8 @@
         previous: result.previous,
         repairUsed: !!repairUsed,
         repairedSlots: repairedSlots.slice(),
-        applyAlignment: alignmentMeta(firstReport, result.applyAlignment, calls)
+        applyAlignment: alignmentMeta(firstReport, result.applyAlignment, calls),
+        checkAlignment: alignmentMeta(firstCheck, result.checkAlignment, checkCalls)
       };
     }
     function judged(source, result) {
@@ -3139,28 +3318,63 @@
         var verdict = verdictOf(value);
         calls.push({ relationship: verdict.relationship, outcome: verdict.outcome, reason: verdict.reason, ms: verdict.ms });
         if (!verdict.ok) return { stop: true, result: result };
-        var next = accept(source, Object.assign({}, ctx, { applySemantic: { relationship: verdict.relationship, reason: verdict.reason } }));
+        heldApply = { relationship: verdict.relationship, reason: verdict.reason };
+        var next = accept(source, Object.assign({}, ctx, { applySemantic: heldApply }));
         return { stop: false, result: next };
       }).catch(function () {
         calls.push({ relationship: null, outcome: "semantic-error", reason: "error", ms: null });
         return { stop: true, result: result };
       });
     }
+    function judgedCheck(source, result) {
+      if (checkJudgePlan(result) !== "judge") return Promise.resolve(null);
+      var activity = null;
+      var taught = [];
+      (((result.previous && result.previous.activities) || (result.adventure && result.adventure.activities) || [])).forEach(function (item) {
+        if (item && item.slotId === "check") activity = item;
+        if (item && item.slotId === "teach") taught = taught.concat((item.config && item.config.lines) || []);
+      });
+      return Promise.resolve().then(function () {
+        if (!ports.checkJudge) return { ok: false, reason: "error", ms: null };
+        return ports.checkJudge(checkSemanticInput(activity, ctx, taught.join(" ")));
+      }).then(function (value) {
+        var verdict = checkVerdictOf(value);
+        checkCalls.push({ relationship: verdict.relationship, outcome: verdict.outcome, reason: verdict.reason, ms: verdict.ms });
+        if (!verdict.ok) return { stop: true, result: result };
+        var nextCtx = Object.assign({}, ctx, { checkSemantic: { relationship: verdict.relationship, reason: verdict.reason } });
+        if (heldApply) nextCtx.applySemantic = heldApply;
+        return { stop: false, result: accept(source, nextCtx) };
+      }).catch(function () {
+        checkCalls.push({ relationship: null, outcome: "check-error", reason: "error", ms: null });
+        return { stop: true, result: result };
+      });
+    }
     var accepted = accept(raw, ctx);
     var firstReport = accepted.applyAlignment || null;
+    var firstCheck = accepted.checkAlignment || null;
     if (accepted.ok || accepted.structuralOk === false) return Promise.resolve(pack(accepted, false));
     return judged(raw, accepted).then(function (firstJudge) {
       if (firstJudge && firstJudge.stop) return pack(firstJudge.result, false);
       if (firstJudge && firstJudge.result) accepted = firstJudge.result;
       if (accepted.ok) return pack(accepted, false);
-      if (!ports.repair) return pack(accepted, false);
-      repairedSlots = (accepted.slotIds || []).slice();
-      return Promise.resolve(ports.repair(accepted)).then(function (second) {
-        var merged = mergeSlotContent(accepted.previous, second);
-        var repaired = accept(merged, ctx);
-        return judged(merged, repaired).then(function (secondJudge) {
-          if (secondJudge && secondJudge.result) repaired = secondJudge.result;
-          return pack(repaired, true);
+      return judgedCheck(raw, accepted).then(function (checkJudge) {
+        if (checkJudge && checkJudge.stop) return pack(checkJudge.result, false);
+        if (checkJudge && checkJudge.result) accepted = checkJudge.result;
+        if (accepted.ok) return pack(accepted, false);
+        if (!ports.repair) return pack(accepted, false);
+        repairedSlots = (accepted.slotIds || []).slice();
+        return Promise.resolve(ports.repair(accepted)).then(function (second) {
+          var merged = mergeSlotContent(accepted.previous, second);
+          heldApply = null;
+          var repaired = accept(merged, ctx);
+          return judged(merged, repaired).then(function (secondJudge) {
+            if (secondJudge && secondJudge.result) repaired = secondJudge.result;
+            if (repaired.ok) return pack(repaired, true);
+            return judgedCheck(merged, repaired).then(function (again) {
+              if (again && again.result) repaired = again.result;
+              return pack(repaired, true);
+            });
+          });
         });
       });
     });
@@ -3350,6 +3564,11 @@
     parseApplySemantic: parseApplySemantic,
     applyJudgePlan: applyJudgePlan,
     applySemanticInput: applySemanticInput,
+    checkSemanticBrief: checkSemanticBrief,
+    checkSemanticDecision: checkSemanticDecision,
+    parseCheckSemantic: parseCheckSemantic,
+    checkJudgePlan: checkJudgePlan,
+    checkSemanticInput: checkSemanticInput,
     teacherIntentBrief: teacherIntentBrief,
     normaliseTeacherIntent: normaliseTeacherIntent,
     applyTeacherIntent: applyTeacherIntent,
