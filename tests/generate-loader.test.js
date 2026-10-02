@@ -3,7 +3,7 @@ var fs = require("fs");
 var path = require("path");
 
 function bootAccepted(source) {
-  return source.includes("lesson-brain.js?v=42")
+  return source.includes("lesson-brain.js?v=43")
     && source.includes("teacherIntentBrief")
     && source.includes("checkEvidenceBrief")
     && source.includes("checkCoverageBrief")
@@ -15,7 +15,7 @@ var localBrain = fs.readFileSync(path.join(__dirname, "../js/lesson-brain.js"), 
 assert.strictEqual(bootAccepted(localBoot), true);
 assert.strictEqual(localBoot.includes("semanticWarningsAllowed"), false);
 assert.strictEqual(localBrain.includes("semanticWarningsAllowed"), true);
-assert.strictEqual(bootAccepted(localBoot.replace("lesson-brain.js?v=42", "lesson-brain.js?v=40")), false);
+assert.strictEqual(bootAccepted(localBoot.replace("lesson-brain.js?v=43", "lesson-brain.js?v=40")), false);
 assert.strictEqual(bootAccepted.toString().includes("semanticWarningsAllowed"), false);
 
 function jsonResponse(body, status) {
@@ -52,8 +52,8 @@ fetch("https://wondii.co.uk/js/learn-generate-boot.js?v=32").then(function (res)
 }).then(function (liveBoot) {
   assert.strictEqual(bootAccepted(liveBoot), true);
   assert.strictEqual(liveBoot.includes("semanticWarningsAllowed"), false);
-  assert.strictEqual(liveBoot.includes("lesson-brain.js?v=42"), true);
-  return fetch("https://wondii.co.uk/js/lesson-brain.js?v=42").then(function (res) {
+  assert.strictEqual(liveBoot.includes("lesson-brain.js?v=43"), true);
+  return fetch("https://wondii.co.uk/js/lesson-brain.js?v=43").then(function (res) {
     assert.strictEqual(res.ok, true);
     return res.text();
   }).then(function (liveBrain) {

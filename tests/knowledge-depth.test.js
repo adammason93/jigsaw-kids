@@ -205,4 +205,45 @@ assert.ok(brief.system.indexOf("smallest set of two to four") !== -1);
 assert.strictEqual(brief.system.indexOf("choose a simpler true fact"), -1);
 assert.ok(brief.system.indexOf("why it mattered") !== -1);
 
+var repairCtx = goalCtx("Teach Year 4 about Henry VIII for 15 minutes.", "explain", henryGoal);
+repairCtx.yearGroup = "Year 4";
+repairCtx.subject = "History";
+repairCtx.lessonBrief.teacherIntent.requiredEvidence = "Pupils can explain why one change in the reign mattered.";
+repairCtx.lessonBrief.teacherIntent.focusConcepts = ["Reformation"];
+repairCtx.lessonBrief.requiredEvidence = repairCtx.lessonBrief.teacherIntent.requiredEvidence;
+repairCtx.lessonBrief.focusConcepts = ["Reformation"];
+var repair = Brain.planRepairBrief(repairCtx, ["The key knowledge states the outcome, not the reason."], {
+  learningObjective: henryGoal,
+  subject: "History",
+  topic: "Henry VIII",
+  yearGroup: "Year 4",
+  keyKnowledge: [
+    "Henry VIII was the King of England from 1509 to 1547.",
+    "His reign led to significant changes in religion and government in England."
+  ],
+  lessonArc: [{ purpose: "teach" }, { purpose: "check" }]
+});
+var repairUser = JSON.parse(repair.user);
+assert.strictEqual(repairUser.learningGoal, henryGoal);
+assert.strictEqual(repairUser.yearGroup, "Year 4");
+assert.strictEqual(repairUser.subject, "History");
+assert.strictEqual(repairUser.requiredEvidence, "Pupils can explain why one change in the reign mattered.");
+assert.deepStrictEqual(repairUser.focusConcepts, ["Reformation"]);
+assert.strictEqual(repairUser.keyKnowledge.length, 2);
+assert.ok(repairUser.failure.join(" ").indexOf("outcome, not the reason") !== -1);
+assert.ok(repairUser.relationshipRequired.join(" ").indexOf("significance:") === 0);
+assert.ok(repair.user.indexOf("Replace only the insufficient keyKnowledge") !== -1);
+assert.ok(repair.user.indexOf("Copy lessonArc exactly") !== -1);
+assert.strictEqual(repair.user.indexOf("Say that reason with because"), -1);
+assert.strictEqual(repair.system, Brain.planBrief(repairCtx).system);
+
+var plantRepair = Brain.planRepairBrief(plant, ["The key knowledge names the parts, not the change."], {
+  learningObjective: plantGoal,
+  keyKnowledge: ["Plants use sunlight to make food.", "Plants take in carbon dioxide from the air."],
+  lessonArc: [{ purpose: "teach" }, { purpose: "check" }]
+});
+var plantUser = JSON.parse(plantRepair.user);
+assert.ok(plantUser.relationshipRequired.join(" ").indexOf("process:") === 0);
+assert.strictEqual(plantUser.relationshipRequired.join(" ").indexOf("significance:"), -1);
+
 console.log("knowledge-depth tests passed");

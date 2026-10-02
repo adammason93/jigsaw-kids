@@ -1361,13 +1361,68 @@
     return brief;
   }
 
+  function repairKnowledge(previous) {
+    var source = previous && previous.keyKnowledge;
+    if (!Array.isArray(source)) return [];
+    return source.map(function (item) {
+      var text = typeof item === "string" ? item : (item && (item.text || item.statement || item.fact || item.knowledge)) || "";
+      return clean(text, 180);
+    }).filter(Boolean).slice(0, 6);
+  }
+
+  function repairRelationship(ctx, previous, issues) {
+    var found = (issues || []).join(" ");
+    var objective = (previous && previous.learningObjective) || "";
+    var goalText = planGoalText(ctx, objective);
+    var required = [];
+    if (/outcome, not the reason/.test(found)) {
+      if (/\bsignifican|\bimportan|\bmattered\b/.test(goalText)) {
+        required.push("significance: name one real event or change, then the result of that change. The result is what was different afterwards, not that the event was important");
+      }
+      if (asksWhy(ctx) || /\bwhy\b|\bcauses?\b|\breasons?\b/.test(goalText)) {
+        required.push("why/cause: name what happens and what that does. Where it happens is not the cause");
+      }
+      if (!required.length) required.push("why/cause: name what happens and what that does. Where it happens is not the cause");
+    }
+    if (/parts, not the change/.test(found)) {
+      required.push("process: start from the beginning state, say what happens next, and end at the outcome the goal asks for. Do not only name the ingredients, the start, or the end");
+    }
+    if (/step, not the action/.test(found)) {
+      required.push("procedure: write the action the pupil carries out, using the verb they will do, and the rule that makes the action correct");
+    }
+    return required;
+  }
+
   function planRepairBrief(ctx, issues, previous) {
     var brief = planBrief(ctx);
+    var intent = (ctx && ctx.lessonBrief && ctx.lessonBrief.teacherIntent) || {};
+    var objective = clean((previous && previous.learningObjective) || "", 240);
+    var goal = learningGoalOf(ctx) || clean((ctx && ctx.lessonBrief && ctx.lessonBrief.learningGoal) || "", 240) || objective;
+    var relationship = repairRelationship(ctx, previous, issues);
+    var found = (issues || []).join(" ");
+    var arcFailed = /teaching stage|check or a recap/.test(found);
+    var instruction = [
+      "Repair the internal lesson plan only. Do not write pupil activities. Return the full plan JSON.",
+      "Preserve subject, topic, yearGroup, durationMinutes, learningObjective, successCriteria, priorKnowledge, vocabulary, misconceptions, teachingApproach, and narrativeTheme exactly.",
+      arcFailed
+        ? "The lesson arc failed. Set each lessonArc purpose to exactly one of hook, investigate, teach, apply, check, resolution, recap. Do not write a sentence as the purpose."
+        : "Copy lessonArc exactly.",
+      relationship.length
+        ? "Replace only the insufficient keyKnowledge with the smallest sufficient set of two to four new sentences. Do not return the failed sentences unchanged and do not paraphrase them. The new sentences must be the knowledge a pupil of this year would say back to achieve the learningGoal. A connector word does not repair a sentence. because, which meant, led to, therefore, significant, and important count only when the words around them are the missing fact. 'It was significant', 'it had an influence', 'it led to changes', 'it had an impact', or 'it is essential' is not that fact. Do not add trivia. Do not add length for its own sake. Do not exceed four keyKnowledge items. Missing relationship: " + relationship.join(" ")
+        : ""
+    ].filter(Boolean).join(" ");
     brief.user = JSON.stringify({
-      lesson: forModel(ctx),
-      problems: issues || [],
+      learningGoal: goal,
+      requiredEvidence: requiredEvidenceOf(ctx) || clean((ctx && ctx.lessonBrief && ctx.lessonBrief.requiredEvidence) || "", 280),
+      focusConcepts: (intent.focusConcepts || (ctx && ctx.lessonBrief && ctx.lessonBrief.focusConcepts) || []).slice(0, 4),
+      yearGroup: (ctx && ctx.yearGroup) || (previous && previous.yearGroup) || "",
+      subject: (ctx && ctx.subject) || (previous && previous.subject) || "",
+      keyKnowledge: repairKnowledge(previous),
+      failure: issues || [],
+      relationshipRequired: relationship,
       previous: previous || null,
-      instruction: "Repair the internal lesson plan only. Do not write pupil activities. If the problem says the plan needs a teaching stage or a check, set each lessonArc purpose to exactly one of hook, investigate, teach, apply, check, resolution, recap. Do not write a sentence as the purpose. If the problem says the key knowledge states the outcome, not the reason, replace the label or the place with the reason the learning goal needs. Say that reason with because, so that, or which meant. Do not only say that something was significant, important, or had an impact. If the problem says the key knowledge names the parts, not the change, say what changes into what, or what happens first and then next. If the problem says the key knowledge names the step, not the action, write the action the pupil carries out. Do not only name inputs, places, outputs, or the name of a step. Keep two to four items. Two strong items are enough. Return the full plan JSON again."
+      lesson: forModel(ctx),
+      instruction: instruction
     });
     return brief;
   }
