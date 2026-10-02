@@ -570,7 +570,7 @@ function reproducedShark() {
   }
   var requestText = "Teach children how a shark's body helps it swim.";
   var knowledge = ["Sharks have a streamlined shape that reduces water resistance.", "Their fins help them steer and keep balanced while swimming."];
-  var plan = planFor("Year 1", "Science", knowledge, "Understand how a shark's body structure aids in its swimming ability.");
+  var plan = planFor("Year 1", "Science", knowledge, "Name the body features a shark uses in the water.");
   var slots = beatsFor(plan, "Year 1");
   var items = Brain.beatKnowledge(plan, "Year 1");
   var frame = { subject: "Science", topic: plan.topic, yearGroup: "Year 1", requestedMinutes: 15, pupilCount: 4, lessonPlan: plan, lessonText: requestText, teacherInstructions: requestText, lessonBrief: { intent: "explain", rawRequest: requestText, topic: plan.topic } };
@@ -704,6 +704,43 @@ assert.ok((neitherClient.issues || []).indexOf("The lesson is missing the apply 
 assert.ok((neitherClient.issues || []).indexOf("The lesson is missing the check stage.") === -1);
 assert.ok((neitherClient.issues || []).indexOf("The lesson is missing the hook stage.") === -1);
 assert.ok((neitherClient.issues || []).indexOf("The lesson is missing the teach stage.") === -1);
+
+var swimFact = "A shark's streamlined body reduces water resistance, helping it swim more easily.";
+var afloatFact = "Buoyancy helps sharks stay afloat while swimming.";
+var finsFact = "Shark anatomy includes fins and a tail that aid in movement.";
+var swimGoal = "Understand how a shark's body helps it swim.";
+var swimPlan = Brain.normalisePlan({
+  learningObjective: swimGoal,
+  subject: "Science",
+  topic: swimGoal,
+  keyKnowledge: [afloatFact, swimFact, finsFact],
+  lessonArc: [{ purpose: "teach" }, { purpose: "check" }]
+}, {
+  yearGroup: "Year 1",
+  subject: "Science",
+  lessonText: "Teach children how a shark's body helps it swim.",
+  topic: swimGoal,
+  lessonBrief: {
+    intent: "process",
+    rawRequest: "Teach children how a shark's body helps it swim.",
+    learningGoal: swimGoal,
+    teacherIntent: { ok: true, learningGoal: swimGoal, requiredEvidence: swimGoal }
+  }
+}).plan;
+var swimSlots = beatsFor(swimPlan, "Year 1");
+var swimItems = Brain.beatKnowledge(swimPlan, "Year 1");
+assert.deepStrictEqual(swimItems.map(function (item) { return item.text; }), [swimFact]);
+assert.ok(moves(swimSlots).indexOf("explain") !== -1);
+var taughtCheck = slotsFrom(swimSlots, swimItems);
+var taughtFrame = frameFor(swimPlan, "Year 1", swimSlots);
+var taughtAccept = Brain.accept({ title: "Shark swim", objectives: [swimGoal], slots: taughtCheck }, taughtFrame);
+assert.ok((taughtAccept.issues || []).indexOf("The check scores knowledge that was not taught.") === -1, (taughtAccept.issues || []).join(" | "));
+var untaughtCheck = slotsFrom(swimSlots, swimItems);
+untaughtCheck.check.correct = "They have fins and a streamlined shape.";
+untaughtCheck.check.choices = [untaughtCheck.check.correct, "A different idea that was not part of this lesson."];
+var untaughtAccept = Brain.accept({ title: "Shark swim", objectives: [swimGoal], slots: untaughtCheck }, frameFor(swimPlan, "Year 1", swimSlots));
+assert.strictEqual(untaughtAccept.ok, false);
+assert.ok((untaughtAccept.issues || []).indexOf("The check scores knowledge that was not taught.") !== -1, (untaughtAccept.issues || []).join(" | "));
 
 dump("YEAR 1 SHARK FIXTURE", sharkPlan, sharkSlots, sharkItems, sharkAccept);
 dump("YEAR 4 FRACTIONS FIXTURE", fractionPlan, fractionSlots, fractionItems, fractionAccept);

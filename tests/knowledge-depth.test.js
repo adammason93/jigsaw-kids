@@ -246,4 +246,107 @@ var plantUser = JSON.parse(plantRepair.user);
 assert.ok(plantUser.relationshipRequired.join(" ").indexOf("process:") === 0);
 assert.strictEqual(plantUser.relationshipRequired.join(" ").indexOf("significance:"), -1);
 
+function contributionPlan(year, subject, sentence, goal, knowledge) {
+  return Brain.normalisePlan({
+    learningObjective: goal,
+    subject: subject,
+    topic: goal,
+    keyKnowledge: knowledge,
+    lessonArc: arc
+  }, {
+    yearGroup: year,
+    subject: subject,
+    lessonText: sentence,
+    topic: goal,
+    lessonBrief: {
+      intent: "process",
+      rawRequest: sentence,
+      learningGoal: goal,
+      teacherIntent: { ok: true, learningGoal: goal, requiredEvidence: goal }
+    }
+  });
+}
+
+function teachMoves(plan, year) {
+  var frame = { yearGroup: year, subject: plan.subject, topic: plan.topic, lessonPlan: plan };
+  var slots = Brain.planBeats(Brain.lessonSkeleton(plan, frame), plan, year);
+  var teach = slots.filter(function (slot) { return slot.id === "teach"; })[0];
+  return (teach.beats || []).map(function (beat) { return beat.move; });
+}
+
+var swim = "A shark's streamlined body reduces water resistance, helping it swim more easily.";
+var afloat = "Buoyancy helps sharks stay afloat while swimming.";
+var fins = "Shark anatomy includes fins and a tail that aid in movement.";
+var sharkAsk = "Teach children how a shark's body helps it swim.";
+var sharkGoal = "Understand how a shark's body helps it swim.";
+var sharkShallow = contributionPlan("Year 1", "Science", sharkAsk, sharkGoal, [
+  "Sharks have a streamlined shape that reduces water resistance.",
+  afloat,
+  fins
+]);
+assert.strictEqual(sharkShallow.ok, false);
+assert.ok((sharkShallow.issues || []).join(" ").indexOf("outcome, not the reason") !== -1);
+var sharkKept = contributionPlan("Year 1", "Science", sharkAsk, sharkGoal, [afloat, swim, fins]);
+assert.strictEqual(sharkKept.ok, true, (sharkKept.issues || []).join("; "));
+assert.deepStrictEqual(sharkKept.plan.keyKnowledge, [swim]);
+assert.strictEqual(sharkKept.plan.knowledge[0].knowledgeType, "reason");
+assert.ok(sharkKept.plan.droppedKnowledge.indexOf(afloat) !== -1);
+assert.ok(sharkKept.plan.droppedKnowledge.indexOf(fins) !== -1);
+var sharkMoves = teachMoves(sharkKept.plan, "Year 1");
+assert.ok(sharkMoves.indexOf("name") !== -1);
+assert.ok(sharkMoves.indexOf("explain") !== -1);
+var sharkBrief = Brain.contentBrief({ yearGroup: "Year 1", subject: "Science", lessonPlan: sharkKept.plan, lessonSkeleton: Brain.planBeats(Brain.lessonSkeleton(sharkKept.plan, { yearGroup: "Year 1", subject: "Science" }), sharkKept.plan, "Year 1") }, sharkKept.plan, null);
+assert.strictEqual(sharkBrief.user.indexOf("Buoyancy"), -1);
+assert.strictEqual(sharkBrief.user.indexOf("fins"), -1);
+var labeledSwim = contributionPlan("Year 1", "Science", sharkAsk, sharkGoal, [
+  { text: swim, knowledgeType: "fact" },
+  afloat
+]);
+assert.strictEqual(labeledSwim.ok, true, (labeledSwim.issues || []).join("; "));
+assert.strictEqual(labeledSwim.plan.knowledge[0].knowledgeType, "reason");
+
+var rootGoal = "Understand how a plant's roots help it drink.";
+var roots = contributionPlan("Year 2", "Science", "Teach children how a plant's roots help it drink.", rootGoal, [
+  "Leaves are green.",
+  "Roots take in water, which helps the plant drink.",
+  "Flowers look bright in summer."
+]);
+assert.strictEqual(roots.ok, true, (roots.issues || []).join("; "));
+assert.deepStrictEqual(roots.plan.keyKnowledge, ["Roots take in water, which helps the plant drink."]);
+assert.ok(teachMoves(roots.plan, "Year 2").indexOf("explain") !== -1);
+
+var fireGoal = "Understand why the Great Fire spread so quickly.";
+var fire = contributionPlan("Year 4", "History", "Teach children why the Great Fire spread so quickly.", fireGoal, [
+  "The Great Fire happened in 1666.",
+  "The fire spread quickly because the wooden houses stood close together.",
+  "London had a lot of churches."
+]);
+assert.strictEqual(fire.ok, true, (fire.issues || []).join("; "));
+assert.deepStrictEqual(fire.plan.keyKnowledge, ["The fire spread quickly because the wooden houses stood close together."]);
+
+var riverEffect = "Understand how a river affects the landscape.";
+var riverLesson = contributionPlan("Year 5", "Geography", "Teach children how a river affects the landscape.", riverEffect, [
+  "Fish live in many rivers.",
+  "A fast river cuts into the rock, which makes the landscape deeper.",
+  "Rivers are drawn in blue on a map."
+]);
+assert.strictEqual(riverLesson.ok, true, (riverLesson.issues || []).join("; "));
+assert.deepStrictEqual(riverLesson.plan.keyKnowledge, ["A fast river cuts into the rock, which makes the landscape deeper."]);
+
+var adjectiveGoal = "Understand how an adjective changes a sentence.";
+var adjective = contributionPlan("Year 3", "English", "Teach children how an adjective changes a sentence.", adjectiveGoal, [
+  "A noun is a naming word.",
+  "An adjective changes the noun so that the sentence tells the reader more."
+]);
+assert.strictEqual(adjective.ok, true, (adjective.issues || []).join("; "));
+assert.deepStrictEqual(adjective.plan.keyKnowledge, ["An adjective changes the noun so that the sentence tells the reader more."]);
+
+var regroupGoal = "Understand how regrouping helps when subtracting.";
+var regroup = contributionPlan("Year 4", "Maths", "Teach children how regrouping helps when subtracting.", regroupGoal, [
+  "A hundred is made of ten tens.",
+  "Regrouping turns one ten into ten ones so a larger one can be subtracted."
+]);
+assert.strictEqual(regroup.ok, true, (regroup.issues || []).join("; "));
+assert.deepStrictEqual(regroup.plan.keyKnowledge, ["Regrouping turns one ten into ten ones so a larger one can be subtracted."]);
+
 console.log("knowledge-depth tests passed");

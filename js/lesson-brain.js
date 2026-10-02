@@ -382,6 +382,13 @@
     };
   }
 
+  function publishPlan(plan) {
+    if (!plan || typeof plan !== "object") return plan || null;
+    var copy = Object.assign({}, plan);
+    delete copy.droppedKnowledge;
+    return copy;
+  }
+
   function forModel(ctx) {
     var copy = {};
     var key;
@@ -389,6 +396,7 @@
       if (key === "organisationId" || key === "classId") continue;
       copy[key] = ctx[key];
     }
+    if (copy.lessonPlan) copy.lessonPlan = publishPlan(copy.lessonPlan);
     copy.durationBand = durationBand(ctx.requestedMinutes);
     return copy;
   }
@@ -411,7 +419,7 @@
       "Decide what the children should understand. Then decide what to teach so they can understand it. The classroom activities are chosen in a later step.",
       "Work in this order: the teacher's request, the context, one learning objective, the key knowledge, prior knowledge, misconceptions, vocabulary, the teaching sequence, then where a check or a recap belongs.",
       "learningObjective is one sentence a teacher could say. successCriteria are two or three things the class can do if the lesson worked.",
-      "keyKnowledge is the smallest set of two to four age-appropriate pieces a pupil needs in order to achieve lessonBrief.learningGoal. Together they must be sufficient. Two strong items are better than four weak ones. A simpler fact is acceptable only when the set can still achieve that goal. Do not invent quotations, dates, or events. A simplified explanation must still be true. Do not add trivia.",
+      "keyKnowledge is the smallest set of two to four age-appropriate pieces a pupil needs in order to achieve lessonBrief.learningGoal. Together they must be sufficient. Two strong items are better than four weak ones. A simpler fact is acceptable only when the set can still achieve that goal. Do not invent quotations, dates, or events. A simplified explanation must still be true. Do not add trivia. When the goal asks how something helps, causes, affects, works, or contributes, or why something happens or matters, at least one item must state that relationship: the feature, what it does, and how that connects to the goal. A nearby fact about the same topic does not answer it. Year 1 and Year 2 may use one concise sentence for that relationship.",
       "Match the goal. Why or cause: state the reason, not only what is seen or where it happens. Significance or importance: state the change, event, or contribution and why it mattered. Compare: include what is needed about both sides. Process: state the change or sequence, not only the parts, inputs, places, or outputs. Procedure or use: write the actions the pupil carries out, not only the name of the step. Definition: a short definition and only the characteristics or examples needed to use it. Explain: the facts that specific goal needs, not a generic list about the topic.",
       "A sentence that only names the topic, states identity, gives a famous number or date, says something is important or significant, or says where something happens does not meet a relationship the goal requires.",
       "For a young year, use a simple true model: the parts, how they move, and what that movement does. Do not teach the visible effect as the cause. The ground shaking is what an earthquake does, not why it happens.",
@@ -562,7 +570,7 @@
     item = item || {};
     var text = item.text || "";
     var labeled = item.knowledgeType || "";
-    if (labeled === "cause" || labeled === "reason" || labeled === "process" || statesRelation(text)) return "relationship";
+    if (labeled === "cause" || labeled === "reason" || labeled === "process" || statesRelation(text) || statesFunction(text)) return "relationship";
     if (labeled === "procedure" || statesSteps(text)) return "procedure";
     if (labeled === "comparison" || /\b(difference|unlike|whereas)\b/i.test(text)) return "comparison";
     if (labeled === "definition" || /\b(is|are|means|called)\b/i.test(text)) return "definition";
@@ -1274,6 +1282,36 @@
     return { ok: false, coverage: null, outcome: "check-error", issue: "The check slot needs evidence alignment." };
   }
 
+  function droppedLeak(text, plan) {
+    var dropped = plan && plan.droppedKnowledge;
+    if (!dropped || !dropped.length || !text) return false;
+    var kept = ((plan.keyKnowledge || []).join(" ")).toLowerCase();
+    var blob = String(text).toLowerCase();
+    return dropped.some(function (item) {
+      return contentWords(item).some(function (word) {
+        return word.length >= 4 && kept.indexOf(word) === -1 && blob.indexOf(word) !== -1;
+      });
+    });
+  }
+
+  function untaughtKnowledgeIssues(activity, ctx) {
+    var plan = ctx && ctx.lessonPlan;
+    if (!plan || !activity) return [];
+    var slot = activity.slotId;
+    if (slot !== "apply" && slot !== "check" && slot !== "resolution" && slot !== "recap") return [];
+    var bits = [];
+    if (slot === "apply") bits.push(applyInstructionOf(activity));
+    if (slot === "check") bits.push(checkQuestionOf(activity).correct);
+    ((activity.config && activity.config.lines) || []).forEach(function (line) { bits.push(line); });
+    ((activity.beats || [])).forEach(function (beat) {
+      if (beat && beat.pupil) bits.push(beat.pupil.text || "");
+    });
+    if (!bits.some(function (bit) { return droppedLeak(bit, plan); })) return [];
+    if (slot === "check") return ["The check scores knowledge that was not taught."];
+    if (slot === "apply") return ["The apply task uses knowledge that was not taught."];
+    return ["The " + slot + " uses knowledge that was not taught."];
+  }
+
   function checkSlotIssues(activity, ctx) {
     var aligned = checkAlignment(activity, ctx);
     if (aligned.status === "skip") return [];
@@ -1615,9 +1653,9 @@
     var sourcePlan = plan || (ctx && ctx.lessonPlan) || null;
     var skeleton = (ctx && ctx.lessonSkeleton) || lessonSkeleton(sourcePlan || {}, ctx || {});
     if (sourcePlan) {
-      safe.lessonPlan = Object.assign({}, sourcePlan, {
-        lessonArc: contractArc(sourcePlan.lessonArc, textList(sourcePlan.keyKnowledge, 180, 6))
-      });
+      var publishedPlan = publishPlan(sourcePlan);
+      publishedPlan.lessonArc = contractArc(sourcePlan.lessonArc, textList(sourcePlan.keyKnowledge, 180, 6));
+      safe.lessonPlan = publishedPlan;
     } else safe.lessonPlan = null;
     safe.storyPlan = story || (ctx && ctx.storyPlan) || null;
     safe.lessonSkeleton = skeleton;
@@ -1724,7 +1762,7 @@
     var brief = contentBrief(ctx, ctx && ctx.lessonPlan, ctx && ctx.storyPlan);
     brief.user = JSON.stringify({
       lesson: forModel(ctx),
-      lessonPlan: (ctx && ctx.lessonPlan) || null,
+      lessonPlan: publishPlan((ctx && ctx.lessonPlan) || null),
       storyPlan: (ctx && ctx.storyPlan) || null,
       problems: issues || [],
       previous: kind === "local" ? (previous || null) : null,
@@ -1893,6 +1931,9 @@
     var goalText = planGoalText(ctx, objective);
     var required = [];
     if (/outcome, not the reason/.test(found)) {
+      if (seeksContribution(ctx, objective)) {
+        required.push("contribution: name the feature, what it does, and how that connects to the goal. A different fact about the same topic is not enough");
+      }
       if (/\bsignifican|\bimportan|\bmattered\b/.test(goalText)) {
         required.push("significance: name one real event or change, then the result of that change. The result is what was different afterwards, not that the event was important");
       }
@@ -1946,7 +1987,7 @@
 
   function storyBrief(ctx, plan) {
     var safe = forModel(ctx || {});
-    safe.lessonPlan = plan || (ctx && ctx.lessonPlan) || null;
+    safe.lessonPlan = publishPlan(plan || (ctx && ctx.lessonPlan) || null);
     var year = Number(yearDigit((ctx && ctx.yearGroup) || (plan && plan.yearGroup))) || ((ctx && ctx.yearAssumed) ? 3 : 4);
     var age = year <= 2
       ? "Year 1 to 2: a very short, concrete problem, one simple positive role, and almost no reading. A teacher can narrate it."
@@ -1975,7 +2016,7 @@
     var brief = storyBrief(ctx, ctx && ctx.lessonPlan);
     brief.user = JSON.stringify({
       lesson: forModel(ctx),
-      lessonPlan: (ctx && ctx.lessonPlan) || null,
+      lessonPlan: publishPlan((ctx && ctx.lessonPlan) || null),
       problems: issues || [],
       previous: previous || null,
       instruction: "Repair the internal story plan only. Keep it tied to the lesson plan. Do not write pupil activities. Return the full story JSON again."
@@ -2151,6 +2192,79 @@
     return false;
   }
 
+  function statesFunction(text) {
+    var value = String(text || "");
+    return /\b(helps|helping|help|reduces|reduced|reducing|reduce|allows|allowed|allowing|allow|enables|enabled|enabling|enable|causes|caused|causing|cause|affects|affected|affecting|affect|lets|let|makes|made|making|make|changes|changed|changing|change|aids|aided|aid)\b\s+[a-z0-9]/i.test(value);
+  }
+
+  function sameStem(left, right) {
+    if (!left || !right) return false;
+    if (left === right) return true;
+    if (left.length >= 4 && right.indexOf(left) === 0) return true;
+    if (right.length >= 4 && left.indexOf(right) === 0) return true;
+    var shared = 0;
+    while (shared < left.length && shared < right.length && left.charAt(shared) === right.charAt(shared)) shared += 1;
+    return shared >= 5;
+  }
+
+  function seeksContribution(ctx, objective) {
+    if (planNeedsSteps(ctx, objective)) return false;
+    var goal = planGoalText(ctx, objective);
+    if (/\bhow to\b/.test(goal)) return false;
+    if (/\bfrom\b[^.]{0,48}\bto\b/.test(goal) && /\b(change|changes|changed)\b/.test(goal)) return false;
+    return /\bhow\b[^.]{0,100}\b(help|helps|helping|cause|causes|caused|affect|affects|affected|work|works|change|changes|changed|contribute|contributes|contributing|make|makes|made|aid|aids)\b/.test(goal)
+      || /\bwhy\b[^.]{0,100}\b(happen|happens|happened|spread|spreads|spread|matter|matters|mattered)\b/.test(goal);
+  }
+
+  function outcomeWords(goal) {
+    var text = clean(goal, 500).toLowerCase();
+    var tail = "";
+    var how = text.match(/\bhow\b[^.]{0,100}?\b(?:help|helps|helping|cause|causes|caused|affect|affects|affected|work|works|change|changes|changed|contribute|contributes|contributing|make|makes|made|aid|aids)\b([^.]*)/);
+    var why = text.match(/\bwhy\b([^.]{0,120})/);
+    if (how) tail = how[1];
+    else if (why) tail = why[1];
+    return contentWords(tail);
+  }
+
+  function functionWords(text) {
+    var value = String(text || "").replace(/\b(?:while|whilst|during)\b[^.]*/gi, " ");
+    return contentWords(value);
+  }
+
+  function answersContribution(text, goal) {
+    if (!statesFunction(text) && !statesRelation(text)) return false;
+    var wanted = outcomeWords(goal);
+    if (!wanted.length) return false;
+    var have = functionWords(text);
+    return wanted.some(function (word) {
+      return have.some(function (token) { return sameStem(token, word); });
+    });
+  }
+
+  function contributionRank(entries, goal) {
+    return entries.map(function (item, index) {
+      return { item: item, index: index, score: answersContribution(item.text, goal) ? (2 + (statesRelation(item.text) ? 1 : 0)) : 0 };
+    }).sort(function (left, right) {
+      if (right.score !== left.score) return right.score - left.score;
+      return left.index - right.index;
+    });
+  }
+
+  function admitKnowledge(entries, ctx, objective) {
+    var goal = planGoalText(ctx, objective);
+    if (!seeksContribution(ctx, objective)) return { kept: entries, dropped: [] };
+    var ranked = contributionRank(entries, goal);
+    var answering = ranked.filter(function (row) { return row.score > 0; }).map(function (row) { return row.item; });
+    if (!answering.length) return { kept: entries, dropped: [] };
+    var year = beatYear((ctx && (ctx.yearGroup || (ctx.lessonPlan && ctx.lessonPlan.yearGroup))) || "");
+    var limit = beatLimit(year).items;
+    var kept = answering.slice(0, limit);
+    var seen = {};
+    kept.forEach(function (item) { seen[item.text] = 1; });
+    var dropped = entries.filter(function (item) { return !seen[item.text]; }).map(function (item) { return item.text; });
+    return { kept: kept, dropped: dropped };
+  }
+
   function knowledgeRole(text, labeled) {
     var allowed = { fact: 1, cause: 1, effect: 1, reason: 1, process: 1, definition: 1, comparison: 1, procedure: 1 };
     var label = clean(labeled, 20).toLowerCase();
@@ -2159,6 +2273,7 @@
       if (/\b(and then|turns into|turn into|becomes|became|forming|when|first)\b/i.test(text) && !/\b(because|so that|in order to|wanted|needed|which)\b/i.test(text)) return "process";
       return "reason";
     }
+    if (statesFunction(text)) return "reason";
     if (allowed[label] && label !== "cause" && label !== "reason" && label !== "process") return label;
     if (/\b(difference|unlike|whereas)\b/i.test(text)) return "comparison";
     if (/\b(is|are|means|called)\b/i.test(text)) return "definition";
@@ -2223,7 +2338,12 @@
     if (!parsed || typeof parsed !== "object") return { ok: false, issues: ["The lesson plan was not valid structured data."] };
     if (parsed.lessonPlan && typeof parsed.lessonPlan === "object") parsed = parsed.lessonPlan;
     var objective = clean(parsed.learningObjective || (Array.isArray(parsed.objectives) ? parsed.objectives[0] : parsed.objective) || "", 240);
-    var entries = knowledgeEntries(parsed.keyKnowledge);
+    var relationCtx = Object.assign({}, ctx, { lessonPlan: { learningObjective: objective, topic: parsed.topic || ctx.topic } });
+    var rawEntries = knowledgeEntries(parsed.keyKnowledge);
+    var admitted = admitKnowledge(rawEntries, relationCtx, objective);
+    var goalText = planGoalText(relationCtx, objective);
+    var answered = seeksContribution(relationCtx, objective) && admitted.kept.some(function (item) { return answersContribution(item.text, goalText); });
+    var entries = answered ? admitted.kept : rawEntries;
     var knowledge = entries.map(function (item) { return item.text; });
     var arc = (Array.isArray(parsed.lessonArc) ? parsed.lessonArc : []).map(function (stage) {
       stage = stage || {};
@@ -2235,15 +2355,17 @@
     }).filter(function (stage) { return stage.purpose || stage.concept; }).slice(0, 8);
     var issues = [];
     if (objective.length < 12) issues.push("The lesson plan needs a learning objective.");
-    if (knowledge.length < 2) issues.push("The lesson plan needs the key knowledge.");
-    var relationCtx = Object.assign({}, ctx, { lessonPlan: { learningObjective: objective, topic: parsed.topic || ctx.topic } });
-    if (planNeedsRelation(relationCtx, objective) && !entries.some(function (item) { return statesRelation(item.text); })) {
+    if (knowledge.length < 2 && !(answered && knowledge.length >= 1)) issues.push("The lesson plan needs the key knowledge.");
+    if (seeksContribution(relationCtx, objective) && !answered && !rawEntries.some(function (item) { return statesRelation(item.text); })) {
       issues.push("The key knowledge states the outcome, not the reason.");
     }
-    if (planNeedsProcess(relationCtx, objective) && !entries.some(function (item) { return statesRelation(item.text); })) {
+    if (planNeedsRelation(relationCtx, objective) && !rawEntries.some(function (item) { return statesRelation(item.text); })) {
+      issues.push("The key knowledge states the outcome, not the reason.");
+    }
+    if (planNeedsProcess(relationCtx, objective) && !rawEntries.some(function (item) { return statesRelation(item.text); })) {
       issues.push("The key knowledge names the parts, not the change.");
     }
-    if (planNeedsSteps(relationCtx, objective) && !entries.some(function (item) { return statesSteps(item.text); })) {
+    if (planNeedsSteps(relationCtx, objective) && !rawEntries.some(function (item) { return statesSteps(item.text); })) {
       issues.push("The key knowledge names the step, not the action.");
     }
     var purposes = arc.map(function (stage) { return stage.purpose; }).join(" ");
@@ -2266,6 +2388,7 @@
         priorKnowledge: textList(parsed.priorKnowledge, 160, 4),
         keyKnowledge: knowledge,
         knowledge: entries,
+        droppedKnowledge: answered ? admitted.dropped.slice() : [],
         vocabulary: textList(parsed.vocabulary, 40, 8),
         misconceptions: textList(parsed.misconceptions, 160, 4),
         teachingApproach: clean(parsed.teachingApproach, 400),
@@ -3898,6 +4021,10 @@
         if (activity.slotId === "apply") {
           var applySlot = null;
           ctx.lessonSkeleton.forEach(function (slot) { if (slot.id === "apply") applySlot = slot; });
+          untaughtKnowledgeIssues(activity, issueCtx).forEach(function (issue) {
+            issues.push(issue);
+            ownIssue(owners, activity.slotId, issue);
+          });
           applySlotIssues(activity, applySlot, issueCtx).forEach(function (issue) {
             var warning = ctx.semanticWarningsAllowed && semanticQualityWarning(issue, issueCtx, "apply");
             if (warning) qualityWarnings.push(warning);
@@ -3907,7 +4034,17 @@
             }
           });
         }
+        if (activity.slotId === "resolution" || activity.slotId === "recap") {
+          untaughtKnowledgeIssues(activity, issueCtx).forEach(function (issue) {
+            issues.push(issue);
+            ownIssue(owners, activity.slotId, issue);
+          });
+        }
         if (activity.slotId === "check") {
+          untaughtKnowledgeIssues(activity, issueCtx).forEach(function (issue) {
+            issues.push(issue);
+            ownIssue(owners, activity.slotId, issue);
+          });
           checkSlotIssues(activity, issueCtx).forEach(function (issue) {
             var warning = ctx.semanticWarningsAllowed && semanticQualityWarning(issue, issueCtx, "check");
             if (warning) qualityWarnings.push(warning);
