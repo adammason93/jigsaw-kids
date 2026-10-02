@@ -1,4 +1,4 @@
-const lessonSource = await fetch("https://wondii.co.uk/js/lesson-brain.js?v=46").then((res) => {
+const lessonSource = await fetch("https://wondii.co.uk/js/lesson-brain.js?v=47").then((res) => {
   if (!res.ok) throw new Error("lesson_script");
   return res.text();
 });
@@ -511,14 +511,14 @@ globalThis.handleGenerate = async (req) => {
       attemptId,
       structuralOk: resolved.structuralOk !== false,
       issues: (resolved.issues || []).slice(0, 8),
-      pupilBeatDiagnostics: (resolved.pupilBeatDiagnostics || []).slice(0, 8),
+      pupilBeatDiagnostics: (resolved.pupilBeatDiagnostics || []).slice(0, 12),
       repairAction: resolved.repairUsed ? "slot" : "none",
       semanticOutcome: applyAlignment.semanticOutcome || "",
       qualityWarnings,
       slotDiagnostic: diagnostic,
       output: digest(repairRaw || first)
     });
-    return json({ ok: false, category: "invalid", stage, issues: (resolved.issues || []).slice(0, 8), meta: { structuralOk: resolved.structuralOk !== false, repairKind: resolved.repairUsed ? "slot" : "none", repairUsed: !!resolved.repairUsed, repairedSlots, applyRepair, durationRepair, ...routeMeta, qualityWarnings, pupilBeatDiagnostics: (resolved.pupilBeatDiagnostics || []).slice(0, 8), slotDiagnostic: diagnostic, diagnosis: trace } });
+    return json({ ok: false, category: "invalid", stage, issues: (resolved.issues || []).slice(0, 8), meta: { structuralOk: resolved.structuralOk !== false, repairKind: resolved.repairUsed ? "slot" : "none", repairUsed: !!resolved.repairUsed, repairedSlots, applyRepair, durationRepair, ...routeMeta, qualityWarnings, pupilBeatDiagnostics: (resolved.pupilBeatDiagnostics || []).slice(0, 12), slotDiagnostic: diagnostic, diagnosis: trace } });
   } catch (error) {
     const category = error.category || "provider";
     const stage = category === "parse" ? phase === "PLAN_REQUEST" ? "PLAN_PARSE" : phase === "STORY_REQUEST" ? "STORY_PARSE" : "CONTENT_PARSE" : category === "timeout" ? phase : "AI_REQUEST_FAILED";

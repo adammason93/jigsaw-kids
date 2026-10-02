@@ -778,6 +778,53 @@
     return !!(slot && slot.id === "check" && slot.mechanic === "quiz" && beat && beat.move === "retrieve");
   }
 
+  function moveGuide(skeleton) {
+    var seen = {};
+    (skeleton || []).forEach(function (slot) {
+      (slot.beats || []).forEach(function (beat) { if (beat && beat.move) seen[beat.move] = true; });
+    });
+    var meaning = {
+      notice: "notice directs attention to something relevant and does not give the later explanation.",
+      predict: "predict asks for a prediction from what the class can already use.",
+      name: "name states the planned knowledge clearly.",
+      explain: "explain gives the relationship, cause, or function in the referenced knowledge.",
+      exemplify: "exemplify gives one age-appropriate example of the referenced knowledge.",
+      model: "model demonstrates the planned process or procedure.",
+      compare: "compare points to a relevant similarity or difference.",
+      connect: "connect joins the referenced knowledge items.",
+      practise: "practise supports the pupil task using the referenced knowledge.",
+      apply: "apply supports the pupil task using the referenced knowledge.",
+      reveal: "reveal resolves the adventure using the taught knowledge.",
+      consolidate: "consolidate restates the learned knowledge itself, not that the lesson is finished."
+    };
+    var lines = Object.keys(meaning).filter(function (move) { return seen[move]; }).map(function (move) { return meaning[move]; });
+    return lines.length ? "Pupil text for each planned move: " + lines.join(" ") : "";
+  }
+
+  function beatResponseExample(skeleton) {
+    var slots = {};
+    (skeleton || []).forEach(function (slot) {
+      if (!slot.beats || !slot.beats.length) return;
+      var quiz = slot.mechanic === "quiz" && slot.beats.some(function (beat) { return beat.move === "retrieve"; });
+      if (quiz) {
+        slots[slot.id] = { prompt: "...", choices: ["...", "..."], correct: "...", explain: "...", successEvidence: "...", teachingConnection: "..." };
+        return;
+      }
+      var body = {
+        beats: slot.beats.map(function (beat) { return { id: beat.id, cue: "...", text: "..." }; })
+      };
+      if (slot.id === "apply") {
+        body.instruction = "...";
+        body.target = "...";
+        body.successCondition = "...";
+        body.teachingConnection = "...";
+      }
+      slots[slot.id] = body;
+    });
+    if (!Object.keys(slots).length) return "";
+    return "Beat slots use this shape and no other pupil prose: " + JSON.stringify({ title: "...", objectives: ["..."], slots: slots }) + " Return those beat ids with cue and text. Do not add title or lines to a beat slot.";
+  }
+
   function pupilCopyContract(year) {
     var young = beatYear(year) <= 2;
     var age = young
@@ -1541,15 +1588,26 @@
     } else safe.lessonPlan = null;
     safe.storyPlan = story || (ctx && ctx.storyPlan) || null;
     safe.lessonSkeleton = skeleton;
-    var system = [
+    var beatSlots = skeleton.filter(function (slot) { return slot.beats && slot.beats.length; });
+    var legacySlots = skeleton.filter(function (slot) { return !slot.beats || !slot.beats.length; });
+    var shape = [
       "You are writing the words for a Wondii lesson. Return one JSON object and nothing else.",
       pupilConceptLine(safe),
       "Do not return HTML, CSS, JavaScript, markdown, or a worksheet.",
       "lessonSkeleton is already decided. Return slots keyed by the skeleton ids. Do not return an activities array. Do not choose a mechanic, a beat, an order, or a new stage. A spin is not a slot.",
-      "JSON shape: { title, objectives, slots: { hook, investigate, teach, apply, check, resolution, recap } }.",
-      "hook, investigate, teach, resolution, and recap use { title, lines }. lines is an array of short spoken sentences. investigate uses { instruction, target }. apply uses { instruction, target, knowledgeUsed, successCondition, teachingConnection }. check uses { title, prompt, choices, correct, explain, knowledgeChecked, successEvidence, teachingConnection }. choices are strings. correct is one of those strings copied exactly.",
-      "Each slot already has minutes, minimumParticipation, and contentDepth. Meet that participation with short turns: a teacher prompt, an observation, a pupil action, a check, or a retrieval. Do not pad a slot into a long paragraph.",
-      "hook creates the unsolved problem and must not reveal the answer. investigate asks the class to look, using the slot's interactionIntent. It must not explain the answer and it must not be a pupil spin. teach states every requiredKnowledge fact in short sentences this age can hear. apply must make the pupil use at least one requiredKnowledge item through the slot's interactionIntent. instruction is that task. knowledgeUsed names the requiredKnowledge item the task uses. successCondition says what a finished action shows. teachingConnection says how the task follows the teaching. Sort the cards, move this, or put these in order is not an apply task unless the taught idea is in the instruction. Choosing a pupil is not the apply slot. check comes after teaching and assesses teacherIntent.requiredEvidence for teacherIntent.learningGoal. A correct answer must be sufficient evidence of requiredEvidence. One stage, one side, one component, a label, or a definition is not enough unless requiredEvidence itself asks only for that. knowledgeChecked names the learning the question tests. successEvidence says what a correct answer shows. teachingConnection says how the question follows the required evidence. Keep the question as easy to read as the year group. resolution is the mission outcome after the check. recap states the taught facts. Do not say that the screen is a recap or a mystery.",
+      "JSON shape: { title, objectives, slots: { hook, investigate, teach, apply, check, resolution, recap } }."
+    ];
+    if (legacySlots.length) {
+      shape.push("Slots without beats (" + legacySlots.map(function (slot) { return slot.id; }).join(", ") + ") use the legacy shape. Story slots use { title, lines }. lines is an array of short spoken sentences. investigate also uses { instruction, target }. apply uses { instruction, target, knowledgeUsed, successCondition, teachingConnection }. check uses { title, prompt, choices, correct, explain, knowledgeChecked, successEvidence, teachingConnection }. choices are strings. correct is one of those strings copied exactly.");
+    }
+    if (beatSlots.length) {
+      shape.push("A slot with beats does not use title or lines. Its pupil prose is the beats array only. Each beat object is { id, cue, text }. id is copied from the planned beat. cue may be empty. text is required pupil prose. Do not add, remove, reorder, or rename beats. Do not choose a move or a knowledge ref. Do not invent a replacement beat.");
+      shape.push(beatResponseExample(skeleton));
+      shape.push(moveGuide(skeleton));
+    }
+    shape.push("Each slot already has minutes, minimumParticipation, and contentDepth. A slot without beats meets that participation with short spoken lines. A slot with beats meets it only through the planned beat texts. Do not add a lines array beside beats. Do not pad a slot into a long paragraph.");
+    var system = shape.concat([
+      "hook creates the unsolved problem and must not reveal the answer. investigate asks the class to look, using the slot's interactionIntent. It must not explain the answer and it must not be a pupil spin. teach states every requiredKnowledge fact in short sentences this age can hear. apply must make the pupil use at least one requiredKnowledge item through the slot's interactionIntent. instruction is that task. On a legacy apply slot, knowledgeUsed names the requiredKnowledge item the task uses. On an apply slot with beats, do not return knowledgeUsed. successCondition says what a finished action shows. teachingConnection says how the task follows the teaching. Sort the cards, move this, or put these in order is not an apply task unless the taught idea is in the instruction. Choosing a pupil is not the apply slot. check comes after teaching and assesses teacherIntent.requiredEvidence for teacherIntent.learningGoal. A correct answer must be sufficient evidence of requiredEvidence. One stage, one side, one component, a label, or a definition is not enough unless requiredEvidence itself asks only for that. knowledgeChecked names the learning the question tests. successEvidence says what a correct answer shows. teachingConnection says how the question follows the required evidence. Keep the question as easy to read as the year group. resolution is the mission outcome after the check. recap states the taught facts. Do not say that the screen is a recap or a mystery.",
       "A stage with mayRevealAnswer false must not state requiredKnowledge and must not use because, caused by, or due to. Do not add a fact that is not in keyKnowledge.",
       "For a why lesson, the check correct answer is the cause, reason, or process in keyKnowledge. The visible outcome can be the question or a wrong choice.",
       "When teacherIntent is present, paraphrase the learning goal and the focus concepts. Do not make the class meet preference words, duration words, prior-knowledge labels, or exclusions. Otherwise lessonBrief.concepts are the ideas the class must meet. Do not treat between, difference, why, or how as ideas to teach.",
@@ -1567,8 +1625,8 @@
       "title must not repeat the teacher's request.",
       "A hook may describe the unsolved visible event. Do not invent a mechanic for it. If that event is something the class can see, name a worldEffect type the player already allows: shake, rumble, pulse, glow, highlight, zoom, pan, reveal, crack, move-object, vibrate-object, fade, particles, flash, or sound-cue.",
       "Do not write {name} or a pupil name. participantSelection on a slot chooses who acts. The slot's instruction is what they do.",
-      "When a slot has a beats list, that list is already decided. Return each beat id unchanged, with cue and text only, except a quiz check slot. cue may be empty. text is the pupil sentence for that move. Do not add, remove, reorder, or rename beats. Do not choose a move or a knowledge ref. Do not invent a replacement beat. Do not copy pedagogicalPurpose, learningRole, interactionIntent, a move name, or a slot id into cue or text. A notice, predict, practise, apply, reveal, or consolidate sentence must not repeat a keyKnowledge sentence. Apply also returns instruction, target, successCondition, and teachingConnection. A quiz check slot does not return beat cue or text. Its retrieve beat is the quiz itself. Return prompt, choices, correct, explain, successEvidence, and teachingConnection. The quiz tests the knowledge ref on that retrieve beat."
-    ].join(" ");
+      "Do not copy pedagogicalPurpose, learningRole, interactionIntent, a move name, or a slot id into cue or text. A notice, predict, practise, apply, reveal, or consolidate sentence must not repeat a keyKnowledge sentence. Apply, when it has beats, also returns instruction, target, successCondition, and teachingConnection, and does not return knowledgeUsed. A quiz check slot does not return beat cue or text. Its retrieve beat is the quiz itself. Return prompt, choices, correct, explain, successEvidence, and teachingConnection. The quiz tests the knowledge ref on that retrieve beat."
+    ]).filter(Boolean).join(" ");
     var schema = {
       type: "object",
       additionalProperties: false,
@@ -1693,7 +1751,9 @@
           ? { instruction: "", knowledgeUsed: "", successCondition: "", teachingConnection: "", target: "" }
           : slot.id === "check"
             ? { prompt: "", choices: [], correct: "", explain: "", knowledgeChecked: "", successEvidence: "", teachingConnection: "" }
-            : { title: "", lines: [] }
+            : ((slot.beats && slot.beats.length && !(slot.mechanic === "quiz" && (slot.beats || []).some(function (beat) { return beat.move === "retrieve"; })))
+              ? {}
+              : { title: "", lines: [] })
       });
       var spec = specs[specs.length - 1];
       var quizRetrieve = slot.mechanic === "quiz" && (slot.beats || []).some(function (beat) { return beat.move === "retrieve"; });
@@ -1753,17 +1813,19 @@
       });
       instruction += " For any other listed slot, correct only the failures listed for that slot. Those failure texts are the reason that slot must change.";
       if (otherFailures.some(function (item) { return /enough participation/.test(item); })) {
-        instruction += " If a failure says the slot does not have enough participation, add the missing turns up to minimumParticipation. Each turn is one short sentence: a teacher prompt, an observation, a pupil action, a check, or a retrieval. Do not pad with a long paragraph. Do not copy teaching into a slot that already has it.";
+        instruction += specs.some(function (spec) { return spec.teachingBeats && spec.teachingBeats.length; })
+          ? " If a failure says the slot does not have enough participation, fill the listed beat texts. Do not add lines beside those beats."
+          : " If a failure says the slot does not have enough participation, add the missing turns up to minimumParticipation. Each turn is one short sentence: a teacher prompt, an observation, a pupil action, a check, or a retrieval. Do not pad with a long paragraph. Do not copy teaching into a slot that already has it.";
       }
     }
     if (specs.some(function (spec) { return spec.teachingBeats && spec.teachingBeats.length; })) {
-      instruction += " Where teachingBeats are listed, return those ids with cue and text only. Do not add, remove, or reorder them.";
+      instruction += " Where teachingBeats are listed, return only those ids with cue and text. " + pupilCopyContract((ctx && ctx.yearGroup) || "") + " Do not add, remove, reorder, rename, or choose teaching beats. Do not alter moves or knowledgeRefs. Do not return title or lines for that slot.";
     }
     specs.forEach(function (spec) {
       if (!spec.rejectedBeats || !spec.rejectedBeats.length) return;
       instruction += " Rewrite only the rejected recap consolidate beat. Keep the other beat ids. Do not regenerate the plan or the lesson. " + (spec.pupilCopyRequirements || "");
     });
-    instruction += " Do not return activities, mechanics, beats, or a new stage.";
+    instruction += " Do not return activities, mechanics, or a new stage.";
     brief.user = JSON.stringify({
       slotsToRewrite: specs,
       instruction: instruction

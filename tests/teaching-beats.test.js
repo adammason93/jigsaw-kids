@@ -159,6 +159,18 @@ assert.ok(firstBad.previous.activities[1].config.lines.join(" ").indexOf("Do not
 assert.notStrictEqual(firstBad.previous.activities[1].title, firstBad.previous.activities[1].purpose);
 var repair = JSON.parse(Brain.slotRepairBrief(frameFor(sharkPlan, "Year 1", sharkSlots), firstBad.slotIds, firstBad, firstBad.previous).user);
 assert.ok(repair.slotsToRewrite.some(function (spec) { return spec.output && Array.isArray(spec.output.beats); }));
+repair.slotsToRewrite.forEach(function (spec) {
+  if (!spec.teachingBeats || !spec.teachingBeats.length) return;
+  assert.ok(!Object.prototype.hasOwnProperty.call(spec.output, "lines"), spec.slotType);
+  assert.ok(!Object.prototype.hasOwnProperty.call(spec.output, "title"), spec.slotType);
+  spec.output.beats.forEach(function (beat) {
+    assert.deepStrictEqual(Object.keys(beat).sort(), ["cue", "id", "text"]);
+  });
+});
+assert.ok(repair.instruction.toLowerCase().indexOf("do not return beats") === -1);
+assert.ok(repair.instruction.indexOf("Do not add, remove, reorder, rename, or choose teaching beats") !== -1);
+assert.ok(repair.instruction.indexOf("Do not alter moves or knowledgeRefs") !== -1);
+assert.ok(repair.instruction.indexOf("at least four words") !== -1);
 var secondBad = Brain.accept({ title: "Sharks mission", objectives: [sharkPlan.learningObjective], slots: badSlots }, frameFor(sharkPlan, "Year 1", sharkSlots));
 assert.strictEqual(secondBad.ok, false);
 
@@ -311,6 +323,15 @@ assert.ok(!checkSchema.beats);
 assert.ok(brief.system.indexOf("does not return beat cue or text") !== -1);
 assert.ok(brief.system.indexOf("at least four words") !== -1);
 assert.ok(brief.system.indexOf("exactly one pupil-facing sentence") !== -1);
+assert.ok(brief.system.indexOf("teach:0") !== -1);
+assert.ok(brief.system.indexOf("\"cue\":\"...\"") !== -1 || brief.system.indexOf('"cue":"..."') !== -1);
+assert.ok(brief.system.indexOf("{ title, lines }") === -1);
+assert.ok(brief.system.toLowerCase().indexOf("do not return beats") === -1);
+assert.ok(brief.system.indexOf("notice directs attention") !== -1);
+assert.ok(brief.system.indexOf("consolidate restates") !== -1);
+assert.ok(plainBrief.system.indexOf("{ title, lines }") !== -1);
+assert.ok(plainBrief.schema.properties.slots.properties.hook.properties.lines);
+assert.ok(plainBrief.schema.properties.slots.properties.hook.properties.title);
 assert.ok(brief.schema.properties.slots.properties.apply.properties.beats);
 assert.ok(brief.schema.properties.slots.properties.apply.properties.instruction);
 assert.ok(brief.schema.properties.slots.properties.teach.properties.beats);
@@ -369,6 +390,23 @@ assert.strictEqual(checkRepairSpec.retrieveBeat.id, "check:0");
 assert.strictEqual(checkRepairSpec.retrieveBeat.move, "retrieve");
 assert.ok(checkRepairBeat.instruction.indexOf("Do not return cue or text") !== -1);
 assert.ok(checkRepairBeat.instruction.indexOf("must stay a quiz") !== -1);
+assert.ok(checkRepairBeat.instruction.toLowerCase().indexOf("do not return beats") === -1);
+
+var flipped = slotsFrom(sharkSlots, sharkItems);
+var teachPlan = sharkSlots.filter(function (slot) { return slot.id === "teach"; })[0].beats;
+flipped.teach.beats = teachPlan.slice().reverse().map(function (beat, index) {
+  return { id: teachPlan[teachPlan.length - 1 - index].id, cue: "", text: "Fins help a shark turn.", knowledgeRefs: ["k9"], move: "invent" };
+});
+var flippedAccept = Brain.accept({ title: "Sharks mission", objectives: [sharkPlan.learningObjective], slots: flipped }, frameFor(sharkPlan, "Year 1", sharkSlots));
+var flippedTeach = flippedAccept.adventure ? flippedAccept.adventure.activities[2] : flippedAccept.previous.activities[2];
+assert.deepStrictEqual(flippedTeach.beats.map(function (beat) { return beat.id; }), teachPlan.map(function (beat) { return beat.id; }));
+assert.deepStrictEqual(flippedTeach.beats.map(function (beat) { return beat.move; }), teachPlan.map(function (beat) { return beat.move; }));
+assert.deepStrictEqual(flippedTeach.beats.map(function (beat) { return beat.knowledgeRefs[0]; }), teachPlan.map(function (beat) { return beat.knowledgeRefs[0]; }));
+var dropped = slotsFrom(sharkSlots, sharkItems);
+dropped.teach.beats = dropped.teach.beats.slice(0, 1);
+var droppedAccept = Brain.accept({ title: "Sharks mission", objectives: [sharkPlan.learningObjective], slots: dropped }, frameFor(sharkPlan, "Year 1", sharkSlots));
+assert.strictEqual(droppedAccept.ok, false);
+assert.strictEqual(droppedAccept.previous.activities[2].beats.length, teachPlan.length);
 
 dump("YEAR 1 SHARK FIXTURE", sharkPlan, sharkSlots, sharkItems, sharkAccept);
 dump("YEAR 4 FRACTIONS FIXTURE", fractionPlan, fractionSlots, fractionItems, fractionAccept);
