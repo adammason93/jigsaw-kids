@@ -135,6 +135,24 @@ rejects(judged(
   "unrelated"
 ), "does not test the learning goal");
 
+var adversarial = [
+  ["Compare two historical accounts of the same event.", contract("What is a source?", "A source is a record from the past."), "prerequisite"],
+  ["Explain why condensation forms on a cold glass.", contract("What are the droplets on the glass?", "Water."), "prerequisite"],
+  ["Sequence the instructions for planting a seed.", contract("What is the first instruction?", "Fill the pot with soil."), "prerequisite"],
+  ["Measure the length of the ribbon accurately.", contract("What is this tool called?", "A ruler."), "prerequisite"],
+  ["Infer why the character hid the letter.", contract("Which feeling does the story state?", "She is sad."), "prerequisite"],
+  ["Identify the noun in a sentence.", contract("Which word is the noun in 'The dog ran'?", "dog"), "aligned"],
+  ["Define what evaporation means.", contract("What does evaporation mean?", "A liquid becomes a gas."), "aligned"],
+  ["Compare these two fractions.", contract("Which fraction is larger, 1/2 or 1/4?", "1/2 is larger."), "aligned"],
+  ["Explain why the puddle disappeared.", contract("Which explanation shows why the puddle disappeared?", "The water evaporated into the air."), "aligned"],
+  ["Explain why the puddle disappeared.", contract("Which classroom is nearest the hall?", "The art room."), "unrelated"]
+];
+adversarial.forEach(function (row) {
+  var result = judged(row[0], row[1], row[2]);
+  if (row[2] === "aligned") assert.strictEqual(result.ok, true, row[0] + " " + (result.issues || []).join("; "));
+  else rejects(result, row[2] === "unrelated" ? "does not test the learning goal" : "nearby definition");
+});
+
 var thin = judged(compareGoal, {
   prompt: "What?",
   choices: ["A habitat."],
@@ -164,7 +182,15 @@ assert.ok(brief.system.indexOf("prerequisite") !== -1);
 assert.ok(brief.system.indexOf("unrelated") !== -1);
 assert.ok(brief.system.indexOf("year group") !== -1);
 assert.ok(brief.system.indexOf("Do not rewrite the question") !== -1);
+assert.ok(brief.system.indexOf("can we reasonably conclude") !== -1);
+assert.ok(brief.system.indexOf("If they are not the same action") !== -1);
+assert.ok(brief.system.indexOf("from a start to an end") !== -1);
+assert.ok(brief.system.indexOf("one component") !== -1);
+assert.ok(brief.system.indexOf("must not override the prompt") !== -1);
 assert.strictEqual(brief.system.indexOf("reproduce"), -1);
+assert.strictEqual(brief.system.indexOf("frog"), -1);
+assert.strictEqual(brief.system.indexOf("acute"), -1);
+assert.strictEqual(brief.system.indexOf("speech mark"), -1);
 var parsed = Brain.parseCheckSemantic("{\"relationship\":\"aligned\",\"reason\":\"The answer shows the goal.\"}");
 assert.strictEqual(parsed.ok, true);
 assert.strictEqual(parsed.relationship, "aligned");
@@ -178,6 +204,8 @@ assert.ok(Array.isArray(checkSpec.output.choices));
 assert.strictEqual(checkSpec.learningGoal, compareGoal);
 assert.ok(checkRepair.instruction.indexOf("must stay a quiz") !== -1);
 assert.ok(checkRepair.instruction.indexOf("year group can read") !== -1);
+assert.ok(checkRepair.instruction.indexOf("single component") !== -1);
+assert.ok(checkRepair.instruction.indexOf("evidence the pupil achieved") !== -1);
 assert.ok(checkRepair.instruction.indexOf(compareGoal) !== -1);
 
 var applyOnly = JSON.parse(Brain.slotRepairBrief(frameFor(compareGoal), ["apply"], ["The apply slot does not use the taught knowledge."], { activities: [] }).user);
