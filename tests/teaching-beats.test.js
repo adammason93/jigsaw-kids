@@ -283,15 +283,14 @@ function brokenCopy(slotId, text) {
 var badInvestigate = brokenCopy("investigate", "Look.");
 var badCheck = brokenCopy("check", "Hmm.");
 var badRecap = brokenCopy("recap", "Fins steer a shark. They push water.");
-[badInvestigate, badCheck, badRecap].forEach(function (result) {
+[badInvestigate, badRecap].forEach(function (result) {
   assert.strictEqual(result.ok, false);
   assert.ok((result.issues || []).join(" ").indexOf("needs a pupil sentence") !== -1, (result.issues || []).join(" | "));
 });
+assert.strictEqual(badCheck.ok, true, (badCheck.issues || []).join(" | "));
+assert.ok((badCheck.issues || []).join(" ").indexOf("check:0") === -1);
 assert.ok(badInvestigate.pupilBeatDiagnostics.some(function (row) {
   return row.beatId === "investigate:0" && row.reason === "fewer than minimum words" && row.text === "Look." && row.stageId === "investigate";
-}));
-assert.ok(badCheck.pupilBeatDiagnostics.some(function (row) {
-  return row.beatId === "check:0" && row.move === "retrieve" && row.reason === "fewer than minimum words" && row.text === "Hmm.";
 }));
 assert.ok(badRecap.pupilBeatDiagnostics.some(function (row) {
   return row.beatId === "recap:0" && row.reason === "too many sentences for year" && row.text === "Fins steer a shark. They push water.";
@@ -303,6 +302,73 @@ assert.ok(bare.pupilBeatDiagnostics.some(function (row) { return row.beatId === 
 assert.deepStrictEqual(shortSlots.map(function (slot) { return slot.id; }), ["hook", "investigate", "teach", "apply", "check", "resolution", "recap"]);
 assert.strictEqual(Brain.applySemanticDecision("apply").outcome, "semantic-pass");
 assert.strictEqual(Brain.checkEvidenceDecision("partial").issue.indexOf("part of the required evidence") !== -1, true);
+assert.strictEqual(Brain.checkEvidenceDecision("sufficient").outcome, "check-pass");
+assert.strictEqual(Brain.checkEvidenceDecision("unrelated").outcome, "check-unrelated");
+
+var checkSchema = brief.schema.properties.slots.properties.check.properties;
+assert.deepStrictEqual(Object.keys(checkSchema).sort(), ["choices", "correct", "explain", "prompt", "successEvidence", "teachingConnection"]);
+assert.ok(!checkSchema.beats);
+assert.ok(brief.system.indexOf("does not return beat cue or text") !== -1);
+assert.ok(brief.system.indexOf("at least four words") !== -1);
+assert.ok(brief.system.indexOf("exactly one pupil-facing sentence") !== -1);
+assert.ok(brief.schema.properties.slots.properties.apply.properties.beats);
+assert.ok(brief.schema.properties.slots.properties.apply.properties.instruction);
+assert.ok(brief.schema.properties.slots.properties.teach.properties.beats);
+
+var quizBody = slotsFrom(sharkSlots, sharkItems);
+quizBody.check.beats[0].cue = "";
+quizBody.check.beats[0].text = "";
+var quizAccept = Brain.accept({ title: "Sharks mission", objectives: [sharkPlan.learningObjective], slots: quizBody }, frameFor(sharkPlan, "Year 1", sharkSlots));
+assert.strictEqual(quizAccept.ok, true, (quizAccept.issues || []).join(" | "));
+var quizBeat = quizAccept.adventure.activities[4].beats[0];
+assert.strictEqual(quizBeat.id, "check:0");
+assert.strictEqual(quizBeat.move, "retrieve");
+assert.ok(quizBeat.knowledgeRefs.length);
+assert.strictEqual(quizBeat.pupil.text, "");
+assert.ok(quizAccept.adventure.activities[4].config.questions[0].prompt);
+assert.ok(quizAccept.adventure.activities[4].config.questions[0].correct);
+var brokenQuiz = slotsFrom(sharkSlots, sharkItems);
+brokenQuiz.check.prompt = "";
+brokenQuiz.check.beats[0].text = "";
+var brokenQuizAccept = Brain.accept({ title: "Sharks mission", objectives: [sharkPlan.learningObjective], slots: brokenQuiz }, frameFor(sharkPlan, "Year 1", sharkSlots));
+assert.strictEqual(brokenQuizAccept.ok, false);
+assert.ok((brokenQuizAccept.issues || []).join(" ").indexOf("no real question") !== -1, (brokenQuizAccept.issues || []).join(" | "));
+
+var quizSlide = { type: "question", beats: [{ id: "check:0", move: "retrieve", pupil: { text: "This retrieve sentence must stay off the quiz." } }], question: { prompt: "What helps a shark swim?" } };
+assert.ok(Mechanics.render(quizSlide, {}).html.indexOf("must stay off the quiz") === -1);
+assert.strictEqual(Shell.primaryLabel(quizSlide, { beat: 0 }, 4, 7, { answered: false, index: 0, count: 1 }), "");
+assert.strictEqual(Shell.primaryLabel(quizSlide, { beat: 0 }, 4, 7, { answered: true, index: 0, count: 1 }), "Next");
+
+var fastBody = slotsFrom(sharkSlots, sharkItems);
+fastBody.recap.beats[0].text = "Sharks swim fast!";
+var fastAccept = Brain.accept({ title: "Sharks mission", objectives: [sharkPlan.learningObjective], slots: fastBody }, frameFor(sharkPlan, "Year 1", sharkSlots));
+assert.strictEqual(fastAccept.ok, false);
+assert.ok(fastAccept.pupilBeatDiagnostics.some(function (row) {
+  return row.beatId === "recap:0" && row.move === "consolidate" && row.text === "Sharks swim fast!" && row.reason === "fewer than minimum words";
+}));
+var longBody = slotsFrom(sharkSlots, sharkItems);
+longBody.recap.beats.forEach(function (beat) { beat.text = "Fins help a shark turn."; });
+var longAccept = Brain.accept({ title: "Sharks mission", objectives: [sharkPlan.learningObjective], slots: longBody }, frameFor(sharkPlan, "Year 1", sharkSlots));
+assert.strictEqual(longAccept.ok, true, (longAccept.issues || []).join(" | "));
+
+var recapRepair = JSON.parse(Brain.slotRepairBrief(frameFor(sharkPlan, "Year 1", sharkSlots), fastAccept.slotIds, fastAccept, fastAccept.previous).user);
+var recapSpec = recapRepair.slotsToRewrite.filter(function (spec) { return spec.slotType === "RECAP"; })[0];
+assert.ok(recapSpec.rejectedBeats.some(function (row) {
+  return row.beatId === "recap:0" && row.move === "consolidate" && row.text === "Sharks swim fast!" && row.reason === "fewer than minimum words" && row.knowledgeRefs.length;
+}));
+assert.ok(recapSpec.pupilCopyRequirements.indexOf("at least four words") !== -1);
+assert.ok(recapRepair.instruction.indexOf("at least four words") !== -1);
+assert.ok(recapRepair.instruction.indexOf("Do not regenerate the plan") !== -1);
+assert.deepStrictEqual(recapRepair.slotsToRewrite.map(function (spec) { return spec.slotType; }), ["RECAP"]);
+
+var checkRepairBeat = JSON.parse(Brain.slotRepairBrief(frameFor(sharkPlan, "Year 1", sharkSlots), ["check"], ["The check slot has no real question."], quizAccept.adventure).user);
+var checkRepairSpec = checkRepairBeat.slotsToRewrite.filter(function (spec) { return spec.slotType === "CHECK"; })[0];
+assert.ok(!checkRepairSpec.output.beats);
+assert.ok(!checkRepairSpec.teachingBeats);
+assert.strictEqual(checkRepairSpec.retrieveBeat.id, "check:0");
+assert.strictEqual(checkRepairSpec.retrieveBeat.move, "retrieve");
+assert.ok(checkRepairBeat.instruction.indexOf("Do not return cue or text") !== -1);
+assert.ok(checkRepairBeat.instruction.indexOf("must stay a quiz") !== -1);
 
 dump("YEAR 1 SHARK FIXTURE", sharkPlan, sharkSlots, sharkItems, sharkAccept);
 dump("YEAR 4 FRACTIONS FIXTURE", fractionPlan, fractionSlots, fractionItems, fractionAccept);
