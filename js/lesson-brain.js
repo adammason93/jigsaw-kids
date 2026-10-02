@@ -2511,18 +2511,6 @@
     var issues = structuralIssues(activities);
     var blob = blobOf(activities);
     var topic = clean(ctx.topic || "", 120);
-    var intent = ctx.lessonBrief && ctx.lessonBrief.teacherIntent;
-    var concepts = (ctx.lessonBrief && ctx.lessonBrief.concepts) || [];
-    var tokens = [];
-    if (intent && intent.ok) {
-      (intent.focusConcepts || []).forEach(function (phrase) {
-        contentWords(phrase).forEach(function (word) {
-          if (tokens.indexOf(word) === -1) tokens.push(word);
-        });
-      });
-    } else if (!(intent && intent.ok === false)) {
-      tokens = concepts.length ? concepts.slice() : words(topic).filter(function (word) { return !FUNCTION[word]; });
-    }
     conceptCoverageIssues(blob, ctx).forEach(function (issue) { issues.push(issue); });
     var year = yearDigit(ctx.yearGroup);
     var mentioned = blob.match(/year\s*([1-6])/i);
@@ -2583,20 +2571,6 @@
       var followed = next && next.mechanic === "quiz" && (part === "selected_pupil" || part === "spin");
       if (!hasTask && !followed) issues.push("Activity " + (index + 1) + " chooses a pupil without a real turn afterwards.");
     });
-    var sourceWords = words(ctx.sourceText || ctx.lessonText || "").filter(function (word) {
-      return tokens.indexOf(word) === -1;
-    });
-    var rare = [];
-    var seen = {};
-    sourceWords.forEach(function (word) {
-      if (word.length < 6 || seen[word]) return;
-      seen[word] = 1;
-      rare.push(word);
-    });
-    if (rare.length >= 3) {
-      var used = rare.some(function (word) { return blob.indexOf(word) !== -1; });
-      if (!used) issues.push("The teacher's source material was not used.");
-    }
     var sum = activities.reduce(function (total, activity) { return total + (Number(activity.minutes) || 0); }, 0);
     var band = durationBand(ctx.requestedMinutes || 15);
     if (sum < band.low || sum > band.high) issues.push("The activities add up to " + sum + " minutes. The lesson needs between " + band.low + " and " + band.high + ".");

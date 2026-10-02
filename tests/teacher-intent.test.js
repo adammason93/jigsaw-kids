@@ -206,4 +206,108 @@ var legacy = Brain.conceptCoverageIssues("the class talks about rivers", {
 });
 assert.ok(legacy.some(function (issue) { return issue.indexOf("weather") !== -1; }));
 
+var lampRequest = "Year 4 science. They already know a lamp is a light. Do not reteach what a lamp is. Keep it chatty and playful. Teach that a closed path makes the lamp glow.";
+var lampIntent = Brain.normaliseTeacherIntent({
+  yearGroup: "Year 4",
+  subject: "Science",
+  subjectConfidence: "explicit",
+  learningGoal: "Show that a closed path makes the lamp glow.",
+  focusConcepts: ["closed path", "lamp"],
+  priorKnowledge: ["a lamp is a light"],
+  exclusions: ["what a lamp is"],
+  preferences: ["chatty", "playful"],
+  durationMinutes: null
+}, ctxFor(lampRequest, { yearGroup: "Year 4", subject: "Science" }));
+assert.strictEqual(lampIntent.ok, true);
+assert.ok(lampIntent.focusConcepts.join(" ").toLowerCase().indexOf("reteach") === -1);
+assert.ok(lampIntent.preferences.indexOf("chatty") !== -1 || lampIntent.preferences.indexOf("playful") !== -1);
+var lampCtx = ctxFor(lampRequest, { yearGroup: "Year 4", subject: "Science", topic: "lamps" });
+Brain.applyTeacherIntent(lampCtx, lampIntent);
+
+function lampLesson(lines, quiz) {
+  quiz = quiz || {
+    prompt: "When does the lamp glow?",
+    choices: ["When the route is shut", "When the route is open", "When the lamp is hidden"],
+    correct: "When the route is shut",
+    explain: "A shut route makes the lamp glow in the classroom."
+  };
+  return {
+    subject: "Science",
+    topic: "lamps",
+    yearGroup: "Year 4",
+    title: "Lamp Adventure",
+    objectives: ["Show that a closed path makes the lamp glow."],
+    activities: [
+      { mechanic: "story", title: "Watch first", purpose: "Teach the idea", minutes: 5, why: "The class sees the idea first.", config: { lines: [lines[0], lines[1]] } },
+      { mechanic: "quiz", title: "Check", purpose: "Check the idea", minutes: 5, why: "See whether the class can use the idea.", config: { points: 1, questions: [{ prompt: quiz.prompt, choices: quiz.choices, correct: quiz.correct, explain: quiz.explain, kind: "multiple" }] } },
+      { mechanic: "mystery", title: "Remember", purpose: "Recap", minutes: 5, why: "Leave the class with the main fact.", config: { lines: [lines[2]] } }
+    ]
+  };
+}
+
+var lampLines = [
+  "A shut route makes the lamp glow in the classroom.",
+  "The lamp stays dark when that route is left open.",
+  "The lamp glow depends on a shut route."
+];
+var lampText = lampLines.join(" ").toLowerCase();
+assert.ok(lampText.indexOf("already") === -1);
+assert.ok(lampText.indexOf("reteach") === -1);
+assert.ok(lampText.indexOf("chatty") === -1);
+assert.ok(lampText.indexOf("playful") === -1);
+assert.deepStrictEqual(Brain.conceptCoverageIssues(lampText, lampCtx), []);
+var lampAccepted = Brain.accept(lampLesson(lampLines), lampCtx);
+var lampIssues = (lampAccepted.issues || []).join(" ");
+assert.ok(lampIssues.indexOf("The teacher's source material was not used.") === -1);
+assert.strictEqual(lampAccepted.ok, true, lampIssues);
+
+var ignored = Brain.conceptCoverageIssues("The class learns how a volcano erupts and what magma is.", lampCtx);
+assert.ok(ignored.some(function (issue) { return issue.indexOf("requested idea") !== -1; }));
+var ignoredLesson = Brain.accept(lampLesson([
+  "A volcano erupts when magma rises through the vent.",
+  "Magma is molten rock sitting under the ground.",
+  "The vent is the opening where magma comes out."
+], {
+  prompt: "What rises through the vent?",
+  choices: ["Magma", "Rain", "Sand"],
+  correct: "Magma",
+  explain: "Magma is molten rock sitting under the ground."
+}), lampCtx);
+assert.strictEqual(ignoredLesson.ok, false);
+assert.ok((ignoredLesson.issues || []).join(" ").indexOf("requested idea") !== -1);
+assert.ok((ignoredLesson.issues || []).join(" ").indexOf("The teacher's source material was not used.") === -1);
+
+var unrelated = Brain.conceptCoverageIssues("Equivalent fractions name the same amount in different ways.", lampCtx);
+assert.ok(unrelated.some(function (issue) { return issue.indexOf("requested idea") !== -1; }));
+assert.deepStrictEqual(Brain.conceptCoverageIssues("A shut route makes the lamp glow in the classroom.", lampCtx), []);
+
+var maps = require("../docs/rebuild/PHASE_993_RESULTS.json").filter(function (row) { return row.id === "y3-maps"; })[0];
+var mapsCtx = ctxFor(maps.input, { yearGroup: "Year 3", subject: "Geography", topic: "maps" });
+Brain.applyTeacherIntent(mapsCtx, maps.teacherIntent);
+mapsCtx.lessonPlan = { keyKnowledge: maps.requiredKnowledge.slice() };
+var mapsPupil = [
+  (maps.hook || []).join(" "),
+  maps.requiredKnowledge.join(" "),
+  maps.finalApply.instruction,
+  maps.finalApply.successCondition,
+  maps.finalApply.teachingConnection
+].join(" ");
+assert.ok(mapsPupil.toLowerCase().indexOf("reteach") === -1);
+assert.ok(mapsPupil.toLowerCase().indexOf("picture") === -1);
+assert.deepStrictEqual(Brain.conceptCoverageIssues(mapsPupil, mapsCtx), []);
+var mapsLesson = {
+  subject: "Geography",
+  topic: "maps",
+  yearGroup: "Year 3",
+  title: "Map Adventure",
+  objectives: [maps.teacherIntent.learningGoal],
+  activities: [
+    { mechanic: "story", title: "Look at the map", purpose: "Teach the idea", minutes: 5, why: "The class sees the idea first.", config: { lines: [(maps.hook || []).concat(maps.requiredKnowledge).join(" ")] } },
+    { mechanic: "quiz", title: "Check", purpose: "Check the idea", minutes: 5, why: "See whether the class can use the idea.", config: { points: 1, questions: [{ prompt: "What does a map key tell you?", choices: ["What the symbols mean", "The name of the town", "How far the river is"], correct: "What the symbols mean", explain: "A map key explains what the symbols on the map mean.", kind: "multiple" }] } },
+    { mechanic: "mystery", title: "Remember", purpose: "Recap", minutes: 5, why: "Leave the class with the main fact.", config: { lines: [maps.finalApply.instruction + " " + maps.requiredKnowledge[1]] } }
+  ]
+};
+var mapsAccepted = Brain.accept(mapsLesson, mapsCtx);
+assert.ok((mapsAccepted.issues || []).join(" ").indexOf("The teacher's source material was not used.") === -1);
+
 console.log("teacher intent tests passed");
