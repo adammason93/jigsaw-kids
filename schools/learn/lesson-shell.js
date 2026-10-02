@@ -404,7 +404,7 @@
       primary = "Continue";
     } else {
       considerPupil(model, screen, slide);
-      if (!ui.play || ui.play.index !== index) ui.play = { index: index, step: 0, stuck: false, slipped: false, revealed: false, boomed: false };
+      if (!ui.play || ui.play.index !== index) ui.play = { index: index, step: 0, beat: 0, stuck: false, slipped: false, revealed: false, boomed: false };
       var drawn = stageBody(model, slide, index);
       if (drawn.invalid && model.actions && model.actions.fail && ui.failRound !== index) {
         ui.failRound = index;
@@ -797,6 +797,13 @@
       if (model.actions.previewNext) model.actions.previewNext(index);
       return;
     }
+    if (!ui.play || ui.play.index !== index) ui.play = { index: index, step: 0, beat: 0, stuck: false, slipped: false, revealed: false, boomed: false };
+    var stepped = advancePlay(slide, ui.play);
+    if (!stepped.stage) {
+      ui.play = Object.assign({}, ui.play, stepped.play, { index: index });
+      render(lastRoot, model);
+      return;
+    }
     if (index >= slides.length - 1) {
       ui.celebrate = true;
       if (model.actions.complete) model.actions.complete();
@@ -804,6 +811,15 @@
     }
     ui.transition = index + 1;
     render(lastRoot, model);
+  }
+
+  function advancePlay(slide, play) {
+    var beats = slide && Array.isArray(slide.beats) ? slide.beats : [];
+    var current = play ? Number(play.beat) || 0 : 0;
+    if (beats.length > 1 && current < beats.length - 1) {
+      return { stage: false, play: Object.assign({}, play || {}, { beat: current + 1 }) };
+    }
+    return { stage: true, play: play || { beat: 0 } };
   }
 
   function noteScore(view, previous) {
@@ -846,6 +862,7 @@
     waitingOn: waitingOn,
     completeSpot: completeSpot,
     primaryLabel: primaryLabel,
+    advancePlay: advancePlay,
     screenFor: screenFor,
     scoreMode: scoreMode,
     activityName: activityName,

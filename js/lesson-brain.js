@@ -542,6 +542,246 @@
     });
   }
 
+  var BEAT_MOVES = { notice: 1, predict: 1, name: 1, explain: 1, exemplify: 1, model: 1, compare: 1, connect: 1, practise: 1, apply: 1, retrieve: 1, reveal: 1, consolidate: 1 };
+
+  function beatYear(year) {
+    var digit = Number(yearDigit(year));
+    if (digit) return digit;
+    var number = Number(year);
+    return number >= 1 && number <= 6 ? number : 3;
+  }
+
+  function beatLimit(year) {
+    year = beatYear(year);
+    if (year <= 2) return { items: 2, cap: 3 };
+    if (year <= 4) return { items: 3, cap: 4 };
+    return { items: 4, cap: 5 };
+  }
+
+  function beatKind(item) {
+    item = item || {};
+    var text = item.text || "";
+    var labeled = item.knowledgeType || "";
+    if (labeled === "cause" || labeled === "reason" || labeled === "process" || statesRelation(text)) return "relationship";
+    if (labeled === "procedure" || statesSteps(text)) return "procedure";
+    if (labeled === "comparison" || /\b(difference|unlike|whereas)\b/i.test(text)) return "comparison";
+    if (labeled === "definition" || /\b(is|are|means|called)\b/i.test(text)) return "definition";
+    return "fact";
+  }
+
+  function beatKnowledge(plan, year) {
+    plan = plan || {};
+    var entries = plan.knowledge && plan.knowledge.length ? plan.knowledge : knowledgeEntries(plan.keyKnowledge);
+    var limit = beatLimit(year).items;
+    return entries.slice(0, limit).map(function (item, index) {
+      return { id: "k" + (index + 1), text: item.text, kind: beatKind(item) };
+    }).filter(function (item) { return item.text; });
+  }
+
+  function makeBeat(stageId, index, move, refs) {
+    var limit = move === "consolidate" ? 4 : 2;
+    return {
+      id: stageId + ":" + index,
+      stageId: stageId,
+      move: move,
+      knowledgeRefs: (refs || []).filter(Boolean).slice(0, limit)
+    };
+  }
+
+  function trimMoves(list, cap) {
+    var next = (list || []).slice();
+    ["exemplify", "connect", "compare", "predict", "model"].forEach(function (move) {
+      while (next.length > cap) {
+        var index = -1;
+        for (var i = next.length - 1; i >= 0; i -= 1) {
+          if (next[i].move === move) { index = i; break; }
+        }
+        if (index === -1) break;
+        next.splice(index, 1);
+      }
+    });
+    while (next.length > cap) {
+      var seen = false;
+      var extra = -1;
+      for (var n = 0; n < next.length; n += 1) {
+        if (next[n].move !== "explain") continue;
+        if (seen) { extra = n; break; }
+        seen = true;
+      }
+      if (extra === -1) break;
+      next.splice(extra, 1);
+    }
+    while (next.length > cap && next.length > 1) next.pop();
+    return next;
+  }
+
+  function packBeats(stageId, list, cap) {
+    return trimMoves(list, cap).map(function (item, index) {
+      return makeBeat(stageId, index, item.move, item.refs);
+    });
+  }
+
+  function planBeats(skeleton, plan, year) {
+    year = beatYear(year);
+    var bounds = beatLimit(year);
+    var items = beatKnowledge(plan, year);
+    if (!items.length) return (skeleton || []).map(function (slot) { return Object.assign({}, slot, { beats: [] }); });
+    var first = items[0].id;
+    var english = /english|writ|grammar/i.test((plan && plan.subject) || "");
+    var comparison = items.filter(function (item) { return item.kind === "comparison"; });
+    var teach = [];
+    var explained = false;
+    items.forEach(function (item, index) {
+      teach.push({ move: "name", refs: [item.id] });
+      if (item.kind === "relationship" && (year >= 3 || !explained)) {
+        teach.push({ move: "explain", refs: [item.id] });
+        explained = true;
+      }
+      if (item.kind === "procedure" && year >= 3) teach.push({ move: "model", refs: [item.id] });
+      var example = item.kind === "definition" || (english && (item.kind === "definition" || item.kind === "procedure"));
+      if (example && (year >= 3 || index === 0)) teach.push({ move: "exemplify", refs: [item.id] });
+    });
+    if (year >= 3 && items.length >= 2) teach.push({ move: "connect", refs: [items[0].id, items[1].id] });
+    var taught = {};
+    packBeats("teach", teach, bounds.cap).forEach(function (beat) {
+      if (beat.move === "name" || beat.move === "explain" || beat.move === "model") {
+        (beat.knowledgeRefs || []).forEach(function (ref) { taught[ref] = true; });
+      }
+    });
+    var focus = first;
+    packBeats("teach", teach, bounds.cap).forEach(function (beat) {
+      if ((beat.move === "explain" || beat.move === "model") && beat.knowledgeRefs[0]) focus = beat.knowledgeRefs[0];
+    });
+    var teachBeats = packBeats("teach", teach, bounds.cap);
+    var connect = null;
+    teachBeats.forEach(function (beat) { if (beat.move === "connect") connect = beat; });
+    var checkRefs = year >= 5 && connect ? connect.knowledgeRefs.slice() : [focus];
+    var named = items.filter(function (item) { return taught[item.id]; }).map(function (item) { return item.id; });
+    if (!named.length) named = [first];
+    var recap = year >= 4
+      ? [{ move: "consolidate", refs: named.slice() }]
+      : named.map(function (ref) { return { move: "consolidate", refs: [ref] }; });
+    var hook = [{ move: "notice", refs: [first] }];
+    if (year >= 3) hook.push({ move: "predict", refs: [first] });
+    var investigate = [{ move: "notice", refs: [first] }];
+    if (year >= 3 && comparison.length) investigate.push({ move: "compare", refs: comparison.slice(0, 2).map(function (item) { return item.id; }) });
+    var shaped = {
+      hook: hook,
+      investigate: investigate,
+      teach: teach,
+      apply: [{ move: year <= 3 ? "practise" : "apply", refs: [focus] }],
+      check: [{ move: "retrieve", refs: checkRefs }],
+      resolution: [{ move: "reveal", refs: [checkRefs[0] || focus] }],
+      recap: recap
+    };
+    return (skeleton || []).map(function (slot) {
+      var beats = packBeats(slot.id, shaped[slot.id] || [], bounds.cap).filter(function (beat) { return BEAT_MOVES[beat.move]; });
+      return Object.assign({}, slot, { beats: beats });
+    });
+  }
+
+  function keepBeatPlan(planned, returned) {
+    var byId = {};
+    (returned || []).forEach(function (beat) {
+      if (!beat) return;
+      var pupil = beat.pupil && typeof beat.pupil === "object" ? beat.pupil : beat;
+      if (beat.id) byId[beat.id] = { cue: clean(pupil.cue, 180), text: clean(pupil.text || pupil.pupilText, 280) };
+    });
+    return (planned || []).map(function (beat) {
+      var got = byId[beat.id] || {};
+      return {
+        id: beat.id,
+        stageId: beat.stageId,
+        move: beat.move,
+        knowledgeRefs: (beat.knowledgeRefs || []).slice(),
+        pupil: { cue: got.cue || "", text: got.text || "" }
+      };
+    });
+  }
+
+  function beatProblems(slots) {
+    var flat = [];
+    (slots || []).forEach(function (slot) {
+      ((slot && slot.beats) || []).forEach(function (beat) { flat.push(beat); });
+    });
+    var issues = [];
+    var taught = {};
+    flat.forEach(function (beat) {
+      var refs = beat.knowledgeRefs || [];
+      if (beat.move === "practise" || beat.move === "apply" || beat.move === "retrieve" || beat.move === "reveal" || beat.move === "consolidate") {
+        refs.forEach(function (ref) {
+          if (!taught[ref]) issues.push("The " + beat.id + " beat uses " + ref + " before it is taught.");
+        });
+        refs.forEach(function (ref) {
+          var waiting = flat.some(function (other) {
+            return (other.move === "explain" || other.move === "model") && (other.knowledgeRefs || []).indexOf(ref) !== -1;
+          });
+          var done = flat.some(function (other) {
+            return flat.indexOf(other) < flat.indexOf(beat) && (other.move === "explain" || other.move === "model") && (other.knowledgeRefs || []).indexOf(ref) !== -1;
+          });
+          if (waiting && !done && (beat.move === "practise" || beat.move === "apply")) {
+            issues.push("The " + beat.id + " beat uses " + ref + " before it is explained.");
+          }
+        });
+      }
+      if (beat.move === "name" || beat.move === "explain" || beat.move === "model") {
+        refs.forEach(function (ref) { taught[ref] = true; });
+      }
+    });
+    var covered = {};
+    flat.forEach(function (beat) {
+      if (beat.move !== "consolidate") return;
+      (beat.knowledgeRefs || []).forEach(function (ref) { covered[ref] = true; });
+    });
+    Object.keys(taught).forEach(function (ref) {
+      if (!covered[ref]) issues.push("The recap misses " + ref + ".");
+    });
+    return issues;
+  }
+
+  function pupilSentence(text, year, minimum) {
+    var value = clean(text, 280);
+    if (!/[.?!]$/.test(value)) return false;
+    var words = value.split(/\s+/).filter(Boolean);
+    if (words.length < (minimum || 4)) return false;
+    var count = value.split(/[.?!]+/).filter(function (part) { return clean(part); }).length;
+    if (beatYear(year) <= 2) return count === 1;
+    return count >= 1 && count <= 2;
+  }
+
+  function sameSentence(left, right) {
+    function norm(value) {
+      return clean(value).toLowerCase().replace(/[.?!]+$/g, "").trim();
+    }
+    var a = norm(left);
+    return !!a && a === norm(right);
+  }
+
+  function pupilBeatProblems(slot, beats, items, year) {
+    var issues = [];
+    var names = {};
+    (beats || []).forEach(function (beat) {
+      var pupil = beat.pupil || {};
+      var text = pupil.text || "";
+      var minimum = slot && slot.id === "investigate" ? 6 : 4;
+      var blocked = [slot && slot.pedagogicalPurpose, slot && slot.interactionIntent, slot && slot.id, slot && slot.contentDepth, beat.move, beat.id, beat.stageId];
+      if (!pupilSentence(text, year, minimum) || blocked.some(function (field) { return sameSentence(text, field); })) {
+        issues.push("The " + beat.id + " beat needs a pupil sentence.");
+      }
+      if (pupil.cue && (!pupilSentence(pupil.cue, year, 4) || blocked.some(function (field) { return sameSentence(pupil.cue, field); }))) {
+        issues.push("The " + beat.id + " beat needs a pupil sentence.");
+      }
+      var ref = (beat.knowledgeRefs || [])[0];
+      var item = null;
+      (items || []).forEach(function (entry) { if (entry.id === ref) item = entry; });
+      var reveal = beat.move === "name" || beat.move === "explain";
+      if (!reveal && item && sameSentence(text, item.text)) issues.push("The " + beat.id + " beat repeats a knowledge sentence.");
+      if (beat.move === "name" && ref) names[ref] = text;
+      if (beat.move === "explain" && ref && sameSentence(text, names[ref])) issues.push("The " + beat.id + " beat repeats the name sentence.");
+    });
+    return issues;
+  }
+
   function slotContent(raw) {
     raw = raw || {};
     var config = raw.config && typeof raw.config === "object" ? raw.config : raw;
@@ -562,7 +802,16 @@
       correct: textOf(question.correct || config.correct || raw.correct, 80),
       explain: clean(question.explain || config.explain || raw.explain, 240),
       knowledgeChecked: clean(question.knowledgeChecked || config.knowledgeChecked || raw.knowledgeChecked, 180),
-      successEvidence: clean(question.successEvidence || config.successEvidence || raw.successEvidence, 180)
+      successEvidence: clean(question.successEvidence || config.successEvidence || raw.successEvidence, 180),
+      beats: (Array.isArray(config.beats) ? config.beats : (Array.isArray(raw.beats) ? raw.beats : [])).map(function (beat) {
+        beat = beat || {};
+        var pupil = beat.pupil && typeof beat.pupil === "object" ? beat.pupil : {};
+        return {
+          id: clean(beat.id, 24),
+          cue: clean(beat.cue || pupil.cue, 180),
+          text: clean(beat.text || pupil.text, 280)
+        };
+      }).filter(function (beat) { return beat.id; })
     };
   }
 
@@ -1030,10 +1279,22 @@
     raw = raw && typeof raw === "object" ? raw : {};
     var map = readSlotMap(raw);
     var plan = (ctx && ctx.lessonPlan) || {};
+    var stageTitle = { hook: "Arrival", investigate: "Mission", teach: "Discovery", apply: "Try it", check: "Look", resolution: "Home", recap: "Recap" };
     var activities = (skeleton || []).map(function (slot) {
       var content = map[slot.id] || {};
-      var spoken = (content.lines || []).slice();
-      if (slot.id === "apply" && content.instruction && !spoken.length) spoken = [content.instruction];
+      var beats = slot.beats && slot.beats.length ? keepBeatPlan(slot.beats, content.beats) : [];
+      var spoken = beats.length
+        ? beats.map(function (beat) { return beat.pupil && beat.pupil.text; }).filter(Boolean)
+        : (content.lines || []).slice();
+      if (!beats.length && slot.id === "apply" && content.instruction && !spoken.length) spoken = [content.instruction];
+      var refs = beats.length && beats[0].knowledgeRefs ? beats[0].knowledgeRefs : [];
+      var refText = refs.map(function (ref) {
+        var found = "";
+        beatKnowledge(plan, (ctx && (ctx.yearGroup || ctx.yearAssumption)) || plan.yearGroup).forEach(function (item) {
+          if (item.id === ref) found = item.text;
+        });
+        return found;
+      }).filter(Boolean).join(" ");
       var interaction = null;
       if (slot.interactionIntent) {
         interaction = {
@@ -1043,20 +1304,22 @@
           successCondition: content.successCondition || ""
         };
       }
+      var checked = beats.length && slot.id === "check" ? (refText || content.knowledgeChecked) : content.knowledgeChecked;
       var config = slot.mechanic === "quiz"
-        ? { points: 1, participation: "whole_class", questions: [{ prompt: content.prompt, choices: content.choices || [], correct: content.correct, explain: content.explain, knowledgeChecked: content.knowledgeChecked, successEvidence: content.successEvidence, teachingConnection: content.teachingConnection }] }
+        ? { points: 1, participation: "whole_class", questions: [{ prompt: content.prompt, choices: content.choices || [], correct: content.correct, explain: content.explain, knowledgeChecked: checked, successEvidence: content.successEvidence, teachingConnection: content.teachingConnection }] }
         : { lines: spoken };
       return {
         slotId: slot.id,
         mechanic: slot.mechanic,
-        title: content.title || slot.pedagogicalPurpose,
+        title: beats.length ? (stageTitle[slot.id] || "Step") : (content.title || slot.pedagogicalPurpose),
         purpose: slot.pedagogicalPurpose,
         minutes: slot.minutes,
         why: slot.pedagogicalPurpose,
+        beats: beats,
         participantSelection: slot.participantSelection,
         learningInteraction: slot.interactionIntent ? { type: slot.interactionIntent } : null,
         applyInstruction: slot.id === "apply" ? (content.instruction || spoken[0] || "") : "",
-        knowledgeUsed: slot.id === "apply" ? (content.knowledgeUsed || "") : "",
+        knowledgeUsed: slot.id === "apply" ? (beats.length ? (refText || "") : (content.knowledgeUsed || "")) : "",
         successCondition: slot.id === "apply" ? (content.successCondition || "") : "",
         teachingConnection: slot.id === "apply" ? (content.teachingConnection || "") : "",
         scene: { beat: slot.beat, kind: slot.id === "teach" ? "teach" : (slot.id === "resolution" ? "resolution" : (slot.id === "recap" ? "debrief" : "challenge")), interaction: interaction },
@@ -1217,7 +1480,8 @@
       "The year group in the request is authoritative. Do not write the lesson for a different year.",
       "title must not repeat the teacher's request.",
       "A hook may describe the unsolved visible event. Do not invent a mechanic for it. If that event is something the class can see, name a worldEffect type the player already allows: shake, rumble, pulse, glow, highlight, zoom, pan, reveal, crack, move-object, vibrate-object, fade, particles, flash, or sound-cue.",
-      "Do not write {name} or a pupil name. participantSelection on a slot chooses who acts. The slot's instruction is what they do."
+      "Do not write {name} or a pupil name. participantSelection on a slot chooses who acts. The slot's instruction is what they do.",
+      "When a slot has a beats list, that list is already decided. Return each beat id unchanged, with cue and text only. cue may be empty. text is the pupil sentence for that move. Do not add, remove, reorder, or rename beats. Do not choose a move or a knowledge ref. Do not copy pedagogicalPurpose, learningRole, interactionIntent, a move name, or a slot id into cue or text. A notice, predict, practise, apply, retrieve, reveal, or consolidate sentence must not repeat a keyKnowledge sentence. Apply also returns instruction, target, successCondition, and teachingConnection. Check also returns prompt, choices, correct, explain, successEvidence, and teachingConnection."
     ].join(" ");
     var schema = {
       type: "object",
@@ -1235,10 +1499,34 @@
       required: ["title", "objectives", "slots"]
     };
     skeleton.forEach(function (slot) {
-      var fields = slot.mechanic === "quiz"
-        ? { title: { type: "string" }, prompt: { type: "string" }, choices: { type: "array", items: { type: "string" } }, correct: { type: "string" }, explain: { type: "string" }, knowledgeChecked: { type: "string" }, successEvidence: { type: "string" }, teachingConnection: { type: "string" } }
-        : { title: { type: "string" }, lines: { type: "array", items: { type: "string" } }, instruction: { type: "string" }, target: { type: "string" } };
-      if (slot.id === "apply") {
+      var planned = slot.beats && slot.beats.length;
+      var beatField = {
+        type: "array",
+        items: {
+          type: "object",
+          additionalProperties: false,
+          properties: { id: { type: "string" }, cue: { type: "string" }, text: { type: "string" } },
+          required: ["id", "cue", "text"]
+        }
+      };
+      var fields = planned
+        ? { beats: beatField }
+        : (slot.mechanic === "quiz"
+          ? { title: { type: "string" }, prompt: { type: "string" }, choices: { type: "array", items: { type: "string" } }, correct: { type: "string" }, explain: { type: "string" }, knowledgeChecked: { type: "string" }, successEvidence: { type: "string" }, teachingConnection: { type: "string" } }
+          : { title: { type: "string" }, lines: { type: "array", items: { type: "string" } }, instruction: { type: "string" }, target: { type: "string" } });
+      if (planned && slot.id === "apply") {
+        fields.instruction = { type: "string" };
+        fields.target = { type: "string" };
+        fields.successCondition = { type: "string" };
+        fields.teachingConnection = { type: "string" };
+      } else if (planned && slot.mechanic === "quiz") {
+        fields.prompt = { type: "string" };
+        fields.choices = { type: "array", items: { type: "string" } };
+        fields.correct = { type: "string" };
+        fields.explain = { type: "string" };
+        fields.successEvidence = { type: "string" };
+        fields.teachingConnection = { type: "string" };
+      } else if (!planned && slot.id === "apply") {
         fields.knowledgeUsed = { type: "string" };
         fields.successCondition = { type: "string" };
         fields.teachingConnection = { type: "string" };
@@ -1325,6 +1613,14 @@
             ? { prompt: "", choices: [], correct: "", explain: "", knowledgeChecked: "", successEvidence: "", teachingConnection: "" }
             : { title: "", lines: [] }
       });
+      if (slot.beats && slot.beats.length) {
+        specs[specs.length - 1].output.beats = slot.beats.map(function (beat) {
+          return { id: beat.id, cue: "", text: "" };
+        });
+        specs[specs.length - 1].teachingBeats = slot.beats.map(function (beat) {
+          return { id: beat.id, move: beat.move, knowledgeRefs: beat.knowledgeRefs || [] };
+        });
+      }
       if (slot.id === "check") {
         var intent = ctx && ctx.lessonBrief && ctx.lessonBrief.teacherIntent;
         specs[specs.length - 1].learningGoal = learningGoalOf(ctx);
@@ -1352,6 +1648,9 @@
       if (otherFailures.some(function (item) { return /enough participation/.test(item); })) {
         instruction += " If a failure says the slot does not have enough participation, add the missing turns up to minimumParticipation. Each turn is one short sentence: a teacher prompt, an observation, a pupil action, a check, or a retrieval. Do not pad with a long paragraph. Do not copy teaching into a slot that already has it.";
       }
+    }
+    if (specs.some(function (spec) { return spec.teachingBeats && spec.teachingBeats.length; })) {
+      instruction += " Where teachingBeats are listed, return those ids with cue and text only. Do not add, remove, or reorder them.";
     }
     instruction += " Do not return activities, mechanics, beats, or a new stage.";
     brief.user = JSON.stringify({
@@ -1865,6 +2164,7 @@
       config: {}
     };
     if (raw.slotId) activity.slotId = clean(raw.slotId, 24);
+    if (Array.isArray(raw.beats) && raw.beats.length) activity.beats = keepBeatPlan(raw.beats, raw.beats);
     if (raw.participantSelection && typeof raw.participantSelection === "object") {
       var mode = clean(raw.participantSelection.mode, 20);
       activity.participantSelection = { mode: mode === "random" || mode === "named-role" || mode === "teacher-choice" || mode === "whole-class" ? mode : "whole-class" };
@@ -3328,6 +3628,23 @@
     var owners = {};
     var qualityWarnings = [];
     var issues = educationalIssues(activities, issueCtx, owners);
+    if (ctx.lessonSkeleton && ctx.lessonSkeleton.some(function (slot) { return slot.beats && slot.beats.length; })) {
+      var beatYearGroup = ctx.yearGroup || (ctx.lessonPlan && ctx.lessonPlan.yearGroup) || "";
+      var beatItems = beatKnowledge(ctx.lessonPlan || {}, beatYearGroup);
+      beatProblems(ctx.lessonSkeleton).forEach(function (issue) {
+        issues.push(issue);
+        var named = String(issue).match(/^The ([a-z]+):\d+/) || String(issue).match(/^The (recap) misses/);
+        ownIssue(owners, named ? named[1] : "", issue);
+      });
+      ctx.lessonSkeleton.forEach(function (slot) {
+        var activity = null;
+        activities.forEach(function (item) { if (item.slotId === slot.id) activity = item; });
+        pupilBeatProblems(slot, (activity && activity.beats) || slot.beats, beatItems, beatYearGroup).forEach(function (issue) {
+          issues.push(issue);
+          ownIssue(owners, slot.id, issue);
+        });
+      });
+    }
     if (ctx.lessonSkeleton) {
       activities.forEach(function (activity) {
         if (activity.slotId === "investigate") {
@@ -3595,7 +3912,11 @@
         return { plan: lessonPlan, story: story };
       });
     }).then(function (framed) {
-      var skeleton = lessonSkeleton(framed.plan, Object.assign({}, ctx, { lessonPlan: framed.plan }));
+      var skeleton = planBeats(
+        lessonSkeleton(framed.plan, Object.assign({}, ctx, { lessonPlan: framed.plan })),
+        framed.plan,
+        ctx.yearGroup || framed.plan.yearGroup || (ctx.yearAssumed ? ctx.yearAssumption : "")
+      );
       var withStory = Object.assign({}, ctx, { lessonPlan: framed.plan, storyPlan: framed.story, lessonSkeleton: skeleton });
       return Promise.resolve(callModel(contentBrief(withStory, framed.plan, framed.story), null)).then(function (first) {
         var accepted = accept(first, withStory);
@@ -3746,6 +4067,11 @@
     localRepairBrief: localRepairBrief,
     slotRepairBrief: slotRepairBrief,
     lessonSkeleton: lessonSkeleton,
+    planBeats: planBeats,
+    beatKnowledge: beatKnowledge,
+    keepBeatPlan: keepBeatPlan,
+    beatProblems: beatProblems,
+    pupilBeatProblems: pupilBeatProblems,
     mergeSlotContent: mergeSlotContent,
     contractArc: contractArc,
     qualityChecklist: qualityChecklist,

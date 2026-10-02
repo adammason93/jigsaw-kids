@@ -1132,6 +1132,7 @@
           if (same) slide.characterId = role.characterId || ["CHARACTER_A", "CHARACTER_B", "CHARACTER_C"][roleIndex] || "";
         });
       }
+      if (activity.beats && activity.beats.length) slide.beats = activity.beats;
       if (scene.worldEffect) slide.worldEffect = scene.worldEffect;
       if (scene.interaction) slide.interaction = scene.interaction;
       if (scene.interactions && scene.interactions.length) slide.interactions = scene.interactions;

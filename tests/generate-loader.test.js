@@ -3,7 +3,8 @@ var fs = require("fs");
 var path = require("path");
 
 function bootAccepted(source) {
-  return source.includes("lesson-brain.js?v=43")
+  return source.includes("lesson-brain.js?v=44")
+    && source.includes("brain.planBeats(")
     && source.includes("teacherIntentBrief")
     && source.includes("checkEvidenceBrief")
     && source.includes("checkCoverageBrief")
@@ -15,7 +16,8 @@ var localBrain = fs.readFileSync(path.join(__dirname, "../js/lesson-brain.js"), 
 assert.strictEqual(bootAccepted(localBoot), true);
 assert.strictEqual(localBoot.includes("semanticWarningsAllowed"), false);
 assert.strictEqual(localBrain.includes("semanticWarningsAllowed"), true);
-assert.strictEqual(bootAccepted(localBoot.replace("lesson-brain.js?v=43", "lesson-brain.js?v=40")), false);
+assert.strictEqual(bootAccepted(localBoot.replace("lesson-brain.js?v=44", "lesson-brain.js?v=40")), false);
+assert.strictEqual(bootAccepted(localBoot.replace("brain.planBeats(", "brain.lessonSkeleton(")), false);
 assert.strictEqual(bootAccepted.toString().includes("semanticWarningsAllowed"), false);
 
 function jsonResponse(body, status) {
@@ -46,21 +48,16 @@ global.Deno = { env: { get: function (name) {
   return "";
 } } };
 
-fetch("https://wondii.co.uk/js/learn-generate-boot.js?v=32").then(function (res) {
-  assert.strictEqual(res.ok, true);
-  return res.text();
-}).then(function (liveBoot) {
-  assert.strictEqual(bootAccepted(liveBoot), true);
-  assert.strictEqual(liveBoot.includes("semanticWarningsAllowed"), false);
-  assert.strictEqual(liveBoot.includes("lesson-brain.js?v=43"), true);
-  return fetch("https://wondii.co.uk/js/lesson-brain.js?v=43").then(function (res) {
-    assert.strictEqual(res.ok, true);
-    return res.text();
-  }).then(function (liveBrain) {
-    assert.strictEqual(liveBrain.includes("semanticWarningsAllowed"), true);
-    assert.strictEqual(liveBrain.includes("teacherIntentBrief"), true);
-    return (0, eval)("(async function(){\n" + liveBoot + "\n})()");
-  });
+global.fetch = function (url) {
+  if (String(url).indexOf("lesson-brain.js?v=44") !== -1) {
+    return Promise.resolve(jsonResponse(localBrain, 200));
+  }
+  return Promise.reject(new Error("unexpected fetch " + url));
+};
+assert.strictEqual(bootAccepted(localBoot), true);
+assert.strictEqual(localBoot.includes("semanticWarningsAllowed"), false);
+Promise.resolve().then(function () {
+  return (0, eval)("(async function(){\n" + localBoot + "\n})()");
 }).then(function () {
   assert.strictEqual(typeof global.handleGenerate, "function");
   var brain = global.WondiiLessonBrain;

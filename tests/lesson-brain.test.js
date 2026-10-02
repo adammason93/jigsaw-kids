@@ -237,6 +237,62 @@ function contentSample() {
   };
 }
 
+function sentenceFor(beat) {
+  var lines = {
+    notice: "Look at the ball and say what you can see.",
+    predict: "Say what you think will happen to the ball.",
+    name: beat.knowledgeRefs && beat.knowledgeRefs[0] === "k1" ? "Gravity pulls things down towards the Earth." : "The class gives this pull its own name.",
+    explain: "The pull acts on objects even when nobody is holding them.",
+    model: "Watch the ball drop and say what changes.",
+    connect: "These two ideas about the pull belong together.",
+    exemplify: "A book is one clear example of the same pull.",
+    practise: "Use the pull of gravity when you predict the next drop.",
+    apply: "Show what happens to an object when nobody is holding it.",
+    retrieve: "Which sentence matches the pull you just learned?",
+    reveal: "The class can now say why the ball came down.",
+    consolidate: "The class can now use the idea about gravity."
+  };
+  return lines[beat.move] || "The class keeps hold of the idea they just learned.";
+}
+
+function contentFromBrief(brief) {
+  var payload = {};
+  try { payload = JSON.parse(brief && brief.user || "{}"); } catch (e) { payload = {}; }
+  var skeleton = payload.lessonSkeleton || [];
+  if (Array.isArray(payload.slotsToRewrite) && payload.slotsToRewrite.length) {
+    skeleton = payload.slotsToRewrite.map(function (spec) {
+      return { id: String(spec.slotType || "").toLowerCase(), beats: spec.teachingBeats || [] };
+    });
+  }
+  if (!skeleton.some(function (slot) { return slot.beats && slot.beats.length; })) return contentSample();
+  var slots = {};
+  skeleton.forEach(function (slot) {
+    var beats = (slot.beats || []).map(function (beat) {
+      return { id: beat.id, cue: "", text: sentenceFor(beat) };
+    });
+    slots[slot.id] = { beats: beats };
+    if (slot.id === "apply") {
+      slots.apply.instruction = "Show what happens to an object when nobody is holding it.";
+      slots.apply.target = "scene";
+      slots.apply.successCondition = "The pupil has used the pull to make a prediction.";
+      slots.apply.teachingConnection = "The task follows the explanation of the pull.";
+    }
+    if (slot.id === "check") {
+      slots.check.prompt = "What pulls a dropped ball down?";
+      slots.check.choices = ["Gravity pulls it towards the Earth", "The ball decides to stop", "Somebody keeps holding it"];
+      slots.check.correct = "Gravity pulls it towards the Earth";
+      slots.check.explain = "Gravity pulls the ball down towards the Earth.";
+      slots.check.successEvidence = "The pupil named the pull.";
+      slots.check.teachingConnection = "The question follows the taught pull.";
+    }
+  });
+  return {
+    title: "The playground drop",
+    objectives: ["Explain that gravity pulls objects towards the Earth."],
+    slots: slots
+  };
+}
+
 function fake(good) {
   var calls = 0;
   function callModel(brief) {
@@ -245,7 +301,7 @@ function fake(good) {
     var story = brief && brief.system && brief.system.indexOf("internal story plan") !== -1;
     if (planning) return calls === 1 && !good ? { title: "" } : samplePlan();
     if (story) return sampleStory();
-    return contentSample();
+    return contentFromBrief(brief);
   }
   callModel.calls = function () { return calls; };
   return callModel;

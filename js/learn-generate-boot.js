@@ -1,4 +1,4 @@
-const lessonSource = await fetch("https://wondii.co.uk/js/lesson-brain.js?v=43").then((res) => {
+const lessonSource = await fetch("https://wondii.co.uk/js/lesson-brain.js?v=44").then((res) => {
   if (!res.ok) throw new Error("lesson_script");
   return res.text();
 });
@@ -382,7 +382,11 @@ globalThis.handleGenerate = async (req) => {
       logMeta({ stage: "STORY_FALLBACK", category: storyCategory, attemptId, model, storyMs });
     }
     const withStory = Object.assign({}, withPlan, { storyPlan });
-    const skeleton = brain.lessonSkeleton(planned.plan, withStory);
+    const skeleton = brain.planBeats(
+      brain.lessonSkeleton(planned.plan, withStory),
+      planned.plan,
+      ctx.yearGroup || planned.plan.yearGroup || (ctx.yearAssumed ? ctx.yearAssumption : "")
+    );
     const framed = Object.assign({}, withStory, { lessonSkeleton: skeleton });
     phase = "CONTENT_REQUEST";
     logMeta({ stage: "CONTENT_REQUEST", attemptId, repair: false, model, planMs, storyMs, arc: arcMeta(planned.plan) });

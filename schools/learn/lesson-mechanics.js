@@ -127,10 +127,22 @@
     return who + ", " + line.charAt(0).toLowerCase() + line.slice(1);
   }
 
+  function shownBeat(slide, ctx) {
+    var beats = slide && Array.isArray(slide.beats) ? slide.beats : [];
+    if (!beats.length) return null;
+    var index = Math.max(0, Math.min(Number(ctx && ctx.interact && ctx.interact.beat) || 0, beats.length - 1));
+    var pupil = (beats[index] && beats[index].pupil) || {};
+    var lines = [];
+    if (pupil.cue) lines.push(String(pupil.cue));
+    if (pupil.text) lines.push(String(pupil.text));
+    return lines;
+  }
+
   function story(slide, ctx) {
     ctx = ctx || {};
     var action = actionOf(slide);
-    var shown = usefulLines(slide, ctx);
+    var beatLines = shownBeat(slide, ctx);
+    var shown = beatLines || usefulLines(slide, ctx);
     if (ctx.immersed && slide.speaker && shown.length) shown = shown.map(function (line, index) {
       return index === 0 ? spokenTo(slide.speaker, line) : line;
     });
@@ -162,6 +174,7 @@
   }
 
   function mystery(slide, ctx) {
+    if (shownBeat(slide, ctx)) return story(slide, ctx);
     var open = !!ctx.mysteryOpen;
     var fact = (slide.lines || []).map(function (line) { return String(line || "").trim(); }).filter(Boolean).join(" ");
     var reveal = fact || (ctx && ctx.mysteryText) || "";
