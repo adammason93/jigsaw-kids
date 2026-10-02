@@ -411,13 +411,16 @@
       "Decide what the children should understand. Then decide what to teach so they can understand it. The classroom activities are chosen in a later step.",
       "Work in this order: the teacher's request, the context, one learning objective, the key knowledge, prior knowledge, misconceptions, vocabulary, the teaching sequence, then where a check or a recap belongs.",
       "learningObjective is one sentence a teacher could say. successCriteria are two or three things the class can do if the lesson worked.",
-      "keyKnowledge is two to four short facts that are established and safe to teach. If you are unsure, choose a simpler true fact. Do not invent quotations, dates, or events. A simplified explanation must still be true. If the request is about a cause, or about how something forms, keyKnowledge is the steps of that mechanism in order. The first fact is not the whole answer in one sentence. For a young year, use a simple true model: the parts, how they move, and what that movement does. Do not teach the visible effect as the cause. The ground shaking is what an earthquake does, not why it happens.",
+      "keyKnowledge is the smallest set of two to four age-appropriate pieces a pupil needs in order to achieve lessonBrief.learningGoal. Together they must be sufficient. Two strong items are better than four weak ones. A simpler fact is acceptable only when the set can still achieve that goal. Do not invent quotations, dates, or events. A simplified explanation must still be true. Do not add trivia.",
+      "Match the goal. Why or cause: state the reason, not only what is seen or where it happens. Significance or importance: state the change, event, or contribution and why it mattered. Compare: include what is needed about both sides. Process: state the change or sequence, not only the parts, inputs, places, or outputs. Procedure or use: write the actions the pupil carries out, not only the name of the step. Definition: a short definition and only the characteristics or examples needed to use it. Explain: the facts that specific goal needs, not a generic list about the topic.",
+      "A sentence that only names the topic, states identity, gives a famous number or date, says something is important or significant, or says where something happens does not meet a relationship the goal requires.",
+      "For a young year, use a simple true model: the parts, how they move, and what that movement does. Do not teach the visible effect as the cause. The ground shaking is what an earthquake does, not why it happens.",
       "misconceptions are mistakes children of this age often make. priorKnowledge is what you will treat as already known, or an empty list.",
       "vocabulary is only the words worth teaching at this age.",
       "lessonBrief.intent says whether this lesson is why, process, compare, definition, procedure, or explain. When lessonBrief.teacherIntent is present, lessonBrief.learningGoal is the only new teaching target, lessonBrief.focusConcepts are the ideas to teach, lessonBrief.priorKnowledge is already known and may be the starting point, and lessonBrief.exclusions must not be retaught. lessonBrief.teacherIntent.requiredEvidence says what a correct check must show. It is not an extra keyKnowledge fact. lessonBrief.preferences and the duration are presentation, not keyKnowledge. Do not turn prior knowledge or an exclusion into the lesson target.",
       "When teacherIntent is absent, lessonBrief.concepts are the ideas to teach. Do not treat words such as between, difference, why, or how as the concept.",
-      "keyKnowledge items are strings or { text, knowledgeType }. knowledgeType is fact, cause, effect, reason, process, definition, comparison, or procedure. A why or process lesson needs at least one cause, reason, or process of six words or more. That item explains why, using because, when, so that, or and then. Do not only restate what is seen.",
-      "lessonArc may name hook, investigate, teach, apply, check, resolution, and recap. The system places each keyKnowledge fact on the teach stage and the recap. The hook and the investigate stage must not contain it.",
+      "keyKnowledge items are strings or { text, knowledgeType }. knowledgeType is fact, cause, effect, reason, process, definition, comparison, or procedure. A label, a sentence of six words, or a place does not make an item a cause, reason, or process. The sentence itself must state the relationship.",
+      "lessonArc purpose must be exactly one of these words: hook, investigate, teach, apply, check, resolution, recap. Do not write a sentence as the purpose. The system places each keyKnowledge fact on the teach stage and the recap. The hook and the investigate stage must not contain it.",
       "Age changes the plan: vocabulary, how long the sentences are, how deep the explanation goes, the examples, and how hard the reasoning is. Year 1 and Year 2 key knowledge stays in everyday words.",
       "If yearAssumed is true, plan for yearAssumption and say so in yearGroup. Do not pretend the teacher named that year.",
       "lessonBrief.topic is the specific concept to teach. Do not widen it into a broader topic.",
@@ -1364,7 +1367,7 @@
       lesson: forModel(ctx),
       problems: issues || [],
       previous: previous || null,
-      instruction: "Repair the internal lesson plan only. Do not write pupil activities. If the problem says the key knowledge states the outcome, not the reason, add at least one keyKnowledge item of six words or more that explains why, with knowledgeType cause, reason, or process. Do not only restate what is seen. Return the full plan JSON again."
+      instruction: "Repair the internal lesson plan only. Do not write pupil activities. If the problem says the plan needs a teaching stage or a check, set each lessonArc purpose to exactly one of hook, investigate, teach, apply, check, resolution, recap. Do not write a sentence as the purpose. If the problem says the key knowledge states the outcome, not the reason, replace the label or the place with the reason the learning goal needs. Say that reason with because, so that, or which meant. Do not only say that something was significant, important, or had an impact. If the problem says the key knowledge names the parts, not the change, say what changes into what, or what happens first and then next. If the problem says the key knowledge names the step, not the action, write the action the pupil carries out. Do not only name inputs, places, outputs, or the name of a step. Keep two to four items. Two strong items are enough. Return the full plan JSON again."
     });
     return brief;
   }
@@ -1559,17 +1562,32 @@
   }
 
   function reasonText(text) {
-    return /\b(because|so that|in order to|due to|caused by|the reason|and then|which makes|which causes)\b/i.test(String(text || ""));
+    return statesRelation(text);
+  }
+
+  function statesRelation(text) {
+    var value = String(text || "");
+    if (/\b(significant|significance|important|importance|impact)\b/i.test(value) && !/\b(because|so that|in order to|due to|caused by|which reduced|which allowed|which changed|allowed)\b/i.test(value)) return false;
+    if (/\b(because|so that|in order to|due to|caused by|the reason|and then|which makes|which causes|which meant|which reduced|which allowed|which changed)\b/i.test(value)) return true;
+    if (/\b(turns into|turn into|turned into|becomes|became|forming)\b/i.test(value)) return true;
+    if (/\bturn(?:s|ed)?\b[^.]{0,40}\binto\b/i.test(value)) return true;
+    if (/\bconvert(?:s|ed|ing)?\b[^.]{0,48}\binto\b/i.test(value)) return true;
+    if (/\ballowed\b/i.test(value)) return true;
+    if (/\bwhen\b/i.test(value)) return true;
+    if (/\b(wanted|needed)\b/i.test(value)) return true;
+    if (/\bfirst\b[^.]{0,80}\bthen\b/i.test(value)) return true;
+    return false;
   }
 
   function knowledgeRole(text, labeled) {
     var allowed = { fact: 1, cause: 1, effect: 1, reason: 1, process: 1, definition: 1, comparison: 1, procedure: 1 };
     var label = clean(labeled, 20).toLowerCase();
     var size = clean(text).split(/\s+/).filter(Boolean).length;
-    if (allowed[label] && (label === "cause" || label === "reason" || label === "process")) {
-      if (size >= 6) return label;
-    } else if (allowed[label]) return label;
-    if (reasonText(text)) return "reason";
+    if (statesRelation(text)) {
+      if (/\b(and then|turns into|turn into|becomes|became|forming|when|first)\b/i.test(text) && !/\b(because|so that|in order to|wanted|needed|which)\b/i.test(text)) return "process";
+      return "reason";
+    }
+    if (allowed[label] && label !== "cause" && label !== "reason" && label !== "process") return label;
     if (/\b(difference|unlike|whereas)\b/i.test(text)) return "comparison";
     if (/\b(is|are|means|called)\b/i.test(text)) return "definition";
     if (size <= 8) return "effect";
@@ -1595,6 +1613,35 @@
     return /\bwhy\b|\bcauses?\b|\bhow\b[^.]{0,48}\bcauses?\b/.test(focus);
   }
 
+  function planGoalText(ctx, objective) {
+    var brief = (ctx && ctx.lessonBrief) || {};
+    var intent = brief.teacherIntent || {};
+    return [objective, intent.learningGoal, brief.learningGoal, ctx && ctx.lessonText, brief.rawRequest, ctx && ctx.topic].join(" ").toLowerCase();
+  }
+
+  function planNeedsRelation(ctx, objective) {
+    if (asksWhy(ctx)) return true;
+    return /\bwhy\b|\bcauses?\b|\breasons?\b|\bsignifican|\bimportan|\bmattered\b/.test(planGoalText(ctx, objective));
+  }
+
+  function planNeedsProcess(ctx, objective) {
+    var goal = planGoalText(ctx, objective);
+    var brief = (ctx && ctx.lessonBrief) || {};
+    if (brief.intent === "procedure" || /\bhow to\b/.test(goal)) return false;
+    return /\bhow\b[^.]{0,80}\b(forms?|changes?|changed|makes?|made|happens?)\b/.test(goal);
+  }
+
+  function planNeedsSteps(ctx, objective) {
+    var brief = (ctx && ctx.lessonBrief) || {};
+    return brief.intent === "procedure" || /\bhow to\b/.test(planGoalText(ctx, objective));
+  }
+
+  function statesSteps(text) {
+    var value = String(text || "");
+    if (/\bplaces?\b(?!\s+value)\b/i.test(value)) return true;
+    return /\b(first|then|add|adds|adding|multiply|multiplies|multiplying|divide|divides|dividing|carry|carries|read|reads|write|writes|put|puts|move|moves|count|counts|times|go|goes)\b/i.test(value);
+  }
+
   function normalisePlan(raw, ctx) {
     ctx = ctx || {};
     var parsed = raw;
@@ -1617,10 +1664,15 @@
     var issues = [];
     if (objective.length < 12) issues.push("The lesson plan needs a learning objective.");
     if (knowledge.length < 2) issues.push("The lesson plan needs the key knowledge.");
-    if (asksWhy(Object.assign({}, ctx, { lessonPlan: { learningObjective: objective, topic: parsed.topic || ctx.topic } })) && !entries.some(function (item) {
-      return item.knowledgeType === "cause" || item.knowledgeType === "reason" || item.knowledgeType === "process";
-    })) {
+    var relationCtx = Object.assign({}, ctx, { lessonPlan: { learningObjective: objective, topic: parsed.topic || ctx.topic } });
+    if (planNeedsRelation(relationCtx, objective) && !entries.some(function (item) { return statesRelation(item.text); })) {
       issues.push("The key knowledge states the outcome, not the reason.");
+    }
+    if (planNeedsProcess(relationCtx, objective) && !entries.some(function (item) { return statesRelation(item.text); })) {
+      issues.push("The key knowledge names the parts, not the change.");
+    }
+    if (planNeedsSteps(relationCtx, objective) && !entries.some(function (item) { return statesSteps(item.text); })) {
+      issues.push("The key knowledge names the step, not the action.");
     }
     var purposes = arc.map(function (stage) { return stage.purpose; }).join(" ");
     if (!/teach|model|explain/.test(purposes)) issues.push("The lesson plan needs a teaching stage.");
