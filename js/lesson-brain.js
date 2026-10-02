@@ -615,6 +615,16 @@
     return /\b(spin for a pupil|whose turn|pick a pupil|choose a pupil|choose someone)\b/i.test(instruction || "");
   }
 
+  function topicDepiction(instruction) {
+    var text = clean(instruction).toLowerCase();
+    if (/\b(picture of|sentence about)\b/.test(text)) return true;
+    return /^draw an?\b/.test(text) && !/\band\b/.test(text);
+  }
+
+  function restatementVerb(instruction) {
+    return linkWords(instruction).some(function (word) { return RESTATE[word]; });
+  }
+
   function applyMatched(activity, required) {
     var instruction = applyInstructionOf(activity);
     var named = activity && activity.knowledgeUsed || "";
@@ -660,7 +670,6 @@
     if (recallOnly(instruction)) return { status: "fail", reason: "recall-only", matchedKnowledge: "", evidence: [] };
     if (selectionOnly(instruction)) return { status: "fail", reason: "pupil-selection", matchedKnowledge: "", evidence: [] };
     if (bareTask(instruction)) return { status: "fail", reason: "bare-interaction", matchedKnowledge: "", evidence: [] };
-    if (!doingTask(instruction)) return { status: "fail", reason: "not-an-action", matchedKnowledge: "", evidence: [] };
     var matched = applyMatched(activity, sentences);
     if (named && !matched) return { status: "fail", reason: "knowledge-unidentified", matchedKnowledge: "", evidence: [] };
     if (!matched) return { status: "unresolved", reason: "no-named-knowledge", matchedKnowledge: "", evidence: [] };
@@ -669,6 +678,7 @@
     var ratio = bits.length ? hits.length / bits.length : 0;
     var competitor = "";
     var competitorHits = 0;
+    var competitorRatio = 0;
     sentences.forEach(function (sentence) {
       if (sentence === matched) return;
       var otherHits = hitBits(instruction, sentence);
@@ -677,14 +687,27 @@
       if (otherHits.length > hits.length && otherRatio > ratio && ratio < 0.5 && otherHits.length > competitorHits) {
         competitor = sentence;
         competitorHits = otherHits.length;
+        competitorRatio = otherRatio;
       }
     });
-    if (competitor) return { status: "fail", reason: "different-knowledge", matchedKnowledge: matched, evidence: hits };
+    if (competitor && (!hits.length || competitorRatio >= 0.5)) {
+      return { status: "fail", reason: "different-knowledge", matchedKnowledge: matched, evidence: hits };
+    }
+    if (competitor) return { status: "unresolved", reason: "shared-knowledge", matchedKnowledge: matched, evidence: hits };
+    if (!doingTask(instruction)) {
+      var short = clean(instruction).split(/\s+/).filter(Boolean).length < 4;
+      var copiesFact = restatementVerb(instruction) && (restatesNamed(instruction, matched) || hits.length >= 2);
+      if (short || copiesFact) return { status: "fail", reason: "not-an-action", matchedKnowledge: matched, evidence: hits };
+      return { status: "unresolved", reason: "unlisted-action", matchedKnowledge: matched, evidence: hits };
+    }
     if (restatesNamed(instruction, matched)) return { status: "unresolved", reason: "restatement", matchedKnowledge: matched, evidence: hits };
     if (hits.length >= 2 || (hits.length >= 1 && bits.length > 0 && hits.length === bits.length && bits.length <= 2)) {
       return { status: "pass", reason: "relation-covered", matchedKnowledge: matched, evidence: hits };
     }
-    if (hits.length === 1 && bits.length >= 3) return { status: "fail", reason: "topic-word-only", matchedKnowledge: matched, evidence: hits };
+    if (hits.length === 1 && bits.length >= 3) {
+      if (topicDepiction(instruction)) return { status: "fail", reason: "topic-word-only", matchedKnowledge: matched, evidence: hits };
+      return { status: "unresolved", reason: "single-stem", matchedKnowledge: matched, evidence: hits };
+    }
     if (!hits.length) return { status: "unresolved", reason: "no-lexical-overlap", matchedKnowledge: matched, evidence: [] };
     return { status: "unresolved", reason: "partial-overlap", matchedKnowledge: matched, evidence: hits };
   }
