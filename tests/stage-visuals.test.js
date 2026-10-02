@@ -320,6 +320,8 @@ assert.ok(root.innerHTML.indexOf("https://example/hook.jpg") >= 0);
 var css = fs.readFileSync(path.join(__dirname, "../schools/learn/lesson-shell.css"), "utf8");
 assert.ok(css.indexOf(".lesson.has-world > .lesson-layer") >= 0);
 assert.ok(css.indexOf("z-index: 4") >= 0);
+assert.ok(css.indexOf("100dvh") >= 0);
+assert.ok(css.indexOf("min-height: 68vh") < 0);
 
 function advance() {
   var guard = 0;
@@ -336,8 +338,12 @@ function advance() {
       continue;
     }
     if (slides[view.slide].type === "question" && root.innerHTML.indexOf('id="lessonPrimary"') < 0) {
+      assert.ok(root.innerHTML.indexOf(">Teacher<") < 0);
       view.engine.mechanicStore["r" + view.slide] = { index: 0, answers: { "0": "picked" } };
       Shell.render(root, model);
+      assert.ok(root.innerHTML.indexOf('id="lessonPrimary"') >= 0);
+      assert.ok(root.innerHTML.indexOf(">Next<") >= 0);
+      assert.ok(root.innerHTML.indexOf(">Teacher<") >= 0);
       continue;
     }
     if (root.innerHTML.indexOf('id="lessonPrimary"') >= 0) {

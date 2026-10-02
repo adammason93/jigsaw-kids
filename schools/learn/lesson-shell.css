@@ -300,6 +300,11 @@
 .lesson.has-fallback {
   background: #141b4d;
   color: #fff;
+  height: 100vh;
+  height: 100dvh;
+  max-height: 100vh;
+  max-height: 100dvh;
+  overflow: hidden;
 }
 .lesson.has-world > :not(.lesson-world),
 .lesson.has-fallback > :not(.lesson-world) { position: relative; z-index: 1; }
@@ -447,7 +452,7 @@
 .lesson.has-fallback .lesson-top h1 { font-size: clamp(1.15rem, 2vw, 1.55rem); }
 .lesson.has-world .lesson-stage,
 .lesson.has-fallback .lesson-stage {
-  display: flex; justify-content: flex-end; align-items: flex-start; min-height: 68vh;
+  display: flex; justify-content: flex-end; align-items: flex-start; min-height: 0;
 }
 .lesson.has-world .lesson-story,
 .lesson.has-fallback .lesson-story { display: block; width: auto; }
@@ -500,7 +505,7 @@
 .lesson.has-world .lesson-choice.is-right,
 .lesson.has-fallback .lesson-choice.is-right { color: #fff; background: rgba(20, 27, 77, .9); border-color: #ffc53d; }
 .lesson.has-world .lesson-feedback,
-.lesson.has-fallback .lesson-feedback { color: #141b4d; }
+.lesson.has-fallback .lesson-feedback { color: #fff; }
 .lesson-clues { margin: 0; font-weight: 800; }
 .lesson-clues strong { margin-left: 8px; }
 .lesson-recap { margin: 8px 0 0; padding-left: 1.2rem; line-height: 1.4; }
