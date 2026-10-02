@@ -306,6 +306,21 @@ Promise.resolve().then(function () {
   assert.strictEqual(run.judges, 1);
   assert.strictEqual(run.result.ok, false);
   assert.strictEqual(run.result.checkAlignment.semanticOutcome, "check-error");
+  assert.ok((run.result.issues || []).join(" ").indexOf("needs evidence alignment") === -1, (run.result.issues || []).join(" | "));
+  assert.ok((run.result.issues || []).join(" ").indexOf("semantic check failed: error") !== -1);
+  return settle(compareGoal, compareDefinition, function () {
+    return { ok: false, reason: "timeout", ms: 12000 };
+  }, function () {
+    throw new Error("repair must not run after a check judge timeout");
+  });
+}).then(function (run) {
+  assert.strictEqual(run.repairs, 0);
+  assert.strictEqual(run.judges, 1);
+  assert.strictEqual(run.result.ok, false);
+  assert.strictEqual(run.result.checkAlignment.semanticOutcome, "check-error");
+  assert.strictEqual(run.result.checkAlignment.semanticReason, "timeout");
+  assert.ok((run.result.issues || []).join(" ").indexOf("needs evidence alignment") === -1, (run.result.issues || []).join(" | "));
+  assert.ok((run.result.issues || []).join(" ").indexOf("semantic check failed: timeout") !== -1);
   console.log("check alignment tests passed");
 }).catch(function (error) {
   console.error(error);

@@ -757,6 +757,74 @@
     return !!a && a === norm(right);
   }
 
+  function teachStructureIssues(activity, ctx) {
+    var year = (ctx && (ctx.yearGroup || (ctx.lessonPlan && ctx.lessonPlan.yearGroup))) || "";
+    var planned = planBeats([{ id: "teach" }], (ctx && ctx.lessonPlan) || {}, year);
+    var expected = (planned[0] && planned[0].beats) || [];
+    var beats = (activity && activity.beats) || [];
+    var issues = [];
+    expected.forEach(function (need) {
+      if (need.move !== "explain" && need.move !== "model" && need.move !== "exemplify") return;
+      var ref = (need.knowledgeRefs || [])[0] || "";
+      var found = beats.some(function (beat) {
+        return beat.move === need.move && (beat.knowledgeRefs || []).indexOf(ref) !== -1;
+      });
+      if (!found) issues.push("The teach stage names " + (ref || "the idea") + " without the required " + need.move + " beat.");
+    });
+    return issues;
+  }
+
+  function pupilCopyReason(text, year, minimum, blocked) {
+    var value = clean(text, 280);
+    if (!value) return "missing";
+    if (!/[.?!]$/.test(value)) return "missing terminal punctuation";
+    var words = value.split(/\s+/).filter(Boolean);
+    if (words.length < (minimum || 4)) return "fewer than minimum words";
+    var count = value.split(/[.?!]+/).filter(function (part) { return clean(part); }).length;
+    if (beatYear(year) <= 2) {
+      if (count !== 1) return "too many sentences for year";
+    } else if (count < 1 || count > 2) return "too many sentences for year";
+    if ((blocked || []).some(function (field) { return sameSentence(value, field); })) return "internal-copy collision";
+    return "";
+  }
+
+  function pupilBeatDiagnostics(slot, beats, items, year) {
+    var rows = [];
+    var names = {};
+    (beats || []).forEach(function (beat) {
+      var pupil = beat.pupil || {};
+      var text = pupil.text || "";
+      var cue = pupil.cue || "";
+      var minimum = slot && slot.id === "investigate" ? 6 : 4;
+      var blocked = [slot && slot.pedagogicalPurpose, slot && slot.interactionIntent, slot && slot.id, slot && slot.contentDepth, beat.move, beat.id, beat.stageId];
+      function row(reason) {
+        rows.push({
+          stageId: (slot && slot.id) || beat.stageId || "",
+          beatId: beat.id || "",
+          move: beat.move || "",
+          knowledgeRefs: (beat.knowledgeRefs || []).slice(),
+          cue: clean(cue, 180),
+          text: clean(text, 280),
+          reason: reason
+        });
+      }
+      var textReason = pupilCopyReason(text, year, minimum, blocked);
+      if (textReason) row(textReason);
+      if (cue) {
+        var cueReason = pupilCopyReason(cue, year, 4, blocked);
+        if (cueReason) row(cueReason);
+      }
+      var ref = (beat.knowledgeRefs || [])[0];
+      var item = null;
+      (items || []).forEach(function (entry) { if (entry.id === ref) item = entry; });
+      var reveal = beat.move === "name" || beat.move === "explain";
+      if (!reveal && item && sameSentence(text, item.text)) row("other existing rule");
+      if (beat.move === "name" && ref) names[ref] = text;
+      if (beat.move === "explain" && ref && sameSentence(text, names[ref])) row("other existing rule");
+    });
+    return rows;
+  }
+
   function pupilBeatProblems(slot, beats, items, year) {
     var issues = [];
     var names = {};
@@ -3145,9 +3213,16 @@
     }
     activities.forEach(function (activity, index) {
       if (activity.mechanic === "story" && activity.scene && activity.scene.beat === "discovery") {
-        var text = ((activity.config && activity.config.lines) || []).join(" ");
-        var count = text.split(/\s+/).filter(Boolean).length;
-        if (count < 12) issues.push("Activity " + (index + 1) + " names the topic but does not explain it.");
+        if (activity.beats && activity.beats.length) {
+          teachStructureIssues(activity, ctx).forEach(function (issue) {
+            issues.push(issue);
+            ownIssue(owners, "teach", issue);
+          });
+        } else {
+          var text = ((activity.config && activity.config.lines) || []).join(" ");
+          var count = text.split(/\s+/).filter(Boolean).length;
+          if (count < 12) issues.push("Activity " + (index + 1) + " names the topic but does not explain it.");
+        }
       }
       if (activity.mechanic === "mystery") {
         var fact = ((activity.config && activity.config.lines) || []).join(" ");
@@ -3627,6 +3702,7 @@
     }
     var owners = {};
     var qualityWarnings = [];
+    var pupilDiagnostics = [];
     var issues = educationalIssues(activities, issueCtx, owners);
     if (ctx.lessonSkeleton && ctx.lessonSkeleton.some(function (slot) { return slot.beats && slot.beats.length; })) {
       var beatYearGroup = ctx.yearGroup || (ctx.lessonPlan && ctx.lessonPlan.yearGroup) || "";
@@ -3639,7 +3715,9 @@
       ctx.lessonSkeleton.forEach(function (slot) {
         var activity = null;
         activities.forEach(function (item) { if (item.slotId === slot.id) activity = item; });
-        pupilBeatProblems(slot, (activity && activity.beats) || slot.beats, beatItems, beatYearGroup).forEach(function (issue) {
+        var beatRows = (activity && activity.beats) || slot.beats;
+        pupilDiagnostics = pupilDiagnostics.concat(pupilBeatDiagnostics(slot, beatRows, beatItems, beatYearGroup));
+        pupilBeatProblems(slot, beatRows, beatItems, beatYearGroup).forEach(function (issue) {
           issues.push(issue);
           ownIssue(owners, slot.id, issue);
         });
@@ -3689,7 +3767,7 @@
       var structure = ctx.lessonSkeleton ? skeletonDrift(activities, ctx.lessonSkeleton) : [];
       var reported = structure.concat(issues);
       reported.slotIssues = slotIssuesFrom(reported, activities, owners);
-      return { ok: false, structuralOk: !structure.length, slotIds: slotIdsFrom(reported, activities), slotIssues: reported.slotIssues, issues: reported, previous: parsed, applyAlignment: applyReport, checkAlignment: checkReport, qualityWarnings: qualityWarnings };
+      return { ok: false, structuralOk: !structure.length, slotIds: slotIdsFrom(reported, activities), slotIssues: reported.slotIssues, issues: reported, previous: parsed, applyAlignment: applyReport, checkAlignment: checkReport, qualityWarnings: qualityWarnings, pupilBeatDiagnostics: pupilDiagnostics };
     }
     var objectiveSource = parsed.objectives || parsed.learningObjectives || parsed.learningObjective || parsed.objective || ctx.learningObjectives || [];
     if (!Array.isArray(objectiveSource)) objectiveSource = [objectiveSource];
@@ -3778,6 +3856,23 @@
     };
   }
 
+  function noteCheckJudgeFailure(result, verdict) {
+    var reason = clean((verdict && verdict.reason) || "error", 40) || "error";
+    var issue = "The check slot semantic check failed: " + reason + ".";
+    var source = (result && result.issues) || [];
+    var issues = source.filter(function (item) { return item !== "The check slot needs evidence alignment."; });
+    if (issues.indexOf(issue) === -1) issues.push(issue);
+    if (source.slotIssues) {
+      issues.slotIssues = {};
+      Object.keys(source.slotIssues).forEach(function (id) {
+        issues.slotIssues[id] = (source.slotIssues[id] || []).map(function (item) {
+          return item === "The check slot needs evidence alignment." ? issue : item;
+        });
+      });
+    }
+    return Object.assign({}, result || {}, { ok: false, issues: issues });
+  }
+
   function resolveLessonContent(raw, ctx, ports) {
     ports = ports || {};
     var calls = [];
@@ -3801,6 +3896,7 @@
         repairUsed: !!repairUsed,
         repairedSlots: repairedSlots.slice(),
         qualityWarnings: (result.qualityWarnings || (result.adventure && result.adventure.qualityWarnings) || []).slice(),
+        pupilBeatDiagnostics: (result.pupilBeatDiagnostics || []).slice(),
         applyAlignment: alignmentMeta(firstReport, result.applyAlignment, calls),
         checkAlignment: alignmentMeta(firstCheck, result.checkAlignment, checkCalls)
       };
@@ -3846,13 +3942,13 @@
           demonstratedEvidence: verdict.demonstratedEvidence,
           ms: verdict.ms
         });
-        if (!verdict.ok) return { stop: true, result: result };
+        if (!verdict.ok) return { stop: true, result: noteCheckJudgeFailure(result, verdict) };
         var nextCtx = policyCtx({ checkSemantic: { coverage: verdict.coverage, reason: verdict.reason, demonstratedEvidence: verdict.demonstratedEvidence } });
         if (heldApply) nextCtx.applySemantic = heldApply;
         return { stop: false, result: accept(source, nextCtx) };
       }).catch(function () {
         checkCalls.push({ relationship: null, outcome: "check-error", reason: "error", ms: null });
-        return { stop: true, result: result };
+        return { stop: true, result: noteCheckJudgeFailure(result, { reason: "error" }) };
       });
     }
     var accepted = accept(raw, ctx);
@@ -4072,6 +4168,7 @@
     keepBeatPlan: keepBeatPlan,
     beatProblems: beatProblems,
     pupilBeatProblems: pupilBeatProblems,
+    pupilBeatDiagnostics: pupilBeatDiagnostics,
     mergeSlotContent: mergeSlotContent,
     contractArc: contractArc,
     qualityChecklist: qualityChecklist,

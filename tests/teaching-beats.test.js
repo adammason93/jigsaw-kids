@@ -232,6 +232,78 @@ function dump(label, plan, slots, items, accepted) {
   console.log(lines.join("\n"));
 }
 
+var shortPlan = planFor("Year 1", "Science", ["Fins help a shark turn because they push against the water.", "A shark also has a tail."], "Fins help a shark turn because they push against the water.");
+var shortSlots = beatsFor(shortPlan, "Year 1");
+var shortItems = Brain.beatKnowledge(shortPlan, "Year 1");
+var explained = shortSlots.map(function (slot) {
+  var beats = (slot.beats || []).map(function (beat) { return Object.assign({}, beat, { knowledgeRefs: beat.knowledgeRefs.slice() }); });
+  if (slot.id === "teach") beats = beats.filter(function (beat) { return beat.move === "explain" || (beat.move === "name" && beat.knowledgeRefs[0] === "k1"); });
+  return Object.assign({}, slot, { beats: beats });
+});
+var shortBody = slotsFrom(explained, shortItems);
+shortBody.teach.beats.forEach(function (beat) {
+  beat.text = beat.id.indexOf("0") !== -1 ? "Fins steer a shark." : "They push the water.";
+});
+var shortWords = shortBody.teach.beats.map(function (beat) { return beat.text; }).join(" ").split(/\s+/).filter(Boolean);
+assert.deepStrictEqual(explained[2].beats.map(function (beat) { return beat.move; }), ["name", "explain"]);
+assert.ok(shortWords.length < 12, shortWords.join(" "));
+var shortAccept = Brain.accept({ title: "Shark swim", objectives: [shortPlan.learningObjective], slots: shortBody }, frameFor(shortPlan, "Year 1", explained));
+assert.ok((shortAccept.issues || []).join(" ").indexOf("names the topic but does not explain it") === -1, (shortAccept.issues || []).join(" | "));
+
+var namedOnly = shortSlots.map(function (slot) {
+  return Object.assign({}, slot, { beats: (slot.beats || []).map(function (beat) { return Object.assign({}, beat, { knowledgeRefs: beat.knowledgeRefs.slice() }); }) });
+});
+namedOnly[2].beats = namedOnly[2].beats.filter(function (beat) { return beat.move === "name"; });
+var namedBody = slotsFrom(namedOnly, shortItems);
+var namedAccept = Brain.accept({ title: "Shark swim", objectives: [shortPlan.learningObjective], slots: namedBody }, frameFor(shortPlan, "Year 1", namedOnly));
+assert.strictEqual(namedAccept.ok, false);
+assert.ok((namedAccept.issues || []).join(" ").indexOf("without the required explain beat") !== -1, (namedAccept.issues || []).join(" | "));
+
+var legacyPlan = planFor("Year 1", "Science", ["Sharks have fins and sharp teeth.", "Fins help a shark turn because they push against the water."], "Sharks have fins and sharp teeth.");
+var legacySlots = Brain.lessonSkeleton(legacyPlan, { yearGroup: "Year 1", subject: "Science", topic: legacyPlan.topic, requestedMinutes: 15, pupilCount: 4 });
+assert.ok(!legacySlots.some(function (slot) { return slot.beats && slot.beats.length; }));
+var legacyBody = {};
+legacySlots.forEach(function (slot) {
+  legacyBody[slot.id] = { lines: ["Fins steer."] };
+});
+legacyBody.investigate = { lines: ["Look at the fins in the water."], instruction: "Look at the fins in the water." };
+legacyBody.apply = { lines: ["Show how the fins steer the shark."], instruction: "Show how the fins steer the shark through the water.", knowledgeUsed: legacyPlan.keyKnowledge[1], successCondition: "The pupil shows the fins steering.", teachingConnection: "The task uses the fin idea." };
+legacyBody.check = { lines: ["Which part helps a shark turn?"], prompt: "Which part helps a shark turn?", choices: [legacyPlan.keyKnowledge[1], "A different idea that was not part of this lesson."], correct: legacyPlan.keyKnowledge[1], explain: "Fins push against the water and that turns the shark.", knowledgeChecked: legacyPlan.keyKnowledge[1], successEvidence: "The pupil chose the fin idea.", teachingConnection: "The question follows the fin idea." };
+legacyBody.teach = { lines: ["Sharks have fins."] };
+legacyBody.recap = { lines: ["Sharks have fins and sharp teeth that help them."] };
+var legacyFrame = { subject: "Science", topic: legacyPlan.topic, yearGroup: "Year 1", requestedMinutes: 15, pupilCount: 4, lessonPlan: legacyPlan, lessonBrief: { intent: "explain" }, lessonSkeleton: legacySlots, storyPlan: Brain.storyFromPlan(legacyPlan, { yearGroup: "Year 1", topic: legacyPlan.topic }) };
+var legacyAccept = Brain.accept({ title: "Shark swim", objectives: [legacyPlan.learningObjective], slots: legacyBody }, legacyFrame);
+assert.ok((legacyAccept.issues || []).join(" ").indexOf("names the topic but does not explain it") !== -1, (legacyAccept.issues || []).join(" | "));
+
+function brokenCopy(slotId, text) {
+  var broken = slotsFrom(sharkSlots, sharkItems);
+  broken[slotId].beats[0].text = text;
+  return Brain.accept({ title: "Sharks mission", objectives: [sharkPlan.learningObjective], slots: broken }, frameFor(sharkPlan, "Year 1", sharkSlots));
+}
+var badInvestigate = brokenCopy("investigate", "Look.");
+var badCheck = brokenCopy("check", "Hmm.");
+var badRecap = brokenCopy("recap", "Fins steer a shark. They push water.");
+[badInvestigate, badCheck, badRecap].forEach(function (result) {
+  assert.strictEqual(result.ok, false);
+  assert.ok((result.issues || []).join(" ").indexOf("needs a pupil sentence") !== -1, (result.issues || []).join(" | "));
+});
+assert.ok(badInvestigate.pupilBeatDiagnostics.some(function (row) {
+  return row.beatId === "investigate:0" && row.reason === "fewer than minimum words" && row.text === "Look." && row.stageId === "investigate";
+}));
+assert.ok(badCheck.pupilBeatDiagnostics.some(function (row) {
+  return row.beatId === "check:0" && row.move === "retrieve" && row.reason === "fewer than minimum words" && row.text === "Hmm.";
+}));
+assert.ok(badRecap.pupilBeatDiagnostics.some(function (row) {
+  return row.beatId === "recap:0" && row.reason === "too many sentences for year" && row.text === "Fins steer a shark. They push water.";
+}));
+var missing = brokenCopy("investigate", "");
+assert.ok(missing.pupilBeatDiagnostics.some(function (row) { return row.beatId === "investigate:0" && row.reason === "missing"; }));
+var bare = brokenCopy("recap", "Fins help a shark turn");
+assert.ok(bare.pupilBeatDiagnostics.some(function (row) { return row.beatId === "recap:0" && row.reason === "missing terminal punctuation"; }));
+assert.deepStrictEqual(shortSlots.map(function (slot) { return slot.id; }), ["hook", "investigate", "teach", "apply", "check", "resolution", "recap"]);
+assert.strictEqual(Brain.applySemanticDecision("apply").outcome, "semantic-pass");
+assert.strictEqual(Brain.checkEvidenceDecision("partial").issue.indexOf("part of the required evidence") !== -1, true);
+
 dump("YEAR 1 SHARK FIXTURE", sharkPlan, sharkSlots, sharkItems, sharkAccept);
 dump("YEAR 4 FRACTIONS FIXTURE", fractionPlan, fractionSlots, fractionItems, fractionAccept);
 
