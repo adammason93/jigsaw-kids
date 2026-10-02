@@ -122,11 +122,15 @@ Brain.resolveLessonContent(raw, frame, {
   judge: function () { return { ok: true, relationship: "unrelated", reason: "The castle drawing does not use factors.", ms: 4 }; },
   repair: function () { return { slots: { apply: unrelatedTask } }; }
 }).then(function (result) {
-  assert.strictEqual(result.ok, false);
+  assert.strictEqual(result.ok, true, (result.issues || []).join("; "));
   assert.strictEqual(result.applyAlignment.semanticJudgeUsed, true);
   assert.strictEqual(result.applyAlignment.semanticRelationship, "unrelated");
-  assert.ok((result.issues || []).join(" ").indexOf("without using the named taught knowledge") !== -1);
+  var applyWarning = (result.qualityWarnings || []).filter(function (item) { return item.slotId === "apply"; })[0];
+  assert.ok(applyWarning);
+  assert.ok(applyWarning.issue.indexOf("without using the named taught knowledge") !== -1);
+  assert.strictEqual(applyWarning.postRepair, true);
   assert.strictEqual(result.repairUsed, true);
+  assert.ok(result.adventure && result.adventure.activities.length);
   var selectionTask = {
     instruction: "Choose a pupil to explain the answer.",
     knowledgeUsed: unrelatedKnowledge[0],

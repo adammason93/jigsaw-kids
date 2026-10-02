@@ -301,10 +301,16 @@ run("Maths", "equivalent fractions", "Year 4", directKnowledge, task("Create two
 }).then(function (once) {
   assert.strictEqual(calls.repair, 1);
   assert.strictEqual(calls.judge, 2);
-  assert.strictEqual(once.ok, false);
+  assert.strictEqual(once.ok, true, (once.issues || []).join("; "));
   assert.strictEqual(once.repairUsed, true);
   assert.deepStrictEqual(once.applyAlignment.semanticOutcomes, ["semantic-reproduce", "semantic-unrelated"]);
   assert.strictEqual(once.applyAlignment.semanticOutcome, "semantic-unrelated");
+  var applyWarning = (once.qualityWarnings || []).filter(function (item) { return item.slotId === "apply"; })[0];
+  assert.ok(applyWarning);
+  assert.strictEqual(applyWarning.outcome, "semantic-unrelated");
+  assert.strictEqual(applyWarning.postRepair, true);
+  assert.strictEqual(applyWarning.repairAttempted, true);
+  assert.ok(once.adventure && once.adventure.activities.length);
   console.log("apply semantic tests passed");
 }).catch(function (error) {
   console.error(error);

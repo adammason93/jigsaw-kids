@@ -553,7 +553,7 @@
       target: clean(config.target || raw.target || interaction.target, 80),
       knowledgeUsed: clean(raw.knowledgeUsed || config.knowledgeUsed, 180),
       successCondition: clean(raw.successCondition || config.successCondition, 180),
-      teachingConnection: clean(raw.teachingConnection || config.teachingConnection, 180),
+      teachingConnection: clean(raw.teachingConnection || config.teachingConnection || question.teachingConnection, 180),
       prompt: clean(question.prompt || config.prompt || raw.prompt, 240),
       choices: (question.choices || config.choices || raw.choices || []).map(function (choice) { return textOf(choice, 80); }).filter(Boolean).slice(0, 4),
       correct: textOf(question.correct || config.correct || raw.correct, 80),
@@ -3149,6 +3149,28 @@
     return activities;
   }
 
+  function semanticQualityWarning(message, ctx, slotId) {
+    var text = String(message || "");
+    var outcome = "";
+    if (slotId === "apply" && text === "The apply slot reproduces the named taught knowledge instead of applying it.") outcome = "semantic-reproduce";
+    else if (slotId === "apply" && text === "The apply slot can be completed without using the named taught knowledge.") outcome = "semantic-unrelated";
+    else if (slotId === "check" && text === "The check slot leaves part of the required evidence untested.") outcome = "check-partial";
+    else if (slotId === "check" && text === "The check slot does not test the required evidence.") outcome = "check-unrelated";
+    if (!outcome) return null;
+    var semantic = slotId === "apply" ? (ctx && ctx.applySemantic) : (ctx && ctx.checkSemantic);
+    var warning = {
+      slotId: slotId,
+      slotType: slotId,
+      outcome: outcome,
+      issue: text,
+      reason: clean(semantic && semantic.reason, 240) || text,
+      repairAttempted: true,
+      postRepair: true
+    };
+    if (slotId === "check" && semantic && semantic.demonstratedEvidence) warning.demonstratedEvidence = clean(semantic.demonstratedEvidence, 280);
+    return warning;
+  }
+
   function accept(raw, ctx) {
     ctx = ctx || {};
     var parsed = raw;
@@ -3197,6 +3219,7 @@
       });
     }
     var owners = {};
+    var qualityWarnings = [];
     var issues = educationalIssues(activities, issueCtx, owners);
     if (ctx.lessonSkeleton) {
       activities.forEach(function (activity) {
@@ -3212,14 +3235,22 @@
           var applySlot = null;
           ctx.lessonSkeleton.forEach(function (slot) { if (slot.id === "apply") applySlot = slot; });
           applySlotIssues(activity, applySlot, issueCtx).forEach(function (issue) {
-            issues.push(issue);
-            ownIssue(owners, activity.slotId, issue);
+            var warning = ctx.semanticWarningsAllowed && semanticQualityWarning(issue, issueCtx, "apply");
+            if (warning) qualityWarnings.push(warning);
+            else {
+              issues.push(issue);
+              ownIssue(owners, activity.slotId, issue);
+            }
           });
         }
         if (activity.slotId === "check") {
           checkSlotIssues(activity, issueCtx).forEach(function (issue) {
-            issues.push(issue);
-            ownIssue(owners, activity.slotId, issue);
+            var warning = ctx.semanticWarningsAllowed && semanticQualityWarning(issue, issueCtx, "check");
+            if (warning) qualityWarnings.push(warning);
+            else {
+              issues.push(issue);
+              ownIssue(owners, activity.slotId, issue);
+            }
           });
         }
       });
@@ -3234,7 +3265,7 @@
       var structure = ctx.lessonSkeleton ? skeletonDrift(activities, ctx.lessonSkeleton) : [];
       var reported = structure.concat(issues);
       reported.slotIssues = slotIssuesFrom(reported, activities, owners);
-      return { ok: false, structuralOk: !structure.length, slotIds: slotIdsFrom(reported, activities), slotIssues: reported.slotIssues, issues: reported, previous: parsed, applyAlignment: applyReport, checkAlignment: checkReport };
+      return { ok: false, structuralOk: !structure.length, slotIds: slotIdsFrom(reported, activities), slotIssues: reported.slotIssues, issues: reported, previous: parsed, applyAlignment: applyReport, checkAlignment: checkReport, qualityWarnings: qualityWarnings };
     }
     var objectiveSource = parsed.objectives || parsed.learningObjectives || parsed.learningObjective || parsed.objective || ctx.learningObjectives || [];
     if (!Array.isArray(objectiveSource)) objectiveSource = [objectiveSource];
@@ -3250,26 +3281,29 @@
     var sum = activities.reduce(function (total, activity) { return total + activity.minutes; }, 0);
     var lessonPlan = ctx.lessonPlan || parsed.lessonPlan || null;
     var keptStory = ctx.storyPlan || parsed.storyPlan || null;
+    var adventure = {
+      subject: clean(parsed.subject || ctx.subject, 80),
+      topic: clean(parsed.topic || ctx.topic, 120),
+      yearGroup: ctx.yearGroup || "",
+      yearAssumed: !!ctx.yearAssumed,
+      yearAssumption: ctx.yearAssumed ? (ctx.yearAssumption || AGE_FALLBACK) : "",
+      title: title || ((ctx.topic || "Learning") + " Adventure"),
+      objectives: objectives,
+      vocabulary: (parsed.vocabulary || []).map(function (item) { return clean(item, 40); }).filter(Boolean).slice(0, 12),
+      lessonPlan: lessonPlan,
+      lessonSkeleton: ctx.lessonSkeleton || null,
+      storyPlan: keptStory,
+      activities: activities,
+      targetMinutes: Number(ctx.requestedMinutes) || sum,
+      estimateMinutes: sum
+    };
+    if (qualityWarnings.length) adventure.qualityWarnings = qualityWarnings.slice();
     return {
       ok: true,
-      adventure: {
-        subject: clean(parsed.subject || ctx.subject, 80),
-        topic: clean(parsed.topic || ctx.topic, 120),
-        yearGroup: ctx.yearGroup || "",
-        yearAssumed: !!ctx.yearAssumed,
-        yearAssumption: ctx.yearAssumed ? (ctx.yearAssumption || AGE_FALLBACK) : "",
-        title: title || ((ctx.topic || "Learning") + " Adventure"),
-        objectives: objectives,
-        vocabulary: (parsed.vocabulary || []).map(function (item) { return clean(item, 40); }).filter(Boolean).slice(0, 12),
-        lessonPlan: lessonPlan,
-        lessonSkeleton: ctx.lessonSkeleton || null,
-        storyPlan: keptStory,
-        activities: activities,
-        targetMinutes: Number(ctx.requestedMinutes) || sum,
-        estimateMinutes: sum
-      },
+      adventure: adventure,
       applyAlignment: applyReport,
-      checkAlignment: checkReport
+      checkAlignment: checkReport,
+      qualityWarnings: qualityWarnings.slice()
     };
   }
 
@@ -3326,6 +3360,12 @@
     var checkCalls = [];
     var repairedSlots = [];
     var heldApply = null;
+    var warnAfterRepair = false;
+    function policyCtx(extra) {
+      var next = Object.assign({}, ctx, extra || {});
+      if (warnAfterRepair) next.semanticWarningsAllowed = true;
+      return next;
+    }
     function pack(result, repairUsed) {
       return {
         ok: !!result.ok,
@@ -3336,6 +3376,7 @@
         previous: result.previous,
         repairUsed: !!repairUsed,
         repairedSlots: repairedSlots.slice(),
+        qualityWarnings: (result.qualityWarnings || (result.adventure && result.adventure.qualityWarnings) || []).slice(),
         applyAlignment: alignmentMeta(firstReport, result.applyAlignment, calls),
         checkAlignment: alignmentMeta(firstCheck, result.checkAlignment, checkCalls)
       };
@@ -3356,7 +3397,7 @@
         calls.push({ relationship: verdict.relationship, outcome: verdict.outcome, reason: verdict.reason, ms: verdict.ms });
         if (!verdict.ok) return { stop: true, result: result };
         heldApply = { relationship: verdict.relationship, reason: verdict.reason };
-        var next = accept(source, Object.assign({}, ctx, { applySemantic: heldApply }));
+        var next = accept(source, policyCtx({ applySemantic: heldApply }));
         return { stop: false, result: next };
       }).catch(function () {
         calls.push({ relationship: null, outcome: "semantic-error", reason: "error", ms: null });
@@ -3382,7 +3423,7 @@
           ms: verdict.ms
         });
         if (!verdict.ok) return { stop: true, result: result };
-        var nextCtx = Object.assign({}, ctx, { checkSemantic: { coverage: verdict.coverage, reason: verdict.reason, demonstratedEvidence: verdict.demonstratedEvidence } });
+        var nextCtx = policyCtx({ checkSemantic: { coverage: verdict.coverage, reason: verdict.reason, demonstratedEvidence: verdict.demonstratedEvidence } });
         if (heldApply) nextCtx.applySemantic = heldApply;
         return { stop: false, result: accept(source, nextCtx) };
       }).catch(function () {
@@ -3407,7 +3448,8 @@
         return Promise.resolve(ports.repair(accepted)).then(function (second) {
           var merged = mergeSlotContent(accepted.previous, second);
           heldApply = null;
-          var repaired = accept(merged, ctx);
+          warnAfterRepair = true;
+          var repaired = accept(merged, policyCtx());
           return judged(merged, repaired).then(function (secondJudge) {
             if (secondJudge && secondJudge.result) repaired = secondJudge.result;
             if (repaired.ok) return pack(repaired, true);
@@ -3517,7 +3559,8 @@
           storyMs: meta.storyMs,
           repairMs: meta.repairMs,
           repairUsed: !!meta.repairUsed,
-          fallbackUsed: false
+          fallbackUsed: false,
+          qualityWarnings: Array.isArray(meta.qualityWarnings) ? meta.qualityWarnings : []
         };
         return { ok: true, adventure: checked.adventure };
       }).catch(function (error) {

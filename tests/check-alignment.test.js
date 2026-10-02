@@ -288,8 +288,14 @@ Promise.resolve().then(function () {
 }).then(function (run) {
   assert.strictEqual(run.repairs, 1);
   assert.strictEqual(run.judges, 2);
-  assert.strictEqual(run.result.ok, false);
-  assert.ok((run.result.issues || []).join(" ").indexOf("part of the required evidence") !== -1);
+  assert.strictEqual(run.result.ok, true, (run.result.issues || []).join("; "));
+  var partialWarning = (run.result.qualityWarnings || []).filter(function (item) { return item.slotId === "check"; })[0];
+  assert.ok(partialWarning);
+  assert.strictEqual(partialWarning.outcome, "check-partial");
+  assert.strictEqual(partialWarning.postRepair, true);
+  assert.strictEqual(partialWarning.repairAttempted, true);
+  assert.ok(partialWarning.issue.indexOf("part of the required evidence") !== -1);
+  assert.ok(run.result.adventure.activities.some(function (activity) { return activity.slotId === "check"; }));
   return settle(compareGoal, compareDefinition, function () {
     return { ok: false, reason: "error", ms: 1 };
   }, function () {
