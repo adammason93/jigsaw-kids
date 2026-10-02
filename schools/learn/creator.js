@@ -641,7 +641,7 @@
     draft.generationError = "";
   }
 
-  function useLibrary(stage) {
+  function useLibrary(stage, issues) {
     Core.recommend(draft);
     var broken = Core.brokenLesson(draft);
     var problems = Core.validateAdventure(draft, Mechanics);
@@ -649,7 +649,7 @@
       draft.activities = [];
       draft.minutes = 0;
       draft.generationError = "failed";
-      draft.generation = { fallbackUsed: true, stage: stage || "EDUCATIONAL_VALIDATION_FAILED" };
+      draft.generation = { fallbackUsed: true, stage: stage || "EDUCATIONAL_VALIDATION_FAILED", issues: Core.boundedIssues(issues) };
       notice = "";
       step = "play";
       return;
@@ -779,14 +779,20 @@
       if (result && result.ok && result.adventure) {
         applyBrain(result.adventure);
         var problems = Core.validateAdventure(draft, Mechanics);
-        if (!problems.length && !Core.brokenLesson(draft)) {
+        var broken = Core.brokenLesson(draft);
+        if (!problems.length && !broken) {
           draft.stale = false;
           createWorld(token);
           return;
         }
+        buildAt = -1;
+        useLibrary(result.stage, problems.concat(broken ? [broken] : []));
+        draft.stale = false;
+        paint();
+        return;
       }
       buildAt = -1;
-      useLibrary(result && result.stage);
+      useLibrary(result && result.stage, result && result.issues);
       draft.stale = false;
       paint();
     });

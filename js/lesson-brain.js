@@ -3434,6 +3434,17 @@
     return concepts.some(function (token) { return token && token.length > 3 && lower.indexOf(token) !== -1; });
   }
 
+  function structuredApply(activity) {
+    if (!activity || activity.mechanic === "spin") return false;
+    var instruction = applyInstructionOf(activity);
+    if (clean(instruction).split(/\s+/).filter(Boolean).length < 4) return false;
+    var interaction = activity.scene && activity.scene.interaction;
+    if (!interaction || !clean(interaction.target)) return false;
+    var success = clean(activity.successCondition);
+    if (!success || /^(done|ok|okay|finished|complete|completed)$/i.test(success)) return false;
+    return true;
+  }
+
   function stageIssues(activities, ctx) {
     var arc = (ctx && ctx.lessonPlan && ctx.lessonPlan.lessonArc) || [];
     if (!arc.length || arc[0].mayRevealAnswer === undefined) return [];
@@ -3449,6 +3460,7 @@
         });
         if (apply && apply.mechanic === "spin") return false;
         if (ctx && ctx.lessonSkeleton && apply) return true;
+        if (apply && structuredApply(apply)) return true;
         return !!(apply && learningAction(apply, ctx));
       }
       if (purpose === "check") return activities.some(function (activity) { return activity.mechanic === "quiz"; });

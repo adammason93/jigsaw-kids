@@ -1380,6 +1380,16 @@
     };
   }
 
+  function boundedIssues(list) {
+    var kept = [];
+    (list || []).forEach(function (item) {
+      var text = String(item == null ? "" : item).replace(/\s+/g, " ").trim();
+      if (!text || kept.length >= 8) return;
+      kept.push(text.slice(0, 240));
+    });
+    return kept;
+  }
+
   return {
     PLAY: PLAY,
     playMode: playMode,
@@ -1428,6 +1438,7 @@
     scoreCopy: scoreCopy,
     libraryActions: libraryActions,
     isCurrent: isCurrent,
-    unsupportedMechanics: unsupportedMechanics
+    unsupportedMechanics: unsupportedMechanics,
+    boundedIssues: boundedIssues
   };
 });

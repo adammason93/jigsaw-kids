@@ -16,7 +16,7 @@ assert.ok(skeletonCall > 0, "the generator must call planBeats");
 assert.ok(lessonCall > skeletonCall, "lessonSkeleton must be the input to planBeats");
 assert.ok(contentCall > lessonCall, "contentBrief must follow the beat-planned skeleton");
 assert.strictEqual(boot.includes("brain.planBeats("), true);
-assert.ok(boot.includes("lesson-brain.js?v=48"));
+assert.ok(boot.includes("lesson-brain.js?v=49"));
 
 function jsonResponse(body, status) {
   return {
@@ -91,7 +91,7 @@ global.Deno = { env: { get: function (name) {
 
 global.fetch = function (url, init) {
   var href = String(url);
-  if (href.indexOf("lesson-brain.js?v=48") !== -1) return Promise.resolve(jsonResponse(brainSource, 200));
+  if (href.indexOf("lesson-brain.js?v=49") !== -1) return Promise.resolve(jsonResponse(brainSource, 200));
   if (href.indexOf("/auth/v1/user") !== -1) return Promise.resolve(jsonResponse({ id: "teacher-1" }, 200));
   if (href.indexOf("/rest/v1/organisation_members") !== -1) return Promise.resolve(jsonResponse([{ role: "teacher", status: "active" }], 200));
   if (href.indexOf("api.openai.com") === -1) return Promise.reject(new Error("unexpected fetch " + href));

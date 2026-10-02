@@ -3,7 +3,7 @@ var fs = require("fs");
 var path = require("path");
 
 function bootAccepted(source) {
-  return source.includes("lesson-brain.js?v=48")
+  return source.includes("lesson-brain.js?v=49")
     && source.includes("brain.planBeats(")
     && source.includes("teacherIntentBrief")
     && source.includes("checkEvidenceBrief")
@@ -16,7 +16,7 @@ var localBrain = fs.readFileSync(path.join(__dirname, "../js/lesson-brain.js"), 
 assert.strictEqual(bootAccepted(localBoot), true);
 assert.strictEqual(localBoot.includes("semanticWarningsAllowed"), false);
 assert.strictEqual(localBrain.includes("semanticWarningsAllowed"), true);
-assert.strictEqual(bootAccepted(localBoot.replace("lesson-brain.js?v=48", "lesson-brain.js?v=40")), false);
+assert.strictEqual(bootAccepted(localBoot.replace("lesson-brain.js?v=49", "lesson-brain.js?v=40")), false);
 assert.strictEqual(bootAccepted(localBoot.replace("brain.planBeats(", "brain.lessonSkeleton(")), false);
 assert.strictEqual(bootAccepted.toString().includes("semanticWarningsAllowed"), false);
 
@@ -49,7 +49,7 @@ global.Deno = { env: { get: function (name) {
 } } };
 
 global.fetch = function (url) {
-  if (String(url).indexOf("lesson-brain.js?v=48") !== -1) {
+  if (String(url).indexOf("lesson-brain.js?v=49") !== -1) {
     return Promise.resolve(jsonResponse(localBrain, 200));
   }
   return Promise.reject(new Error("unexpected fetch " + url));

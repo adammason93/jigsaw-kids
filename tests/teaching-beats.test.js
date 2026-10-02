@@ -552,6 +552,159 @@ for (var beatIndex = 0; beatIndex < 13; beatIndex += 1) many.push({ id: "hook:" 
 overflow.slots.hook = { beats: many };
 assert.strictEqual(Brain.boundedBeatLog(overflow).length, 12);
 
+function reproducedShark() {
+  function speakLive(beat, items) {
+    var item = items[0];
+    items.forEach(function (entry) { if (entry.id === (beat.knowledgeRefs || [])[0]) item = entry; });
+    var known = String(item.text || "").replace(/[.?!]$/, "");
+    var text = {
+      notice: "Look at the scene and say what you can see.",
+      name: item.kind === "relationship" ? "The class gives this idea its own name." : item.text,
+      explain: item.text,
+      practise: "Use " + known + " in what you make.",
+      retrieve: "Which sentence matches the idea you just learned?",
+      reveal: "The class can now use the idea from this lesson.",
+      consolidate: "The class can now use the idea about " + known.split(" ")[0].toLowerCase() + "."
+    }[beat.move];
+    return { id: beat.id, cue: "", text: text };
+  }
+  var requestText = "Teach children how a shark's body helps it swim.";
+  var knowledge = ["Sharks have a streamlined shape that reduces water resistance.", "Their fins help them steer and keep balanced while swimming."];
+  var plan = planFor("Year 1", "Science", knowledge, "Understand how a shark's body structure aids in its swimming ability.");
+  var slots = beatsFor(plan, "Year 1");
+  var items = Brain.beatKnowledge(plan, "Year 1");
+  var frame = { subject: "Science", topic: plan.topic, yearGroup: "Year 1", requestedMinutes: 15, pupilCount: 4, lessonPlan: plan, lessonText: requestText, teacherInstructions: requestText, lessonBrief: { intent: "explain", rawRequest: requestText, topic: plan.topic } };
+  Brain.applyTeacherIntent(frame, {
+    ok: true,
+    learningGoal: "Understand how a shark's body structure aids in its swimming ability.",
+    requiredEvidence: "Describe the relationship between a shark's body parts and their function in swimming.",
+    focusConcepts: ["shark anatomy", "buoyancy", "streamlined shape"],
+    priorKnowledge: [], exclusions: [], preferences: [],
+    subject: "Science", subjectConfidence: "explicit"
+  });
+  frame.lessonSkeleton = slots;
+  frame.storyPlan = Brain.storyFromPlan(plan, frame);
+  frame.applySemantic = { relationship: "apply", reason: "The instruction requires using knowledge about shark anatomy." };
+  frame.checkSemantic = { coverage: "sufficient", reason: "The answer shows the relationship.", demonstratedEvidence: "The pupil understands the shape." };
+  var live = {};
+  slots.forEach(function (slot) {
+    var beats = (slot.beats || []).map(function (beat) { return speakLive(beat, items); });
+    if (slot.id === "apply") {
+      live.apply = {
+        beats: beats,
+        instruction: "Discuss how a shark's body helps it swim.",
+        target: "Understanding the relationship between body parts and swimming.",
+        successCondition: "Students can explain how body parts aid in swimming.",
+        teachingConnection: "This task uses what we learned about shark anatomy."
+      };
+    } else if (slot.id === "check") {
+      live.check = {
+        beats: beats,
+        prompt: "Why does a shark's streamlined shape help it swim?",
+        choices: ["It makes them sink.", "It reduces water resistance."],
+        correct: "It reduces water resistance.",
+        explain: "A streamlined shape lets the shark move through the water with less resistance.",
+        successEvidence: "The pupil chose the resistance idea.",
+        teachingConnection: "The question follows the shape idea."
+      };
+    } else live[slot.id] = { beats: beats };
+  });
+  live.hook.beats[0].text = "Look at how sharks swim in the water!";
+  live.investigate.beats[0].text = "Observe the shark's body and think about how it helps them swim.";
+  live.teach.beats[0].text = "Sharks have a streamlined shape that helps them move quickly.";
+  live.teach.beats[1].text = "Their fins help them steer and keep balanced while swimming.";
+  live.apply.beats[0].text = "Now, let's think about how these body parts work together.";
+  live.resolution.beats[0].text = "All these features help sharks swim efficiently.";
+  live.recap.beats[0].text = "Sharks have a streamlined shape that helps them swim.";
+  live.recap.beats[1].text = "Their fins are important for steering and balance.";
+  return { frame: frame, live: live, requestText: requestText };
+}
+
+function clientContext(requestText) {
+  return Brain.contextFrom({
+    source: { text: requestText },
+    year: "Year 1",
+    subject: "Science",
+    topic: "Science Children How a Shark's Body Helps It Swim",
+    title: "",
+    goals: [],
+    targetMinutes: 15,
+    playMode: "whole_class"
+  }, { pupilCount: 4, availableMechanics: Creator.capabilities(Mechanics).map(function (item) { return item.id; }) });
+}
+
+var actionVerb = /\b(predict|sort|choose|label|compare|explain|show|point|build|match|decide|use|move|name|describe|finish|shade|group|order|complete)\b/i;
+var thinkLine = "Now, let's think about how these body parts work together.";
+assert.strictEqual(actionVerb.test(thinkLine), false);
+var reproduced = reproducedShark();
+var serverShark = Brain.accept({ title: "How sharks swim", objectives: [reproduced.frame.lessonBrief.learningGoal], slots: reproduced.live }, reproduced.frame);
+assert.strictEqual(serverShark.ok, true, (serverShark.issues || []).join(" | "));
+var materialised = JSON.parse(JSON.stringify(serverShark.adventure));
+var clientShark = Brain.accept(materialised, clientContext(reproduced.requestText));
+assert.strictEqual(clientShark.ok, true, (clientShark.issues || []).join(" | "));
+assert.strictEqual(!!clientContext(reproduced.requestText).lessonSkeleton, false);
+var clientApply = clientShark.adventure.activities.filter(function (activity) { return activity.slotId === "apply"; })[0];
+assert.strictEqual(clientApply.config.lines[0], thinkLine);
+assert.strictEqual(clientApply.beats[0].pupil.text, thinkLine);
+assert.strictEqual(clientApply.applyInstruction, "Discuss how a shark's body helps it swim.");
+assert.ok(clientApply.scene.interaction.target);
+assert.strictEqual(clientApply.successCondition, "Students can explain how body parts aid in swimming.");
+assert.strictEqual(clientApply.teachingConnection, "This task uses what we learned about shark anatomy.");
+assert.deepStrictEqual(clientShark.adventure.activities.map(function (activity) { return activity.slotId; }), ["hook", "investigate", "teach", "apply", "check", "resolution", "recap"]);
+var clientCheck = clientShark.adventure.activities.filter(function (activity) { return activity.slotId === "check"; })[0];
+assert.strictEqual(clientCheck.mechanic, "quiz");
+assert.strictEqual(clientCheck.config.questions[0].prompt, "Why does a shark's streamlined shape help it swim?");
+assert.strictEqual(clientCheck.config.questions[0].correct, "It reduces water resistance.");
+assert.strictEqual(Brain.applySemanticDecision("apply").outcome, "semantic-pass");
+assert.strictEqual(Brain.checkEvidenceDecision("sufficient").outcome, "check-pass");
+
+function withoutApplyContract(adventure, fields) {
+  var copy = JSON.parse(JSON.stringify(adventure));
+  var apply = copy.activities.filter(function (activity) { return activity.slotId === "apply"; })[0];
+  apply.config.lines = [thinkLine];
+  apply.beats[0].pupil.text = thinkLine;
+  apply.applyInstruction = fields.instruction || "";
+  apply.successCondition = fields.success || "";
+  apply.teachingConnection = fields.connection || "";
+  if (!fields.target && apply.scene) delete apply.scene.interaction;
+  else if (apply.scene && apply.scene.interaction) apply.scene.interaction.target = fields.target;
+  return copy;
+}
+
+var strayInstruction = Brain.accept(withoutApplyContract(materialised, {
+  instruction: "Discuss how a shark's body helps it swim."
+}), clientContext(reproduced.requestText));
+assert.strictEqual(strayInstruction.ok, false);
+assert.ok((strayInstruction.issues || []).indexOf("The lesson is missing the apply stage.") !== -1);
+
+var incompleteSuccess = Brain.accept(withoutApplyContract(materialised, {
+  instruction: "Discuss how a shark's body helps it swim.",
+  target: "model",
+  success: "done"
+}), clientContext(reproduced.requestText));
+assert.strictEqual(incompleteSuccess.ok, false);
+assert.ok((incompleteSuccess.issues || []).indexOf("The lesson is missing the apply stage.") !== -1);
+
+var legacyApply = JSON.parse(JSON.stringify(materialised));
+var legacyActivity = legacyApply.activities.filter(function (activity) { return activity.slotId === "apply"; })[0];
+legacyActivity.beats = [];
+legacyActivity.applyInstruction = "";
+legacyActivity.successCondition = "";
+legacyActivity.teachingConnection = "";
+legacyActivity.knowledgeUsed = "";
+if (legacyActivity.scene) delete legacyActivity.scene.interaction;
+legacyActivity.config.lines = ["Show the fins pushing against the water so the shark can turn."];
+var legacyClient = Brain.accept(legacyApply, clientContext(reproduced.requestText));
+assert.ok((legacyClient.issues || []).indexOf("The lesson is missing the apply stage.") === -1, (legacyClient.issues || []).join(" | "));
+
+var neitherApply = withoutApplyContract(materialised, {});
+var neitherClient = Brain.accept(neitherApply, clientContext(reproduced.requestText));
+assert.strictEqual(neitherClient.ok, false);
+assert.ok((neitherClient.issues || []).indexOf("The lesson is missing the apply stage.") !== -1);
+assert.ok((neitherClient.issues || []).indexOf("The lesson is missing the check stage.") === -1);
+assert.ok((neitherClient.issues || []).indexOf("The lesson is missing the hook stage.") === -1);
+assert.ok((neitherClient.issues || []).indexOf("The lesson is missing the teach stage.") === -1);
+
 dump("YEAR 1 SHARK FIXTURE", sharkPlan, sharkSlots, sharkItems, sharkAccept);
 dump("YEAR 4 FRACTIONS FIXTURE", fractionPlan, fractionSlots, fractionItems, fractionAccept);
 
