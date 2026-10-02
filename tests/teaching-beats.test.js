@@ -408,6 +408,150 @@ var droppedAccept = Brain.accept({ title: "Sharks mission", objectives: [sharkPl
 assert.strictEqual(droppedAccept.ok, false);
 assert.strictEqual(droppedAccept.previous.activities[2].beats.length, teachPlan.length);
 
+var applySchema = brief.schema.properties.slots.properties.apply;
+assert.ok(brief.system.indexOf("apply:0") !== -1);
+assert.ok(brief.system.indexOf("\"cue\"") !== -1 || brief.system.indexOf('"cue"') !== -1);
+assert.deepStrictEqual(applySchema.required.sort(), ["beats", "instruction", "successCondition", "target", "teachingConnection"]);
+assert.ok(applySchema.properties.instruction);
+assert.ok(applySchema.properties.target);
+assert.ok(applySchema.properties.successCondition);
+assert.ok(applySchema.properties.teachingConnection);
+assert.ok(!applySchema.properties.knowledgeUsed);
+assert.ok(!applySchema.properties.title);
+assert.ok(!applySchema.properties.lines);
+assert.ok(brief.system.indexOf("Do not omit the planned beat because the task instruction is present.") !== -1);
+assert.ok(brief.system.indexOf("does not merely say use your knowledge") !== -1);
+assert.ok(brief.system.indexOf("does not duplicate the entire task instruction") !== -1);
+assert.ok(brief.system.toLowerCase().indexOf("knowledgeused must name") === -1);
+var fractionBrief = Brain.contentBrief(frameFor(fractionPlan, "Year 4", fractionSlots), fractionPlan, null);
+assert.ok(fractionBrief.system.indexOf("short pupil-facing bridge") !== -1);
+assert.ok(fractionBrief.system.indexOf("does not replace the task itself") !== -1);
+
+var taskWithoutBeat = slotsFrom(sharkSlots, sharkItems);
+taskWithoutBeat.apply.beats[0].cue = "";
+taskWithoutBeat.apply.beats[0].text = "";
+var taskWithoutBeatAccept = Brain.accept({ title: "Sharks mission", objectives: [sharkPlan.learningObjective], slots: taskWithoutBeat }, frameFor(sharkPlan, "Year 1", sharkSlots));
+assert.strictEqual(taskWithoutBeatAccept.ok, false);
+assert.ok((taskWithoutBeatAccept.issues || []).join(" ").indexOf("The apply:0 beat needs a pupil sentence.") !== -1);
+assert.ok((taskWithoutBeatAccept.issues || []).join(" ").indexOf("Activity 4 needs something for the class to read.") !== -1);
+
+var beatWithoutTask = slotsFrom(sharkSlots, sharkItems);
+beatWithoutTask.apply.beats[0].cue = "Look at the fins.";
+beatWithoutTask.apply.beats[0].text = "The fins you named are what you will use.";
+beatWithoutTask.apply.instruction = "";
+beatWithoutTask.apply.successCondition = "";
+var beatWithoutTaskAccept = Brain.accept({ title: "Sharks mission", objectives: [sharkPlan.learningObjective], slots: beatWithoutTask }, frameFor(sharkPlan, "Year 1", sharkSlots));
+assert.strictEqual(beatWithoutTaskAccept.ok, false);
+assert.ok((beatWithoutTaskAccept.issues || []).join(" ").indexOf("The apply slot has no learning instruction.") !== -1);
+assert.ok((beatWithoutTaskAccept.issues || []).join(" ").indexOf("The apply slot has no success condition.") !== -1);
+var beatWithoutTaskApply = beatWithoutTaskAccept.previous.activities.filter(function (activity) { return activity.slotId === "apply"; })[0];
+assert.strictEqual(beatWithoutTaskApply.config.lines[0], "The fins you named are what you will use.");
+assert.notStrictEqual(beatWithoutTaskApply.applyInstruction, beatWithoutTaskApply.config.lines[0]);
+
+var applyUnit = slotsFrom(sharkSlots, sharkItems);
+applyUnit.apply.beats[0].cue = "Look at the fins.";
+applyUnit.apply.beats[0].text = "The fins you named are what you will use.";
+applyUnit.apply.instruction = "Show the fins pushing against the water so the shark can turn.";
+applyUnit.apply.target = "model";
+applyUnit.apply.successCondition = "The pupil shows the fins turning the shark.";
+applyUnit.apply.teachingConnection = "The action uses the fin idea from the lesson.";
+var applyUnitAccept = Brain.accept({ title: "Sharks mission", objectives: [sharkPlan.learningObjective], slots: applyUnit }, frameFor(sharkPlan, "Year 1", sharkSlots));
+assert.strictEqual(applyUnitAccept.ok, true, (applyUnitAccept.issues || []).join(" | "));
+var applyUnitActivity = applyUnitAccept.adventure.activities.filter(function (activity) { return activity.slotId === "apply"; })[0];
+assert.strictEqual(applyUnitActivity.config.lines[0], "The fins you named are what you will use.");
+assert.strictEqual(applyUnitActivity.applyInstruction, "Show the fins pushing against the water so the shark can turn.");
+assert.notStrictEqual(applyUnitActivity.applyInstruction, applyUnitActivity.config.lines[0]);
+assert.strictEqual(applyUnitActivity.beats[0].pupil.text, applyUnitActivity.config.lines[0]);
+
+var applyRepair = JSON.parse(Brain.slotRepairBrief(frameFor(sharkPlan, "Year 1", sharkSlots), ["apply"], taskWithoutBeatAccept.issues, taskWithoutBeatAccept.previous).user);
+var applyRepairSpec = applyRepair.slotsToRewrite.filter(function (spec) { return spec.slotType === "APPLY"; })[0];
+assert.deepStrictEqual(applyRepair.slotsToRewrite.map(function (spec) { return spec.slotType; }), ["APPLY"]);
+assert.ok(applyRepairSpec.output.beats.some(function (beat) { return beat.id === "apply:0"; }));
+assert.deepStrictEqual(Object.keys(applyRepairSpec.output.beats[0]).sort(), ["cue", "id", "text"]);
+assert.ok(Object.prototype.hasOwnProperty.call(applyRepairSpec.output, "instruction"));
+assert.ok(Object.prototype.hasOwnProperty.call(applyRepairSpec.output, "target"));
+assert.ok(Object.prototype.hasOwnProperty.call(applyRepairSpec.output, "successCondition"));
+assert.ok(Object.prototype.hasOwnProperty.call(applyRepairSpec.output, "teachingConnection"));
+assert.ok(!Object.prototype.hasOwnProperty.call(applyRepairSpec.output, "knowledgeUsed"));
+assert.ok(!Object.prototype.hasOwnProperty.call(applyRepairSpec.output, "title"));
+assert.ok(!Object.prototype.hasOwnProperty.call(applyRepairSpec.output, "lines"));
+assert.ok(applyRepair.instruction.indexOf("The beat pupil copy and task fields are both required.") !== -1);
+assert.ok(applyRepair.instruction.indexOf("Do not omit the planned beat because the task instruction is present.") !== -1);
+assert.ok(applyRepair.instruction.indexOf("Do not return knowledgeUsed.") !== -1);
+
+var orderedSlots = sharkSlots.map(function (slot) {
+  var beats = (slot.beats || []).map(function (beat) { return Object.assign({}, beat, { knowledgeRefs: beat.knowledgeRefs.slice() }); });
+  if (slot.id === "apply") {
+    beats = [
+      { id: "apply:0", stageId: "apply", move: "practise", knowledgeRefs: ["k2"] },
+      { id: "apply:1", stageId: "apply", move: "practise", knowledgeRefs: ["k2"] }
+    ];
+  }
+  return Object.assign({}, slot, { beats: beats });
+});
+var orderedBody = slotsFrom(orderedSlots, sharkItems);
+orderedBody.apply.beats[1].text = "Push the water with the fins you can already name.";
+var orderedBefore = Brain.accept({ title: "Sharks mission", objectives: [sharkPlan.learningObjective], slots: orderedBody }, frameFor(sharkPlan, "Year 1", orderedSlots));
+var orderedSource = orderedBefore.adventure || orderedBefore.previous;
+var hookBefore = orderedSource.activities.filter(function (activity) { return activity.slotId === "hook"; })[0].beats[0].pupil.text;
+var applyPatch = {
+  slots: {
+    apply: {
+      beats: [
+        { id: "apply:9", cue: "Extra.", text: "This extra beat must not appear in the plan.", move: "invent", knowledgeRefs: ["k9"] },
+        { id: "apply:1", cue: "Watch the tail.", text: "The tail you named is ready for the turn.", move: "invent", knowledgeRefs: ["k9"] },
+        { id: "apply:0", cue: "Look at the fins.", text: "The fins you named are what you will use.", move: "invent", knowledgeRefs: ["k9"] }
+      ],
+      instruction: "Show the fins pushing against the water so the shark can turn.",
+      target: "model",
+      successCondition: "The pupil shows the fins turning the shark.",
+      teachingConnection: "The action uses the fin idea from the lesson.",
+      knowledgeUsed: "This model field must not replace the planned ref.",
+      title: "Try it",
+      lines: ["This line must not replace the beat."]
+    }
+  }
+};
+var mergedApply = Brain.mergeSlotContent(orderedSource, applyPatch);
+var mergedAccept = Brain.accept({ title: "Sharks mission", objectives: [sharkPlan.learningObjective], slots: mergedApply.slots }, frameFor(sharkPlan, "Year 1", orderedSlots));
+var mergedActivity = (mergedAccept.adventure || mergedAccept.previous).activities.filter(function (activity) { return activity.slotId === "apply"; })[0];
+var mergedHook = (mergedAccept.adventure || mergedAccept.previous).activities.filter(function (activity) { return activity.slotId === "hook"; })[0];
+assert.deepStrictEqual(mergedActivity.beats.map(function (beat) { return beat.id; }), ["apply:0", "apply:1"]);
+assert.deepStrictEqual(mergedActivity.beats.map(function (beat) { return beat.move; }), ["practise", "practise"]);
+assert.deepStrictEqual(mergedActivity.beats.map(function (beat) { return beat.knowledgeRefs[0]; }), ["k2", "k2"]);
+assert.strictEqual(mergedActivity.beats[0].pupil.cue, "Look at the fins.");
+assert.strictEqual(mergedActivity.beats[0].pupil.text, "The fins you named are what you will use.");
+assert.strictEqual(mergedActivity.beats[1].pupil.text, "The tail you named is ready for the turn.");
+assert.strictEqual(mergedActivity.applyInstruction, "Show the fins pushing against the water so the shark can turn.");
+assert.strictEqual(mergedActivity.successCondition, "The pupil shows the fins turning the shark.");
+assert.strictEqual(mergedActivity.teachingConnection, "The action uses the fin idea from the lesson.");
+assert.notStrictEqual(mergedActivity.knowledgeUsed, "This model field must not replace the planned ref.");
+assert.strictEqual(mergedActivity.config.lines[0], mergedActivity.beats[0].pupil.text);
+assert.strictEqual(mergedHook.beats[0].pupil.text, hookBefore);
+
+var longCue = "Look. ";
+var loggedBeats = Brain.boundedBeatLog({
+  slots: {
+    apply: {
+      instruction: "This task field must stay out of the beat log.",
+      beats: [{ id: "apply:0", cue: longCue + "x".repeat(200), text: "y".repeat(400) }]
+    },
+    hook: { beats: [{ id: "hook:0", cue: "", text: "Look at the scene and say what you can see." }] }
+  }
+});
+assert.strictEqual(loggedBeats.length, 2);
+assert.deepStrictEqual(Object.keys(loggedBeats[0]).sort(), ["beatId", "cue", "stage", "text"]);
+assert.strictEqual(loggedBeats[0].stage, "apply");
+assert.strictEqual(loggedBeats[0].beatId, "apply:0");
+assert.ok(loggedBeats[0].cue.length <= 120);
+assert.ok(loggedBeats[0].text.length <= 160);
+assert.ok(JSON.stringify(loggedBeats).indexOf("must stay out of the beat log") === -1);
+var overflow = { slots: {} };
+var many = [];
+for (var beatIndex = 0; beatIndex < 13; beatIndex += 1) many.push({ id: "hook:" + beatIndex, cue: "", text: "Look at the scene and say what you can see." });
+overflow.slots.hook = { beats: many };
+assert.strictEqual(Brain.boundedBeatLog(overflow).length, 12);
+
 dump("YEAR 1 SHARK FIXTURE", sharkPlan, sharkSlots, sharkItems, sharkAccept);
 dump("YEAR 4 FRACTIONS FIXTURE", fractionPlan, fractionSlots, fractionItems, fractionAccept);
 

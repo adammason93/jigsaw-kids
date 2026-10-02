@@ -1,4 +1,4 @@
-const lessonSource = await fetch("https://wondii.co.uk/js/lesson-brain.js?v=47").then((res) => {
+const lessonSource = await fetch("https://wondii.co.uk/js/lesson-brain.js?v=48").then((res) => {
   if (!res.ok) throw new Error("lesson_script");
   return res.text();
 });
@@ -393,7 +393,7 @@ globalThis.handleGenerate = async (req) => {
     const contentStarted = Date.now();
     const first = await callModel(brain.contentBrief(framed, planned.plan, storyPlan), apiKey, model, 28e3);
     const contentMs = Date.now() - contentStarted;
-    logMeta({ stage: "CONTENT_VALIDATE", attemptId, repair: false, model, contentMs });
+    logMeta({ stage: "CONTENT_VALIDATE", attemptId, repair: false, model, contentMs, contentBeats: brain.boundedBeatLog(first) });
     let repairUser = null;
     let repairRaw = null;
     const resolved = await brain.resolveLessonContent(first, framed, {
@@ -436,6 +436,7 @@ globalThis.handleGenerate = async (req) => {
         const slotStarted = Date.now();
         repairRaw = await callModel(repairBrief, apiKey, model, 28e3);
         repairMs += Date.now() - slotStarted;
+        logMeta({ stage: "CONTENT_REPAIR", attemptId, repair: true, model, repairBeats: brain.boundedBeatLog(repairRaw) });
         return repairRaw;
       }
     });

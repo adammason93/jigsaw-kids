@@ -792,8 +792,8 @@
       model: "model demonstrates the planned process or procedure.",
       compare: "compare points to a relevant similarity or difference.",
       connect: "connect joins the referenced knowledge items.",
-      practise: "practise supports the pupil task using the referenced knowledge.",
-      apply: "apply supports the pupil task using the referenced knowledge.",
+      practise: "practise is short pupil-facing preparation for the task. It refers to the knowledge the child is about to use. It does not merely say use your knowledge. It does not duplicate the entire task instruction.",
+      apply: "apply is a short pupil-facing bridge from the taught knowledge into the task. It makes clear what idea the pupil should use. It does not replace the task itself.",
       reveal: "reveal resolves the adventure using the taught knowledge.",
       consolidate: "consolidate restates the learned knowledge itself, not that the lesson is finished."
     };
@@ -986,7 +986,9 @@
   function applyInstructionOf(activity) {
     var interaction = activity && activity.scene && activity.scene.interaction;
     var config = (activity && activity.config) || {};
-    return clean(activity && activity.applyInstruction || (interaction && interaction.instruction) || ((config.lines || []).join(" ")), 180);
+    var task = clean(activity && activity.applyInstruction || (interaction && interaction.instruction) || "", 180);
+    if (activity && activity.beats && activity.beats.length) return task;
+    return task || clean((config.lines || []).join(" "), 180);
   }
 
   function doingTask(instruction) {
@@ -1418,7 +1420,8 @@
       var spoken = beats.length
         ? beats.map(function (beat) { return beat.pupil && beat.pupil.text; }).filter(Boolean)
         : (content.lines || []).slice();
-      if (!beats.length && slot.id === "apply" && content.instruction && !spoken.length) spoken = [content.instruction];
+      var beatApply = !!(beats.length && slot.id === "apply");
+      if (!beatApply && slot.id === "apply" && content.instruction && !spoken.length) spoken = [content.instruction];
       var refs = beats.length && beats[0].knowledgeRefs ? beats[0].knowledgeRefs : [];
       var refText = refs.map(function (ref) {
         var found = "";
@@ -1432,7 +1435,7 @@
         interaction = {
           type: slot.interactionIntent,
           target: content.target || FAMILY_TARGET[slot.interactionIntent] || "world",
-          instruction: content.instruction || (spoken[0] || ""),
+          instruction: beatApply ? (content.instruction || "") : (content.instruction || (spoken[0] || "")),
           successCondition: content.successCondition || ""
         };
       }
@@ -1450,7 +1453,7 @@
         beats: beats,
         participantSelection: slot.participantSelection,
         learningInteraction: slot.interactionIntent ? { type: slot.interactionIntent } : null,
-        applyInstruction: slot.id === "apply" ? (content.instruction || spoken[0] || "") : "",
+        applyInstruction: slot.id === "apply" ? (beatApply ? (content.instruction || "") : (content.instruction || spoken[0] || "")) : "",
         knowledgeUsed: slot.id === "apply" ? (beats.length ? (refText || "") : (content.knowledgeUsed || "")) : "",
         successCondition: slot.id === "apply" ? (content.successCondition || "") : "",
         teachingConnection: slot.id === "apply" ? (content.teachingConnection || "") : "",
@@ -1567,6 +1570,36 @@
     return "structural";
   }
 
+  function boundedBeatLog(raw) {
+    var rows = [];
+    function push(stage, beat) {
+      if (rows.length >= 12 || !beat || typeof beat !== "object") return;
+      var pupil = beat.pupil && typeof beat.pupil === "object" ? beat.pupil : {};
+      rows.push({
+        stage: clean(stage || beat.stageId, 24),
+        beatId: clean(beat.id, 24),
+        cue: clean(beat.cue != null ? beat.cue : pupil.cue, 120),
+        text: clean(beat.text != null ? beat.text : pupil.text, 160)
+      });
+    }
+    var slots = raw && raw.slots && typeof raw.slots === "object" && !Array.isArray(raw.slots) ? raw.slots : null;
+    if (slots) {
+      Object.keys(slots).forEach(function (stage) {
+        var list = slots[stage] && slots[stage].beats;
+        if (!Array.isArray(list)) return;
+        list.forEach(function (beat) { push(stage, beat); });
+      });
+    }
+    if (!rows.length && raw && Array.isArray(raw.activities)) {
+      raw.activities.forEach(function (activity) {
+        var list = activity && activity.beats;
+        if (!Array.isArray(list)) return;
+        list.forEach(function (beat) { push(activity.slotId || activity.id, beat); });
+      });
+    }
+    return rows;
+  }
+
   function pupilConceptLine(safe) {
     var brief = (safe && safe.lessonBrief) || {};
     var intent = brief.teacherIntent;
@@ -1604,6 +1637,10 @@
       shape.push("A slot with beats does not use title or lines. Its pupil prose is the beats array only. Each beat object is { id, cue, text }. id is copied from the planned beat. cue may be empty. text is required pupil prose. Do not add, remove, reorder, or rename beats. Do not choose a move or a knowledge ref. Do not invent a replacement beat.");
       shape.push(beatResponseExample(skeleton));
       shape.push(moveGuide(skeleton));
+      beatSlots.forEach(function (slot) {
+        if (slot.id !== "apply") return;
+        shape.push("The apply slot is one response. Return its planned beats, including " + slot.beats.map(function (beat) { return beat.id; }).join(", ") + ", with cue and text, together with instruction, target, successCondition, and teachingConnection. The beat pupil copy and the task fields are both required. Do not omit the planned beat because the task instruction is present. Do not return knowledgeUsed. The beat prepares the pupil for the task and is not the task. The instruction is the action.");
+      });
     }
     shape.push("Each slot already has minutes, minimumParticipation, and contentDepth. A slot without beats meets that participation with short spoken lines. A slot with beats meets it only through the planned beat texts. Do not add a lines array beside beats. Do not pad a slot into a long paragraph.");
     var system = shape.concat([
@@ -1671,7 +1708,9 @@
         fields.successCondition = { type: "string" };
         fields.teachingConnection = { type: "string" };
       }
-      schema.properties.slots.properties[slot.id] = { type: "object", additionalProperties: false, properties: fields };
+      var slotSchema = { type: "object", additionalProperties: false, properties: fields };
+      if (planned && slot.id === "apply") slotSchema.required = ["beats", "instruction", "target", "successCondition", "teachingConnection"];
+      schema.properties.slots.properties[slot.id] = slotSchema;
     });
     return { system: system, user: JSON.stringify(safe), schema: schema };
   }
@@ -1748,7 +1787,9 @@
         originalInstruction: now.instruction || (now.lines || []).join(" "),
         failure: failuresForSlot(slot.id, issues, (previous && previous.activities) || []),
         output: slot.id === "apply"
-          ? { instruction: "", knowledgeUsed: "", successCondition: "", teachingConnection: "", target: "" }
+          ? (slot.beats && slot.beats.length
+            ? { instruction: "", target: "", successCondition: "", teachingConnection: "" }
+            : { instruction: "", knowledgeUsed: "", successCondition: "", teachingConnection: "", target: "" })
           : slot.id === "check"
             ? { prompt: "", choices: [], correct: "", explain: "", knowledgeChecked: "", successEvidence: "", teachingConnection: "" }
             : ((slot.beats && slot.beats.length && !(slot.mechanic === "quiz" && (slot.beats || []).some(function (beat) { return beat.move === "retrieve"; })))
@@ -1796,9 +1837,13 @@
     });
     var apply = null;
     specs.forEach(function (spec) { if (spec.slotType === "APPLY") apply = spec; });
-    var instruction = apply
-      ? "Return JSON { slots } for only the listed slot ids. The APPLY task MUST require the pupil to use this knowledge: " + ((apply.requiredKnowledge || []).join(" | ") || "the taught idea") + ". The mechanic and interaction family cannot change. Return instruction, knowledgeUsed, successCondition, and teachingConnection for that slot. knowledgeUsed must name one requiredKnowledge item. A bare sort, move, or sequence is invalid."
-      : "Return JSON { slots } for only the listed slot ids.";
+    var beatApply = !!(apply && apply.teachingBeats && apply.teachingBeats.length);
+    var instruction = "Return JSON { slots } for only the listed slot ids.";
+    if (beatApply) {
+      instruction += " The APPLY slot is one response. Return the planned beat ids with cue and text together with instruction, target, successCondition, and teachingConnection. The beat pupil copy and task fields are both required. Do not omit the planned beat because the task instruction is present. Do not return knowledgeUsed. Do not return title or lines. Do not add, remove, reorder, rename, or choose teaching beats. Do not alter moves or knowledgeRefs. The APPLY task MUST require the pupil to use this knowledge: " + ((apply.requiredKnowledge || []).join(" | ") || "the taught idea") + ". The mechanic and interaction family cannot change. A bare sort, move, or sequence is invalid. " + pupilCopyContract((ctx && ctx.yearGroup) || "");
+    } else if (apply) {
+      instruction += " The APPLY task MUST require the pupil to use this knowledge: " + ((apply.requiredKnowledge || []).join(" | ") || "the taught idea") + ". The mechanic and interaction family cannot change. Return instruction, knowledgeUsed, successCondition, and teachingConnection for that slot. knowledgeUsed must name one requiredKnowledge item. A bare sort, move, or sequence is invalid.";
+    }
     var checkSpec = null;
     specs.forEach(function (spec) { if (spec.slotType === "CHECK") checkSpec = spec; });
     if (checkSpec) {
@@ -1818,8 +1863,8 @@
           : " If a failure says the slot does not have enough participation, add the missing turns up to minimumParticipation. Each turn is one short sentence: a teacher prompt, an observation, a pupil action, a check, or a retrieval. Do not pad with a long paragraph. Do not copy teaching into a slot that already has it.";
       }
     }
-    if (specs.some(function (spec) { return spec.teachingBeats && spec.teachingBeats.length; })) {
-      instruction += " Where teachingBeats are listed, return only those ids with cue and text. " + pupilCopyContract((ctx && ctx.yearGroup) || "") + " Do not add, remove, reorder, rename, or choose teaching beats. Do not alter moves or knowledgeRefs. Do not return title or lines for that slot.";
+    if (specs.some(function (spec) { return spec.teachingBeats && spec.teachingBeats.length && spec.slotType !== "APPLY"; })) {
+      instruction += " Where teachingBeats are listed on a slot other than APPLY, return only those ids with cue and text. " + pupilCopyContract((ctx && ctx.yearGroup) || "") + " Do not add, remove, reorder, rename, or choose teaching beats. Do not alter moves or knowledgeRefs. Do not return title or lines for that slot.";
     }
     specs.forEach(function (spec) {
       if (!spec.rejectedBeats || !spec.rejectedBeats.length) return;
@@ -4271,6 +4316,7 @@
     planBeats: planBeats,
     beatKnowledge: beatKnowledge,
     keepBeatPlan: keepBeatPlan,
+    boundedBeatLog: boundedBeatLog,
     beatProblems: beatProblems,
     pupilBeatProblems: pupilBeatProblems,
     pupilBeatDiagnostics: pupilBeatDiagnostics,
