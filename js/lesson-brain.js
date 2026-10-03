@@ -1093,12 +1093,35 @@
       var item = null;
       (items || []).forEach(function (entry) { if (entry.id === ref) item = entry; });
       var reveal = !!TEACHING_MOVES[beat.move];
-      if (!reveal && item && sameSentence(text, item.text)) row("other existing rule");
+      if (!reveal && item && sameSentence(text, item.text)) row("copies a knowledge sentence");
       if (beat.move === "name" && ref) names[ref] = text;
-      if (beat.move === "explain" && ref && sameSentence(text, names[ref])) row("other existing rule");
+      if (beat.move === "explain" && ref && sameSentence(text, names[ref])) row("copies the name sentence");
     });
     return rows;
   }
+
+  function beatRepairFix(reason, year) {
+    var young = beatYear(year) <= 2;
+    var fixes = {
+      "missing": "It is empty. Write one pupil sentence.",
+      "missing terminal punctuation": "End the sentence with . or ? or !.",
+      "fewer than minimum words": "It is too short. Write at least four words.",
+      "too many sentences for year": young ? "It has more than one sentence. Year 1 and Year 2 need exactly one sentence." : "It has more than two sentences. Use one or two sentences.",
+      "internal-copy collision": "It copies an internal label. Write words a pupil would hear.",
+      "copies a knowledge sentence": "It copies the knowledge sentence word for word. Say the same idea in new words.",
+      "copies the name sentence": "It repeats the name sentence. Explain the idea in new words."
+    };
+    return fixes[reason] || "Rewrite this beat.";
+  }
+
+  var APPLY_REPAIR_FIX = {
+    "recall-only": "The task only asks the pupil to recall the fact. Ask the pupil to do something that uses it.",
+    "pupil-selection": "The task only asks the pupil to choose. Ask the pupil to do something that uses the taught idea.",
+    "bare-interaction": "The task is a bare sort, move, or sequence. Make the action depend on the taught idea.",
+    "knowledge-unidentified": "The task does not use the knowledge it names.",
+    "different-knowledge": "The task uses a different taught idea from the one it names.",
+    "not-an-action": "The instruction asks the pupil to discuss, explain, or describe the fact instead of doing an action that uses it."
+  };
 
   function pupilBeatProblems(slot, beats, items, year) {
     var issues = [];
@@ -2172,12 +2195,17 @@
           return { id: beat.id, move: beat.move, knowledgeRefs: beat.knowledgeRefs || [] };
         });
       }
-      if (slot.id === "recap" && activity && activity.beats) {
-        var year = (ctx && ctx.yearGroup) || "";
-        spec.rejectedBeats = pupilBeatDiagnostics(slot, activity.beats, beatKnowledge((ctx && ctx.lessonPlan) || {}, year), year).filter(function (row) {
-          return row.move === "consolidate";
+      var year = (ctx && ctx.yearGroup) || "";
+      if (slot.beats && slot.beats.length && !quizRetrieve && activity && activity.beats) {
+        spec.rejectedBeats = pupilBeatDiagnostics(slot, activity.beats, beatKnowledge((ctx && ctx.lessonPlan) || {}, year), year).map(function (row) {
+          return Object.assign({}, row, { fix: beatRepairFix(row.reason, year) });
         });
         if (spec.rejectedBeats.length) spec.pupilCopyRequirements = pupilCopyContract(year);
+        else delete spec.rejectedBeats;
+      }
+      if (slot.id === "apply" && activity && spec.failure.some(function (item) { return /apply slot does not use the taught knowledge/.test(item); })) {
+        var verdict = applyAlignment(activity, slot.requiredKnowledge || []);
+        if (verdict.status === "fail" && APPLY_REPAIR_FIX[verdict.reason]) spec.applyFailure = APPLY_REPAIR_FIX[verdict.reason];
       }
       if (quizRetrieve) {
         spec.retrieveBeat = (slot.beats || []).filter(function (beat) { return beat.move === "retrieve"; }).map(function (beat) {
@@ -2195,6 +2223,10 @@
     specs.forEach(function (spec) { if (spec.slotType === "APPLY") apply = spec; });
     var beatApply = !!(apply && apply.teachingBeats && apply.teachingBeats.length);
     var instruction = "Return JSON { slots } for only the listed slot ids.";
+    if (specs.some(function (spec) { return spec.rejectedBeats && spec.rejectedBeats.length; })) {
+      instruction += " rejectedBeats lists each beat that failed, its rejected text, and fix, which says why it failed. Write new text for that beat that follows fix. Do not return the rejected text again.";
+    }
+    if (apply && apply.applyFailure) instruction += " APPLY failure: " + apply.applyFailure;
     if (beatApply) {
       instruction += " The APPLY slot is one response. Return the planned beat ids with cue and text together with instruction, target, successCondition, and teachingConnection. The beat pupil copy and task fields are both required. Do not omit the planned beat because the task instruction is present. Do not return knowledgeUsed. Do not return title or lines. Do not add, remove, reorder, rename, or choose teaching beats. Do not alter moves or knowledgeRefs. The APPLY task MUST require the pupil to use this knowledge: " + ((apply.requiredKnowledge || []).join(" | ") || "the taught idea") + ". The mechanic and interaction family cannot change. A bare sort, move, or sequence is invalid. " + pupilCopyContract((ctx && ctx.yearGroup) || "");
     } else if (apply) {
@@ -2224,7 +2256,7 @@
       instruction += " Where teachingBeats are listed on a slot other than APPLY, return only those ids with cue and text. " + pupilCopyContract((ctx && ctx.yearGroup) || "") + " Do not add, remove, reorder, rename, or choose teaching beats. Do not alter moves or knowledgeRefs. Do not return title or lines for that slot.";
     }
     specs.forEach(function (spec) {
-      if (!spec.rejectedBeats || !spec.rejectedBeats.length) return;
+      if (spec.slotType !== "RECAP" || !spec.rejectedBeats || !spec.rejectedBeats.length) return;
       instruction += " Rewrite only the rejected recap consolidate beat. Keep the other beat ids. Do not regenerate the plan or the lesson. " + (spec.pupilCopyRequirements || "");
     });
     instruction += " Do not return activities, mechanics, or a new stage.";

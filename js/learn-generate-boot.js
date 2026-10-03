@@ -1,4 +1,4 @@
-const lessonSource = await fetch("https://wondii.co.uk/js/lesson-brain.js?v=52").then((res) => {
+const lessonSource = await fetch("https://wondii.co.uk/js/lesson-brain.js?v=53").then((res) => {
   if (!res.ok) throw new Error("lesson_script");
   return res.text();
 });
