@@ -201,8 +201,9 @@ var grid = plan(gridGoal, [
 assert.strictEqual(grid.ok, true, (grid.issues || []).join("; "));
 
 var brief = Brain.planBrief({ lessonBrief: { learningGoal: "Understand why a change mattered." }, yearGroup: "Year 4" });
-assert.ok(brief.system.indexOf("distinct relationships") !== -1);
-assert.ok(brief.system.indexOf("two in Year 1 and Year 2") !== -1);
+assert.ok(brief.system.indexOf("learningMap is the connected journey") !== -1);
+assert.strictEqual(brief.system.indexOf("two in Year 1 and Year 2"), -1);
+assert.ok(brief.system.indexOf("dependsOn") !== -1);
 assert.strictEqual(brief.system.indexOf("choose a simpler true fact"), -1);
 assert.ok(brief.system.indexOf("why it mattered") !== -1);
 
@@ -233,7 +234,7 @@ assert.deepStrictEqual(repairUser.focusConcepts, ["Reformation"]);
 assert.strictEqual(repairUser.keyKnowledge.length, 2);
 assert.ok(repairUser.failure.join(" ").indexOf("outcome, not the reason") !== -1);
 assert.ok(repairUser.relationshipRequired.join(" ").indexOf("significance:") === 0);
-assert.ok(repair.user.indexOf("Replace only the insufficient keyKnowledge") !== -1);
+assert.ok(repair.user.indexOf("Replace only the insufficient learningMap points") !== -1);
 assert.ok(repair.user.indexOf("Copy lessonArc exactly") !== -1);
 assert.strictEqual(repair.user.indexOf("Say that reason with because"), -1);
 assert.strictEqual(repair.system, Brain.planBrief(repairCtx).system);
@@ -247,14 +248,14 @@ var plantUser = JSON.parse(plantRepair.user);
 assert.ok(plantUser.relationshipRequired.join(" ").indexOf("process:") === 0);
 assert.strictEqual(plantUser.relationshipRequired.join(" ").indexOf("significance:"), -1);
 
-function contributionPlan(year, subject, sentence, goal, knowledge) {
+function contributionPlan(year, subject, sentence, goal, knowledge, extra) {
   return Brain.normalisePlan({
     learningObjective: goal,
     subject: subject,
     topic: goal,
     keyKnowledge: knowledge,
     lessonArc: arc
-  }, {
+  }, Object.assign({
     yearGroup: year,
     subject: subject,
     lessonText: sentence,
@@ -265,7 +266,7 @@ function contributionPlan(year, subject, sentence, goal, knowledge) {
       learningGoal: goal,
       teacherIntent: { ok: true, learningGoal: goal, requiredEvidence: goal }
     }
-  });
+  }, extra || {}));
 }
 
 function coverage(plan, year) {
@@ -300,8 +301,10 @@ var tail = "A shark's tail pushes backwards, helping it swim forward.";
 var swimAgain = "A shark's streamlined shape reduces drag, helping it swim faster.";
 var sharkThin = contributionPlan("Year 1", "Science", sharkAsk, sharkGoal, [afloat, swim, fins]);
 assert.strictEqual(sharkThin.ok, false);
-assert.ok((sharkThin.issues || []).join(" ").indexOf("more distinct relationships") !== -1);
+assert.ok((sharkThin.issues || []).join(" ").indexOf("needs the key knowledge") !== -1);
 assert.strictEqual(sharkThin.plan, undefined);
+var sharkLive = contributionPlan("Year 1", "Science", sharkAsk, sharkGoal, [afloat, swim, fins], { requestedMinutes: 15, depthRequired: true });
+assert.ok((sharkLive.issues || []).join(" ").indexOf("more connected learning points") !== -1);
 var sharkKept = contributionPlan("Year 1", "Science", sharkAsk, sharkGoal, [afloat, swim, swimAgain, tail, fins]);
 assert.strictEqual(sharkKept.ok, true, (sharkKept.issues || []).join("; "));
 assert.deepStrictEqual(sharkKept.plan.keyKnowledge, [swim, tail]);
@@ -343,7 +346,7 @@ var fireThin = contributionPlan("Year 4", "History", "Teach children why the Gre
   "London had a lot of churches."
 ]);
 assert.strictEqual(fireThin.ok, false);
-assert.ok((fireThin.issues || []).join(" ").indexOf("more distinct relationships") !== -1);
+assert.ok((fireThin.issues || []).join(" ").indexOf("needs the key knowledge") !== -1);
 var houses = "The fire spread quickly because the wooden houses stood close together.";
 var wind = "The fire spread quickly because a strong wind carried the flames.";
 var streets = "The fire spread quickly because the streets were very narrow.";
@@ -429,7 +432,7 @@ var rivers = contributionPlan("Year 5", "Geography", "Teach children how rivers 
   flood
 ]);
 assert.strictEqual(rivers.ok, true, (rivers.issues || []).join("; "));
-assert.deepStrictEqual(rivers.plan.keyKnowledge, [cut, drop, carry, flood]);
+assert.deepStrictEqual(rivers.plan.keyKnowledge, [cut, carry, drop, flood]);
 var riverCover = coverage(rivers.plan, "Year 5");
 assert.strictEqual(riverCover.teach.filter(function (beat) { return beat.move === "explain"; }).length, 4);
 assert.strictEqual(riverCover.check.length, 4);
@@ -440,7 +443,7 @@ var oxygen = "Blood carries oxygen so that the body receives materials.";
 var vessels = "Blood vessels carry materials around the body because they are the routes.";
 var waste = "Blood takes waste away so that the body does not keep harmful materials.";
 var circulation = contributionPlan("Year 6", "Science", "Teach children how the circulatory system transports materials around the body.", "Understand how the circulatory system transports materials around the body.", [
-  "The body is made of cells.",
+  "The heart is found in the chest.",
   heart,
   oxygen,
   vessels,
@@ -452,6 +455,6 @@ var bodyCover = coverage(circulation.plan, "Year 6");
 assert.strictEqual(bodyCover.teach.filter(function (beat) { return beat.move === "explain"; }).length, 4);
 assert.strictEqual(bodyCover.check.length, 4);
 assert.strictEqual(bodyCover.recap.length, 1);
-assert.ok(circulation.plan.droppedKnowledge.indexOf("The body is made of cells.") !== -1);
+assert.ok(circulation.plan.droppedKnowledge.indexOf("The heart is found in the chest.") !== -1);
 
 console.log("knowledge-depth tests passed");

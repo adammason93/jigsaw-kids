@@ -195,15 +195,15 @@ var fixtures = [
     ask: "How does the circulatory system transport materials around the body?",
     goal: "Understand how the circulatory system transports materials around the body.",
     knowledge: [
-      "The body is made of cells.",
+      "The heart is found in the chest.",
       "The heart pumps blood so that materials move around the body.",
       "Blood carries oxygen so that the body receives materials.",
       "Blood vessels carry materials around the body because they are the routes.",
       "Blood takes waste away so that the body does not keep harmful materials."
     ],
     budget: 4,
-    peripheral: ["The body is made of cells."],
-    leakWord: "cells"
+    peripheral: ["The heart is found in the chest."],
+    leakWord: "chest"
   }
 ];
 
@@ -215,8 +215,7 @@ function runFixture(fixture) {
   var tag = fixture.name + ": ";
 
   assert.strictEqual(plan.keyKnowledge.length, fixture.budget, tag + "relationship budget");
-  assert.strictEqual(plan.relationshipPlan.broad, true, tag + "broad goal");
-  assert.strictEqual(plan.relationshipPlan.assess, true, tag + "assessment of several relationships");
+  assert.strictEqual(plan.learningMap.length, fixture.budget, tag + "flat knowledge becomes a learning map");
   fixture.peripheral.forEach(function (text) {
     assert.strictEqual(plan.keyKnowledge.indexOf(text), -1, tag + "peripheral or paraphrase admitted: " + text);
     assert.ok(plan.droppedKnowledge.indexOf(text) !== -1, tag + "peripheral or paraphrase not dropped: " + text);
@@ -333,7 +332,7 @@ var shallow = normalised("Year 1", "Science", "How do sharks' bodies help them s
   "Sharks have rows of sharp teeth."
 ]);
 assert.strictEqual(shallow.ok, false);
-assert.ok((shallow.issues || []).indexOf("The key knowledge needs more distinct relationships.") !== -1);
+assert.ok((shallow.issues || []).indexOf("The lesson plan needs the key knowledge.") !== -1);
 
 var settled = normalised("Year 1", "Science", "How do sharks' bodies help them swim?", "Understand how sharks' bodies help them swim.", [
   "A shark's streamlined body reduces water resistance, helping it swim more easily.",
@@ -343,7 +342,6 @@ var settled = normalised("Year 1", "Science", "How do sharks' bodies help them s
 assert.strictEqual(settled.ok, true, (settled.issues || []).join("; "));
 assert.deepStrictEqual(settled.plan.keyKnowledge, ["A shark's streamlined body reduces water resistance, helping it swim more easily."]);
 assert.ok(settled.plan.droppedKnowledge.indexOf("Sharks have rows of sharp teeth.") !== -1);
-assert.strictEqual(settled.plan.relationshipPlan.assess, false);
 var settledSlots = Brain.planBeats(Brain.lessonSkeleton(settled.plan, { yearGroup: "Year 1" }), settled.plan, "Year 1");
 assert.strictEqual(slotOf(settledSlots, "check").beats.length, 1);
 
@@ -358,7 +356,6 @@ var narrow = normalised("Year 2", "Science", "Teach children how a plant's roots
   "Roots take in water, which helps the plant drink."
 ]);
 assert.strictEqual(narrow.ok, true, (narrow.issues || []).join("; "));
-assert.strictEqual(narrow.plan.relationshipPlan.broad, false);
 assert.deepStrictEqual(narrow.plan.keyKnowledge, ["Roots take in water, which helps the plant drink."]);
 
 var plain = Brain.normalisePlan({
@@ -369,13 +366,13 @@ var plain = Brain.normalisePlan({
   lessonArc: [{ purpose: "teach" }, { purpose: "check" }]
 }, { yearGroup: "Year 3", subject: "Science", topic: "planets", lessonBrief: { intent: "explain" } });
 assert.strictEqual(plain.ok, true, (plain.issues || []).join("; "));
-assert.strictEqual(plain.plan.relationshipPlan.assess, false);
 var plainSlots = Brain.planBeats(Brain.lessonSkeleton(plain.plan, { yearGroup: "Year 3" }), plain.plan, "Year 3");
-assert.strictEqual(slotOf(plainSlots, "check").beats.length, 1);
+assert.deepStrictEqual(slotOf(plainSlots, "check").beats.map(function (beat) { return beat.knowledgeRefs[0]; }), ["k1", "k2"]);
 
 var briefText = Brain.planBrief({ lessonBrief: { learningGoal: "Understand how sharks' bodies help them swim." }, yearGroup: "Year 1" }).system;
 assert.strictEqual(briefText.indexOf("may use one concise sentence"), -1);
-assert.ok(briefText.indexOf("two in Year 1 and Year 2") !== -1);
+assert.strictEqual(briefText.indexOf("two in Year 1 and Year 2"), -1);
+assert.ok(briefText.indexOf("about 5 to 6 points") !== -1);
 
 fixtures.reduce(function (chain, fixture) {
   return chain.then(function () { return runFixture(fixture); });

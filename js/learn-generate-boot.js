@@ -1,4 +1,4 @@
-const lessonSource = await fetch("https://wondii.co.uk/js/lesson-brain.js?v=51").then((res) => {
+const lessonSource = await fetch("https://wondii.co.uk/js/lesson-brain.js?v=52").then((res) => {
   if (!res.ok) throw new Error("lesson_script");
   return res.text();
 });
@@ -321,7 +321,7 @@ globalThis.handleGenerate = async (req) => {
     const planStarted = Date.now();
     const firstPlan = await callModel(brain.planBrief(ctx), apiKey, model, 2e4);
     let planMs = Date.now() - planStarted;
-    let planned = brain.normalisePlan(firstPlan, ctx);
+    let planned = brain.normalisePlan(firstPlan, Object.assign({}, ctx, { depthRequired: true }));
     let planRepaired = false;
     let repairMs = 0;
     if (!planned.ok) {
@@ -338,7 +338,7 @@ globalThis.handleGenerate = async (req) => {
       const planRepairStarted = Date.now();
       const secondPlan = await callModel(brain.planRepairBrief(ctx, planned.issues || [], planned.previous), apiKey, model, 2e4);
       repairMs += Date.now() - planRepairStarted;
-      planned = brain.normalisePlan(secondPlan, Object.assign({}, ctx, { breadthSettled: true }));
+      planned = brain.normalisePlan(secondPlan, Object.assign({}, ctx, { depthRequired: true, breadthSettled: true }));
       if (!planned.ok) {
         logMeta({
           stage: "EDUCATIONAL_VALIDATION_FAILED",
@@ -395,6 +395,8 @@ globalThis.handleGenerate = async (req) => {
       ctx.yearGroup || planned.plan.yearGroup || (ctx.yearAssumed ? ctx.yearAssumption : "")
     );
     const framed = Object.assign({}, withStory, { lessonSkeleton: skeleton });
+    const learningMap = brain.learningMapReport(planned.plan, skeleton, ctx);
+    logMeta({ stage: "LEARNING_MAP", attemptId, model, ...learningMap });
     phase = "CONTENT_REQUEST";
     logMeta({ stage: "CONTENT_REQUEST", attemptId, repair: false, model, planMs, storyMs, arc: arcMeta(planned.plan) });
     const contentStarted = Date.now();
@@ -505,7 +507,7 @@ globalThis.handleGenerate = async (req) => {
     const diagnostic = slotDiagnostic(trace, checkAlignment, applyAlignment, intentRecord);
     const qualityWarnings = stampedWarnings(resolved.qualityWarnings);
     if (resolved.ok && resolved.adventure) {
-      const timing = { durationMs: Date.now() - started, planMs, storyMs, contentMs, repairMs, repairUsed: !!resolved.repairUsed, repairKind: resolved.repairUsed ? "slot" : "none", structuralOk: true, planRepaired, storyFallback, storyFirstPass, storyRepaired, repairedSlots, applyRepair, durationRepair, applyAlignment, checkAlignment, teacherIntent: intentRecord, qualityWarnings, slotDiagnostic: diagnostic, diagnosis: trace };
+      const timing = { durationMs: Date.now() - started, planMs, storyMs, contentMs, repairMs, repairUsed: !!resolved.repairUsed, repairKind: resolved.repairUsed ? "slot" : "none", structuralOk: true, planRepaired, storyFallback, storyFirstPass, storyRepaired, repairedSlots, applyRepair, durationRepair, applyAlignment, checkAlignment, teacherIntent: intentRecord, qualityWarnings, slotDiagnostic: diagnostic, diagnosis: trace, learningMap };
       logMeta({ stage: "COMPLETE", category: "ok", ms: timing.durationMs, repair: !!resolved.repairUsed, repairKind: timing.repairKind, structuralOk: true, planRepaired, model, attemptId, planMs, contentMs, repairMs, applyRepair, durationRepair, semanticOutcome: applyAlignment.semanticOutcome || "", qualityWarnings, slotDiagnostic: diagnostic });
       return json({ ok: true, adventure: resolved.adventure, stage: "COMPLETE", meta: timing });
     }

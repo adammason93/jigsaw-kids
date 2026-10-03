@@ -386,7 +386,8 @@
     if (!plan || typeof plan !== "object") return plan || null;
     var copy = Object.assign({}, plan);
     delete copy.droppedKnowledge;
-    delete copy.relationshipPlan;
+    delete copy.mapRejected;
+    delete copy.depthBudget;
     return copy;
   }
 
@@ -414,28 +415,29 @@
 
   function planBrief(ctx) {
     var safe = forModel(ctx || {});
+    var depth = depthBudget((ctx || {}).yearGroup || (ctx || {}).yearAssumption, (ctx || {}).requestedMinutes);
     var system = [
       "You are planning one primary lesson. This response is the internal lesson plan only.",
       "Return one JSON object and nothing else. Do not write pupil activities, questions, or HTML.",
       "Decide what the children should understand. Then decide what to teach so they can understand it. The classroom activities are chosen in a later step.",
       "Work in this order: the teacher's request, the context, one learning objective, the key knowledge, prior knowledge, misconceptions, vocabulary, the teaching sequence, then where a check or a recap belongs.",
       "learningObjective is one sentence a teacher could say. successCriteria are two or three things the class can do if the lesson worked.",
-      "keyKnowledge is the smallest set of age-appropriate pieces a pupil needs in order to achieve lessonBrief.learningGoal. Together they must be sufficient. Two strong items are better than four weak ones. A simpler fact is acceptable only when the set can still achieve that goal. Do not invent quotations, dates, or events. A simplified explanation must still be true. Do not add trivia. When the goal asks how something helps, causes, affects, works, changes, gets, carries, or transports, or why something happens or matters, each item must state one relationship: the feature, what it does, and how that connects to the goal. A nearby fact about the same topic does not answer it. A broad goal needs several distinct relationships, not one sentence repeated in new words: two in Year 1 and Year 2, three in Year 3 and Year 4, and four in Year 5 and Year 6. A goal that names one specific feature may use fewer. Do not satisfy the count with a restatement, a paraphrase, an example of the same relationship, or trivia.",
+      "learningMap is the connected journey of learning points a pupil needs in order to achieve lessonBrief.learningGoal. Each point is one child-sized idea in one sentence. Together the points must be sufficient. Build it as a journey: the foundation a pupil needs first, then the feature or concept, then what it does or why it happens, then the effect, then how the ideas connect, then an application. Each later point lists in dependsOn the ids of the earlier points it builds on. Do not write a disconnected list of facts about the topic. For this year and about " + depth.minutes + " minutes, aim for about " + depth.floor + " to " + depth.max + " points. This is a target, not a quota: a narrow goal about one specific feature may need fewer, and never more than " + depth.max + ". Do not reach the number with a restatement, a paraphrase, trivia, or a second example of the same idea. Do not invent quotations, dates, or events. A simplified explanation must still be true. When the goal asks how something helps, causes, affects, works, changes, gets, carries, or transports, or why something happens or matters, the points must lead to the goal: at least one point states the relationship the goal asks about, and every other point is a step towards it. A nearby fact about the same topic that leads nowhere does not belong. importance is core for a point the goal cannot do without and supporting for a helpful step.",
       "Match the goal. Why or cause: state the reason, not only what is seen or where it happens. Significance or importance: state the change, event, or contribution and why it mattered. Compare: include what is needed about both sides. Process: state the change or sequence, not only the parts, inputs, places, or outputs. Procedure or use: write the actions the pupil carries out, not only the name of the step. Definition: a short definition and only the characteristics or examples needed to use it. Explain: the facts that specific goal needs, not a generic list about the topic.",
       "A sentence that only names the topic, states identity, gives a famous number or date, says something is important or significant, or says where something happens does not meet a relationship the goal requires.",
       "For a young year, use a simple true model: the parts, how they move, and what that movement does. Do not teach the visible effect as the cause. The ground shaking is what an earthquake does, not why it happens.",
       "misconceptions are mistakes children of this age often make. priorKnowledge is what you will treat as already known, or an empty list.",
       "vocabulary is only the words worth teaching at this age.",
-      "lessonBrief.intent says whether this lesson is why, process, compare, definition, procedure, or explain. When lessonBrief.teacherIntent is present, lessonBrief.learningGoal is the only new teaching target, lessonBrief.focusConcepts are the ideas to teach, lessonBrief.priorKnowledge is already known and may be the starting point, and lessonBrief.exclusions must not be retaught. lessonBrief.teacherIntent.requiredEvidence says what a correct check must show. It is not an extra keyKnowledge fact. lessonBrief.preferences and the duration are presentation, not keyKnowledge. Do not turn prior knowledge or an exclusion into the lesson target.",
+      "lessonBrief.intent says whether this lesson is why, process, compare, definition, procedure, or explain. When lessonBrief.teacherIntent is present, lessonBrief.learningGoal is the only new teaching target, lessonBrief.focusConcepts are the ideas to teach, lessonBrief.priorKnowledge is already known and may be the starting point, and lessonBrief.exclusions must not be retaught. lessonBrief.teacherIntent.requiredEvidence says what a correct check must show. It is not an extra learning point. lessonBrief.preferences and the duration are presentation, not learning points. Do not turn prior knowledge or an exclusion into the lesson target.",
       "When teacherIntent is absent, lessonBrief.concepts are the ideas to teach. Do not treat words such as between, difference, why, or how as the concept.",
-      "keyKnowledge items are strings or { text, knowledgeType }. knowledgeType is fact, cause, effect, reason, process, definition, comparison, or procedure. A label, a sentence of six words, or a place does not make an item a cause, reason, or process. The sentence itself must state the relationship.",
-      "lessonArc purpose must be exactly one of these words: hook, investigate, teach, apply, check, resolution, recap. Do not write a sentence as the purpose. The system places each keyKnowledge fact on the teach stage and the recap. The hook and the investigate stage must not contain it.",
+      "Each learningMap point is { id, knowledge, role, importance, dependsOn }. id is p1, p2, and so on. role is foundation, feature, concept, function, cause, effect, process, procedure, comparison, example, or connection. A role is only a label: a sentence of six words or a place does not become a cause, function, or process because of its role. The sentence itself must state the relationship. A connection point says how earlier points work together. An example point shows an earlier point in use.",
+      "lessonArc purpose must be exactly one of these words: hook, investigate, teach, apply, check, resolution, recap. Do not write a sentence as the purpose. The system decides which learning points are taught, in what order, and which are checked, and places them on the teach stage and the recap. The hook and the investigate stage must not contain them.",
       "Age changes the plan: vocabulary, how long the sentences are, how deep the explanation goes, the examples, and how hard the reasoning is. Year 1 and Year 2 key knowledge stays in everyday words.",
       "If yearAssumed is true, plan for yearAssumption and say so in yearGroup. Do not pretend the teacher named that year.",
       "lessonBrief.topic is the specific concept to teach. Do not widen it into a broader topic.",
       "teachingApproach is two sentences on how to teach this subject. narrativeTheme is a light classroom frame, or an empty string if a story frame would get in the way.",
       subjectGuide(safe.subject, (safe.lessonBrief && safe.lessonBrief.topic) || safe.topic),
-      "JSON shape: { title, subject, topic, yearGroup, durationMinutes, learningObjective, successCriteria, priorKnowledge, keyKnowledge, vocabulary, misconceptions, teachingApproach, narrativeTheme, lessonArc: [{ purpose, learningRole, concept }] }."
+      "JSON shape: { title, subject, topic, yearGroup, durationMinutes, learningObjective, successCriteria, priorKnowledge, learningMap: [{ id, knowledge, role, importance, dependsOn }], vocabulary, misconceptions, teachingApproach, narrativeTheme, lessonArc: [{ purpose, learningRole, concept }] }."
     ].join(" ");
     return { system: system, user: JSON.stringify(safe) };
   }
@@ -519,7 +521,7 @@
   function lessonSkeleton(plan, ctx) {
     plan = plan || {};
     ctx = ctx || {};
-    var knowledge = textList(plan.keyKnowledge, 180, 6);
+    var knowledge = textList(plan.keyKnowledge, 180, 12);
     var arc = contractArc(plan.lessonArc, knowledge);
     var family = pedagogy(plan.subject || ctx.subject, plan.topic || ctx.topic);
     var minutes = skeletonMinutes(Number(ctx.requestedMinutes) || Number(plan.durationMinutes) || 15);
@@ -567,6 +569,30 @@
     return { items: 4, cap: 8 };
   }
 
+  var DEPTH_BANDS = {
+    young: { low: 5, target: 6, high: 7, questions: 2 },
+    middle: { low: 6, target: 8, high: 9, questions: 3 },
+    older: { low: 7, target: 8, high: 10, questions: 4 }
+  };
+
+  function depthBudget(year, minutes) {
+    var level = beatYear(year);
+    var band = level <= 2 ? DEPTH_BANDS.young : (level <= 4 ? DEPTH_BANDS.middle : DEPTH_BANDS.older);
+    var known = Number(minutes) > 0;
+    var length = known ? Number(minutes) : 15;
+    var max = length <= 8 ? band.low - 2 : (length <= 12 ? band.low : (length <= 17 ? band.target : band.high));
+    var floor = Math.min(length <= 8 ? 2 : (length <= 12 ? band.low - 2 : band.low), max);
+    return {
+      year: level,
+      minutes: length,
+      durationKnown: known,
+      floor: floor,
+      narrowFloor: Math.min(Math.max(2, floor - 2), max),
+      max: max,
+      questions: length <= 8 ? 1 : band.questions
+    };
+  }
+
   function beatKind(item) {
     item = item || {};
     var text = item.text || "";
@@ -578,8 +604,31 @@
     return "fact";
   }
 
+  function hasLearningMap(plan) {
+    return !!(plan && Array.isArray(plan.learningMap) && plan.learningMap.length);
+  }
+
+  function mapBeatItems(plan) {
+    var known = {};
+    plan.learningMap.forEach(function (entry) { if (entry && entry.id) known[entry.id] = true; });
+    return plan.learningMap.map(function (entry) {
+      entry = entry || {};
+      var deps = (entry.dependsOn || []).filter(function (id) { return known[id] && id !== entry.id; });
+      return {
+        id: entry.id,
+        text: entry.knowledge || "",
+        kind: mapKind(entry.knowledge || "", entry.role, deps.length),
+        role: entry.role || "",
+        importance: entry.importance === "supporting" ? "supporting" : "core",
+        dependsOn: deps,
+        answers: !!entry.answers
+      };
+    }).filter(function (item) { return item.id && item.text; });
+  }
+
   function beatKnowledge(plan, year) {
     plan = plan || {};
+    if (hasLearningMap(plan)) return mapBeatItems(plan);
     var entries = plan.knowledge && plan.knowledge.length ? plan.knowledge : knowledgeEntries(plan.keyKnowledge);
     var limit = beatLimit(year).items;
     return entries.slice(0, limit).map(function (item, index) {
@@ -626,8 +675,154 @@
     });
   }
 
+  var TEACHING_MOVES = { name: 1, explain: 1, model: 1, connect: 1, exemplify: 1 };
+  var ASSESSABLE = { relationship: 4, connection: 4, procedure: 3, comparison: 2, definition: 2 };
+
+  function chunkRefs(list, size) {
+    var out = [];
+    for (var i = 0; i < list.length; i += size) out.push(list.slice(i, i + size));
+    return out;
+  }
+
+  function planMapBeats(skeleton, plan, year) {
+    var bounds = beatLimit(year);
+    var depth = depthBudget(year, plan.durationMinutes);
+    var items = mapBeatItems(plan);
+    if (!items.length) return (skeleton || []).map(function (slot) { return Object.assign({}, slot, { beats: [] }); });
+    var first = items[0].id;
+    var textOf = {};
+    items.forEach(function (item) { textOf[item.id] = item.text; });
+    var hasExample = items.some(function (item) { return item.kind === "example"; });
+    var exemplified = false;
+    var teach = [];
+    items.forEach(function (item) {
+      if (item.kind === "connection") { teach.push({ move: "connect", refs: [item.id] }); return; }
+      if (item.kind === "example") { teach.push({ move: "exemplify", refs: [item.id] }); return; }
+      if (item.kind === "relationship") {
+        if (!item.dependsOn.length) teach.push({ move: "name", refs: [item.id] });
+        teach.push({ move: "explain", refs: [item.id] });
+        return;
+      }
+      teach.push({ move: "name", refs: [item.id] });
+      if (item.kind === "procedure" && year >= 3) teach.push({ move: "model", refs: [item.id] });
+      if (item.kind === "definition" && !hasExample && !exemplified) {
+        teach.push({ move: "exemplify", refs: [item.id] });
+        exemplified = true;
+      }
+    });
+    var taught = {};
+    teach.forEach(function (step) {
+      if (TEACHING_MOVES[step.move]) step.refs.forEach(function (ref) { taught[ref] = true; });
+    });
+    var taughtItems = items.filter(function (item) { return taught[item.id]; });
+    var focusItem = taughtItems.filter(function (item) { return item.kind === "relationship" && item.answers; })[0] ||
+      taughtItems.filter(function (item) { return item.kind === "relationship"; })[0] ||
+      (year >= 3 ? taughtItems.filter(function (item) { return item.kind === "procedure"; })[0] : null) ||
+      taughtItems[0];
+    var focus = focusItem.id;
+    var ranked = taughtItems.map(function (item, order) {
+      var base = ASSESSABLE[item.kind];
+      return { item: item, order: order, score: base ? base + (item.answers ? 3 : 0) + (item.importance === "core" ? 2 : 0) : 0 };
+    }).filter(function (row) { return row.score > 0; }).sort(function (a, b) {
+      return b.score - a.score || a.order - b.order;
+    });
+    var picked = ranked.slice(0, depth.questions).map(function (row) { return row.item; });
+    if (!picked.length) picked = [focusItem];
+    picked.sort(function (a, b) { return taughtItems.indexOf(a) - taughtItems.indexOf(b); });
+    var checkRefs = picked.map(function (item) { return item.id; });
+    var named = taughtItems.map(function (item) { return item.id; });
+    var recapRefs;
+    if (year >= 4) recapRefs = chunkRefs(named, 4);
+    else if (named.length <= 4) recapRefs = chunkRefs(named, 1);
+    else recapRefs = chunkRefs(named, year <= 2 ? 2 : 3);
+    var comparison = items.filter(function (item) { return item.kind === "comparison"; });
+    var hook = [{ move: "notice", refs: [first] }];
+    if (year >= 3) hook.push({ move: "predict", refs: [first] });
+    var investigate = [{ move: "notice", refs: [first] }];
+    if (year >= 3 && comparison.length) investigate.push({ move: "compare", refs: comparison.slice(0, 2).map(function (item) { return item.id; }) });
+    var shaped = {
+      hook: hook,
+      investigate: investigate,
+      teach: teach,
+      apply: [{ move: year <= 3 ? "practise" : "apply", refs: [focus] }],
+      check: checkRefs.map(function (ref) { return { move: "retrieve", refs: [ref] }; }),
+      resolution: [{ move: "reveal", refs: [checkRefs[0]] }],
+      recap: recapRefs.map(function (refs) { return { move: "consolidate", refs: refs }; })
+    };
+    return (skeleton || []).map(function (slot) {
+      var list = shaped[slot.id] || [];
+      var cap = slot.id === "teach" || slot.id === "check" || slot.id === "recap" ? Math.max(list.length, 1) : bounds.cap;
+      var beats = packBeats(slot.id, list, cap).filter(function (beat) { return BEAT_MOVES[beat.move]; });
+      var next = Object.assign({}, slot, { beats: beats });
+      if (slot.id === "check") next.requiredKnowledge = checkRefs.map(function (ref) { return textOf[ref]; });
+      return next;
+    });
+  }
+
+  function taughtLedger(slots) {
+    var at = {};
+    var order = [];
+    var before = {};
+    (slots || []).forEach(function (slot) {
+      if (!slot) return;
+      before[slot.id] = order.slice();
+      (slot.beats || []).forEach(function (beat) {
+        if (!TEACHING_MOVES[beat.move]) return;
+        (beat.knowledgeRefs || []).forEach(function (ref) {
+          if (at[ref]) return;
+          at[ref] = { stage: slot.id, beatId: beat.id, move: beat.move };
+          order.push(ref);
+        });
+      });
+    });
+    return { taught: order, at: at, before: before };
+  }
+
+  function learningMapReport(plan, slots, ctx) {
+    plan = plan || {};
+    var map = Array.isArray(plan.learningMap) ? plan.learningMap : [];
+    var ledger = taughtLedger(slots);
+    var beats = [];
+    var stageRefs = {};
+    (slots || []).forEach(function (slot) {
+      if (!slot) return;
+      var refs = stageRefs[slot.id] = [];
+      (slot.beats || []).forEach(function (beat) {
+        (beat.knowledgeRefs || []).forEach(function (ref) { if (refs.indexOf(ref) === -1) refs.push(ref); });
+        if (beats.length < 40) beats.push({ beatId: beat.id, move: beat.move, refs: (beat.knowledgeRefs || []).slice(0, 4) });
+      });
+    });
+    var budget = plan.depthBudget || null;
+    return {
+      teacherGoal: clean(learningGoalOf(ctx || {}) || plan.learningObjective, 200),
+      learningMapCount: map.length,
+      learningMapIds: map.map(function (item) { return item.id; }).slice(0, 14),
+      learningMap: map.slice(0, 14).map(function (item) {
+        return {
+          id: item.id,
+          knowledge: clean(item.knowledge, 140),
+          role: item.role || "",
+          importance: item.importance || "",
+          dependsOn: (item.dependsOn || []).slice(0, 6)
+        };
+      }),
+      admitted: map.map(function (item) { return item.id; }).slice(0, 14),
+      rejected: (plan.mapRejected || []).slice(0, 8).map(function (item) {
+        return { knowledge: clean(item.knowledge, 140), reason: clean(item.reason, 60) };
+      }),
+      depthBudget: budget ? { year: budget.year, minutes: budget.minutes, durationKnown: !!budget.durationKnown, floor: budget.floor, narrowFloor: budget.narrowFloor, max: budget.max, questions: budget.questions } : null,
+      beats: beats,
+      taughtBeforeApply: (ledger.before.apply || []).slice(),
+      taughtBeforeCheck: (ledger.before.check || []).slice(),
+      applyRefs: stageRefs.apply || [],
+      checkRefs: stageRefs.check || [],
+      recapRefs: stageRefs.recap || []
+    };
+  }
+
   function planBeats(skeleton, plan, year) {
     year = beatYear(year);
+    if (hasLearningMap(plan)) return planMapBeats(skeleton, plan, year);
     var bounds = beatLimit(year);
     var items = beatKnowledge(plan, year);
     if (!items.length) return (skeleton || []).map(function (slot) { return Object.assign({}, slot, { beats: [] }); });
@@ -665,11 +860,7 @@
     var checkRefs = year >= 5 && connect ? connect.knowledgeRefs.slice() : [focus];
     var named = items.filter(function (item) { return taught[item.id]; }).map(function (item) { return item.id; });
     if (!named.length) named = [first];
-    var relationships = items.filter(function (item) { return item.kind === "relationship" && named.indexOf(item.id) !== -1; });
-    var assessMany = !!(plan && plan.relationshipPlan && plan.relationshipPlan.assess && relationships.length > 1);
-    var checkBeats = assessMany
-      ? relationships.slice(0, beatLimit(year).items).map(function (item) { return { move: "retrieve", refs: [item.id] }; })
-      : [{ move: "retrieve", refs: checkRefs }];
+    var checkBeats = [{ move: "retrieve", refs: checkRefs }];
     var recap = year >= 4
       ? [{ move: "consolidate", refs: named.slice() }]
       : named.map(function (ref) { return { move: "consolidate", refs: [ref] }; });
@@ -736,7 +927,7 @@
           }
         });
       }
-      if (beat.move === "name" || beat.move === "explain" || beat.move === "model") {
+      if (TEACHING_MOVES[beat.move]) {
         refs.forEach(function (ref) { taught[ref] = true; });
       }
     });
@@ -803,7 +994,7 @@
       exemplify: "exemplify gives one age-appropriate example of the referenced knowledge.",
       model: "model demonstrates the planned process or procedure.",
       compare: "compare points to a relevant similarity or difference.",
-      connect: "connect joins the referenced knowledge items.",
+      connect: "connect states how the referenced knowledge joins the ideas taught before it.",
       practise: "practise is short pupil-facing preparation for the task. It refers to the knowledge the child is about to use. It does not merely say use your knowledge. It does not duplicate the entire task instruction.",
       apply: "apply is a short pupil-facing bridge from the taught knowledge into the task. It makes clear what idea the pupil should use. It does not replace the task itself.",
       reveal: "reveal resolves the adventure using the taught knowledge.",
@@ -901,7 +1092,7 @@
       var ref = (beat.knowledgeRefs || [])[0];
       var item = null;
       (items || []).forEach(function (entry) { if (entry.id === ref) item = entry; });
-      var reveal = beat.move === "name" || beat.move === "explain";
+      var reveal = !!TEACHING_MOVES[beat.move];
       if (!reveal && item && sameSentence(text, item.text)) row("other existing rule");
       if (beat.move === "name" && ref) names[ref] = text;
       if (beat.move === "explain" && ref && sameSentence(text, names[ref])) row("other existing rule");
@@ -927,7 +1118,7 @@
       var ref = (beat.knowledgeRefs || [])[0];
       var item = null;
       (items || []).forEach(function (entry) { if (entry.id === ref) item = entry; });
-      var reveal = beat.move === "name" || beat.move === "explain";
+      var reveal = !!TEACHING_MOVES[beat.move];
       if (!reveal && item && sameSentence(text, item.text)) issues.push("The " + beat.id + " beat repeats a knowledge sentence.");
       if (beat.move === "name" && ref) names[ref] = text;
       if (beat.move === "explain" && ref && sameSentence(text, names[ref])) issues.push("The " + beat.id + " beat repeats the name sentence.");
@@ -1767,7 +1958,7 @@
     var skeleton = (ctx && ctx.lessonSkeleton) || lessonSkeleton(sourcePlan || {}, ctx || {});
     if (sourcePlan) {
       var publishedPlan = publishPlan(sourcePlan);
-      publishedPlan.lessonArc = contractArc(sourcePlan.lessonArc, textList(sourcePlan.keyKnowledge, 180, 6));
+      publishedPlan.lessonArc = contractArc(sourcePlan.lessonArc, textList(sourcePlan.keyKnowledge, 180, 12));
       safe.lessonPlan = publishedPlan;
     } else safe.lessonPlan = null;
     safe.storyPlan = story || (ctx && ctx.storyPlan) || null;
@@ -2045,12 +2236,12 @@
   }
 
   function repairKnowledge(previous) {
-    var source = previous && previous.keyKnowledge;
+    var source = previous && (Array.isArray(previous.learningMap) && previous.learningMap.length ? previous.learningMap : previous.keyKnowledge);
     if (!Array.isArray(source)) return [];
     return source.map(function (item) {
-      var text = typeof item === "string" ? item : (item && (item.text || item.statement || item.fact || item.knowledge)) || "";
+      var text = typeof item === "string" ? item : (item && (item.knowledge || item.text || item.statement || item.fact)) || "";
       return clean(text, 180);
-    }).filter(Boolean).slice(0, 6);
+    }).filter(Boolean).slice(0, 12);
   }
 
   function repairRelationship(ctx, previous, issues) {
@@ -2058,8 +2249,9 @@
     var objective = (previous && previous.learningObjective) || "";
     var goalText = planGoalText(ctx, objective);
     var required = [];
-    if (/more distinct relationships/.test(found)) {
-      required.push("breadth: add distinct complementary relationships that each answer the goal. A paraphrase of the same relationship is not a new one. A nearby fact that does not answer the goal is not enough. Year 1 and Year 2 need two, Year 3 and Year 4 need three, and Year 5 and Year 6 need four, unless the goal names one specific feature");
+    if (/more connected learning points/.test(found)) {
+      var depth = depthBudget((ctx && (ctx.yearGroup || ctx.yearAssumption)) || (previous && previous.yearGroup), ctx && ctx.requestedMinutes);
+      required.push("depth: return a connected learningMap of about " + depth.floor + " to " + depth.max + " points that leads to the goal. Start from what a pupil needs first, then the feature or concept, what it does or why, the effect, and how the ideas connect. Each later point lists the earlier points it builds on in dependsOn. Split a big relationship into child-sized steps. A paraphrase, a second example of the same idea, or trivia is not a new point");
     }
     if (/outcome, not the reason/.test(found)) {
       if (seeksContribution(ctx, objective)) {
@@ -2097,7 +2289,7 @@
         ? "The lesson arc failed. Set each lessonArc purpose to exactly one of hook, investigate, teach, apply, check, resolution, recap. Do not write a sentence as the purpose."
         : "Copy lessonArc exactly.",
       relationship.length
-        ? "Replace only the insufficient keyKnowledge. For a broad how or why goal, return distinct complementary relationships: two in Year 1 and Year 2, three in Year 3 and Year 4, and four in Year 5 and Year 6. A goal that names one specific feature may stay smaller. Do not paraphrase one relationship into several sentences. Do not add trivia or a nearby fact that does not answer the goal. Do not return the failed sentences unchanged. The new sentences must be the knowledge a pupil of this year would say back to achieve the learningGoal. A connector word does not repair a sentence. because, which meant, led to, therefore, significant, and important count only when the words around them are the missing fact. 'It was significant', 'it had an influence', 'it led to changes', 'it had an impact', or 'it is essential' is not that fact. Do not exceed four keyKnowledge items. Missing relationship: " + relationship.join(" ")
+        ? "Replace only the insufficient learningMap points. Keep the points that already lead to the goal and keep their dependsOn links. Do not paraphrase one idea into several points. Do not add trivia or a nearby fact that leads nowhere. Do not return the failed sentences unchanged. The new sentences must be the knowledge a pupil of this year would say back to achieve the learningGoal. A connector word does not repair a sentence. because, which meant, led to, therefore, significant, and important count only when the words around them are the missing fact. 'It was significant', 'it had an influence', 'it led to changes', 'it had an impact', or 'it is essential' is not that fact. Missing relationship: " + relationship.join(" ")
         : ""
     ].filter(Boolean).join(" ");
     brief.user = JSON.stringify({
@@ -2349,10 +2541,6 @@
     carry: 1, carries: 1, carried: 1, transport: 1, transports: 1, transporting: 1
   };
 
-  function relationshipBudget(year) {
-    return beatLimit(year).items;
-  }
-
   function seeksContribution(ctx, objective) {
     if (planNeedsSteps(ctx, objective)) return false;
     var goal = planGoalText(ctx, objective);
@@ -2410,15 +2598,6 @@
     });
   }
 
-  function contributionRank(entries, goal) {
-    return entries.map(function (item, index) {
-      return { item: item, index: index, score: answersContribution(item.text, goal) ? (2 + (statesRelation(item.text) ? 1 : 0)) : 0 };
-    }).sort(function (left, right) {
-      if (right.score !== left.score) return right.score - left.score;
-      return left.index - right.index;
-    });
-  }
-
   var RELATION_GLUE = { which: 1, that: 1, this: 1, into: 1, from: 1, with: 1, take: 1, takes: 1, taken: 1, more: 1, than: 1, very: 1, much: 1 };
 
   function relationSignature(text, goal) {
@@ -2452,40 +2631,204 @@
     return shared >= 2 && shared / Math.min(a.length, b.length) >= 0.5;
   }
 
-  function distinctAnswers(entries, goal) {
-    var kept = [];
-    contributionRank(entries, goal).forEach(function (row) {
-      if (!row.score) return;
-      var text = row.item.text;
-      if (kept.some(function (item) { return sameRelationship(item.text, text, goal); })) return;
-      kept.push(row.item);
-    });
-    return kept;
+  var MAP_ROLES = { foundation: 1, feature: 1, concept: 1, "function": 1, cause: 1, effect: 1, process: 1, procedure: 1, comparison: 1, example: 1, connection: 1, definition: 1, fact: 1 };
+  var ROLE_TYPE = { definition: "definition", procedure: "procedure", comparison: "comparison", effect: "effect", fact: "fact", foundation: "fact", feature: "fact", concept: "fact", example: "fact", connection: "fact" };
+  var KIND_ROLE = { relationship: "function", procedure: "procedure", definition: "definition", comparison: "comparison", connection: "connection", example: "example", fact: "fact" };
+  var MAP_READ_LIMIT = 14;
+
+  function mapKind(text, role, linked) {
+    if (role === "connection" && linked) return "connection";
+    if (role === "example" && linked) return "example";
+    var kind = beatKind({ text: text, knowledgeType: knowledgeRole(text, ROLE_TYPE[role] || "") });
+    if (kind === "procedure" && role && role !== "procedure" && role !== "process") {
+      if (/\b(difference|unlike|whereas)\b/i.test(text)) return "comparison";
+      return /\b(is|are|means|called)\b/i.test(text) ? "definition" : "fact";
+    }
+    return kind;
   }
 
-  function admitKnowledge(entries, ctx, objective) {
+  function mapProposals(parsed) {
+    var map = Array.isArray(parsed && parsed.learningMap) && parsed.learningMap.length ? parsed.learningMap : null;
+    var legacy = parsed && parsed.keyKnowledge;
+    var source = map || (Array.isArray(legacy) ? legacy : (legacy ? [legacy] : []));
+    var rows = [];
+    var byKey = {};
+    source.forEach(function (raw) {
+      if (rows.length >= MAP_READ_LIMIT) return;
+      var object = raw && typeof raw === "object";
+      var text = clean(object ? (raw.knowledge || raw.text || raw.fact || raw.statement) : raw, 180);
+      if (!text) return;
+      var label = clean(object ? (raw.role || raw.knowledgeType || raw.type) : "", 24).toLowerCase();
+      var row = {
+        key: clean(object && raw.id, 24) || ("p" + (rows.length + 1)),
+        text: text,
+        role: MAP_ROLES[label] ? label : "",
+        label: label,
+        importance: clean(object && raw.importance, 20).toLowerCase() === "supporting" ? "supporting" : "core",
+        needs: object && Array.isArray(raw.dependsOn) ? raw.dependsOn.map(function (dep) { return clean(dep, 24); }).filter(Boolean) : [],
+        index: rows.length
+      };
+      if (!byKey[row.key]) byKey[row.key] = row;
+      rows.push(row);
+    });
+    rows.forEach(function (row) {
+      row.deps = [];
+      row.needs.forEach(function (key) {
+        var target = byKey[key];
+        if (target && target !== row && row.deps.indexOf(target) === -1) row.deps.push(target);
+      });
+    });
+    return { rows: rows, proposed: !!map };
+  }
+
+  function mapReaches(from, to) {
+    var seen = [];
+    var stack = from.deps.slice();
+    while (stack.length) {
+      var next = stack.pop();
+      if (next === to) return true;
+      if (seen.indexOf(next) !== -1) continue;
+      seen.push(next);
+      next.deps.forEach(function (dep) { stack.push(dep); });
+    }
+    return false;
+  }
+
+  function mapRestates(kept, row, goal) {
+    if (sameSentence(kept.text, row.text)) return true;
+    if (mapKind(kept.text, kept.role, kept.deps.length) !== "relationship" || mapKind(row.text, row.role, row.deps.length) !== "relationship") return false;
+    if (mapReaches(kept, row) || mapReaches(row, kept)) return false;
+    return sameRelationship(kept.text, row.text, goal);
+  }
+
+  function mapOrder(rows) {
+    var placed = [];
+    var left = rows.slice().sort(function (a, b) { return a.index - b.index; });
+    while (left.length) {
+      var ready = left.filter(function (row) {
+        return row.deps.every(function (dep) { return placed.indexOf(dep) !== -1 || rows.indexOf(dep) === -1; });
+      })[0] || left[0];
+      placed.push(ready);
+      left.splice(left.indexOf(ready), 1);
+    }
+    return placed;
+  }
+
+  function mapClosure(row, pool) {
+    var out = [];
+    (function visit(item) {
+      if (out.indexOf(item) !== -1 || pool.indexOf(item) === -1) return;
+      out.push(item);
+      item.deps.forEach(visit);
+    })(row);
+    return out;
+  }
+
+  function mapScore(row) {
+    var score = row.importance === "core" ? 4 : 0;
+    if (row.answers) score += 3;
+    if (row.kind === "connection") score += 1;
+    if (row.kind === "example") score -= 2;
+    return score;
+  }
+
+  function buildLearningMap(parsed, ctx, objective) {
+    ctx = ctx || {};
     var goal = planGoalText(ctx, objective);
-    var idle = { kept: entries, dropped: [], distinct: entries.length, target: 0, broad: false, short: false };
-    if (!seeksContribution(ctx, objective)) return idle;
-    var year = beatYear((ctx && (ctx.yearGroup || (ctx.lessonPlan && ctx.lessonPlan.yearGroup))) || "");
-    var target = relationshipBudget(year);
-    var broad = broadContribution(goal);
-    var ranked = contributionRank(entries, goal);
-    var answering = ranked.filter(function (row) { return row.score > 0; }).map(function (row) { return row.item; });
-    if (!answering.length) return { kept: entries, dropped: [], distinct: 0, target: target, broad: broad, short: broad };
-    var distinct = distinctAnswers(entries, goal);
-    var kept = distinct.slice(0, target);
-    var seen = {};
-    kept.forEach(function (item) { seen[item.text] = 1; });
-    var dropped = entries.filter(function (item) { return !seen[item.text]; }).map(function (item) { return item.text; });
+    var budget = depthBudget(ctx.yearGroup || ctx.yearAssumption || (ctx.lessonPlan && ctx.lessonPlan.yearGroup), ctx.requestedMinutes);
+    var seeking = seeksContribution(ctx, objective);
+    var proposal = mapProposals(parsed);
+    var rejected = [];
+    var unique = [];
+    proposal.rows.forEach(function (row) {
+      var twin = unique.filter(function (kept) { return mapRestates(kept, row, goal); })[0];
+      if (twin) {
+        row.merged = twin;
+        rejected.push({ knowledge: row.text, reason: "restates " + twin.key });
+        return;
+      }
+      unique.push(row);
+    });
+    unique.forEach(function (row) {
+      var deps = [];
+      row.deps.forEach(function (dep) {
+        var target = dep.merged || dep;
+        if (target !== row && unique.indexOf(target) !== -1 && deps.indexOf(target) === -1) deps.push(target);
+      });
+      row.deps = deps;
+    });
+    unique.forEach(function (row) {
+      row.kind = mapKind(row.text, row.role, row.deps.length);
+      row.answers = seeking && answersContribution(row.text, goal);
+    });
+    var connected = unique;
+    if (seeking && unique.some(function (row) { return row.answers; })) {
+      var reach = unique.filter(function (row) { return row.answers; });
+      var grew = true;
+      while (grew) {
+        grew = false;
+        unique.forEach(function (row) {
+          if (reach.indexOf(row) !== -1) return;
+          var linked = row.deps.some(function (dep) { return reach.indexOf(dep) !== -1; }) ||
+            reach.some(function (kept) { return kept.deps.indexOf(row) !== -1; });
+          if (linked) { reach.push(row); grew = true; }
+        });
+      }
+      connected = unique.filter(function (row) {
+        if (reach.indexOf(row) !== -1) return true;
+        rejected.push({ knowledge: row.text, reason: "not connected to the learning goal" });
+        return false;
+      });
+    } else if (unique.some(function (row) { return row.deps.length; })) {
+      connected = unique.filter(function (row) {
+        var linked = row.deps.length || unique.some(function (other) { return other.deps.indexOf(row) !== -1; });
+        if (linked) return true;
+        rejected.push({ knowledge: row.text, reason: "not connected to the learning map" });
+        return false;
+      });
+    }
+    var chosen = connected;
+    if (connected.length > budget.max) {
+      chosen = [];
+      connected.slice().sort(function (a, b) {
+        return mapScore(b) - mapScore(a) || a.index - b.index;
+      }).forEach(function (row) {
+        var need = mapClosure(row, connected).filter(function (item) { return chosen.indexOf(item) === -1; });
+        if (chosen.length + need.length <= budget.max) chosen = chosen.concat(need);
+      });
+      connected.forEach(function (row) {
+        if (chosen.indexOf(row) === -1) rejected.push({ knowledge: row.text, reason: "over the depth budget" });
+      });
+    }
+    var ordered = mapOrder(chosen);
+    var idOf = {};
+    ordered.forEach(function (row, index) { idOf[row.key + "#" + row.index] = "k" + (index + 1); });
+    var items = ordered.map(function (row) {
+      return {
+        id: idOf[row.key + "#" + row.index],
+        knowledge: row.text,
+        role: row.role || KIND_ROLE[row.kind] || "fact",
+        importance: row.importance,
+        dependsOn: row.deps.filter(function (dep) { return chosen.indexOf(dep) !== -1; }).map(function (dep) { return idOf[dep.key + "#" + dep.index]; }),
+        answers: !!row.answers
+      };
+    });
     return {
-      kept: kept,
-      dropped: dropped,
-      distinct: distinct.length,
-      target: target,
-      broad: broad,
-      short: broad && distinct.length < target
+      items: items,
+      rejected: rejected,
+      budget: budget,
+      seeking: seeking,
+      broad: seeking && broadContribution(goal),
+      answered: items.some(function (item) { return item.answers; }),
+      proposed: proposal.proposed,
+      raw: proposal.rows.map(function (row) { return { text: row.text, knowledgeType: knowledgeRole(row.text, ROLE_TYPE[row.role] || row.label) }; })
     };
+  }
+
+  function mapEntries(items) {
+    return (items || []).map(function (item) {
+      return { text: item.knowledge, knowledgeType: knowledgeRole(item.knowledge, ROLE_TYPE[item.role] || "") };
+    });
   }
 
   function knowledgeRole(text, labeled) {
@@ -2513,7 +2856,7 @@
       }
       var line = clean(item, 180);
       return line ? { text: line, knowledgeType: knowledgeRole(line, "") } : null;
-    }).filter(Boolean).slice(0, 6);
+    }).filter(Boolean).slice(0, 12);
   }
 
   function asksWhy(ctx) {
@@ -2562,11 +2905,10 @@
     if (parsed.lessonPlan && typeof parsed.lessonPlan === "object") parsed = parsed.lessonPlan;
     var objective = clean(parsed.learningObjective || (Array.isArray(parsed.objectives) ? parsed.objectives[0] : parsed.objective) || "", 240);
     var relationCtx = Object.assign({}, ctx, { lessonPlan: { learningObjective: objective, topic: parsed.topic || ctx.topic } });
-    var rawEntries = knowledgeEntries(parsed.keyKnowledge);
-    var admitted = admitKnowledge(rawEntries, relationCtx, objective);
-    var goalText = planGoalText(relationCtx, objective);
-    var answered = seeksContribution(relationCtx, objective) && admitted.kept.some(function (item) { return answersContribution(item.text, goalText); });
-    var entries = answered ? admitted.kept : rawEntries;
+    var map = buildLearningMap(parsed, relationCtx, objective);
+    var rawEntries = map.raw;
+    var answered = map.answered;
+    var entries = mapEntries(map.items);
     var knowledge = entries.map(function (item) { return item.text; });
     var arc = (Array.isArray(parsed.lessonArc) ? parsed.lessonArc : []).map(function (stage) {
       stage = stage || {};
@@ -2579,10 +2921,12 @@
     var issues = [];
     if (objective.length < 12) issues.push("The lesson plan needs a learning objective.");
     var settled = !!ctx.breadthSettled;
-    var short = admitted.short && !settled;
-    var oneEnough = answered && knowledge.length >= 1 && (!admitted.broad || settled);
-    if (knowledge.length < 2 && !oneEnough && !short) issues.push("The lesson plan needs the key knowledge.");
-    if (short) issues.push("The key knowledge needs more distinct relationships.");
+    var counted = map.items.filter(function (item) { return item.role !== "example"; }).length;
+    var need = map.broad || planNeedsRelation(relationCtx, objective) || planNeedsProcess(relationCtx, objective) ? map.budget.floor : map.budget.narrowFloor;
+    var shallow = !!ctx.depthRequired && !settled && knowledge.length > 0 && counted < need;
+    var oneEnough = answered && knowledge.length >= 1 && (!map.broad || settled);
+    if (knowledge.length < 2 && !oneEnough && !shallow) issues.push("The lesson plan needs the key knowledge.");
+    if (shallow) issues.push("The learning map needs more connected learning points.");
     if (seeksContribution(relationCtx, objective) && !answered && !rawEntries.some(function (item) { return statesRelation(item.text); })) {
       issues.push("The key knowledge states the outcome, not the reason.");
     }
@@ -2615,12 +2959,10 @@
         priorKnowledge: textList(parsed.priorKnowledge, 160, 4),
         keyKnowledge: knowledge,
         knowledge: entries,
-        droppedKnowledge: answered ? admitted.dropped.slice() : [],
-        relationshipPlan: {
-          broad: !!admitted.broad,
-          target: admitted.target || 0,
-          assess: !!(answered && !short && entries.length > 1)
-        },
+        learningMap: map.items,
+        droppedKnowledge: map.rejected.map(function (item) { return item.knowledge; }),
+        mapRejected: map.rejected.slice(0, MAP_READ_LIMIT),
+        depthBudget: map.budget,
         vocabulary: textList(parsed.vocabulary, 40, 8),
         misconceptions: textList(parsed.misconceptions, 160, 4),
         teachingApproach: clean(parsed.teachingApproach, 400),
@@ -4706,6 +5048,10 @@
     lessonSkeleton: lessonSkeleton,
     planBeats: planBeats,
     beatKnowledge: beatKnowledge,
+    depthBudget: depthBudget,
+    buildLearningMap: buildLearningMap,
+    taughtLedger: taughtLedger,
+    learningMapReport: learningMapReport,
     keepBeatPlan: keepBeatPlan,
     boundedBeatLog: boundedBeatLog,
     beatProblems: beatProblems,
