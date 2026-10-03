@@ -242,7 +242,13 @@ global.fetch = function (url, init) {
       assert.notStrictEqual(activity.title, activity.purpose);
       assert.ok((activity.config.lines || []).join(" ").indexOf("Do not explain yet") === -1);
     });
-    var slides = Creator.slidesFor(adventure);
+    var scened = Creator.slidesFor(adventure);
+    assert.ok(scened.length >= 4 && scened.length < 7, "a beat adventure plays as scenes");
+    assert.ok(scened.every(function (slide) { return slide.sceneId && slide.sceneLabel; }));
+    assert.strictEqual(scened[scened.length - 1].purpose, "finish");
+    assert.deepStrictEqual(scened.map(function (slide) { return slide.beatIds; }).reduce(function (all, ids) { return all.concat(ids); }, []),
+      adventure.activities.reduce(function (all, activity) { return all.concat(activity.beats.map(function (beat) { return beat.id; })); }, []));
+    var slides = Creator.stageSlides(adventure);
     assert.strictEqual(slides.length, 7);
     slides.forEach(function (slide, index) {
       assert.strictEqual(slide.beats.length, adventure.activities[index].beats.length);

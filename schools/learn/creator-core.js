@@ -1034,7 +1034,133 @@
     });
   }
 
+  function brainApi() {
+    if (typeof globalThis !== "undefined" && globalThis.WondiiLessonBrain) return globalThis.WondiiLessonBrain;
+    if (typeof require === "function") {
+      try { return require("../../js/lesson-brain.js"); } catch (e) { return null; }
+    }
+    return null;
+  }
+
+  function earthquakeMove(step) {
+    if (!step || (step.type !== "move" && step.type !== "drag")) return false;
+    return step.successCondition === "slip" && /^(plate|piece)$/.test(String(step.target || ""));
+  }
+
+  function sceneStep(step, beatIndex) {
+    var copy = JSON.parse(JSON.stringify(step));
+    if ((copy.type === "move" || copy.type === "drag") && !earthquakeMove(copy)) {
+      copy = {
+        type: "tap-to-reveal",
+        sourceType: copy.type,
+        target: copy.target || "world",
+        instruction: copy.instruction || "Look more closely",
+        successCondition: "looked",
+        teachingReveal: copy.teachingReveal || ""
+      };
+    }
+    copy.beatIndex = beatIndex;
+    return copy;
+  }
+
+  function scenePlan(draft) {
+    var brain = brainApi();
+    if (!brain || !brain.planScenes) return null;
+    var plan = draft.lessonPlan || {};
+    try {
+      return brain.planScenes(draft.activities || [], plan, {
+        yearGroup: draft.year || plan.yearGroup || "",
+        requestedMinutes: Number(draft.targetMinutes) || Number(plan.durationMinutes) || 0
+      });
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function sceneSlides(draft, scenes) {
+    var stages = stageSlides(draft);
+    var byStage = {};
+    (draft.activities || []).forEach(function (activity, index) {
+      byStage[activity.slotId] = { activity: activity, slide: stages[index] };
+    });
+    function beatText(beat) {
+      return String((beat && beat.pupil && beat.pupil.text) || "").trim();
+    }
+    return scenes.map(function (scene) {
+      var primary = byStage[scene.visual.baseShot] || byStage[scene.stageIds[0]];
+      var slide;
+      if (scene.purpose === "challenge") {
+        slide = JSON.parse(JSON.stringify(primary.slide));
+        delete slide.beats;
+      } else if (scene.purpose === "finish") {
+        var outcome = [];
+        var recap = [];
+        ((byStage.resolution.activity.beats) || []).forEach(function (beat) { if (beatText(beat)) outcome.push(beatText(beat)); });
+        ((byStage.recap.activity.beats) || []).forEach(function (beat) { if (beatText(beat)) recap.push(beatText(beat)); });
+        if (!outcome.length) outcome = ((byStage.resolution.slide.lines) || []).filter(Boolean);
+        if (!recap.length) recap = ((byStage.recap.slide.lines) || []).filter(Boolean);
+        slide = JSON.parse(JSON.stringify(primary.slide));
+        delete slide.beats;
+        delete slide.interaction;
+        delete slide.interactions;
+        slide.type = "story";
+        slide.kind = "debrief";
+        slide.outcome = outcome;
+        slide.recap = recap;
+        slide.lines = outcome.concat(recap);
+        slide.visualAction = { type: "sequence" };
+      } else {
+        slide = JSON.parse(JSON.stringify(primary.slide));
+        delete slide.interaction;
+        delete slide.interactions;
+        var beats = [];
+        var steps = [];
+        scene.stageIds.forEach(function (id) {
+          var source = byStage[id];
+          var own = (source.activity.beats || []).filter(function (beat) { return scene.beatIds.indexOf(beat.id) !== -1; });
+          if (!own.length) return;
+          var at = beats.length;
+          own.forEach(function (beat) { beats.push(JSON.parse(JSON.stringify(beat))); });
+          var list = (source.slide.interactions && source.slide.interactions.length) ? source.slide.interactions : (source.slide.interaction ? [source.slide.interaction] : []);
+          list.forEach(function (step) { if (step && step.type) steps.push(sceneStep(step, at)); });
+          if (id === "hook" && source.slide.worldEffect) slide.worldEffect = source.slide.worldEffect;
+        });
+        slide.type = "story";
+        slide.beats = beats;
+        slide.lines = beats.map(beatText).filter(Boolean);
+        if (steps.length) slide.interactions = steps;
+        if (scene.purpose !== "synthesise") slide.visualAction = { type: "inspect" };
+      }
+      slide.kicker = scene.label;
+      slide.sceneId = scene.id;
+      slide.sceneLabel = scene.label;
+      slide.purpose = scene.purpose;
+      slide.stageIds = scene.stageIds.slice();
+      slide.beatIds = scene.beatIds.slice();
+      slide.knowledgeRefs = scene.knowledgeRefs.slice();
+      slide.usesRefs = scene.usesRefs.slice();
+      slide.sourceActivities = scene.stageIds.map(function (id) {
+        return { slotId: id, id: (byStage[id].activity && byStage[id].activity.id) || "" };
+      });
+      slide.visualAssetId = scene.visual.assetId || slide.visualAssetId || "";
+      return slide;
+    });
+  }
+
   function slidesFor(draft) {
+    var scenes = scenePlan(draft || {});
+    if (scenes && scenes.length) return sceneSlides(draft, scenes);
+    return stageSlides(draft);
+  }
+
+  function sceneReportFor(draft) {
+    var brain = brainApi();
+    var scenes = scenePlan(draft || {});
+    if (!scenes || !brain || !brain.sceneReport) return null;
+    return brain.sceneReport(scenes);
+  }
+
+  function stageSlides(draft) {
     var slides = (draft.activities || []).map(function (activity) {
       if (activity.mechanic === "quiz") {
         var quiz = activity.config || {};
@@ -1179,6 +1305,7 @@
         lessonPlan: draft.lessonPlan || null,
         storyPlan: draft.storyPlan || null,
         visualAssets: draft.visualAssets || null,
+        sceneReport: sceneReportFor(draft),
         featuredCast: (draft.featuredCast || []).map(function (item) {
           return { characterId: item.characterId, avatarId: item.avatarId, pupilId: item.pupilId || "", roleLabel: item.roleLabel || "" };
         })
@@ -1428,6 +1555,9 @@
     speakStory: speakStory,
     speakSlides: speakSlides,
     slidesFor: slidesFor,
+    stageSlides: stageSlides,
+    sceneReportFor: sceneReportFor,
+    earthquakeMove: earthquakeMove,
     toAdventure: toAdventure,
     fromAdventure: fromAdventure,
     sessionPlan: sessionPlan,

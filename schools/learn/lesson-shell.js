@@ -122,6 +122,7 @@
   }
 
   function missionStep(slide) {
+    if (slide && slide.sceneId && slide.sceneLabel) return slide.sceneLabel;
     return {
       beginning: "Arrival",
       goal: "Mission",
@@ -135,7 +136,7 @@
 
   function progressHtml(slides, index, adventure) {
     return "<ol class=\"lesson-progress\">" + (slides || []).map(function (slide, i) {
-      var name = adventure ? missionStep(slide) : ((slide && slide.kicker) || activityName(slideMechanic(slide)));
+      var name = adventure || (slide && slide.sceneId) ? missionStep(slide) : ((slide && slide.kicker) || activityName(slideMechanic(slide)));
       var state = i < index ? "is-done" : i === index ? "is-now" : "";
       return "<li class=\"" + state + "\"><span>" + escape(name) + "</span></li>";
     }).join("") + "</ol>";
@@ -359,8 +360,9 @@
       var result = (engineOf(view) && engineOf(view).result) || view.result || {};
       if (adventureNow(model) && screen === "complete") {
         var recapItems = [];
+        var scened = slides.some(function (item) { return item && item.sceneId; });
         slides.forEach(function (item) {
-          var debrief = item && (item.type === "mystery" || item.beat === "debrief");
+          var debrief = !scened && item && (item.type === "mystery" || item.beat === "debrief");
           if (!debrief) return;
           (item.lines || []).forEach(function (line) { if (line) recapItems.push(line); });
         });
@@ -494,6 +496,7 @@
     var slides = lastModel.view.slides || [];
     var index = lastModel.view.slide || 0;
     if (index >= slides.length - 1) return;
+    if (slides[index] && slides[index].sceneId) return;
     ui.transition = index + 1;
   }
 
@@ -722,7 +725,8 @@
 
   function waitingOn(step, play) {
     if (!step || !play) return false;
-    if ((step.type === "move" || step.type === "drag") && !play.slipped) return true;
+    if (step.beatIndex != null && (Number(play.beat) || 0) < Number(step.beatIndex)) return false;
+    if ((step.type === "move" || step.type === "drag") && !play.slipped && !play.revealed) return true;
     if ((step.type === "hotspot" || step.type === "tap-to-reveal" || step.type === "inspect") && !play.revealed) return true;
     return false;
   }
@@ -807,6 +811,10 @@
     if (index >= slides.length - 1) {
       ui.celebrate = true;
       if (model.actions.complete) model.actions.complete();
+      return;
+    }
+    if (slide && slide.sceneId && model.actions.goTo) {
+      model.actions.goTo(index + 1);
       return;
     }
     ui.transition = index + 1;

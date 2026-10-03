@@ -509,6 +509,9 @@
 .lesson-clues { margin: 0; font-weight: 800; }
 .lesson-clues strong { margin-left: 8px; }
 .lesson-recap { margin: 8px 0 0; padding-left: 1.2rem; line-height: 1.4; }
+.lesson-scene-story .lesson-copy + .lesson-copy { margin-top: 6px; }
+.lesson-scene-story .lesson-copy.is-new { animation: lesson-pop 500ms var(--w-ease, ease); }
+.lesson.is-still .lesson-scene-story .lesson-copy.is-new { animation: none; }
 .lesson-world-response {
   position: absolute; z-index: 1; left: 16%; width: min(280px, 30%); bottom: 22%;
   height: 16px; border-radius: 999px; background: #ffb020; box-shadow: 0 0 22px #ffb020;

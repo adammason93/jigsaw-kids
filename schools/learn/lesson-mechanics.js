@@ -46,7 +46,7 @@
   function sceneNote(slide, ctx) {
     if (ctx && ctx.immersed) return "";
     var mission = slide && slide.mission ? "<p class=\"lesson-cue\">" + escape(slide.mission) + "</p>" : "";
-    var beat = beatLabel(slide && slide.beat);
+    var beat = slide && slide.sceneId ? "" : beatLabel(slide && slide.beat);
     return mission + (beat ? "<p class=\"lesson-kicker\">" + escape(beat) + "</p>" : "");
   }
 
@@ -103,10 +103,25 @@
     return list.filter(function (item) { return item && item.type; });
   }
 
+  function sceneSlide(slide) {
+    return !!(slide && slide.sceneId);
+  }
+
+  function stepReached(step, state) {
+    if (!step || step.beatIndex == null) return true;
+    return (Number(state && state.beat) || 0) >= Number(step.beatIndex);
+  }
+
+  function earthquakeMove(step) {
+    if (!step || (step.type !== "move" && step.type !== "drag")) return false;
+    return step.successCondition === "slip" && /^(plate|piece)$/.test(String(step.target || ""));
+  }
+
   function currentInteraction(slide, state) {
     var steps = interactionsOf(slide);
     if (!steps.length) return null;
     var step = Math.max(0, Math.min(Number(state && state.step) || 0, steps.length - 1));
+    if (!stepReached(steps[step], state)) return null;
     return steps[step];
   }
 
@@ -133,13 +148,56 @@
     var index = Math.max(0, Math.min(Number(ctx && ctx.interact && ctx.interact.beat) || 0, beats.length - 1));
     var pupil = (beats[index] && beats[index].pupil) || {};
     var lines = [];
+    if (sceneSlide(slide)) {
+      beats.slice(0, index).forEach(function (beat) {
+        var said = beat && beat.pupil && beat.pupil.text;
+        if (said) lines.push(String(said));
+      });
+    }
     if (pupil.cue) lines.push(String(pupil.cue));
     if (pupil.text) lines.push(String(pupil.text));
     return lines;
   }
 
+  function finishScene(slide, ctx) {
+    var outcome = (slide.outcome || []).map(function (line) { return "<p class=\"lesson-copy\">" + escape(line) + "</p>"; }).join("");
+    var recap = (slide.recap || []).map(function (line) { return "<li>" + escape(line) + "</li>"; }).join("");
+    return "<div class=\"lesson-story lesson-act lesson-act--sequence lesson-finish-scene\">" +
+      "<div>" + sceneNote(slide, ctx) + "<p class=\"lesson-kicker\">" + escape(slide.sceneLabel || "Finish") + "</p>" + outcome +
+      (recap ? "<p class=\"lesson-kicker\">What we discovered</p><ul class=\"lesson-recap\">" + recap + "</ul>" : "") +
+      "</div></div>";
+  }
+
+  function sceneStory(slide, ctx) {
+    var shown = shownBeat(slide, ctx) || usefulLines(slide, ctx);
+    if (ctx.immersed && slide.speaker && shown.length) shown = shown.map(function (line, index) {
+      return index === 0 ? spokenTo(slide.speaker, line) : line;
+    });
+    var current = ctx.immersed ? currentInteraction(slide, ctx.interact) : null;
+    var state = ctx.interact || {};
+    var lead = slide.sceneLabel || "";
+    var actType = "inspect";
+    if (current && earthquakeMove(current)) {
+      actType = "move";
+      lead = current.instruction || "Push";
+      var moved = state.slipped ? current.teachingReveal : current.instruction;
+      if (moved && shown.indexOf(moved) === -1) shown = shown.concat([moved]);
+    } else if (current && (current.type === "hotspot" || current.type === "tap-to-reveal") && state.revealed && current.teachingReveal) {
+      if (shown.indexOf(current.teachingReveal) === -1) shown = shown.concat([current.teachingReveal]);
+    }
+    var body = shown.map(function (line, index) {
+      return "<p class=\"lesson-copy" + (index === shown.length - 1 && shown.length > 1 ? " is-new" : "") + "\">" + escape(line) + "</p>";
+    }).join("");
+    return "<div class=\"lesson-story lesson-act lesson-act--" + actType + " lesson-scene-story\">" +
+      (slide.image && !ctx.immersed ? "<img class=\"lesson-scene\" src=\"" + escape(slide.image) + "\" alt=\"" + escape(slide.alt || "") + "\" />" : "") +
+      "<div>" + sceneNote(slide, ctx) + pupilLine(slide) + "<p class=\"lesson-kicker\">" + escape(lead) + "</p>" + body +
+      (slide.teacherCue && !ctx.immersed ? "<p class=\"lesson-cue\">" + escape(slide.teacherCue) + "</p>" : "") +
+      "</div></div>";
+  }
+
   function story(slide, ctx) {
     ctx = ctx || {};
+    if (sceneSlide(slide)) return slide.purpose === "finish" ? finishScene(slide, ctx) : sceneStory(slide, ctx);
     var action = actionOf(slide);
     var beatLines = shownBeat(slide, ctx);
     var shown = beatLines || usefulLines(slide, ctx);
@@ -281,12 +339,14 @@
     var kicker = (ctx.slide && ctx.slide.kicker) || (immersed ? "Make your prediction" : "Quiz");
     if (immersed && /^quiz$/i.test(kicker)) kicker = "Make your prediction";
     if (immersed) kicker = "Make your prediction";
+    var sceneQuiz = !!(ctx.slide && ctx.slide.sceneId);
+    if (sceneQuiz) kicker = ctx.slide.sceneLabel || "Challenge";
     if (immersed && (named || (ctx.slide && ctx.slide.speaker))) {
       var pupilName = named ? selected.displayName : ctx.slide.speaker;
       var pupilRole = (ctx.slide && ctx.slide.role) || "";
       who = "<p class=\"lesson-pupil\">" + faceOf(ctx.slide) + "<strong>" + escape(pupilRole ? pupilName + " · " + pupilRole : pupilName) + "</strong>" + focusHtml(ctx.slide) + "</p>";
     }
-    host.innerHTML = "<div class=\"lesson-question\"><p class=\"lesson-kicker\">" + escape(kicker) + "</p>" + (immersed ? "" : counter) + who +
+    host.innerHTML = "<div class=\"lesson-question\"><p class=\"lesson-kicker\">" + escape(kicker) + "</p>" + (immersed && !sceneQuiz ? "" : counter) + who +
       "<h2 class=\"lesson-prompt\">" + escape(quiz.prompt) + "</h2>" + teamRow + "<div class=\"lesson-choices\">" + choices + "</div>" + explain + againBtn + "</div>";
     Array.prototype.forEach.call(host.querySelectorAll("[data-choice]"), function (button) {
       listen(bag, button, "click", function () {
@@ -660,11 +720,15 @@
     if (!steps.length) return "";
     var step = Math.max(0, Math.min(Number(state && state.step) || 0, steps.length - 1));
     var current = steps[step];
-    if (!current) return "";
-    if ((current.type === "hotspot" || current.type === "tap-to-reveal") && state && state.revealed && steps[step + 1] && steps[step + 1].type === "move") {
+    if (!current || !stepReached(current, state)) return "";
+    if ((current.type === "hotspot" || current.type === "tap-to-reveal") && state && state.revealed && steps[step + 1] && steps[step + 1].type === "move" && stepReached(steps[step + 1], state)) {
       current = steps[step + 1];
     }
-    if (current.type === "move" || current.type === "drag") {
+    var slabs = (current.type === "move" || current.type === "drag") && (!sceneSlide(slide) || earthquakeMove(current));
+    if ((current.type === "move" || current.type === "drag") && !slabs) {
+      current = { type: "tap-to-reveal", instruction: current.instruction };
+    }
+    if (slabs) {
       var stage = state && state.slipped ? "slip" : (state && state.stuck ? "meet" : "apart");
       return "<div class=\"lesson-layer\" data-interaction=\"move\">" +
         "<div class=\"lesson-move is-" + stage + "\">" +
@@ -697,5 +761,5 @@
     return { mode: "story", html: story(slide || {}, ctx) };
   }
 
-  return { render: render, mount: mount, destroy: destroyCurrent, pupilsToday: pupilCountCopy, actionOf: actionOf, interactionsOf: interactionsOf, layerHtml: layerHtml };
+  return { render: render, mount: mount, destroy: destroyCurrent, pupilsToday: pupilCountCopy, actionOf: actionOf, interactionsOf: interactionsOf, layerHtml: layerHtml, earthquakeMove: earthquakeMove, stepReached: stepReached };
 });

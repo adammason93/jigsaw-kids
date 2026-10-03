@@ -820,6 +820,221 @@
     };
   }
 
+  var SCENE_STAGES = ["hook", "investigate", "teach", "apply", "check", "resolution", "recap"];
+  var SCENE_LABELS = { investigate: "Explore", learn: "Discover", connect: "Connect", synthesise: "Try it", challenge: "Challenge", finish: "Finish" };
+  var SCENE_SHOTS = { investigate: "hook", learn: "teach", connect: "teach", synthesise: "apply", challenge: "check", finish: "resolution" };
+
+  function sceneTeachBudget(minutes) {
+    var length = Number(minutes) > 0 ? Number(minutes) : 15;
+    if (length <= 8) return 1;
+    if (length <= 12) return 2;
+    if (length <= 17) return 3;
+    if (length <= 24) return 4;
+    return 5;
+  }
+
+  function sceneStageInteraction(slot) {
+    var scene = (slot && slot.scene) || {};
+    var first = (scene.interactions && scene.interactions[0]) || scene.interaction || null;
+    if (first && first.type) return String(first.type);
+    return slot && slot.interactionIntent ? String(slot.interactionIntent) : "";
+  }
+
+  function planScenes(slots, plan, ctx) {
+    plan = plan || {};
+    ctx = ctx || {};
+    var list = (slots || []).filter(Boolean);
+    if (list.length !== SCENE_STAGES.length) return null;
+    var byStage = {};
+    for (var s = 0; s < list.length; s += 1) {
+      var stageId = list[s].slotId || list[s].id;
+      if (stageId !== SCENE_STAGES[s] || !Array.isArray(list[s].beats)) return null;
+      byStage[stageId] = list[s];
+    }
+    var teachBeats = byStage.teach.beats.filter(function (beat) { return beat && beat.id; });
+    if (!teachBeats.length) return null;
+    var year = beatYear(ctx.yearGroup || plan.yearGroup);
+    var cap = beatLimit(year).cap;
+    var budget = sceneTeachBudget(Number(ctx.requestedMinutes) || Number(plan.durationMinutes) || 15);
+    var info = {};
+    beatKnowledge(plan, year).forEach(function (item) { info[item.id] = item; });
+    function teaches(beat) {
+      return TEACHING_MOVES[beat.move] ? (beat.knowledgeRefs || []) : [];
+    }
+    function anchorOf(ref, seen) {
+      var item = info[ref];
+      if (!item) return ref;
+      var joins = item.kind === "example" || item.role === "example" || item.importance === "supporting";
+      if (joins && item.dependsOn && item.dependsOn.length && !seen[ref]) {
+        seen[ref] = true;
+        return anchorOf(item.dependsOn[0], seen);
+      }
+      return ref;
+    }
+    function connective(beat) {
+      var ref = (beat.knowledgeRefs || [])[0];
+      return beat.move === "connect" || !!(ref && info[ref] && info[ref].kind === "connection");
+    }
+    function keyOf(beat) {
+      if (connective(beat)) return "connect";
+      return anchorOf((beat.knowledgeRefs || [])[0] || beat.id, {});
+    }
+    function group(beats) {
+      var refs = [];
+      beats.forEach(function (beat) {
+        (beat.knowledgeRefs || []).forEach(function (ref) { if (refs.indexOf(ref) === -1) refs.push(ref); });
+      });
+      return { beats: beats, refs: refs, connect: beats.every(connective) };
+    }
+    var raw = [];
+    teachBeats.forEach(function (beat) {
+      var key = keyOf(beat);
+      var last = raw[raw.length - 1];
+      if (last && last.key === key) last.beats.push(beat);
+      else raw.push({ key: key, beats: [beat] });
+    });
+    var taught = {};
+    var groups = [];
+    raw.forEach(function (item) {
+      var fresh = false;
+      item.beats.forEach(function (beat) {
+        teaches(beat).forEach(function (ref) {
+          if (!taught[ref]) fresh = true;
+          taught[ref] = true;
+        });
+      });
+      if (!fresh && groups.length) groups[groups.length - 1] = group(groups[groups.length - 1].beats.concat(item.beats));
+      else groups.push(group(item.beats));
+    });
+    if (groups.length > 1 && !groups[0].beats.some(function (beat) { return teaches(beat).length; })) {
+      groups[1] = group(groups[0].beats.concat(groups[1].beats));
+      groups.shift();
+    }
+    var split = [];
+    groups.forEach(function (item) {
+      if (item.beats.length <= cap) { split.push(item); return; }
+      var seen = {};
+      var chunk = [];
+      item.beats.forEach(function (beat) {
+        var fresh = teaches(beat).some(function (ref) { return !seen[ref]; });
+        if (chunk.length >= cap && fresh) {
+          split.push(group(chunk));
+          chunk = [];
+        }
+        chunk.push(beat);
+        teaches(beat).forEach(function (ref) { seen[ref] = true; });
+      });
+      if (chunk.length) split.push(group(chunk));
+    });
+    groups = split;
+    function affinity(a, b) {
+      return b.refs.some(function (ref) {
+        var deps = (info[ref] && info[ref].dependsOn) || [];
+        return deps.some(function (dep) { return a.refs.indexOf(dep) !== -1; });
+      });
+    }
+    while (groups.length > budget) {
+      var best = -1;
+      var bestScore = null;
+      for (var g = 0; g < groups.length - 1; g += 1) {
+        var size = groups[g].beats.length + groups[g + 1].beats.length;
+        if (size > cap) continue;
+        var score = [groups[g].connect || groups[g + 1].connect ? 1 : 0, affinity(groups[g], groups[g + 1]) ? 0 : 1, size, g];
+        var better = !bestScore;
+        for (var k = 0; !better && k < score.length; k += 1) {
+          if (score[k] < bestScore[k]) better = true;
+          else if (score[k] > bestScore[k]) break;
+        }
+        if (better) { best = g; bestScore = score; }
+      }
+      if (best === -1) break;
+      groups.splice(best, 2, group(groups[best].beats.concat(groups[best + 1].beats)));
+    }
+    var opening = (byStage.hook.beats || []).concat(byStage.investigate.beats || []).filter(function (beat) { return beat && beat.id; });
+    var openingTeach = [];
+    var lead = groups[0];
+    var firstRef = lead.connect ? "" : (teaches(lead.beats[0])[0] || "");
+    if (firstRef) {
+      var unit = [];
+      for (var u = 0; u < lead.beats.length; u += 1) {
+        var refs = teaches(lead.beats[u]);
+        if (refs.length !== 1 || refs[0] !== firstRef) break;
+        unit.push(lead.beats[u]);
+      }
+      var remains = lead.beats.length > unit.length || groups.length > 1;
+      if (unit.length && remains && opening.length + unit.length <= cap) {
+        openingTeach = unit;
+        if (lead.beats.length > unit.length) groups[0] = group(lead.beats.slice(unit.length));
+        else groups.shift();
+      }
+    }
+    var scenes = [];
+    var known = {};
+    function asset(shot) {
+      var slot = byStage[shot] || {};
+      return (slot.scene && slot.scene.visualAssetId) || shot;
+    }
+    function addScene(purpose, stageIds, beats) {
+      var fresh = [];
+      var uses = [];
+      beats.forEach(function (beat) {
+        var taughtHere = teaches(beat);
+        (beat.knowledgeRefs || []).forEach(function (ref) {
+          if (taughtHere.indexOf(ref) !== -1 && !known[ref]) {
+            known[ref] = true;
+            fresh.push(ref);
+          }
+        });
+      });
+      beats.forEach(function (beat) {
+        (beat.knowledgeRefs || []).forEach(function (ref) {
+          if (fresh.indexOf(ref) === -1 && uses.indexOf(ref) === -1) uses.push(ref);
+        });
+      });
+      var interaction = null;
+      stageIds.forEach(function (id) {
+        if (interaction || id === "teach" || id === "check" || id === "resolution" || id === "recap") return;
+        var family = sceneStageInteraction(byStage[id]);
+        var owner = beats.filter(function (beat) { return beat.stageId === id || String(beat.id).indexOf(id + ":") === 0; })[0];
+        if (family && owner) interaction = { family: family, refId: (owner.knowledgeRefs || [])[0] || "", beatId: owner.id };
+      });
+      var shot = SCENE_SHOTS[purpose];
+      scenes.push({
+        id: "s" + (scenes.length + 1),
+        purpose: purpose,
+        stageIds: stageIds.slice(),
+        beatIds: beats.map(function (beat) { return beat.id; }),
+        knowledgeRefs: fresh,
+        usesRefs: uses,
+        visual: { assetId: asset(shot), baseShot: shot, focus: null },
+        interaction: interaction,
+        retrieval: null,
+        label: SCENE_LABELS[purpose]
+      });
+    }
+    addScene("investigate", openingTeach.length ? ["hook", "investigate", "teach"] : ["hook", "investigate"], opening.concat(openingTeach));
+    groups.forEach(function (item) { addScene(item.connect ? "connect" : "learn", ["teach"], item.beats); });
+    addScene("synthesise", ["apply"], byStage.apply.beats || []);
+    addScene("challenge", ["check"], byStage.check.beats || []);
+    addScene("finish", ["resolution", "recap"], (byStage.resolution.beats || []).concat(byStage.recap.beats || []));
+    return scenes;
+  }
+
+  function sceneReport(scenes) {
+    return (scenes || []).slice(0, 12).map(function (scene) {
+      return {
+        sceneId: scene.id,
+        purpose: scene.purpose,
+        stageIds: (scene.stageIds || []).slice(0, 7),
+        beatIds: (scene.beatIds || []).slice(0, 12),
+        knowledgeRefs: (scene.knowledgeRefs || []).slice(0, 12),
+        usesRefs: (scene.usesRefs || []).slice(0, 12),
+        interaction: (scene.interaction && scene.interaction.family) || "",
+        visualAssetId: (scene.visual && scene.visual.assetId) || ""
+      };
+    });
+  }
+
   function planBeats(skeleton, plan, year) {
     year = beatYear(year);
     if (hasLearningMap(plan)) return planMapBeats(skeleton, plan, year);
@@ -5084,6 +5299,8 @@
     buildLearningMap: buildLearningMap,
     taughtLedger: taughtLedger,
     learningMapReport: learningMapReport,
+    planScenes: planScenes,
+    sceneReport: sceneReport,
     keepBeatPlan: keepBeatPlan,
     boundedBeatLog: boundedBeatLog,
     beatProblems: beatProblems,
