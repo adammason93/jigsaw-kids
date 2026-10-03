@@ -201,7 +201,8 @@ var grid = plan(gridGoal, [
 assert.strictEqual(grid.ok, true, (grid.issues || []).join("; "));
 
 var brief = Brain.planBrief({ lessonBrief: { learningGoal: "Understand why a change mattered." }, yearGroup: "Year 4" });
-assert.ok(brief.system.indexOf("smallest set of two to four") !== -1);
+assert.ok(brief.system.indexOf("distinct relationships") !== -1);
+assert.ok(brief.system.indexOf("two in Year 1 and Year 2") !== -1);
 assert.strictEqual(brief.system.indexOf("choose a simpler true fact"), -1);
 assert.ok(brief.system.indexOf("why it mattered") !== -1);
 
@@ -267,6 +268,15 @@ function contributionPlan(year, subject, sentence, goal, knowledge) {
   });
 }
 
+function coverage(plan, year) {
+  var frame = { yearGroup: year, subject: plan.subject, topic: plan.topic, lessonPlan: plan };
+  var slots = Brain.planBeats(Brain.lessonSkeleton(plan, frame), plan, year);
+  function beats(id) {
+    return (slots.filter(function (slot) { return slot.id === id; })[0] || {}).beats || [];
+  }
+  return { slots: slots, teach: beats("teach"), check: beats("check"), apply: beats("apply"), recap: beats("recap") };
+}
+
 function teachMoves(plan, year) {
   var frame = { yearGroup: year, subject: plan.subject, topic: plan.topic, lessonPlan: plan };
   var slots = Brain.planBeats(Brain.lessonSkeleton(plan, frame), plan, year);
@@ -286,21 +296,32 @@ var sharkShallow = contributionPlan("Year 1", "Science", sharkAsk, sharkGoal, [
 ]);
 assert.strictEqual(sharkShallow.ok, false);
 assert.ok((sharkShallow.issues || []).join(" ").indexOf("outcome, not the reason") !== -1);
-var sharkKept = contributionPlan("Year 1", "Science", sharkAsk, sharkGoal, [afloat, swim, fins]);
+var tail = "A shark's tail pushes backwards, helping it swim forward.";
+var swimAgain = "A shark's streamlined shape reduces drag, helping it swim faster.";
+var sharkThin = contributionPlan("Year 1", "Science", sharkAsk, sharkGoal, [afloat, swim, fins]);
+assert.strictEqual(sharkThin.ok, false);
+assert.ok((sharkThin.issues || []).join(" ").indexOf("more distinct relationships") !== -1);
+assert.strictEqual(sharkThin.plan, undefined);
+var sharkKept = contributionPlan("Year 1", "Science", sharkAsk, sharkGoal, [afloat, swim, swimAgain, tail, fins]);
 assert.strictEqual(sharkKept.ok, true, (sharkKept.issues || []).join("; "));
-assert.deepStrictEqual(sharkKept.plan.keyKnowledge, [swim]);
+assert.deepStrictEqual(sharkKept.plan.keyKnowledge, [swim, tail]);
 assert.strictEqual(sharkKept.plan.knowledge[0].knowledgeType, "reason");
 assert.ok(sharkKept.plan.droppedKnowledge.indexOf(afloat) !== -1);
 assert.ok(sharkKept.plan.droppedKnowledge.indexOf(fins) !== -1);
-var sharkMoves = teachMoves(sharkKept.plan, "Year 1");
-assert.ok(sharkMoves.indexOf("name") !== -1);
-assert.ok(sharkMoves.indexOf("explain") !== -1);
-var sharkBrief = Brain.contentBrief({ yearGroup: "Year 1", subject: "Science", lessonPlan: sharkKept.plan, lessonSkeleton: Brain.planBeats(Brain.lessonSkeleton(sharkKept.plan, { yearGroup: "Year 1", subject: "Science" }), sharkKept.plan, "Year 1") }, sharkKept.plan, null);
+assert.ok(sharkKept.plan.droppedKnowledge.indexOf(swimAgain) !== -1);
+var sharkCover = coverage(sharkKept.plan, "Year 1");
+assert.strictEqual(sharkCover.teach.filter(function (beat) { return beat.move === "explain"; }).length, 2);
+assert.strictEqual(sharkCover.check.length, 2);
+assert.deepStrictEqual(sharkCover.check.map(function (beat) { return beat.knowledgeRefs[0]; }), ["k1", "k2"]);
+assert.strictEqual(sharkCover.apply.length, 1);
+assert.strictEqual(sharkCover.recap.length, 2);
+var sharkBrief = Brain.contentBrief({ yearGroup: "Year 1", subject: "Science", lessonPlan: sharkKept.plan, lessonSkeleton: sharkCover.slots }, sharkKept.plan, null);
 assert.strictEqual(sharkBrief.user.indexOf("Buoyancy"), -1);
 assert.strictEqual(sharkBrief.user.indexOf("fins"), -1);
+assert.ok(sharkBrief.schema.properties.slots.properties.check.properties.questions);
 var labeledSwim = contributionPlan("Year 1", "Science", sharkAsk, sharkGoal, [
   { text: swim, knowledgeType: "fact" },
-  afloat
+  tail
 ]);
 assert.strictEqual(labeledSwim.ok, true, (labeledSwim.issues || []).join("; "));
 assert.strictEqual(labeledSwim.plan.knowledge[0].knowledgeType, "reason");
@@ -316,13 +337,29 @@ assert.deepStrictEqual(roots.plan.keyKnowledge, ["Roots take in water, which hel
 assert.ok(teachMoves(roots.plan, "Year 2").indexOf("explain") !== -1);
 
 var fireGoal = "Understand why the Great Fire spread so quickly.";
-var fire = contributionPlan("Year 4", "History", "Teach children why the Great Fire spread so quickly.", fireGoal, [
+var fireThin = contributionPlan("Year 4", "History", "Teach children why the Great Fire spread so quickly.", fireGoal, [
   "The Great Fire happened in 1666.",
   "The fire spread quickly because the wooden houses stood close together.",
   "London had a lot of churches."
 ]);
+assert.strictEqual(fireThin.ok, false);
+assert.ok((fireThin.issues || []).join(" ").indexOf("more distinct relationships") !== -1);
+var houses = "The fire spread quickly because the wooden houses stood close together.";
+var wind = "The fire spread quickly because a strong wind carried the flames.";
+var streets = "The fire spread quickly because the streets were very narrow.";
+var fire = contributionPlan("Year 4", "History", "Teach children why the Great Fire of London spread so quickly.", "Understand why the Great Fire of London spread so quickly.", [
+  "The Great Fire happened in 1666.",
+  houses,
+  wind,
+  streets
+]);
 assert.strictEqual(fire.ok, true, (fire.issues || []).join("; "));
-assert.deepStrictEqual(fire.plan.keyKnowledge, ["The fire spread quickly because the wooden houses stood close together."]);
+assert.deepStrictEqual(fire.plan.keyKnowledge, [houses, wind, streets]);
+var fireCover = coverage(fire.plan, "Year 4");
+assert.strictEqual(fireCover.teach.filter(function (beat) { return beat.move === "explain"; }).length, 3);
+assert.strictEqual(fireCover.check.length, 3);
+assert.strictEqual(fireCover.recap.length, 1);
+assert.deepStrictEqual(fireCover.recap[0].knowledgeRefs, ["k1", "k2", "k3"]);
 
 var riverEffect = "Understand how a river affects the landscape.";
 var riverLesson = contributionPlan("Year 5", "Geography", "Teach children how a river affects the landscape.", riverEffect, [
@@ -348,5 +385,73 @@ var regroup = contributionPlan("Year 4", "Maths", "Teach children how regrouping
 ]);
 assert.strictEqual(regroup.ok, true, (regroup.issues || []).join("; "));
 assert.deepStrictEqual(regroup.plan.keyKnowledge, ["Regrouping turns one ten into ten ones so a larger one can be subtracted."]);
+
+var plantNeed = "Understand how plants get what they need to grow.";
+var rootsGrow = "Roots take in water, which helps a plant grow.";
+var leavesGrow = "Leaves take in light, which helps a plant grow.";
+var plants = contributionPlan("Year 2", "Science", "Teach children how plants get what they need to grow.", plantNeed, [
+  "Flowers look bright in summer.",
+  rootsGrow,
+  leavesGrow
+]);
+assert.strictEqual(plants.ok, true, (plants.issues || []).join("; "));
+assert.deepStrictEqual(plants.plan.keyKnowledge, [rootsGrow, leavesGrow]);
+var plantCover = coverage(plants.plan, "Year 2");
+assert.strictEqual(plantCover.teach.filter(function (beat) { return beat.move === "explain"; }).length, 2);
+assert.strictEqual(plantCover.check.length, 2);
+
+var writing = "Understand how adjectives make writing more descriptive.";
+var detail = "An adjective adds detail to a noun so that the writing tells the reader more.";
+var picture = "A precise adjective changes the picture so that the writing shows a clearer scene.";
+var pair = "Using two adjectives changes the writing so that it describes more than one feature.";
+var writingLesson = contributionPlan("Year 3", "English", "Teach children how adjectives make writing more descriptive.", writing, [
+  "A noun is a naming word.",
+  detail,
+  picture,
+  pair
+]);
+assert.strictEqual(writingLesson.ok, true, (writingLesson.issues || []).join("; "));
+assert.deepStrictEqual(writingLesson.plan.keyKnowledge, [detail, picture, pair]);
+var writingCover = coverage(writingLesson.plan, "Year 3");
+assert.strictEqual(writingCover.teach.filter(function (beat) { return beat.move === "explain"; }).length, 3);
+assert.strictEqual(writingCover.check.length, 3);
+assert.ok(writingLesson.plan.droppedKnowledge.indexOf("A noun is a naming word.") !== -1);
+
+var cut = "A fast river cuts into the rock, which makes the landscape deeper.";
+var carry = "A river carries stones away, which changes the landscape.";
+var drop = "A slow river drops mud, which makes the landscape wider.";
+var flood = "A flooding river spreads water, which changes the landscape beside it.";
+var rivers = contributionPlan("Year 5", "Geography", "Teach children how rivers change the landscape.", "Understand how rivers change the landscape.", [
+  "Fish live in many rivers.",
+  cut,
+  carry,
+  drop,
+  flood
+]);
+assert.strictEqual(rivers.ok, true, (rivers.issues || []).join("; "));
+assert.deepStrictEqual(rivers.plan.keyKnowledge, [cut, drop, carry, flood]);
+var riverCover = coverage(rivers.plan, "Year 5");
+assert.strictEqual(riverCover.teach.filter(function (beat) { return beat.move === "explain"; }).length, 4);
+assert.strictEqual(riverCover.check.length, 4);
+assert.ok(rivers.plan.droppedKnowledge.indexOf("Fish live in many rivers.") !== -1);
+
+var heart = "The heart pumps blood so that materials move around the body.";
+var oxygen = "Blood carries oxygen so that the body receives materials.";
+var vessels = "Blood vessels carry materials around the body because they are the routes.";
+var waste = "Blood takes waste away so that the body does not keep harmful materials.";
+var circulation = contributionPlan("Year 6", "Science", "Teach children how the circulatory system transports materials around the body.", "Understand how the circulatory system transports materials around the body.", [
+  "The body is made of cells.",
+  heart,
+  oxygen,
+  vessels,
+  waste
+]);
+assert.strictEqual(circulation.ok, true, (circulation.issues || []).join("; "));
+assert.deepStrictEqual(circulation.plan.keyKnowledge, [heart, oxygen, vessels, waste]);
+var bodyCover = coverage(circulation.plan, "Year 6");
+assert.strictEqual(bodyCover.teach.filter(function (beat) { return beat.move === "explain"; }).length, 4);
+assert.strictEqual(bodyCover.check.length, 4);
+assert.strictEqual(bodyCover.recap.length, 1);
+assert.ok(circulation.plan.droppedKnowledge.indexOf("The body is made of cells.") !== -1);
 
 console.log("knowledge-depth tests passed");

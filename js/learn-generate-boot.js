@@ -1,4 +1,4 @@
-const lessonSource = await fetch("https://wondii.co.uk/js/lesson-brain.js?v=50").then((res) => {
+const lessonSource = await fetch("https://wondii.co.uk/js/lesson-brain.js?v=51").then((res) => {
   if (!res.ok) throw new Error("lesson_script");
   return res.text();
 });
@@ -162,7 +162,7 @@ globalThis.handleGenerate = async (req) => {
         mechanic: String(activity && activity.mechanic || "").slice(0, 40),
         minutes: activity && activity.minutes,
         beat: String(activity && activity.scene && activity.scene.beat || activity && activity.beat || "").slice(0, 40),
-        questions: questions.slice(0, 3).map(function(item) {
+        questions: questions.slice(0, 4).map(function(item) {
           return {
             prompt: String(item && item.prompt || "").slice(0, 180),
             choices: (item && item.choices || []).slice(0, 4).map(function(choice) { return String(choice).slice(0, 80); }),
@@ -220,13 +220,20 @@ globalThis.handleGenerate = async (req) => {
     if (!check) return null;
     const config = check.config || {};
     const question = (config.questions && config.questions[0]) || config;
+    const questions = Array.isArray(config.questions) && config.questions.length ? config.questions.slice(0, 4) : [question];
     return {
       prompt: clip(question.prompt || config.prompt),
       choices: Array.isArray(question.choices) ? question.choices.slice(0, 4).map((choice) => clip(choice, 80)) : [],
       correct: clip(question.correct || config.correct, 80),
       knowledgeChecked: clip(question.knowledgeChecked || config.knowledgeChecked),
       successEvidence: clip(question.successEvidence || config.successEvidence),
-      teachingConnection: clip(question.teachingConnection || config.teachingConnection)
+      teachingConnection: clip(question.teachingConnection || config.teachingConnection),
+      questions: questions.map((item) => ({
+        prompt: clip(item.prompt || config.prompt),
+        choices: Array.isArray(item.choices) ? item.choices.slice(0, 4).map((choice) => clip(choice, 80)) : [],
+        correct: clip(item.correct || config.correct, 80),
+        knowledgeChecked: clip(item.knowledgeChecked || config.knowledgeChecked)
+      }))
     };
   }
   function hookLines(result) {
@@ -331,7 +338,7 @@ globalThis.handleGenerate = async (req) => {
       const planRepairStarted = Date.now();
       const secondPlan = await callModel(brain.planRepairBrief(ctx, planned.issues || [], planned.previous), apiKey, model, 2e4);
       repairMs += Date.now() - planRepairStarted;
-      planned = brain.normalisePlan(secondPlan, ctx);
+      planned = brain.normalisePlan(secondPlan, Object.assign({}, ctx, { breadthSettled: true }));
       if (!planned.ok) {
         logMeta({
           stage: "EDUCATIONAL_VALIDATION_FAILED",

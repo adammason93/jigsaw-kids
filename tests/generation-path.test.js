@@ -16,7 +16,7 @@ assert.ok(skeletonCall > 0, "the generator must call planBeats");
 assert.ok(lessonCall > skeletonCall, "lessonSkeleton must be the input to planBeats");
 assert.ok(contentCall > lessonCall, "contentBrief must follow the beat-planned skeleton");
 assert.strictEqual(boot.includes("brain.planBeats("), true);
-assert.ok(boot.includes("lesson-brain.js?v=50"));
+assert.ok(boot.includes("lesson-brain.js?v=51"));
 
 function jsonResponse(body, status) {
   return {
@@ -49,7 +49,10 @@ function speak(beat, items) {
   return { id: beat.id, cue: "", text: text };
 }
 
-var knowledge = ["Sharks have fins and sharp teeth.", "Fins help a shark turn because they push against the water."];
+var knowledge = [
+  "Sharks have a streamlined body that reduces water resistance, helping them swim more easily.",
+  "Sharks push water with the tail so that they swim forward."
+];
 var plan = {
   learningObjective: knowledge[0],
   subject: "Science",
@@ -91,7 +94,7 @@ global.Deno = { env: { get: function (name) {
 
 global.fetch = function (url, init) {
   var href = String(url);
-  if (href.indexOf("lesson-brain.js?v=50") !== -1) return Promise.resolve(jsonResponse(brainSource, 200));
+  if (href.indexOf("lesson-brain.js?v=51") !== -1) return Promise.resolve(jsonResponse(brainSource, 200));
   if (href.indexOf("/auth/v1/user") !== -1) return Promise.resolve(jsonResponse({ id: "teacher-1" }, 200));
   if (href.indexOf("/rest/v1/organisation_members") !== -1) return Promise.resolve(jsonResponse([{ role: "teacher", status: "active" }], 200));
   if (href.indexOf("api.openai.com") === -1) return Promise.reject(new Error("unexpected fetch " + href));
@@ -143,15 +146,35 @@ global.fetch = function (url, init) {
         };
         assert.ok(!Object.prototype.hasOwnProperty.call(slots.apply, "knowledgeUsed"));
       } else if (slot.id === "check") {
-        slots.check = {
-          beats: beats,
-          prompt: beats[0].text,
-          choices: [items[items.length - 1].text, "A different idea that was not part of this lesson."],
-          correct: items[items.length - 1].text,
-          explain: "That sentence matches the idea the class has just learned.",
-          successEvidence: "The pupil chose the taught idea.",
-          teachingConnection: "The question follows the taught idea."
-        };
+        var retrieves = (slot.beats || []).filter(function (beat) { return beat.move === "retrieve"; });
+        if (retrieves.length > 1) {
+          slots.check = {
+            beats: beats,
+            questions: retrieves.map(function (beat, index) {
+              var item = items[0];
+              items.forEach(function (entry) { if (entry.id === (beat.knowledgeRefs || [])[0]) item = entry; });
+              return {
+                id: beat.id,
+                prompt: "Which sentence matches taught idea number " + (index + 1) + "?",
+                choices: [item.text, "A different idea that was not part of this lesson."],
+                correct: item.text,
+                explain: "That sentence matches the idea the class has just learned.",
+                successEvidence: "The pupil chose the taught idea.",
+                teachingConnection: "The question follows the taught idea."
+              };
+            })
+          };
+        } else {
+          slots.check = {
+            beats: beats,
+            prompt: beats[0].text,
+            choices: [items[items.length - 1].text, "A different idea that was not part of this lesson."],
+            correct: items[items.length - 1].text,
+            explain: "That sentence matches the idea the class has just learned.",
+            successEvidence: "The pupil chose the taught idea.",
+            teachingConnection: "The question follows the taught idea."
+          };
+        }
         assert.ok(!Object.prototype.hasOwnProperty.call(slots.check, "knowledgeChecked"));
       } else slots[slot.id] = { beats: beats };
     });

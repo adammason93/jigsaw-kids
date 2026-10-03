@@ -59,8 +59,29 @@ function slotsFrom(slots, items) {
     if (slot.id === "apply") {
       body.apply = { beats: beats, instruction: task, target: "scene", successCondition: "The pupil has used the taught idea in the task.", teachingConnection: "The task follows the idea the class just learned." };
     } else if (slot.id === "check") {
-      var correct = items[items.length - 1].text;
-      body.check = { beats: beats, prompt: task, choices: [correct, "A different idea that was not part of this lesson."], correct: correct, explain: "That sentence matches the idea the class has just learned.", successEvidence: "The pupil chose the taught idea.", teachingConnection: "The question follows the taught idea." };
+      var retrieves = (slot.beats || []).filter(function (beat) { return beat.move === "retrieve"; });
+      if (retrieves.length > 1) {
+        body.check = {
+          beats: beats,
+          questions: retrieves.map(function (beat, index) {
+            var item = items[0];
+            items.forEach(function (entry) { if (entry.id === (beat.knowledgeRefs || [])[0]) item = entry; });
+            var answer = item.text;
+            return {
+              id: beat.id,
+              prompt: "Which sentence matches taught idea number " + (index + 1) + "?",
+              choices: [answer, "A different idea that was not part of this lesson."],
+              correct: answer,
+              explain: "That sentence matches the idea the class has just learned.",
+              successEvidence: "The pupil chose the taught idea.",
+              teachingConnection: "The question follows the taught idea."
+            };
+          })
+        };
+      } else {
+        var correct = items[items.length - 1].text;
+        body.check = { beats: beats, prompt: task, choices: [correct, "A different idea that was not part of this lesson."], correct: correct, explain: "That sentence matches the idea the class has just learned.", successEvidence: "The pupil chose the taught idea.", teachingConnection: "The question follows the taught idea." };
+      }
     } else body[slot.id] = { beats: beats };
   });
   return body;
@@ -706,43 +727,116 @@ assert.ok((neitherClient.issues || []).indexOf("The lesson is missing the hook s
 assert.ok((neitherClient.issues || []).indexOf("The lesson is missing the teach stage.") === -1);
 
 var swimFact = "A shark's streamlined body reduces water resistance, helping it swim more easily.";
-var afloatFact = "Buoyancy helps sharks stay afloat while swimming.";
+var tailFact = "A shark's tail pushes backwards, helping it swim forward.";
 var finsFact = "Shark anatomy includes fins and a tail that aid in movement.";
 var swimGoal = "Understand how a shark's body helps it swim.";
-var swimPlan = Brain.normalisePlan({
+var swimRequest = "Teach children how a shark's body helps it swim.";
+var swimNormalised = Brain.normalisePlan({
   learningObjective: swimGoal,
   subject: "Science",
   topic: swimGoal,
-  keyKnowledge: [afloatFact, swimFact, finsFact],
+  keyKnowledge: [finsFact, swimFact, tailFact],
   lessonArc: [{ purpose: "teach" }, { purpose: "check" }]
 }, {
   yearGroup: "Year 1",
   subject: "Science",
-  lessonText: "Teach children how a shark's body helps it swim.",
+  lessonText: swimRequest,
   topic: swimGoal,
   lessonBrief: {
     intent: "process",
-    rawRequest: "Teach children how a shark's body helps it swim.",
+    rawRequest: swimRequest,
     learningGoal: swimGoal,
     teacherIntent: { ok: true, learningGoal: swimGoal, requiredEvidence: swimGoal }
   }
-}).plan;
+});
+assert.strictEqual(swimNormalised.ok, true, (swimNormalised.issues || []).join("; "));
+var swimPlan = swimNormalised.plan;
+assert.deepStrictEqual(swimPlan.keyKnowledge, [swimFact, tailFact]);
+assert.ok(swimPlan.droppedKnowledge.indexOf(finsFact) !== -1);
 var swimSlots = beatsFor(swimPlan, "Year 1");
 var swimItems = Brain.beatKnowledge(swimPlan, "Year 1");
-assert.deepStrictEqual(swimItems.map(function (item) { return item.text; }), [swimFact]);
-assert.ok(moves(swimSlots).indexOf("explain") !== -1);
-var taughtCheck = slotsFrom(swimSlots, swimItems);
+assert.deepStrictEqual(swimItems.map(function (item) { return item.text; }), [swimFact, tailFact]);
+var swimTeach = swimSlots.filter(function (slot) { return slot.id === "teach"; })[0];
+assert.deepStrictEqual(swimTeach.beats.map(function (beat) { return beat.move + ":" + beat.knowledgeRefs[0]; }), ["name:k1", "explain:k1", "name:k2", "explain:k2"]);
+var swimCheck = swimSlots.filter(function (slot) { return slot.id === "check"; })[0];
+assert.deepStrictEqual(swimCheck.beats.map(function (beat) { return beat.knowledgeRefs[0]; }), ["k1", "k2"]);
+var swimRecap = swimSlots.filter(function (slot) { return slot.id === "recap"; })[0];
+assert.deepStrictEqual(swimRecap.beats.map(function (beat) { return beat.knowledgeRefs[0]; }), ["k1", "k2"]);
+swimPlan.topic = "sharks";
+function sharkSlotsBody() {
+  var body = slotsFrom(swimSlots, swimItems);
+  body.recap.beats.forEach(function (beat) {
+    beat.text = "The class can now use the idea about the shark.";
+  });
+  return body;
+}
+var taughtCheck = sharkSlotsBody();
 var taughtFrame = frameFor(swimPlan, "Year 1", swimSlots);
 var taughtAccept = Brain.accept({ title: "Shark swim", objectives: [swimGoal], slots: taughtCheck }, taughtFrame);
-assert.ok((taughtAccept.issues || []).indexOf("The check scores knowledge that was not taught.") === -1, (taughtAccept.issues || []).join(" | "));
-var untaughtCheck = slotsFrom(swimSlots, swimItems);
-untaughtCheck.check.correct = "They have fins and a streamlined shape.";
-untaughtCheck.check.choices = [untaughtCheck.check.correct, "A different idea that was not part of this lesson."];
+assert.strictEqual(taughtAccept.ok, true, (taughtAccept.issues || []).join(" | "));
+var taughtQuiz = taughtAccept.adventure.activities.filter(function (activity) { return activity.slotId === "check"; })[0];
+assert.strictEqual(taughtQuiz.config.questions.length, 2);
+assert.deepStrictEqual(taughtQuiz.config.questions.map(function (item) { return item.knowledgeChecked; }), [swimFact, tailFact]);
+var untaughtCheck = sharkSlotsBody();
+untaughtCheck.check.questions[1].correct = "They have fins and a streamlined shape.";
+untaughtCheck.check.questions[1].choices = [untaughtCheck.check.questions[1].correct, "A different idea that was not part of this lesson."];
 var untaughtAccept = Brain.accept({ title: "Shark swim", objectives: [swimGoal], slots: untaughtCheck }, frameFor(swimPlan, "Year 1", swimSlots));
 assert.strictEqual(untaughtAccept.ok, false);
 assert.ok((untaughtAccept.issues || []).indexOf("The check scores knowledge that was not taught.") !== -1, (untaughtAccept.issues || []).join(" | "));
+var judgeFrame = frameFor(swimPlan, "Year 1", swimSlots);
+judgeFrame.lessonBrief.teacherIntent = { ok: true, learningGoal: swimGoal, requiredEvidence: "The pupil shows how the body helps the shark swim." };
+var seenChecks = [];
+var repairSlots = null;
+Brain.resolveLessonContent({ title: "Shark swim", objectives: [swimGoal], slots: taughtCheck }, judgeFrame, {
+  judge: function () { throw new Error("apply judge must not run"); },
+  checkJudge: function (input) {
+    seenChecks.push({ prompt: input.prompt, requiredEvidence: input.requiredEvidence, correct: input.correct });
+    return { ok: true, coverage: "sufficient", reason: "The answer shows that relationship.", demonstratedEvidence: input.requiredEvidence, ms: 1 };
+  },
+  repair: function (failed) {
+    repairSlots = (failed.slotIds || []).slice();
+      var patched = sharkSlotsBody();
+    patched.check.questions[1].correct = "Blood stays warm in the sun.";
+    patched.check.questions[1].choices = [patched.check.questions[1].correct, "A different idea that was not part of this lesson."];
+    return { slots: patched };
+  }
+}).then(function (firstPass) {
+  assert.strictEqual(firstPass.ok, true, (firstPass.issues || []).join(" | "));
+  assert.strictEqual(seenChecks.length, 2);
+  assert.strictEqual(seenChecks[0].prompt, taughtCheck.check.questions[0].prompt);
+  assert.strictEqual(seenChecks[1].prompt, taughtCheck.check.questions[1].prompt);
+  assert.strictEqual(seenChecks[0].requiredEvidence, swimFact);
+  assert.strictEqual(seenChecks[1].requiredEvidence, tailFact);
+  assert.strictEqual(repairSlots, null);
+  seenChecks = [];
+  return Brain.resolveLessonContent({ title: "Shark swim", objectives: [swimGoal], slots: taughtCheck }, judgeFrame, {
+    judge: function () { throw new Error("apply judge must not run"); },
+    checkJudge: function (input) {
+      var index = seenChecks.length;
+      seenChecks.push(input.prompt);
+      if (index === 1) return { ok: true, coverage: "unrelated", reason: "The answer does not show the tail relationship.", demonstratedEvidence: "A different idea.", ms: 1 };
+      return { ok: true, coverage: "sufficient", reason: "The answer shows that relationship.", demonstratedEvidence: input.requiredEvidence || swimFact, ms: 1 };
+    },
+    repair: function (failed) {
+      repairSlots = (failed.slotIds || []).slice();
+      assert.deepStrictEqual(repairSlots, ["check"]);
+      var brief = JSON.parse(Brain.slotRepairBrief(judgeFrame, failed.slotIds, failed, failed.previous).user);
+      assert.ok(brief.instruction.indexOf("Rewrite only a question whose relationship failed.") !== -1);
+      assert.ok(brief.instruction.indexOf("Copy a question that already passed.") !== -1);
+      assert.deepStrictEqual(brief.slotsToRewrite.map(function (spec) { return spec.slotType; }), ["CHECK"]);
+      assert.strictEqual(brief.slotsToRewrite[0].output.questions.length, 2);
+      return { slots: sharkSlotsBody() };
+    }
+  });
+}).then(function (secondPass) {
+  assert.strictEqual(secondPass.ok, true, (secondPass.issues || []).join(" | "));
+  assert.deepStrictEqual(repairSlots, ["check"]);
+  assert.ok(seenChecks.length >= 2);
+  console.log("teaching-beats tests passed");
+}).catch(function (error) {
+  console.error(error);
+  process.exit(1);
+});
 
 dump("YEAR 1 SHARK FIXTURE", sharkPlan, sharkSlots, sharkItems, sharkAccept);
 dump("YEAR 4 FRACTIONS FIXTURE", fractionPlan, fractionSlots, fractionItems, fractionAccept);
-
-console.log("teaching-beats tests passed");

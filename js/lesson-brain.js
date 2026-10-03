@@ -386,6 +386,7 @@
     if (!plan || typeof plan !== "object") return plan || null;
     var copy = Object.assign({}, plan);
     delete copy.droppedKnowledge;
+    delete copy.relationshipPlan;
     return copy;
   }
 
@@ -419,7 +420,7 @@
       "Decide what the children should understand. Then decide what to teach so they can understand it. The classroom activities are chosen in a later step.",
       "Work in this order: the teacher's request, the context, one learning objective, the key knowledge, prior knowledge, misconceptions, vocabulary, the teaching sequence, then where a check or a recap belongs.",
       "learningObjective is one sentence a teacher could say. successCriteria are two or three things the class can do if the lesson worked.",
-      "keyKnowledge is the smallest set of two to four age-appropriate pieces a pupil needs in order to achieve lessonBrief.learningGoal. Together they must be sufficient. Two strong items are better than four weak ones. A simpler fact is acceptable only when the set can still achieve that goal. Do not invent quotations, dates, or events. A simplified explanation must still be true. Do not add trivia. When the goal asks how something helps, causes, affects, works, or contributes, or why something happens or matters, at least one item must state that relationship: the feature, what it does, and how that connects to the goal. A nearby fact about the same topic does not answer it. Year 1 and Year 2 may use one concise sentence for that relationship.",
+      "keyKnowledge is the smallest set of age-appropriate pieces a pupil needs in order to achieve lessonBrief.learningGoal. Together they must be sufficient. Two strong items are better than four weak ones. A simpler fact is acceptable only when the set can still achieve that goal. Do not invent quotations, dates, or events. A simplified explanation must still be true. Do not add trivia. When the goal asks how something helps, causes, affects, works, changes, gets, carries, or transports, or why something happens or matters, each item must state one relationship: the feature, what it does, and how that connects to the goal. A nearby fact about the same topic does not answer it. A broad goal needs several distinct relationships, not one sentence repeated in new words: two in Year 1 and Year 2, three in Year 3 and Year 4, and four in Year 5 and Year 6. A goal that names one specific feature may use fewer. Do not satisfy the count with a restatement, a paraphrase, an example of the same relationship, or trivia.",
       "Match the goal. Why or cause: state the reason, not only what is seen or where it happens. Significance or importance: state the change, event, or contribution and why it mattered. Compare: include what is needed about both sides. Process: state the change or sequence, not only the parts, inputs, places, or outputs. Procedure or use: write the actions the pupil carries out, not only the name of the step. Definition: a short definition and only the characteristics or examples needed to use it. Explain: the facts that specific goal needs, not a generic list about the topic.",
       "A sentence that only names the topic, states identity, gives a famous number or date, says something is important or significant, or says where something happens does not meet a relationship the goal requires.",
       "For a young year, use a simple true model: the parts, how they move, and what that movement does. Do not teach the visible effect as the cause. The ground shaking is what an earthquake does, not why it happens.",
@@ -561,9 +562,9 @@
 
   function beatLimit(year) {
     year = beatYear(year);
-    if (year <= 2) return { items: 2, cap: 3 };
-    if (year <= 4) return { items: 3, cap: 4 };
-    return { items: 4, cap: 5 };
+    if (year <= 2) return { items: 2, cap: 4 };
+    if (year <= 4) return { items: 3, cap: 6 };
+    return { items: 4, cap: 8 };
   }
 
   function beatKind(item) {
@@ -608,18 +609,14 @@
         next.splice(index, 1);
       }
     });
-    while (next.length > cap) {
-      var seen = false;
-      var extra = -1;
-      for (var n = 0; n < next.length; n += 1) {
-        if (next[n].move !== "explain") continue;
-        if (seen) { extra = n; break; }
-        seen = true;
+    while (next.length > cap && next.length > 1) {
+      var drop = -1;
+      for (var end = next.length - 1; end >= 0; end -= 1) {
+        if (next[end].move !== "name" && next[end].move !== "explain") { drop = end; break; }
       }
-      if (extra === -1) break;
-      next.splice(extra, 1);
+      if (drop === -1) break;
+      next.splice(drop, 1);
     }
-    while (next.length > cap && next.length > 1) next.pop();
     return next;
   }
 
@@ -638,12 +635,10 @@
     var english = /english|writ|grammar/i.test((plan && plan.subject) || "");
     var comparison = items.filter(function (item) { return item.kind === "comparison"; });
     var teach = [];
-    var explained = false;
     items.forEach(function (item, index) {
       teach.push({ move: "name", refs: [item.id] });
-      if (item.kind === "relationship" && (year >= 3 || !explained)) {
+      if (item.kind === "relationship") {
         teach.push({ move: "explain", refs: [item.id] });
-        explained = true;
       }
       if (item.kind === "procedure" && year >= 3) teach.push({ move: "model", refs: [item.id] });
       var example = item.kind === "definition" || (english && (item.kind === "definition" || item.kind === "procedure"));
@@ -657,8 +652,12 @@
       }
     });
     var focus = first;
+    var focused = false;
     packBeats("teach", teach, bounds.cap).forEach(function (beat) {
-      if ((beat.move === "explain" || beat.move === "model") && beat.knowledgeRefs[0]) focus = beat.knowledgeRefs[0];
+      if (!focused && (beat.move === "explain" || beat.move === "model") && beat.knowledgeRefs[0]) {
+        focus = beat.knowledgeRefs[0];
+        focused = true;
+      }
     });
     var teachBeats = packBeats("teach", teach, bounds.cap);
     var connect = null;
@@ -666,6 +665,11 @@
     var checkRefs = year >= 5 && connect ? connect.knowledgeRefs.slice() : [focus];
     var named = items.filter(function (item) { return taught[item.id]; }).map(function (item) { return item.id; });
     if (!named.length) named = [first];
+    var relationships = items.filter(function (item) { return item.kind === "relationship" && named.indexOf(item.id) !== -1; });
+    var assessMany = !!(plan && plan.relationshipPlan && plan.relationshipPlan.assess && relationships.length > 1);
+    var checkBeats = assessMany
+      ? relationships.slice(0, beatLimit(year).items).map(function (item) { return { move: "retrieve", refs: [item.id] }; })
+      : [{ move: "retrieve", refs: checkRefs }];
     var recap = year >= 4
       ? [{ move: "consolidate", refs: named.slice() }]
       : named.map(function (ref) { return { move: "consolidate", refs: [ref] }; });
@@ -678,7 +682,7 @@
       investigate: investigate,
       teach: teach,
       apply: [{ move: year <= 3 ? "practise" : "apply", refs: [focus] }],
-      check: [{ move: "retrieve", refs: checkRefs }],
+      check: checkBeats,
       resolution: [{ move: "reveal", refs: [checkRefs[0] || focus] }],
       recap: recap
     };
@@ -815,7 +819,16 @@
       if (!slot.beats || !slot.beats.length) return;
       var quiz = slot.mechanic === "quiz" && slot.beats.some(function (beat) { return beat.move === "retrieve"; });
       if (quiz) {
-        slots[slot.id] = { prompt: "...", choices: ["...", "..."], correct: "...", explain: "...", successEvidence: "...", teachingConnection: "..." };
+        var retrieves = slot.beats.filter(function (beat) { return beat.move === "retrieve"; });
+        if (retrieves.length > 1) {
+          slots[slot.id] = {
+            questions: retrieves.map(function (beat) {
+              return { id: beat.id, prompt: "...", choices: ["...", "..."], correct: "...", explain: "...", successEvidence: "...", teachingConnection: "..." };
+            })
+          };
+        } else {
+          slots[slot.id] = { prompt: "...", choices: ["...", "..."], correct: "...", explain: "...", successEvidence: "...", teachingConnection: "..." };
+        }
         return;
       }
       var body = {
@@ -928,6 +941,22 @@
     var lines = Array.isArray(config.lines) ? config.lines : (Array.isArray(raw.lines) ? raw.lines : []);
     if (!lines.length && typeof config.lines === "string") lines = [config.lines];
     var question = (Array.isArray(config.questions) && config.questions[0]) || {};
+    var sourceQuestions = Array.isArray(config.questions) && config.questions.length
+      ? config.questions
+      : (Array.isArray(raw.questions) && raw.questions.length ? raw.questions : []);
+    var questions = sourceQuestions.map(function (item) {
+      item = item || {};
+      return {
+        id: clean(item.id, 24),
+        prompt: clean(item.prompt, 240),
+        choices: (item.choices || []).map(function (choice) { return textOf(choice, 80); }).filter(Boolean).slice(0, 4),
+        correct: textOf(item.correct, 80),
+        explain: clean(item.explain, 240),
+        knowledgeChecked: clean(item.knowledgeChecked, 180),
+        successEvidence: clean(item.successEvidence, 180),
+        teachingConnection: clean(item.teachingConnection, 180)
+      };
+    }).filter(function (item) { return item.prompt || item.correct; });
     var interaction = raw.scene && raw.scene.interaction && typeof raw.scene.interaction === "object" ? raw.scene.interaction : {};
     return {
       title: clean(raw.title || config.title, 80),
@@ -943,6 +972,7 @@
       explain: clean(question.explain || config.explain || raw.explain, 240),
       knowledgeChecked: clean(question.knowledgeChecked || config.knowledgeChecked || raw.knowledgeChecked, 180),
       successEvidence: clean(question.successEvidence || config.successEvidence || raw.successEvidence, 180),
+      questions: questions,
       beats: (Array.isArray(config.beats) ? config.beats : (Array.isArray(raw.beats) ? raw.beats : [])).map(function (beat) {
         beat = beat || {};
         var pupil = beat.pupil && typeof beat.pupil === "object" ? beat.pupil : {};
@@ -1260,6 +1290,34 @@
     };
   }
 
+  function checkQuestionsOf(activity) {
+    var config = (activity && activity.config) || {};
+    var list = Array.isArray(config.questions) && config.questions.length ? config.questions : null;
+    if (!list) return [checkQuestionOf(activity)];
+    return list.map(function (question) {
+      question = question || {};
+      return {
+        id: question.id || "",
+        prompt: clean(question.prompt, 240),
+        choices: question.choices || [],
+        correct: clean(question.correct, 80),
+        explain: clean(question.explain, 240),
+        knowledgeChecked: clean(question.knowledgeChecked, 180),
+        successEvidence: clean(question.successEvidence, 180),
+        teachingConnection: clean(question.teachingConnection, 180)
+      };
+    });
+  }
+
+  function questionActivity(activity, question) {
+    return {
+      slotId: activity && activity.slotId,
+      mechanic: activity && activity.mechanic,
+      beats: activity && activity.beats,
+      scene: activity && activity.scene,
+      config: { questions: [question], lines: (activity && activity.config && activity.config.lines) || [] }
+    };
+  }
   function checkAlignment(activity, ctx) {
     if (!learningGoalOf(ctx)) return { status: "skip", reason: "no-learning-goal" };
     if (!requiredEvidenceOf(ctx)) return { status: "fail", reason: "missing-evidence" };
@@ -1301,7 +1359,11 @@
     if (slot !== "apply" && slot !== "check" && slot !== "resolution" && slot !== "recap") return [];
     var bits = [];
     if (slot === "apply") bits.push(applyInstructionOf(activity));
-    if (slot === "check") bits.push(checkQuestionOf(activity).correct);
+    if (slot === "check") {
+      checkQuestionsOf(activity).forEach(function (question) {
+        bits.push(question.correct, question.explain, question.prompt);
+      });
+    }
     ((activity.config && activity.config.lines) || []).forEach(function (line) { bits.push(line); });
     ((activity.beats || [])).forEach(function (beat) {
       if (beat && beat.pupil) bits.push(beat.pupil.text || "");
@@ -1331,7 +1393,13 @@
     var activity = null;
     (activities || []).forEach(function (item) { if (item && item.slotId === "check") activity = item; });
     if (!activity) return null;
-    var aligned = checkAlignment(activity, ctx);
+    var reports = checkQuestionsOf(activity).map(function (question) {
+      return checkAlignment(questionActivity(activity, question), ctx);
+    });
+    var aligned = reports.filter(function (item) { return item.status === "fail"; })[0]
+      || reports.filter(function (item) { return item.status === "unresolved"; })[0]
+      || reports[0]
+      || { status: "skip", reason: "no-check" };
     return { deterministicStatus: aligned.status, deterministicReason: aligned.reason };
   }
 
@@ -1342,14 +1410,31 @@
     return "skip";
   }
 
-  function checkEvidenceInput(activity, ctx) {
-    var question = checkQuestionOf(activity);
+  function retrieveTexts(activity, ctx) {
+    var plan = ctx && ctx.lessonPlan;
+    var year = (ctx && (ctx.yearGroup || ctx.yearAssumption)) || (plan && plan.yearGroup) || "";
+    var items = beatKnowledge(plan || {}, year);
+    return ((activity && activity.beats) || []).filter(function (beat) { return beat && beat.move === "retrieve"; }).map(function (beat) {
+      var ref = (beat.knowledgeRefs || [])[0];
+      var text = "";
+      items.forEach(function (item) { if (item.id === ref) text = item.text; });
+      return text;
+    });
+  }
+
+  function checkEvidenceInput(activity, ctx, index) {
+    var questions = checkQuestionsOf(activity);
+    var at = index || 0;
+    var question = questions[at] || checkQuestionOf(activity);
+    var evidence = requiredEvidenceOf(ctx);
+    var taught = retrieveTexts(activity, ctx);
+    if (questions.length > 1 && taught[at]) evidence = taught[at];
     return {
       yearGroup: (ctx && ctx.yearGroup) || "",
       prompt: question.prompt,
       choices: (question.choices || []).slice(0, 4),
       correct: question.correct,
-      requiredEvidence: requiredEvidenceOf(ctx)
+      requiredEvidence: evidence
     };
   }
 
@@ -1478,15 +1563,43 @@
         };
       }
       var checked = beats.length && slot.id === "check" ? (refText || content.knowledgeChecked) : content.knowledgeChecked;
+      var provided = content.questions && content.questions.length
+        ? content.questions
+        : (content.prompt ? [{ id: "", prompt: content.prompt, choices: content.choices || [], correct: content.correct, explain: content.explain, knowledgeChecked: checked, successEvidence: content.successEvidence, teachingConnection: content.teachingConnection }] : []);
+      var retrieves = beats.filter(function (beat) { return beat.move === "retrieve"; });
+      var questionSource = retrieves.length > 1 ? retrieves.map(function (beat, index) {
+        var match = null;
+        provided.forEach(function (item) { if (item && item.id === beat.id) match = item; });
+        return match || provided[index] || {};
+      }) : provided;
       var config = slot.mechanic === "quiz"
-        ? { points: 1, participation: "whole_class", questions: [{ prompt: content.prompt, choices: content.choices || [], correct: content.correct, explain: content.explain, knowledgeChecked: checked, successEvidence: content.successEvidence, teachingConnection: content.teachingConnection }] }
+        ? { points: 1, participation: "whole_class", questions: (questionSource.length ? questionSource : [{}]).map(function (item, index) {
+          var beat = retrieves[index];
+          var ref = beat && beat.knowledgeRefs && beat.knowledgeRefs[0];
+          var taught = "";
+          if (ref) {
+            beatKnowledge(plan, (ctx && (ctx.yearGroup || ctx.yearAssumption)) || plan.yearGroup).forEach(function (entry) {
+              if (entry.id === ref) taught = entry.text;
+            });
+          }
+          return {
+            id: (beat && beat.id) || item.id || "",
+            prompt: item.prompt,
+            choices: item.choices || [],
+            correct: item.correct,
+            explain: item.explain,
+            knowledgeChecked: taught || item.knowledgeChecked || checked,
+            successEvidence: item.successEvidence,
+            teachingConnection: item.teachingConnection
+          };
+        }) }
         : { lines: spoken };
       return {
         slotId: slot.id,
         mechanic: slot.mechanic,
         title: beats.length ? (stageTitle[slot.id] || "Step") : (content.title || slot.pedagogicalPurpose),
         purpose: slot.pedagogicalPurpose,
-        minutes: slot.minutes,
+        minutes: config.questions && config.questions.length > 1 ? Math.max(Number(slot.minutes) || 0, config.questions.length) : slot.minutes,
         why: slot.pedagogicalPurpose,
         beats: beats,
         participantSelection: slot.participantSelection,
@@ -1700,7 +1813,7 @@
       "title must not repeat the teacher's request.",
       "A hook may describe the unsolved visible event. Do not invent a mechanic for it. If that event is something the class can see, name a worldEffect type the player already allows: shake, rumble, pulse, glow, highlight, zoom, pan, reveal, crack, move-object, vibrate-object, fade, particles, flash, or sound-cue.",
       "Do not write {name} or a pupil name. participantSelection on a slot chooses who acts. The slot's instruction is what they do.",
-      "Do not copy pedagogicalPurpose, learningRole, interactionIntent, a move name, or a slot id into cue or text. A notice, predict, practise, apply, reveal, or consolidate sentence must not repeat a keyKnowledge sentence. Apply, when it has beats, also returns instruction, target, successCondition, and teachingConnection, and does not return knowledgeUsed. A quiz check slot does not return beat cue or text. Its retrieve beat is the quiz itself. Return prompt, choices, correct, explain, successEvidence, and teachingConnection. The quiz tests the knowledge ref on that retrieve beat."
+      "Do not copy pedagogicalPurpose, learningRole, interactionIntent, a move name, or a slot id into cue or text. A notice, predict, practise, apply, reveal, or consolidate sentence must not repeat a keyKnowledge sentence. Apply, when it has beats, also returns instruction, target, successCondition, and teachingConnection, and does not return knowledgeUsed. A quiz check slot does not return beat cue or text. Each retrieve beat is one quiz question. When the check has one retrieve beat, return prompt, choices, correct, explain, successEvidence, and teachingConnection. When it has several, return questions in that beat order, one object per beat id, and do not add or remove a question. Each question tests only the knowledge ref on its retrieve beat."
     ]).filter(Boolean).join(" ");
     var schema = {
       type: "object",
@@ -1729,8 +1842,20 @@
         }
       };
       var quizRetrieve = planned && slot.mechanic === "quiz" && (slot.beats || []).some(function (beat) { return beat.move === "retrieve"; });
+      var retrieveBeats = quizRetrieve ? (slot.beats || []).filter(function (beat) { return beat.move === "retrieve"; }) : [];
+      var questionFields = {
+        id: { type: "string" },
+        prompt: { type: "string" },
+        choices: { type: "array", items: { type: "string" } },
+        correct: { type: "string" },
+        explain: { type: "string" },
+        successEvidence: { type: "string" },
+        teachingConnection: { type: "string" }
+      };
       var fields = quizRetrieve
-        ? { prompt: { type: "string" }, choices: { type: "array", items: { type: "string" } }, correct: { type: "string" }, explain: { type: "string" }, successEvidence: { type: "string" }, teachingConnection: { type: "string" } }
+        ? (retrieveBeats.length > 1
+          ? { questions: { type: "array", minItems: retrieveBeats.length, maxItems: retrieveBeats.length, items: { type: "object", additionalProperties: false, properties: questionFields, required: ["id", "prompt", "choices", "correct", "explain", "successEvidence", "teachingConnection"] } } }
+          : { prompt: { type: "string" }, choices: { type: "array", items: { type: "string" } }, correct: { type: "string" }, explain: { type: "string" }, successEvidence: { type: "string" }, teachingConnection: { type: "string" } })
         : (planned
           ? { beats: beatField }
           : (slot.mechanic === "quiz"
@@ -1829,7 +1954,9 @@
             ? { instruction: "", target: "", successCondition: "", teachingConnection: "" }
             : { instruction: "", knowledgeUsed: "", successCondition: "", teachingConnection: "", target: "" })
           : slot.id === "check"
-            ? { prompt: "", choices: [], correct: "", explain: "", knowledgeChecked: "", successEvidence: "", teachingConnection: "" }
+            ? ((slot.beats || []).filter(function (beat) { return beat.move === "retrieve"; }).length > 1
+              ? { questions: (slot.beats || []).filter(function (beat) { return beat.move === "retrieve"; }).map(function (beat) { return { id: beat.id, prompt: "", choices: [], correct: "", explain: "", successEvidence: "", teachingConnection: "" }; }) }
+              : { prompt: "", choices: [], correct: "", explain: "", knowledgeChecked: "", successEvidence: "", teachingConnection: "" })
             : ((slot.beats && slot.beats.length && !(slot.mechanic === "quiz" && (slot.beats || []).some(function (beat) { return beat.move === "retrieve"; })))
               ? {}
               : { title: "", lines: [] })
@@ -1885,7 +2012,8 @@
     var checkSpec = null;
     specs.forEach(function (spec) { if (spec.slotType === "CHECK") checkSpec = spec; });
     if (checkSpec) {
-      instruction += " The CHECK slot must stay a quiz. Rewrite only its prompt, choices, correct, explain, knowledgeChecked, successEvidence, and teachingConnection. Year: " + (checkSpec.year || "") + ". Subject: " + (checkSpec.subject || "") + ". Learning goal: " + (checkSpec.learningGoal || "the requested learning") + ". Required evidence: " + (checkSpec.requiredEvidence || "the required evidence") + ". The evidence failure is: " + ((checkSpec.failure || []).join(" ") || "the correct answer is not sufficient evidence") + ". The replacement CHECK must make a correct answer sufficient evidence of requiredEvidence. Do not merely ask for one component. Use words this year group can read. Do not make the question harder than the required evidence.";
+      instruction += " The CHECK slot must stay a quiz. Rewrite only the listed CHECK questions. Do not rewrite any other stage. Year: " + (checkSpec.year || "") + ". Subject: " + (checkSpec.subject || "") + ". Learning goal: " + (checkSpec.learningGoal || "the requested learning") + ". Required evidence: " + (checkSpec.requiredEvidence || "the required evidence") + ". The evidence failure is: " + ((checkSpec.failure || []).join(" ") || "the correct answer is not sufficient evidence") + ". Each replacement question must make a correct answer sufficient evidence of the relationship it tests. Do not merely ask for one component when that question's relationship needs the connection. Use words this year group can read. Do not make a question harder than the relationship it tests.";
+      if (checkSpec.output && checkSpec.output.questions) instruction += " Return questions for exactly these ids, in this order: " + checkSpec.output.questions.map(function (item) { return item.id; }).join(", ") + ". Do not add or remove a question. Rewrite only a question whose relationship failed. Copy a question that already passed.";
       if (checkSpec.retrieveBeat) instruction += " The quiz is the retrieve beat " + checkSpec.retrieveBeat.id + ". Do not return cue or text for that beat.";
     }
     if (specs.some(function (spec) { return spec.slotType !== "APPLY"; })) {
@@ -1930,6 +2058,9 @@
     var objective = (previous && previous.learningObjective) || "";
     var goalText = planGoalText(ctx, objective);
     var required = [];
+    if (/more distinct relationships/.test(found)) {
+      required.push("breadth: add distinct complementary relationships that each answer the goal. A paraphrase of the same relationship is not a new one. A nearby fact that does not answer the goal is not enough. Year 1 and Year 2 need two, Year 3 and Year 4 need three, and Year 5 and Year 6 need four, unless the goal names one specific feature");
+    }
     if (/outcome, not the reason/.test(found)) {
       if (seeksContribution(ctx, objective)) {
         required.push("contribution: name the feature, what it does, and how that connects to the goal. A different fact about the same topic is not enough");
@@ -1966,7 +2097,7 @@
         ? "The lesson arc failed. Set each lessonArc purpose to exactly one of hook, investigate, teach, apply, check, resolution, recap. Do not write a sentence as the purpose."
         : "Copy lessonArc exactly.",
       relationship.length
-        ? "Replace only the insufficient keyKnowledge with the smallest sufficient set of two to four new sentences. Do not return the failed sentences unchanged and do not paraphrase them. The new sentences must be the knowledge a pupil of this year would say back to achieve the learningGoal. A connector word does not repair a sentence. because, which meant, led to, therefore, significant, and important count only when the words around them are the missing fact. 'It was significant', 'it had an influence', 'it led to changes', 'it had an impact', or 'it is essential' is not that fact. Do not add trivia. Do not add length for its own sake. Do not exceed four keyKnowledge items. Missing relationship: " + relationship.join(" ")
+        ? "Replace only the insufficient keyKnowledge. For a broad how or why goal, return distinct complementary relationships: two in Year 1 and Year 2, three in Year 3 and Year 4, and four in Year 5 and Year 6. A goal that names one specific feature may stay smaller. Do not paraphrase one relationship into several sentences. Do not add trivia or a nearby fact that does not answer the goal. Do not return the failed sentences unchanged. The new sentences must be the knowledge a pupil of this year would say back to achieve the learningGoal. A connector word does not repair a sentence. because, which meant, led to, therefore, significant, and important count only when the words around them are the missing fact. 'It was significant', 'it had an influence', 'it led to changes', 'it had an impact', or 'it is essential' is not that fact. Do not exceed four keyKnowledge items. Missing relationship: " + relationship.join(" ")
         : ""
     ].filter(Boolean).join(" ");
     brief.user = JSON.stringify({
@@ -2207,19 +2338,57 @@
     return shared >= 5;
   }
 
+  var CONTRIBUTION_VERBS = "help|helps|helping|cause|causes|caused|affect|affects|affected|work|works|change|changes|changed|contribute|contributes|contributing|make|makes|made|aid|aids|get|gets|getting|obtain|obtains|transport|transports|transporting|carry|carries|carrying";
+  var WHOLE_HEAD = { body: 1, bodies: 1, system: 1, systems: 1 };
+  var RELATION_STEM = {
+    help: 1, helps: 1, helping: 1, reduce: 1, reduces: 1, reduced: 1, reducing: 1,
+    allow: 1, allows: 1, allowed: 1, allowing: 1, enable: 1, enables: 1, enabled: 1,
+    cause: 1, causes: 1, caused: 1, causing: 1, affect: 1, affects: 1, affected: 1,
+    let: 1, lets: 1, make: 1, makes: 1, made: 1, making: 1, change: 1, changes: 1, changed: 1,
+    aid: 1, aids: 1, aided: 1, get: 1, gets: 1, getting: 1, obtain: 1, obtains: 1,
+    carry: 1, carries: 1, carried: 1, transport: 1, transports: 1, transporting: 1
+  };
+
+  function relationshipBudget(year) {
+    return beatLimit(year).items;
+  }
+
   function seeksContribution(ctx, objective) {
     if (planNeedsSteps(ctx, objective)) return false;
     var goal = planGoalText(ctx, objective);
     if (/\bhow to\b/.test(goal)) return false;
     if (/\bfrom\b[^.]{0,48}\bto\b/.test(goal) && /\b(change|changes|changed)\b/.test(goal)) return false;
-    return /\bhow\b[^.]{0,100}\b(help|helps|helping|cause|causes|caused|affect|affects|affected|work|works|change|changes|changed|contribute|contributes|contributing|make|makes|made|aid|aids)\b/.test(goal)
+    return new RegExp("\\bhow\\b[^.]{0,100}\\b(?:" + CONTRIBUTION_VERBS + ")\\b").test(goal)
       || /\bwhy\b[^.]{0,100}\b(happen|happens|happened|spread|spreads|spread|matter|matters|mattered)\b/.test(goal);
+  }
+
+  function contributionSpan(goal) {
+    var text = clean(goal, 500).toLowerCase();
+    var how = text.match(new RegExp("\\bhow\\b([^.]{0,100}?)\\b(?:" + CONTRIBUTION_VERBS + ")\\b"));
+    return how ? how[1] : "";
+  }
+
+  function contributionHead(goal) {
+    var words = contentWords(contributionSpan(goal));
+    return words.length ? words[words.length - 1] : "";
+  }
+
+  function broadContribution(goal) {
+    var text = clean(goal, 500).toLowerCase();
+    if (/\b(significan|importan|mattered)\b/.test(text)) return false;
+    if (/\bwhy\b[^.]{0,120}\b(happen|happens|happened|spread|spreads)\b/.test(text)) return true;
+    if (!new RegExp("\\bhow\\b[^.]{0,100}\\b(?:" + CONTRIBUTION_VERBS + ")\\b").test(text)) return false;
+    var head = contributionHead(text);
+    if (!head || WHOLE_HEAD[head]) return true;
+    var span = contributionSpan(text);
+    if (/\b[a-z]+(?:'s|s')\b/.test(span)) return false;
+    return head.length > 4 && /s$/.test(head) && !/ss$/.test(head);
   }
 
   function outcomeWords(goal) {
     var text = clean(goal, 500).toLowerCase();
     var tail = "";
-    var how = text.match(/\bhow\b[^.]{0,100}?\b(?:help|helps|helping|cause|causes|caused|affect|affects|affected|work|works|change|changes|changed|contribute|contributes|contributing|make|makes|made|aid|aids)\b([^.]*)/);
+    var how = text.match(new RegExp("\\bhow\\b[^.]{0,100}?\\b(?:" + CONTRIBUTION_VERBS + ")\\b([^.]*)"));
     var why = text.match(/\bwhy\b([^.]{0,120})/);
     if (how) tail = how[1];
     else if (why) tail = why[1];
@@ -2250,19 +2419,73 @@
     });
   }
 
+  var RELATION_GLUE = { which: 1, that: 1, this: 1, into: 1, from: 1, with: 1, take: 1, takes: 1, taken: 1, more: 1, than: 1, very: 1, much: 1 };
+
+  function relationSignature(text, goal) {
+    var skip = {};
+    outcomeWords(goal).forEach(function (word) { skip[word] = 1; });
+    contentWords(contributionSpan(goal)).forEach(function (word) { skip[word] = 1; });
+    return functionWords(text).filter(function (word) {
+      if (word.length < 4 || skip[word] || RELATION_STEM[word] || RELATION_GLUE[word]) return false;
+      return !contentWords(contributionSpan(goal)).some(function (head) { return sameStem(word, head); });
+    });
+  }
+
+  function sameRelationship(left, right, goal) {
+    var a = relationSignature(left, goal);
+    var b = relationSignature(right, goal);
+    if (!a.length || !b.length) return false;
+    function long(list) { return list.filter(function (word) { return word.length >= 8; }); }
+    var aLong = long(a);
+    var bLong = long(b);
+    if (aLong.length && bLong.length) {
+      var smaller = aLong.length <= bLong.length ? aLong : bLong;
+      var larger = smaller === aLong ? bLong : aLong;
+      if (smaller.every(function (word) {
+        return larger.some(function (other) { return sameStem(word, other); });
+      })) return true;
+    }
+    var shared = 0;
+    a.forEach(function (word) {
+      if (b.some(function (other) { return sameStem(word, other); })) shared += 1;
+    });
+    return shared >= 2 && shared / Math.min(a.length, b.length) >= 0.5;
+  }
+
+  function distinctAnswers(entries, goal) {
+    var kept = [];
+    contributionRank(entries, goal).forEach(function (row) {
+      if (!row.score) return;
+      var text = row.item.text;
+      if (kept.some(function (item) { return sameRelationship(item.text, text, goal); })) return;
+      kept.push(row.item);
+    });
+    return kept;
+  }
+
   function admitKnowledge(entries, ctx, objective) {
     var goal = planGoalText(ctx, objective);
-    if (!seeksContribution(ctx, objective)) return { kept: entries, dropped: [] };
+    var idle = { kept: entries, dropped: [], distinct: entries.length, target: 0, broad: false, short: false };
+    if (!seeksContribution(ctx, objective)) return idle;
+    var year = beatYear((ctx && (ctx.yearGroup || (ctx.lessonPlan && ctx.lessonPlan.yearGroup))) || "");
+    var target = relationshipBudget(year);
+    var broad = broadContribution(goal);
     var ranked = contributionRank(entries, goal);
     var answering = ranked.filter(function (row) { return row.score > 0; }).map(function (row) { return row.item; });
-    if (!answering.length) return { kept: entries, dropped: [] };
-    var year = beatYear((ctx && (ctx.yearGroup || (ctx.lessonPlan && ctx.lessonPlan.yearGroup))) || "");
-    var limit = beatLimit(year).items;
-    var kept = answering.slice(0, limit);
+    if (!answering.length) return { kept: entries, dropped: [], distinct: 0, target: target, broad: broad, short: broad };
+    var distinct = distinctAnswers(entries, goal);
+    var kept = distinct.slice(0, target);
     var seen = {};
     kept.forEach(function (item) { seen[item.text] = 1; });
     var dropped = entries.filter(function (item) { return !seen[item.text]; }).map(function (item) { return item.text; });
-    return { kept: kept, dropped: dropped };
+    return {
+      kept: kept,
+      dropped: dropped,
+      distinct: distinct.length,
+      target: target,
+      broad: broad,
+      short: broad && distinct.length < target
+    };
   }
 
   function knowledgeRole(text, labeled) {
@@ -2355,7 +2578,11 @@
     }).filter(function (stage) { return stage.purpose || stage.concept; }).slice(0, 8);
     var issues = [];
     if (objective.length < 12) issues.push("The lesson plan needs a learning objective.");
-    if (knowledge.length < 2 && !(answered && knowledge.length >= 1)) issues.push("The lesson plan needs the key knowledge.");
+    var settled = !!ctx.breadthSettled;
+    var short = admitted.short && !settled;
+    var oneEnough = answered && knowledge.length >= 1 && (!admitted.broad || settled);
+    if (knowledge.length < 2 && !oneEnough && !short) issues.push("The lesson plan needs the key knowledge.");
+    if (short) issues.push("The key knowledge needs more distinct relationships.");
     if (seeksContribution(relationCtx, objective) && !answered && !rawEntries.some(function (item) { return statesRelation(item.text); })) {
       issues.push("The key knowledge states the outcome, not the reason.");
     }
@@ -2389,6 +2616,11 @@
         keyKnowledge: knowledge,
         knowledge: entries,
         droppedKnowledge: answered ? admitted.dropped.slice() : [],
+        relationshipPlan: {
+          broad: !!admitted.broad,
+          target: admitted.target || 0,
+          assess: !!(answered && !short && entries.length > 1)
+        },
         vocabulary: textList(parsed.vocabulary, 40, 8),
         misconceptions: textList(parsed.misconceptions, 160, 4),
         teachingApproach: clean(parsed.teachingApproach, 400),
@@ -2464,7 +2696,7 @@
       }).filter(Boolean).slice(0, 4);
       correct = matchChoice(textOf(given, 80) || given, choices);
     }
-    return {
+    var question = {
       prompt: prompt,
       choices: choices,
       correct: correct,
@@ -2474,6 +2706,9 @@
       successEvidence: clean(raw.successEvidence, 180),
       teachingConnection: clean(raw.teachingConnection, 180)
     };
+    var id = clean(raw.id, 24);
+    if (id) question.id = id;
+    return question;
   }
 
   function playableMechanic(raw) {
@@ -3515,7 +3750,12 @@
     });
     var sum = activities.reduce(function (total, activity) { return total + (Number(activity.minutes) || 0); }, 0);
     var band = durationBand(ctx.requestedMinutes || 15);
-    if (sum < band.low || sum > band.high) issues.push("The activities add up to " + sum + " minutes. The lesson needs between " + band.low + " and " + band.high + ".");
+    var plannedQuestions = 0;
+    activities.forEach(function (activity) {
+      var count = activity && activity.config && activity.config.questions && activity.config.questions.length;
+      if (activity && activity.mechanic === "quiz" && count > plannedQuestions) plannedQuestions = count;
+    });
+    if ((sum < band.low || sum > band.high) && !(plannedQuestions > 1 && sum > band.high)) issues.push("The activities add up to " + sum + " minutes. The lesson needs between " + band.low + " and " + band.high + ".");
     var rawRequest = clean(ctx.lessonText || ctx.teacherInstructions || "", 240).toLowerCase();
     if (rawRequest.length >= 12 && blob.indexOf(rawRequest) !== -1) issues.push("The lesson repeated the teacher's request instead of teaching the topic.");
     if (unsafe(JSON.stringify(activities))) issues.push("The lesson included markup that Wondii cannot show.");
@@ -3883,19 +4123,6 @@
         }
         continue;
       }
-      var quiz = null;
-      activities.forEach(function (activity) { if (activity.mechanic === "quiz") quiz = activity; });
-      var questions = quiz && quiz.config && quiz.config.questions;
-      if (questions && questions.length > 1) {
-        questions.pop();
-        quiz.config.prompt = questions[0].prompt;
-        quiz.config.choices = (questions[0].choices || []).slice();
-        quiz.config.correct = questions[0].correct;
-        quiz.config.explain = questions[0].explain || "";
-        quiz.config.kind = questions[0].kind;
-        quiz.minutes = Math.max(2, questions.length);
-        continue;
-      }
       var shrunk = false;
       activities.forEach(function (activity) {
         var floor = floorOf[activity.mechanic] || 1;
@@ -4045,13 +4272,19 @@
             issues.push(issue);
             ownIssue(owners, activity.slotId, issue);
           });
-          checkSlotIssues(activity, issueCtx).forEach(function (issue) {
-            var warning = ctx.semanticWarningsAllowed && semanticQualityWarning(issue, issueCtx, "check");
-            if (warning) qualityWarnings.push(warning);
-            else {
-              issues.push(issue);
-              ownIssue(owners, activity.slotId, issue);
-            }
+          var semantics = (issueCtx.checkSemantics && issueCtx.checkSemantics.length)
+            ? issueCtx.checkSemantics
+            : (issueCtx.checkSemantic ? [issueCtx.checkSemantic] : []);
+          checkQuestionsOf(activity).forEach(function (question, index) {
+            var oneCtx = Object.assign({}, issueCtx, { checkSemantic: semantics[index] || null });
+            checkSlotIssues(questionActivity(activity, question), oneCtx).forEach(function (issue) {
+              var warning = ctx.semanticWarningsAllowed && semanticQualityWarning(issue, oneCtx, "check");
+              if (warning) qualityWarnings.push(warning);
+              else {
+                issues.push(issue);
+                ownIssue(owners, activity.slotId, issue);
+              }
+            });
           });
         }
       });
@@ -4229,26 +4462,35 @@
       (((result.previous && result.previous.activities) || (result.adventure && result.adventure.activities) || [])).forEach(function (item) {
         if (item && item.slotId === "check") activity = item;
       });
-      return Promise.resolve().then(function () {
-        if (!ports.checkJudge) return { ok: false, reason: "error", ms: null };
-        return ports.checkJudge(checkEvidenceInput(activity, ctx));
-      }).then(function (value) {
-        var verdict = checkVerdictOf(value);
-        checkCalls.push({
-          relationship: verdict.coverage,
-          outcome: verdict.outcome,
-          reason: verdict.reason,
-          demonstratedEvidence: verdict.demonstratedEvidence,
-          ms: verdict.ms
+      var questions = checkQuestionsOf(activity);
+      var count = Math.max(questions.length, 1);
+      function step(index, verdicts) {
+        if (index >= count) {
+          var nextCtx = policyCtx({ checkSemantics: verdicts, checkSemantic: verdicts[0] || null });
+          if (heldApply) nextCtx.applySemantic = heldApply;
+          return { stop: false, result: accept(source, nextCtx) };
+        }
+        return Promise.resolve().then(function () {
+          if (!ports.checkJudge) return { ok: false, reason: "error", ms: null };
+          return ports.checkJudge(checkEvidenceInput(activity, ctx, index));
+        }).then(function (value) {
+          var verdict = checkVerdictOf(value);
+          checkCalls.push({
+            relationship: verdict.coverage,
+            outcome: verdict.outcome,
+            reason: verdict.reason,
+            demonstratedEvidence: verdict.demonstratedEvidence,
+            ms: verdict.ms
+          });
+          if (!verdict.ok) return { stop: true, result: noteCheckJudgeFailure(result, verdict) };
+          verdicts.push({ coverage: verdict.coverage, reason: verdict.reason, demonstratedEvidence: verdict.demonstratedEvidence });
+          return step(index + 1, verdicts);
+        }).catch(function () {
+          checkCalls.push({ relationship: null, outcome: "check-error", reason: "error", ms: null });
+          return { stop: true, result: noteCheckJudgeFailure(result, { reason: "error" }) };
         });
-        if (!verdict.ok) return { stop: true, result: noteCheckJudgeFailure(result, verdict) };
-        var nextCtx = policyCtx({ checkSemantic: { coverage: verdict.coverage, reason: verdict.reason, demonstratedEvidence: verdict.demonstratedEvidence } });
-        if (heldApply) nextCtx.applySemantic = heldApply;
-        return { stop: false, result: accept(source, nextCtx) };
-      }).catch(function () {
-        checkCalls.push({ relationship: null, outcome: "check-error", reason: "error", ms: null });
-        return { stop: true, result: noteCheckJudgeFailure(result, { reason: "error" }) };
-      });
+      }
+      return step(0, []);
     }
     var accepted = accept(raw, ctx);
     var firstReport = accepted.applyAlignment || null;
