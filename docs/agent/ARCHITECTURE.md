@@ -6,25 +6,25 @@ Status labels:
 - **PLANNED**: on the roadmap, not built.
 - **LEGACY/FALLBACK**: still in code, used only on a fallback path or kept for old data.
 
-Most generation logic lives in one file, `js/lesson-brain.js` (about 5,900 lines, UMD, exported as `WondiiLessonBrain`). The same file runs in the browser and, fetched at runtime, on the server.
+Most generation logic lives in one file, `js/lesson-brain.js` (about 5,900 lines, UMD, exported as `WondiiLessonBrain`). The same file runs in the browser and is imported by the `learn-generate` edge function.
 
 ## 1. Deployment topology — CURRENT
 
 | Piece | Where | Notes |
 | --- | --- | --- |
 | Static site | Cloudflare Worker `workers-site/index.ts` | Serves files. Proxies `/api/learn/generate` and `/api/learn/visuals` to Supabase edge functions with no retry. Holds no model key. |
-| `learn-generate` edge function | Supabase project `enuzrcjnrxwglacivlnu` | The **deployed** function is an inline loader. It fetches `https://wondii.co.uk/js/learn-generate-boot.js`, which fetches `https://wondii.co.uk/js/lesson-brain.js?v=53` and evals it. The loader only accepts a boot source containing `lesson-brain.js?v=53`, `brain.planBeats(`, `teacherIntentBrief`, `checkEvidenceBrief`, `checkCoverageBrief` and no `PLACEHOLDER` (locked by `tests/generate-loader.test.js`). |
+| `learn-generate` edge function | Supabase project `enuzrcjnrxwglacivlnu` | Deploy `supabase/functions/learn-generate/index.ts`. It is the boot pipeline (`TEACHER_INTENT` → plan → story → `lessonSkeleton` / `planBeats` → `resolveLessonContent`) and imports local `../../../js/lesson-brain.js`. `Deno.serve` is the entry. `verify_jwt` stays on. Do not replace it with the thin plan → story → `accept` path, and do not eval a CDN copy of the brain. `js/learn-generate-boot.js` is the test harness; it still fetches `lesson-brain.js?v=53` (locked by `tests/generate-loader.test.js`) and is not the edge entry. |
 | `learn-visuals` edge function | Same project | Inline loader for `js/learn-visuals-boot.js`, which fetches `js/visual-adventure.js?v=9`. |
 | Model | `LESSON_MODEL` env, default `gpt-4o-mini` | JSON-object responses. Teacher intent and judges run at temperature 0. |
 | Images | `gpt-image-2.5-sunburst`, 2560×1440 JPEG | Stored in bucket `wondii_adventure_visuals`. |
 
-**Stale local functions.** `supabase/functions/learn-generate/index.ts` and `supabase/functions/learn-visuals/index.ts` were last changed in `f2d2844`. They import `lesson-brain.js` directly and predate the boot files. They are not what runs in production. **Never deploy them.** The deployed inline-loader source is not in the repo.
+**`learn-generate` source.** `supabase/functions/learn-generate/index.ts` is the v61 restore of the boot pipeline. Production v60 deployed the thin classic path (plan → story → `accept`, no skeleton) and Year 1 sharks failed with `SCHEMA_VALIDATION_FAILED` and zero activities. Deploy this file. **`learn-visuals` is still stale.** `supabase/functions/learn-visuals/index.ts` predates its boot file. Never deploy it.
 
 **Version pins.** The browser loads `lesson-brain.js?v=57` (`schools/learn/create.html`). The edge boot fetches `lesson-brain.js?v=53`. The query string is only a cache key; both fetch the same current file. Changing the boot pin breaks the loader check, so leave it at `v=53`. The risk is a CDN serving a stale copy under `?v=53`. Verify live hashes after deploying.
 
 ## 2. Generation pipeline
 
-Production order, as run by `js/learn-generate-boot.js` (`handleGenerate`), with browser steps around it.
+Production order, as run by `supabase/functions/learn-generate/index.ts` (the same stages as `js/learn-generate-boot.js`), with browser steps around it.
 
 | # | Step | Code | Status |
 | --- | --- | --- | --- |
@@ -58,7 +58,7 @@ Production order, as run by `js/learn-generate-boot.js` (`handleGenerate`), with
 
 On failure, `creator.js` `useLibrary` runs the deterministic library (`recommend` → `contentFor` / `packActivities`). If that is also broken, the teacher sees "Wondii couldn't finish this adventure." (LEGACY/FALLBACK).
 
-**Parallel pipeline in the brain.** `lesson-brain.js` also exports `runPipeline`, used by `tests/lesson-brain.test.js` and `tests/lesson-contract-matrix.js`. It has no teacher-intent step, no `depthRequired` gate and no semantic judges. It is **not** the production path. Production behaviour is defined by `learn-generate-boot.js`.
+**Parallel pipeline in the brain.** `lesson-brain.js` also exports `runPipeline`, used by `tests/lesson-brain.test.js` and `tests/lesson-contract-matrix.js`. It has no teacher-intent step, no `depthRequired` gate and no semantic judges. It is **not** the production path. Production behaviour is defined by `supabase/functions/learn-generate/index.ts`. `js/learn-generate-boot.js` mirrors those stages for tests and still evals a fetched brain; it is not the edge entry.
 
 ## 3. The seven internal stages — CURRENT, FROZEN
 

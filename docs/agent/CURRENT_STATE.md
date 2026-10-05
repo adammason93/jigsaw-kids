@@ -24,7 +24,7 @@ Written 5 October 2026 at `c28c7f7`. Update this file whenever a phase lands.
 | Lesson model | `LESSON_MODEL` env, default `gpt-4o-mini` | boot |
 | Image model | `gpt-image-2.5-sunburst`, 2560×1440 | `learn-visuals-boot.js` |
 
-**Deployment records (not verifiable from the repo; recorded at the `c28c7f7` deploy):** Supabase `learn-generate` edge function v59 (inline loader). Live file hashes: brain `36024ef5`, boot `5c84d0a2`, `sw.js` `0d0e9281`. Cloudflare Worker version `de624899-4e25-4747-8a8d-7c5b83968ef4`. Re-check before relying on them.
+**Deployment records (not verifiable from the repo; recorded at the `c28c7f7` deploy):** Supabase `learn-generate` edge function v59 (inline loader). Live file hashes: brain `36024ef5`, boot `5c84d0a2`, `sw.js` `0d0e9281`. Cloudflare Worker version `de624899-4e25-4747-8a8d-7c5b83968ef4`. Re-check before relying on them. Later, v60 deployed the thin local function and failed; production was restored as v61 with the boot pipeline in `supabase/functions/learn-generate/index.ts` (local brain import, JWT verify on).
 
 ## Latest canary
 
@@ -54,8 +54,9 @@ Neither is proven fixed **in production** until the human broad-sharks canary pa
 - **Visuals are per stage, not per scene.** Teaching scenes share the teach image (roadmap 9.15.6). Visuals are allow-listed to one organisation (`VISUAL_ORGS`).
 - **A shallow map can still ship after the one repair.** With `breadthSettled: true`, an undeveloped map is recorded as `met: false` and the lesson proceeds. This is deliberate (no infinite repair), and it is visible in `TEACHING_PLAN`.
 - **Library fallback quality.** `useLibrary` can still build a deterministic pack lesson ("Wondii built this from its lesson library.") that does not meet the quality standard.
-- **CDN pin risk.** The edge fetches the brain as `?v=53`; a stale CDN copy would run old logic. Verify hashes after deploys.
-- **Stale local edge functions.** `supabase/functions/learn-generate/index.ts` and `learn-visuals/index.ts` must never be deployed. The real inline loaders are not in the repo.
+- **CDN pin risk.** `js/learn-generate-boot.js` still fetches the brain as `?v=53` for tests. The edge function imports `js/lesson-brain.js` directly. Do not deploy a handler that evals the CDN copy.
+- **`learn-generate` v60 / v61.** v60 deployed the thin `index.ts` (plan → story → `accept`, no skeleton). Year 1 sharks returned `SCHEMA_VALIDATION_FAILED` with zero activities. Production was restored as v61 by deploying the boot pipeline (`TEACHER_INTENT` → plan → story → `lessonSkeleton` / `planBeats` → `resolveLessonContent`) with a local brain import and JWT verify still on. That handler is now `supabase/functions/learn-generate/index.ts`. Deploy that file.
+- **Stale `learn-visuals`.** `supabase/functions/learn-visuals/index.ts` must never be deployed.
 - **`runPipeline` in `lesson-brain.js` is not the production path** and has diverged from the boot (no teacher intent, no depth gate, no judges). Tests that use it do not prove production behaviour.
 - **Duplicate request `cc073476`.** Identical body replayed at the network level; cause not provable.
 
@@ -67,7 +68,7 @@ Neither is proven fixed **in production** until the human broad-sharks canary pa
 4. The brain declares a wide `WORLD_INTERACTIONS` vocabulary (drag, sort, sequence, match, …) that the scene player does not play.
 5. The vision's final challenge sizes are larger than `DEPTH_BANDS.questions`.
 6. The edge brain pin (`?v=53`) differs from the browser pin (`?v=57`). Same file, different cache keys.
-7. The local edge function sources differ from what is deployed (stale).
+7. `learn-visuals/index.ts` still differs from the deployed visuals loader (stale). `learn-generate/index.ts` is the v61 boot pipeline and is the file to deploy.
 8. `runPipeline` differs from the production boot pipeline.
 9. `WONDII_CURRENT_STATE_HANDOVER.md` and `PHASE_10_AI_LESSON_BRAIN_AUDIT.md` describe pre-restructure or pre-AI states.
 10. `AGENT_AUTONOMY_RULES.md` lists are reconstructed; the verbatim brief lists were not available.

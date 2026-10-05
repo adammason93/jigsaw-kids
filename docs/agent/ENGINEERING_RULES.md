@@ -27,7 +27,8 @@ Every change follows this sequence. Do not skip steps and do not reorder them.
 - **Never repeat canaries while a failure is unexplained.** A second generation adds cost and noise, not understanding. Diagnose the first.
 - Never hand structure back to the model.
 - Never add the server-only semantic judges to the browser re-accept.
-- Never deploy `supabase/functions/learn-generate/index.ts` or `supabase/functions/learn-visuals/index.ts` (stale).
+- Deploy `supabase/functions/learn-generate/index.ts` as the edge handler. It imports local `js/lesson-brain.js`. Never replace it with the thin plan → story → `accept` path or a CDN eval of the brain.
+- Never deploy `supabase/functions/learn-visuals/index.ts` (stale).
 - Never print secrets.
 - Never merge `main` unless told to.
 

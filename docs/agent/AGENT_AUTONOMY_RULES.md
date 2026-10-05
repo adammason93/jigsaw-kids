@@ -27,7 +27,8 @@
 - Merge `main`.
 - Print or commit secrets (anon key, JWTs, `OPENAI_API_KEY`, passwords, access tokens).
 - Create permanent pupil accounts.
-- Deploy the stale local `supabase/functions/learn-generate/index.ts` or `learn-visuals/index.ts`.
+- Replace `supabase/functions/learn-generate/index.ts` with the thin plan → story → `accept` path, or with a CDN eval of `lesson-brain.js`.
+- Deploy the stale local `supabase/functions/learn-visuals/index.ts`.
 - Generate a production lesson or canary yourself.
 - Force push, amend, or commit with `--no-verify`.
 - Add topic- or fixture-specific hacks.
