@@ -90,6 +90,7 @@ boot = boot.replace(traceMarker, traceMarker + "\n" + [
   "      issues: (result && result.issues) || [],",
   "      developedStrands: result && result.depth ? result.depth.developedStrands : null,",
   "      requiredStrands: result && result.depth ? result.depth.requiredStrands : null,",
+  "      packPairs: result && result.packPairs || null,",
   "      achievedDepth: result && result.depth ? result.depth.achievedDepth : null,",
   "      requiredDepth: result && result.depth ? result.depth.requiredDepth : null",
   "    });",

@@ -97,7 +97,13 @@ Promise.resolve().then(function () {
             claims: [
               { text: "Lightning is a bright flash in a storm cloud.", depth: "concrete", confidence: "high", provenance: "model", factuallyVerified: false, ageFit: { from: 1, to: 6 } },
               { text: "A storm cloud can hold a strong electrical charge.", depth: "concrete", confidence: "high", provenance: "model", factuallyVerified: false, ageFit: { from: 1, to: 6 } },
-              { text: "The flash happens when that charge jumps.", depth: "mechanism", confidence: "high", provenance: "model", factuallyVerified: false, ageFit: { from: 3, to: 6 } }
+              { text: "The flash happens when that charge jumps.", depth: "mechanism", confidence: "high", provenance: "model", factuallyVerified: false, ageFit: { from: 3, to: 6 } },
+              { text: "That electrical charge jumps to the ground and makes the lightning.", depth: "mechanism", kind: "mechanism", confidence: "high", provenance: "model", factuallyVerified: false, ageFit: { from: 1, to: 6 } },
+              { text: "The bright flash lets a person see during a storm.", depth: "mechanism", kind: "mechanism", confidence: "high", provenance: "model", factuallyVerified: false, ageFit: { from: 1, to: 6 } }
+            ],
+            mechanisms: [
+              { text: "That electrical charge jumps to the ground and makes the lightning.", feature: "electrical charge" },
+              { text: "The bright flash lets a person see during a storm.", feature: "bright flash" }
             ]
           }) } }]
         }, 200));
