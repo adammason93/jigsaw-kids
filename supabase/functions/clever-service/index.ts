@@ -4851,6 +4851,38 @@ async function executeStorybookPipeline(
     });
 }
 
+const STORYBOOK_JOB_RETENTION_MS = 72 * 60 * 60 * 1000;
+
+/** Drop finished jobs, and jobs stuck pending/running, once they are 72 hours old. */
+async function purgeExpiredStorybookJobs(client: SupabaseClient): Promise<void> {
+  const cutoff = new Date(Date.now() - STORYBOOK_JOB_RETENTION_MS).toISOString();
+  const finished = await client
+    .from("storybook_generation_jobs")
+    .delete()
+    .in("status", ["complete", "failed"])
+    .lt("completed_at", cutoff);
+  if (finished.error) {
+    console.warn("[storybook_job] purge finished", finished.error.message);
+  }
+  const stuck = await client
+    .from("storybook_generation_jobs")
+    .delete()
+    .in("status", ["pending", "running"])
+    .lt("updated_at", cutoff);
+  if (stuck.error) {
+    console.warn("[storybook_job] purge stuck", stuck.error.message);
+  }
+  const unfinishedStamp = await client
+    .from("storybook_generation_jobs")
+    .delete()
+    .in("status", ["complete", "failed"])
+    .is("completed_at", null)
+    .lt("updated_at", cutoff);
+  if (unfinishedStamp.error) {
+    console.warn("[storybook_job] purge legacy", unfinishedStamp.error.message);
+  }
+}
+
 function finishedJobPatch(
   status: "complete" | "failed",
   httpStatus: number,
@@ -5145,6 +5177,7 @@ async function handleCleverServiceInner(req: Request): Promise<Response> {
       if (!client) {
         return jsonResponse({ error: "storybook_job_db_unconfigured" }, 503);
       }
+      await purgeExpiredStorybookJobs(client);
       const { data, error } = await client
         .from("storybook_generation_jobs")
         .select(
@@ -5159,7 +5192,7 @@ async function handleCleverServiceInner(req: Request): Promise<Response> {
       if (!data) {
         return jsonResponse(
           { error: "storybook_job_not_found", id: storybookJobId },
-          404,
+          410,
         );
       }
       return jsonResponse({
@@ -5357,6 +5390,7 @@ async function handleCleverServiceInner(req: Request): Promise<Response> {
         501,
       );
     }
+    await purgeExpiredStorybookJobs(db);
     const jobId = crypto.randomUUID();
     const payloadForWorker = stripStorybookAsyncFields(body);
     const insErr = await insertPendingStorybookJob(

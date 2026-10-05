@@ -67,6 +67,8 @@ For **High** picture runs that can exceed the platform **~150s** “no response 
 
 Wall-clock caps still apply to the **whole invocation** (initial HTTP handler **plus** `waitUntil` work): **Free ~150s**, **Pro ~400s** — async avoids the **idle** gateway cutoff once **202** is returned but cannot extend unlimited runtime on Free.
 
+Finished and failed job rows, and rows still `pending` or `running` after **72 hours**, are deleted. Migration `20261005130000_storybook_jobs_purge_72h.sql` schedules that hourly with **pg_cron** when the extension is available. The function also deletes those rows whenever a book is started or a job is polled, so a project without pg_cron still forgets them. Polling a deleted job returns **410**. The browser saves the finished book to the shelf (this device and `storybook_room`) as soon as generation completes, which is well inside 72 hours. If the row is already gone the page says “This book has expired, please make it again.”
+
 ### Pro plan & usage (fewer wasted retries)
 
 - **Upgrade to Pro** mainly buys **more wall-clock (~400s)** on Edge so one book run is likelier to **finish** instead of timing out → you avoid **immediate “try again” loops** (each full retry is **another** OpenAI book).

@@ -3368,11 +3368,17 @@
     shelfEl.scrollBy({ left: amount, behavior: "smooth" });
   }
 
-  function saveBookToShelf() {
-    if (!story || !story.pages.length || !btnShelf) return;
-    var label = btnShelf.textContent;
-    btnShelf.disabled = true;
-    btnShelf.textContent = "Saving…";
+  function saveBookToShelf(opts) {
+    opts = opts || {};
+    var quiet = !!opts.quiet;
+    if (!story || !story.pages.length) return;
+    if (story._shelfSave === "saving" || story._shelfSave === "saved") return;
+    story._shelfSave = "saving";
+    var label = btnShelf ? btnShelf.textContent : "";
+    if (btnShelf && !quiet) {
+      btnShelf.disabled = true;
+      btnShelf.textContent = "Saving…";
+    }
     fetchShelfPageDataUrls()
       .then(function (dataUrls) {
         return fetchSceneDataUrlForShelf(story.sceneImageUrl || "").then(function (sceneData) {
@@ -3439,6 +3445,10 @@
               ) {
                 return;
               }
+              if (quiet) {
+                console.warn("[storybook shelf] cloud backup", msg);
+                return;
+              }
               if (msg === "no_session") {
                 window.alert(
                   "This tablet saved the book only on itself — it did not reach the cloud.\n\nOpen ⚙️ (bottom corner) → Sign in with your family password → tap “Put on my shelf” again.\n\n(Deploying edge functions does not update shelf sync — the website’s JavaScript does.)",
@@ -3462,19 +3472,29 @@
               }
             },
             function () {
-          renderShelf();
+              if (story) story._shelfSave = "saved";
+              renderShelf();
             },
           );
         } catch (e) {
-          window.alert("Couldn’t save — storage might be full. Try downloading instead.");
+          if (story) story._shelfSave = "failed";
+          if (!quiet) {
+            window.alert("Couldn’t save — storage might be full. Try downloading instead.");
+          }
         }
       })
       .catch(function () {
-        window.alert("Couldn’t prepare pictures for the shelf. Try again.");
+        if (story) story._shelfSave = "failed";
+        if (!quiet) {
+          window.alert("Couldn’t prepare pictures for the shelf. Try again.");
+        }
       })
       .finally(function () {
-        btnShelf.disabled = false;
-        btnShelf.textContent = label;
+        if (btnShelf && !quiet) {
+          btnShelf.disabled = false;
+          btnShelf.textContent =
+            story && story._shelfSave === "saved" ? "On your shelf" : label;
+        }
       });
   }
 
@@ -5854,6 +5874,12 @@
               if (b.detail) {
                 msg += " " + String(b.detail).slice(0, 320);
               }
+            } else if (
+              out.status === 410 ||
+              out.status === 404 ||
+              b.error === "storybook_job_not_found"
+            ) {
+              msg = "This book has expired, please make it again.";
             } else if (b.error === "storybook_job_timeout") {
               msg =
                 "The story maker is still drawing, but this page stopped waiting — often slow Wi‑Fi or very heavy pictures. Wait a minute and try again, or ask a grown-up for help.";
@@ -5916,6 +5942,7 @@
           };
           spreadIndex = 0;
           showBook();
+          saveBookToShelf({ quiet: true });
         })
         .catch(function (err) {
           console.error("[storybook] Make my book", err);
