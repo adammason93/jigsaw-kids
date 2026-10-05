@@ -117,6 +117,10 @@ Browser calls must include `Authorization: Bearer <session.access_token>` and `a
 
 CORS allows `https://jigsaw-kids.adammason93.workers.dev` plus `http(s)://localhost` and `http(s)://127.0.0.1` (any port). Extra origins: comma-separated secret `STORYBOOK_ALLOWED_ORIGINS`.
 
+## Prompt logging
+
+OpenAI prompt logs are **off** unless `STORYBOOK_LOG_PROMPTS=1`. When that secret is set, logs are still redacted: `data:` URLs and `image_url` values become size placeholders (`[data:image chars:N]`, `[image chars:N]`), and the child’s name, family names, and plot text become length placeholders. Do not set this on a school deployment.
+
 ## Deploy
 
 Apply the owner migration **before** deploying, or job inserts will fail until `user_id` exists.

@@ -12,6 +12,8 @@ import {
   gptImageModerationFromEnv,
   minimalJobMetadata,
   proxyRedirectAllowed,
+  redactPromptForLog,
+  storybookPromptLoggingEnabled,
   stripEmbeddedPhotoStrings,
 } from "./guards.ts";
 
@@ -20,6 +22,10 @@ type RequestCtx = {
   userId: string;
   /** Signed URL → storage path for images uploaded during this request. */
   imagePaths: Map<string, string>;
+  /** Child and family names to replace with lengths if prompt logging is on. */
+  redactNames: string[];
+  /** Plot text to replace with a length if prompt logging is on. */
+  redactPlot: string;
 };
 
 const requestCtx = new AsyncLocalStorage<RequestCtx>();
@@ -55,18 +61,36 @@ function openAiBearerOrgHeaders(apiKey: string): Record<string, string> {
 
 /**
  * Log the prompt/payload sent to an OpenAI endpoint.
- * Set `STORYBOOK_LOG_PROMPTS=0` to silence. Visible in Supabase → Edge Logs.
+ * Off unless `STORYBOOK_LOG_PROMPTS=1`. When on, data URLs and image_url values
+ * are size placeholders, and known names and the plot are lengths.
  */
 function logOpenAiPrompt(label: string, payload: unknown): void {
-  if (Deno.env.get("STORYBOOK_LOG_PROMPTS") === "0") return;
+  if (!storybookPromptLoggingEnabled(Deno.env.get("STORYBOOK_LOG_PROMPTS"))) return;
+  const store = requestCtx.getStore();
+  const redacted = redactPromptForLog(payload, {
+    names: store?.redactNames ?? [],
+    plot: store?.redactPlot ?? "",
+  });
   try {
-    const json = typeof payload === "string"
-      ? payload
-      : JSON.stringify(payload);
+    const json = typeof redacted === "string" ? redacted : JSON.stringify(redacted);
     console.info(`[clever-service] openai-prompt ${label}`, json);
   } catch (_e) {
     console.info(`[clever-service] openai-prompt ${label} <unserialisable>`);
   }
+}
+
+/** Remember names and plot text so a later prompt log cannot print them. */
+function notePromptRedaction(names: Array<string | undefined | null>, plot?: string): void {
+  const store = requestCtx.getStore();
+  if (!store) return;
+  for (const raw of names) {
+    const name = String(raw ?? "").trim();
+    if (name.length < 2) continue;
+    if (store.redactNames.some((have) => have.toLowerCase() === name.toLowerCase())) continue;
+    store.redactNames.push(name);
+  }
+  const plotText = String(plot ?? "").trim();
+  if (plotText) store.redactPlot = plotText;
 }
 
 /**
@@ -3613,6 +3637,10 @@ async function executeStorybookPipeline(
         : sanitizeFamilyNames(body.familyNames);
     const plotPetLower = plotPetTaggedNames(plotHint);
     const plotNamesFromPlot = extractPlotNamedHumans(plotHint, childName, plotPetLower);
+    notePromptRedaction(
+      [childName, dedicationAuthor, ...familyNames, ...plotNamesFromPlot],
+      plotHint,
+    );
 
     const bookAssetsBase = (Deno.env.get("BOOK_ASSETS_BASE_URL") ?? "").trim();
     const refPack = sanitizeCharacterReferencePhotos(
@@ -5122,6 +5150,7 @@ async function handleGenerateCharacter(
   if (!name) {
     return jsonResponse({ error: "missing_character_name" }, 400);
   }
+  notePromptRedaction([name], "");
   const refSanitized = sanitizeHeroReferenceImage(body.referencePhoto);
   if (type === "hero" && !refSanitized) {
     return jsonResponse({ error: "missing_reference_photo" }, 400);
@@ -5150,7 +5179,7 @@ async function handleCleverService(req: Request): Promise<Response> {
   const extraOrigins = Deno.env.get("STORYBOOK_ALLOWED_ORIGINS") ?? "";
   const cors = corsHeadersForOrigin(req.headers.get("Origin"), extraOrigins);
   return await requestCtx.run(
-    { cors, userId: "", imagePaths: new Map() },
+    { cors, userId: "", imagePaths: new Map(), redactNames: [], redactPlot: "" },
     () => handleCleverServiceInner(req),
   );
 }

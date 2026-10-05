@@ -249,6 +249,95 @@ export function gptImageModerationFromEnv(raw: string | null | undefined): "low"
   return String(raw ?? "").trim().toLowerCase() === "low" ? "low" : "auto";
 }
 
+/** Prompt logs are off unless this secret is exactly `1`. */
+export function storybookPromptLoggingEnabled(raw: string | null | undefined): boolean {
+  return String(raw ?? "").trim() === "1";
+}
+
+export type PromptRedaction = {
+  names?: string[];
+  plot?: string;
+};
+
+function escapeForRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/** data: URLs anywhere in a logged string become a length placeholder. */
+function redactDataUrls(input: string): string {
+  return input.replace(
+    /data:[a-z0-9.+-]+\/[a-z0-9.+-]+(?:;[^,]*)?,[a-z0-9+/=\s]+/gi,
+    (match) => `[data:image chars:${match.length}]`,
+  );
+}
+
+function redactKnownText(input: string, names: string[], plot: string): string {
+  let out = redactDataUrls(input);
+  const plotText = plot.trim();
+  if (plotText.length >= 4) {
+    const plotRe = new RegExp(escapeForRegExp(plotText), "gi");
+    out = out.replace(plotRe, `[plot chars:${plotText.length}]`);
+  }
+  const unique: string[] = [];
+  for (const raw of names) {
+    const name = String(raw ?? "").trim();
+    if (name.length < 2) continue;
+    if (unique.some((have) => have.toLowerCase() === name.toLowerCase())) continue;
+    unique.push(name);
+  }
+  unique.sort((a, b) => b.length - a.length);
+  for (const name of unique) {
+    const nameRe = new RegExp(`\\b${escapeForRegExp(name)}\\b`, "gi");
+    out = out.replace(nameRe, `[name chars:${name.length}]`);
+  }
+  return out;
+}
+
+function imageSizePlaceholder(value: unknown): string {
+  if (typeof value === "string") return `[image chars:${value.length}]`;
+  try {
+    return `[image chars:${JSON.stringify(value).length}]`;
+  } catch {
+    return "[image chars:0]";
+  }
+}
+
+/**
+ * Copy a payload for logs. `image_url` values (and their `url`) become size
+ * placeholders. data: URLs, known names, and the plot become length placeholders.
+ */
+export function redactPromptForLog(value: unknown, opts: PromptRedaction = {}): unknown {
+  const names = opts.names ?? [];
+  const plot = opts.plot ?? "";
+  const walk = (node: unknown, key: string): unknown => {
+    if (key === "image_url" || key === "b64_json") {
+      if (node && typeof node === "object" && !Array.isArray(node)) {
+        const out: Record<string, unknown> = {};
+        for (const [childKey, child] of Object.entries(node as Record<string, unknown>)) {
+          if (childKey === "url" || childKey === "image_url" || childKey === "b64_json") {
+            out[childKey] = imageSizePlaceholder(child);
+          } else {
+            out[childKey] = walk(child, childKey);
+          }
+        }
+        return out;
+      }
+      return imageSizePlaceholder(node);
+    }
+    if (typeof node === "string") return redactKnownText(node, names, plot);
+    if (Array.isArray(node)) return node.map((item) => walk(item, key));
+    if (node && typeof node === "object") {
+      const out: Record<string, unknown> = {};
+      for (const [childKey, child] of Object.entries(node as Record<string, unknown>)) {
+        out[childKey] = walk(child, childKey);
+      }
+      return out;
+    }
+    return node;
+  };
+  return walk(value, "");
+}
+
 export function corsHeadersForOrigin(
   origin: string | null,
   extraEnv = "",

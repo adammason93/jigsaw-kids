@@ -7,6 +7,8 @@ import {
   gptImageModerationFromEnv,
   isAllowedStoryOrigin,
   minimalJobMetadata,
+  redactPromptForLog,
+  storybookPromptLoggingEnabled,
   proxyRedirectAllowed,
   stripEmbeddedPhotoStrings,
 } from "./guards.ts";
@@ -163,4 +165,52 @@ Deno.test("image moderation defaults to auto unless the secret is low", () => {
   assertEquals(gptImageModerationFromEnv("auto"), "auto");
   assertEquals(gptImageModerationFromEnv("LOW"), "low");
   assertEquals(gptImageModerationFromEnv(" low "), "low");
+});
+
+Deno.test("prompt logging is off unless the secret is exactly 1", () => {
+  assertEquals(storybookPromptLoggingEnabled(undefined), false);
+  assertEquals(storybookPromptLoggingEnabled(""), false);
+  assertEquals(storybookPromptLoggingEnabled("0"), false);
+  assertEquals(storybookPromptLoggingEnabled("true"), false);
+  assertEquals(storybookPromptLoggingEnabled("1"), true);
+});
+
+Deno.test("logged prompts redact photos, names, and the plot", () => {
+  const photo = "data:image/jpeg;base64," + "A".repeat(80);
+  const plot = "Sofia finds a magic door in the garden";
+  const redacted = redactPromptForLog(
+    {
+      prompt: `Draw Sofia. Plot: ${plot}`,
+      messages: [
+        {
+          content: [
+            { type: "text", text: plot },
+            { type: "image_url", image_url: { url: photo, detail: "low" } },
+          ],
+        },
+      ],
+      image_url: "https://cdn.example/private-face.png",
+    },
+    { names: ["Sofia"], plot },
+  ) as {
+    prompt: string;
+    messages: { content: { text?: string; image_url?: { url: string } }[] }[];
+    image_url: string;
+  };
+  const json = JSON.stringify(redacted);
+  assertEquals(json.includes("data:image"), false);
+  assertEquals(json.includes("Sofia"), false);
+  assertEquals(json.includes("magic door"), false);
+  assertEquals(json.includes("private-face"), false);
+  assertEquals(redacted.prompt.includes("[name chars:5]"), true);
+  assertEquals(redacted.prompt.includes(`[plot chars:${plot.length}]`), true);
+  assertEquals(redacted.messages[0].content[0].text, `[plot chars:${plot.length}]`);
+  assertEquals(
+    redacted.messages[0].content[1].image_url?.url,
+    `[image chars:${photo.length}]`,
+  );
+  assertEquals(
+    redacted.image_url,
+    `[image chars:${"https://cdn.example/private-face.png".length}]`,
+  );
 });

@@ -12,10 +12,12 @@ Each section gives:
 - **System prompt** (when present)
 - **User prompt** (template — `${…}` are runtime substitutions)
 
-Runtime payloads for every call are also logged at runtime via
-`logOpenAiPrompt(label, payload)` and visible in
+Runtime payloads are logged only when `STORYBOOK_LOG_PROMPTS=1`, via
+`logOpenAiPrompt(label, payload)`, in
 **Supabase Dashboard → Edge Functions → `clever-service` → Logs**
-(filter `openai-prompt`). Set `STORYBOOK_LOG_PROMPTS=0` to silence.
+(filter `openai-prompt`). Those lines replace data URLs and `image_url` values
+with size placeholders, and replace known names and the plot with lengths.
+Leave the secret unset on a school deployment.
 
 ---
 
