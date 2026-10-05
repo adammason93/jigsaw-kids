@@ -1,5 +1,5 @@
 /* Minimal offline shell — network-first, cache as fallback for same-origin */
-const CACHE = "jigsaw-kids-v434";
+const CACHE = "jigsaw-kids-v435";
 const SHELL = [
   "./index.html",
   "./portal.html",
@@ -105,9 +105,6 @@ const SHELL = [
   "./games/link-grid-main.js",
   "./games/link-grid-levels-content.html",
   "./games/images/portal/link-grid.svg",
-  "./games/drive-mad.html",
-  "./games/drive-mad.css",
-  "./games/images/portal/drive-mad.svg",
   "./games/block-stack.html",
   "./games/block-stack.css",
   "./games/block-stack.js",

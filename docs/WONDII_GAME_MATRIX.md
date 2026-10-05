@@ -27,7 +27,6 @@ Shared scorecard (`js/game-scorecard.js`) is linked from: Memory, Snakes and Lad
 | Colouring | Colour a picture | `games/colouring.html`, `colouring.js`, `colouring.css` | Tools stay on the page | No | `.colour-app` | No | None. Scoreless | Saved pictures | No win screen | CURRENT shell, LEGACY studio | Studio CSS later | `game-shell` |
 | Block Stack | Stack blocks | `games/block-stack.html`, `block-stack.css` | No | No | `#board` | Runtime | No | Runtime | Runtime | LEGACY board, MIXED chrome | Yes | `wondii-shell` |
 | Zuma | Marble shot | `games/zuma.html`, `zuma.js`, `zuma.css` | No | No | `.zuma-app` | Runtime | No | Runtime | Runtime | LEGACY board, MIXED chrome | Yes | `wondii-shell` |
-| Drive Mad | Driving | `games/drive-mad.html`, `drive-mad.css` | No | No | `.drive-mad-app` | Runtime | No | Runtime | Runtime | LEGACY board, MIXED chrome | Yes | `wondii-shell` |
 | Link Grid | Join a path | `games/link-grid.html`, `link-grid-main.js`, `link-grid-maze.js`, `link-grid-bootstrap.js`, `link-grid-part-a.js`, `link-grid-shapes.js`, `link-grid-levels-content.html` | Level list | No | Maze | No named correct/incorrect screen | Call site still uses `linkGridCompletedLevels`. `score-cloud.js` scopes that key when an account is bound | `completeLevel()` marks the level | No results page | LEGACY board, MIXED chrome | Yes | `wondii-shell` |
 | Star Catcher | Catch stars | `games/star-catcher.html` | No | No | Single page | Runtime | No | Runtime | Runtime | LEGACY board, MIXED chrome | Yes | `wondii-shell` |
 | Prompt game | Make a 3D game | `games/prompt-game.html`, `prompt-game.css` | No | No | Single page | Runtime | No | Runtime | Runtime | LEGACY board, MIXED chrome | Yes | `wondii-shell` |
@@ -44,7 +43,7 @@ Catalogue source is `games/game-platform.js`. Portal cards read `portalCards()`.
 | Colouring | Own canvas | GameShell V2 | CURRENT | None | `jigsawKidsColouringV1` and `jigsawKidsColouringAutoSaveV1`, account scoped | Studio CSS. Canvas is pointer-first |
 | Snake | Own canvas | GameShell V2 | CURRENT | HUD score and best. Result dialog | `snakeArcadeHighV1`. A refresh starts a new run | Canvas is not a control grid |
 | Snakes and Ladders, Snap, Connect Four, Math Race, Runner, Jigsaw | Own boards | wondii-shell | LEGACY | `.gsc` | Matching scorecard keys in score-cloud | Unmigrated |
-| Rock Paper Scissors, Marble Tilt, Block Stack, Zuma, Drive Mad, Star Catcher, Prompt game | Own boards | wondii-shell | LEGACY | Own or none | Mixed | Unmigrated |
+| Rock Paper Scissors, Marble Tilt, Block Stack, Zuma, Star Catcher, Prompt game | Own boards | wondii-shell | LEGACY | Own or none | Mixed | Unmigrated |
 | Link Grid | Own maze | wondii-shell | LEGACY | Level list | `linkGridCompletedLevels`, scoped when an account is bound | Call site still uses the raw key |
 | Storybook, My Characters | Story tools | none | LEGACY | None | Existing story keys | Not a GameShell game |
 

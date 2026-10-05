@@ -365,7 +365,6 @@ body.wondii-game .word-search-app,
 body.wondii-game .colour-app,
 body.wondii-game .block-stack-app,
 body.wondii-game .zuma-app,
-body.wondii-game .drive-mad-app,
 body.wondii-game .marble-tilt-app,
 body.wondii-game .game-wrap {
   color: var(--w-ink);
@@ -502,7 +501,6 @@ body.page-link-grid,
 body.page-rps,
 body.page-block-stack,
 body.page-zuma,
-body.page-drive-mad,
 body.page-snake-game {
   background: var(--w-paper);
   color: var(--w-ink);
@@ -529,7 +527,6 @@ body.page-link-grid h1,
 body.page-rps h1,
 body.page-block-stack h1,
 body.page-zuma h1,
-body.page-drive-mad h1,
 body.page-snake-game h1 {
   font-family: var(--w-display);
   color: var(--w-ink);

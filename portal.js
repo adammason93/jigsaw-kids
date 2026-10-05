@@ -25,7 +25,6 @@
     { id: "zuma", title: "Zuma", desc: "Shoot the balls and match the colours.", href: "games/zuma.html", img: "games/images/portal/zuma-portal.png", cats: ["arcade"] },
     { id: "marble-tilt", title: "Marble Maze", desc: "Tilt and roll the marble to the goal.", href: "games/marble-tilt.html", img: "games/images/portal/marble-tilt.svg", cats: ["arcade", "puzzles"] },
     { id: "link-grid", title: "Link Grid", desc: "Join the matching dots without crossing.", href: "games/link-grid.html", img: "games/images/portal/link-grid.svg", cats: ["puzzles"] },
-    { id: "drive-mad", title: "Drive Mad", desc: "Drive your truck over bumpy tracks.", href: "games/drive-mad.html", img: "games/images/portal/drive-mad.svg", cats: ["racing"] },
     { id: "block-stack", title: "Block Stack", desc: "Stack the falling blocks and clear lines.", href: "games/block-stack.html", img: "games/images/portal/block-stack.svg", cats: ["puzzles", "arcade"] },
   ];
 
