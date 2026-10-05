@@ -12,17 +12,17 @@
 
   const IMG_PREFIX = "__img:";
   const CHARACTER_OPTIONS = [
-    { v: IMG_PREFIX + "images/character-babyca.png", label: "Baby" },
-    { v: IMG_PREFIX + "images/tilly-mascot.png", label: "Tilly" },
-    { v: IMG_PREFIX + "images/character-baby-coolegg.png", label: "Isaac" },
-    { v: IMG_PREFIX + "images/character-girl-blonde.png", label: "Sofia" },
-    { v: IMG_PREFIX + "images/character-kelly.png", label: "Kelly" },
-    { v: IMG_PREFIX + "images/character-freya.png", label: "Freya" },
+    { v: "__img:images/presets/preset-pip.jpg", label: "Pip" },
+    { v: "__img:images/presets/preset-fox.jpg", label: "Fox" },
+    { v: "__img:images/presets/preset-dino.jpg", label: "Dinosaur" },
+    { v: "__img:images/presets/preset-bun.jpg", label: "Bunny" },
+    { v: "__img:images/presets/preset-frog.jpg", label: "Frog" },
+    { v: "__img:images/presets/preset-moon.jpg", label: "Moon" },
   ];
   const K_C4_CHARS = "c4CharacterPickV1";
-  const DEFAULT_FRIEND_RED = 3;
-  const DEFAULT_FRIEND_YELLOW = 0;
-  const DEFAULT_CPU_YOU = 3;
+  const DEFAULT_FRIEND_RED = 0;
+  const DEFAULT_FRIEND_YELLOW = 1;
+  const DEFAULT_CPU_YOU = 0;
 
   const appEl = document.getElementById("app");
   const screenSetup = document.getElementById("screenSetup");
@@ -111,18 +111,23 @@
       (function (opt) {
         var b = document.createElement("button");
         b.type = "button";
-        b.className = "c4-char-opt c4-char-opt--pic";
+        b.className = "c4-char-opt";
         b.setAttribute("data-value", opt.v);
         b.setAttribute("aria-label", opt.label);
         b.setAttribute("aria-pressed", charPick[which] === opt.v ? "true" : "false");
-        var im = document.createElement("img");
-        im.className = "c4-char-opt__pic";
-        im.src = imageIconSrc(opt.v);
-        im.alt = "";
-        im.width = 96;
-        im.height = 96;
-        im.decoding = "async";
-        b.appendChild(im);
+        if (String(opt.v).indexOf(IMG_PREFIX) === 0) {
+          b.classList.add("c4-char-opt--pic");
+          var im = document.createElement("img");
+          im.className = "c4-char-opt__pic";
+          im.src = imageIconSrc(opt.v);
+          im.alt = "";
+          im.width = 96;
+          im.height = 96;
+          im.decoding = "async";
+          b.appendChild(im);
+        } else {
+          b.textContent = opt.v;
+        }
         b.addEventListener("click", function () {
           charPick[which] = opt.v;
           persistCharPick(charPick);

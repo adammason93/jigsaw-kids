@@ -251,6 +251,16 @@
   }
 
   loadScore();
+  window.addEventListener("kids-scorecard-refresh", function () {
+    if (busy) return;
+    loadScore();
+    renderScore();
+  });
+  window.addEventListener("wondii-account-cleared", function () {
+    scoreYou = 0;
+    scoreCpu = 0;
+    renderScore();
+  });
   renderScore();
   resetRoundUI();
 

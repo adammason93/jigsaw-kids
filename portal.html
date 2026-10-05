@@ -7,17 +7,18 @@
   <meta name="theme-color" content="#141b4d" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-  <meta name="description" content="Sofia’s World on Oovi — stories, games, puzzles and learning." />
-  <title>Sofia’s World · Oovi</title>
+  <meta name="description" content="Wondii — stories, games, puzzles and learning." />
+  <title>Wondii</title>
   <link rel="manifest" href="manifest.json" />
-  <link rel="icon" type="image/svg+xml" href="games/images/brand/oovi-mark.svg" />
+  <link rel="icon" type="image/svg+xml" href="games/images/brand/wondi-mark.svg" />
   <link rel="stylesheet" href="js/kids-core.css" />
   <link rel="stylesheet" href="home.css" />
-  <link rel="stylesheet" href="portal-app.css?v=1" />
+  <link rel="stylesheet" href="portal-app.css?v=5" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="portal-gate.css" />
+  <link rel="stylesheet" href="portal-gate.css?v=4" />
+  <link rel="stylesheet" href="schools/org-portal.css?v=10" />
   <script src="js/score-config.js"></script>
   <script>
     (function () {
@@ -27,61 +28,94 @@
         var signedIn = Object.keys(localStorage).some(function (k) {
           return /^sb-.+-auth-token$/.test(k);
         });
-        if (!signedIn) document.documentElement.classList.add("gate-on");
+        var signingUp = /(?:^|[?&])signup=1(?:&|$)/.test(location.search);
+        if (!signedIn || signingUp) document.documentElement.classList.add("gate-on");
+        else document.documentElement.classList.add("org-pending");
+        setTimeout(function () {
+          document.documentElement.classList.remove("org-pending");
+        }, 8000);
       } catch (e) {}
     })();
   </script>
+  <link rel="stylesheet" href="css/wondii-tokens.css?v=3" />
+  <link rel="stylesheet" href="css/wondii-p1.css?v=9" />
+  <link rel="stylesheet" href="css/wondii-system.css?v=2" />
+  <link rel="stylesheet" href="schools/learn/teacher-shell.css?v=1" />
 </head>
 <body class="page-portal">
   <div class="gate" id="portalGate" role="dialog" aria-modal="true" aria-labelledby="gateTitle">
     <form class="gate__card" id="gateForm" novalidate>
-      <a class="gate__logo" href="./" aria-label="Oovi — home">
-        <img src="games/images/brand/oovi-mark.svg" width="100" height="136" alt="" />
-        <span aria-hidden="true">ovi</span>
+      <a class="gate__logo" href="./" aria-label="Wondii — home">
+        <img src="games/images/brand/wondi-wordmark.svg" width="276" height="93" alt="" />
       </a>
-      <h1 class="gate__title" id="gateTitle">Log in to your Game Room</h1>
-      <p class="gate__lead">Grown-ups: enter your family password to open the games, stories and characters.</p>
+      <div class="gate__tabs" role="tablist" aria-label="Account">
+        <button type="button" class="gate__tab is-on" id="gateTabLogin" role="tab" aria-selected="true">Log in</button>
+        <button type="button" class="gate__tab" id="gateTabRegister" role="tab" aria-selected="false">Register</button>
+      </div>
+      <h1 class="gate__title" id="gateTitle">Log in to Wondii</h1>
+      <p class="gate__lead" id="gateLead">Enter your email and password to open the games, stories and characters.</p>
+      <fieldset class="gate__intent" id="gateIntent" hidden>
+        <legend>How will you use Wondii?</legend>
+        <label><input type="radio" name="wondiiIntent" value="family" checked /> For me / my family</label>
+        <label><input type="radio" name="wondiiIntent" value="school" /> For a school</label>
+      </fieldset>
       <label class="gate__field">
-        <span>Family password</span>
+        <span>Email</span>
+        <input type="email" id="gateEmail" autocomplete="username" required />
+      </label>
+      <label class="gate__field">
+        <span>Password</span>
         <input type="password" id="gatePassword" autocomplete="current-password" required minlength="6" />
       </label>
       <label class="gate__show"><input type="checkbox" id="gateShow" /> Show password</label>
       <button type="submit" class="gate__btn" id="gateBtn">Log in</button>
       <p class="gate__status" id="gateStatus" role="status" aria-live="polite"></p>
-      <a class="gate__back" href="./">← Back to Oovi</a>
+      <button type="button" class="gate__back" id="gateContinue" hidden>Continue to my Wondii</button>
+      <a class="gate__back" href="./">← Back to Wondii</a>
     </form>
   </div>
 
+  <div class="org-boot" id="orgBoot">Opening your Wondii…</div>
+
   <div class="p-app">
     <aside class="p-side" aria-label="Sections">
-      <a class="p-logo" href="#home" data-view-link="home" aria-label="Oovi — home">
-        <img src="games/images/brand/oovi-mark.svg" width="100" height="136" alt="" />
-        <span aria-hidden="true">ovi</span>
+      <a class="p-logo" href="#home" data-view-link="home" aria-label="Wondii — home">
+        <img src="games/images/brand/wondi-wordmark.svg" width="276" height="93" alt="" />
       </a>
       <nav class="p-side__nav">
-        <a class="p-side__link" href="#home" data-view-link="home">
+        <a class="p-side__link" href="#home" data-view-link="home" data-teacher="home">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11.2 12 4l9 7.2V20a1 1 0 0 1-1 1h-5.5v-6h-5v6H4a1 1 0 0 1-1-1z"/></svg><span>Home</span>
         </a>
-        <a class="p-side__link" href="#stories" data-view-link="stories">
+        <nav class="teacher-nav" id="teacherNav" hidden aria-label="School">
+          <a class="p-side__link" href="#classes" data-teacher="classes"><span>Classes</span></a>
+          <a class="p-side__link" href="#create" data-teacher="create"><span>Create</span></a>
+          <a class="p-side__link" href="#library" data-teacher="library"><span>Library</span></a>
+          <a class="p-side__link" href="#results" data-teacher="results"><span>Results</span></a>
+        </nav>
+        <a class="p-side__link p-side__family" href="#stories" data-view-link="stories">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5C6.500 4.300 9.200 4.300 12 6c2.800-1.700 5.500-1.700 8-.5V19c-2.500-1.200-5.200-1.200-8 .5-2.800-1.700-5.500-1.700-8-.5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M12 6v13.500" stroke="currentColor" stroke-width="2"/></svg><span>Stories</span>
         </a>
-        <a class="p-side__link" href="#games" data-view-link="games">
+        <a class="p-side__link p-side__family" href="#games" data-view-link="games">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7h10a5 5 0 0 1 4.9 6l-.8 4a2.5 2.5 0 0 1-4.3 1.2L14.5 16h-5l-2.3 2.2A2.5 2.5 0 0 1 2.9 17l-.8-4A5 5 0 0 1 7 7zm0 3v1.5H5.5v1.5H7v1.5h1.5V13H10v-1.5H8.5V10zm9.5 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm-2 2a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/></svg><span>Games</span>
         </a>
-        <a class="p-side__link" href="#puzzles" data-view-link="puzzles">
+        <a class="p-side__link p-side__family" href="#puzzles" data-view-link="puzzles">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 3a2 2 0 0 1 2 2v1h4a1 1 0 0 1 1 1v4h1a2 2 0 1 1 0 4h-1v4a1 1 0 0 1-1 1h-4v-1a2 2 0 1 0-4 0v1H4a1 1 0 0 1-1-1v-4h1a2 2 0 1 0 0-4H3V7a1 1 0 0 1 1-1h4V5a2 2 0 0 1 2-2z"/></svg><span>Puzzles</span>
         </a>
-        <a class="p-side__link" href="#learning" data-view-link="learning">
+        <a class="p-side__link p-side__family" href="#learning" data-view-link="learning">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5a7 7 0 0 0-4 12.700V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-1.800A7 7 0 0 0 12 2.500zM9.500 20h5v1a1 1 0 0 1-1 1h-3a1 1 0 0 1-1-1z"/></svg><span>Learning</span>
         </a>
+        <span id="orgNav"></span>
       </nav>
       <nav class="p-side__nav p-side__nav--low">
-        <a class="p-side__link" href="characters.html">
+        <a class="p-side__link p-side__family" href="characters.html">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16l-5.4 3 1.2-6-4.5-4.2 6.1-.7z"/></svg><span>My World</span>
         </a>
-        <a class="p-side__link" href="#favourites" data-view-link="favourites">
+        <a class="p-side__link p-side__family" href="#favourites" data-view-link="favourites">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7.5-4.6-10-9.3C.4 8.3 2.3 4 6.3 4c2.3 0 3.9 1.3 5.7 3.3C13.8 5.3 15.4 4 17.7 4c4 0 5.9 4.3 4.3 7.7C19.5 16.4 12 21 12 21z"/></svg><span>Favourites</span>
         </a>
+        <button type="button" class="p-side__link" data-org-open hidden>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v12H4z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8 10h8M8 14h5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span>School</span>
+        </button>
         <button type="button" class="p-side__link" data-settings>
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.4 13a7.6 7.6 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.4 7.4 0 0 0-1.7-1L15 3.3h-4l-.4 2.6a7.4 7.4 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.6 7.6 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1a7.4 7.4 0 0 0 1.7 1l.3 2.6h4l.4-2.6a7.4 7.4 0 0 0 1.7-1l2.5 1 2-3.5zM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg><span>Settings</span>
         </button>
@@ -90,21 +124,30 @@
 
     <div class="p-main">
       <header class="p-top">
-        <a class="p-logo p-logo--top" href="#home" data-view-link="home" aria-label="Oovi — home">
-          <img src="games/images/brand/oovi-mark.svg" width="100" height="136" alt="" />
-          <span aria-hidden="true">ovi</span>
+        <a class="p-logo p-logo--top" href="#home" data-view-link="home" aria-label="Wondii — home">
+          <img src="games/images/brand/wondi-wordmark.svg" width="276" height="93" alt="" />
         </a>
+        <p class="org-lockup" id="orgLockup" hidden>
+          <a href="#home" data-view-link="home" aria-label="Wondii — home">
+            <img class="org-lockup__wondii" src="games/images/brand/wondi-wordmark.svg" width="120" height="40" alt="" />
+          </a>
+          <img class="org-lockup__logo" id="orgLogo" alt="" hidden />
+          <span id="orgName"></span>
+        </p>
         <form class="p-search" id="pSearch" role="search" hidden>
           <label class="visually-hidden" for="pSearchInput">Search games and stories</label>
           <input type="search" id="pSearchInput" placeholder="Search games, stories, puzzles…" autocomplete="off" enterkeyhint="search" />
         </form>
         <a class="p-who" href="characters.html" title="My characters">
-          <img src="games/images/character-girl-blonde.png" width="40" height="40" alt="" />
-          <span>Sofia’s World</span>
+          <img src="games/images/brand/wondi-mark.svg" width="40" height="40" alt="" />
+          <span>My Wondii</span>
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </a>
         <button type="button" class="p-round" id="pSearchBtn" aria-label="Search" aria-expanded="false">
           <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2.6"/><path d="m15.5 15.5 5 5" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>
+        </button>
+        <button type="button" class="p-round org-open-top" data-org-open hidden aria-label="School">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v12H4z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8 10h8M8 14h5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
         </button>
         <button type="button" class="p-round p-round--gear" data-settings aria-label="Grown-up settings">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.4 13a7.6 7.6 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.4 7.4 0 0 0-1.7-1L15 3.3h-4l-.4 2.6a7.4 7.4 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.6 7.6 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1a7.4 7.4 0 0 0 1.7 1l.3 2.6h4l.4-2.6a7.4 7.4 0 0 0 1.7-1l2.5 1 2-3.5zM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg>
@@ -117,15 +160,30 @@
           <div class="p-hello">
             <img class="p-hello__art" src="games/images/portal/hello.jpg" width="1280" height="720" alt="" fetchpriority="high" />
             <div class="p-hello__copy">
-              <h1 class="p-hello__title" id="helloTitle">Hello Sofia <span class="p-wave" aria-hidden="true">👋</span></h1>
+              <h1 class="p-hello__title" id="helloTitle">Welcome to Wondii <span class="p-wave" aria-hidden="true">✨</span></h1>
               <p class="p-hello__sub" id="helloSub">What shall we explore today?</p>
+              <div class="org-create" id="orgCreateRow" hidden>
+                <a class="org-cta" id="orgCreate" href="games/storybook.html?create=1">Create a Story</a>
+                <a class="org-learn" id="orgLearn" href="schools/learn/create.html">
+                  <strong>Create a Learning Adventure</strong>
+                  <span>Turn a lesson, worksheet or learning objective into a personalised interactive learning experience.</span>
+                </a>
+              </div>
             </div>
           </div>
+          <p class="org-banner" id="orgBanner" hidden></p>
+          <section class="org-starters" id="orgStarters" hidden>
+            <div class="p-head">
+              <h2 class="p-h2" id="orgIdeasTitle">Ideas for your school</h2>
+            </div>
+            <ul class="org-starter-list" id="orgStarterList"></ul>
+          </section>
+          <section class="org-today" id="orgToday" hidden></section>
           <div class="p-tiles">
-            <a class="p-tile p-tile--stories" href="#stories" data-view-link="stories"><span class="p-tile__icon" aria-hidden="true">📖</span>Stories</a>
-            <a class="p-tile p-tile--games" href="#games" data-view-link="games"><span class="p-tile__icon" aria-hidden="true">🎮</span>Games</a>
-            <a class="p-tile p-tile--puzzles" href="#puzzles" data-view-link="puzzles"><span class="p-tile__icon" aria-hidden="true">🧩</span>Puzzles</a>
-            <a class="p-tile p-tile--learning" href="#learning" data-view-link="learning"><span class="p-tile__icon" aria-hidden="true">💡</span>Learning</a>
+            <a class="p-tile p-tile--stories" href="#stories" data-view-link="stories"><span class="p-tile__icon" aria-hidden="true"><svg class="p-tile__svg" viewBox="0 0 24 24"><path d="M4 5.5C6.5 4.3 9.2 4.3 12 6c2.8-1.7 5.5-1.7 8-.5V19c-2.5-1.2-5.2-1.2-8 .5-2.8-1.7-5.5-1.7-8-.5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M12 6v13.5" stroke="currentColor" stroke-width="2"/></svg></span>Stories</a>
+            <a class="p-tile p-tile--games" href="#games" data-view-link="games"><span class="p-tile__icon" aria-hidden="true"><svg class="p-tile__svg" viewBox="0 0 24 24"><path d="M7 7h10a5 5 0 0 1 4.9 6l-.8 4a2.5 2.5 0 0 1-4.3 1.2L14.5 16h-5l-2.3 2.2A2.5 2.5 0 0 1 2.9 17l-.8-4A5 5 0 0 1 7 7z" fill="none" stroke="currentColor" stroke-width="2"/></svg></span>Games</a>
+            <a class="p-tile p-tile--puzzles" href="#puzzles" data-view-link="puzzles"><span class="p-tile__icon" aria-hidden="true"><svg class="p-tile__svg" viewBox="0 0 24 24"><path d="M10 3a2 2 0 0 1 2 2v1h4a1 1 0 0 1 1 1v4h1a2 2 0 1 1 0 4h-1v4a1 1 0 0 1-1 1h-4v-1a2 2 0 1 0-4 0v1H4a1 1 0 0 1-1-1v-4h1a2 2 0 1 0 0-4H3V7a1 1 0 0 1 1-1h4V5a2 2 0 0 1 2-2z" fill="none" stroke="currentColor" stroke-width="2"/></svg></span>Puzzles</a>
+            <a class="p-tile p-tile--learning" href="#learning" data-view-link="learning"><span class="p-tile__icon" aria-hidden="true"><svg class="p-tile__svg" viewBox="0 0 24 24"><path d="M12 2.5a7 7 0 0 0-4 12.7V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-1.8A7 7 0 0 0 12 2.5zM9.5 20h5v1a1 1 0 0 1-1 1h-3a1 1 0 0 1-1-1z" fill="none" stroke="currentColor" stroke-width="2"/></svg></span>Learning</a>
           </div>
 
           <div class="p-head">
@@ -137,8 +195,8 @@
           <section class="home-cast p-cast" id="cast" aria-labelledby="castTitle">
             <div class="p-head">
               <div>
-                <h2 class="p-h2" id="castTitle">Sofia’s Characters</h2>
-                <p class="p-sub" id="homeCastSub">Tap a friend to make a story with them!</p>
+                <h2 class="p-h2" id="castTitle">My characters</h2>
+                <p class="p-sub" id="homeCastSub">Create your first character.</p>
               </div>
               <a class="p-more" href="characters.html">✨ Make a character</a>
             </div>
@@ -149,6 +207,7 @@
               <span class="home-cast__cloud home-cast__cloud--3" aria-hidden="true"></span>
               <span class="home-cast__hills" aria-hidden="true"></span>
               <span class="home-cast__grass" aria-hidden="true"></span>
+              <p class="home-cast__empty" id="homeCastEmpty">Create your first character.</p>
               <div class="home-cast__bubble" id="homeCastBubble" role="dialog" aria-live="polite" hidden>
                 <p class="home-cast__bubble-text" id="homeCastBubbleText"></p>
                 <a class="home-cast__bubble-go" id="homeCastBubbleGo" href="games/storybook.html">📖 Make a story with me</a>
@@ -163,9 +222,21 @@
           <p class="p-sub">Magical stories for curious minds.</p>
           <div class="p-chips" id="storyChips" role="group" aria-label="Story types"></div>
           <div class="p-feature" id="storyFeature"></div>
+          <section class="p-make" aria-labelledby="makeTitle">
+            <div class="p-make__copy">
+              <p class="p-make__emoji" aria-hidden="true">📖✨</p>
+              <h2 class="p-h2" id="makeTitle">Build your book</h2>
+              <p>Five short steps. Then we write the story and draw the pictures.</p>
+              <p>Name, a friend, a place, and what happens. You can change the look at the end.</p>
+            </div>
+            <div class="p-make__actions">
+              <a class="p-make__go" href="games/storybook.html?create=1">Start your story journey</a>
+              <a class="p-make__ghost" href="games/storybook.html?sample=1">Preview sample book</a>
+              <p class="p-make__hint">Uses the same two-page layout as a real story. Arrows move one spread at a time.</p>
+            </div>
+          </section>
           <div class="p-head">
             <h2 class="p-h2">My Stories</h2>
-            <a class="p-more" href="games/storybook.html">View library</a>
           </div>
           <ul class="p-cards p-cards--books" id="storyGrid" role="list"></ul>
           <p class="p-empty" id="storyEmpty" hidden></p>
@@ -218,6 +289,149 @@
       </main>
     </div>
 
+    <div class="org-sheet" id="orgOnboard" hidden>
+      <form class="org-sheet__card" id="orgOnboardForm" novalidate>
+        <p class="org-sheet__kicker">Let’s make Wondii yours</p>
+        <ol class="org-progress" aria-label="Progress">
+          <li>1 Your school</li>
+          <li>2 Your look</li>
+          <li>3 Preview</li>
+        </ol>
+        <div class="org-step" data-step="1">
+          <h2>What’s your school called?</h2>
+          <label>School name
+            <input id="orgSchoolName" name="school" maxlength="120" placeholder="Ramsden Primary School" />
+          </label>
+          <button type="button" class="org-cta" data-org-step="2">Continue</button>
+        </div>
+        <div class="org-step" data-step="2" hidden>
+          <h2>Your look</h2>
+          <label>School logo
+            <input id="orgLogoFile" type="file" accept="image/png,image/jpeg,image/webp" />
+          </label>
+          <img id="orgLogoPreview" class="org-logo-preview" alt="" hidden />
+          <p class="org-hint" id="orgSuggestLabel" hidden>Suggested from your logo</p>
+          <div class="org-swatches" id="orgSwatches"></div>
+          <label>School colour
+            <input id="orgColour" type="color" value="#141b4d" />
+          </label>
+          <p class="org-hint" id="orgColourNote"></p>
+          <button type="button" class="org-text" data-org-step="1">Back</button>
+          <button type="button" class="org-cta" data-org-step="3">Continue</button>
+        </div>
+        <div class="org-step" data-step="3" hidden>
+          <h2>Preview</h2>
+          <label>School website <span>(optional)</span>
+            <input id="orgWebsite" type="text" inputmode="url" placeholder="www.example.school" autocomplete="url" />
+          </label>
+          <fieldset class="org-picks">
+            <legend>Story ideas to start with <span>(optional)</span></legend>
+            <label><input type="checkbox" data-starter data-title="Outdoor adventures" data-description="Stories inspired by your school grounds." data-prompt="An outdoor adventure that starts in the school grounds." /> Outdoor adventures</label>
+            <label><input type="checkbox" data-starter data-title="Animals" data-description="Stories featuring animals the children know." data-prompt="A story featuring animals the children might meet near school." /> Animals</label>
+            <label><input type="checkbox" data-starter data-title="STEM &amp; space" data-description="Turn science topics into adventures." data-prompt="Turn a science topic into an adventure." /> STEM &amp; space</label>
+            <label><input type="checkbox" data-starter data-title="The wider world" data-description="Discover places, people and cultures." data-prompt="A story that discovers a place, a person or a culture." /> The wider world</label>
+          </fieldset>
+          <div class="org-preview" aria-label="Portal preview">
+            <p class="org-preview__bar"><img src="games/images/brand/wondi-wordmark.svg" alt="" width="88" height="30" /> <img id="orgPreviewLogo" alt="" hidden /> <strong id="orgPreviewName">Your school</strong></p>
+            <p>Welcome to</p>
+            <h3 id="orgPreviewTitle">Your school</h3>
+            <span class="org-cta" id="orgPreviewCta">Create a Story →</span>
+          </div>
+          <button type="button" class="org-text" data-org-step="2">Back</button>
+          <button type="submit" class="org-cta">Create school space →</button>
+        </div>
+        <p class="org-hint" id="orgOnboardNote" role="status"></p>
+      </form>
+    </div>
+
+    <div class="org-sheet" id="orgHello" hidden>
+      <div class="org-sheet__card">
+        <h2 id="orgHelloTitle">Your school space is ready</h2>
+        <p>Your school space is ready.</p>
+        <a class="org-cta" href="games/storybook.html?create=1">Create your first story</a>
+        <button type="button" class="org-text" id="orgHelloInvite">Invite your team</button>
+      </div>
+    </div>
+
+    <div class="org-sheet" id="orgSettings" hidden>
+      <div class="org-sheet__card org-sheet__card--wide">
+        <button type="button" class="org-text" id="orgSettingsClose">Close</button>
+        <h2>School branding</h2>
+        <img id="orgSettingsLogo" class="org-logo-preview" alt="" hidden />
+        <label>School name
+          <input id="orgSettingsName" maxlength="120" />
+        </label>
+        <label>Short name
+          <input id="orgSettingsShort" maxlength="40" />
+        </label>
+        <label>School colour
+          <input id="orgSettingsColour" type="color" value="#141b4d" />
+        </label>
+        <label>Website
+          <input id="orgSettingsSite" type="url" />
+        </label>
+        <div data-org-admin>
+          <label>Change logo
+            <input id="orgSettingsFile" type="file" accept="image/png,image/jpeg,image/webp" />
+          </label>
+          <label>Portal artwork <span>(optional)</span>
+            <input id="orgHeroFile" type="file" accept="image/png,image/jpeg,image/webp" />
+          </label>
+        </div>
+        <div class="org-preview">
+          <p class="org-preview__bar"><img src="games/images/brand/wondi-wordmark.svg" alt="" width="88" height="30" /> <strong id="orgSettingsPreviewName">Your school</strong></p>
+          <span class="org-cta" id="orgSettingsCta">Create a Story →</span>
+        </div>
+        <p class="org-hint" id="orgSettingsNote" role="status"></p>
+        <button type="button" class="org-cta" id="orgSave">Save changes</button>
+
+        <div data-org-admin>
+          <h2>School team</h2>
+          <ul class="org-team" id="orgTeamList"></ul>
+          <form id="orgInviteForm">
+            <h3>Invite a teacher</h3>
+            <label>Email address
+              <input id="orgInviteEmail" type="email" required />
+            </label>
+            <label>Role
+              <select id="orgInviteRole">
+                <option value="teacher">Teacher</option>
+                <option value="staff">Staff</option>
+                <option value="school_admin">School admin</option>
+              </select>
+            </label>
+            <button type="submit" class="org-cta">Send invitation</button>
+            <p class="org-hint" id="orgInviteNote"></p>
+          </form>
+
+          <h2>Story ideas</h2>
+          <ul class="org-config" id="orgStarterAdmin"></ul>
+          <form id="orgStarterForm">
+            <label>Title <input id="orgStarterTitle" maxlength="80" required /></label>
+            <label>Description <input id="orgStarterDesc" maxlength="160" /></label>
+            <label>Story seed <input id="orgStarterPrompt" maxlength="400" /></label>
+            <button type="submit" class="org-cta">Add idea</button>
+          </form>
+
+          <h2>School links</h2>
+          <ul class="org-config" id="orgNavAdmin"></ul>
+          <form id="orgNavForm">
+            <label>Label <input id="orgNavLabel" maxlength="40" required /></label>
+            <label>Link <input id="orgNavHref" placeholder="games/storybook.html" required /></label>
+            <button type="submit" class="org-cta">Add link</button>
+            <p class="org-hint" id="orgNavNote"></p>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <nav class="p-tabs teacher-tabs" id="teacherTabs" hidden aria-label="School">
+      <a href="#home" data-teacher="home">Home</a>
+      <a href="#classes" data-teacher="classes">Classes</a>
+      <a href="#create" data-teacher="create">Create</a>
+      <a href="#library" data-teacher="library">Library</a>
+      <a href="#results" data-teacher="results">Results</a>
+    </nav>
     <nav class="p-tabs" aria-label="Sections">
       <a href="#home" data-view-link="home"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11.2 12 4l9 7.2V20a1 1 0 0 1-1 1h-5.5v-6h-5v6H4a1 1 0 0 1-1-1z"/></svg>Home</a>
       <a href="#stories" data-view-link="stories"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5C6.500 4.300 9.200 4.300 12 6c2.800-1.700 5.500-1.700 8-.5V19c-2.500-1.200-5.200-1.200-8 .5-2.800-1.700-5.500-1.700-8-.5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M12 6v13.500" stroke="currentColor" stroke-width="2"/></svg>Stories</a>
@@ -228,15 +442,23 @@
   </div>
 
   <script src="js/kids-core.js"></script>
-  <script src="js/storybook-shelf-store.js" defer></script>
-  <script src="js/score-cloud.js" defer></script>
+  <script src="js/storybook-shelf-store.js?v=3" defer></script>
+  <script src="js/score-cloud.js?v=9" defer></script>
   <script src="js/character-store.js" defer></script>
-  <script src="portal.js" defer></script>
-  <script src="home-cast.js" defer></script>
-  <script src="portal-gate.js" defer></script>
+  <script src="games/game-platform.js?v=1" defer></script>
+  <script src="portal.js?v=8" defer></script>
+  <script src="home-cast.js?v=4" defer></script>
+  <script src="js/organisation.js?v=6" defer></script>
+  <script src="js/school-domain.js?v=3" defer></script>
+  <script src="js/learning-session.js?v=2" defer></script>
+  <script src="js/school-store.js?v=6" defer></script>
+  <script src="schools/learn/model.js?v=9" defer></script>
+  <script src="schools/learn/teach.js?v=3" defer></script>
+  <script src="schools/learn/home.js?v=16" defer></script>
+  <script src="portal-gate.js?v=6" defer></script>
   <script>
     if (typeof KidsCore !== "undefined") {
-      KidsCore.init({ skipBar: true });
+      KidsCore.init({ skipBar: true, skipFullscreen: true });
       KidsCore.bindTapSound(document.body);
     }
     if ("serviceWorker" in navigator) {

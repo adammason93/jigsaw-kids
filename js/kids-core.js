@@ -415,7 +415,11 @@
       document.removeEventListener("click", onFirst, true);
     }
 
-    function onFirst() {
+    function onFirst(ev) {
+      var t = ev && ev.target;
+      if (t && t.closest && t.closest("a, button, input, select, textarea, label")) {
+        return;
+      }
       tearDown();
       if (document.fullscreenElement || document.webkitFullscreenElement) {
         return;

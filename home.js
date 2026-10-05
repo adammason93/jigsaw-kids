@@ -14,6 +14,7 @@
     red: ["#f43f5e", "#ffe8ec"],
   };
 
+  /* Not loaded by portal.html. The live catalogue is games/game-platform.js. */
   var GAMES = [
     {
       id: "jigsaw",

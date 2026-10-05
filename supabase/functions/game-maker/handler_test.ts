@@ -230,12 +230,16 @@ Deno.test("auth user with anon role is 401 even if the JWT claim looked authenti
   assertEquals(calls.length, 1, "no openai");
 });
 
-Deno.test("CORS allows the live site, localhost, and an env origin only", async () => {
+Deno.test("CORS allows the live sites, localhost, and an env origin only", async () => {
   const cases: Array<{ origin: string; allowed: string | null; env?: string }> = [
     { origin: LIVE_ORIGIN, allowed: LIVE_ORIGIN },
+    { origin: "https://wondii.co.uk", allowed: "https://wondii.co.uk" },
+    { origin: "https://www.wondii.co.uk", allowed: "https://www.wondii.co.uk" },
     { origin: "http://localhost:8787", allowed: "http://localhost:8787" },
     { origin: "http://127.0.0.1:8080", allowed: "http://127.0.0.1:8080" },
     { origin: "https://evil.example", allowed: null },
+    { origin: "https://wondii.co.uk.evil.com", allowed: null },
+    { origin: "https://notwondii.co.uk", allowed: null },
     { origin: "https://jigsaw-kids.adammason93.workers.dev.evil.com", allowed: null },
     { origin: "http://localhost.evil.com", allowed: null },
     {

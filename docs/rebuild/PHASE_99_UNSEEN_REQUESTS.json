@@ -1,0 +1,247 @@
+{
+  "phase": "9.9",
+  "baseline": "fc8512d3be1f1680d7314c310e3cda7398d0ebd1",
+  "frozenBeforeGeneration": true,
+  "requests": [
+    {
+      "id": "y1-shadows",
+      "input": "Year 1 science. Help the class understand why a shadow changes size.",
+      "year": "Year 1",
+      "concept": "why a shadow changes size",
+      "prior": "",
+      "duration": null,
+      "style": "clear",
+      "demand": "explain"
+    },
+    {
+      "id": "y3-arrays",
+      "input": "Year 3 maths. Show how an array can stand for a multiplication.",
+      "year": "Year 3",
+      "concept": "an array standing for a multiplication",
+      "prior": "",
+      "duration": null,
+      "style": "clear",
+      "demand": "apply"
+    },
+    {
+      "id": "y4-rivers",
+      "input": "Year 4 geography. Teach how a river changes from its source to its mouth.",
+      "year": "Year 4",
+      "concept": "how a river changes from source to mouth",
+      "prior": "",
+      "duration": null,
+      "style": "clear",
+      "demand": "sequence"
+    },
+    {
+      "id": "y2-habitats",
+      "input": "Year 2 science. Teach what a habitat gives a living thing.",
+      "year": "Year 2",
+      "concept": "what a habitat provides",
+      "prior": "",
+      "duration": null,
+      "style": "clear",
+      "demand": "identify"
+    },
+    {
+      "id": "y6-evidence",
+      "input": "Year 6 history. Teach how historians use evidence to decide what happened.",
+      "year": "Year 6",
+      "concept": "using historical evidence",
+      "prior": "",
+      "duration": null,
+      "style": "clear",
+      "demand": "infer"
+    },
+    {
+      "id": "y1-shapes",
+      "input": "Year 1 maths. Help them identify squares, circles and triangles.",
+      "year": "Year 1",
+      "concept": "identifying squares, circles and triangles",
+      "prior": "",
+      "duration": null,
+      "style": "clear",
+      "demand": "identify"
+    },
+    {
+      "id": "y5-settlements",
+      "input": "Year 5 geography. Compare why people settled beside a river and why people settled on a hill.",
+      "year": "Year 5",
+      "concept": "comparing river and hill settlement sites",
+      "prior": "",
+      "duration": null,
+      "style": "clear",
+      "demand": "compare"
+    },
+    {
+      "id": "y2-lifecycle",
+      "input": "Year 2 science. Teach the order of a frog's life, from egg to adult.",
+      "year": "Year 2",
+      "concept": "order of a frog life cycle",
+      "prior": "",
+      "duration": null,
+      "style": "clear",
+      "demand": "sequence"
+    },
+    {
+      "id": "y2-loud",
+      "input": "Need something fun for year 2 about why some sounds are louder than others",
+      "year": "Year 2",
+      "concept": "why some sounds are louder",
+      "prior": "",
+      "duration": null,
+      "style": "messy",
+      "demand": "explain"
+    },
+    {
+      "id": "y4-speech",
+      "input": "year 4 they keep forgetting speech marks can we do something on that",
+      "year": "Year 4",
+      "concept": "using speech marks",
+      "prior": "",
+      "duration": null,
+      "style": "messy",
+      "demand": "apply"
+    },
+    {
+      "id": "y1-plants",
+      "input": "pls year 1 why do plants need water keep it playful",
+      "year": "Year 1",
+      "concept": "why plants need water",
+      "prior": "",
+      "duration": null,
+      "style": "messy",
+      "demand": "explain"
+    },
+    {
+      "id": "y5-chrono",
+      "input": "year 5 need them to put events in order not just memorise dates",
+      "year": "Year 5",
+      "concept": "ordering events rather than memorising dates",
+      "prior": "",
+      "duration": null,
+      "style": "messy",
+      "demand": "sequence"
+    },
+    {
+      "id": "y3-backbone",
+      "input": "year 3 sort animals into ones with a backbone and ones without, make it hands on",
+      "year": "Year 3",
+      "concept": "sorting animals by whether they have a backbone",
+      "prior": "",
+      "duration": null,
+      "style": "messy",
+      "demand": "classify"
+    },
+    {
+      "id": "y6-flood",
+      "input": "year 6 why might this town flood again if the river is already high",
+      "year": "Year 6",
+      "concept": "predicting another flood when the river is already high",
+      "prior": "",
+      "duration": null,
+      "style": "messy",
+      "demand": "predict"
+    },
+    {
+      "id": "y4-states",
+      "input": "Year 4 science. They already know solids, liquids and gases. Do not reteach the three states. Teach how heating and cooling can change a material from one state to another.",
+      "year": "Year 4",
+      "concept": "heating and cooling changing a material's state",
+      "prior": "Already know solids, liquids and gases. Do not reteach the three states.",
+      "duration": null,
+      "style": "prior",
+      "demand": "explain"
+    },
+    {
+      "id": "y2-order",
+      "input": "Year 2 maths. They can add within 20. Do not reteach counting on. The mix-up is that they think you must start with the bigger number. Teach that addition can be done in either order.",
+      "year": "Year 2",
+      "concept": "addition can be done in either order",
+      "prior": "Can add within 20. Do not reteach counting on. Address the bigger-number-first mix-up.",
+      "duration": null,
+      "style": "prior",
+      "demand": "explain"
+    },
+    {
+      "id": "y6-infer",
+      "input": "Year 6 English. They can find a fact that is written in the text. Do not reteach finding stated facts. Teach them to infer a feeling the writer does not say outright.",
+      "year": "Year 6",
+      "concept": "inferring a feeling that is not stated",
+      "prior": "Can retrieve a stated fact. Do not reteach retrieval.",
+      "duration": null,
+      "style": "prior",
+      "demand": "infer"
+    },
+    {
+      "id": "y3-maps",
+      "input": "Year 3 geography. They know a map is a picture of a place. Do not reteach what a map is. Teach them to use a key and a compass point to say where something is.",
+      "year": "Year 3",
+      "concept": "using a map key and a compass point",
+      "prior": "Know a map is a picture of a place. Do not reteach what a map is.",
+      "duration": null,
+      "style": "prior",
+      "demand": "apply"
+    },
+    {
+      "id": "y3-magnets",
+      "input": "Year 3 science. They already know a magnet can pull some things. Do not reteach what a magnet is. Teach which materials a magnet pulls and which it leaves alone.",
+      "year": "Year 3",
+      "concept": "which materials a magnet pulls",
+      "prior": "Already know a magnet can pull some things. Do not reteach what a magnet is.",
+      "duration": null,
+      "style": "prior",
+      "demand": "classify"
+    },
+    {
+      "id": "y1-forces",
+      "input": "15 mins. Year 1 science. Teach that a push and a pull are both forces.",
+      "year": "Year 1",
+      "concept": "a push and a pull are both forces",
+      "prior": "",
+      "duration": 15,
+      "style": "time",
+      "demand": "explain"
+    },
+    {
+      "id": "y3-questions",
+      "input": "30 minutes. Year 3 English. Teach why a question needs a question mark.",
+      "year": "Year 3",
+      "concept": "why a question needs a question mark",
+      "prior": "",
+      "duration": 30,
+      "style": "time",
+      "demand": "explain"
+    },
+    {
+      "id": "y5-angles",
+      "input": "45 minutes. Year 5 maths. Teach how to measure an angle smaller than a right angle.",
+      "year": "Year 5",
+      "concept": "measuring an angle smaller than a right angle",
+      "prior": "",
+      "duration": 45,
+      "style": "time",
+      "demand": "apply"
+    },
+    {
+      "id": "y6-sources",
+      "input": "20 mins. Year 6 history. Teach why two people can read the same source and disagree.",
+      "year": "Year 6",
+      "concept": "why two people can disagree about the same source",
+      "prior": "",
+      "duration": 20,
+      "style": "time",
+      "demand": "explain"
+    },
+    {
+      "id": "y5-persuade",
+      "input": "Year 5 English. Teach the class to write a short argument that tries to change someone's mind.",
+      "year": "Year 5",
+      "concept": "writing a short argument to change someone's mind",
+      "prior": "",
+      "duration": null,
+      "style": "clear",
+      "demand": "create"
+    }
+  ]
+}

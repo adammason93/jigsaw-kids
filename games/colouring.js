@@ -320,14 +320,14 @@
 
   function slugifyForFilename(s) {
     if (!s || typeof s !== "string") {
-      return "sofiacolour";
+      return "wondii-colouring";
     }
     var t = s
       .trim()
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-+|-+$/g, "");
-    return t ? t.slice(0, 40) : "sofiacolour";
+    return t ? t.slice(0, 40) : "wondii-colouring";
   }
 
   function getDpr() {
@@ -1474,7 +1474,7 @@
       saveLink.href = url;
       var sess = readSavedSession();
       var nm = sess && sanitizePhotoName(sess.photoName || "");
-      var base = nm ? slugifyForFilename(nm) : "sofiacolour";
+      var base = nm ? slugifyForFilename(nm) : "wondii-colouring";
       saveLink.download = base + "-" + (Date.now() % 100000) + ".png";
       saveLink.click();
     }

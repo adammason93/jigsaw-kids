@@ -1,5 +1,5 @@
 /* Minimal offline shell — network-first, cache as fallback for same-origin */
-const CACHE = "jigsaw-kids-v348";
+const CACHE = "jigsaw-kids-v434";
 const SHELL = [
   "./index.html",
   "./portal.html",
@@ -11,7 +11,8 @@ const SHELL = [
   "./welcome.js",
   "./home.css",
   "./home-cast.js",
-  "./games/images/brand/oovi-mark.svg",
+  "./games/images/brand/wondi-mark.svg",
+  "./games/images/brand/wondi-wordmark.svg",
   "./games/images/portal/hello.jpg",
   "./games/images/portal/stories-night.jpg",
   "./manifest.json",
@@ -134,6 +135,7 @@ const SHELL = [
   "./games/colouring.js",
   "./games/storybook.html",
   "./games/storybook-app.css",
+  "./games/storybook-wondii.css",
   "./games/storybook.js",
   "./js/character-store.js",
   "./games/images/portal/storybook-nook.jpg",
@@ -183,21 +185,33 @@ self.addEventListener("activate", function (e) {
             return caches.delete(k);
           })
       );
+    }).then(function () {
+      return self.clients.claim();
+    }).then(function () {
+      return self.clients.matchAll({ type: "window" });
+    }).then(function (clients) {
+      clients.forEach(function (client) {
+        if (/\/schools\/learn\/(create|present|class|join)(\.html)?\/?(\?|#|$)/.test(client.url)) {
+          client.navigate(client.url);
+        }
+      });
     })
   );
-  self.clients.claim();
 });
 
 self.addEventListener("fetch", function (e) {
   if (e.request.method !== "GET" || e.request.url.indexOf("http") !== 0) {
     return;
   }
+  var learnPage = e.request.mode === "navigate" && /\/schools\/learn\/(create|present|class|join)(\.html)?\/?(?:\?|#|$)/.test(e.request.url);
+  var request = learnPage ? new Request(e.request, { cache: "reload" }) : e.request;
   e.respondWith(
-    fetch(e.request)
+    fetch(request)
       .then(function (r) {
         return r;
       })
       .catch(function () {
+        if (learnPage) return caches.match("./portal.html");
         return caches.match(e.request).then(function (c) {
           return c || caches.match("./portal.html");
         });

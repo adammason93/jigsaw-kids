@@ -1,0 +1,847 @@
+{
+  "ok": true,
+  "stage": "COMPLETE",
+  "adventure": {
+    "subject": "Science",
+    "topic": "Sharks",
+    "yearGroup": "Year 1",
+    "yearAssumed": false,
+    "yearAssumption": "",
+    "title": "Shark Adventure",
+    "objectives": [
+      "Students will understand basic facts about sharks."
+    ],
+    "vocabulary": [
+      "shark",
+      "habitat",
+      "carnivore",
+      "teeth",
+      "ocean"
+    ],
+    "lessonPlan": {
+      "title": "Shark Adventure",
+      "subject": "Science",
+      "topic": "Sharks",
+      "yearGroup": "Year 1",
+      "durationMinutes": 15,
+      "learningObjective": "Students will understand basic facts about sharks.",
+      "successCriteria": [
+        "Students can list three facts about sharks.",
+        "Students can explain one interesting feature of sharks."
+      ],
+      "priorKnowledge": [],
+      "keyKnowledge": [
+        "Sharks live in oceans and seas.",
+        "Sharks are carnivores and eat fish.",
+        "Sharks have sharp teeth and a streamlined body.",
+        "Sharks can be found in different habitats like coral reefs and deep oceans.",
+        "Shark features like their teeth and body shape help them hunt.",
+        "Different species of sharks adapt to their habitats."
+      ],
+      "misconceptions": [
+        "All sharks are dangerous to humans.",
+        "Sharks only live in warm waters."
+      ],
+      "vocabulary": [
+        "shark",
+        "habitat",
+        "carnivore",
+        "teeth",
+        "ocean"
+      ],
+      "lessonArc": [
+        {
+          "purpose": "hook",
+          "beat": "beginning",
+          "learningRole": "Show the unsolved problem.",
+          "concept": "",
+          "mayTeachNewKnowledge": false,
+          "mayRevealAnswer": false,
+          "mayAssess": false,
+          "requiredKnowledge": [],
+          "dependsOn": ""
+        },
+        {
+          "purpose": "investigate",
+          "beat": "goal",
+          "learningRole": "Ask one question about what the class can see. Do not explain yet.",
+          "concept": "",
+          "mayTeachNewKnowledge": false,
+          "mayRevealAnswer": false,
+          "mayAssess": false,
+          "requiredKnowledge": [],
+          "dependsOn": "hook"
+        },
+        {
+          "purpose": "teach",
+          "beat": "discovery",
+          "learningRole": "explore",
+          "concept": "Explain shark habitats, diet, and anatomy.",
+          "mayTeachNewKnowledge": true,
+          "mayRevealAnswer": true,
+          "mayAssess": false,
+          "requiredKnowledge": [
+            "Sharks live in oceans and seas.",
+            "Sharks are carnivores and eat fish.",
+            "Sharks have sharp teeth and a streamlined body.",
+            "Sharks can be found in different habitats like coral reefs and deep oceans.",
+            "Shark features like their teeth and body shape help them hunt.",
+            "Different species of sharks adapt to their habitats."
+          ],
+          "dependsOn": "investigate"
+        },
+        {
+          "purpose": "apply",
+          "beat": "application",
+          "learningRole": "Use the new knowledge.",
+          "concept": "",
+          "mayTeachNewKnowledge": false,
+          "mayRevealAnswer": true,
+          "mayAssess": false,
+          "requiredKnowledge": [
+            "Sharks live in oceans and seas.",
+            "Sharks are carnivores and eat fish.",
+            "Sharks have sharp teeth and a streamlined body.",
+            "Sharks can be found in different habitats like coral reefs and deep oceans.",
+            "Shark features like their teeth and body shape help them hunt.",
+            "Different species of sharks adapt to their habitats."
+          ],
+          "dependsOn": "teach"
+        },
+        {
+          "purpose": "check",
+          "beat": "development",
+          "learningRole": "assess",
+          "concept": "",
+          "mayTeachNewKnowledge": false,
+          "mayRevealAnswer": false,
+          "mayAssess": true,
+          "requiredKnowledge": [
+            "Sharks live in oceans and seas."
+          ],
+          "dependsOn": "apply"
+        },
+        {
+          "purpose": "resolution",
+          "beat": "resolution",
+          "learningRole": "Settle the mission after the check.",
+          "concept": "",
+          "mayTeachNewKnowledge": false,
+          "mayRevealAnswer": true,
+          "mayAssess": false,
+          "requiredKnowledge": [],
+          "dependsOn": "check"
+        },
+        {
+          "purpose": "recap",
+          "beat": "debrief",
+          "learningRole": "summarize",
+          "concept": "",
+          "mayTeachNewKnowledge": false,
+          "mayRevealAnswer": true,
+          "mayAssess": false,
+          "requiredKnowledge": [
+            "Sharks live in oceans and seas.",
+            "Sharks are carnivores and eat fish.",
+            "Sharks have sharp teeth and a streamlined body.",
+            "Sharks can be found in different habitats like coral reefs and deep oceans.",
+            "Shark features like their teeth and body shape help them hunt.",
+            "Different species of sharks adapt to their habitats."
+          ],
+          "dependsOn": "resolution"
+        }
+      ]
+    },
+    "lessonSkeleton": [
+      {
+        "id": "hook",
+        "beat": "beginning",
+        "mechanic": "story",
+        "minutes": 2,
+        "minimumParticipation": 1,
+        "beats": [
+          {
+            "id": "hook:0",
+            "stageId": "hook",
+            "move": "notice",
+            "knowledgeRefs": [
+              "k1"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "investigate",
+        "beat": "goal",
+        "mechanic": "story",
+        "minutes": 2,
+        "minimumParticipation": 1,
+        "beats": [
+          {
+            "id": "investigate:0",
+            "stageId": "investigate",
+            "move": "notice",
+            "knowledgeRefs": [
+              "k1"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "teach",
+        "beat": "discovery",
+        "mechanic": "story",
+        "minutes": 3,
+        "minimumParticipation": 1,
+        "beats": [
+          {
+            "id": "teach:0",
+            "stageId": "teach",
+            "move": "name",
+            "knowledgeRefs": [
+              "k1"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "apply",
+        "beat": "application",
+        "mechanic": "story",
+        "minutes": 3,
+        "minimumParticipation": 1,
+        "beats": [
+          {
+            "id": "apply:0",
+            "stageId": "apply",
+            "move": "practise",
+            "knowledgeRefs": [
+              "k5"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "check",
+        "beat": "development",
+        "mechanic": "quiz",
+        "minutes": 2,
+        "minimumParticipation": 1,
+        "beats": [
+          {
+            "id": "check:0",
+            "stageId": "check",
+            "move": "retrieve",
+            "knowledgeRefs": [
+              "k2"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "resolution",
+        "beat": "resolution",
+        "mechanic": "story",
+        "minutes": 1,
+        "minimumParticipation": 1,
+        "beats": [
+          {
+            "id": "resolution:0",
+            "stageId": "resolution",
+            "move": "reveal",
+            "knowledgeRefs": [
+              "k2"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "recap",
+        "beat": "debrief",
+        "mechanic": "mystery",
+        "minutes": 2,
+        "minimumParticipation": 1,
+        "beats": [
+          {
+            "id": "recap:0",
+            "stageId": "recap",
+            "move": "consolidate",
+            "knowledgeRefs": [
+              "k1",
+              "k2",
+              "k3"
+            ]
+          }
+        ]
+      }
+    ],
+    "storyPlan": {
+      "enabled": true,
+      "structure": "investigation",
+      "title": "Shark Adventure",
+      "premise": "The underwater world is in trouble!",
+      "setting": "A vibrant underwater scene filled with colorful coral reefs and various species of sharks swimming around.",
+      "tone": "exciting and adventurous",
+      "mission": "Help the sharks learn about their habitats, diet, and anatomy!",
+      "missionLabel": "Discover Shark Secrets",
+      "characters": [
+        {
+          "id": "explorer",
+          "label": "Shark Explorer",
+          "visualRole": "A friendly underwater explorer",
+          "characterId": "CHARACTER_A"
+        },
+        {
+          "id": "scientist",
+          "label": "Shark Scientist",
+          "visualRole": "A wise scientist",
+          "characterId": "CHARACTER_B"
+        },
+        {
+          "id": "guide",
+          "label": "Ocean Guide",
+          "visualRole": "A cheerful dolphin",
+          "characterId": "CHARACTER_C"
+        }
+      ],
+      "narrativeArc": [],
+      "ending": "The sharks are now knowledgeable.",
+      "continuity": {
+        "setting": "underwater",
+        "mission": "help",
+        "discovered": [],
+        "objects": [],
+        "roles": [
+          "explorer",
+          "scientist",
+          "guide"
+        ]
+      },
+      "fallback": false
+    },
+    "activities": [
+      {
+        "id": "4fc505d1-123b-4d55-b25f-57b84040d6f9",
+        "mechanic": "story",
+        "purpose": "Show the unsolved problem.",
+        "title": "Arrival",
+        "minutes": 2,
+        "why": "Show the unsolved problem.",
+        "config": {
+          "lines": [
+            "What lives in the ocean?"
+          ]
+        },
+        "slotId": "hook",
+        "beats": [
+          {
+            "id": "hook:0",
+            "stageId": "hook",
+            "move": "notice",
+            "knowledgeRefs": [
+              "k1"
+            ],
+            "pupil": {
+              "cue": "",
+              "text": "What lives in the ocean?"
+            }
+          }
+        ],
+        "participantSelection": {
+          "mode": "whole-class"
+        },
+        "scene": {
+          "beat": "beginning",
+          "kind": "challenge",
+          "visualBrief": {
+            "sceneType": "story",
+            "setting": "underwater",
+            "subjects": [
+              "fictional guide"
+            ],
+            "action": "arrival",
+            "importantObjects": [],
+            "educationalFocus": "hook",
+            "mood": "exciting"
+          }
+        }
+      },
+      {
+        "id": "504778ae-fbb5-417a-829c-4e9b07ce5fc6",
+        "mechanic": "story",
+        "purpose": "Ask one question",
+        "title": "Mission",
+        "minutes": 2,
+        "why": "Ask",
+        "config": {
+          "lines": [
+            "Look closely at the ocean for sharks."
+          ]
+        },
+        "slotId": "investigate",
+        "beats": [
+          {
+            "id": "investigate:0",
+            "stageId": "investigate",
+            "move": "notice",
+            "knowledgeRefs": [
+              "k1"
+            ],
+            "pupil": {
+              "cue": "",
+              "text": "Look closely at the ocean for sharks."
+            }
+          }
+        ],
+        "participantSelection": {
+          "mode": "random"
+        },
+        "learningInteraction": {
+          "type": "inspect"
+        },
+        "scene": {
+          "beat": "goal",
+          "kind": "challenge",
+          "interaction": {
+            "type": "inspect",
+            "target": "scene",
+            "instruction": "Look closely at the ocean for sharks.",
+            "successCondition": "done",
+            "responseEffect": null,
+            "teachingReveal": ""
+          },
+          "visualBrief": {
+            "sceneType": "story",
+            "setting": "underwater",
+            "subjects": [
+              "fictional guide"
+            ],
+            "action": "look",
+            "importantObjects": [],
+            "educationalFocus": "investigate",
+            "mood": "exciting"
+          }
+        }
+      },
+      {
+        "id": "af36bedb-9517-494f-9f2c-1f4da63fe63f",
+        "mechanic": "story",
+        "purpose": "explore",
+        "title": "Discovery",
+        "minutes": 3,
+        "why": "explore",
+        "config": {
+          "lines": [
+            "Sharks live in oceans and seas.",
+            "Sharks are carnivores and eat fish.",
+            "For example, they eat smaller fish.",
+            "Sharks have sharp teeth and a streamlined body.",
+            "They can be found in coral reefs and deep oceans.",
+            "Shark features help them hunt."
+          ]
+        },
+        "slotId": "teach",
+        "beats": [
+          {
+            "id": "teach:0",
+            "stageId": "teach",
+            "move": "name",
+            "knowledgeRefs": [
+              "k1"
+            ],
+            "pupil": {
+              "cue": "",
+              "text": "Sharks live in oceans and seas."
+            }
+          },
+          {
+            "id": "teach:1",
+            "stageId": "teach",
+            "move": "name",
+            "knowledgeRefs": [
+              "k2"
+            ],
+            "pupil": {
+              "cue": "",
+              "text": "Sharks are carnivores and eat fish."
+            }
+          },
+          {
+            "id": "teach:2",
+            "stageId": "teach",
+            "move": "exemplify",
+            "knowledgeRefs": [
+              "k2"
+            ],
+            "pupil": {
+              "cue": "",
+              "text": "For example, they eat smaller fish."
+            }
+          },
+          {
+            "id": "teach:3",
+            "stageId": "teach",
+            "move": "name",
+            "knowledgeRefs": [
+              "k3"
+            ],
+            "pupil": {
+              "cue": "",
+              "text": "Sharks have sharp teeth and a streamlined body."
+            }
+          },
+          {
+            "id": "teach:4",
+            "stageId": "teach",
+            "move": "name",
+            "knowledgeRefs": [
+              "k4"
+            ],
+            "pupil": {
+              "cue": "",
+              "text": "They can be found in coral reefs and deep oceans."
+            }
+          },
+          {
+            "id": "teach:5",
+            "stageId": "teach",
+            "move": "name",
+            "knowledgeRefs": [
+              "k5"
+            ],
+            "pupil": {
+              "cue": "",
+              "text": "Shark features help them hunt."
+            }
+          },
+          {
+            "id": "teach:6",
+            "stageId": "teach",
+            "move": "explain",
+            "knowledgeRefs": [
+              "k5"
+            ],
+            "pupil": {
+              "cue": "",
+              "text": "For instance, their teeth are very sharp."
+            }
+          },
+          {
+            "id": "teach:7",
+            "stageId": "teach",
+            "move": "name",
+            "knowledgeRefs": [
+              "k6"
+            ],
+            "pupil": {
+              "cue": "",
+              "text": "Different species of sharks adapt to their habitats."
+            }
+          }
+        ],
+        "participantSelection": {
+          "mode": "whole-class"
+        },
+        "scene": {
+          "beat": "discovery",
+          "kind": "teach",
+          "visualBrief": {
+            "sceneType": "story",
+            "setting": "underwater",
+            "subjects": [
+              "fictional guide"
+            ],
+            "action": "teach",
+            "importantObjects": [],
+            "educationalFocus": "explore",
+            "mood": "exciting"
+          }
+        }
+      },
+      {
+        "id": "c862329d-72c7-4761-86f2-8829f52a6221",
+        "mechanic": "story",
+        "purpose": "Use the new knowledge.",
+        "title": "Try it",
+        "minutes": 3,
+        "why": "Use",
+        "config": {
+          "lines": [
+            "Show how a shark's teeth help it catch fish."
+          ]
+        },
+        "slotId": "apply",
+        "beats": [
+          {
+            "id": "apply:0",
+            "stageId": "apply",
+            "move": "practise",
+            "knowledgeRefs": [
+              "k5"
+            ],
+            "pupil": {
+              "cue": "",
+              "text": "Show how a shark's teeth help it catch fish."
+            }
+          }
+        ],
+        "participantSelection": {
+          "mode": "random"
+        },
+        "learningInteraction": {
+          "type": "move"
+        },
+        "applyInstruction": "Demonstrate how shark features help them hunt.",
+        "knowledgeUsed": "Shark features like their teeth and body shape help them hunt.",
+        "successCondition": "The pupil shows understanding of shark features.",
+        "teachingConnection": "This task uses the explanation of shark features.",
+        "scene": {
+          "beat": "application",
+          "kind": "challenge",
+          "interaction": {
+            "type": "move",
+            "target": "Shark features like their teeth and body",
+            "instruction": "Demonstrate how shark features help them hunt.",
+            "successCondition": "The pupil shows understanding of shark f",
+            "responseEffect": null,
+            "teachingReveal": ""
+          },
+          "visualBrief": {
+            "sceneType": "story",
+            "setting": "underwater",
+            "subjects": [
+              "fictional guide"
+            ],
+            "action": "apply",
+            "importantObjects": [],
+            "educationalFocus": "apply",
+            "mood": "exciting"
+          }
+        }
+      },
+      {
+        "id": "f5fd8a5e-19a3-4b42-bcb1-8255e19c9f9c",
+        "mechanic": "quiz",
+        "purpose": "assess",
+        "title": "Look",
+        "minutes": 2,
+        "why": "assess",
+        "config": {
+          "kind": "multiple",
+          "prompt": "What do sharks eat?",
+          "choices": [
+            "Plants",
+            "Fish"
+          ],
+          "correct": "Fish",
+          "explain": "Sharks are carnivores and eat fish.",
+          "knowledgeChecked": "Sharks are carnivores and eat fish.",
+          "successEvidence": "The pupil identifies that sharks eat fish.",
+          "teachingConnection": "This question checks knowledge of shark diet.",
+          "points": 1,
+          "participation": "whole_class",
+          "askSelected": false,
+          "questions": [
+            {
+              "prompt": "What do sharks eat?",
+              "choices": [
+                "Plants",
+                "Fish"
+              ],
+              "correct": "Fish",
+              "explain": "Sharks are carnivores and eat fish.",
+              "kind": "multiple",
+              "knowledgeChecked": "Sharks are carnivores and eat fish.",
+              "successEvidence": "The pupil identifies that sharks eat fish.",
+              "teachingConnection": "This question checks knowledge of shark diet.",
+              "id": "check:0"
+            },
+            {
+              "prompt": "What helps sharks hunt?",
+              "choices": [
+                "Their sharp teeth",
+                "Their fins"
+              ],
+              "correct": "Their sharp teeth",
+              "explain": "Shark features like their teeth help them hunt.",
+              "kind": "multiple",
+              "knowledgeChecked": "Shark features like their teeth and body shape help them hunt.",
+              "successEvidence": "The pupil explains how shark features assist in hunting.",
+              "teachingConnection": "This question checks knowledge of shark anatomy.",
+              "id": "check:1"
+            }
+          ]
+        },
+        "slotId": "check",
+        "beats": [
+          {
+            "id": "check:0",
+            "stageId": "check",
+            "move": "retrieve",
+            "knowledgeRefs": [
+              "k2"
+            ],
+            "pupil": {
+              "cue": "",
+              "text": ""
+            }
+          },
+          {
+            "id": "check:1",
+            "stageId": "check",
+            "move": "retrieve",
+            "knowledgeRefs": [
+              "k5"
+            ],
+            "pupil": {
+              "cue": "",
+              "text": ""
+            }
+          }
+        ],
+        "participantSelection": {
+          "mode": "whole-class"
+        },
+        "scene": {
+          "beat": "development",
+          "kind": "challenge",
+          "visualBrief": {
+            "sceneType": "quiz",
+            "setting": "underwater",
+            "subjects": [
+              "fictional guide"
+            ],
+            "action": "assess",
+            "importantObjects": [],
+            "educationalFocus": "assess",
+            "mood": "exciting"
+          }
+        }
+      },
+      {
+        "id": "7bdeef2f-5d87-4d0a-8b50-250b8e8aa0be",
+        "mechanic": "story",
+        "purpose": "Settle the mission after the check.",
+        "title": "Home",
+        "minutes": 2,
+        "why": "Settle",
+        "config": {
+          "lines": [
+            "Now we know sharks eat fish and have sharp teeth!"
+          ]
+        },
+        "slotId": "resolution",
+        "beats": [
+          {
+            "id": "resolution:0",
+            "stageId": "resolution",
+            "move": "reveal",
+            "knowledgeRefs": [
+              "k2"
+            ],
+            "pupil": {
+              "cue": "",
+              "text": "Now we know sharks eat fish and have sharp teeth!"
+            }
+          }
+        ],
+        "participantSelection": {
+          "mode": "whole-class"
+        },
+        "scene": {
+          "beat": "resolution",
+          "kind": "resolution",
+          "visualBrief": {
+            "sceneType": "story",
+            "setting": "underwater",
+            "subjects": [
+              "fictional guide"
+            ],
+            "action": "settle",
+            "importantObjects": [],
+            "educationalFocus": "resolution",
+            "mood": "exciting"
+          }
+        }
+      },
+      {
+        "id": "640ae5c4-df50-42a9-a19f-4a7711581b95",
+        "mechanic": "mystery",
+        "purpose": "summarize",
+        "title": "Recap",
+        "minutes": 2,
+        "why": "summarize",
+        "config": {
+          "lines": [
+            "Sharks live in oceans and are carnivores.",
+            "They have sharp teeth and adapt to their habitats."
+          ]
+        },
+        "slotId": "recap",
+        "beats": [
+          {
+            "id": "recap:0",
+            "stageId": "recap",
+            "move": "consolidate",
+            "knowledgeRefs": [
+              "k1",
+              "k2",
+              "k3"
+            ],
+            "pupil": {
+              "cue": "",
+              "text": "Sharks live in oceans and are carnivores."
+            }
+          },
+          {
+            "id": "recap:1",
+            "stageId": "recap",
+            "move": "consolidate",
+            "knowledgeRefs": [
+              "k4",
+              "k5",
+              "k6"
+            ],
+            "pupil": {
+              "cue": "",
+              "text": "They have sharp teeth and adapt to their habitats."
+            }
+          }
+        ],
+        "participantSelection": {
+          "mode": "whole-class"
+        },
+        "scene": {
+          "beat": "debrief",
+          "kind": "debrief",
+          "visualBrief": {
+            "sceneType": "mystery",
+            "setting": "underwater",
+            "subjects": [
+              "fictional guide"
+            ],
+            "action": "summarize",
+            "importantObjects": [],
+            "educationalFocus": "summarize",
+            "mood": "exciting"
+          }
+        }
+      }
+    ],
+    "targetMinutes": 15,
+    "estimateMinutes": 16,
+    "qualityWarnings": [
+      {
+        "slotId": "check",
+        "outcome": "check-partial",
+        "issue": "The check slot leaves part of the required evidence untested.",
+        "reason": "The demonstrated evidence addresses teeth but not body shape.",
+        "repairAttempted": true,
+        "postRepair": true
+      }
+    ]
+  },
+  "meta": {
+    "attemptId": "883d5972-2bed-4231-9264-b5e8b1711c8f"
+  }
+}

@@ -160,16 +160,16 @@
 
   var IMG_PREFIX = "__img:";
   var CHARACTER_OPTIONS = [
-    { v: IMG_PREFIX + "images/character-babyca.png", label: "Baby" },
-    { v: IMG_PREFIX + "images/tilly-mascot.png", label: "Tilly" },
-    { v: IMG_PREFIX + "images/character-baby-coolegg.png", label: "Isaac" },
-    { v: IMG_PREFIX + "images/character-girl-blonde.png", label: "Sofia" },
-    { v: IMG_PREFIX + "images/character-kelly.png", label: "Kelly" },
-    { v: IMG_PREFIX + "images/character-freya.png", label: "Freya" },
+    { v: "__img:images/presets/preset-pip.jpg", label: "Pip" },
+    { v: "__img:images/presets/preset-fox.jpg", label: "Fox" },
+    { v: "__img:images/presets/preset-dino.jpg", label: "Dinosaur" },
+    { v: "__img:images/presets/preset-bun.jpg", label: "Bunny" },
+    { v: "__img:images/presets/preset-frog.jpg", label: "Frog" },
+    { v: "__img:images/presets/preset-moon.jpg", label: "Moon" },
   ];
   var K_SNAP_CHARS = "snapCharPickV1";
-  var DEFAULT_P1 = 3;
-  var DEFAULT_P2 = 0;
+  var DEFAULT_P1 = 0;
+  var DEFAULT_P2 = 1;
   var charP1 = CHARACTER_OPTIONS[DEFAULT_P1].v;
   var charP2 = CHARACTER_OPTIONS[DEFAULT_P2].v;
 

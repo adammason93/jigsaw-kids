@@ -35,22 +35,17 @@ body.page-portal {
 }
 
 .p-logo {
-  display: inline-flex;
-  align-items: flex-end;
-  gap: 0.06em;
-  padding: 0 0.6rem;
-  color: var(--ink);
+  display: block;
+  padding: 0 0.2rem;
+  line-height: 0;
   text-decoration: none;
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 2.3rem;
-  line-height: 0.8;
 }
 
 .p-logo img {
-  width: auto;
-  height: 1.3em;
-  margin-bottom: -0.03em;
+  width: 100%;
+  max-width: 168px;
+  height: auto;
+  margin: 0;
 }
 
 .p-side__nav {
@@ -406,6 +401,16 @@ body.page-portal {
   border-radius: 20px;
 }
 
+.p-card__cat {
+  display: block;
+  margin-bottom: 0.15rem;
+  color: #7a86b8;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
 .p-card__img {
   position: relative;
   display: grid;
@@ -661,6 +666,79 @@ body.page-portal {
   box-shadow: 0 10px 22px rgba(251, 95, 122, 0.4);
 }
 
+.p-make {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.4rem 2rem;
+  margin-top: 1.3rem;
+  padding: 1.35rem 1.5rem;
+  border-radius: 26px;
+  background: #fff;
+  box-shadow: var(--shadow);
+}
+
+.p-make__copy {
+  min-width: 0;
+  max-width: 36rem;
+}
+
+.p-make__emoji {
+  margin: 0 0 0.2rem;
+  font-size: 1.6rem;
+  line-height: 1;
+}
+
+.p-make__copy p {
+  margin: 0.35rem 0 0;
+  color: var(--ink-soft);
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.p-make__actions {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.55rem;
+  width: min(100%, 18rem);
+  flex: 0 0 auto;
+}
+
+.p-make__go,
+.p-make__ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 0 1.2rem;
+  border-radius: 999px;
+  font-weight: 800;
+  text-align: center;
+  text-decoration: none;
+}
+
+.p-make__go {
+  background: var(--ink);
+  color: #fff;
+  box-shadow: 0 8px 18px rgba(20, 27, 77, 0.18);
+}
+
+.p-make__ghost {
+  background: #fff;
+  color: var(--ink);
+  border: 2px solid rgba(20, 27, 77, 0.16);
+}
+
+.p-make__hint {
+  margin: 0.15rem 0 0;
+  color: var(--ink-soft);
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.35;
+  text-align: center;
+}
+
 /* ---------- Learning ---------- */
 
 .p-learn {
@@ -736,6 +814,16 @@ body.page-portal {
   height: 250px;
   border-radius: 24px;
   box-shadow: var(--shadow);
+}
+
+.home-cast__empty {
+  position: relative;
+  z-index: 2;
+  margin: 0;
+  padding: 4.5rem 1.5rem 0;
+  text-align: center;
+  font-weight: 800;
+  color: #141b4d;
 }
 
 /* ---------- Mobile tab bar ---------- */
@@ -861,6 +949,13 @@ body.page-portal {
   }
   .p-feature__copy {
     padding: 1.5rem 1.3rem;
+  }
+  .p-make {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .p-make__actions {
+    width: 100%;
   }
 }
 

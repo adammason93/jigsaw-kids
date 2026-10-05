@@ -1,0 +1,510 @@
+/* Opens an adventure in WondiiLessonShell. The shell paints. The session engine decides. */
+(function () {
+  "use strict";
+
+  var Rooms = window.ClassRooms;
+  var Shell = window.WondiiLessonShell;
+  var root = document.getElementById("classRoot");
+  var params = new URLSearchParams(location.search);
+  var journeyId = params.get("journey") || "";
+  var memoryJourney = null;
+  if (!journeyId && params.get("example") === "lights") {
+    location.replace("create.html?quick=1" + (params.get("class") ? "&class=" + encodeURIComponent(params.get("class")) : ""));
+  }
+  if (!journeyId && params.get("example") === "mechanics" && window.WondiiMechanicCore) {
+    memoryJourney = {
+      id: "fixture-mechanics",
+      plan: { title: "Electricity Adventure", slides: WondiiMechanicCore.fixtureSlides() },
+      learningMap: { yearGroup: "Year 4", subject: "Science", topic: "Electricity" }
+    };
+    journeyId = memoryJourney.id;
+  }
+  if (params.get("journey") && params.get("preview") !== "1" && params.get("edit") !== "1" && params.get("example") !== "mechanics" && !params.get("session")) {
+    location.replace("create.html?start=" + encodeURIComponent(params.get("journey")) + (params.get("class") ? "&class=" + encodeURIComponent(params.get("class")) : ""));
+  }
+  var sessionCode = (params.get("session") || "").toUpperCase();
+  var journey = null;
+  var previous = null;
+
+  function escape(value) {
+    return String(value || "").replace(/[&<>"]/g, function (ch) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;" }[ch];
+    });
+  }
+
+  function findJourney() {
+    if (!window.WondiiLearn) return null;
+    var list = WondiiLearn.allJourneys ? WondiiLearn.allJourneys() : WondiiLearn.visibleLibrary();
+    for (var i = 0; i < list.length; i++) if (list[i].id === journeyId) return list[i];
+    var draft = WondiiLearn.loadDraft && WondiiLearn.loadDraft();
+    if (draft && draft.id === journeyId && draft.plan) return draft;
+    if (memoryJourney && memoryJourney.id === journeyId) return memoryJourney;
+    return null;
+  }
+
+  function session() {
+    var current = sessionCode ? Rooms.get(sessionCode) : null;
+    if (current && !journeyId && current.journeyId) journeyId = current.journeyId;
+    if (current && current.classId && !params.get("class")) params.set("class", current.classId);
+    return current;
+  }
+
+  function slidesNow(current) {
+    if (current && current.slides && current.slides.length) return current.slides;
+    if (journey && journey.plan && journey.plan.slides && journey.plan.slides.length) return journey.plan.slides;
+    if (journey && journey.demoElectricity) return Rooms.deck();
+    return [];
+  }
+
+  function storyNow() {
+    var map = journey && journey.learningMap;
+    return (map && map.storyPlan) || null;
+  }
+
+  function castBook() {
+    try { return JSON.parse(localStorage.getItem("wondii-session-cast") || "{}"); } catch (e) { return {}; }
+  }
+
+  function writeCast(code, characterId, participantId) {
+    if (!code || !characterId || !participantId) return;
+    var book = castBook();
+    book[code] = book[code] || {};
+    book[code][characterId] = participantId;
+    localStorage.setItem("wondii-session-cast", JSON.stringify(book));
+  }
+
+  function characterOn(current) {
+    var slide = (current.slides || [])[current.slide || 0] || {};
+    if (slide.characterId) return slide.characterId;
+    var adventure = window.WondiiVisualAdventure;
+    if (!slide.role || !adventure || !adventure.characterForRole) return "";
+    return adventure.characterForRole(storyNow(), slide.role);
+  }
+
+  function liveQuestion(slide) {
+    var question = (slide && Rooms.questionOf(slide)) || Rooms.QUESTION;
+    var edits = journey && journey.questionEdits && journey.questionEdits[question.id];
+    if (!edits || (slide && slide.question)) return question;
+    var copy = JSON.parse(JSON.stringify(question));
+    if (edits.prompt) copy.prompt = edits.prompt;
+    if (edits.explain) copy.explain = edits.explain;
+    if (edits.correct) copy.correct = edits.correct;
+    if (edits.choices) copy.choices = edits.choices;
+    return copy;
+  }
+
+  function classPupils() {
+    var classId = params.get("class") || (journey && journey.classId) || "";
+    if (!classId) return [];
+    try {
+      var book = JSON.parse(localStorage.getItem("wondii-school-classes") || "null");
+      if (!book || !Array.isArray(book.classes)) return [];
+      var room = null;
+      book.classes.forEach(function (item) { if (item.id === classId) room = item; });
+      if (!room) return [];
+      return (room.pupils || []).map(function (pupil) {
+        var hair = /^(brown|black|blonde|auburn)$/.test(pupil.hair) ? pupil.hair : "brown";
+        var who = pupil.presentation === "girl" || pupil.presentation === "boy" ? pupil.presentation : "";
+        var length = who === "girl" ? "long" : "short";
+        if (!who && pupil.length === "long") length = "long";
+        var yearText = String(room.yearLabel || room.name || "").toLowerCase();
+        var yearMatch = yearText.match(/\b(?:year|yr|y)\s*([1-6])(?!\d)/);
+        var year = /\breception\b/.test(yearText) ? 0 : (yearMatch ? Number(yearMatch[1]) : null);
+        var prefix = year === null || year === 4 ? "" : (year <= 1 ? "5-" : (year <= 3 ? "6-" : "10-"));
+        return {
+          id: pupil.id || "",
+          firstName: pupil.firstName,
+          portrait: "../../games/images/schools/room/kid-" + prefix + hair + "-" + length + ".webp"
+        };
+      });
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function portraits(pupils) {
+    var map = {};
+    (pupils || []).forEach(function (pupil) { if (pupil.id) map[pupil.id] = pupil.portrait; });
+    return map;
+  }
+
+  function orgBits() {
+    var org = window.WondiiOrg && WondiiOrg.get ? WondiiOrg.get() : {};
+    return { name: org.organisationName || "", logo: org.logoUrl || "" };
+  }
+
+  function goSession(created) {
+    if (!created) return;
+    sessionCode = created.code;
+    location.href = "present.html?session=" + created.code + (params.get("class") ? "&class=" + encodeURIComponent(params.get("class")) : "");
+  }
+
+  function boardFrom(spec) {
+    var C = window.Classroom;
+    var topic = journey && journey.learningMap ? journey.learningMap.topic : "";
+    var board = C.blankBoard(topic, (journey && journey.playfulness) || "playful");
+    (spec.pupils || []).forEach(function (pupil) {
+      if (!pupil.here) return;
+      var added = C.addPupil(board, pupil.firstName);
+      if (!added) return;
+      if (pupil.id) added.id = pupil.id;
+      added.here = true;
+      added.inWheel = true;
+      added.portrait = pupil.portrait || "";
+    });
+    board.phase = "gate";
+    return board;
+  }
+
+  function currentSlide(current) {
+    var slides = slidesNow(current);
+    var index = current ? current.slide || 0 : Number(params.get("slide") || "0");
+    return slides[index] || null;
+  }
+
+  function paint() {
+    journey = findJourney();
+    var current = session();
+    if (params.get("edit") === "1" && !current) {
+      root.innerHTML = viewPreview();
+      bindPreview();
+      return;
+    }
+    if (current && window.WondiiCreatorCore && WondiiCreatorCore.slidesPlayable && !WondiiCreatorCore.slidesPlayable(slidesNow(current))) {
+      var repairId = journeyId || current.journeyId || "";
+      var repairClass = params.get("class") || current.classId || "";
+      root.innerHTML = "<section class=\"class-sheet\"><h1>This adventure needs a quick repair</h1><p>The class cannot play this one yet. Open it in the creator and build it again.</p><p><a href=\"create.html?start=" + encodeURIComponent(repairId) + (repairClass ? "&class=" + encodeURIComponent(repairClass) : "") + "\">Back to the creator</a></p></section>";
+      return;
+    }
+    if (!current && params.get("preview") !== "1" && params.get("example") !== "mechanics") {
+      var backClass = params.get("class");
+      root.innerHTML = "<section class=\"class-sheet\"><h1>Choose an adventure</h1><p>Start from a saved adventure so the class and activities stay together.</p><p><a href=\"create.html" + (backClass ? "?class=" + encodeURIComponent(backClass) : "") + "\">Create or start an adventure</a></p></section>";
+      return;
+    }
+    if (current && previous && current.code === previous.code) Shell.noteScore(current, previous);
+    var pupils = classPupils();
+    var org = orgBits();
+    var slide = currentSlide(current);
+    var question = slide && (slide.type === "question" || slide.type === "quiz") ? liveQuestion(slide) : null;
+    var map = journey && journey.learningMap ? journey.learningMap : {};
+    if (window.WondiiVisuals && WondiiVisuals.bind) WondiiVisuals.bind(map.visualAssets || []);
+    var fresh = params.get("fresh") === "1";
+    if (fresh) {
+      params.delete("fresh");
+      history.replaceState(null, "", location.pathname + "?" + params.toString());
+    }
+    Shell.render(root, {
+      title: (current && current.title) || (journey && journey.plan && journey.plan.title) || map.topic || "Today's adventure",
+      storyPlan: map.storyPlan || null,
+      featuredCast: map.featuredCast || [],
+      visualAssets: map.visualAssets || null,
+      year: (current && current.yearGroup) || map.yearGroup || "",
+      orgName: org.name,
+      orgLogo: org.logo,
+      view: current,
+      slides: slidesNow(current),
+      slideIndex: Number(params.get("slide") || "0"),
+      preview: params.get("preview") === "1" && !current,
+      fresh: fresh,
+      pupils: pupils,
+      portraits: portraits(pupils),
+      castOverrides: (current && castBook()[current.code]) || {},
+      joined: current && current.engine && window.WondiiSessionEngine ? WondiiSessionEngine.joinedCount(current.engine) : (current ? current.participants.length : 0),
+      question: question,
+      pick: params.get("pick") || "",
+      reveal: params.get("reveal") === "1",
+      mysteryOpen: params.get("mystery") === "1",
+      mysteryText: map.keyVocabulary && map.keyVocabulary[0] ? "A word from today: " + map.keyVocabulary[0] + "." : "Keep the idea you have just learned.",
+      door: params.get("door") || "",
+      doorText: (map.learningObjectives || [])[Number(params.get("door") || 1) - 1] || "Today's idea stays with the class.",
+      againHref: "create.html?start=" + encodeURIComponent(journeyId) + (params.get("class") ? "&class=" + encodeURIComponent(params.get("class")) : ""),
+      resultsHref: current ? ("present.html?session=" + encodeURIComponent(current.code) + (params.get("class") ? "&class=" + encodeURIComponent(params.get("class")) : "")) : "#lessonSummary",
+      classHref: params.get("class") ? "class.html?id=" + encodeURIComponent(params.get("class")) : "../../portal.html#classes",
+      homeHref: "../../portal.html",
+      actions: actions
+    });
+    previous = current;
+  }
+
+  var actions = {
+    startBoard: function (spec) {
+      if (!journey || !window.Classroom) return;
+      if (window.WondiiCreatorCore && WondiiCreatorCore.validateAdventure(journey, window.WondiiMechanicCore).length) return;
+      var created = Rooms.createSession(journey, "board", false, {
+        board: boardFrom(spec),
+        classId: params.get("class") || journey.classId || null,
+        teamMode: spec.teamMode || "none"
+      });
+      goSession(created);
+    },
+    startJoin: function () {
+      if (!journey) return;
+      if (window.WondiiCreatorCore && WondiiCreatorCore.validateAdventure(journey, window.WondiiMechanicCore).length) return;
+      var created = Rooms.createSession(journey, "live", false, { classId: params.get("class") || journey.classId || null });
+      goSession(created);
+    },
+    begin: function () {
+      var current = session();
+      if (current && current.board) {
+        current.board.phase = "play";
+        Rooms.replace(current);
+      }
+      paint();
+    },
+    startLiveSession: function () {
+      Rooms.start(sessionCode);
+      paint();
+    },
+    reveal: function () {
+      var current = session();
+      if (!current) {
+        params.set("reveal", "1");
+        history.replaceState(null, "", location.pathname + "?" + params.toString());
+        paint();
+        return;
+      }
+      Rooms.setSlide(current.code, current.slide, true);
+      paint();
+    },
+    pick: function (choice) {
+      var current = session();
+      params.set("pick", choice);
+      params.set("reveal", "1");
+      var slide = currentSlide(current);
+      var question = slide ? liveQuestion(slide) : null;
+      if (!current) {
+        history.replaceState(null, "", location.pathname + "?" + params.toString());
+        paint();
+        return;
+      }
+      Rooms.setSlide(current.code, current.slide, true);
+      var engine = current.engine;
+      var selected = null;
+      if (engine && engine.selectedParticipantId) {
+        (engine.participants || []).forEach(function (person) {
+          if (person.id === engine.selectedParticipantId) selected = person;
+        });
+      }
+      var outcome = window.WondiiMechanicCore && question
+        ? WondiiMechanicCore.quizOutcome(slide, choice, {
+          selected: selected,
+          teams: engine && engine.teams,
+          teamMode: engine && engine.teamMode,
+          participation: (slide && slide.participation) || "",
+          roundId: "q-" + current.slide
+        })
+        : null;
+      if (outcome && outcome.correct && outcome.score) {
+        var awarded = Rooms.award(current.code, outcome.score.teamId, outcome.score.amount, outcome.score.reason);
+        var teamName = "";
+        if (awarded && awarded.engine && outcome.score.teamId) {
+          awarded.engine.teams.forEach(function (team) { if (team.id === outcome.score.teamId) teamName = team.name; });
+        }
+        Shell.noteFeedback("yes", "Great work!", teamName ? "+" + outcome.score.amount + " " + teamName + " team" : "+" + outcome.score.amount + " class reward");
+      } else if (outcome && outcome.correct) {
+        Shell.noteFeedback("yes", "Great work!", "");
+      } else Shell.noteFeedback("again", "Nearly! Let's have another look.", "");
+      paint();
+    },
+    tryAgain: function () {
+      params.delete("pick");
+      params.delete("reveal");
+      Shell.clearFeedback();
+      var current = session();
+      if (current) {
+        current.reveal = false;
+        Rooms.replace(current);
+      } else history.replaceState(null, "", location.pathname + "?" + params.toString());
+      paint();
+    },
+    spin: function () {
+      var current = session();
+      if (!current || !current.board || !window.Classroom) return;
+      window.Classroom.take(current.board);
+      Rooms.replace(current);
+      paint();
+    },
+    mystery: function () {
+      params.set("mystery", "1");
+      var current = session();
+      if (current) Rooms.award(current.code, null, 1, "mystery");
+      else history.replaceState(null, "", location.pathname + "?" + params.toString());
+      paint();
+    },
+    door: function (n) {
+      params.set("door", n);
+      var current = session();
+      if (current) Rooms.award(current.code, null, 1, "door");
+      else history.replaceState(null, "", location.pathname + "?" + params.toString());
+      paint();
+    },
+    goTo: function (index) {
+      Shell.clearFeedback();
+      var current = session();
+      if (!current) return;
+      Rooms.setSlide(current.code, index, false);
+      paint();
+    },
+    previewNext: function (index) {
+      var slides = slidesNow(null);
+      var next = index + 1;
+      if (next >= slides.length) {
+        location.href = "create.html?library=1";
+        return;
+      }
+      params.set("slide", String(next));
+      params.delete("reveal");
+      params.delete("pick");
+      history.replaceState(null, "", location.pathname + "?" + params.toString());
+      paint();
+    },
+    pause: function () { Rooms.pause(sessionCode); paint(); },
+    resume: function () { Rooms.resume(sessionCode); paint(); },
+    skip: function () { Rooms.skipRound(sessionCode); Shell.clearFeedback(); paint(); },
+    retry: function () { Rooms.recover(sessionCode); Rooms.resume(sessionCode); paint(); },
+    end: function () { Rooms.end(sessionCode); paint(); },
+    complete: function () { Rooms.complete(sessionCode); paint(); },
+    choose: function (id) {
+      var current = session();
+      var characterId = current ? characterOn(current) : "";
+      Rooms.chooseParticipant(sessionCode, id);
+      if (current && characterId) writeCast(current.code, characterId, id);
+      paint();
+    },
+    adjust: function (teamId, delta) {
+      var reason = "teacher-" + Date.now();
+      if (delta > 0) Rooms.award(sessionCode, teamId || null, 1, reason);
+      else Rooms.takePoints(sessionCode, teamId || null, 1, reason);
+      paint();
+    },
+    nextQuestion: function () {
+      var current = session();
+      if (!current || !current.engine) return;
+      var round = current.engine.rounds && current.engine.rounds[current.slide || 0];
+      if (!round) return;
+      var saved = window.WondiiSessionEngine && WondiiSessionEngine.readMechanicState
+        ? WondiiSessionEngine.readMechanicState(current.engine, round.id) || {}
+        : {};
+      Rooms.applyMechanic(current.code, {
+        roundId: round.id,
+        hide: true,
+        mechanicState: {
+          kind: "quiz",
+          index: (Number(saved.index) || 0) + 1,
+          answers: saved.answers || {},
+          activeTeamId: saved.activeTeamId || ""
+        },
+        clearFeedback: true
+      });
+      Shell.clearFeedback();
+      paint();
+    },
+    play: function (packet) {
+      var current = session();
+      if (!current) return;
+      var characterId = characterOn(current);
+      Rooms.applyMechanic(current.code, packet || {});
+      if (packet && packet.emission && packet.emission.participantId && characterId) {
+        writeCast(current.code, characterId, packet.emission.participantId);
+      }
+      if (packet && packet.clearFeedback) Shell.clearFeedback();
+      if (packet && packet.feedback) Shell.noteFeedback(packet.feedback.kind, packet.feedback.text, packet.feedback.extra || "");
+      if (packet && packet.done) {
+        var latest = session();
+        if (latest && latest.slide < (latest.slides || []).length - 1) Shell.queueTransition();
+      }
+      paint();
+    },
+    fail: function () { Rooms.failRound(sessionCode); paint(); },
+    replay: function () {
+      var current = session();
+      if (!current) return;
+      var classId = params.get("class") || current.classId || "";
+      var created = Rooms.createSession({
+        id: current.journeyId || journeyId || "replay",
+        classId: classId,
+        plan: { title: current.title, slides: current.slides || [] },
+        learningMap: { yearGroup: current.yearGroup, subject: current.subject, topic: current.topic },
+        organisationId: current.organisationId
+      }, current.mode || "board", false, {
+        classId: classId,
+        pupils: (current.participants || []).filter(function (person) {
+          return person.identity === "pupil" || person.identity === "anonymous";
+        }).map(function (person) {
+          return { id: person.pupilId || person.id, firstName: person.name, temporary: person.identity === "anonymous" };
+        }),
+        teamMode: current.engine && current.engine.teamMode || "none",
+        teamNames: current.engine && current.engine.teams ? current.engine.teams.map(function (team) { return team.name; }) : [],
+        begin: true
+      });
+      if (!created || created.code === current.code) return;
+      location.href = "present.html?session=" + created.code + "&fresh=1" + (classId ? "&class=" + encodeURIComponent(classId) : "");
+    },
+    fullscreen: function () {
+      if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+        var req = document.documentElement.requestFullscreen();
+        if (req && req.catch) req.catch(function () {});
+      } else if (document.exitFullscreen) document.exitFullscreen();
+    }
+  };
+
+  function viewPreview() {
+    var slides = slidesNow(null);
+    var blocks = slides.map(function (slide) {
+      if (slide.type !== "question") {
+        return "<section class=\"class-card\"><h2>" + escape(slide.kicker || "Activity") + "</h2>" + (slide.lines || []).map(function (line) { return "<p>" + escape(line) + "</p>"; }).join("") + "</section>";
+      }
+      var q = liveQuestion(slide);
+      return "<section class=\"class-card\" data-qid=\"" + escape(q.id) + "\"><h2>Teacher answers</h2><label>Question<input class=\"class-field\" data-edit=\"prompt\" value=\"" + escape(q.prompt) + "\" /></label>" +
+        q.choices.map(function (choice) {
+          return "<label>" + choice.id + "<input class=\"class-field\" data-choice=\"" + choice.id + "\" value=\"" + escape(choice.text) + "\" /></label>";
+        }).join("") +
+        "<p>Correct: " + escape(q.correct) + "</p><label>Explanation<input class=\"class-field\" data-edit=\"explain\" value=\"" + escape(q.explain) + "\" /></label></section>";
+    }).join("");
+    return "<section class=\"class-sheet\"><p class=\"class-kicker\">Teacher preview</p><h1>Check the questions</h1>" + blocks +
+      "<button type=\"button\" class=\"class-btn\" id=\"saveEdits\">Save edits</button></section>";
+  }
+
+  function bindPreview() {
+    var saveEdits = document.getElementById("saveEdits");
+    if (!saveEdits) return;
+    saveEdits.addEventListener("click", function () {
+      if (!journey || !window.WondiiLearn) return;
+      journey.questionEdits = journey.questionEdits || {};
+      document.querySelectorAll("[data-qid]").forEach(function (card) {
+        var id = card.getAttribute("data-qid");
+        var prompt = card.querySelector("[data-edit=\"prompt\"]");
+        var explain = card.querySelector("[data-edit=\"explain\"]");
+        var choices = [];
+        card.querySelectorAll("[data-choice]").forEach(function (input) {
+          choices.push({ id: input.getAttribute("data-choice"), text: input.value });
+        });
+        journey.questionEdits[id] = { prompt: prompt ? prompt.value : "", explain: explain ? explain.value : "", choices: choices };
+      });
+      WondiiLearn.upsertLibrary(journey);
+      WondiiLearn.saveDraft(journey);
+    });
+  }
+
+  document.addEventListener("keydown", function (event) {
+    if (event.key !== "Escape") return;
+    var open = document.querySelector(".lesson-overlay, .lesson-panel");
+    if (!open) return;
+    Shell.resetFlow();
+    paint();
+  });
+
+  document.addEventListener("wondii-school-data", function () { paint(); });
+  Rooms.subscribe(paint);
+  Rooms.connectCloud(function () { paint(); });
+  if (window.__wondiiAccountReady || !window.KidsScoreCloud) {
+    paint();
+  } else {
+    if (sessionCode) {
+      root.innerHTML = "<section class=\"class-sheet\"><p class=\"class-kicker\">Lesson</p><h1>Opening the lesson…</h1></section>";
+    }
+    window.addEventListener("wondii-account-scope", function () { paint(); });
+    setTimeout(function () { paint(); }, 2500);
+  }
+  window.WondiiPresent = { reload: paint };
+})();

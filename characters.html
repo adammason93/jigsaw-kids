@@ -6,8 +6,8 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="theme-color" content="#7c3aed" />
-  <title>My Characters — Sofia's Game Room</title>
+  <meta name="theme-color" content="#141b4d" />
+  <title>My Characters — Wondii</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="stylesheet" href="js/kids-core.css" />
   <link rel="stylesheet" href="portal.css" />
@@ -18,7 +18,8 @@
   <style>
     body.page-characters {
       font-family: "Fredoka", "Nunito", system-ui, sans-serif;
-      background: linear-gradient(160deg, #f5f3ff 0%, #fdf4ff 60%, #fef3c7 100%);
+      background: #f6f5fc;
+      color: #141b4d;
       min-height: 100vh;
       margin: 0;
     }
@@ -27,26 +28,26 @@
     .ch-back {
       display: inline-flex; align-items: center; gap: 0.4rem;
       padding: 0.55rem 0.95rem; border-radius: 999px;
-      background: rgba(255,255,255,0.85); color: #4c1d95;
+      background: #fff; color: #141b4d;
       text-decoration: none; font-weight: 600;
       box-shadow: 0 2px 6px rgba(76, 29, 149, 0.12);
     }
     .ch-head { text-align: center; margin: 1rem 0 1.5rem; }
-    .ch-head h1 { margin: 0.2rem 0; font-size: clamp(1.6rem, 4vw, 2.4rem); color: #5b21b6; }
-    .ch-head p { margin: 0.4rem auto 0; max-width: 580px; color: #4c1d95cc; }
+    .ch-head h1 { margin: 0.2rem 0; font-size: clamp(1.6rem, 4vw, 2.4rem); color: #141b4d; }
+    .ch-head p { margin: 0.4rem auto 0; max-width: 580px; color: #5a5f80; }
     .ch-actions { display: flex; justify-content: center; margin: 0.5rem 0 1.5rem; }
     .ch-btn {
       appearance: none; border: 0; cursor: pointer; font: inherit;
       padding: 0.85rem 1.5rem; border-radius: 999px;
-      background: linear-gradient(135deg, #8b5cf6, #d946ef);
+      background: #141b4d;
       color: white; font-weight: 700; font-size: 1.05rem;
-      box-shadow: 0 6px 18px rgba(139, 92, 246, 0.35);
+      box-shadow: 0 10px 22px rgba(20, 27, 77, 0.22);
       transition: transform 120ms ease;
     }
     .ch-btn:hover { transform: translateY(-1px); }
     .ch-btn:disabled { opacity: 0.55; cursor: progress; }
     .ch-btn--ghost {
-      background: white; color: #5b21b6;
+      background: white; color: #141b4d;
       box-shadow: 0 2px 8px rgba(0,0,0,0.08);
     }
     .ch-btn--danger {
@@ -77,7 +78,7 @@
     }
     .ch-card__type {
       font-size: 0.7rem; color: white; padding: 0.1rem 0.5rem; border-radius: 999px;
-      background: #8b5cf6;
+      background: #3b4db8;
     }
     .ch-card__type--buddy { background: #ec4899; }
     .ch-card__del {
@@ -95,7 +96,7 @@
       box-shadow: 0 2px 12px rgba(0,0,0,0.05);
     }
     .ch-empty__emoji { font-size: 3rem; margin-bottom: 0.5rem; }
-    .ch-status { text-align: center; color: #6b21a8; padding: 0.5rem; min-height: 1.4em; }
+    .ch-status { text-align: center; color: #5a5f80; padding: 0.5rem; min-height: 1.4em; }
     .ch-status[data-kind="error"] { color: #b91c1c; }
 
     /* Modal */
@@ -113,7 +114,7 @@
       box-shadow: 0 20px 60px rgba(0,0,0,0.3);
     }
     .ch-modal__head { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; }
-    .ch-modal__title { margin: 0; color: #5b21b6; font-size: 1.4rem; }
+    .ch-modal__title { margin: 0; color: #141b4d; font-size: 1.4rem; }
     .ch-modal__close {
       background: #f3f4f6; border: 0; cursor: pointer;
       width: 36px; height: 36px; border-radius: 999px; font-size: 1.1rem;
@@ -125,7 +126,7 @@
       padding: 0.7rem 0.85rem; border-radius: 12px;
       border: 2px solid #e5e7eb; font: inherit;
     }
-    .ch-input:focus { outline: 0; border-color: #8b5cf6; }
+    .ch-input:focus { outline: 0; border-color: #141b4d; }
     .ch-type-row { display: flex; gap: 0.5rem; }
     .ch-type-opt {
       flex: 1; padding: 0.65rem 0.5rem;
@@ -133,14 +134,14 @@
       background: white; text-align: center; cursor: pointer;
       font-weight: 600; color: #374151;
     }
-    .ch-type-opt.is-active { border-color: #8b5cf6; background: #f5f3ff; color: #5b21b6; }
+    .ch-type-opt.is-active { border-color: #141b4d; background: #eef2ff; color: #141b4d; }
     .ch-photo-pick {
       display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
       padding: 1rem; border: 2px dashed #d1d5db; border-radius: 16px;
       background: #fafafa; text-align: center;
     }
     .ch-photo-pick__btn {
-      background: #5b21b6; color: white; border: 0;
+      background: #141b4d; color: white; border: 0;
       padding: 0.55rem 1rem; border-radius: 999px; cursor: pointer; font: inherit;
     }
     .ch-photo-pick__hint { font-size: 0.85rem; color: #6b7280; margin: 0; }
@@ -153,11 +154,11 @@
     }
     .ch-busy {
       display: flex; flex-direction: column; align-items: center; gap: 0.6rem;
-      padding: 1.5rem; color: #5b21b6;
+      padding: 1.5rem; color: #141b4d;
     }
     .ch-spinner {
       width: 36px; height: 36px; border-radius: 999px;
-      border: 4px solid #e9d5ff; border-top-color: #8b5cf6;
+      border: 4px solid #e7e9f6; border-top-color: #141b4d;
       animation: ch-spin 900ms linear infinite;
     }
     @keyframes ch-spin { to { transform: rotate(360deg); } }
@@ -178,6 +179,8 @@
       overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0;
     }
   </style>
+  <link rel="stylesheet" href="css/wondii-tokens.css?v=2" />
+  <link rel="stylesheet" href="css/wondii-p1.css?v=9" />
 </head>
 <body class="page-characters">
   <div class="ch-app">
@@ -191,7 +194,7 @@
     </header>
 
     <div class="ch-signed-out" id="chSignedOut" hidden>
-      You need to sign in first. Open the home page, tap ⚙️, and use the family password — then come back here.
+      You need to sign in first. Open the home page, choose Settings, and use the family password. Then come back here.
     </div>
 
     <div class="ch-actions">
@@ -220,8 +223,8 @@
       <div class="ch-field">
         <span class="ch-label">Who is this?</span>
         <div class="ch-type-row" role="radiogroup" aria-label="Character type">
-          <button type="button" class="ch-type-opt is-active" data-type="hero" aria-pressed="true">🧒 A real child</button>
-          <button type="button" class="ch-type-opt" data-type="buddy" aria-pressed="false">🐉 An imaginary buddy</button>
+          <button type="button" class="ch-type-opt is-active" data-type="hero" aria-pressed="true">A real child</button>
+          <button type="button" class="ch-type-opt" data-type="buddy" aria-pressed="false">An imaginary buddy</button>
         </div>
       </div>
 
@@ -256,6 +259,6 @@
 
   <script src="js/score-config.js"></script>
   <script src="js/character-store.js"></script>
-  <script src="characters.js" defer></script>
+  <script src="characters.js?v=2" defer></script>
 </body>
 </html>

@@ -28,6 +28,7 @@
 
   const CHAR_EMOJI = {
     dino: "🦖",
+    you: "🏃",
   };
 
   const CHAR_IMAGE = {
@@ -197,7 +198,7 @@
   }
 
   function getCharForPlayer() {
-    return "girlblonde";
+    return "you";
   }
 
   function buildPlayers() {

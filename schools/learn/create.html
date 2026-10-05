@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#141b4d" />
+  <title>Create a Learning Adventure · Wondii</title>
+  <meta name="description" content="Turn a lesson into a class adventure." />
+  <link rel="icon" type="image/svg+xml" href="../../games/images/brand/wondi-mark.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../css/wondii-tokens.css?v=3" />
+  <link rel="stylesheet" href="../../css/wondii-p1.css?v=9" />
+  <link rel="stylesheet" href="creator.css?v=4" />
+</head>
+<body class="creator-app">
+  <a class="learn-skip" href="#learnMain">Skip to the builder</a>
+  <header class="creator-bar">
+    <a href="../../portal.html">← Wondii</a>
+    <a href="create.html?library=1">Your adventures</a>
+  </header>
+  <main id="learnMain" tabindex="-1"></main>
+  <script src="../../js/score-config.js"></script>
+  <script src="../../js/score-cloud.js?v=10"></script>
+  <script src="../../js/organisation.js?v=2"></script>
+  <script src="../../js/school-domain.js?v=3"></script>
+  <script src="../../js/learning-session.js?v=2"></script>
+  <script src="../../js/school-store.js?v=6"></script>
+  <script src="model.js?v=9"></script>
+  <script src="teach.js?v=4"></script>
+  <script src="session.js?v=13"></script>
+  <script src="mechanic-core.js?v=4"></script>
+  <script src="creator-core.js?v=23"></script>
+  <script src="../../js/lesson-brain.js?v=58"></script>
+  <script src="../../js/visual-adventure.js?v=9"></script>
+  <script src="visual-client.js?v=2"></script>
+  <script src="creator.js?v=19"></script>
+  <script>
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/sw.js", { scope: "/" }).catch(function () {});
+    }
+  </script>
+</body>
+</html>

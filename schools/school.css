@@ -1,0 +1,879 @@
+/* Ramsden (and later school) landings. Scoped to body.school-page so the
+   Wondii homepage is unchanged. Reuses welcome.css tokens, type, and buttons. */
+
+.school-page {
+  --school-red: #c41230;
+  --school-red-soft: rgba(196, 18, 48, 0.08);
+  background: #fff;
+  overflow-x: clip;
+}
+
+.school-page .o-kicker,
+.school-page .school-eyebrow {
+  color: var(--school-red);
+}
+
+.school-spark {
+  position: relative;
+  display: inline-block;
+  width: max-content;
+  max-width: 100%;
+}
+
+.school-spark::before,
+.school-spark::after {
+  content: "";
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-color: var(--school-red);
+  border-style: solid;
+}
+
+.school-spark::before {
+  left: -0.85rem;
+  top: -0.35rem;
+  border-width: 2px 0 0 2px;
+}
+
+.school-spark::after {
+  right: -0.85rem;
+  bottom: -0.28rem;
+  border-width: 0 2px 2px 0;
+}
+
+.school-page .o-nav a:hover {
+  color: var(--school-red);
+}
+
+.school-page .o-btn:focus-visible,
+.school-page a:focus-visible {
+  outline: 3px solid var(--school-red);
+  outline-offset: 3px;
+}
+
+.school-page .school-btn {
+  background: var(--school-red);
+  color: #fff;
+  box-shadow: 0 10px 22px rgba(196, 18, 48, 0.22);
+}
+
+.school-page .school-btn:hover {
+  color: #fff;
+}
+
+.school-page .o-logo__wordmark {
+  height: 2.2rem;
+}
+
+.school-lockup {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  min-width: 0;
+}
+
+.school-lockup__rule {
+  width: 1px;
+  height: 2rem;
+  background: rgba(20, 27, 77, 0.16);
+}
+
+.school-mark {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-width: 0;
+  color: var(--navy);
+  text-decoration: none;
+}
+
+.school-mark svg {
+  width: 2.35rem;
+  height: 2.35rem;
+  flex: 0 0 auto;
+}
+
+.school-mark__name {
+  font-weight: 800;
+  font-size: 0.82rem;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+
+.school-hero {
+  display: grid;
+  grid-template-columns: minmax(17rem, 34rem) minmax(0, 1fr);
+  align-items: center;
+  gap: 0;
+  min-height: 38rem;
+  padding: 0.2rem 0 0 var(--gutter);
+  background: #fff;
+  overflow: hidden;
+}
+
+.school-hero__copy {
+  position: relative;
+  z-index: 2;
+  max-width: 34rem;
+  padding-right: 0.5rem;
+}
+
+.school-page .school-hero .o-hero__title {
+  font-size: clamp(2.7rem, 4.5vw, 4.35rem);
+}
+
+.school-em {
+  color: var(--school-red);
+}
+
+.school-hero .school-em {
+  text-decoration: underline;
+  text-decoration-thickness: 0.07em;
+  text-underline-offset: 0.12em;
+  text-decoration-color: var(--school-red);
+}
+
+.school-stack span {
+  display: block;
+}
+
+.school-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.school-page .school-ghost {
+  background: #fff;
+  color: var(--navy);
+  box-shadow: 0 8px 22px rgba(20, 27, 77, 0.08);
+}
+
+.school-page .school-ghost:hover {
+  color: var(--navy);
+}
+
+.school-play {
+  width: 1.45rem;
+  height: 1.45rem;
+  border-radius: 50%;
+  background: var(--school-red);
+  display: grid;
+  place-items: center;
+}
+
+.school-play::before {
+  content: "";
+  border-style: solid;
+  border-width: 4px 0 4px 7px;
+  border-color: transparent transparent transparent #fff;
+  margin-left: 2px;
+}
+
+/* The picture already fades to white on the left, top and bottom. */
+.school-hero__art {
+  position: relative;
+  align-self: stretch;
+  min-height: 0;
+  margin-left: -7vw;
+}
+
+.school-hero__art img {
+  display: block;
+  width: 112%;
+  max-width: none;
+  height: 100%;
+  object-fit: cover;
+  object-position: 72% center;
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+
+.school-hero__copy,
+.school-hero__art {
+  animation: school-rise 0.7s ease both;
+}
+
+.school-hero__art {
+  animation-delay: 0.08s;
+}
+
+@keyframes school-rise {
+  from {
+    opacity: 0;
+    translate: 0 14px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+.school-band {
+  position: relative;
+  padding: 4.5rem var(--gutter) 4.2rem;
+  background: #fff;
+}
+
+.school-band--mist {
+  background:
+    radial-gradient(70% 80px at 50% 0%, rgba(196, 18, 48, 0.045), transparent 70%),
+    linear-gradient(180deg, #fff 0%, #fbfaf8 40%, #fff 100%);
+}
+
+.school-band--blush {
+  background:
+    radial-gradient(60% 90px at 50% 0%, rgba(196, 18, 48, 0.05), transparent 72%),
+    #fffdfb;
+}
+
+.school-band__intro {
+  max-width: 40rem;
+  margin: 0 auto 2.8rem;
+  text-align: center;
+}
+
+.school-band__intro .o-lead,
+.school-band__intro .school-sub {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.school-sub {
+  margin-top: 0.7rem;
+  color: var(--ink-soft);
+  font-size: 1.08rem;
+}
+
+.school-features {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 2.4rem 1.8rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  text-align: center;
+}
+
+.school-features h2 {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.school-features p {
+  max-width: 14rem;
+  margin: 0.4rem auto 0;
+  color: var(--ink-soft);
+  font-size: 0.98rem;
+}
+
+.school-icon {
+  display: grid;
+  place-items: center;
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 0.95rem;
+  border-radius: 50%;
+  background: #ffe8ee;
+  color: #e11d48;
+}
+
+.school-icon--voice {
+  background: #efe6ff;
+  color: #7c3aed;
+}
+
+.school-icon--learn {
+  background: #fff3d6;
+  color: #d97706;
+}
+
+.school-icon--play {
+  background: #e5f8ee;
+  color: #059669;
+}
+
+.school-icon svg {
+  width: 28px;
+  height: 28px;
+}
+
+.school-flow {
+  padding: 4.2rem var(--gutter) 1rem;
+  background: #fff;
+}
+
+.school-steps {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1.2rem;
+  max-width: var(--wrap);
+  margin: 0 auto 1.6rem;
+  padding: 0;
+  list-style: none;
+}
+
+.school-steps li {
+  padding: 1.1rem 1rem 1.2rem;
+  border-radius: 22px;
+  background: #f7f4ef;
+}
+
+.school-steps span {
+  display: inline-grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  margin-bottom: 0.55rem;
+  border-radius: 999px;
+  background: var(--school-red);
+  color: #fff;
+  font-weight: 800;
+}
+
+.school-steps h3 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+}
+
+.school-steps p {
+  margin: 0.3rem 0 0;
+  color: var(--ink-soft);
+}
+
+.school-flow__go {
+  justify-content: center;
+  margin: 0 auto 2rem;
+}
+
+.school-learn {
+  padding: 2.2rem var(--gutter) 3.6rem;
+  background: #fff;
+}
+
+.school-caps {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 2rem 1.6rem;
+  max-width: var(--wrap);
+  margin: 0 auto 3.4rem;
+  padding: 0;
+  list-style: none;
+  text-align: center;
+}
+
+.school-caps h3 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.school-caps p {
+  max-width: 14rem;
+  margin: 0.35rem auto 0;
+  color: var(--ink-soft);
+  font-size: 0.98rem;
+}
+
+.school-example {
+  display: grid;
+  grid-template-columns: minmax(17rem, 32rem) minmax(0, 1fr);
+  align-items: center;
+  gap: 0 1.25rem;
+  max-width: none;
+  margin-right: calc(var(--gutter) * -1);
+}
+
+.school-example__title {
+  font-size: clamp(2rem, 3.4vw, 2.8rem);
+}
+
+.school-meta {
+  margin: 0.35rem 0 0.8rem;
+  color: var(--school-red);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.school-example .o-lead {
+  max-width: 32rem;
+}
+
+.school-demo-note {
+  max-width: 28rem;
+  margin: 0.9rem 0 0;
+  color: var(--ink-soft);
+  font-size: 0.92rem;
+}
+
+.school-example__art {
+  min-height: 0;
+}
+
+.school-example__art img {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  -webkit-mask-image:
+    linear-gradient(90deg, transparent 0%, #000 22%),
+    linear-gradient(180deg, #000 0%, #000 74%, transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    linear-gradient(90deg, transparent 0%, #000 22%),
+    linear-gradient(180deg, #000 0%, #000 74%, transparent 100%);
+  mask-composite: intersect;
+}
+
+.school-split {
+  display: grid;
+  grid-template-columns: minmax(0, 0.86fr) minmax(0, 1.14fr);
+  align-items: center;
+  gap: 1.5rem 2rem;
+  padding: 3.2rem var(--gutter);
+}
+
+#stories.school-split {
+  align-items: center;
+  grid-template-columns: minmax(17rem, 28rem) minmax(0, 1fr);
+  gap: 0 0.5rem;
+  min-height: 0;
+  padding: 2rem 0 0 var(--gutter);
+  overflow: hidden;
+}
+
+#stories .school-split__copy {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 2rem 1.2rem 2.6rem 0;
+}
+
+.school-split--quiet {
+  padding-top: 2.4rem;
+  padding-bottom: 2.6rem;
+}
+
+.school-split__copy .o-lead {
+  max-width: 28rem;
+}
+
+.school-split__copy .school-actions {
+  margin-top: 1.5rem;
+}
+
+.school-blend {
+  position: relative;
+  min-height: 320px;
+}
+
+.school-blend img {
+  display: block;
+  width: 100%;
+  max-width: none;
+  height: auto;
+  margin: 0;
+  object-fit: contain;
+  object-position: right center;
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+
+.school-blend--quiet img {
+  height: 340px;
+  object-position: center;
+  -webkit-mask-image: radial-gradient(ellipse 62% 64% at 58% 48%, #000 28%, transparent 72%);
+  mask-image: radial-gradient(ellipse 58% 62% at 56% 46%, #000 22%, transparent 70%);
+}
+
+.school-ideas__list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+  margin: 0.4rem auto 0;
+  padding: 0;
+  max-width: var(--wrap);
+  list-style: none;
+  text-align: center;
+}
+
+.school-ideas__list li {
+  padding: 0.4rem 1.6rem 0.2rem;
+}
+
+.school-ideas__list li + li {
+  box-shadow: inset 1px 0 0 rgba(20, 27, 77, 0.1);
+}
+
+.school-ideas__list h3 {
+  margin-top: 0.75rem;
+  font-size: 1.05rem;
+  letter-spacing: 0.04em;
+}
+
+.school-ideas__list p {
+  max-width: 16rem;
+  margin: 0.45rem auto 0;
+  color: var(--ink-soft);
+}
+
+.school-line {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  margin: 0 auto;
+  color: var(--school-red);
+}
+
+.school-line svg {
+  width: 34px;
+  height: 34px;
+}
+
+.school-still {
+  position: relative;
+  min-height: 280px;
+}
+
+.school-still img {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  object-position: right center;
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+
+.school-still__words {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  pointer-events: none;
+}
+
+.school-still__words li {
+  position: absolute;
+  left: 36%;
+  width: 36%;
+  margin: 0;
+  padding: 0;
+  background: none;
+  transform: translateY(-50%);
+  font-family: var(--font-display);
+  font-weight: 650;
+  font-size: 0.78rem;
+  line-height: 1;
+  text-align: center;
+  color: #141b4d;
+}
+
+.school-still__words li:nth-child(1) { top: 43.2%; }
+.school-still__words li:nth-child(2) { top: 53.8%; }
+.school-still__words li:nth-child(3) { top: 62.4%; }
+.school-still__words li:nth-child(4) { top: 72.6%; }
+
+.school-close {
+  position: relative;
+  display: flex;
+  align-items: start;
+  aspect-ratio: 16 / 9;
+  min-height: 0;
+  padding: 4.2rem var(--gutter) 2rem;
+  overflow: hidden;
+  background: #f6e7cf;
+}
+
+.school-close__art {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center center;
+}
+
+.school-close__copy {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: start;
+  gap: 2rem;
+  width: min(100%, var(--wrap));
+  max-width: none;
+  margin: 0 auto;
+  padding: 0;
+  background: none;
+}
+
+.school-close__copy .o-h2 {
+  margin-top: 0;
+  justify-self: start;
+  padding: 0.85rem 1.15rem 1rem;
+  border-radius: 22px;
+  background: rgba(255, 253, 251, 0.94);
+  color: #141b4d;
+  text-shadow: none;
+  box-shadow: 0 12px 28px rgba(80, 36, 8, 0.16);
+}
+
+.school-close__aside {
+  justify-self: end;
+  max-width: 22rem;
+  padding: 1rem 1.15rem 1.15rem;
+  border-radius: 22px;
+  background: rgba(255, 253, 251, 0.94);
+  box-shadow: 0 12px 28px rgba(80, 36, 8, 0.16);
+}
+
+.school-close__aside .o-lead {
+  margin-top: 0;
+  color: #3d3a6b;
+  background: none;
+  text-shadow: none;
+}
+
+.school-page .school-btn--light {
+  background: #fff;
+  color: var(--navy);
+  box-shadow: 0 10px 24px rgba(20, 27, 77, 0.14);
+}
+
+.school-page .school-btn--light:hover {
+  color: var(--navy);
+}
+
+.school-close__copy .o-h2 {
+  font-size: clamp(2.4rem, 4vw, 3.4rem);
+}
+
+.school-close__copy .o-lead {
+  margin-bottom: 1.4rem;
+}
+
+.school-page .o-foot {
+  border-top: 1px solid rgba(20, 27, 77, 0.06);
+}
+
+@media (max-width: 1000px) {
+  .school-hero {
+    max-height: none;
+    min-height: 0;
+    grid-template-columns: minmax(0, 1fr) minmax(220px, 0.85fr);
+    padding-top: 0.8rem;
+  }
+
+  .school-hero__art {
+    min-height: 0;
+  }
+
+  .school-features,
+  .school-caps {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 2rem 1.2rem;
+  }
+
+  .school-split,
+  .school-split--quiet {
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1fr);
+    padding-top: 2.4rem;
+    padding-bottom: 2.2rem;
+  }
+
+  .school-blend img,
+  .school-blend--quiet img,
+  .school-still img {
+    height: auto;
+  }
+}
+
+@media (max-width: 860px) {
+  .school-page .o-bar {
+    gap: 0.45rem;
+  }
+
+  .school-lockup {
+    gap: 0.4rem;
+    min-width: 0;
+  }
+
+  .school-page .o-logo__wordmark {
+    height: 1.55rem;
+  }
+
+  .school-mark {
+    gap: 0.35rem;
+  }
+
+  .school-mark svg {
+    width: 1.8rem;
+    height: 1.8rem;
+  }
+
+  .school-mark__name {
+    font-size: 0.68rem;
+  }
+
+  .school-page .o-bar__end .school-btn {
+    min-height: 40px;
+    padding: 0 0.65rem;
+    font-size: 0.75rem;
+  }
+
+  .school-hero,
+  .school-split,
+  .school-split--quiet {
+    grid-template-columns: 1fr;
+    max-height: none;
+    min-width: 0;
+  }
+
+  .school-hero {
+    padding: 1.2rem var(--gutter) 0;
+    gap: 0.2rem;
+  }
+
+  .school-hero__copy {
+    max-width: none;
+    min-width: 0;
+    padding-right: 0;
+  }
+
+  .school-page .school-hero .o-hero__title {
+    font-size: clamp(2.35rem, 11vw, 3.1rem);
+  }
+
+  .school-page .school-hero .o-hero__title span {
+    white-space: normal;
+  }
+
+  .school-hero__art {
+    min-height: 0;
+    height: auto;
+    margin: 0 calc(var(--gutter) * -1);
+  }
+
+  .school-hero__art {
+    margin-left: 0;
+  }
+
+  .school-hero__art img {
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+
+  .school-features,
+  .school-ideas__list,
+  .school-example {
+    grid-template-columns: 1fr;
+    gap: 1.8rem;
+  }
+
+  .school-caps,
+  .school-steps {
+    grid-template-columns: 1fr 1fr;
+    gap: 1.6rem 1rem;
+  }
+
+  .school-example {
+    margin-right: 0;
+  }
+
+  .school-example__art img {
+    height: auto;
+    -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 12%, #000 100%);
+    mask-image: linear-gradient(180deg, transparent 0%, #000 12%, #000 100%);
+  }
+
+  .school-ideas__list li + li {
+    box-shadow: none;
+    padding-top: 1.4rem;
+    border-top: 1px solid rgba(20, 27, 77, 0.08);
+  }
+
+  #stories.school-split {
+    padding: 2rem var(--gutter) 0;
+  }
+
+  #stories .school-split__copy {
+    padding: 0;
+  }
+
+  #stories.school-split {
+    min-height: 0;
+  }
+
+  #stories .school-blend img,
+  .school-blend img {
+    width: 100%;
+    min-height: 0;
+    height: auto;
+    margin-left: 0;
+    object-fit: contain;
+  }
+
+  .school-still img {
+    height: auto;
+  }
+
+  .school-still__words li {
+    left: 34%;
+    width: 40%;
+    font-size: 0.72rem;
+  }
+
+  .school-close {
+    aspect-ratio: auto;
+    min-height: 34rem;
+    align-items: start;
+    padding-top: 1.6rem;
+  }
+
+  .school-close__art {
+    object-position: center 35%;
+  }
+
+  .school-close__copy {
+    grid-template-columns: 1fr;
+    gap: 0.8rem;
+  }
+
+  .school-close__copy .o-h2 {
+    margin-top: 0;
+  }
+
+  .school-close__aside {
+    justify-self: start;
+  }
+
+  .school-mark__name {
+    max-width: 7.2rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .school-page .school-hero__copy,
+  .school-page .school-hero__art,
+  .school-page .o-reveal {
+    animation: none;
+    opacity: 1;
+    translate: none;
+    transition: none;
+  }
+}

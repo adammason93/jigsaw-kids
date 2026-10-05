@@ -1,0 +1,2179 @@
+[
+  {
+    "id": "y1-shadows",
+    "input": "Year 1 science. Help the class understand why a shadow changes size.",
+    "style": "clear",
+    "demand": "explain",
+    "intendedYear": "Year 1",
+    "intendedConcept": "why a shadow changes size",
+    "prior": "",
+    "requestedDuration": null,
+    "http": 200,
+    "ok": true,
+    "stage": "COMPLETE",
+    "issues": [],
+    "category": "",
+    "sentSubject": "Science",
+    "sentYear": "Year 1",
+    "requiredKnowledge": [
+      "Shadows are formed when an object blocks light.",
+      "The closer an object is to the light source, the larger the shadow.",
+      "When an object moves away from the light source, the shadow gets smaller."
+    ],
+    "teacherIntent": {
+      "ok": true,
+      "learningGoal": "Students will understand why a shadow changes size.",
+      "focusConcepts": [
+        "light sources",
+        "obstacles",
+        "distance from the light source"
+      ],
+      "priorKnowledge": [],
+      "exclusions": [],
+      "preferences": [],
+      "subject": "Science",
+      "subjectConfidence": "explicit",
+      "durationMinutes": 15
+    },
+    "applyAlignment": {
+      "deterministicStatus": "pass",
+      "deterministicReason": "relation-covered",
+      "finalDeterministicStatus": "pass",
+      "finalDeterministicReason": "relation-covered",
+      "semanticJudgeUsed": false,
+      "semanticRelationship": null,
+      "semanticReason": "",
+      "semanticOutcome": null,
+      "semanticMs": null,
+      "semanticCalls": 0,
+      "semanticOutcomes": []
+    },
+    "repairUsed": false,
+    "repairKind": "none",
+    "repairedSlots": [],
+    "applyRepair": false,
+    "modelApply": {
+      "instruction": "Move an object closer and further from the light source to see the shadow change.",
+      "target": "Change the position of the object.",
+      "knowledgeUsed": "The closer an object is to the light source, the larger the shadow.",
+      "successCondition": "The shadow size changes based on distance.",
+      "teachingConnection": "This shows how distance affects shadow size.",
+      "lines": []
+    },
+    "finalApply": {
+      "mechanic": "story",
+      "instruction": "Move an object closer and further from the light source to see the shadow change.",
+      "target": "Change the position of the object.",
+      "interactionType": "move",
+      "knowledgeUsed": "The closer an object is to the light source, the larger the shadow.",
+      "successCondition": "The shadow size changes based on distance.",
+      "teachingConnection": "This shows how distance affects shadow size.",
+      "lines": [
+        "Move an object closer and further from the light source to see the shadow change."
+      ]
+    },
+    "check": {
+      "prompt": "What happens to a shadow when an object moves closer to the light?",
+      "choices": [
+        "The shadow gets bigger.",
+        "The shadow stays the same.",
+        "Shadows are created by the object itself, not by blocking light."
+      ],
+      "correct": "The shadow gets bigger."
+    },
+    "hook": [
+      "Look at the shadows around us.",
+      "Why do you think they are different sizes?"
+    ],
+    "learningObjective": "Students will understand why a shadow changes size.",
+    "ms": 23544
+  },
+  {
+    "id": "y3-arrays",
+    "input": "Year 3 maths. Show how an array can stand for a multiplication.",
+    "style": "clear",
+    "demand": "apply",
+    "intendedYear": "Year 3",
+    "intendedConcept": "an array standing for a multiplication",
+    "prior": "",
+    "requestedDuration": null,
+    "http": 200,
+    "ok": true,
+    "stage": "COMPLETE",
+    "issues": [],
+    "category": "",
+    "sentSubject": "Maths",
+    "sentYear": "Year 3",
+    "requiredKnowledge": [
+      "An array is a set of objects arranged in rows and columns.",
+      "Multiplication can be shown as groups of equal size.",
+      "The number of rows multiplied by the number of columns equals the total number of objects."
+    ],
+    "teacherIntent": {
+      "ok": true,
+      "learningGoal": "Understand how an array can represent a multiplication operation.",
+      "focusConcepts": [
+        "arrays",
+        "multiplication",
+        "visual representation"
+      ],
+      "priorKnowledge": [],
+      "exclusions": [],
+      "preferences": [],
+      "subject": "Maths",
+      "subjectConfidence": "explicit",
+      "durationMinutes": 15
+    },
+    "applyAlignment": {
+      "deterministicStatus": "unresolved",
+      "deterministicReason": "single-stem",
+      "finalDeterministicStatus": "unresolved",
+      "finalDeterministicReason": "single-stem",
+      "semanticJudgeUsed": true,
+      "semanticRelationship": "apply",
+      "semanticReason": "The instruction requires using the concept of arrays to create a representation of a multiplication fact.",
+      "semanticOutcome": "semantic-pass",
+      "semanticMs": 1211,
+      "semanticCalls": 1,
+      "semanticOutcomes": [
+        "semantic-pass"
+      ]
+    },
+    "repairUsed": false,
+    "repairKind": "none",
+    "repairedSlots": [],
+    "applyRepair": false,
+    "modelApply": {
+      "instruction": "Create your own array to show a multiplication fact.",
+      "target": "Use objects to represent your multiplication.",
+      "knowledgeUsed": "An array is a set of objects arranged in rows and columns.",
+      "successCondition": "Your array correctly represents the multiplication.",
+      "teachingConnection": "This task helps you apply what we just learned.",
+      "lines": []
+    },
+    "finalApply": {
+      "mechanic": "story",
+      "instruction": "Create your own array to show a multiplication fact.",
+      "target": "Use objects to represent your multiplica",
+      "interactionType": "match",
+      "knowledgeUsed": "An array is a set of objects arranged in rows and columns.",
+      "successCondition": "Your array correctly represents the multiplication.",
+      "teachingConnection": "This task helps you apply what we just learned.",
+      "lines": [
+        "Create your own array to show a multiplication fact."
+      ]
+    },
+    "check": {
+      "prompt": "What does an array show in multiplication?",
+      "choices": [
+        "It shows addition.",
+        "It shows groups of equal size.",
+        "It shows random numbers."
+      ],
+      "correct": "It shows groups of equal size."
+    },
+    "hook": [
+      "Look at these supplies scattered everywhere.",
+      "How can we organize them using arrays?"
+    ],
+    "learningObjective": "Understand how an array can represent a multiplication operation.",
+    "ms": 22351
+  },
+  {
+    "id": "y4-rivers",
+    "input": "Year 4 geography. Teach how a river changes from its source to its mouth.",
+    "style": "clear",
+    "demand": "sequence",
+    "intendedYear": "Year 4",
+    "intendedConcept": "how a river changes from source to mouth",
+    "prior": "",
+    "requestedDuration": null,
+    "http": 200,
+    "ok": true,
+    "stage": "COMPLETE",
+    "issues": [],
+    "category": "",
+    "sentSubject": "Geography",
+    "sentYear": "Year 4",
+    "requiredKnowledge": [
+      "A river starts at a source, usually in the hills or mountains.",
+      "As a river flows, it can change in width and depth.",
+      "The mouth of a river is where it meets the sea or a lake.",
+      "Rivers can have features like bends, meanders, and deltas."
+    ],
+    "teacherIntent": {
+      "ok": true,
+      "learningGoal": "Understand how a river changes from its source to its mouth.",
+      "focusConcepts": [
+        "river source",
+        "river mouth",
+        "river features",
+        "river journey"
+      ],
+      "priorKnowledge": [],
+      "exclusions": [],
+      "preferences": [],
+      "subject": "Geography",
+      "subjectConfidence": "explicit",
+      "durationMinutes": 15
+    },
+    "applyAlignment": {
+      "deterministicStatus": "pass",
+      "deterministicReason": "relation-covered",
+      "finalDeterministicStatus": "pass",
+      "finalDeterministicReason": "relation-covered",
+      "semanticJudgeUsed": false,
+      "semanticRelationship": null,
+      "semanticReason": "",
+      "semanticOutcome": null,
+      "semanticMs": null,
+      "semanticCalls": 0,
+      "semanticOutcomes": []
+    },
+    "repairUsed": false,
+    "repairKind": "none",
+    "repairedSlots": [],
+    "applyRepair": false,
+    "modelApply": {
+      "instruction": "Label the features on the river diagram.",
+      "target": "Identify the source, mouth, and features.",
+      "knowledgeUsed": "river features",
+      "successCondition": "Correctly label at least three features.",
+      "teachingConnection": "This task helps apply what we learned about river changes.",
+      "lines": []
+    },
+    "finalApply": {
+      "mechanic": "story",
+      "instruction": "Label the features on the river diagram.",
+      "target": "Identify the source, mouth, and features",
+      "interactionType": "sort",
+      "knowledgeUsed": "river features",
+      "successCondition": "Correctly label at least three features.",
+      "teachingConnection": "This task helps apply what we learned about river changes.",
+      "lines": [
+        "Label the features on the river diagram."
+      ]
+    },
+    "check": {
+      "prompt": "What is the source of a river?",
+      "choices": [
+        "The end of the river.",
+        "Where it starts.",
+        "The middle of the river."
+      ],
+      "correct": "Where it starts."
+    },
+    "hook": [
+      "Look at this river. What do you notice?",
+      "Where do you think it starts and ends?",
+      "What changes might happen along the way?"
+    ],
+    "learningObjective": "Understand how a river changes from its source to its mouth.",
+    "ms": 18239
+  },
+  {
+    "id": "y2-habitats",
+    "input": "Year 2 science. Teach what a habitat gives a living thing.",
+    "style": "clear",
+    "demand": "identify",
+    "intendedYear": "Year 2",
+    "intendedConcept": "what a habitat provides",
+    "prior": "",
+    "requestedDuration": null,
+    "http": 200,
+    "ok": true,
+    "stage": "COMPLETE",
+    "issues": [],
+    "category": "",
+    "sentSubject": "Science",
+    "sentYear": "Year 2",
+    "requiredKnowledge": [
+      "A habitat is a place where living things live.",
+      "Habitats provide food, water, and shelter for living things.",
+      "Different habitats support different types of living things."
+    ],
+    "teacherIntent": {
+      "ok": true,
+      "learningGoal": "Pupils will understand what a habitat provides for a living thing.",
+      "focusConcepts": [
+        "habitat",
+        "living things",
+        "resources",
+        "environment"
+      ],
+      "priorKnowledge": [],
+      "exclusions": [],
+      "preferences": [],
+      "subject": "Science",
+      "subjectConfidence": "explicit",
+      "durationMinutes": 15
+    },
+    "applyAlignment": {
+      "deterministicStatus": "pass",
+      "deterministicReason": "relation-covered",
+      "finalDeterministicStatus": "pass",
+      "finalDeterministicReason": "relation-covered",
+      "semanticJudgeUsed": false,
+      "semanticRelationship": null,
+      "semanticReason": "",
+      "semanticOutcome": null,
+      "semanticMs": null,
+      "semanticCalls": 0,
+      "semanticOutcomes": []
+    },
+    "repairUsed": false,
+    "repairKind": "none",
+    "repairedSlots": [],
+    "applyRepair": false,
+    "modelApply": {
+      "instruction": "Match each habitat with the resources it provides.",
+      "target": "Connect what you learned about habitats.",
+      "knowledgeUsed": "Habitats provide food, water, and shelter.",
+      "successCondition": "You correctly link habitats to their resources.",
+      "teachingConnection": "This shows how habitats support living things.",
+      "lines": []
+    },
+    "finalApply": {
+      "mechanic": "story",
+      "instruction": "Match each habitat with the resources it provides.",
+      "target": "Connect what you learned about habitats.",
+      "interactionType": "move",
+      "knowledgeUsed": "Habitats provide food, water, and shelter.",
+      "successCondition": "You correctly link habitats to their resources.",
+      "teachingConnection": "This shows how habitats support living things.",
+      "lines": [
+        "Match each habitat with the resources it provides."
+      ]
+    },
+    "check": {
+      "prompt": "What does a habitat provide for living things?",
+      "choices": [
+        "Only food",
+        "Food, water, and shelter",
+        "Just a place to live"
+      ],
+      "correct": "Food, water, and shelter"
+    },
+    "hook": [
+      "Look at these animals in our park.",
+      "They seem unwell and need something.",
+      "What could be missing from their homes?"
+    ],
+    "learningObjective": "Pupils will understand what a habitat provides for a living thing.",
+    "ms": 17648
+  },
+  {
+    "id": "y6-evidence",
+    "input": "Year 6 history. Teach how historians use evidence to decide what happened.",
+    "style": "clear",
+    "demand": "infer",
+    "intendedYear": "Year 6",
+    "intendedConcept": "using historical evidence",
+    "prior": "",
+    "requestedDuration": null,
+    "http": 200,
+    "ok": true,
+    "stage": "COMPLETE",
+    "issues": [],
+    "category": "",
+    "sentSubject": "History",
+    "sentYear": "Year 6",
+    "requiredKnowledge": [
+      "Historians use primary and secondary sources as evidence.",
+      "Analysis of sources helps historians understand context.",
+      "Interpretations can differ based on the evidence available."
+    ],
+    "teacherIntent": {
+      "ok": true,
+      "learningGoal": "Students will understand how historians use evidence to determine historical events.",
+      "focusConcepts": [
+        "historical evidence",
+        "analysis of sources",
+        "interpretation of events"
+      ],
+      "priorKnowledge": [],
+      "exclusions": [],
+      "preferences": [],
+      "subject": "History",
+      "subjectConfidence": "explicit",
+      "durationMinutes": 15
+    },
+    "applyAlignment": {
+      "deterministicStatus": "unresolved",
+      "deterministicReason": "unlisted-action",
+      "finalDeterministicStatus": "unresolved",
+      "finalDeterministicReason": "unlisted-action",
+      "semanticJudgeUsed": true,
+      "semanticRelationship": "apply",
+      "semanticReason": "The instruction requires using knowledge of source analysis to discuss differing interpretations.",
+      "semanticOutcome": "semantic-pass",
+      "semanticMs": 746,
+      "semanticCalls": 1,
+      "semanticOutcomes": [
+        "semantic-pass"
+      ]
+    },
+    "repairUsed": false,
+    "repairKind": "none",
+    "repairedSlots": [],
+    "applyRepair": false,
+    "modelApply": {
+      "instruction": "Discuss how different sources might tell different stories about the artifact.",
+      "target": "Share your thoughts on the interpretations.",
+      "knowledgeUsed": "Analysis of sources helps historians understand context.",
+      "successCondition": "Students articulate various interpretations of the evidence.",
+      "teachingConnection": "This task builds on how historians analyze sources.",
+      "lines": []
+    },
+    "finalApply": {
+      "mechanic": "story",
+      "instruction": "Discuss how different sources might tell different stories about the artifact.",
+      "target": "Share your thoughts on the interpretatio",
+      "interactionType": "sequence",
+      "knowledgeUsed": "Analysis of sources helps historians understand context.",
+      "successCondition": "Students articulate various interpretations of the evidence.",
+      "teachingConnection": "This task builds on how historians analyze sources.",
+      "lines": [
+        "Discuss how different sources might tell different stories about the artifact."
+      ]
+    },
+    "check": {
+      "prompt": "Why do historians use different types of evidence?",
+      "choices": [
+        "Because all evidence is equally reliable.",
+        "To understand context and different interpretations.",
+        "Because they always agree on what happened."
+      ],
+      "correct": "To understand context and different interpretations."
+    },
+    "hook": [
+      "A valuable artifact has disappeared from the museum.",
+      "What happened to it?"
+    ],
+    "learningObjective": "Students will grasp how historians utilize evidence to interpret historical events.",
+    "ms": 17781
+  },
+  {
+    "id": "y1-shapes",
+    "input": "Year 1 maths. Help them identify squares, circles and triangles.",
+    "style": "clear",
+    "demand": "identify",
+    "intendedYear": "Year 1",
+    "intendedConcept": "identifying squares, circles and triangles",
+    "prior": "",
+    "requestedDuration": null,
+    "http": 200,
+    "ok": false,
+    "stage": "EDUCATIONAL_VALIDATION_FAILED",
+    "issues": [
+      "The apply slot does not use the taught knowledge."
+    ],
+    "category": "invalid",
+    "sentSubject": "Maths",
+    "sentYear": "Year 1",
+    "requiredKnowledge": [
+      "A square has four equal sides.",
+      "A circle is round and has no corners.",
+      "A triangle has three sides and three corners."
+    ],
+    "teacherIntent": {
+      "ok": true,
+      "learningGoal": "Students will be able to identify squares, circles, and triangles.",
+      "focusConcepts": [
+        "2D shapes",
+        "shape properties"
+      ],
+      "priorKnowledge": [],
+      "exclusions": [],
+      "preferences": [],
+      "subject": "Maths",
+      "subjectConfidence": "explicit",
+      "durationMinutes": 15
+    },
+    "applyAlignment": {
+      "deterministicStatus": "unresolved",
+      "deterministicReason": "no-lexical-overlap",
+      "finalDeterministicStatus": "fail",
+      "finalDeterministicReason": "knowledge-unidentified",
+      "semanticJudgeUsed": true,
+      "semanticRelationship": "apply",
+      "semanticReason": "The instruction requires using the knowledge of shapes to identify and point to them.",
+      "semanticOutcome": "semantic-pass",
+      "semanticMs": 683,
+      "semanticCalls": 1,
+      "semanticOutcomes": [
+        "semantic-pass"
+      ]
+    },
+    "repairUsed": true,
+    "repairKind": "slot",
+    "repairedSlots": [],
+    "applyRepair": false,
+    "modelApply": {
+      "instruction": "Point to the shapes you find.",
+      "target": "Identify squares, circles, and triangles.",
+      "knowledgeUsed": "A square has four equal sides.",
+      "successCondition": "You can name and point to each shape.",
+      "teachingConnection": "This uses the properties we just learned.",
+      "lines": []
+    },
+    "finalApply": {
+      "mechanic": "story",
+      "instruction": "Draw a square, a circle, and a triangle.",
+      "target": "Create your own shapes.",
+      "interactionType": "match",
+      "knowledgeUsed": "properties of 2D shapes",
+      "successCondition": "You have drawn all three shapes correctly.",
+      "teachingConnection": "This task uses what we learned about shapes.",
+      "lines": [
+        "Draw a square, a circle, and a triangle."
+      ]
+    },
+    "check": null,
+    "hook": [
+      "Look around the room.",
+      "What shapes can you see?",
+      "Can you find a square, a circle, or a triangle?"
+    ],
+    "learningObjective": "",
+    "ms": 21096
+  },
+  {
+    "id": "y5-settlements",
+    "input": "Year 5 geography. Compare why people settled beside a river and why people settled on a hill.",
+    "style": "clear",
+    "demand": "compare",
+    "intendedYear": "Year 5",
+    "intendedConcept": "comparing river and hill settlement sites",
+    "prior": "",
+    "requestedDuration": null,
+    "http": 200,
+    "ok": true,
+    "stage": "COMPLETE",
+    "issues": [],
+    "category": "",
+    "sentSubject": "Geography",
+    "sentYear": "Year 5",
+    "requiredKnowledge": [
+      "Rivers provide water for drinking and farming.",
+      "Hills can offer protection from floods and enemies.",
+      "Settlements near rivers often have access to fish and trade routes.",
+      "Settlements on hills can have better visibility and defense.",
+      "People settle near rivers because they need water for crops and daily life."
+    ],
+    "teacherIntent": {
+      "ok": true,
+      "learningGoal": "Understand the reasons why people choose to settle near rivers compared to hills.",
+      "focusConcepts": [
+        "settlement patterns",
+        "geographical advantages",
+        "natural resources"
+      ],
+      "priorKnowledge": [],
+      "exclusions": [],
+      "preferences": [],
+      "subject": "Geography",
+      "subjectConfidence": "explicit",
+      "durationMinutes": 15
+    },
+    "applyAlignment": {
+      "deterministicStatus": "unresolved",
+      "deterministicReason": "unlisted-action",
+      "finalDeterministicStatus": "unresolved",
+      "finalDeterministicReason": "unlisted-action",
+      "semanticJudgeUsed": true,
+      "semanticRelationship": "apply",
+      "semanticReason": "The instruction requires using knowledge about rivers and hills to create a list of advantages.",
+      "semanticOutcome": "semantic-pass",
+      "semanticMs": 725,
+      "semanticCalls": 1,
+      "semanticOutcomes": [
+        "semantic-pass"
+      ]
+    },
+    "repairUsed": false,
+    "repairKind": "none",
+    "repairedSlots": [],
+    "applyRepair": false,
+    "modelApply": {
+      "instruction": "In groups, list the advantages of rivers and hills.",
+      "target": "Compare and contrast the two locations.",
+      "knowledgeUsed": "Rivers provide water for drinking and farming.",
+      "successCondition": "Groups create a clear list of advantages.",
+      "teachingConnection": "This helps apply what we learned about settlement patterns.",
+      "lines": []
+    },
+    "finalApply": {
+      "mechanic": "story",
+      "instruction": "In groups, list the advantages of rivers and hills.",
+      "target": "Compare and contrast the two locations.",
+      "interactionType": "sort",
+      "knowledgeUsed": "Rivers provide water for drinking and farming.",
+      "successCondition": "Groups create a clear list of advantages.",
+      "teachingConnection": "This helps apply what we learned about settlement patterns.",
+      "lines": [
+        "In groups, list the advantages of rivers and hills."
+      ]
+    },
+    "check": {
+      "prompt": "Why do people settle near rivers?",
+      "choices": [
+        "They need water for crops.",
+        "They want to be in a flood zone.",
+        "They prefer living on hills."
+      ],
+      "correct": "They need water for crops."
+    },
+    "hook": [
+      "Why do you think people choose to live near rivers?",
+      "What might be the benefits of living on a hill?"
+    ],
+    "learningObjective": "Understand why people prefer to settle near rivers over hills.",
+    "ms": 27776
+  },
+  {
+    "id": "y2-lifecycle",
+    "input": "Year 2 science. Teach the order of a frog's life, from egg to adult.",
+    "style": "clear",
+    "demand": "sequence",
+    "intendedYear": "Year 2",
+    "intendedConcept": "order of a frog life cycle",
+    "prior": "",
+    "requestedDuration": null,
+    "http": 200,
+    "ok": true,
+    "stage": "COMPLETE",
+    "issues": [],
+    "category": "",
+    "sentSubject": "Science",
+    "sentYear": "Year 2",
+    "requiredKnowledge": [
+      "Frogs start their life as eggs in water.",
+      "The eggs hatch into tadpoles, which live in water.",
+      "Tadpoles grow legs and lose their tails to become frogs.",
+      "Adult frogs can live on land and return to water to lay eggs."
+    ],
+    "teacherIntent": {
+      "ok": true,
+      "learningGoal": "Pupils should understand the stages of a frog's life cycle, from egg to adult.",
+      "focusConcepts": [
+        "life cycle",
+        "metamorphosis",
+        "habitat",
+        "development"
+      ],
+      "priorKnowledge": [],
+      "exclusions": [],
+      "preferences": [],
+      "subject": "Science",
+      "subjectConfidence": "explicit",
+      "durationMinutes": 15
+    },
+    "applyAlignment": {
+      "deterministicStatus": "unresolved",
+      "deterministicReason": "single-stem",
+      "finalDeterministicStatus": "unresolved",
+      "finalDeterministicReason": "single-stem",
+      "semanticJudgeUsed": true,
+      "semanticRelationship": "apply",
+      "semanticReason": "The instruction requires using knowledge of the frog life cycle to create a drawing.",
+      "semanticOutcome": "semantic-pass",
+      "semanticMs": 769,
+      "semanticCalls": 1,
+      "semanticOutcomes": [
+        "semantic-pass"
+      ]
+    },
+    "repairUsed": false,
+    "repairKind": "none",
+    "repairedSlots": [],
+    "applyRepair": false,
+    "modelApply": {
+      "instruction": "Draw the life cycle of a frog.",
+      "target": "Show each stage from egg to adult.",
+      "knowledgeUsed": "Frogs start their life as eggs in water.",
+      "successCondition": "A complete drawing of the life cycle.",
+      "teachingConnection": "This shows what we learned about the stages.",
+      "lines": []
+    },
+    "finalApply": {
+      "mechanic": "story",
+      "instruction": "Draw the life cycle of a frog.",
+      "target": "Show each stage from egg to adult.",
+      "interactionType": "move",
+      "knowledgeUsed": "Frogs start their life as eggs in water.",
+      "successCondition": "A complete drawing of the life cycle.",
+      "teachingConnection": "This shows what we learned about the stages.",
+      "lines": [
+        "Draw the life cycle of a frog."
+      ]
+    },
+    "check": {
+      "prompt": "What is the first stage of a frog's life?",
+      "choices": [
+        "Tadpole",
+        "Egg",
+        "Adult frog"
+      ],
+      "correct": "Egg"
+    },
+    "hook": [
+      "Look at this empty pond.",
+      "Where have all the frogs gone?",
+      "Can we find out what happened?"
+    ],
+    "learningObjective": "Pupils should understand the stages of a frog's life cycle, from egg to adult.",
+    "ms": 19214
+  },
+  {
+    "id": "y2-loud",
+    "input": "Need something fun for year 2 about why some sounds are louder than others",
+    "style": "messy",
+    "demand": "explain",
+    "intendedYear": "Year 2",
+    "intendedConcept": "why some sounds are louder",
+    "prior": "",
+    "requestedDuration": null,
+    "http": 200,
+    "ok": true,
+    "stage": "COMPLETE",
+    "issues": [],
+    "category": "",
+    "sentSubject": "",
+    "sentYear": "Year 2",
+    "requiredKnowledge": [
+      "Sound travels in waves.",
+      "Louder sounds have higher amplitude.",
+      "Frequency affects the pitch of the sound.",
+      "Amplitude is the height of sound waves, which makes sounds louder."
+    ],
+    "teacherIntent": {
+      "ok": true,
+      "learningGoal": "Understand why some sounds are louder than others.",
+      "focusConcepts": [
+        "sound waves",
+        "amplitude",
+        "frequency"
+      ],
+      "priorKnowledge": [],
+      "exclusions": [],
+      "preferences": [
+        "fun"
+      ],
+      "subject": "Science",
+      "subjectConfidence": "explicit",
+      "durationMinutes": 15
+    },
+    "applyAlignment": {
+      "deterministicStatus": "unresolved",
+      "deterministicReason": "shared-knowledge",
+      "finalDeterministicStatus": "unresolved",
+      "finalDeterministicReason": "shared-knowledge",
+      "semanticJudgeUsed": true,
+      "semanticRelationship": "apply",
+      "semanticReason": "The instruction requires using knowledge of amplitude to create loud sounds with objects.",
+      "semanticOutcome": "semantic-pass",
+      "semanticMs": 1367,
+      "semanticCalls": 1,
+      "semanticOutcomes": [
+        "semantic-pass"
+      ]
+    },
+    "repairUsed": false,
+    "repairKind": "none",
+    "repairedSlots": [],
+    "applyRepair": false,
+    "modelApply": {
+      "instruction": "Create your own sounds using different objects.",
+      "target": "Experiment with making loud and soft sounds.",
+      "knowledgeUsed": "Amplitude",
+      "successCondition": "You can show how to make a loud sound.",
+      "teachingConnection": "This connects to how amplitude affects loudness.",
+      "lines": []
+    },
+    "finalApply": {
+      "mechanic": "story",
+      "instruction": "Create your own sounds using different objects.",
+      "target": "Experiment with making loud and soft sou",
+      "interactionType": "move",
+      "knowledgeUsed": "Amplitude",
+      "successCondition": "You can show how to make a loud sound.",
+      "teachingConnection": "This connects to how amplitude affects loudness.",
+      "lines": [
+        "Create your own sounds using different objects."
+      ]
+    },
+    "check": {
+      "prompt": "What makes a sound louder?",
+      "choices": [
+        "It's closer to you.",
+        "It has higher amplitude.",
+        "It's made by a bigger object."
+      ],
+      "correct": "It has higher amplitude."
+    },
+    "hook": [
+      "Listen closely to these sounds.",
+      "Some are loud, and some are soft.",
+      "Why do you think that is?"
+    ],
+    "learningObjective": "Understand why some sounds are louder than others.",
+    "ms": 24761
+  },
+  {
+    "id": "y4-speech",
+    "input": "year 4 they keep forgetting speech marks can we do something on that",
+    "style": "messy",
+    "demand": "apply",
+    "intendedYear": "Year 4",
+    "intendedConcept": "using speech marks",
+    "prior": "",
+    "requestedDuration": null,
+    "http": 200,
+    "ok": true,
+    "stage": "COMPLETE",
+    "issues": [],
+    "category": "",
+    "sentSubject": "",
+    "sentYear": "Year 4",
+    "requiredKnowledge": [
+      "Speech marks are used to show when someone is speaking.",
+      "Speech marks come at the beginning and end of the spoken words.",
+      "Direct speech is the exact words someone says."
+    ],
+    "teacherIntent": {
+      "ok": true,
+      "learningGoal": "Pupils will remember to use speech marks correctly in their writing.",
+      "focusConcepts": [
+        "punctuation",
+        "direct speech",
+        "sentence structure"
+      ],
+      "priorKnowledge": [],
+      "exclusions": [],
+      "preferences": [],
+      "subject": "English",
+      "subjectConfidence": "explicit",
+      "durationMinutes": 15
+    },
+    "applyAlignment": {
+      "deterministicStatus": "unresolved",
+      "deterministicReason": "unlisted-action",
+      "finalDeterministicStatus": "unresolved",
+      "finalDeterministicReason": "unlisted-action",
+      "semanticJudgeUsed": true,
+      "semanticRelationship": "apply",
+      "semanticReason": "The instruction requires using knowledge of speech marks to correctly format sentences.",
+      "semanticOutcome": "semantic-pass",
+      "semanticMs": 705,
+      "semanticCalls": 1,
+      "semanticOutcomes": [
+        "semantic-pass"
+      ]
+    },
+    "repairUsed": false,
+    "repairKind": "none",
+    "repairedSlots": [],
+    "applyRepair": false,
+    "modelApply": {
+      "instruction": "Add speech marks to these sentences.",
+      "target": "Use speech marks correctly in your writing.",
+      "knowledgeUsed": "Speech marks are used to show when someone is speaking.",
+      "successCondition": "Sentences should have correct speech marks.",
+      "teachingConnection": "This practice helps reinforce what we just learned.",
+      "lines": []
+    },
+    "finalApply": {
+      "mechanic": "story",
+      "instruction": "Add speech marks to these sentences.",
+      "target": "Use speech marks correctly in your writi",
+      "interactionType": "sort",
+      "knowledgeUsed": "Speech marks are used to show when someone is speaking.",
+      "successCondition": "Sentences should have correct speech marks.",
+      "teachingConnection": "This practice helps reinforce what we just learned.",
+      "lines": [
+        "Add speech marks to these sentences."
+      ]
+    },
+    "check": {
+      "prompt": "Why do we use speech marks?",
+      "choices": [
+        "To show when someone is speaking.",
+        "To make sentences longer.",
+        "To add excitement to stories."
+      ],
+      "correct": "To show when someone is speaking."
+    },
+    "hook": [
+      "Have you ever read a story that was hard to understand?",
+      "What if the characters are talking, but we can't see who is speaking?"
+    ],
+    "learningObjective": "Pupils will remember to use speech marks correctly in their writing.",
+    "ms": 16993
+  },
+  {
+    "id": "y1-plants",
+    "input": "pls year 1 why do plants need water keep it playful",
+    "style": "messy",
+    "demand": "explain",
+    "intendedYear": "Year 1",
+    "intendedConcept": "why plants need water",
+    "prior": "",
+    "requestedDuration": null,
+    "http": 200,
+    "ok": true,
+    "stage": "COMPLETE",
+    "issues": [],
+    "category": "",
+    "sentSubject": "Science",
+    "sentYear": "Year 1",
+    "requiredKnowledge": [
+      "Plants need water to grow and stay healthy.",
+      "Water helps plants make food through a process called photosynthesis.",
+      "Plants absorb water through their roots."
+    ],
+    "teacherIntent": {
+      "ok": true,
+      "learningGoal": "Students will understand why plants need water to grow.",
+      "focusConcepts": [
+        "photosynthesis",
+        "plant growth",
+        "water absorption"
+      ],
+      "priorKnowledge": [],
+      "exclusions": [],
+      "preferences": [
+        "playful"
+      ],
+      "subject": "Science",
+      "subjectConfidence": "explicit",
+      "durationMinutes": 15
+    },
+    "applyAlignment": {
+      "deterministicStatus": "unresolved",
+      "deterministicReason": "unlisted-action",
+      "finalDeterministicStatus": "unresolved",
+      "finalDeterministicReason": "unlisted-action",
+      "semanticJudgeUsed": true,
+      "semanticRelationship": "apply",
+      "semanticReason": "The instruction requires using the knowledge about plants needing water to perform the action of watering them.",
+      "semanticOutcome": "semantic-pass",
+      "semanticMs": 765,
+      "semanticCalls": 1,
+      "semanticOutcomes": [
+        "semantic-pass"
+      ]
+    },
+    "repairUsed": false,
+    "repairKind": "none",
+    "repairedSlots": [],
+    "applyRepair": false,
+    "modelApply": {
+      "instruction": "Water the plants carefully.",
+      "target": "Show how water helps them grow.",
+      "knowledgeUsed": "Plants need water to grow and stay healthy.",
+      "successCondition": "The plants perk up after being watered.",
+      "teachingConnection": "This shows the importance of water for plants.",
+      "lines": []
+    },
+    "finalApply": {
+      "mechanic": "story",
+      "instruction": "Water the plants carefully.",
+      "target": "Show how water helps them grow.",
+      "interactionType": "move",
+      "knowledgeUsed": "Plants need water to grow and stay healthy.",
+      "successCondition": "The plants perk up after being watered.",
+      "teachingConnection": "This shows the importance of water for plants.",
+      "lines": [
+        "demonstrate the importance of water for plants"
+      ]
+    },
+    "check": {
+      "prompt": "Why do you think plants need water?",
+      "choices": [
+        "To make food through photosynthesis.",
+        "To grow tall and strong.",
+        "Others might believe that all plants need the same amount of water."
+      ],
+      "correct": "To make food through photosynthesis."
+    },
+    "hook": [
+      "Look at the plants! They look so sad.",
+      "What do you think they need to feel better?"
+    ],
+    "learningObjective": "Students will understand why plants need water to grow.",
+    "ms": 17710
+  },
+  {
+    "id": "y5-chrono",
+    "input": "year 5 need them to put events in order not just memorise dates",
+    "style": "messy",
+    "demand": "sequence",
+    "intendedYear": "Year 5",
+    "intendedConcept": "ordering events rather than memorising dates",
+    "prior": "",
+    "requestedDuration": null,
+    "http": 200,
+    "ok": true,
+    "stage": "COMPLETE",
+    "issues": [],
+    "category": "",
+    "sentSubject": "",
+    "sentYear": "Year 5",
+    "requiredKnowledge": [
+      "Historical events can be arranged in a timeline.",
+      "The order of events helps us understand history better.",
+      "Chronological order means arranging events from earliest to latest."
+    ],
+    "teacherIntent": {
+      "ok": true,
+      "learningGoal": "Students should be able to sequence historical events in chronological order rather than just memorizing dates.",
+      "focusConcepts": [],
+      "priorKnowledge": [],
+      "exclusions": [],
+      "preferences": [],
+      "subject": "",
+      "subjectConfidence": "uncertain",
+      "durationMinutes": 15
+    },
+    "applyAlignment": {
+      "deterministicStatus": "pass",
+      "deterministicReason": "relation-covered",
+      "finalDeterministicStatus": "pass",
+      "finalDeterministicReason": "relation-covered",
+      "semanticJudgeUsed": false,
+      "semanticRelationship": null,
+      "semanticReason": "",
+      "semanticOutcome": null,
+      "semanticMs": null,
+      "semanticCalls": 0,
+      "semanticOutcomes": []
+    },
+    "repairUsed": false,
+    "repairKind": "none",
+    "repairedSlots": [],
+    "applyRepair": false,
+    "modelApply": {
+      "instruction": "Use a timeline to put the events in order.",
+      "target": "Arrange the events correctly.",
+      "knowledgeUsed": "Chronological order means arranging events from earliest to latest.",
+      "successCondition": "Events are in the correct sequence.",
+      "teachingConnection": "This practice helps reinforce the concept of chronological order.",
+      "lines": []
+    },
+    "finalApply": {
+      "mechanic": "story",
+      "instruction": "Use a timeline to put the events in order.",
+      "target": "Arrange the events correctly.",
+      "interactionType": "sequence",
+      "knowledgeUsed": "Chronological order means arranging events from earliest to latest.",
+      "successCondition": "Events are in the correct sequence.",
+      "teachingConnection": "This practice helps reinforce the concept of chronological order.",
+      "lines": [
+        "Use a timeline to put the events in order."
+      ]
+    },
+    "check": {
+      "prompt": "What is the correct sequence of these events?",
+      "choices": [
+        "1, 2, 3",
+        "3, 1, 2",
+        "2, 3, 1"
+      ],
+      "correct": "1, 2, 3"
+    },
+    "hook": [
+      "A historical artifact has been found.",
+      "But the events surrounding it are all mixed up!",
+      "Can we figure out the correct order?"
+    ],
+    "learningObjective": "Students should be able to arrange historical events in the correct order.",
+    "ms": 20221
+  },
+  {
+    "id": "y3-backbone",
+    "input": "year 3 sort animals into ones with a backbone and ones without, make it hands on",
+    "style": "messy",
+    "demand": "classify",
+    "intendedYear": "Year 3",
+    "intendedConcept": "sorting animals by whether they have a backbone",
+    "prior": "",
+    "requestedDuration": null,
+    "http": 200,
+    "ok": true,
+    "stage": "COMPLETE",
+    "issues": [],
+    "category": "",
+    "sentSubject": "",
+    "sentYear": "Year 3",
+    "requiredKnowledge": [
+      "Vertebrates are animals with a backbone.",
+      "Invertebrates are animals without a backbone.",
+      "Examples of vertebrates include mammals, birds, and fish.",
+      "Examples of invertebrates include insects, spiders, and jellyfish."
+    ],
+    "teacherIntent": {
+      "ok": true,
+      "learningGoal": "Pupils should be able to sort animals into those with a backbone and those without.",
+      "focusConcepts": [
+        "vertebrates",
+        "invertebrates"
+      ],
+      "priorKnowledge": [],
+      "exclusions": [],
+      "preferences": [
+        "hands-on"
+      ],
+      "subject": "Science",
+      "subjectConfidence": "explicit",
+      "durationMinutes": 15
+    },
+    "applyAlignment": {
+      "deterministicStatus": "pass",
+      "deterministicReason": "relation-covered",
+      "finalDeterministicStatus": "pass",
+      "finalDeterministicReason": "relation-covered",
+      "semanticJudgeUsed": false,
+      "semanticRelationship": null,
+      "semanticReason": "",
+      "semanticOutcome": null,
+      "semanticMs": null,
+      "semanticCalls": 0,
+      "semanticOutcomes": []
+    },
+    "repairUsed": false,
+    "repairKind": "none",
+    "repairedSlots": [],
+    "applyRepair": false,
+    "modelApply": {
+      "instruction": "Sort the animal images into two groups: vertebrates and invertebrates.",
+      "target": "Classify the animals correctly based on their backbone presence.",
+      "knowledgeUsed": "Vertebrates and invertebrates.",
+      "successCondition": "Animals are sorted into the correct groups.",
+      "teachingConnection": "This activity uses the definitions we just learned.",
+      "lines": []
+    },
+    "finalApply": {
+      "mechanic": "story",
+      "instruction": "Sort the animal images into two groups: vertebrates and invertebrates.",
+      "target": "Classify the animals correctly based on",
+      "interactionType": "move",
+      "knowledgeUsed": "Vertebrates and invertebrates.",
+      "successCondition": "Animals are sorted into the correct groups.",
+      "teachingConnection": "This activity uses the definitions we just learned.",
+      "lines": [
+        "Sort the animal images into two groups: vertebrates and invertebrates."
+      ]
+    },
+    "check": {
+      "prompt": "Which animals belong to vertebrates?",
+      "choices": [
+        "Insects and spiders",
+        "Mammals and birds",
+        "Jellyfish and worms"
+      ],
+      "correct": "Mammals and birds"
+    },
+    "hook": [
+      "Look at these animals.",
+      "How do we know which group they belong to?"
+    ],
+    "learningObjective": "Pupils should be able to classify animals as having a backbone or not.",
+    "ms": 19126
+  },
+  {
+    "id": "y6-flood",
+    "input": "year 6 why might this town flood again if the river is already high",
+    "style": "messy",
+    "demand": "predict",
+    "intendedYear": "Year 6",
+    "intendedConcept": "predicting another flood when the river is already high",
+    "prior": "",
+    "requestedDuration": null,
+    "http": 200,
+    "ok": false,
+    "stage": "EDUCATIONAL_VALIDATION_FAILED",
+    "issues": [
+      "The apply slot does not use the taught knowledge."
+    ],
+    "category": "invalid",
+    "sentSubject": "Geography",
+    "sentYear": "Year 6",
+    "requiredKnowledge": [
+      "Heavy rainfall can increase the amount of water in rivers.",
+      "When the ground is already wet, it cannot absorb more water.",
+      "Flooding can happen if rivers overflow their banks."
+    ],
+    "teacherIntent": {
+      "ok": true,
+      "learningGoal": "Understand the reasons why a town might flood again if the river is already high.",
+      "focusConcepts": [
+        "flooding causes",
+        "river levels",
+        "precipitation effects"
+      ],
+      "priorKnowledge": [],
+      "exclusions": [],
+      "preferences": [],
+      "subject": "Geography",
+      "subjectConfidence": "explicit",
+      "durationMinutes": 15
+    },
+    "applyAlignment": {
+      "deterministicStatus": "fail",
+      "deterministicReason": "different-knowledge",
+      "finalDeterministicStatus": "fail",
+      "finalDeterministicReason": "different-knowledge",
+      "semanticJudgeUsed": false,
+      "semanticRelationship": null,
+      "semanticReason": "",
+      "semanticOutcome": null,
+      "semanticMs": null,
+      "semanticCalls": 0,
+      "semanticOutcomes": []
+    },
+    "repairUsed": true,
+    "repairKind": "slot",
+    "repairedSlots": [
+      "apply"
+    ],
+    "applyRepair": true,
+    "modelApply": {
+      "instruction": "Identify factors that could lead to flooding.",
+      "target": "Use your knowledge about river levels.",
+      "knowledgeUsed": "Heavy rainfall can increase the amount of water in rivers.",
+      "successCondition": "You can explain how these factors relate to flooding.",
+      "teachingConnection": "This task helps you apply what we just learned.",
+      "lines": []
+    },
+    "finalApply": {
+      "mechanic": "story",
+      "instruction": "Sort these statements based on how they contribute to flooding.",
+      "target": "sets",
+      "interactionType": "sort",
+      "knowledgeUsed": "Heavy rainfall can increase the amount of water in rivers.",
+      "successCondition": "The pupil sorts statements correctly to show understanding of flooding causes.",
+      "teachingConnection": "This task connects to the knowledge about how heavy rainfall affects river levels.",
+      "lines": [
+        "Sort these statements based on how they contribute to flooding."
+      ]
+    },
+    "check": null,
+    "hook": [
+      "Look at this town by the river.",
+      "It flooded recently, but could it happen again?"
+    ],
+    "learningObjective": "",
+    "ms": 20976
+  },
+  {
+    "id": "y4-states",
+    "input": "Year 4 science. They already know solids, liquids and gases. Do not reteach the three states. Teach how heating and cooling can change a material from one state to another.",
+    "style": "prior",
+    "demand": "explain",
+    "intendedYear": "Year 4",
+    "intendedConcept": "heating and cooling changing a material's state",
+    "prior": "Already know solids, liquids and gases. Do not reteach the three states.",
+    "requestedDuration": null,
+    "http": 200,
+    "ok": true,
+    "stage": "COMPLETE",
+    "issues": [],
+    "category": "",
+    "sentSubject": "Science",
+    "sentYear": "Year 4",
+    "requiredKnowledge": [
+      "Heating a solid can turn it into a liquid.",
+      "Cooling a liquid can turn it into a solid.",
+      "Heating a liquid can turn it into a gas.",
+      "Cooling a gas can turn it into a liquid."
+    ],
+    "teacherIntent": {
+      "ok": true,
+      "learningGoal": "Understand how heating and cooling can change a material from one state to another.",
+      "focusConcepts": [
+        "heating",
+        "cooling",
+        "state change"
+      ],
+      "priorKnowledge": [
+        "solids",
+        "liquids",
+        "gases"
+      ],
+      "exclusions": [],
+      "preferences": [],
+      "subject": "Science",
+      "subjectConfidence": "explicit",
+      "durationMinutes": 15
+    },
+    "applyAlignment": {
+      "deterministicStatus": "unresolved",
+      "deterministicReason": "unlisted-action",
+      "finalDeterministicStatus": "unresolved",
+      "finalDeterministicReason": "unlisted-action",
+      "semanticJudgeUsed": true,
+      "semanticRelationship": "apply",
+      "semanticReason": "The instruction requires using knowledge of state changes to provide specific examples.",
+      "semanticOutcome": "semantic-pass",
+      "semanticMs": 858,
+      "semanticCalls": 1,
+      "semanticOutcomes": [
+        "semantic-pass"
+      ]
+    },
+    "repairUsed": false,
+    "repairKind": "none",
+    "repairedSlots": [],
+    "applyRepair": false,
+    "modelApply": {
+      "instruction": "Give examples of materials that change state with heating or cooling.",
+      "target": "Provide examples.",
+      "knowledgeUsed": "Heating and cooling can change states.",
+      "successCondition": "Examples show understanding of state changes.",
+      "teachingConnection": "This connects to how we learned about heating and cooling.",
+      "lines": []
+    },
+    "finalApply": {
+      "mechanic": "story",
+      "instruction": "Give examples of materials that change state with heating or cooling.",
+      "target": "Provide examples.",
+      "interactionType": "move",
+      "knowledgeUsed": "Heating and cooling can change states.",
+      "successCondition": "Examples show understanding of state changes.",
+      "teachingConnection": "This connects to how we learned about heating and cooling.",
+      "lines": [
+        "Give examples of materials that change state with heating or cooling."
+      ]
+    },
+    "check": {
+      "prompt": "What happens to a solid when it is heated?",
+      "choices": [
+        "It becomes a liquid.",
+        "It stays the same.",
+        "It becomes a gas."
+      ],
+      "correct": "It becomes a liquid."
+    },
+    "hook": [
+      "What happens to ice when it gets warm?",
+      "Can you see any changes?"
+    ],
+    "learningObjective": "Understand how heating and cooling can change a material from one state to another.",
+    "ms": 18813
+  },
+  {
+    "id": "y2-order",
+    "input": "Year 2 maths. They can add within 20. Do not reteach counting on. The mix-up is that they think you must start with the bigger number. Teach that addition can be done in either order.",
+    "style": "prior",
+    "demand": "explain",
+    "intendedYear": "Year 2",
+    "intendedConcept": "addition can be done in either order",
+    "prior": "Can add within 20. Do not reteach counting on. Address the bigger-number-first mix-up.",
+    "requestedDuration": null,
+    "http": 200,
+    "ok": true,
+    "stage": "COMPLETE",
+    "issues": [],
+    "category": "",
+    "sentSubject": "Maths",
+    "sentYear": "Year 2",
+    "requiredKnowledge": [
+      "Addition can be done in any order.",
+      "For example, 3 + 5 is the same as 5 + 3."
+    ],
+    "teacherIntent": {
+      "ok": true,
+      "learningGoal": "Understand that addition can be done in either order.",
+      "focusConcepts": [
+        "commutative property of addition"
+      ],
+      "priorKnowledge": [
+        "can add within 20"
+      ],
+      "exclusions": [
+        "counting on"
+      ],
+      "preferences": [],
+      "subject": "Maths",
+      "subjectConfidence": "explicit",
+      "durationMinutes": 15
+    },
+    "applyAlignment": {
+      "deterministicStatus": "unresolved",
+      "deterministicReason": "unlisted-action",
+      "finalDeterministicStatus": "unresolved",
+      "finalDeterministicReason": "unlisted-action",
+      "semanticJudgeUsed": true,
+      "semanticRelationship": "apply",
+      "semanticReason": "The instruction requires using the knowledge of the commutative property of addition to practice adding numbers in different orders.",
+      "semanticOutcome": "semantic-pass",
+      "semanticMs": 761,
+      "semanticCalls": 1,
+      "semanticOutcomes": [
+        "semantic-pass"
+      ]
+    },
+    "repairUsed": false,
+    "repairKind": "none",
+    "repairedSlots": [],
+    "applyRepair": false,
+    "modelApply": {
+      "instruction": "Practice adding numbers in different orders.",
+      "target": "Use both orders to solve addition problems.",
+      "knowledgeUsed": "Addition can be done in any order.",
+      "successCondition": "You can show that both orders give the same result.",
+      "teachingConnection": "This task helps you apply the commutative property.",
+      "lines": []
+    },
+    "finalApply": {
+      "mechanic": "story",
+      "instruction": "Practice adding numbers in different orders.",
+      "target": "Use both orders to solve addition proble",
+      "interactionType": "match",
+      "knowledgeUsed": "Addition can be done in any order.",
+      "successCondition": "You can show that both orders give the same result.",
+      "teachingConnection": "This task helps you apply the commutative property.",
+      "lines": [
+        "Practice adding numbers in different orders."
+      ]
+    },
+    "check": {
+      "prompt": "Why can we add in any order?",
+      "choices": [
+        "Because it always gives the same result.",
+        "You must start with the bigger number.",
+        "It depends on the numbers used."
+      ],
+      "correct": "Because it always gives the same result."
+    },
+    "hook": [
+      "The townsfolk are puzzled about adding their supplies.",
+      "They think they must always start with the larger number."
+    ],
+    "learningObjective": "Recognize that addition can be performed in any sequence.",
+    "ms": 19875
+  },
+  {
+    "id": "y6-infer",
+    "input": "Year 6 English. They can find a fact that is written in the text. Do not reteach finding stated facts. Teach them to infer a feeling the writer does not say outright.",
+    "style": "prior",
+    "demand": "infer",
+    "intendedYear": "Year 6",
+    "intendedConcept": "inferring a feeling that is not stated",
+    "prior": "Can retrieve a stated fact. Do not reteach retrieval.",
+    "requestedDuration": null,
+    "http": 200,
+    "ok": false,
+    "stage": "EDUCATIONAL_VALIDATION_FAILED",
+    "issues": [
+      "The apply slot does not use the taught knowledge."
+    ],
+    "category": "invalid",
+    "sentSubject": "English",
+    "sentYear": "Year 6",
+    "requiredKnowledge": [
+      "Writers often use descriptive language to hint at feelings.",
+      "Context and word choice can provide clues about emotions.",
+      "Inferences are conclusions drawn from evidence in the text."
+    ],
+    "teacherIntent": {
+      "ok": true,
+      "learningGoal": "Students will be able to infer a feeling that the writer does not state outright in the text.",
+      "focusConcepts": [
+        "inference",
+        "emotional understanding",
+        "textual analysis"
+      ],
+      "priorKnowledge": [
+        "finding stated facts"
+      ],
+      "exclusions": [
+        "finding stated facts"
+      ],
+      "preferences": [],
+      "subject": "English",
+      "subjectConfidence": "explicit",
+      "durationMinutes": 15
+    },
+    "applyAlignment": {
+      "deterministicStatus": "fail",
+      "deterministicReason": "different-knowledge",
+      "finalDeterministicStatus": "fail",
+      "finalDeterministicReason": "different-knowledge",
+      "semanticJudgeUsed": false,
+      "semanticRelationship": null,
+      "semanticReason": "",
+      "semanticOutcome": null,
+      "semanticMs": null,
+      "semanticCalls": 0,
+      "semanticOutcomes": []
+    },
+    "repairUsed": true,
+    "repairKind": "slot",
+    "repairedSlots": [
+      "apply"
+    ],
+    "applyRepair": true,
+    "modelApply": {
+      "instruction": "Read a new text and find emotional clues.",
+      "target": "Practice inferring feelings from the text.",
+      "knowledgeUsed": "Writers often use descriptive language to hint at feelings.",
+      "successCondition": "You can explain your inference with evidence.",
+      "teachingConnection": "This follows our learning about emotional clues.",
+      "lines": []
+    },
+    "finalApply": {
+      "mechanic": "story",
+      "instruction": "Read a new text and find emotional clues.",
+      "target": "Practice inferring feelings from the text.",
+      "interactionType": "sort",
+      "knowledgeUsed": "Writers often use descriptive language to hint at feelings.",
+      "successCondition": "You can explain your inference with evidence.",
+      "teachingConnection": "This follows our learning about emotional clues.",
+      "lines": [
+        "Read a new text and find emotional clues."
+      ]
+    },
+    "check": null,
+    "hook": [
+      "A letter has arrived at our school.",
+      "It has some hidden emotions.",
+      "Can you guess how the writer feels?"
+    ],
+    "learningObjective": "",
+    "ms": 21863
+  },
+  {
+    "id": "y3-maps",
+    "input": "Year 3 geography. They know a map is a picture of a place. Do not reteach what a map is. Teach them to use a key and a compass point to say where something is.",
+    "style": "prior",
+    "demand": "apply",
+    "intendedYear": "Year 3",
+    "intendedConcept": "using a map key and a compass point",
+    "prior": "Know a map is a picture of a place. Do not reteach what a map is.",
+    "requestedDuration": null,
+    "http": 200,
+    "ok": false,
+    "stage": "EDUCATIONAL_VALIDATION_FAILED",
+    "issues": [
+      "The teacher's source material was not used.",
+      "The apply slot does not use the taught knowledge."
+    ],
+    "category": "invalid",
+    "sentSubject": "Geography",
+    "sentYear": "Year 3",
+    "requiredKnowledge": [
+      "A map key explains what the symbols on the map mean.",
+      "Compass points (North, South, East, West) help us find directions on a map."
+    ],
+    "teacherIntent": {
+      "ok": true,
+      "learningGoal": "Students will be able to use a key and compass points to identify locations on a map.",
+      "focusConcepts": [
+        "map keys",
+        "compass points"
+      ],
+      "priorKnowledge": [
+        "a map is a picture of a place"
+      ],
+      "exclusions": [
+        "what a map is"
+      ],
+      "preferences": [],
+      "subject": "Geography",
+      "subjectConfidence": "explicit",
+      "durationMinutes": 15
+    },
+    "applyAlignment": {
+      "deterministicStatus": "fail",
+      "deterministicReason": "different-knowledge",
+      "finalDeterministicStatus": "fail",
+      "finalDeterministicReason": "different-knowledge",
+      "semanticJudgeUsed": false,
+      "semanticRelationship": null,
+      "semanticReason": "",
+      "semanticOutcome": null,
+      "semanticMs": null,
+      "semanticCalls": 0,
+      "semanticOutcomes": []
+    },
+    "repairUsed": true,
+    "repairKind": "slot",
+    "repairedSlots": [
+      "apply"
+    ],
+    "applyRepair": true,
+    "modelApply": {
+      "instruction": "Use the map key and compass points to find specific locations.",
+      "target": "Locate places on the map using the key and directions.",
+      "knowledgeUsed": "A map key explains what the symbols on the map mean.",
+      "successCondition": "You can correctly identify locations on the map.",
+      "teachingConnection": "This practice helps reinforce what we just learned.",
+      "lines": []
+    },
+    "finalApply": {
+      "mechanic": "story",
+      "instruction": "Use the map key and compass points to locate specific places on the map.",
+      "target": "sets",
+      "interactionType": "sort",
+      "knowledgeUsed": "A map key explains what the symbols on the map mean.",
+      "successCondition": "The pupil accurately identifies locations using the map key and compass points.",
+      "teachingConnection": "This task applies the knowledge of map keys and compass points to find locations on a map.",
+      "lines": [
+        "Use the map key and compass points to locate specific places on the map."
+      ]
+    },
+    "check": null,
+    "hook": [
+      "Look at this mysterious map.",
+      "What do you think it shows?",
+      "How can we find out where things are?"
+    ],
+    "learningObjective": "",
+    "ms": 21872
+  },
+  {
+    "id": "y3-magnets",
+    "input": "Year 3 science. They already know a magnet can pull some things. Do not reteach what a magnet is. Teach which materials a magnet pulls and which it leaves alone.",
+    "style": "prior",
+    "demand": "classify",
+    "intendedYear": "Year 3",
+    "intendedConcept": "which materials a magnet pulls",
+    "prior": "Already know a magnet can pull some things. Do not reteach what a magnet is.",
+    "requestedDuration": null,
+    "http": 200,
+    "ok": true,
+    "stage": "COMPLETE",
+    "issues": [],
+    "category": "",
+    "sentSubject": "Science",
+    "sentYear": "Year 3",
+    "requiredKnowledge": [
+      "Magnets attract materials like iron, nickel, and cobalt.",
+      "Materials like wood, plastic, and glass are not attracted to magnets.",
+      "Magnetic materials can be found in everyday objects like fridge magnets."
+    ],
+    "teacherIntent": {
+      "ok": true,
+      "learningGoal": "Students will understand which materials are attracted to magnets and which are not.",
+      "focusConcepts": [
+        "magnetic materials",
+        "non-magnetic materials"
+      ],
+      "priorKnowledge": [
+        "a magnet can pull some things"
+      ],
+      "exclusions": [
+        "what a magnet is"
+      ],
+      "preferences": [],
+      "subject": "Science",
+      "subjectConfidence": "explicit",
+      "durationMinutes": 15
+    },
+    "applyAlignment": {
+      "deterministicStatus": "unresolved",
+      "deterministicReason": "shared-knowledge",
+      "finalDeterministicStatus": "unresolved",
+      "finalDeterministicReason": "shared-knowledge",
+      "semanticJudgeUsed": true,
+      "semanticRelationship": "apply",
+      "semanticReason": "The instruction requires using knowledge of magnetic properties to categorize materials.",
+      "semanticOutcome": "semantic-pass",
+      "semanticMs": 609,
+      "semanticCalls": 1,
+      "semanticOutcomes": [
+        "semantic-pass"
+      ]
+    },
+    "repairUsed": false,
+    "repairKind": "none",
+    "repairedSlots": [],
+    "applyRepair": false,
+    "modelApply": {
+      "instruction": "Sort these materials into magnetic and non-magnetic groups.",
+      "target": "Classify materials based on their magnetic properties.",
+      "knowledgeUsed": "Magnets attract materials like iron, nickel, and cobalt.",
+      "successCondition": "Students correctly categorize the materials.",
+      "teachingConnection": "This activity uses the knowledge of magnetic and non-magnetic materials.",
+      "lines": []
+    },
+    "finalApply": {
+      "mechanic": "story",
+      "instruction": "Sort these materials into magnetic and non-magnetic groups.",
+      "target": "Classify materials based on their magnet",
+      "interactionType": "move",
+      "knowledgeUsed": "Magnets attract materials like iron, nickel, and cobalt.",
+      "successCondition": "Students correctly categorize the materials.",
+      "teachingConnection": "This activity uses the knowledge of magnetic and non-magnetic materials.",
+      "lines": [
+        "Sort these materials into magnetic and non-magnetic groups."
+      ]
+    },
+    "check": {
+      "prompt": "Which of these materials is attracted to a magnet?",
+      "choices": [
+        "Wood",
+        "Iron",
+        "Plastic"
+      ],
+      "correct": "Iron"
+    },
+    "hook": [
+      "Look at these materials.",
+      "Some might stick to the magnet.",
+      "Others might not stick at all."
+    ],
+    "learningObjective": "Students will understand which materials are attracted to magnets and which are not.",
+    "ms": 18657
+  },
+  {
+    "id": "y1-forces",
+    "input": "15 mins. Year 1 science. Teach that a push and a pull are both forces.",
+    "style": "time",
+    "demand": "explain",
+    "intendedYear": "Year 1",
+    "intendedConcept": "a push and a pull are both forces",
+    "prior": "",
+    "requestedDuration": 15,
+    "http": 200,
+    "ok": true,
+    "stage": "COMPLETE",
+    "issues": [],
+    "category": "",
+    "sentSubject": "Science",
+    "sentYear": "Year 1",
+    "requiredKnowledge": [
+      "A push is a force that moves something away.",
+      "A pull is a force that brings something closer.",
+      "Both pushes and pulls are types of forces."
+    ],
+    "teacherIntent": {
+      "ok": true,
+      "learningGoal": "Understand that a push and a pull are both forces.",
+      "focusConcepts": [
+        "forces",
+        "push",
+        "pull"
+      ],
+      "priorKnowledge": [],
+      "exclusions": [],
+      "preferences": [],
+      "subject": "Science",
+      "subjectConfidence": "explicit",
+      "durationMinutes": 15
+    },
+    "applyAlignment": {
+      "deterministicStatus": "unresolved",
+      "deterministicReason": "single-stem",
+      "finalDeterministicStatus": "unresolved",
+      "finalDeterministicReason": "single-stem",
+      "semanticJudgeUsed": true,
+      "semanticRelationship": "apply",
+      "semanticReason": "The instruction requires using the concept of push and pull to demonstrate their effects on objects.",
+      "semanticOutcome": "semantic-pass",
+      "semanticMs": 723,
+      "semanticCalls": 1,
+      "semanticOutcomes": [
+        "semantic-pass"
+      ]
+    },
+    "repairUsed": false,
+    "repairKind": "none",
+    "repairedSlots": [],
+    "applyRepair": false,
+    "modelApply": {
+      "instruction": "Demonstrate a push and a pull using classroom objects.",
+      "target": "Use classroom objects to show pushes and pulls.",
+      "knowledgeUsed": "A push is a force that moves something away.",
+      "successCondition": "Show how to push or pull an object.",
+      "teachingConnection": "This activity uses the concepts we just learned.",
+      "lines": []
+    },
+    "finalApply": {
+      "mechanic": "story",
+      "instruction": "Demonstrate a push and a pull using classroom objects.",
+      "target": "Use classroom objects to show pushes and",
+      "interactionType": "move",
+      "knowledgeUsed": "A push is a force that moves something away.",
+      "successCondition": "Show how to push or pull an object.",
+      "teachingConnection": "This activity uses the concepts we just learned.",
+      "lines": [
+        "Demonstrate a push and a pull using classroom objects."
+      ]
+    },
+    "check": {
+      "prompt": "What is a push?",
+      "choices": [
+        "A force that brings something closer.",
+        "A force that moves something away."
+      ],
+      "correct": "A force that moves something away."
+    },
+    "hook": [
+      "Look around the classroom.",
+      "Can you see objects that can be moved?",
+      "What do you think we need to do to move them?"
+    ],
+    "learningObjective": "Recognize that both pushes and pulls are types of forces.",
+    "ms": 18864
+  },
+  {
+    "id": "y3-questions",
+    "input": "30 minutes. Year 3 English. Teach why a question needs a question mark.",
+    "style": "time",
+    "demand": "explain",
+    "intendedYear": "Year 3",
+    "intendedConcept": "why a question needs a question mark",
+    "prior": "",
+    "requestedDuration": 30,
+    "http": 200,
+    "ok": false,
+    "stage": "EDUCATIONAL_VALIDATION_FAILED",
+    "issues": [
+      "The opening states the explanation before the class has investigated."
+    ],
+    "category": "invalid",
+    "sentSubject": "English",
+    "sentYear": "Year 3",
+    "requiredKnowledge": [
+      "A question is a type of sentence that asks something.",
+      "A question mark is a punctuation mark used at the end of a question.",
+      "Using a question mark helps the reader know that the sentence is asking for information."
+    ],
+    "teacherIntent": {
+      "ok": true,
+      "learningGoal": "Students will understand that a question needs a question mark to indicate it is a question.",
+      "focusConcepts": [
+        "punctuation",
+        "questions",
+        "sentence structure"
+      ],
+      "priorKnowledge": [],
+      "exclusions": [],
+      "preferences": [],
+      "subject": "English",
+      "subjectConfidence": "explicit",
+      "durationMinutes": 30
+    },
+    "applyAlignment": {
+      "deterministicStatus": "unresolved",
+      "deterministicReason": "single-stem",
+      "finalDeterministicStatus": "unresolved",
+      "finalDeterministicReason": "single-stem",
+      "semanticJudgeUsed": true,
+      "semanticRelationship": "apply",
+      "semanticReason": "The instruction requires using knowledge about questions and punctuation to create new sentences.",
+      "semanticOutcome": "semantic-pass",
+      "semanticMs": 1520,
+      "semanticCalls": 2,
+      "semanticOutcomes": [
+        "semantic-pass",
+        "semantic-pass"
+      ]
+    },
+    "repairUsed": true,
+    "repairKind": "slot",
+    "repairedSlots": [
+      "hook"
+    ],
+    "applyRepair": false,
+    "modelApply": {
+      "instruction": "Write your own questions and add question marks.",
+      "target": "Create sentences that are questions.",
+      "knowledgeUsed": "A question is a type of sentence that asks something.",
+      "successCondition": "Sentences must end with question marks.",
+      "teachingConnection": "This practice helps reinforce the use of question marks.",
+      "lines": []
+    },
+    "finalApply": {
+      "mechanic": "story",
+      "instruction": "Write your own questions and add question marks.",
+      "target": "Create sentences that are questions.",
+      "interactionType": "sort",
+      "knowledgeUsed": "A question is a type of sentence that asks something.",
+      "successCondition": "Sentences must end with question marks.",
+      "teachingConnection": "This practice helps reinforce the use of question marks.",
+      "lines": [
+        "Write your own questions and add question marks."
+      ]
+    },
+    "check": null,
+    "hook": [
+      "Look at these sentences.",
+      "Something seems off.",
+      "Can you spot what's missing?"
+    ],
+    "learningObjective": "",
+    "ms": 22529
+  },
+  {
+    "id": "y5-angles",
+    "input": "45 minutes. Year 5 maths. Teach how to measure an angle smaller than a right angle.",
+    "style": "time",
+    "demand": "apply",
+    "intendedYear": "Year 5",
+    "intendedConcept": "measuring an angle smaller than a right angle",
+    "prior": "",
+    "requestedDuration": 45,
+    "http": 200,
+    "ok": true,
+    "stage": "COMPLETE",
+    "issues": [],
+    "category": "",
+    "sentSubject": "Maths",
+    "sentYear": "Year 5",
+    "requiredKnowledge": [
+      "A right angle measures 90 degrees.",
+      "Acute angles are less than 90 degrees.",
+      "To measure an angle, align the protractor's center with the vertex.",
+      "Read the measurement on the protractor where the line crosses the scale."
+    ],
+    "teacherIntent": {
+      "ok": true,
+      "learningGoal": "Students will be able to measure angles smaller than a right angle accurately.",
+      "focusConcepts": [
+        "measuring angles",
+        "using a protractor",
+        "understanding acute angles"
+      ],
+      "priorKnowledge": [],
+      "exclusions": [],
+      "preferences": [],
+      "subject": "Maths",
+      "subjectConfidence": "explicit",
+      "durationMinutes": 45
+    },
+    "applyAlignment": {
+      "deterministicStatus": "pass",
+      "deterministicReason": "relation-covered",
+      "finalDeterministicStatus": "pass",
+      "finalDeterministicReason": "relation-covered",
+      "semanticJudgeUsed": false,
+      "semanticRelationship": null,
+      "semanticReason": "",
+      "semanticOutcome": null,
+      "semanticMs": null,
+      "semanticCalls": 0,
+      "semanticOutcomes": []
+    },
+    "repairUsed": false,
+    "repairKind": "none",
+    "repairedSlots": [],
+    "applyRepair": false,
+    "modelApply": {
+      "instruction": "Use your protractors to measure the angles on your worksheets.",
+      "target": "Practice measuring angles accurately.",
+      "knowledgeUsed": "Using a protractor to measure angles.",
+      "successCondition": "You measure angles correctly.",
+      "teachingConnection": "This practice reinforces how to measure acute angles.",
+      "lines": []
+    },
+    "finalApply": {
+      "mechanic": "story",
+      "instruction": "Use your protractors to measure the angles on your worksheets.",
+      "target": "Practice measuring angles accurately.",
+      "interactionType": "match",
+      "knowledgeUsed": "Using a protractor to measure angles.",
+      "successCondition": "You measure angles correctly.",
+      "teachingConnection": "This practice reinforces how to measure acute angles.",
+      "lines": [
+        "Use your protractors to measure the angles on your worksheets."
+      ]
+    },
+    "check": {
+      "prompt": "What is the measurement of a right angle?",
+      "choices": [
+        "90 degrees",
+        "45 degrees",
+        "180 degrees"
+      ],
+      "correct": "90 degrees"
+    },
+    "hook": [
+      "Look at this angle on the board.",
+      "What do you think its measurement is?",
+      "Can you tell if it's less than a right angle?"
+    ],
+    "learningObjective": "Students will be able to measure angles smaller than a right angle accurately.",
+    "ms": 18269
+  },
+  {
+    "id": "y6-sources",
+    "input": "20 mins. Year 6 history. Teach why two people can read the same source and disagree.",
+    "style": "time",
+    "demand": "explain",
+    "intendedYear": "Year 6",
+    "intendedConcept": "why two people can disagree about the same source",
+    "prior": "",
+    "requestedDuration": 20,
+    "http": 200,
+    "ok": false,
+    "stage": "EDUCATIONAL_VALIDATION_FAILED",
+    "issues": [
+      "The opening states the explanation before the class has investigated."
+    ],
+    "category": "invalid",
+    "sentSubject": "History",
+    "sentYear": "Year 6",
+    "requiredKnowledge": [
+      "Different people can have different perspectives.",
+      "Bias can influence how a source is interpreted.",
+      "Context of a source can change its meaning.",
+      "Interpretation of sources can vary based on individual experiences.",
+      "People interpret sources differently because they have unique backgrounds and experiences."
+    ],
+    "teacherIntent": {
+      "ok": true,
+      "learningGoal": "Understand why two people can read the same source and disagree.",
+      "focusConcepts": [
+        "interpretation of sources",
+        "perspective",
+        "bias",
+        "context"
+      ],
+      "priorKnowledge": [],
+      "exclusions": [],
+      "preferences": [],
+      "subject": "History",
+      "subjectConfidence": "explicit",
+      "durationMinutes": 20
+    },
+    "applyAlignment": {
+      "deterministicStatus": "fail",
+      "deterministicReason": "different-knowledge",
+      "finalDeterministicStatus": "unresolved",
+      "finalDeterministicReason": "shared-knowledge",
+      "semanticJudgeUsed": true,
+      "semanticRelationship": "apply",
+      "semanticReason": "The instruction requires using knowledge of perspectives and bias to interpret a historical source.",
+      "semanticOutcome": "semantic-pass",
+      "semanticMs": 678,
+      "semanticCalls": 1,
+      "semanticOutcomes": [
+        "semantic-pass"
+      ]
+    },
+    "repairUsed": true,
+    "repairKind": "slot",
+    "repairedSlots": [
+      "hook",
+      "apply"
+    ],
+    "applyRepair": true,
+    "modelApply": {
+      "instruction": "In pairs, analyze a historical source and discuss your interpretations.",
+      "target": "Share how your backgrounds might influence your views.",
+      "knowledgeUsed": "Different people can have different perspectives.",
+      "successCondition": "You can explain your interpretation and its influences.",
+      "teachingConnection": "This activity uses the concepts we just learned.",
+      "lines": []
+    },
+    "finalApply": {
+      "mechanic": "story",
+      "instruction": "In pairs, examine a historical source and share your different interpretations.",
+      "target": "Discuss how your backgrounds might influence your views.",
+      "interactionType": "sequence",
+      "knowledgeUsed": "Different people can have different perspectives.",
+      "successCondition": "You can explain how your interpretations differ.",
+      "teachingConnection": "This task connects to understanding how context and bias affect views.",
+      "lines": [
+        "In pairs, examine a historical source and share your different interpretations."
+      ]
+    },
+    "check": null,
+    "hook": [
+      "Two historians find a mysterious source.",
+      "They both see it differently.",
+      "What could cause this disagreement?"
+    ],
+    "learningObjective": "",
+    "ms": 28169
+  },
+  {
+    "id": "y5-persuade",
+    "input": "Year 5 English. Teach the class to write a short argument that tries to change someone's mind.",
+    "style": "clear",
+    "demand": "create",
+    "intendedYear": "Year 5",
+    "intendedConcept": "writing a short argument to change someone's mind",
+    "prior": "",
+    "requestedDuration": null,
+    "http": 200,
+    "ok": false,
+    "stage": "EDUCATIONAL_VALIDATION_FAILED",
+    "issues": [
+      "The apply slot does not use the taught knowledge."
+    ],
+    "category": "invalid",
+    "sentSubject": "English",
+    "sentYear": "Year 5",
+    "requiredKnowledge": [
+      "An argument has a clear main point or claim.",
+      "Persuasive language includes words that influence feelings or opinions.",
+      "Understanding the audience helps tailor the argument to their interests."
+    ],
+    "teacherIntent": {
+      "ok": true,
+      "learningGoal": "Students will be able to write a short argument that effectively tries to change someone's mind.",
+      "focusConcepts": [
+        "argument structure",
+        "persuasive language",
+        "audience awareness"
+      ],
+      "priorKnowledge": [],
+      "exclusions": [],
+      "preferences": [],
+      "subject": "English",
+      "subjectConfidence": "explicit",
+      "durationMinutes": 15
+    },
+    "applyAlignment": {
+      "deterministicStatus": "unresolved",
+      "deterministicReason": "unlisted-action",
+      "finalDeterministicStatus": "fail",
+      "finalDeterministicReason": "different-knowledge",
+      "semanticJudgeUsed": true,
+      "semanticRelationship": "apply",
+      "semanticReason": "The instruction requires using knowledge about argument structure to create a persuasive argument.",
+      "semanticOutcome": "semantic-pass",
+      "semanticMs": 819,
+      "semanticCalls": 1,
+      "semanticOutcomes": [
+        "semantic-pass"
+      ]
+    },
+    "repairUsed": true,
+    "repairKind": "slot",
+    "repairedSlots": [],
+    "applyRepair": false,
+    "modelApply": {
+      "instruction": "Draft your own argument for or against the park.",
+      "target": "Use persuasive language and consider your audience.",
+      "knowledgeUsed": "An argument has a clear main point or claim.",
+      "successCondition": "Your argument is clear and persuasive.",
+      "teachingConnection": "This task applies what we've learned about argument structure.",
+      "lines": []
+    },
+    "finalApply": {
+      "mechanic": "story",
+      "instruction": "Write a short argument to convince someone to read your favorite book.",
+      "target": "Share your argument with the class.",
+      "interactionType": "sort",
+      "knowledgeUsed": "argument structure and persuasive language",
+      "successCondition": "Your argument clearly presents your opinion.",
+      "teachingConnection": "This task uses the structure and language we just discussed.",
+      "lines": [
+        "Write a short argument to convince someone to read your favorite book."
+      ]
+    },
+    "check": null,
+    "hook": [
+      "Imagine you want to convince a friend to try a new sport.",
+      "What would you say to change their mind?"
+    ],
+    "learningObjective": "",
+    "ms": 24237
+  }
+]

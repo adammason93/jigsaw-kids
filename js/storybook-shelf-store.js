@@ -9,7 +9,22 @@
   var DB_NAME = "jigsaw-kids-app";
   var DB_VERSION = 1;
   var STORE_SHELF = "storybookShelf";
-  var SHELF_RECORD_KEY = "v1";
+  /** Legacy device shelf. Kept on disk so an existing library is not deleted. Never read for a signed-in user. */
+  var LEGACY_RECORD_KEY = "v1";
+  var VIEW_KEY = "wondii-shelf-view";
+  var activeUid = "";
+
+  function readView() {
+    try {
+      var raw = global.sessionStorage.getItem(VIEW_KEY);
+      if (!raw) return null;
+      var parsed = JSON.parse(raw);
+      if (!parsed || !Array.isArray(parsed.books)) return null;
+      return parsed;
+    } catch (e) {
+      return null;
+    }
+  }
 
   var dbPromise = null;
 
@@ -43,12 +58,12 @@
     return dbPromise;
   }
 
-  function idbGetString() {
+  function idbGetString(recordKey) {
     return openDb().then(function (db) {
       return new Promise(function (resolve, reject) {
         try {
           var tx = db.transaction(STORE_SHELF, "readonly");
-          var r = tx.objectStore(STORE_SHELF).get(SHELF_RECORD_KEY);
+          var r = tx.objectStore(STORE_SHELF).get(recordKey);
           r.onsuccess = function () {
             resolve(r.result !== undefined ? r.result : null);
           };
@@ -62,12 +77,12 @@
     });
   }
 
-  function idbPutString(s) {
+  function idbPutString(s, recordKey) {
     return openDb().then(function (db) {
       return new Promise(function (resolve, reject) {
         try {
           var tx = db.transaction(STORE_SHELF, "readwrite");
-          tx.objectStore(STORE_SHELF).put(s, SHELF_RECORD_KEY);
+          tx.objectStore(STORE_SHELF).put(s, recordKey);
           tx.oncomplete = function () {
             resolve();
           };
@@ -107,8 +122,8 @@
     if (!raw) {
       return Promise.resolve();
     }
-    return idbPutString(raw).then(function () {
-      return idbGetString();
+    return idbPutString(raw, LEGACY_RECORD_KEY).then(function () {
+      return idbGetString(LEGACY_RECORD_KEY);
     }).then(function (v) {
       if (v != null && String(v) === String(raw)) {
         lsRemove();
@@ -131,27 +146,55 @@
         });
     },
 
-    /** @returns {Promise<string|null>} raw JSON string */
+    /**
+     * Bind the shelf to the authenticated user. Pass null on logout.
+     * Reads and writes use only that user's record. The legacy device shelf is left untouched.
+     */
+    bindUser: function (uid) {
+      var next = uid ? String(uid) : "";
+      if (next !== activeUid) this.clearIsolated();
+      activeUid = next;
+    },
+
+    currentUserId: function () {
+      return activeUid || "";
+    },
+
+    /** @returns {Promise<string|null>} raw JSON string for the signed-in user, or null when nobody is signed in */
     getRaw: function () {
-      if (!idbAvailable()) {
-        return Promise.resolve(lsGet());
+      if (!activeUid) {
+        return Promise.resolve(null);
       }
-      return idbGetString()
+      var recordKey = "u:" + activeUid;
+      var userLsKey = LS_KEY + ":" + activeUid;
+      function userLs() {
+        try {
+          return global.localStorage.getItem(userLsKey);
+        } catch (e) {
+          return null;
+        }
+      }
+      if (!idbAvailable()) {
+        return Promise.resolve(userLs());
+      }
+      return idbGetString(recordKey)
         .then(function (raw) {
           if (raw != null && String(raw).length) {
             return String(raw);
           }
-          var fallback = lsGet();
+          var fallback = userLs();
           if (fallback) {
-            return idbPutString(fallback).then(function () {
-              lsRemove();
+            return idbPutString(fallback, recordKey).then(function () {
+              try {
+                global.localStorage.removeItem(userLsKey);
+              } catch (e) {}
               return fallback;
             });
           }
           return null;
         })
         .catch(function () {
-          return lsGet();
+          return userLs();
         });
     },
 
@@ -171,24 +214,49 @@
     },
 
     setRaw: function (jsonString) {
+      if (!activeUid) {
+        return Promise.reject(new Error("no_account"));
+      }
+      var recordKey = "u:" + activeUid;
       var s = String(jsonString);
       if (!idbAvailable()) {
         return new Promise(function (resolve, reject) {
           try {
-            lsSet(s);
+            global.localStorage.setItem(LS_KEY + ":" + activeUid, s);
             resolve();
           } catch (e) {
             reject(e);
           }
         });
       }
-      return idbPutString(s).then(function () {
-        lsRemove();
-      });
+      return idbPutString(s, recordKey);
     },
 
     setJson: function (list) {
       return this.setRaw(JSON.stringify(list));
+    },
+
+    /** This login is looking at its own cloud shelf, not another profile saved on this device. */
+    isIsolated: function () {
+      return !!readView();
+    },
+
+    getVisibleJson: function () {
+      var view = readView();
+      if (view) return Promise.resolve(view.books.slice());
+      return this.getJson();
+    },
+
+    setIsolated: function (uid, books) {
+      var prev = readView();
+      var id = uid || (prev && prev.uid) || "";
+      try {
+        global.sessionStorage.setItem(VIEW_KEY, JSON.stringify({ uid: id, books: books || [] }));
+      } catch (e) {}
+    },
+
+    clearIsolated: function () {
+      try { global.sessionStorage.removeItem(VIEW_KEY); } catch (e) {}
     },
   };
 })(typeof window !== "undefined" ? window : this);

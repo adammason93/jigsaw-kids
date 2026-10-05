@@ -8,6 +8,8 @@
 
 const DEFAULT_SITE_ORIGINS = [
   "https://jigsaw-kids.adammason93.workers.dev",
+  "https://wondii.co.uk",
+  "https://www.wondii.co.uk",
 ];
 
 const NON_USER_ROLES = new Set(["anon", "service_role"]);

@@ -26,7 +26,7 @@
   function loadBooks(cb) {
     var store = window.StorybookShelfStore;
     if (!store || typeof store.getJson !== "function") {
-      cb(loadFromLocalStorage());
+      cb([]);
       return;
     }
     store
@@ -35,7 +35,7 @@
         cb(Array.isArray(list) ? list : []);
       })
       .catch(function () {
-        cb(loadFromLocalStorage());
+        cb([]);
       });
   }
 
@@ -199,7 +199,7 @@
 
     if (sub) {
       sub.textContent = shown.length
-        ? "Read, explore and create your own stories with Sofia’s magical book collection."
+        ? "Read, explore and create your own stories."
         : "No books on the shelf yet — make one with the story maker and it will appear here!";
     }
     track.scrollLeft = 0;

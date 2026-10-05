@@ -3,20 +3,23 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="theme-color" content="#6366f1" />
+  <meta name="theme-color" content="#141b4d" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <title>Word search — Sofia's Game Room</title>
+  <title>Word search — Wondii</title>
   <link rel="manifest" href="../manifest.json" />
   <link rel="stylesheet" href="../js/kids-core.css" />
   <link rel="stylesheet" href="../js/game-scorecard.css" />
   <link rel="stylesheet" href="word-search.css" />
   <link rel="stylesheet" href="../tablet-ipad.css" />
+  <link rel="stylesheet" href="game-shell.css?v=1" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Sniglet:wght@400;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/wondii-tokens.css?v=2" />
+  <link rel="stylesheet" href="../css/wondii-p1.css?v=9" />
 </head>
-<body class="page-ws">
+<body class="page-ws" data-game-shell="v2" data-game-id="word-search">
   <div class="word-search-app" id="app">
     <nav class="game-nav" aria-label="Breadcrumb">
       <a class="back-link back-btn" href="../portal.html" aria-label="Back to all games"><span class="back-btn__icon" aria-hidden="true">&#8592;</span><span class="back-btn__text">Back</span></a>
@@ -72,14 +75,7 @@
       hidden
     >
       <div class="word-search__kelly-bubble">
-        <img
-          class="word-search__kelly-pic"
-          src="images/character-kelly.png"
-          width="128"
-          height="128"
-          alt=""
-        />
-        <p class="word-search__kelly-text"><span class="word-search__kelly-name">Kelly (Mummy)</span> says: Well done!</p>
+        <p class="word-search__kelly-text">Well done!</p>
       </div>
     </div>
 
@@ -121,9 +117,9 @@
   </div>
   <script src="../js/score-config.js"></script>
   <script src="../js/kids-core.js" defer></script>
-  <script src="../js/score-cloud.js" defer></script>
-  <script src="../js/game-scorecard.js" defer></script>
-  <script src="word-search.js" defer></script>
+  <script src="../js/score-cloud.js?v=6" defer></script>
+  <script src="../js/game-scorecard.js?v=2" defer></script>
+  <script src="word-search.js?v=2" defer></script>
   <script>
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", function () {
@@ -131,5 +127,8 @@
       });
     }
   </script>
+  <script src="game-platform.js?v=1" defer></script>
+  <script src="game-shell.js?v=1" defer></script>
+  <script src="pilot-bridge.js?v=1" defer></script>
 </body>
 </html>

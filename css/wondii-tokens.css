@@ -1,0 +1,113 @@
+/* Canonical Wondii tokens.
+   The first block keeps the names already used by the P1 skin.
+   Semantic names below are for css/wondii-system.css. Loading this file
+   does not restyle a page. Components opt in by class. */
+
+:root {
+  --w-ink: #141b4d;
+  --w-soft: #5c6284;
+  --w-paper: #f6f5fc;
+  --w-card: #fffdfb;
+  --w-line: rgba(20, 27, 77, 0.08);
+  --w-accent: var(--org-primary, var(--school-red, var(--w-ink)));
+  --w-on-accent: #fff;
+  --w-radius: 22px;
+  --w-radius-lg: 28px;
+  --w-shadow: 0 10px 26px rgba(20, 27, 77, 0.08);
+  --w-shadow-lg: 0 18px 50px rgba(20, 27, 77, 0.16);
+  --w-font: Nunito, "Segoe UI", system-ui, sans-serif;
+  --w-display: Fredoka, Nunito, system-ui, sans-serif;
+  --w-ok: #0f9f6e;
+  --w-no: #e11d48;
+
+  --w-color-brand: var(--w-ink);
+  --w-color-brand-deep: #0e1438;
+  --w-color-brand-soft: #e7e9f4;
+  --w-color-warm: #f3e6d4;
+  --w-color-success: var(--w-ok);
+  --w-color-success-soft: #e5f6ef;
+  --w-color-warning: #b86e00;
+  --w-color-warning-soft: #fff4e5;
+  --w-color-danger: var(--w-no);
+  --w-color-danger-soft: #fde8ee;
+  --w-color-info: #2f5d8c;
+  --w-color-info-soft: #e8f1f8;
+  --w-color-correct: #0f9f6e;
+  --w-color-again: #9a6230;
+
+  --w-surface-page: var(--w-paper);
+  --w-surface-card: var(--w-card);
+  --w-surface-raised: #ffffff;
+  --w-surface-sunken: #efeef6;
+  --w-surface-inverse: var(--w-color-brand);
+
+  --w-text-primary: var(--w-ink);
+  --w-text-muted: var(--w-soft);
+  --w-text-inverse: #ffffff;
+  --w-text-on-action: #ffffff;
+
+  --w-action-primary: var(--w-color-brand);
+  --w-action-primary-hover: var(--w-color-brand-deep);
+  --w-action-danger: var(--w-color-danger);
+  --w-border-soft: var(--w-line);
+  --w-focus: var(--w-color-brand);
+
+  --w-space-1: 0.25rem;
+  --w-space-2: 0.5rem;
+  --w-space-3: 0.75rem;
+  --w-space-4: 1rem;
+  --w-space-5: 1.5rem;
+  --w-space-6: 2rem;
+  --w-space-7: 3rem;
+  --w-space-8: 4rem;
+
+  --w-radius-sm: 12px;
+  --w-radius-md: var(--w-radius);
+  --w-radius-lg: 28px;
+  --w-radius-pill: 999px;
+
+  --w-shadow-flat: none;
+  --w-shadow-soft: var(--w-shadow);
+  --w-shadow-raised: var(--w-shadow-lg);
+  --w-shadow-overlay: 0 24px 70px rgba(20, 27, 77, 0.22);
+
+  --w-font-body: var(--w-font);
+  --w-font-display: var(--w-display);
+  --w-font-story: Lora, Georgia, serif;
+  --w-font-size-small: 0.84rem;
+  --w-font-size-body: 1rem;
+  --w-font-size-label: 0.78rem;
+  --w-font-size-h3: 1.15rem;
+  --w-font-size-h2: clamp(1.35rem, 2vw, 1.7rem);
+  --w-font-size-h1: clamp(1.8rem, 3vw, 2.5rem);
+  --w-font-size-display: clamp(2.2rem, 4vw, 3.4rem);
+  --w-weight-body: 700;
+  --w-weight-label: 800;
+  --w-weight-display: 600;
+
+  --w-motion-fast: 140ms;
+  --w-motion-base: 220ms;
+  --w-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+
+  --w-z-bar: 20;
+  --w-z-overlay: 40;
+  --w-z-dialog: 50;
+
+  --w-page-width: 72rem;
+  --w-gutter: clamp(1rem, 3vw, 2rem);
+
+  /* School branding accents Wondii. It does not replace text, error, or success. */
+  --school-primary: var(--w-color-brand);
+  --school-primary-soft: var(--w-color-brand-soft);
+  --school-accent: var(--org-primary, var(--w-color-brand));
+  --school-on-accent: var(--org-on-primary, #ffffff);
+  --school-logo: none;
+  --school-hero-treatment: linear-gradient(120deg, rgba(20, 27, 77, 0.06), transparent 55%);
+}
+
+[data-school="ramsden"] {
+  --school-accent: #c41230;
+  --school-on-accent: #ffffff;
+  --school-primary-soft: #fdecef;
+  --school-hero-treatment: linear-gradient(120deg, rgba(196, 18, 48, 0.14), transparent 58%);
+}
