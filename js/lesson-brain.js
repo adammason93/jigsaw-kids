@@ -333,7 +333,7 @@
         "You ground subject knowledge for one primary lesson. Return one JSON object and nothing else.",
         "Do not write a lesson, stages, activities, beats, questions, interactions, narrative, or pupil wording.",
         "Write a knowledge pack with more true claims than one lesson will teach. A later step selects a subset for the year, the goal, and the duration.",
-        "Each claim is one sentence a teacher could check. Include concrete claims a child can observe or name, mechanism claims that say how or why, and system claims that say how several mechanisms work together. Tag depth as concrete, mechanism, or system.",
+        "Each claim is one sentence a teacher could check. Include concrete claims a child can observe or name, mechanism claims that say how or why, and system claims that say how several mechanisms work together. A mechanism names one concrete feature and the job that feature does, in words a child in the requested year can say. When the topic is broad, include several mechanisms, each about a different feature, and only when that feature and its job can be stated without guessing. A sentence that only says the subject is adapted, or that an environment influenced its features or behaviour, is not a mechanism. Do not invent a feature or a function to widen the pack. Tag depth as concrete, mechanism, or system.",
         "ageFit is { from, to } using years 1 to 6. Concrete claims can start at Year 1. A simple mechanism may start at Year 2. A harder mechanism starts at Year 3 or 4. A system claim starts at Year 5 or 6. Age fit is metadata. Do not write a different lesson for each year.",
         "confidence is high, medium, or low. If you are unsure of a name, date, measurement, or local detail, omit that claim. Do not invent it. A named place by itself is allowed. Do not bind that place to specific geology, a mechanism, a date, or a cause unless the teacher material states that binding. High confidence does not make a local binding true. If the lesson cannot be taught without an unsupported local binding, set status to blocked and say a source is needed.",
         "provenance is model, unless the sentence is taken from uploadedMaterialSummary, in which case use teacher_material. Do not use retrieved, curated, or curriculum_planning. This step has no web search, curated pack, or curriculum document.",
@@ -4169,8 +4169,42 @@
     return contentWords(value);
   }
 
-  function answersContribution(text, goal) {
+  function contributionVerb(goal) {
+    var text = clean(goal, 500).toLowerCase();
+    var how = text.match(new RegExp("\\bhow\\b[^.]{0,100}?\\b(" + CONTRIBUTION_VERBS + ")\\b"));
+    return how ? how[1] : "";
+  }
+
+  // "How are camels adapted to the desert?" The words after the verb name the
+  // setting. Sharing that setting is not a contribution. A specific outcome
+  // such as "helps it swim" still has to share the outcome.
+  function adaptationAsk(goal) {
+    return /^(?:adapt|surviv)/.test(contributionVerb(goal));
+  }
+
+  function aboutHead(text, head) {
+    if (!head) return false;
+    return contentWords(text).some(function (token) { return sameStem(token, head); });
+  }
+
+  function subjectAncestor(row, head, seen) {
+    if (!row || seen.indexOf(row) !== -1) return false;
+    seen.push(row);
+    if (aboutHead(row.text, head)) return true;
+    return row.deps.some(function (dep) { return subjectAncestor(dep, head, seen); });
+  }
+
+  function answersContribution(text, goal, row) {
     if (!statesFunction(text) && !statesRelation(text)) return false;
+    if (adaptationAsk(goal)) {
+      var head = contributionHead(goal);
+      if (head) {
+        if (aboutHead(text, head)) return true;
+        // A mechanism may name the feature's job without repeating the subject.
+        // It still contributes when it depends on that subject's feature.
+        return !!(row && subjectAncestor(row, head, []));
+      }
+    }
     var wanted = outcomeWords(goal);
     if (!wanted.length) return false;
     var have = functionWords(text);
@@ -4697,7 +4731,7 @@
     });
     unique.forEach(function (row) {
       row.kind = mapKind(row.text, row.role, row.deps.length);
-      row.answers = seeking && answersContribution(row.text, goal);
+      row.answers = seeking && answersContribution(row.text, goal, row);
     });
     var connected = unique;
     if (seeking && unique.some(function (row) { return row.answers; })) {
@@ -4927,7 +4961,7 @@
       issues.push("The learning map must select claim ids from the knowledge pack.");
     }
     var snapshot = depthSnapshot(map.items, teaching);
-    if (issues.length) return { ok: false, issues: issues, previous: parsed, depth: snapshot };
+    if (issues.length) return { ok: false, issues: issues, previous: parsed, depth: snapshot, mapRejected: map.rejected.slice(0, MAP_READ_LIMIT) };
     var admittedPlan = {
         title: clean(parsed.title, 80),
         subject: clean(parsed.subject || ctx.subject, 80),
