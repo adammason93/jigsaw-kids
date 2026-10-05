@@ -31,7 +31,6 @@ function speak(beat, items) {
   var item = items[0];
   items.forEach(function (entry) { if (entry.id === (beat.knowledgeRefs || [])[0]) item = entry; });
   var known = String(item.text || "").replace(/[.?!]$/, "");
-  var token = known.toLowerCase().split(/[^a-z0-9]+/).filter(function (word) { return word.length > 4; })[0] || "idea";
   var text = {
     notice: "Look at the scene and say what you can see.",
     predict: "Say what you think is happening before the explanation.",
@@ -54,16 +53,19 @@ var knowledge = [
   "The pointed shape lets water slide past, so the shark can swim more easily.",
   "The tail pushes water backwards so that the shark swims forward."
 ];
+var bodySentence = "A shark's body is made for moving through water.";
+var pointedBody = "A shark has a smooth, pointed body.";
+var strongTail = "A shark has a strong tail.";
 var plan = {
   learningObjective: "Understand how a shark body helps it swim.",
   subject: "Science",
   topic: "Sharks",
   yearGroup: "Year 1",
   learningMap: [
-    { id: "p1", knowledge: "A shark's body is made for moving through water.", role: "foundation", importance: "core", dependsOn: [] },
-    { id: "p2", knowledge: "A shark has a smooth, pointed body.", role: "feature", importance: "core", dependsOn: ["p1"] },
+    { id: "p1", knowledge: bodySentence, role: "foundation", importance: "core", dependsOn: [] },
+    { id: "p2", knowledge: pointedBody, role: "feature", importance: "core", dependsOn: ["p1"] },
     { id: "p3", knowledge: knowledge[0], role: "mechanism", importance: "core", dependsOn: ["p2"] },
-    { id: "p4", knowledge: "A shark has a strong tail.", role: "feature", importance: "core", dependsOn: ["p1"] },
+    { id: "p4", knowledge: strongTail, role: "feature", importance: "core", dependsOn: ["p1"] },
     { id: "p5", knowledge: knowledge[1], role: "mechanism", importance: "core", dependsOn: ["p4"] }
   ],
   lessonArc: [{ purpose: "teach" }, { purpose: "check" }]
@@ -113,9 +115,11 @@ global.fetch = function (url, init) {
     payload = {
       status: "usable",
       claims: [
+        { text: bodySentence, depth: "concrete", confidence: "high", provenance: "model", factuallyVerified: false, ageFit: { from: 1, to: 6 } },
+        { text: pointedBody, depth: "concrete", confidence: "high", provenance: "model", factuallyVerified: false, ageFit: { from: 1, to: 6 } },
         { text: knowledge[0], depth: "mechanism", kind: "mechanism", confidence: "high", provenance: "model", factuallyVerified: false, ageFit: { from: 1, to: 6 } },
+        { text: strongTail, depth: "concrete", confidence: "high", provenance: "model", factuallyVerified: false, ageFit: { from: 1, to: 6 } },
         { text: knowledge[1], depth: "mechanism", kind: "mechanism", confidence: "high", provenance: "model", factuallyVerified: false, ageFit: { from: 1, to: 6 } },
-        { text: "A shark has fins and a tail.", depth: "concrete", confidence: "high", provenance: "model", factuallyVerified: false, ageFit: { from: 1, to: 6 } },
         { text: "Fins, tail and gills work together as one system for living in the sea.", depth: "system", confidence: "medium", provenance: "model", factuallyVerified: false, ageFit: { from: 5, to: 6 } }
       ],
       concepts: ["shark body"],

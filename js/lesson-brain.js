@@ -335,7 +335,7 @@
         "Write a knowledge pack with more true claims than one lesson will teach. A later step selects a subset for the year, the goal, and the duration.",
         "Each claim is one sentence a teacher could check. Include concrete claims a child can observe or name, mechanism claims that say how or why, and system claims that say how several mechanisms work together. Tag depth as concrete, mechanism, or system.",
         "ageFit is { from, to } using years 1 to 6. Concrete claims can start at Year 1. A simple mechanism may start at Year 2. A harder mechanism starts at Year 3 or 4. A system claim starts at Year 5 or 6. Age fit is metadata. Do not write a different lesson for each year.",
-        "confidence is high, medium, or low. If you are unsure of a name, date, measurement, or local detail, omit that claim. Do not invent it.",
+        "confidence is high, medium, or low. If you are unsure of a name, date, measurement, or local detail, omit that claim. Do not invent it. A named place by itself is allowed. Do not bind that place to specific geology, a mechanism, a date, or a cause unless the teacher material states that binding. High confidence does not make a local binding true. If the lesson cannot be taught without an unsupported local binding, set status to blocked and say a source is needed.",
         "provenance is model, unless the sentence is taken from uploadedMaterialSummary, in which case use teacher_material. Do not use retrieved, curated, or curriculum_planning. This step has no web search, curated pack, or curriculum document.",
         "factuallyVerified must be false. You cannot verify your own knowledge. teacherRequested is true only when the teacher asked for that specific claim, not because the claim is about the same topic. Teacher material is not automatic truth.",
         "If the request assumes something false, set falsePremise to a short statement of that assumption. Do not admit the falsehood as a claim. Admit a correction, with correctsPremise true, only when you can state it without guessing. Set status to qualified when a correction is included. Set status to blocked when you cannot correct the premise without guessing, or when teaching the topic would require invented facts.",
@@ -464,6 +464,119 @@
     return out.slice(0, 24);
   }
 
+  // Place-bound admission is deterministic. It does not read model confidence, usable, or niche.
+  // A named place is not enough. The risk is binding that place to geology, a mechanism, a date, or a cause.
+  var PLACE_STOP = {
+    The: 1, This: 1, That: 1, These: 1, Those: 1, There: 1, Then: 1, They: 1, Their: 1,
+    Year: 1, Years: 1, Teach: 1, Teaching: 1, Children: 1, Child: 1, Pupils: 1, Students: 1,
+    Explain: 1, How: 1, Why: 1, What: 1, When: 1, Where: 1, Which: 1, Who: 1,
+    Science: 1, History: 1, Geography: 1, English: 1, Maths: 1, Mathematics: 1,
+    Please: 1, Primary: 1, Class: 1, Today: 1, Some: 1, Many: 1, Most: 1,
+    Heavy: 1, Steep: 1, High: 1, Low: 1, Large: 1, Small: 1,
+    Act: 1, Church: 1, King: 1, Queen: 1, Pope: 1, Sir: 1, Saint: 1, Lord: 1
+  };
+  var LOCAL_GEO = /\b(?:geolog\w*|stratum|strata|shale|limestone|sandstone|chalk|granite|slate|bedrock|sediment\w*|minerals?|escarpments?|clay|rock\s+layers?|layers?\s+of\s+\w+)\b/i;
+  var LOCAL_EVENT = /\b(?:landslips?|landslides?|rockfalls?|subsidence|erupt(?:ed|ion|s)?|earthquakes?|flood(?:ed|s|ing)?|collapsed|collapse|slippage)\b/i;
+  var LOCAL_CAUSE = /\b(?:caused|causes|causing|because|due to|so that|formed|forming|formation|saturat\w*|erod\w*|slipped|slips)\b/i;
+  var LOCAL_YEAR = /\b(?:1[0-9]{3}|20[0-9]{2})\b/;
+  var LOCAL_PHYSICAL = /\b(?:soil|rocks?|water|rain|rainfall|slopes?|hillsides?|cliffs?|coasts?|rivers?|ice|lava|waves?|layers?|geology|geological)\b/i;
+
+  function collapsePlaces(list) {
+    var found = [];
+    (list || []).forEach(function (name) {
+      var label = clean(name, 60).replace(/['’]s$/, "");
+      if (!label || label.length < 3) return;
+      var key = label.toLowerCase();
+      if (found.some(function (item) { return item.toLowerCase() === key; })) return;
+      found.push(label);
+    });
+    return found.filter(function (name) {
+      var key = name.toLowerCase();
+      return !found.some(function (other) {
+        var rest = other.toLowerCase();
+        return rest !== key && rest.indexOf(key) !== -1 && rest.length > key.length;
+      });
+    });
+  }
+
+  function properPlaces(text) {
+    var value = String(text || "");
+    var found = [];
+    function add(name) {
+      var label = clean(name, 60).replace(/['’]s$/, "");
+      if (!label || label.length < 3) return;
+      var parts = label.split(/\s+/);
+      if (parts.length === 1 && PLACE_STOP[parts[0]]) return;
+      if (parts.every(function (part) { return PLACE_STOP[part]; })) return;
+      found.push(label);
+    }
+    var multi = /\b([A-Z][A-Za-z'’]+(?:\s+[A-Z][A-Za-z'’]+){1,3})\b/g;
+    var prep = /\b(?:at|in|on|near|around|above|below|beside|from|of|about)\s+([A-Z][A-Za-z'’]+)\b/g;
+    var poss = /\b([A-Z][A-Za-z'’]+(?:\s+[A-Z][A-Za-z'’]+){0,2})['’]s\b/g;
+    var theName = /\bThe\s+([A-Z][A-Za-z'’]+)\b/g;
+    var match;
+    while ((match = multi.exec(value))) add(match[1]);
+    while ((match = prep.exec(value))) add(match[1]);
+    while ((match = poss.exec(value))) add(match[1]);
+    while ((match = theName.exec(value))) add(match[1]);
+    return collapsePlaces(found);
+  }
+
+  function mentionsPlace(text, places) {
+    var lower = String(text || "").toLowerCase();
+    var hit = [];
+    (places || []).forEach(function (place) {
+      if (lower.indexOf(String(place).toLowerCase()) !== -1 && hit.indexOf(place) === -1) hit.push(place);
+    });
+    return hit;
+  }
+
+  function placeBoundClaim(text, places) {
+    var named = mentionsPlace(text, places);
+    properPlaces(text).forEach(function (place) {
+      if (named.indexOf(place) === -1) named.push(place);
+    });
+    named = collapsePlaces(named);
+    if (!named.length) return { bound: false, places: [] };
+    var geo = LOCAL_GEO.test(text);
+    var event = LOCAL_EVENT.test(text);
+    var cause = LOCAL_CAUSE.test(text);
+    var year = LOCAL_YEAR.test(text);
+    var physical = LOCAL_PHYSICAL.test(text);
+    var bound = geo || event || (year && (cause || physical || geo || event)) || (cause && physical);
+    return { bound: !!bound, places: named };
+  }
+
+  function requestNeedsPlaceBound(request, extraPlaces) {
+    var text = String(request || "");
+    var places = collapsePlaces(properPlaces(text).concat(extraPlaces || []));
+    var mentioned = places.filter(function (place) {
+      return text.toLowerCase().indexOf(place.toLowerCase()) !== -1;
+    });
+    var asks = /\b(?:how|why|caused|causes|causing|cause|formed|forming|formation|when)\b/i.test(text);
+    var physical = LOCAL_GEO.test(text) || LOCAL_EVENT.test(text) || LOCAL_PHYSICAL.test(text);
+    return { needs: !!(mentioned.length && asks && physical), places: mentioned };
+  }
+
+  function placesOverlap(left, right) {
+    return (left || []).some(function (place) {
+      var key = place.toLowerCase();
+      return (right || []).some(function (other) {
+        var rest = other.toLowerCase();
+        return key === rest || key.indexOf(rest) !== -1 || rest.indexOf(key) !== -1;
+      });
+    });
+  }
+
+  function lessonRequestText(ctx) {
+    ctx = ctx || {};
+    var brief = ctx.lessonBrief || {};
+    var intent = brief.teacherIntent || {};
+    return clean([
+      ctx.lessonText, ctx.teacherInstructions, ctx.topic, brief.rawRequest, brief.learningGoal, intent.learningGoal
+    ].join(" "), 4000);
+  }
+
   function normaliseKnowledgePack(raw, ctx) {
     ctx = ctx || {};
     var body = raw && typeof raw === "object" ? raw : {};
@@ -550,23 +663,63 @@
       });
       return { id: "m" + (index + 1), text: text, correctsClaimId: claimId };
     }).filter(Boolean).slice(0, 6);
+    var seenPlaces = [];
+    claims.forEach(function (claim) {
+      properPlaces(claim.text).forEach(function (place) { seenPlaces.push(place); });
+    });
+    var requestText = lessonRequestText(ctx);
+    var requestLocal = requestNeedsPlaceBound(requestText, seenPlaces);
+    var placeIndex = collapsePlaces(requestLocal.places.concat(seenPlaces));
+    claims.forEach(function (claim) {
+      var bound = placeBoundClaim(claim.text, placeIndex);
+      claim.placeBound = bound.bound;
+      claim.placeNames = bound.places;
+      claim.supplied = claim.provenance === "teacher_material";
+      claim.factuallyVerified = false;
+      if (!claim.placeBound) {
+        claim.support = "generic";
+        claim.localHold = false;
+      } else if (claim.supplied) {
+        claim.support = "supplied";
+        claim.localHold = false;
+      } else {
+        claim.support = "unsupported";
+        claim.localHold = true;
+      }
+    });
+    var covering = claims.some(function (claim) {
+      return claim.supplied && claim.placeBound && placesOverlap(claim.placeNames, requestLocal.places);
+    });
+    var needsSource = !!(requestLocal.needs && !covering);
+    var localHolds = claims.filter(function (claim) { return claim.localHold; });
     var modelStatus = clean(body.status, 20).toLowerCase();
     if (modelStatus !== "usable" && modelStatus !== "qualified" && modelStatus !== "blocked") modelStatus = "";
+    var modelNiche = body.niche === true || String(body.niche).toLowerCase() === "true";
     var qualifiers = [];
     if (falsePremise) qualifiers.push(claims.length ? "false premise removed from the claims" : "false premise and no correction");
     if (claims.some(function (claim) { return claim.contested; })) qualifiers.push("contested claims stay in the pack and out of the lesson");
     if (claims.length && claims.every(function (claim) { return claim.confidence === "low"; })) qualifiers.push("every claim is low confidence");
-    if (body.niche === true || String(body.niche).toLowerCase() === "true") qualifiers.push("niche topic; model knowledge is unverified");
+    if (modelNiche) qualifiers.push("niche topic; model knowledge is unverified");
     if (claims.length && claims.length < 3) qualifiers.push("thin pack");
+    if (localHolds.length) qualifiers.push("unsupported place-bound claims are held out of the lesson");
+    if (claims.some(function (claim) { return claim.placeBound && claim.supplied; })) qualifiers.push("teacher-supplied place detail is unverified");
+    var localAdmission = needsSource ? "needs_source" : (localHolds.length || claims.some(function (claim) { return claim.placeBound; }) ? "hold" : "clear");
     var status = "usable";
     var statusReason = "Enough claims to select from. Every claim is still unverified.";
     if (!claims.length) {
       status = "blocked";
-      statusReason = clean(body.blockReason, 200) || (falsePremise ? "false premise and no claims that can be taught" : "no admitted claims");
+      statusReason = needsSource
+        ? "NEEDS_SOURCE: the lesson needs a place-bound explanation and the pack has no supported claim for that place."
+        : (clean(body.blockReason, 200) || (falsePremise ? "false premise and no claims that can be taught" : "no admitted claims"));
+      if (needsSource) localAdmission = "needs_source";
+    } else if (needsSource) {
+      status = "blocked";
+      statusReason = "NEEDS_SOURCE: the lesson needs a place-bound explanation and the pack has no supported claim for that place. Model confidence does not make a local claim a teaching fact.";
+      localAdmission = "needs_source";
     } else if (modelStatus === "blocked") {
       status = "blocked";
       statusReason = clean(body.blockReason, 200) || "the pack is blocked and must not be taught";
-    } else if (qualifiers.length || modelStatus === "qualified") {
+    } else if (qualifiers.length || modelStatus === "qualified" || localAdmission === "hold") {
       status = "qualified";
       statusReason = qualifiers.join("; ") || clean(body.blockReason, 200) || "the pack can be selected only with the recorded limits";
     }
@@ -580,8 +733,11 @@
       status: status,
       statusReason: statusReason,
       modelStatus: modelStatus,
+      modelNiche: modelNiche,
+      localAdmission: localAdmission,
+      needsSource: status === "blocked" && localAdmission === "needs_source",
       falsePremise: falsePremise,
-      provenanceSummary: "Phase 1: no claim is factually verified. Model-originated claims are unverified. Teacher material is not treated as truth. Retrieved, curated, and curriculum origins are not available in this phase.",
+      provenanceSummary: "Phase 1: no claim is factually verified. Supplied teacher material, support for a claim, and verification are separate. Model-originated claims are unverified. Teacher material is not treated as truth. Retrieved, curated, and curriculum origins are not available in this phase.",
       verificationOverrides: overrides,
       claims: claims,
       mechanisms: mechanisms,
@@ -607,12 +763,18 @@
         depthMode: mode,
         year: year,
         claimIds: [],
-        heldBack: (pack.claims || []).map(function (claim) { return { claimId: claim.claimId, reason: "pack blocked" }; })
+        heldBack: (pack.claims || []).map(function (claim) {
+          return { claimId: claim.claimId, reason: claim.localHold ? "unsupported local claim" : "pack blocked" };
+        })
       };
     }
     var held = [];
     var eligible = [];
     pack.claims.forEach(function (claim) {
+      if (claim.localHold) {
+        held.push({ claimId: claim.claimId, depth: claim.depth, reason: "unsupported local claim" });
+        return;
+      }
       var fit = claim.ageFit || { from: 1, to: 6 };
       if (year < fit.from || year > fit.to) {
         held.push({ claimId: claim.claimId, depth: claim.depth, reason: "outside age fit" });
@@ -701,7 +863,11 @@
           uncertainty: claim.uncertainty || "",
           ageFit: claim.ageFit,
           importance: claim.importance,
-          correctsPremise: !!claim.correctsPremise
+          correctsPremise: !!claim.correctsPremise,
+          supplied: !!claim.supplied,
+          support: claim.support || "",
+          placeBound: !!claim.placeBound,
+          localHold: !!claim.localHold
         };
       }),
       mechanisms: pack.mechanisms || [],
@@ -709,7 +875,7 @@
       vocabulary: pack.vocabulary || [],
       misconceptions: pack.misconceptions || [],
       rejectedClaims: pack.rejectedClaims || [],
-      doNotTeach: (pack.rejectedClaims || []).map(function (item) { return item.text; }).concat(pack.falsePremise ? [pack.falsePremise] : []).slice(0, 8)
+      doNotTeach: (pack.claims || []).filter(function (claim) { return claim.localHold; }).map(function (claim) { return claim.text; }).concat((pack.rejectedClaims || []).map(function (item) { return item.text; })).concat(pack.falsePremise ? [pack.falsePremise] : []).slice(0, 12)
     };
   }
 
@@ -726,6 +892,9 @@
       status: pack.status || "",
       statusReason: clean(pack.statusReason, 220),
       modelStatus: pack.modelStatus || "",
+      modelNiche: !!pack.modelNiche,
+      localAdmission: pack.localAdmission || "",
+      needsSource: !!pack.needsSource,
       falsePremise: clean(pack.falsePremise, 180),
       provenanceSummary: clean(pack.provenanceSummary, 280),
       verificationOverrides: pack.verificationOverrides || 0,
@@ -745,7 +914,11 @@
           uncertainty: clean(claim.uncertainty, 120),
           ageFit: claim.ageFit || null,
           importance: claim.importance || "",
-          correctsPremise: !!claim.correctsPremise
+          correctsPremise: !!claim.correctsPremise,
+          supplied: !!claim.supplied,
+          support: claim.support || "",
+          placeBound: !!claim.placeBound,
+          localHold: !!claim.localHold
         };
       }),
       mechanisms: (pack.mechanisms || []).slice(0, 12).map(function (item) {
@@ -965,7 +1138,7 @@
       var youngLine = year && year <= 2
         ? " For Year 1 and Year 2, two developed strands are enough. Each strand is one everyday sentence that names an idea and one sentence that says how or why it works, with dependsOn linking that explanation to the name. Two linked strands are better than six unlinked facts. Do not fill the point target with extra names that have no how or why."
         : "";
-      return "Scope: the teacher named a broad topic. Choose a coherent scope yourself for this year and duration: one foundation point, then " + (span.low === span.high ? span.low : span.low + " to " + span.high) + " strands about the ideas that matter most for understanding this topic at this age, and a connection point if the strands work together. Do not shrink the lesson to one fact, do not write an encyclopedia list, and do not wait for the teacher to name the subtopics." + youngLine;
+      return "Scope: the teacher named a broad topic. Choose a coherent scope yourself for this year and duration: at most one shared foundation, then " + (span.low === span.high ? span.low : span.low + " to " + span.high) + " strands about the ideas that matter most for understanding this topic at this age, and a connection point if the strands work together. A shared foundation is optional when it adds no teaching value. Do not invent one to satisfy the format. Each strand head is a feature or concept, not another foundation. Its function or mechanism dependsOn that feature. Each developed strand contains both the named idea and its linked how or why. Do not shrink the lesson to one fact, do not write an encyclopedia list, and do not wait for the teacher to name the subtopics." + youngLine;
     }
     var depthLine = "";
     if (planSeeksDepth(ctx)) {
@@ -978,7 +1151,7 @@
       } else {
         depthLine = " Year 5 and Year 6 need " + count + " developed strands with real mechanisms and a connection between them. Deeper means a clearer how or why, richer vocabulary and reasoning, not a fourth strand of names.";
       }
-      depthLine += " A sentence that only names what something has is a foundation, not a developed strand, until a later point explains it and depends on it.";
+      depthLine += " Use at most one shared foundation, and only when it adds teaching value before every strand. A foundation is optional. Do not invent a foundation to satisfy the format. The named feature or concept is the strand head, and its function or mechanism dependsOn that feature, not the foundation. Each developed strand contains both the named idea and its linked how or why. A sentence that only names what something has is not a developed strand until a later point in the same strand explains it and depends on that name. Do not label that name as foundation.";
     }
     return "Scope: the teacher asked about one relationship, method, or idea. Stay inside it: every strand must lead to the learning goal. Go deeper, not wider: the parts or steps involved, how each one works, and what that achieves for the goal. Do not add other aspects of the wider topic." + depthLine;
   }
@@ -997,7 +1170,7 @@
       "Decide what the children should understand. Then decide what to teach so they can understand it. The classroom activities are chosen in a later step.",
       "Work in this order: the teacher's request, the context, one learning objective, the key knowledge, prior knowledge, misconceptions, vocabulary, the teaching sequence, then where a check or a recap belongs.",
       "learningObjective is one sentence a teacher could say. successCriteria are two or three things the class can do if the lesson worked.",
-      "learningMap is the connected journey of learning points a pupil needs in order to achieve lessonBrief.learningGoal. Each point is one child-sized idea in one sentence. Together the points must be sufficient. Build it from strands. The foundation is what a pupil needs first. A strand develops one idea: a point that names the feature, part, event, step, or idea; then a point that explains how or why it works (a function, mechanism, cause, process, or procedure); then, where it matters, a point saying what that leads to. The first point of a strand lists only the foundation in dependsOn. Each later point in a strand lists the point before it. A connection point lists the last points of two or more strands and says how they work together. An example point lists the point it shows. Every point adds new information: do not restate an earlier point in other words, do not write a point that only says these things help, and do not write a point about learning the topic itself. Do not write a disconnected list of facts about the topic. For this year and about " + depth.minutes + " minutes, aim for about " + depth.floor + " to " + depth.max + " points. This is a target, not a quota: a narrow goal about one specific feature may need fewer, and never more than " + depth.max + ". Do not reach the number with a restatement, a paraphrase, trivia, or a second example of the same idea. Do not invent quotations, dates, or events. A simplified explanation must still be true. When the goal asks how something helps, causes, affects, works, changes, gets, carries, or transports, or why something happens or matters, the points must lead to the goal: at least one point states the relationship the goal asks about, and every other point is a step towards it. A nearby fact about the same topic that leads nowhere does not belong. importance is core for a point the goal cannot do without and supporting for a helpful step.",
+      "learningMap is the connected journey of learning points a pupil needs in order to achieve lessonBrief.learningGoal. Each point is one child-sized idea in one sentence. Together the points must be sufficient. Build it from strands. Use at most one shared foundation in the whole map. A shared foundation is optional: include it only when that sentence adds teaching value before every strand, and omit it when it does not. Do not invent a foundation to satisfy the format. Do not give a feature, a part, or an adaptation the role foundation. A strand develops one idea: the strand head names the feature, part, event, step, or idea with role feature or concept; then a point explains how or why it works (a function, mechanism, cause, process, or procedure); then, where it matters, a point says what that leads to. When a foundation exists, the strand head lists only that foundation in dependsOn. When it does not, the strand head has an empty dependsOn. The function or mechanism dependsOn that specific feature, not the foundation. Each developed strand contains both the named idea and its linked how or why. A function that depends only on the foundation is a separate fact, not a developed strand. A connection point lists the last points of two or more strands and says how they work together. An example point lists the point it shows. Every point adds new information: do not restate an earlier point in other words, do not write a point that only says these things help, and do not write a point about learning the topic itself. Do not write a disconnected list of facts about the topic. For this year and about " + depth.minutes + " minutes, aim for about " + depth.floor + " to " + depth.max + " points. This is a target, not a quota: a narrow goal about one specific feature may need fewer, and never more than " + depth.max + ". Do not reach the number with a restatement, a paraphrase, trivia, or a second example of the same idea. Do not invent quotations, dates, or events. A simplified explanation must still be true. When the goal asks how something helps, causes, affects, works, changes, gets, carries, or transports, or why something happens or matters, the points must lead to the goal: at least one point states the relationship the goal asks about, and every other point is a step towards it. A nearby fact about the same topic that leads nowhere does not belong. importance is core for a point the goal cannot do without and supporting for a helpful step.",
       scopeGuide(ctx || {}, depth),
       "Match the goal. Why or cause: state the reason, not only what is seen or where it happens. Significance or importance: state the change, event, or contribution and why it mattered. Compare: include what is needed about both sides. Process: state the change or sequence, not only the parts, inputs, places, or outputs. Procedure or use: write the actions the pupil carries out, not only the name of the step. Definition: a short definition and only the characteristics or examples needed to use it. Explain: the facts that specific goal needs, not a generic list about the topic.",
       "A sentence that only names the topic, states identity, gives a famous number or date, says something is important or significant, or says where something happens does not meet a relationship the goal requires.",
@@ -1006,7 +1179,7 @@
       "vocabulary is only the words worth teaching at this age.",
       "lessonBrief.intent says whether this lesson is why, process, compare, definition, procedure, or explain. When lessonBrief.teacherIntent is present, lessonBrief.learningGoal is the only new teaching target, lessonBrief.focusConcepts are the ideas to teach, lessonBrief.priorKnowledge is already known and may be the starting point, and lessonBrief.exclusions must not be retaught. lessonBrief.teacherIntent.requiredEvidence says what a correct check must show. It is not an extra learning point. lessonBrief.preferences and the duration are presentation, not learning points. Do not turn prior knowledge or an exclusion into the lesson target.",
       "When teacherIntent is absent, lessonBrief.concepts are the ideas to teach. Do not treat words such as between, difference, why, or how as the concept.",
-      "Each learningMap point is { id, knowledge, role, importance, dependsOn" + (packNote ? ", claimIds" : "") + " }. id is p1, p2, and so on. role is foundation, feature, concept, function, cause, effect, mechanism, process, procedure, comparison, example, or connection. A role is only a label: a sentence of six words or a place does not become a cause, function, or process because of its role. The sentence itself must state the relationship. A connection point says how earlier points work together. An example point shows an earlier point in use.",
+      "Each learningMap point is { id, knowledge, role, importance, dependsOn" + (packNote ? ", claimIds" : "") + " }. id is p1, p2, and so on. role is foundation, feature, concept, function, cause, effect, mechanism, process, procedure, comparison, example, or connection. Use role foundation at most once. An adaptation's named feature is role feature or concept. A role is only a label: a sentence of six words or a place does not become a cause, function, or process because of its role. The sentence itself must state the relationship. A connection point says how earlier points work together. An example point shows an earlier point in use.",
       "lessonArc purpose must be exactly one of these words: hook, investigate, teach, apply, check, resolution, recap. Do not write a sentence as the purpose. The system decides which learning points are taught, in what order, and which are checked, and places them on the teach stage and the recap. The hook and the investigate stage must not contain them.",
       "Age changes the plan: vocabulary, how long the sentences are, how deep the explanation goes, the examples, and how hard the reasoning is. Year 1 and Year 2 key knowledge stays in everyday words.",
       "If yearAssumed is true, plan for yearAssumption and say so in yearGroup. Do not pretend the teacher named that year.",
@@ -3648,7 +3821,7 @@
       var broadTopic = /broad topic/.test(found);
       var low = broadTopic ? span.low : (planSeeksDepth(ctx, objective) ? seekingStrandMinimum(ctx, budget) : span.low);
       var prefer = low >= 3 ? "Prefer three linked strands over a list of names." : "Prefer two linked strands over a list of names.";
-      required.push("strands: " + (broadTopic ? "this topic is broad, so the learningMap needs " : "the learningMap needs ") + low + " separate strands that each develop one idea. A strand names a feature, part, event, or idea and then explains how or why it works, with a function, mechanism, cause, process, or procedure point that depends on it. The first point of each strand depends only on the foundation. A list of separate facts is not a strand. A sentence that only names what something has is not the explanation. " + prefer + " Drop spare one-line facts instead of keeping a list of names with empty dependsOn. Development is read only from dependsOn: a point counts as developing a strand only when its dependsOn lists the earlier point of that strand it builds on. For example p2 names a feature with dependsOn [\"p1\"], and p3 explains what that feature does with dependsOn [\"p2\"]. A sentence with because, helps, or work together and an empty dependsOn is still a separate fact. Every point except the foundation must have a non-empty dependsOn");
+      required.push("strands: " + (broadTopic ? "this topic is broad, so the learningMap needs " : "the learningMap needs ") + low + " separate strands that each develop one idea. A strand head names a feature, part, event, or idea and uses role feature or concept, not foundation. Its function, mechanism, cause, process, or procedure dependsOn that specific feature, not the foundation. At most one point may be role foundation, and only when it is genuinely shared and adds teaching value. A shared foundation is optional. Do not invent a foundation simply to satisfy formatting. If earlier points were labelled foundation but they are separate features, correct those labels to feature or concept and point each explanation at its own feature. Preserve the underlying knowledge and the real dependencies. A list of separate facts is not a strand. A sentence that only names what something has is not the explanation. " + prefer + " Drop spare one-line facts instead of keeping a list of names with empty dependsOn. Development is read only from dependsOn: a point counts as developing a strand only when its dependsOn lists the earlier point of that strand it builds on. For example, with one foundation, p2 names a feature with dependsOn [\"p1\"] and p3 explains what that feature does with dependsOn [\"p2\"]. Without a foundation, the feature has an empty dependsOn and the explanation dependsOn the feature. A function that depends only on a foundation, or a sentence with because, helps, or work together and an empty dependsOn, is still a separate fact. Every point except a single optional foundation must have a non-empty dependsOn");
     }
     if (/outcome, not the reason/.test(found)) {
       if (seeksContribution(ctx, objective)) {
@@ -3689,8 +3862,11 @@
         ? "Replace only the insufficient learningMap points. Keep the points that already lead to the goal and keep their dependsOn links. Do not paraphrase one idea into several points. Do not add trivia or a nearby fact that leads nowhere. Do not return the failed sentences unchanged. The new sentences must be the knowledge a pupil of this year would say back to achieve the learningGoal. A connector word does not repair a sentence. because, which meant, led to, therefore, significant, and important count only when the words around them are the missing fact. 'It was significant', 'it had an influence', 'it led to changes', 'it had an impact', or 'it is essential' is not that fact. Missing relationship: " + relationship.join(" ")
         : ""
     ].filter(Boolean).join(" ");
+    if (/developed strands/.test(found)) {
+      instruction += " Correct incorrectly labelled foundations. A feature or adaptation is not a foundation. Point each function or mechanism at its own feature. Preserve the underlying knowledge and the dependencies that are still true. Do not invent a foundation simply to satisfy formatting.";
+    }
     if (ctx && ctx.knowledgePack && ctx.knowledgePack.status !== "blocked") {
-      instruction += " Every learningMap point must include claimIds copied from knowledgePack.claims. The sentence may shorten that claim. It must not add a subject fact the claim does not state. Do not teach falsePremise, doNotTeach, or rejectedClaims.";
+      instruction += " Every learningMap point must include claimIds copied from knowledgePack.claims. The sentence may shorten that claim. It must not add a subject fact the claim does not state. Do not teach falsePremise, doNotTeach, rejectedClaims, or a claim held as an unsupported local detail.";
     }
     var repairPayload = {
       learningGoal: goal,
