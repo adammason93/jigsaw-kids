@@ -17,6 +17,7 @@ This function spends OpenAI money, so it only runs for a **signed-in family**.
 
 Responses allow these browser origins:
 
+- `https://wondii.co.uk` and `https://www.wondii.co.uk`
 - `https://jigsaw-kids.adammason93.workers.dev`
 - `localhost`, `127.0.0.1`, and `::1` on any port (`http` or `https`), for local dev
 
