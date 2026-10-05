@@ -281,9 +281,10 @@ var gardenMap = [
 ];
 assert.strictEqual(admit("Year 4", gardenAsk, gardenGoal, gardenMap).ok, false);
 var settledGarden = admit("Year 4", gardenAsk, gardenGoal, gardenMap, { breadthSettled: true });
-assert.strictEqual(settledGarden.ok, true, (settledGarden.issues || []).join("; "));
+assert.strictEqual(settledGarden.ok, false, "two developed strands do not pass a short map");
 assert.strictEqual(depthOf(settledGarden).developedStrands, 2);
-assert.strictEqual(settledGarden.plan.teachingPlan.substantiveDepth.met, false, "the floor miss stays visible after a breadth repair");
+assert.strictEqual(depthOf(settledGarden).met, false, "the floor miss stays visible after a breadth repair");
+assert.ok((settledGarden.issues || []).join(" ").indexOf("more connected learning points") !== -1);
 
 var repairCtx = {
   yearGroup: "Year 2", requestedMinutes: 15, lessonText: sharkAsk, topic: sharkAsk, depthRequired: true,
@@ -309,5 +310,138 @@ assert.ok(/need 3 developed strands/.test(scopeLine("Year 6")));
 assert.ok(/real mechanisms and a connection/.test(scopeLine("Year 6")));
 assert.ok(/not a fourth strand/.test(scopeLine("Year 6")));
 assert.strictEqual(scopeLine("Year 2").indexOf("two in Year 1 and Year 2"), -1);
+
+// Saved Y3 dinosaur shape: two feature→mechanism pairs, plus two selected pack
+// claims the planner left unlinked. Those claims are the missing depth. A
+// paraphrase of a kept point is still not admitted.
+function packClaim(id, text, kind, depth) {
+  return {
+    claimId: id, text: text, kind: kind || "fact", depth: depth || "concrete", confidence: "high",
+    provenance: "model", factuallyVerified: false, contested: false, ageFit: { from: 1, to: 6 }, importance: "core"
+  };
+}
+var mesozoic = "Dinosaurs lived during the Mesozoic Era, which lasted about 180 million years.";
+var kinds = "There are two main types of dinosaurs: herbivores, which eat plants, and carnivores, which eat meat.";
+var rex = "The Tyrannosaurus rex was a large carnivorous dinosaur known for its powerful jaws and sharp teeth.";
+var teeth = "The sharp teeth of the Tyrannosaurus rex were designed for tearing flesh, making it an effective predator.";
+var brach = "The Brachiosaurus was a large herbivorous dinosaur known for its long neck, which helped it reach high vegetation.";
+var neck = "The long neck of the Brachiosaurus allowed it to reach high trees for food, which helped it survive in its environment.";
+var dinoAsk = "Year 3 science. Teach children about dinosaurs.";
+var dinoGoal = "Students will understand the different types of dinosaurs and their characteristics.";
+var dinoClaims = [
+  packClaim("c1", mesozoic),
+  packClaim("c2", kinds),
+  packClaim("c3", rex),
+  packClaim("c4", brach),
+  packClaim("c5", neck, "mechanism", "mechanism"),
+  packClaim("c6", teeth, "mechanism", "mechanism")
+];
+var dinoCtx = {
+  yearGroup: "Year 3", requestedMinutes: 15, lessonText: dinoAsk, topic: "Dinosaurs", depthRequired: true,
+  lessonBrief: { intent: "explain", rawRequest: dinoAsk, learningGoal: dinoGoal, teacherIntent: { ok: true, learningGoal: dinoGoal, requiredEvidence: "Students can identify and describe types of dinosaurs and their features." } },
+  knowledgePack: { id: "kp", status: "qualified", claims: dinoClaims, rejectedClaims: [] },
+  knowledgeSelection: { status: "qualified", claimIds: dinoClaims.map(function (claim) { return claim.claimId; }), depthMode: "mechanism" }
+};
+var dinoMap = [
+  { id: "p1", knowledge: mesozoic, role: "fact", importance: "core", dependsOn: [] },
+  { id: "p2", knowledge: kinds, role: "fact", importance: "core", dependsOn: [] },
+  { id: "p3", knowledge: rex, role: "fact", importance: "core", dependsOn: [] },
+  { id: "p4", knowledge: teeth, role: "mechanism", importance: "core", dependsOn: ["p3"] },
+  { id: "p5", knowledge: brach, role: "fact", importance: "core", dependsOn: [] },
+  { id: "p6", knowledge: neck, role: "mechanism", importance: "core", dependsOn: ["p5"] }
+];
+var dinoPlan = Brain.normalisePlan({
+  learningObjective: dinoGoal, subject: "Science", topic: "Dinosaurs", yearGroup: "Year 3", learningMap: dinoMap, lessonArc: arc
+}, dinoCtx);
+assert.strictEqual(dinoPlan.ok, true, (dinoPlan.issues || []).join("; "));
+assert.strictEqual(depthOf(dinoPlan).achievedDepth, 6);
+assert.strictEqual(depthOf(dinoPlan).requiredDepth, 6);
+assert.strictEqual(depthOf(dinoPlan).developedStrands, 2);
+assert.strictEqual(depthOf(dinoPlan).met, true);
+assert.ok(knowledgeText(dinoPlan).indexOf("Mesozoic") !== -1, "the admitted era claim is taught");
+assert.ok(knowledgeText(dinoPlan).indexOf("herbivores") !== -1, "the admitted classification is taught");
+dinoPlan.plan.learningMap.forEach(function (item) {
+  if (item.knowledge === mesozoic || item.knowledge === kinds) assert.strictEqual(item.role, "foundation");
+});
+var invented = dinoMap.concat([
+  { id: "p7", knowledge: "Herbivores like the Brachiosaurus use their long necks to access food that other dinosaurs cannot reach.", role: "function", importance: "core", dependsOn: ["p5"] },
+  { id: "p8", knowledge: "Carnivores like the Tyrannosaurus rex are effective predators because their teeth are adapted for tearing flesh.", role: "function", importance: "core", dependsOn: ["p3", "p4"] }
+]);
+var dinoInvented = Brain.normalisePlan({
+  learningObjective: dinoGoal, subject: "Science", topic: "Dinosaurs", yearGroup: "Year 3", learningMap: invented, lessonArc: arc
+}, dinoCtx);
+assert.ok(dinoInvented.plan.mapRejected.some(function (row) { return row.reason === "invented fact outside the knowledge pack"; }));
+assert.ok(knowledgeText(dinoInvented).indexOf("cannot reach") === -1);
+
+var dinoFrame = Object.assign({}, dinoCtx, { lessonPlan: dinoPlan.plan, pupilCount: 4 });
+var dinoStory = Brain.storyFromPlan(dinoPlan.plan, dinoFrame);
+var dinoSlots = Brain.planBeats(Brain.lessonSkeleton(dinoPlan.plan, Object.assign({}, dinoFrame, { storyPlan: dinoStory })), dinoPlan.plan, "Year 3");
+var dinoFramed = Object.assign({}, dinoFrame, { storyPlan: dinoStory, lessonSkeleton: dinoSlots });
+dinoPlan.plan.droppedKnowledge = (dinoPlan.plan.droppedKnowledge || []).concat([
+  "Carnivores like the Tyrannosaurus rex are effective predators because their teeth are adapted for tearing flesh."
+]);
+var teethAnswer = "Its sharp teeth for tearing flesh.";
+var neckAnswer = "Its long neck reaches high trees.";
+function dinoLesson(checkQuestions, applyInstruction, applyBeat) {
+  var slots = {};
+  dinoSlots.forEach(function (slot) {
+    if (slot.id === "check") slots.check = { questions: checkQuestions };
+    else if (slot.id === "apply") {
+      slots.apply = {
+        beats: slot.beats.map(function (beat) { return { id: beat.id, cue: "", text: applyBeat }; }),
+        instruction: applyInstruction,
+        target: "choices",
+        successCondition: "The pupil uses the taught teeth idea on a new animal.",
+        teachingConnection: "The task follows the taught explanation."
+      };
+    } else {
+      slots[slot.id] = {
+        beats: (slot.beats || []).filter(function (beat) { return beat.move !== "retrieve"; }).map(function (beat) {
+          return { id: beat.id, cue: "", text: "The class uses the idea in a new sentence here." };
+        })
+      };
+    }
+  });
+  return Brain.accept({ title: "Dinosaur mission", objectives: [dinoGoal], slots: slots }, Object.assign({}, dinoFramed, {
+    applySemantic: { relationship: "apply", reason: "The task uses the taught idea." },
+    checkSemantics: checkQuestions.map(function () { return { coverage: "sufficient", reason: "The answer shows the taught idea.", demonstratedEvidence: "The pupil shows the taught idea." }; })
+  }));
+}
+var taughtCheck = [
+  { id: "check:0", prompt: "What do the sharp teeth of Tyrannosaurus rex do?", choices: [teethAnswer, neckAnswer, "It flies away."], correct: teethAnswer, explain: "Those teeth were adapted for tearing flesh.", successEvidence: "The pupil chose the taught teeth idea.", teachingConnection: "From the taught idea." },
+  { id: "check:1", prompt: "What does the long neck of Brachiosaurus do?", choices: [neckAnswer, teethAnswer, "It flies away."], correct: neckAnswer, explain: "The long neck reaches food in high trees.", successEvidence: "The pupil chose the taught neck idea.", teachingConnection: "From the taught idea." }
+];
+var scored = dinoLesson(taughtCheck, "A new dinosaur has sharp teeth. Choose whether it tears flesh or reaches trees.", "Choose the animal whose sharp teeth tear flesh.");
+assert.ok((scored.issues || []).indexOf("The check scores knowledge that was not taught.") === -1, (scored.issues || []).join(" | "));
+var untaughtCorrect = taughtCheck.map(function (question) { return Object.assign({}, question); });
+untaughtCorrect[0] = Object.assign({}, untaughtCorrect[0], { correct: "It was adapted for tearing flesh.", choices: ["It was adapted for tearing flesh.", neckAnswer, "It flies away."] });
+var leaked = dinoLesson(untaughtCorrect, "A new dinosaur has sharp teeth. Choose whether it tears flesh or reaches trees.", "Choose the animal whose sharp teeth tear flesh.");
+assert.ok((leaked.issues || []).indexOf("The check scores knowledge that was not taught.") !== -1, (leaked.issues || []).join(" | "));
+var applySpec = JSON.parse(Brain.slotRepairBrief(dinoFramed, ["apply"], ["The apply slot does not use the taught knowledge."], { activities: [] }).user);
+assert.ok(applySpec.instruction.indexOf(teeth) !== -1, "the apply repair names the taught idea");
+assert.ok(/new case/.test(applySpec.instruction));
+assert.ok(/features in general does not use it/.test(applySpec.instruction));
+
+var fullEnough = [
+  { id: "p1", knowledge: "A river starts in the hills.", role: "foundation", importance: "core", dependsOn: [] },
+  { id: "p2", knowledge: "Fast water picks up stones.", role: "feature", importance: "core", dependsOn: ["p1"] },
+  { id: "p3", knowledge: "Those stones rub the riverbed and wear the rock away.", role: "mechanism", importance: "core", dependsOn: ["p2"] },
+  { id: "p4", knowledge: "The river also carries sand.", role: "feature", importance: "core", dependsOn: ["p1"] },
+  { id: "p5", knowledge: "Where the water slows, it drops that sand and builds new land.", role: "mechanism", importance: "core", dependsOn: ["p4"] },
+  { id: "p6", knowledge: "Wearing rock away and dropping sand both change the valley.", role: "connection", importance: "core", dependsOn: ["p3", "p5"] }
+];
+var spare = "A river is a kind of water that people can name.";
+var spareClaim = packClaim("criver", spare);
+var keptFull = Brain.normalisePlan({
+  learningObjective: "Pupils will learn how rivers change the land.", yearGroup: "Year 3", learningMap: fullEnough.concat([
+    { id: "p7", knowledge: spare, role: "fact", importance: "core", dependsOn: [] }
+  ]), lessonArc: arc
+}, {
+  yearGroup: "Year 3", requestedMinutes: 15, lessonText: "Teach children about rivers.", topic: "rivers", depthRequired: true,
+  lessonBrief: { intent: "explain", rawRequest: "Teach children about rivers.", learningGoal: "Pupils will learn how rivers change the land.", teacherIntent: { ok: true, learningGoal: "Pupils will learn how rivers change the land." } },
+  knowledgePack: { id: "kr", status: "usable", claims: [spareClaim].concat(fullEnough.map(function (row, index) { return packClaim("ck" + index, row.knowledge, "fact", "concrete"); })), rejectedClaims: [] },
+  knowledgeSelection: { status: "ready", claimIds: ["criver"].concat(fullEnough.map(function (row, index) { return "ck" + index; })) }
+});
+assert.ok(knowledgeText(keptFull).indexOf(spare) === -1, "a full map does not pull in an extra unlinked claim");
 
 console.log("knowledge quality gate tests passed");
