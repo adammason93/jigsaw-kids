@@ -54,11 +54,11 @@ var fixtures = [
     map: [
       { id: "p1", knowledge: "A noun is a naming word for a person, place or thing.", role: "foundation", importance: "supporting", dependsOn: [] },
       { id: "p2", knowledge: "An adjective is a word that describes a noun.", role: "concept", importance: "core", dependsOn: ["p1"] },
-      { id: "p3", knowledge: "An adjective usually sits just before the noun it describes.", role: "feature", importance: "supporting", dependsOn: ["p2"] },
+      { id: "p3", knowledge: "An adjective usually sits just before the noun it describes.", role: "feature", importance: "supporting", dependsOn: ["p1"] },
       { id: "p4", knowledge: "An adjective adds detail to a noun so that the writing tells the reader more.", role: "function", importance: "core", dependsOn: ["p2"] },
       { id: "p5", knowledge: "Adjectives add detail to nouns so that writing tells the reader more.", role: "function", importance: "core", dependsOn: ["p2"] },
       { id: "p6", knowledge: "A precise adjective changes the picture so that the writing paints a clearer scene.", role: "effect", importance: "core", dependsOn: ["p4"] },
-      { id: "p7", knowledge: "In the cold, dark cave, the words cold and dark let the reader feel the scene.", role: "example", importance: "supporting", dependsOn: ["p4"] },
+      { id: "p7", knowledge: "In the cold, dark cave, the words cold and dark let the reader feel the scene.", role: "example", importance: "supporting", dependsOn: ["p3"] },
       { id: "p8", knowledge: "Verbs are doing words.", role: "concept", importance: "supporting", dependsOn: [] },
       { id: "p9", knowledge: "Choosing adjectives carefully makes writing more descriptive for the reader.", role: "connection", importance: "core", dependsOn: ["p4", "p6"] }
     ],
@@ -74,7 +74,7 @@ var fixtures = [
     map: [
       { id: "p1", knowledge: "In 1666 a fire started in a bakery on Pudding Lane.", role: "foundation", importance: "supporting", dependsOn: [] },
       { id: "p2", knowledge: "The fire spread quickly because the wooden houses stood close together.", role: "cause", importance: "core", dependsOn: ["p1"] },
-      { id: "p3", knowledge: "The fire spread quickly because a strong wind blew the flames between streets.", role: "cause", importance: "core", dependsOn: ["p1"] },
+      { id: "p3", knowledge: "The fire spread quickly because a strong wind blew the flames between streets.", role: "cause", importance: "core", dependsOn: ["p2"] },
       { id: "p4", knowledge: "The fire spread quickly because people had no fire engines to stop it.", role: "cause", importance: "core", dependsOn: ["p1"] },
       { id: "p5", knowledge: "The fire spread fast because houses were wooden and close together.", role: "cause", importance: "core", dependsOn: ["p1"] },
       { id: "p6", knowledge: "The fire burned thousands of homes, which meant many people lost their homes.", role: "effect", importance: "core", dependsOn: ["p2", "p3", "p4"] },
@@ -95,7 +95,7 @@ var fixtures = [
       { id: "p1", knowledge: "A river flows downhill from its source to the sea.", role: "foundation", importance: "supporting", dependsOn: [] },
       { id: "p2", knowledge: "Fast water picks up stones and sand, and then it rubs them against the riverbed.", role: "process", importance: "core", dependsOn: ["p1"] },
       { id: "p3", knowledge: "This erosion wears away the rock, which changes the landscape by making the valley deeper.", role: "effect", importance: "core", dependsOn: ["p2"] },
-      { id: "p4", knowledge: "The river carries the worn material downstream.", role: "process", importance: "core", dependsOn: ["p2"] },
+      { id: "p4", knowledge: "The river carries the worn material downstream.", role: "process", importance: "core", dependsOn: ["p1"] },
       { id: "p5", knowledge: "Where the river slows down, it drops mud and sand, which changes the landscape by building new land.", role: "effect", importance: "core", dependsOn: ["p4"] },
       { id: "p6", knowledge: "On a bend the river wears away the outside bank and drops sand on the inside, which makes the meander grow.", role: "effect", importance: "supporting", dependsOn: ["p3", "p5"] },
       { id: "p7", knowledge: "Fish live in many rivers.", role: "foundation", importance: "supporting", dependsOn: [] },
@@ -385,7 +385,8 @@ var repairBrief = Brain.planRepairBrief(ctxFor(shark), shallow.issues, shallow.p
 assert.ok(JSON.parse(repairBrief.user).relationshipRequired.join(" ").indexOf("depth:") === 0);
 assert.ok(repairBrief.user.indexOf("about 5 to 6 points") !== -1);
 var settled = Brain.normalisePlan(rawFor(shark, shark.map.slice(2, 4)), ctxFor(shark, { breadthSettled: true }));
-assert.strictEqual(settled.ok, true, (settled.issues || []).join("; "));
+assert.strictEqual(settled.ok, false, (settled.issues || []).join("; "));
+assert.ok((settled.issues || []).indexOf("The learning map needs more connected learning points.") !== -1, (settled.issues || []).join("; "));
 
 var wide = shark.map.concat([
   { id: "p9", knowledge: "A shark's skin is covered in tiny tooth-like scales that help water flow past so it can swim quietly.", role: "function", importance: "supporting", dependsOn: ["p1"] },

@@ -29,7 +29,7 @@ var LESSONS = {
     map: [
       { id: "p1", knowledge: "In 1666 a fire started in a bakery on Pudding Lane.", role: "foundation", importance: "supporting", dependsOn: [] },
       { id: "p2", knowledge: "The fire spread quickly because the wooden houses stood close together.", role: "cause", importance: "core", dependsOn: ["p1"] },
-      { id: "p3", knowledge: "The fire spread quickly because a strong wind blew the flames between streets.", role: "cause", importance: "core", dependsOn: ["p1"] },
+      { id: "p3", knowledge: "The fire spread quickly because a strong wind blew the flames between streets.", role: "cause", importance: "core", dependsOn: ["p2"] },
       { id: "p4", knowledge: "The fire spread quickly because people had no fire engines to stop it.", role: "cause", importance: "core", dependsOn: ["p1"] },
       { id: "p6", knowledge: "The fire burned thousands of homes, which meant many people lost their homes.", role: "effect", importance: "core", dependsOn: ["p2", "p3", "p4"] },
       { id: "p7", knowledge: "London was rebuilt with brick and stone so that a fire could not spread as easily.", role: "effect", importance: "core", dependsOn: ["p6"] },
@@ -44,7 +44,7 @@ var LESSONS = {
       { id: "p1", knowledge: "A river flows downhill from its source to the sea.", role: "foundation", importance: "supporting", dependsOn: [] },
       { id: "p2", knowledge: "Fast water picks up stones and sand, and then it rubs them against the riverbed.", role: "process", importance: "core", dependsOn: ["p1"] },
       { id: "p3", knowledge: "This erosion wears away the rock, which changes the landscape by making the valley deeper.", role: "effect", importance: "core", dependsOn: ["p2"] },
-      { id: "p4", knowledge: "The river carries the worn material downstream.", role: "process", importance: "core", dependsOn: ["p2"] },
+      { id: "p4", knowledge: "The river carries the worn material downstream.", role: "process", importance: "core", dependsOn: ["p1"] },
       { id: "p5", knowledge: "Where the river slows down, it drops mud and sand, which changes the landscape by building new land.", role: "effect", importance: "core", dependsOn: ["p4"] },
       { id: "p6", knowledge: "On a bend the river wears away the outside bank and drops sand on the inside, which makes the meander grow.", role: "effect", importance: "supporting", dependsOn: ["p3", "p5"] },
       { id: "p8", knowledge: "Erosion, transport and deposition work together to change the landscape over time.", role: "connection", importance: "core", dependsOn: ["p3", "p4", "p5"] },

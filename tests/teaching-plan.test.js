@@ -392,8 +392,9 @@ assert.ok(canary.issues.indexOf("The learning map needs two or more developed st
 var canaryRepair = JSON.parse(Brain.planRepairBrief(canaryCtx, canary.issues, canary.previous).user);
 assert.ok(canaryRepair.relationshipRequired.some(function (line) { return line.indexOf("strands:") === 0; }), "the plan repair is told what a strand is");
 var canarySettled = Brain.normalisePlan(canaryRaw, Object.assign({}, canaryCtx, { breadthSettled: true }));
-assert.strictEqual(canarySettled.ok, true, "after one repair the depth gate is a recorded warning, not a blocker");
-assert.strictEqual(canarySettled.plan.teachingPlan.substantiveDepth.met, false, "the settled shallow plan is recorded as not meeting depth");
+assert.strictEqual(canarySettled.ok, false, "after one repair a flat map is still blocked");
+assert.ok(canarySettled.issues.indexOf("The learning map needs two or more developed strands for this broad topic.") !== -1, (canarySettled.issues || []).join("; "));
+assert.strictEqual(canarySettled.depth.met, false, "the settled shallow plan is recorded as not meeting depth");
 
 var metaMap = [
   { id: "k1", knowledge: "Sharks have a unique body structure with fins and sharp teeth.", role: "feature", importance: "core", dependsOn: [] },
@@ -403,7 +404,7 @@ var metaMap = [
   { id: "k5", knowledge: "Sharks play an important role in ocean health.", role: "effect", importance: "core", dependsOn: ["k3"] },
   { id: "k6", knowledge: "Learning about sharks helps us protect them and their habitats.", role: "function", importance: "core", dependsOn: ["k5"] }
 ];
-var meta = Brain.normalisePlan(Object.assign({}, canaryRaw, { learningMap: metaMap }), Object.assign({}, canaryCtx, { breadthSettled: true }));
+var meta = Brain.normalisePlan(Object.assign({}, canaryRaw, { learningMap: metaMap }), Object.assign({}, canaryCtx, { depthRequired: false }));
 assert.strictEqual(meta.plan.keyKnowledge.indexOf(metaMap[5].knowledge), -1, "a point about learning the topic is not lesson knowledge");
 assert.ok(meta.plan.teachingPlan.rejectedAsDepth.some(function (row) { return row.reason === "generic-connection" && /Learning about sharks/.test(row.knowledge); }));
 var conservationCtx = ctxFor({ year: "Year 1", subject: "Science", minutes: 15, intent: "explain", ask: "Teach children why learning about sharks helps us protect them.", goal: "Understand why we should protect sharks." });
@@ -419,7 +420,7 @@ var paraphraseMap = [
   { id: "p4", knowledge: "A shark's tail pushes water backwards to move it forward.", role: "mechanism", importance: "core", dependsOn: ["p1"] }
 ];
 var para = Brain.normalisePlan(Object.assign({}, canaryRaw, { learningMap: paraphraseMap }), canaryCtx);
-var paraPlan = Brain.normalisePlan(Object.assign({}, canaryRaw, { learningMap: paraphraseMap }), Object.assign({}, canaryCtx, { breadthSettled: true })).plan;
+var paraPlan = Brain.normalisePlan(Object.assign({}, canaryRaw, { learningMap: paraphraseMap }), Object.assign({}, canaryCtx, { depthRequired: false })).plan;
 assert.strictEqual(paraPlan.keyKnowledge.indexOf("Sharks swim well."), -1, "a repetition is dropped");
 assert.ok(paraPlan.mapRejected.some(function (row) { return row.reason === "repetition"; }));
 assert.strictEqual(paraPlan.droppedKnowledge.indexOf("Sharks swim well."), -1, "a dropped repetition does not count as a leaked idea");
@@ -439,7 +440,7 @@ var genericMap = [
 var generic = Brain.normalisePlan(Object.assign({}, canaryRaw, { learningMap: genericMap }), canaryCtx);
 assert.strictEqual(generic.ok, false, "generic connections do not satisfy the depth floor");
 assert.ok(generic.issues.indexOf("The learning map needs more connected learning points.") !== -1);
-var genericPlan = Brain.normalisePlan(Object.assign({}, canaryRaw, { learningMap: genericMap }), Object.assign({}, canaryCtx, { breadthSettled: true })).plan;
+var genericPlan = Brain.normalisePlan(Object.assign({}, canaryRaw, { learningMap: genericMap }), Object.assign({}, canaryCtx, { depthRequired: false })).plan;
 assert.ok(genericPlan.teachingPlan.substantiveDepth.achieved <= 4, "connections add at most one place: " + genericPlan.teachingPlan.substantiveDepth.achieved);
 
 var exampleMap = [
@@ -453,7 +454,7 @@ var exampleMap = [
 var plantsCtx = ctxFor(FIXTURES.C);
 var examples = Brain.normalisePlan(rawFor(FIXTURES.C, exampleMap), plantsCtx);
 assert.strictEqual(examples.ok, false, "examples do not satisfy the whole depth floor");
-var examplePlan = Brain.normalisePlan(rawFor(FIXTURES.C, exampleMap), Object.assign({}, plantsCtx, { breadthSettled: true })).plan;
+var examplePlan = Brain.normalisePlan(rawFor(FIXTURES.C, exampleMap), Object.assign({}, plantsCtx, { depthRequired: false })).plan;
 assert.strictEqual(examplePlan.teachingPlan.substantiveDepth.achieved, 3, "four examples add one place");
 
 // ---- older plans without a teaching plan keep the earlier planner ----

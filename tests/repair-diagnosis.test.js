@@ -17,10 +17,10 @@ var made = Brain.normalisePlan({
   learningObjective: goal, subject: "Science", topic: "birds", yearGroup: "Year 1",
   learningMap: [
     { id: "a", knowledge: "Birds have a special body that helps them with flying.", role: "foundation", importance: "core", dependsOn: [] },
-    { id: "b", knowledge: "Wide wings push down on the air.", role: "feature", importance: "core", dependsOn: ["a"] },
-    { id: "c", knowledge: "Feathers help birds steer and glide.", role: "function", importance: "core", dependsOn: ["a"] },
-    { id: "d", knowledge: "Light bones allow birds to stay up while flying.", role: "concept", importance: "core", dependsOn: ["a"] },
-    { id: "e", knowledge: "All these parts work together to help birds fly well.", role: "connection", importance: "core", dependsOn: ["b", "c", "d"] }
+    { id: "b", knowledge: "Birds have wide wings.", role: "feature", importance: "core", dependsOn: ["a"] },
+    { id: "c", knowledge: "Wide wings push down on the air so the bird can lift.", role: "mechanism", importance: "core", dependsOn: ["b"] },
+    { id: "d", knowledge: "Feathers help birds steer and glide.", role: "function", importance: "core", dependsOn: ["a"] },
+    { id: "e", knowledge: "Light bones allow birds to stay up while flying.", role: "concept", importance: "core", dependsOn: ["d"] }
   ],
   lessonArc: [{ purpose: "teach" }, { purpose: "check" }]
 }, ctx);
