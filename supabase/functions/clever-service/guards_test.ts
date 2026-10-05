@@ -1,8 +1,10 @@
 import { assertEquals } from "jsr:@std/assert@1";
 import {
+  assessStorageProxyUrl,
   authenticateBearer,
   corsHeadersForOrigin,
   isAllowedStoryOrigin,
+  proxyRedirectAllowed,
 } from "./guards.ts";
 
 Deno.test("anon-key bearer is 401 and does not look up a user", async () => {
@@ -53,6 +55,51 @@ Deno.test("user JWT is accepted only when getUser returns the same id", async ()
 
   const mismatch = await authenticateBearer(token, "anon", async () => "other-user");
   assertEquals(mismatch.ok, false);
+});
+
+const PROJECT = "https://enuzrcjnrxwglacivlnu.supabase.co";
+
+Deno.test("image proxy rejects foreign hosts", () => {
+  const foreign = assessStorageProxyUrl("https://evil.example/secret", PROJECT);
+  assertEquals(foreign.ok, false);
+  if (!foreign.ok) assertEquals(foreign.reason, "foreign_host");
+
+  const openai = assessStorageProxyUrl(
+    "https://oaiusercontent.com/file.png",
+    PROJECT,
+  );
+  assertEquals(openai.ok, false);
+});
+
+Deno.test("image proxy allows this project's storage buckets only", () => {
+  const ok = assessStorageProxyUrl(
+    `${PROJECT}/storage/v1/object/public/storybook_images/gptimage/a.png`,
+    PROJECT,
+  );
+  assertEquals(ok.ok, true);
+  const priv = assessStorageProxyUrl(
+    `${PROJECT}/storage/v1/object/sign/storybook_images_private/uid/storybook/a.png?token=abc`,
+    PROJECT,
+  );
+  assertEquals(priv.ok, true);
+  const otherBucket = assessStorageProxyUrl(
+    `${PROJECT}/storage/v1/object/public/other_bucket/a.png`,
+    PROJECT,
+  );
+  assertEquals(otherBucket.ok, false);
+});
+
+Deno.test("image proxy does not follow a redirect to another host", () => {
+  const current = `${PROJECT}/storage/v1/object/public/storybook_images/gptimage/a.png`;
+  const blocked = proxyRedirectAllowed(current, "https://evil.example/x", PROJECT);
+  assertEquals(blocked.ok, false);
+  if (!blocked.ok) assertEquals(blocked.reason, "proxy_redirect_blocked");
+  const same = proxyRedirectAllowed(
+    current,
+    `${PROJECT}/storage/v1/object/public/storybook_images/gptimage/b.png`,
+    PROJECT,
+  );
+  assertEquals(same.ok, true);
 });
 
 Deno.test("CORS allows the live site and localhost only", () => {

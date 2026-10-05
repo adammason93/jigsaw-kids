@@ -139,7 +139,7 @@ Portrait images are summarised via vision text (not pasted into GPT Image multip
 
 **Two photos both tagged for the hero:** the function runs a quick vision check (same child vs two different children). If they look like **two** kids, it produces two appearance lines (`Co_star_ref` for the second) so the illustrated co-star is not a random generic. First photo = hero, second = other named child when split. If it decides **same** child but your story has two human characters, prompts still nudge the co-star’s hair toward the reference family look.
 
-Some illustration URLs load through **`clever-service?url=`** when the browser needs a **same-origin proxy** — see `games/storybook.js` (**`storyImageNeedsEdgeProxy`**).
+`GET ?url=` only fetches objects in this project's Storage buckets (`storybook_images`, `storybook_images_private`, `storybook_room`, `characters_room`). Other hosts are rejected. Redirects are followed only when the next URL is still one of those objects. The caller must already be signed in.
 
 ## Troubleshooting
 

@@ -95,6 +95,79 @@ export function isAllowedStoryOrigin(origin: string, extraEnv = ""): boolean {
   return allow.has(raw);
 }
 
+/** Buckets this function may re-fetch. Anything else is refused. */
+export const STORYBOOK_PROXY_BUCKETS: ReadonlySet<string> = new Set([
+  "storybook_images",
+  "storybook_images_private",
+  "storybook_room",
+  "characters_room",
+]);
+
+export type ProxyOk = { ok: true; url: string };
+export type ProxyNo = { ok: false; reason: string };
+
+/**
+ * Allow only an object URL on this project's Supabase storage host, in a known bucket.
+ * Query tokens (signed URLs) are kept. Userinfo and other hosts are refused.
+ */
+export function assessStorageProxyUrl(raw: string, supabaseUrl: string): ProxyOk | ProxyNo {
+  let decoded = raw.trim();
+  if (!decoded) return { ok: false, reason: "missing_url" };
+  try {
+    const once = decodeURIComponent(decoded);
+    if (once.startsWith("http://") || once.startsWith("https://")) decoded = once;
+  } catch {
+    /* keep the raw string */
+  }
+  let parsed: URL;
+  try {
+    parsed = new URL(decoded);
+  } catch {
+    return { ok: false, reason: "bad_url" };
+  }
+  if (parsed.username || parsed.password) return { ok: false, reason: "userinfo" };
+  if (parsed.protocol !== "https:" && parsed.protocol !== "http:") {
+    return { ok: false, reason: "bad_scheme" };
+  }
+  let allowedHost: URL;
+  try {
+    allowedHost = new URL(supabaseUrl);
+  } catch {
+    return { ok: false, reason: "storage_unconfigured" };
+  }
+  if (parsed.hostname !== allowedHost.hostname) {
+    return { ok: false, reason: "foreign_host" };
+  }
+  const match = /^\/storage\/v1\/object\/(?:public|sign|authenticated)\/([^/]+)\/.+/i.exec(
+    parsed.pathname,
+  );
+  if (!match) return { ok: false, reason: "not_storage_object" };
+  if (!STORYBOOK_PROXY_BUCKETS.has(match[1])) {
+    return { ok: false, reason: "bucket_not_allowed" };
+  }
+  return { ok: true, url: parsed.toString() };
+}
+
+/** A redirect is followed only when the next hop still passes assessStorageProxyUrl. */
+export function proxyRedirectAllowed(
+  currentUrl: string,
+  location: string | null,
+  supabaseUrl: string,
+): ProxyOk | ProxyNo {
+  if (!location || !location.trim()) {
+    return { ok: false, reason: "proxy_redirect_blocked" };
+  }
+  let next = "";
+  try {
+    next = new URL(location, currentUrl).toString();
+  } catch {
+    return { ok: false, reason: "proxy_redirect_blocked" };
+  }
+  const verdict = assessStorageProxyUrl(next, supabaseUrl);
+  if (!verdict.ok) return { ok: false, reason: "proxy_redirect_blocked" };
+  return verdict;
+}
+
 export function corsHeadersForOrigin(
   origin: string | null,
   extraEnv = "",

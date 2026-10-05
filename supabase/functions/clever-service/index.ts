@@ -4,9 +4,11 @@ import { AsyncLocalStorage } from "node:async_hooks";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import type { SupabaseClient } from "npm:@supabase/supabase-js@2";
 import {
+  assessStorageProxyUrl,
   authenticateBearer,
   bearerTokenFromHeader,
   corsHeadersForOrigin,
+  proxyRedirectAllowed,
 } from "./guards.ts";
 
 type RequestCtx = {
@@ -5103,29 +5105,56 @@ async function handleCleverServiceInner(req: Request): Promise<Response> {
       }
     }
 
-    // 2. Image Proxy
+    // 2. Image proxy — this project's Storage objects only. Redirects to any
+    // other host (or another bucket) are not followed.
     const urlStr = searchParams.get("url");
     if (!urlStr) return jsonResponse({ error: "missing_url" }, 400);
+    const supabaseUrl = (Deno.env.get("SUPABASE_URL") ?? "").trim();
+    const verdict = assessStorageProxyUrl(urlStr, supabaseUrl);
+    if (!verdict.ok) {
+      return jsonResponse({ error: "proxy_rejected", detail: verdict.reason }, 400);
+    }
     try {
-      // Decode the URL if it was encoded twice, or just use it as is
-      const decodedUrl = decodeURIComponent(urlStr);
-      const finalUrl = decodedUrl.startsWith("http") ? decodedUrl : urlStr;
-      
-      const res = await fetch(finalUrl);
-      if (!res.ok) {
-        console.error("[proxy error] upstream returned", res.status, res.statusText, "for URL:", finalUrl);
-        throw new Error(`proxy_upstream_error_${res.status}`);
+      let current = verdict.url;
+      for (let hop = 0; hop < 3; hop++) {
+        const res = await fetch(current, { redirect: "manual" });
+        if (res.status >= 300 && res.status < 400) {
+          const next = proxyRedirectAllowed(
+            current,
+            res.headers.get("location"),
+            supabaseUrl,
+          );
+          if (!next.ok) {
+            return jsonResponse(
+              { error: "proxy_rejected", detail: "proxy_redirect_blocked" },
+              400,
+            );
+          }
+          current = next.url;
+          continue;
+        }
+        if (!res.ok) {
+          console.error("[proxy error] upstream returned", res.status);
+          return jsonResponse(
+            { error: "proxy_failed", detail: `proxy_upstream_${res.status}` },
+            502,
+          );
+        }
+        return new Response(res.body, {
+          headers: {
+            ...corsHeaders(),
+            "Content-Type": res.headers.get("Content-Type") || "image/png",
+            "Cache-Control": "private, max-age=3600",
+          },
+        });
       }
-      return new Response(res.body, {
-        headers: {
-          ...corsHeaders(),
-          "Content-Type": res.headers.get("Content-Type") || "image/png",
-          "Cache-Control": "private, max-age=3600",
-        },
-      });
+      return jsonResponse(
+        { error: "proxy_rejected", detail: "proxy_redirect_blocked" },
+        400,
+      );
     } catch (e) {
       console.error("[proxy error]", e);
-      return jsonResponse({ error: "proxy_failed", detail: String(e) }, 502);
+      return jsonResponse({ error: "proxy_failed", detail: "proxy_failed" }, 502);
     }
   }
 
