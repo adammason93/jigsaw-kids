@@ -4,6 +4,7 @@ import {
   authenticateBearer,
   blankReferencePhotos,
   corsHeadersForOrigin,
+  gptImageModerationFromEnv,
   isAllowedStoryOrigin,
   minimalJobMetadata,
   proxyRedirectAllowed,
@@ -154,4 +155,12 @@ Deno.test("CORS allows the live site and localhost only", () => {
   assertEquals(headers["Access-Control-Allow-Origin"], undefined);
   const ok = corsHeadersForOrigin("http://localhost:3000");
   assertEquals(ok["Access-Control-Allow-Origin"], "http://localhost:3000");
+});
+
+Deno.test("image moderation defaults to auto unless the secret is low", () => {
+  assertEquals(gptImageModerationFromEnv(undefined), "auto");
+  assertEquals(gptImageModerationFromEnv(""), "auto");
+  assertEquals(gptImageModerationFromEnv("auto"), "auto");
+  assertEquals(gptImageModerationFromEnv("LOW"), "low");
+  assertEquals(gptImageModerationFromEnv(" low "), "low");
 });

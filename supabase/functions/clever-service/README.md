@@ -36,7 +36,8 @@ supabase secrets set STORYBOOK_IMAGE_MODE=gptimage
 # **`high`** **`pictureBookQuality`** + default **`gpt-image-2`** → **cost-parity** caps (1024², tighter edit **`quality`**) unless you opt out — keeps picture spend nearer legacy ~£0.40–0.60 (**verify** usage). **`input_fidelity`** is not sent on **`gpt-image-2`** edits (API omits; rejects the field); **`STORYBOOK_GPTIMAGE_INPUT_FIDELITY`** still applies to **`gpt-image-1.x`** / **1.5** edit routes.
 # supabase secrets set STORYBOOK_GPTIMAGE_LEGACY_BUDGET=0    # **max** print fidelity: 1536×1024 + high/med defaults again
 # supabase secrets set STORYBOOK_GPTIMAGE_LEGACY_BUDGET=1    # force parity for **any** image model (e.g. tighten 1.5 too)
-# supabase secrets set STORYBOOK_GPTIMAGE_MODERATION=low        # default low (omit or set low); use auto for OpenAI default moderation
+# School and pilot builds leave moderation unset so it stays **auto**. Only an explicit low value relaxes it.
+# supabase secrets set STORYBOOK_GPTIMAGE_MODERATION=low
 # supabase secrets set STORYBOOK_GPTIMAGE_QUALITY=high    # optional: high on anchor AND all six spread edits (priciest; restores old “max detail” tier)
 # supabase secrets set STORYBOOK_GPTIMAGE_QUALITY=medium  # optional: one tier for anchor + all edits (between economy and high)
 # supabase secrets set STORYBOOK_GPTIMAGE_QUALITY=low       # optional: cheapest — low on anchor + edits

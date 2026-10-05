@@ -241,6 +241,14 @@ export function stripEmbeddedPhotoStrings(value: unknown): unknown {
   return out;
 }
 
+/**
+ * School builds use OpenAI's "auto" moderation.
+ * Only an explicit `low` (any case) selects the looser setting.
+ */
+export function gptImageModerationFromEnv(raw: string | null | undefined): "low" | "auto" {
+  return String(raw ?? "").trim().toLowerCase() === "low" ? "low" : "auto";
+}
+
 export function corsHeadersForOrigin(
   origin: string | null,
   extraEnv = "",

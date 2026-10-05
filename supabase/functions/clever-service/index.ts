@@ -9,6 +9,7 @@ import {
   bearerTokenFromHeader,
   blankReferencePhotos,
   corsHeadersForOrigin,
+  gptImageModerationFromEnv,
   minimalJobMetadata,
   proxyRedirectAllowed,
   stripEmbeddedPhotoStrings,
@@ -2839,11 +2840,9 @@ function gptImageSizeForRequest(bookTier: PictureBookQuality): string {
   return "1024x1024";
 }
 
-/** OpenAI default is "auto"; we default to "low" to reduce false refusals on kids' story prompts. */
+/** School / pilot default is OpenAI "auto". Only `STORYBOOK_GPTIMAGE_MODERATION=low` lowers it. */
 function gptImageModerationParam(): "low" | "auto" {
-  return (Deno.env.get("STORYBOOK_GPTIMAGE_MODERATION") ?? "").trim() === "auto"
-    ? "auto"
-    : "low";
+  return gptImageModerationFromEnv(Deno.env.get("STORYBOOK_GPTIMAGE_MODERATION"));
 }
 
 /**
