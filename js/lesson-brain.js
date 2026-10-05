@@ -423,7 +423,11 @@
     var scope = teachingScope(ctx);
     var span = strandRange(depth);
     if (scope.scope === "broad") {
-      return "Scope: the teacher named a broad topic. Choose a coherent scope yourself for this year and duration: one foundation point, then " + (span.low === span.high ? span.low : span.low + " to " + span.high) + " strands about the ideas that matter most for understanding this topic at this age, and a connection point if the strands work together. Do not shrink the lesson to one fact, do not write an encyclopedia list, and do not wait for the teacher to name the subtopics.";
+      var young = beatYear((ctx && (ctx.yearGroup || ctx.yearAssumption)) || "");
+      var youngLine = young && young <= 2
+        ? " For Year 1 and Year 2, two developed strands are enough. Each strand is one everyday sentence that names an idea and one sentence that says how or why it works, with dependsOn linking that explanation to the name. Two linked strands are better than six unlinked facts. Do not fill the point target with extra names that have no how or why."
+        : "";
+      return "Scope: the teacher named a broad topic. Choose a coherent scope yourself for this year and duration: one foundation point, then " + (span.low === span.high ? span.low : span.low + " to " + span.high) + " strands about the ideas that matter most for understanding this topic at this age, and a connection point if the strands work together. Do not shrink the lesson to one fact, do not write an encyclopedia list, and do not wait for the teacher to name the subtopics." + youngLine;
     }
     return "Scope: the teacher asked about one relationship, method, or idea. Stay inside it: every strand must lead to the learning goal. Go deeper, not wider: the parts or steps involved, how each one works, and what that achieves for the goal. Do not add other aspects of the wider topic.";
   }
@@ -1501,18 +1505,18 @@
       (slot.beats || []).forEach(function (beat) { if (beat && beat.move) seen[beat.move] = true; });
     });
     var meaning = {
-      notice: "notice directs attention to something relevant and does not give the later explanation." + (beatYear(year) <= 2 ? " A Year 1 or Year 2 notice beat is one sentence: one looking question or one looking instruction. It is never an instruction followed by a question." : ""),
+      notice: "notice directs attention to one concrete unsolved problem and does not give the later explanation. It is not an empty question such as what lives here." + (beatYear(year) <= 2 ? " A Year 1 or Year 2 notice beat is one sentence: one looking question or one looking instruction. It is never an instruction followed by a question." : ""),
       predict: "predict asks for a prediction from what the class can already use.",
-      name: "name states the planned knowledge clearly.",
-      explain: "explain gives the relationship, cause, or function in the referenced knowledge.",
+      name: "name states the planned knowledge clearly in one short everyday sentence. It says what the thing is, not only a bare label.",
+      explain: "explain says how or why the referenced knowledge works, in new words and in one short sentence.",
       exemplify: "exemplify gives one age-appropriate example of the referenced knowledge.",
       model: "model demonstrates the planned process or procedure.",
       compare: "compare points to a relevant similarity or difference.",
       connect: "connect states how the referenced knowledge joins the ideas taught before it.",
-      practise: "practise is short pupil-facing preparation for the task. It refers to the knowledge the child is about to use. It does not merely say use your knowledge. It does not duplicate the entire task instruction.",
+      practise: "practise is short pupil-facing preparation for the task. It refers to the knowledge the child is about to use on a new case. It does not merely say use your knowledge. It does not duplicate the entire task instruction or repeat the taught sentence.",
       apply: "apply is a short pupil-facing bridge from the taught knowledge into the task. It makes clear what idea the pupil should use. It does not replace the task itself.",
       reveal: "reveal resolves the adventure using the taught knowledge.",
-      consolidate: "consolidate restates the learned knowledge itself, not that the lesson is finished."
+      consolidate: "consolidate restates the learned knowledge itself, including the how or why when that was taught, not that the lesson is finished."
     };
     var lines = Object.keys(meaning).filter(function (move) { return seen[move]; }).map(function (move) { return meaning[move]; });
     return lines.length ? "Pupil text for each planned move: " + lines.join(" ") : "";
@@ -2520,7 +2524,7 @@
         shape.push("lessonPlan.teachingThreads groups the knowledge into strands. Teach beats on the same strand build one idea in order: name introduces the feature or idea, explain says how or why it works, exemplify shows it in use, and connect says what it leads to or how the strands work together. Each beat adds to the one before it. Do not say the same sentence twice in different words.");
       }
       if (skeleton.some(function (slot) { return slot.id === "apply" && slot.applicationTarget; })) {
-        shape.push("The apply slot has applicationTarget: the taught strand the task must use and the evidence a finished task shows. Write a task the pupil can only get right by using that explanation on a new case, for example predicting, choosing, sorting, matching, or fixing something. Drawing, retelling, or describing the topic is not enough on its own.");
+        shape.push("The apply slot has applicationTarget: the taught strand the task must use and the evidence a finished task shows. Write a task the pupil can only get right by using that explanation on a new case the teach slot did not already answer. The pupil chooses, using a short question with real choices or three lesson choices. Do not ask only to talk, show, or demonstrate, and do not say sort the cards, match the cards, or drag. Drawing, retelling, or describing the topic is not enough on its own.");
       }
       beatSlots.forEach(function (slot) {
         if (slot.id !== "apply") return;
@@ -2529,7 +2533,7 @@
     }
     shape.push("Each slot already has minutes, minimumParticipation, and contentDepth. A slot without beats meets that participation with short spoken lines. A slot with beats meets it only through the planned beat texts. Do not add a lines array beside beats. Do not pad a slot into a long paragraph.");
     var system = shape.concat([
-      "hook creates the unsolved problem and must not reveal the answer. investigate asks the class to look, using the slot's interactionIntent. It must not explain the answer and it must not be a pupil spin. teach states every requiredKnowledge fact in short sentences this age can hear. apply must make the pupil use at least one requiredKnowledge item through the slot's interactionIntent. instruction is that task. On a legacy apply slot, knowledgeUsed names the requiredKnowledge item the task uses. On an apply slot with beats, do not return knowledgeUsed. successCondition says what a finished action shows. teachingConnection says how the task follows the teaching. Sort the cards, move this, or put these in order is not an apply task unless the taught idea is in the instruction. Choosing a pupil is not the apply slot. check comes after teaching and assesses teacherIntent.requiredEvidence for teacherIntent.learningGoal. A correct answer must be sufficient evidence of requiredEvidence. One stage, one side, one component, a label, or a definition is not enough unless requiredEvidence itself asks only for that. knowledgeChecked names the learning the question tests. successEvidence says what a correct answer shows. teachingConnection says how the question follows the required evidence. Keep the question as easy to read as the year group. resolution is the mission outcome after the check. recap states the taught facts. Do not say that the screen is a recap or a mystery.",
+      "hook creates one concrete unsolved problem the class can picture and must not reveal the answer. It is not an empty question such as what lives here or what this lesson is about. investigate asks the class to look, using the slot's interactionIntent. It must not explain the answer and it must not be a pupil spin. teach states every requiredKnowledge fact in short sentences this age can hear. A name sentence says what the thing is. An explain sentence says how or why in new words. Do not leave the teaching as only a list of names. apply must make the pupil use at least one requiredKnowledge item through the slot's interactionIntent, on a new case the teach slot did not already answer. The instruction is a pupil choice that needs the taught idea, such as a short question with real choices or three lesson choices. Do not ask the class only to talk, show, or demonstrate. Do not say sort the cards, match the cards, or drag. instruction is that task. On a legacy apply slot, knowledgeUsed names the requiredKnowledge item the task uses. On an apply slot with beats, do not return knowledgeUsed. successCondition says what a finished action shows. teachingConnection says how the task follows the teaching. Sort the cards, move this, or put these in order is not an apply task unless the taught idea is in the instruction. Choosing a pupil is not the apply slot. check comes after teaching and assesses teacherIntent.requiredEvidence for teacherIntent.learningGoal. A correct answer must be sufficient evidence of requiredEvidence. When the evidence or the retrieve beat's knowledge names more than one necessary part, the correct answer must include every part. Naming only one part leaves the check partial. One stage, one side, one component, a label, or a definition is not enough unless requiredEvidence itself asks only for that. knowledgeChecked names the learning the question tests. successEvidence says what a correct answer shows. teachingConnection says how the question follows the required evidence. Keep the question as easy to read as the year group. resolution is the mission outcome after the check. recap states the taught facts clearly, including the how or why when that was taught, in sentences a pupil could say back. Do not say that the screen is a recap or a mystery.",
       "A stage with mayRevealAnswer false must not state requiredKnowledge and must not use because, caused by, or due to. Do not add a fact that is not in keyKnowledge.",
       "For a why lesson, the check correct answer is the cause, reason, or process in keyKnowledge. The visible outcome can be the question or a wrong choice.",
       "When teacherIntent is present, paraphrase the learning goal and the focus concepts. Do not make the class meet preference words, duration words, prior-knowledge labels, or exclusions. Otherwise lessonBrief.concepts are the ideas the class must meet. Do not treat between, difference, why, or how as ideas to teach.",
@@ -2756,7 +2760,7 @@
     var checkSpec = null;
     specs.forEach(function (spec) { if (spec.slotType === "CHECK") checkSpec = spec; });
     if (checkSpec) {
-      instruction += " The CHECK slot must stay a quiz. Rewrite only the listed CHECK questions. Do not rewrite any other stage. Year: " + (checkSpec.year || "") + ". Subject: " + (checkSpec.subject || "") + ". Learning goal: " + (checkSpec.learningGoal || "the requested learning") + ". Required evidence: " + (checkSpec.requiredEvidence || "the required evidence") + ". The evidence failure is: " + ((checkSpec.failure || []).join(" ") || "the correct answer is not sufficient evidence") + ". Each replacement question must make a correct answer sufficient evidence of the relationship it tests. Do not merely ask for one component when that question's relationship needs the connection. Use words this year group can read. Do not make a question harder than the relationship it tests.";
+      instruction += " The CHECK slot must stay a quiz. Rewrite only the listed CHECK questions. Do not rewrite any other stage. Year: " + (checkSpec.year || "") + ". Subject: " + (checkSpec.subject || "") + ". Learning goal: " + (checkSpec.learningGoal || "the requested learning") + ". Required evidence: " + (checkSpec.requiredEvidence || "the required evidence") + ". The evidence failure is: " + ((checkSpec.failure || []).join(" ") || "the correct answer is not sufficient evidence") + ". Each replacement question must make a correct answer sufficient evidence of the relationship it tests. Do not merely ask for one component when that question's relationship needs the connection. If the required evidence names more than one necessary part, the correct answer must include every part. Use words this year group can read. Do not make a question harder than the relationship it tests.";
       if (checkSpec.output && checkSpec.output.questions) instruction += " Return questions for exactly these ids, in this order: " + checkSpec.output.questions.map(function (item) { return item.id; }).join(", ") + ". Do not add or remove a question. Rewrite only a question whose relationship failed. Copy a question that already passed.";
       if (checkSpec.retrieveBeat) instruction += " The quiz is the retrieve beat " + checkSpec.retrieveBeat.id + ". Do not return cue or text for that beat.";
     }
@@ -2808,7 +2812,7 @@
     }
     if (/developed strands/.test(found)) {
       var span = strandRange(depthBudget((ctx && (ctx.yearGroup || ctx.yearAssumption)) || (previous && previous.yearGroup), ctx && ctx.requestedMinutes));
-      required.push("strands: this topic is broad, so the learningMap needs " + span.low + " to " + Math.max(span.low, span.high) + " separate strands that each develop one idea. A strand names a feature, part, event, or idea and then explains how or why it works, with a function, mechanism, cause, process, or procedure point that depends on it. The first point of each strand depends only on the foundation. A list of separate facts is not a strand. Development is read only from dependsOn: a point counts as developing a strand only when its dependsOn lists the earlier point of that strand it builds on. For example p2 names a feature with dependsOn [\"p1\"], and p3 explains what that feature does with dependsOn [\"p2\"]. A sentence with because, helps, or work together and an empty dependsOn is still a separate fact. Every point except the foundation must have a non-empty dependsOn");
+      required.push("strands: this topic is broad, so the learningMap needs " + span.low + " to " + Math.max(span.low, span.high) + " separate strands that each develop one idea. A strand names a feature, part, event, or idea and then explains how or why it works, with a function, mechanism, cause, process, or procedure point that depends on it. The first point of each strand depends only on the foundation. A list of separate facts is not a strand. Prefer two linked strands. Drop spare one-line facts instead of keeping a list of names with empty dependsOn. Development is read only from dependsOn: a point counts as developing a strand only when its dependsOn lists the earlier point of that strand it builds on. For example p2 names a feature with dependsOn [\"p1\"], and p3 explains what that feature does with dependsOn [\"p2\"]. A sentence with because, helps, or work together and an empty dependsOn is still a separate fact. Every point except the foundation must have a non-empty dependsOn");
     }
     if (/outcome, not the reason/.test(found)) {
       if (seeksContribution(ctx, objective)) {
@@ -2870,7 +2874,7 @@
     safe.lessonPlan = publishPlan(plan || (ctx && ctx.lessonPlan) || null);
     var year = Number(yearDigit((ctx && ctx.yearGroup) || (plan && plan.yearGroup))) || ((ctx && ctx.yearAssumed) ? 3 : 4);
     var age = year <= 2
-      ? "Year 1 to 2: a very short, concrete problem, one simple positive role, and almost no reading. A teacher can narrate it."
+      ? "Year 1 to 2: a very short, concrete unsolved problem, one simple positive role, and almost no reading. A teacher can narrate it. The premise is a problem a child can picture. It is not a generic warning that the world is in trouble, and it is not an empty question such as what lives here."
       : (year >= 5
         ? "Year 5 to 6: evidence, reasoning, and a decision that matters. Do not write a nursery story."
         : "Year 3 to 4: a clear mission, a simple problem, and one class decision.");
@@ -5780,6 +5784,11 @@
         return res.json().catch(function () { return { ok: false, category: "provider" }; });
       }).then(function (body) {
         if (!body || !body.ok || !body.adventure) return { ok: false, category: (body && body.category) || "provider", stage: body && body.stage || "" };
+        var intent = body.meta && body.meta.teacherIntent;
+        if (ctx && intent && typeof intent === "object" && !Array.isArray(intent)) {
+          ctx.lessonBrief = ctx.lessonBrief || {};
+          ctx.lessonBrief.teacherIntent = intent;
+        }
         var checked = accept(body.adventure, ctx);
         if (!checked.ok) return { ok: false, category: "invalid", issues: checked.issues };
         var meta = body.meta || {};
