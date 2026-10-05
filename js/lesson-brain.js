@@ -452,7 +452,7 @@
     });
     var slots = [
       ["hook", "beginning", false, false, false, "Show the unsolved problem."],
-      ["investigate", "goal", false, false, false, "Look and ask. Do not explain yet."],
+      ["investigate", "goal", false, false, false, "Ask one question about what the class can see. Do not explain yet."],
       ["teach", "discovery", true, true, false, "Explain the key knowledge."],
       ["apply", "application", false, true, false, "Use the new knowledge."],
       ["check", "development", false, false, true, "Check the taught idea."],
@@ -1196,13 +1196,13 @@
     return !!(slot && slot.id === "check" && slot.mechanic === "quiz" && beat && beat.move === "retrieve");
   }
 
-  function moveGuide(skeleton) {
+  function moveGuide(skeleton, year) {
     var seen = {};
     (skeleton || []).forEach(function (slot) {
       (slot.beats || []).forEach(function (beat) { if (beat && beat.move) seen[beat.move] = true; });
     });
     var meaning = {
-      notice: "notice directs attention to something relevant and does not give the later explanation.",
+      notice: "notice directs attention to something relevant and does not give the later explanation." + (beatYear(year) <= 2 ? " A Year 1 or Year 2 notice beat is one sentence: one looking question or one looking instruction. It is never an instruction followed by a question." : ""),
       predict: "predict asks for a prediction from what the class can already use.",
       name: "name states the planned knowledge clearly.",
       explain: "explain gives the relationship, cause, or function in the referenced knowledge.",
@@ -1321,7 +1321,7 @@
       "missing": "It is empty. Write one pupil sentence.",
       "missing terminal punctuation": "End the sentence with . or ? or !.",
       "fewer than minimum words": "It is too short. Write at least four words.",
-      "too many sentences for year": young ? "It has more than one sentence. Year 1 and Year 2 need exactly one sentence." : "It has more than two sentences. Use one or two sentences.",
+      "too many sentences for year": young ? "It has more than one sentence. Year 1 and Year 2 need exactly one sentence. Do not write an instruction followed by a question. Keep one of them as the whole sentence." : "It has more than two sentences. Use one or two sentences.",
       "internal-copy collision": "It copies an internal label. Write words a pupil would hear.",
       "copies a knowledge sentence": "It copies the knowledge sentence word for word. Say the same idea in new words.",
       "copies the name sentence": "It repeats the name sentence. Explain the idea in new words."
@@ -2216,7 +2216,7 @@
     if (beatSlots.length) {
       shape.push("A slot with beats does not use title or lines. Its pupil prose is the beats array only. Each beat object is { id, cue, text }. id is copied from the planned beat. cue may be empty. text is required pupil prose. Do not add, remove, reorder, or rename beats. Do not choose a move or a knowledge ref. Do not invent a replacement beat.");
       shape.push(beatResponseExample(skeleton));
-      shape.push(moveGuide(skeleton));
+      shape.push(moveGuide(skeleton, (ctx && (ctx.yearGroup || (sourcePlan && sourcePlan.yearGroup))) || ""));
       beatSlots.forEach(function (slot) {
         if (slot.id !== "apply") return;
         shape.push("The apply slot is one response. Return its planned beats, including " + slot.beats.map(function (beat) { return beat.id; }).join(", ") + ", with cue and text, together with instruction, target, successCondition, and teachingConnection. The beat pupil copy and the task fields are both required. Do not omit the planned beat because the task instruction is present. Do not return knowledgeUsed. The beat prepares the pupil for the task and is not the task. The instruction is the action.");
