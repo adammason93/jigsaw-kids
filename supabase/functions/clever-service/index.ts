@@ -8,11 +8,13 @@ import {
   authenticateBearer,
   bearerTokenFromHeader,
   blankReferencePhotos,
+  bodyHasReferencePhoto,
   corsHeadersForOrigin,
   gptImageModerationFromEnv,
   minimalJobMetadata,
   proxyRedirectAllowed,
   redactPromptForLog,
+  storybookPhotosAllowedFromEnv,
   storybookPromptLoggingEnabled,
   stripEmbeddedPhotoStrings,
 } from "./guards.ts";
@@ -5017,6 +5019,21 @@ const CHARACTER_HERO_PROMPT =
   "calm neutral pose. Soft studio lighting, completely plain off-white background. " +
   "No text, no labels, no captions, no signs. Wholesome, kid-friendly, no scary elements.";
 
+function storybookPhotosAllowed(): boolean {
+  return storybookPhotosAllowedFromEnv(Deno.env.get("STORYBOOK_ALLOW_PHOTOS"));
+}
+
+/** Hero portrait when no photo is sent. The name is the only likeness cue. */
+function characterHeroTextPrompt(name: string): string {
+  return (
+    `3D clay cartoon portrait of a child character named ${name} for a children's picture book. ` +
+    "Invent a friendly, wholesome look from the name alone. Do not copy a real photograph. " +
+    "Single character, full-body standing pose facing the camera, friendly warm expression, " +
+    "calm neutral pose. Soft studio lighting, completely plain off-white background. " +
+    "No text, no labels, no captions, no signs. Wholesome, kid-friendly, no scary elements."
+  );
+}
+
 function characterBuddyPrompt(name: string, referenced: boolean): string {
   const refClause = referenced
     ? "Use the reference image to match colours, silhouette, and key features, " +
@@ -5151,12 +5168,19 @@ async function handleGenerateCharacter(
     return jsonResponse({ error: "missing_character_name" }, 400);
   }
   notePromptRedaction([name], "");
+  const photosOn = storybookPhotosAllowed();
   const refSanitized = sanitizeHeroReferenceImage(body.referencePhoto);
-  if (type === "hero" && !refSanitized) {
+  if (!photosOn && refSanitized) {
+    return jsonResponse({
+      error: "photos_disabled",
+      detail: "Photo likeness is turned off. Make the character from the name.",
+    }, 400);
+  }
+  if (photosOn && type === "hero" && !refSanitized) {
     return jsonResponse({ error: "missing_reference_photo" }, 400);
   }
   const prompt = type === "hero"
-    ? CHARACTER_HERO_PROMPT
+    ? (refSanitized ? CHARACTER_HERO_PROMPT : characterHeroTextPrompt(name))
     : characterBuddyPrompt(name, Boolean(refSanitized));
 
   try {
@@ -5389,6 +5413,16 @@ async function handleCleverServiceInner(req: Request): Promise<Response> {
     : "";
   if (action === "resign_story_images") {
     return await handleResignStoryImages(postUserId, body as { paths?: unknown });
+  }
+
+  if (
+    !storybookPhotosAllowed() &&
+    bodyHasReferencePhoto(body as unknown as Record<string, unknown>)
+  ) {
+    return jsonResponse({
+      error: "photos_disabled",
+      detail: "Photo likeness is turned off. Make the book from the name and the story idea.",
+    }, 400);
   }
 
   const apiKey = Deno.env.get("OPENAI_API_KEY");

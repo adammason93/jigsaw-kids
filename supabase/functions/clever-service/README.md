@@ -117,6 +117,12 @@ Browser calls must include `Authorization: Bearer <session.access_token>` and `a
 
 CORS allows `https://jigsaw-kids.adammason93.workers.dev` plus `http(s)://localhost` and `http(s)://127.0.0.1` (any port). Extra origins: comma-separated secret `STORYBOOK_ALLOWED_ORIGINS`.
 
+## Photo likeness
+
+Photo likeness is **off** for the school pilot. Leave `STORYBOOK_ALLOW_PHOTOS` unset. While it is off the function does not send an uploaded photo to OpenAI: no vision description, no same-child check, no photo edit, and no `generate_character` from a photo. A body that includes a photo is rejected with **400** `{ "error": "photos_disabled" }` before any OpenAI call and before a job row is written. A hero or buddy given only by name still generates. With the secret off, `generate_character` for a hero uses a text prompt from the name. With the secret on, a hero still requires a photo (`missing_reference_photo`), as before.
+
+The story wizard and My Characters hide photo upload unless `js/storybook-safety.js` sees `storybookAllowPhotos: true` (or `1`) on `SCORE_CONFIG`, or `window.STORYBOOK_ALLOW_PHOTOS === true`. There is no opt-in screen in this change. A later adult opt-in needs **both** the secret `STORYBOOK_ALLOW_PHOTOS=1` and `storybookAllowPhotos: true` in `js/score-config.js`. The server is the gate: the page flag alone never sends a photo.
+
 ## Prompt logging
 
 OpenAI prompt logs are **off** unless `STORYBOOK_LOG_PROMPTS=1`. When that secret is set, logs are still redacted: `data:` URLs and `image_url` values become size placeholders (`[data:image chars:N]`, `[image chars:N]`), and the child’s name, family names, and plot text become length placeholders. Do not set this on a school deployment.

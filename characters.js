@@ -119,6 +119,24 @@
     reader.readAsDataURL(file);
   }
 
+  function photosLikenessAllowed() {
+    return Boolean(
+      window.StorybookSafety &&
+        typeof window.StorybookSafety.photosAllowed === "function" &&
+        window.StorybookSafety.photosAllowed()
+    );
+  }
+
+  function applyPhotoLikenessChrome() {
+    if (photosLikenessAllowed()) return;
+    var field = els.photoInput && els.photoInput.closest(".ch-field");
+    if (field) field.hidden = true;
+    if (els.photoHint) {
+      els.photoHint.textContent =
+        "Photo likeness is off. This character is made from the name.";
+    }
+  }
+
   function setType(type) {
     state.type = type;
     Array.prototype.forEach.call(els.typeOpts, function (btn) {
@@ -126,6 +144,14 @@
       btn.classList.toggle("is-active", isActive);
       btn.setAttribute("aria-pressed", isActive ? "true" : "false");
     });
+    if (!photosLikenessAllowed()) {
+      if (els.photoLabel) els.photoLabel.textContent = "Name only";
+      if (els.photoHint) {
+        els.photoHint.textContent =
+          "Photo likeness is off. This character is made from the name.";
+      }
+      return;
+    }
     if (type === "buddy") {
       els.photoLabel.textContent = "Reference image (optional)";
       els.photoHint.textContent =
@@ -157,6 +183,7 @@
   }
 
   function openModal() {
+    applyPhotoLikenessChrome();
     resetModal();
     els.modal.classList.add("is-open");
     setTimeout(function () {
@@ -185,7 +212,7 @@
       els.nameInput.focus();
       return;
     }
-    if (state.type === "hero" && !state.photoDataUrl) {
+    if (photosLikenessAllowed() && state.type === "hero" && !state.photoDataUrl) {
       setModalError("Add a photo of the child first.");
       return;
     }
@@ -203,7 +230,7 @@
       characterName: name,
       characterType: state.type,
     };
-    if (state.photoDataUrl) {
+    if (photosLikenessAllowed() && state.photoDataUrl) {
       payload.referencePhoto = state.photoDataUrl;
     }
 
@@ -235,6 +262,11 @@
           if (!r.ok) {
             if (r.status === 401 || (json && json.error === "unauthorized")) {
               throw new Error(SIGN_IN_MSG);
+            }
+            if (json && json.error === "photos_disabled") {
+              throw new Error(
+                "Photo likeness is turned off. Make this character from the name."
+              );
             }
             var msg = (json && (json.detail || json.error)) || ("HTTP " + r.status);
             throw new Error(msg);
@@ -473,6 +505,8 @@
       closeModal();
     }
   });
+
+  applyPhotoLikenessChrome();
 
   // First load: wait briefly for supabase auth to restore from localStorage
   setTimeout(refreshGrid, 250);

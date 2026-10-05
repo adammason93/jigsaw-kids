@@ -316,6 +316,8 @@
   var heroRefDatalist = document.getElementById("sbHeroRefWhoDatalist");
   /** @type {{ dataUrl: string, who: string }[]} */
   var heroPhotoItems = [];
+  /** Names picked from saved characters while photo likeness is off. */
+  var namedCast = [];
   var HERO_PHOTO_MAX_COUNT = 3;
   /** Keep under clever-service `MAX_HERO_REFERENCE_BYTES` per image after base64 (~1.2MB raw). */
   var HERO_PHOTO_MAX_FILE_BYTES = Math.floor(1.25 * 1024 * 1024);
@@ -3949,7 +3951,123 @@
     if (savedCharStatus) savedCharStatus.textContent = msg || "";
   }
 
+  function photosLikenessAllowed() {
+    return Boolean(
+      window.StorybookSafety &&
+        typeof window.StorybookSafety.photosAllowed === "function" &&
+        window.StorybookSafety.photosAllowed()
+    );
+  }
+
+  function applyPhotoLikenessChrome() {
+    if (photosLikenessAllowed()) return;
+    STEP_GUIDE_TEXT[1] =
+      "Who is the hero? This is your name in the story. You can type or tap Speak. You can pick a saved character by name, and choose a book title and colours.";
+    if (heroPhotoPickBtn) heroPhotoPickBtn.hidden = true;
+    if (heroPhotoInput) heroPhotoInput.disabled = true;
+    var block = document.getElementById("sbHeroRefBlock");
+    if (block) {
+      var label = block.querySelector("label");
+      if (label) {
+        label.textContent = "Saved characters";
+        label.removeAttribute("for");
+      }
+      var hint = block.querySelector(".sb-panel__hint");
+      if (hint) {
+        hint.textContent =
+          "Photo likeness is off for this school. Pick a character you made and we use their name. We do not send their picture.";
+      }
+    }
+    var quality = document.getElementById("sbPictureQualityHint");
+    if (quality) {
+      quality.textContent =
+        "Default: Best for print — strongest match between the story text and each picture. Play & screen is the lighter option. Photo uploads are turned off, so pictures follow the names and the story idea.";
+    }
+    var subs = document.querySelectorAll(".sb-picture-quality .sb-quality-opt__sub");
+    if (subs[0]) {
+      subs[0].textContent = "Lowest cost — lighter pictures and story, made from the names and the idea.";
+    }
+    if (subs[1]) {
+      subs[1].textContent = "A middle setting between Play & screen and Best for print.";
+    }
+    if (subs[2]) {
+      subs[2].textContent = "Sharper story and picture alignment. Pictures follow the names and the story idea.";
+    }
+  }
+
+  function namedCastNamesForRequest() {
+    var heroTyped = nameInput ? nameInput.value.trim().toLowerCase() : "";
+    var out = [];
+    namedCast.forEach(function (item) {
+      var name = String(item.name || "").trim();
+      if (!name) return;
+      if (heroTyped && name.toLowerCase() === heroTyped) return;
+      if (out.some(function (have) { return have.toLowerCase() === name.toLowerCase(); })) return;
+      out.push(name);
+    });
+    return out;
+  }
+
+  function renderNamedCast() {
+    if (photosLikenessAllowed()) return;
+    if (!heroPhotoThumbsList || !heroPhotoThumbsWrap) return;
+    heroPhotoThumbsList.replaceChildren();
+    namedCast.forEach(function (item, idx) {
+      var li = document.createElement("li");
+      li.className = "sb-hero-ref__thumb-item";
+      var label = document.createElement("span");
+      label.textContent = item.role === "hero" ? item.name + " — hero" : item.name;
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "sb-hero-ref__thumb-remove";
+      btn.setAttribute("aria-label", "Remove " + item.name);
+      btn.textContent = "\u00d7";
+      btn.addEventListener("click", function () {
+        namedCast.splice(idx, 1);
+        renderNamedCast();
+      });
+      li.appendChild(label);
+      li.appendChild(btn);
+      heroPhotoThumbsList.appendChild(li);
+    });
+    heroPhotoThumbsWrap.hidden = namedCast.length === 0;
+    refreshSavedCharAdded();
+  }
+
+  function addOrToggleNamedCast(c) {
+    setHeroPhotoError("");
+    var name = String((c && c.name) || "").trim();
+    var id = c && c.id ? String(c.id) : "";
+    var existing = -1;
+    namedCast.forEach(function (item, i) {
+      if (id && item.id === id) existing = i;
+    });
+    if (existing >= 0) {
+      namedCast.splice(existing, 1);
+      renderNamedCast();
+      return;
+    }
+    if (!name) {
+      setHeroPhotoError(
+        "That character has no name we can use without a photo, so it was skipped."
+      );
+      return;
+    }
+    var role = "friend";
+    if (c.type !== "buddy" && nameInput && !nameInput.value.trim()) {
+      nameInput.value = name.slice(0, 24);
+      role = "hero";
+    }
+    namedCast.push({ id: id, name: name.slice(0, 60), role: role });
+    renderNamedCast();
+  }
+
   function savedCharIsAdded(id) {
+    if (!photosLikenessAllowed()) {
+      return namedCast.some(function (x) {
+        return x.id === id;
+      });
+    }
     return heroPhotoItems.some(function (x) {
       return x.charId === id;
     });
@@ -4025,6 +4143,10 @@
   }
 
   function toggleSavedChar(c, btn) {
+    if (!photosLikenessAllowed()) {
+      addOrToggleNamedCast(c);
+      return;
+    }
     setHeroPhotoError("");
     var existing = -1;
     heroPhotoItems.forEach(function (x, i) {
@@ -4123,6 +4245,14 @@
         if (x && x.id === bid) found = x;
       });
       if (!found) return;
+      if (!photosLikenessAllowed()) {
+        addOrToggleNamedCast({
+          id: "builtin:" + found.id,
+          name: found.label,
+          type: found.id === "sofia" ? "hero" : "buddy",
+        });
+        return;
+      }
       toggleSavedChar(
         {
           id: "builtin:" + found.id,
@@ -4144,6 +4274,10 @@
         if (x && x.id === raw) c = x;
       });
       if (!c) return;
+      if (!photosLikenessAllowed()) {
+        addOrToggleNamedCast({ id: c.id, name: c.name, type: c.type });
+        return;
+      }
       window.CharacterStore.getCharacterSignedUrl(c.id, function (e2, url) {
         if (e2 || !url) {
           setHeroPhotoError("Could not load that character — try again.");
@@ -5521,6 +5655,7 @@
 
   if (heroPhotoInput) {
     heroPhotoInput.addEventListener("change", function () {
+      if (!photosLikenessAllowed()) return;
       setHeroPhotoError("");
       var files = Array.prototype.slice.call(heroPhotoInput.files || []);
       heroPhotoInput.value = "";
@@ -5627,7 +5762,8 @@
       renderHeroPhotoThumbs();
     });
   }
-  if (heroPhotoPickBtn && heroPhotoInput) {
+  applyPhotoLikenessChrome();
+  if (photosLikenessAllowed() && heroPhotoPickBtn && heroPhotoInput) {
     heroPhotoPickBtn.addEventListener("click", function () {
       heroPhotoInput.click();
     });
@@ -5727,6 +5863,17 @@
         startStorybookBuildProgressGuessing();
       }
       var familyPeople = getSelectedFamilyPeople();
+      var familyNameList = familyPeople.map(function (p) {
+        return p.label;
+      });
+      if (!photosLikenessAllowed()) {
+        namedCastNamesForRequest().forEach(function (name) {
+          var already = familyNameList.some(function (have) {
+            return String(have || "").toLowerCase() === name.toLowerCase();
+          });
+          if (!already) familyNameList.push(name);
+        });
+      }
       var requestBody = {
         childName: childName || "Friend",
         character: normalizeWizardPresetKey(selectedChar),
@@ -5746,16 +5893,15 @@
         storyTextMode: readStoryTextModeFromWizard(),
         storyLength: readStoryLengthFromWizard(),
         author: customAuthor || undefined,
-        familyNames: familyPeople.map(function (p) {
-          return p.label;
-        }),
+        familyNames: familyNameList,
         familyPeople: familyPeople,
         bookCoverColor: selectedBookCoverColor || undefined,
-        characterReferencePhotos: heroPhotoItems.length
-          ? heroPhotoItems.map(function (x) {
-              return { who: x.who, image: x.dataUrl };
-            })
-          : undefined,
+        characterReferencePhotos:
+          photosLikenessAllowed() && heroPhotoItems.length
+            ? heroPhotoItems.map(function (x) {
+                return { who: x.who, image: x.dataUrl };
+              })
+            : undefined,
       };
       function postStorybook(asyncFlag, accessToken) {
         var body = Object.assign({}, requestBody);
@@ -5834,6 +5980,9 @@
                 "The story maker ran out of time while drawing pictures (the server has a strict time limit — about two minutes total for the whole book). Wait a minute and try again — pick Standard pictures for a faster run (High uses heavier AI steps), use fewer uploaded family photos if you attached many, or ask a grown-up for help. Note: if the AI already started work, your account may still have been charged for some of it even though the book didn’t finish.";
             } else if (out.status === 401 || b.error === "unauthorized") {
               msg = SIGN_IN_MSG;
+            } else if (b.error === "photos_disabled") {
+              msg =
+                "Photo likeness is turned off for this school. Make the book from the name and the story idea.";
             } else if (b.error === "server_missing_openai") {
               msg =
                 "Story drawing isn’t turned on for this game yet. A grown-up needs to finish setup on the server.";

@@ -254,6 +254,12 @@ export function storybookPromptLoggingEnabled(raw: string | null | undefined): b
   return String(raw ?? "").trim() === "1";
 }
 
+/** Photo likeness is off unless the secret is 1, true, on, or yes. */
+export function storybookPhotosAllowedFromEnv(raw: string | null | undefined): boolean {
+  const v = String(raw ?? "").trim().toLowerCase();
+  return v === "1" || v === "true" || v === "on" || v === "yes";
+}
+
 export type PromptRedaction = {
   names?: string[];
   plot?: string;

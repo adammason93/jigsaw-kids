@@ -8,6 +8,7 @@ import {
   isAllowedStoryOrigin,
   minimalJobMetadata,
   redactPromptForLog,
+  storybookPhotosAllowedFromEnv,
   storybookPromptLoggingEnabled,
   proxyRedirectAllowed,
   stripEmbeddedPhotoStrings,
@@ -165,6 +166,17 @@ Deno.test("image moderation defaults to auto unless the secret is low", () => {
   assertEquals(gptImageModerationFromEnv("auto"), "auto");
   assertEquals(gptImageModerationFromEnv("LOW"), "low");
   assertEquals(gptImageModerationFromEnv(" low "), "low");
+});
+
+Deno.test("photo likeness is off unless the secret explicitly allows it", () => {
+  assertEquals(storybookPhotosAllowedFromEnv(undefined), false);
+  assertEquals(storybookPhotosAllowedFromEnv(""), false);
+  assertEquals(storybookPhotosAllowedFromEnv("0"), false);
+  assertEquals(storybookPhotosAllowedFromEnv("false"), false);
+  assertEquals(storybookPhotosAllowedFromEnv("1"), true);
+  assertEquals(storybookPhotosAllowedFromEnv("TRUE"), true);
+  assertEquals(storybookPhotosAllowedFromEnv("on"), true);
+  assertEquals(storybookPhotosAllowedFromEnv("yes"), true);
 });
 
 Deno.test("prompt logging is off unless the secret is exactly 1", () => {
