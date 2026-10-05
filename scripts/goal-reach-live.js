@@ -8,14 +8,27 @@
    Supabase auth is stubbed. Model calls are not stubbed.
    If OPENAI_API_KEY is missing, this writes LIVE_VALIDATION_BLOCKED and exits.
    It does not invent fixture packs and it does not call them live.
-   Output stays in docs/agent/goal-reach-contribution/. It does not write the
+   Default output is docs/agent/goal-reach-contribution/. GOAL_REACH_OUT writes
+   somewhere else so an earlier run's files stay put. GOAL_REACH_CASES is a
+   comma list (y4-sharks, y3-dinosaurs); empty runs both. It does not write the
    earlier bounded-corrections-live or strand-aiding evidence. */
 
 var fs = require("fs");
 var path = require("path");
 
-var outDir = path.join(__dirname, "../docs/agent/goal-reach-contribution");
+var outDir = process.env.GOAL_REACH_OUT
+  ? path.resolve(process.env.GOAL_REACH_OUT)
+  : path.join(__dirname, "../docs/agent/goal-reach-contribution");
 fs.mkdirSync(outDir, { recursive: true });
+
+var onlyCases = String(process.env.GOAL_REACH_CASES || "").split(",").map(function (item) { return item.trim(); }).filter(Boolean);
+var caseCatalog = [
+  { id: "y4-sharks", line: "Year 4 — How are sharks adapted to living in the ocean?" },
+  { id: "y3-dinosaurs", line: "Year 3 — Teach children about dinosaurs." }
+];
+var selectedCaseLines = caseCatalog.filter(function (row) {
+  return !onlyCases.length || onlyCases.indexOf(row.id) !== -1;
+}).map(function (row, index) { return (index + 1) + ". " + row.line; });
 
 var key = String(process.env.OPENAI_API_KEY || "").trim();
 if (!key) {
@@ -31,21 +44,20 @@ if (!key) {
     "OPENAI_API_KEY=... node scripts/goal-reach-live.js",
     "```",
     "",
-    "Optional: LESSON_MODEL (default gpt-4o-mini).",
+    "Optional: LESSON_MODEL (default gpt-4o-mini), GOAL_REACH_OUT (output directory), GOAL_REACH_CASES (comma list; default y4-sharks,y3-dinosaurs).",
     "",
-    "The script loads js/learn-generate-boot.js with the local js/lesson-brain.js and sends every model stage to api.openai.com. Supabase auth is stubbed so the boot can start. It writes y4-sharks.json and y3-dinosaurs.json into docs/agent/goal-reach-contribution/. Each file includes the model's proposed learning map, the map after goal-reach pruning, the rejection reasons, strand counts, and, when a lesson is admitted, the pupil teach, apply, check, and consolidation text. It does not merge, deploy, or add a repair attempt if a case fails.",
+    "The script loads js/learn-generate-boot.js with the local js/lesson-brain.js and sends every model stage to api.openai.com. Supabase auth is stubbed so the boot can start. It writes one JSON file per case into " + path.relative(path.join(__dirname, ".."), outDir) + "/. Each file includes the model's proposed learning map, the map after pruning, the rejection reasons, strand counts, and, when a lesson is admitted, the pupil teach, apply, check, and consolidation text. It does not merge, deploy, or add a repair attempt if a case fails.",
     "",
-    "Cases:",
+    "Cases this invocation would run:",
     "",
-    "1. Year 4 — How are sharks adapted to living in the ocean?",
-    "2. Year 3 — Teach children about dinosaurs.",
+    selectedCaseLines.join("\n"),
     "",
     "Mam Tor blocking stays a unit check in tests/bounded-corrections.test.js. This harness does not call the model for it.",
     ""
   ].join("\n");
   fs.writeFileSync(path.join(outDir, "LIVE_VALIDATION_BLOCKED.md"), blocked);
   console.log("LIVE_VALIDATION_BLOCKED");
-  console.log("Wrote docs/agent/goal-reach-contribution/LIVE_VALIDATION_BLOCKED.md");
+  console.log("Wrote " + path.relative(path.join(__dirname, ".."), path.join(outDir, "LIVE_VALIDATION_BLOCKED.md")));
   process.exit(0);
 }
 
@@ -192,7 +204,7 @@ var cases = [
     requestedMinutes: 15,
     lessonText: "Year 3 science. Teach children about dinosaurs."
   }
-];
+].filter(function (spec) { return !onlyCases.length || onlyCases.indexOf(spec.id) !== -1; });
 
 function runCase(spec) {
   stages = [];
@@ -267,7 +279,7 @@ try { fs.unlinkSync(path.join(outDir, "LIVE_VALIDATION_BLOCKED.md")); } catch (e
   return chain;
 }).then(function () {
   console.log = originalLog;
-  console.log("live validation wrote docs/agent/goal-reach-contribution/");
+  console.log("live validation wrote " + path.relative(path.join(__dirname, ".."), outDir) + "/");
 }).catch(function (error) {
   console.log = originalLog;
   console.error(String(error && error.stack || error).replace(key, "[redacted]"));

@@ -188,7 +188,7 @@
         "If the teacher does not name a subject, set subject and subjectConfidence to inferred only when the topic is unmistakably that subject. Otherwise subject is an empty string and subjectConfidence is uncertain.",
         "If the teacher names a misconception, keep the mistake out of focusConcepts and make learningGoal the idea that corrects it.",
         "The lesson should build from what pupils already know toward the new goal. The new goal is the teaching target.",
-        "requiredEvidence is one short statement of what a pupil must show before the teacher can conclude the learning goal was achieved. Name the thinking the pupil does and the content or relationship that must be covered. A comparison names both sides. A sequence names the whole order, not one stage. Using or measuring is not replaced by naming or defining. Do not make the evidence harder than the goal. Do not turn prior knowledge, exclusions, or presentation preferences into the evidence unless they are the goal itself.",
+        "requiredEvidence is one short statement of what a pupil must show before the teacher can conclude the learning goal was achieved. Name the thinking the pupil does and the content or relationship that must be covered. A comparison names both sides. A sequence names the whole order, not one stage. Using or measuring is not replaced by naming or defining. Do not make the evidence harder than the goal. Do not turn prior knowledge, exclusions, or presentation preferences into the evidence unless they are the goal itself. Do not put a count of types, kinds, examples, or features into requiredEvidence unless the teacher asked for that count.",
         "Do not invent a different topic. If the request is unclear, keep learningGoal close to what was asked and leave uncertain fields empty.",
         "JSON shape: {\"yearGroup\":\"\",\"subject\":\"\",\"subjectConfidence\":\"explicit\" or \"inferred\" or \"uncertain\",\"learningGoal\":\"\",\"requiredEvidence\":\"\",\"focusConcepts\":[],\"priorKnowledge\":[],\"exclusions\":[],\"preferences\":[],\"durationMinutes\":null}."
       ].join(" "),
@@ -208,7 +208,7 @@
     var prior = phraseList(body.priorKnowledge, 120, 4);
     var exclusions = phraseList(body.exclusions, 120, 4);
     var preferences = phraseList(body.preferences, 40, 4);
-    var evidence = clean(body.requiredEvidence, 280);
+    var evidence = evidenceWithoutInventedQuota(clean(body.requiredEvidence, 280), (ctx && (ctx.lessonText || ctx.teacherInstructions)) || "");
     if (evidence.length < 16 || listedAs(prior, evidence) || listedAs(exclusions, evidence) || listedAs(preferences, evidence)) {
       return { ok: false, reason: "missing-evidence" };
     }
@@ -244,6 +244,30 @@
       preferences: preferences,
       durationMinutes: minutes
     };
+  }
+
+  var QUOTA_WORD = { "2": "two", "3": "three", "4": "four", "5": "five", "6": "six" };
+
+  function requestHasCount(request, count) {
+    var text = String(request || "").toLowerCase().replace(/\byear\s*[1-6]\b/g, " ");
+    var word = QUOTA_WORD[count] || String(count || "").toLowerCase();
+    if (!word) return false;
+    if (new RegExp("\\b" + word + "\\b").test(text)) return true;
+    var digit = "";
+    Object.keys(QUOTA_WORD).forEach(function (key) { if (QUOTA_WORD[key] === word) digit = key; });
+    return !!digit && new RegExp("\\b" + digit + "\\b").test(text);
+  }
+
+  // A count of types or features is a requirement only when the teacher asked for it.
+  // An invented count is removed. A count the teacher asked for is kept.
+  function evidenceWithoutInventedQuota(evidence, request) {
+    var next = String(evidence || "").replace(/\b(?:at least\s+|more than\s+)?(two|three|four|five|six|\d+)\s+different\s+(?=(?:types|kinds|examples|features|characteristics)\b)/gi, function (phrase, count) {
+      return requestHasCount(request, count) ? phrase : "";
+    }).replace(/\b(?:at least\s+|more than\s+)?(two|three|four|five|six|\d+)\s+(?=(?:types|kinds|examples|features|characteristics)\b)/gi, function (phrase, count) {
+      return requestHasCount(request, count) ? phrase : "";
+    }).replace(/\s{2,}/g, " ").replace(/\s+([,.])/g, "$1").trim();
+    if (clean(next, 280).length < 16) return evidence;
+    return next;
   }
 
   function explicitMinutes(ctx) {
@@ -3070,7 +3094,8 @@
     if (slot === "apply") bits.push(applyInstructionOf(activity));
     if (slot === "check") {
       checkQuestionsOf(activity).forEach(function (question) {
-        bits.push(question.correct, question.explain, question.prompt);
+        // The scored answer and the question are what the check marks. Feedback may restate the taught idea.
+        bits.push(question.correct, question.prompt);
       });
     }
     ((activity.config && activity.config.lines) || []).forEach(function (line) { bits.push(line); });
@@ -3529,7 +3554,7 @@
         shape.push("lessonPlan.teachingThreads groups the knowledge into strands. Teach beats on the same strand build one idea in order: name introduces the feature or idea, explain says how or why it works, exemplify shows it in use, and connect says what it leads to or how the strands work together. Each beat adds to the one before it. Do not say the same sentence twice in different words.");
       }
       if (skeleton.some(function (slot) { return slot.id === "apply" && slot.applicationTarget; })) {
-        shape.push("The apply slot has applicationTarget: the taught strand the task must use and the evidence a finished task shows. Write a task the pupil can only get right by using that explanation on a new case the teach slot did not already answer. The pupil chooses, using a short question with real choices or three lesson choices. Do not ask only to talk, show, or demonstrate, and do not say sort the cards, match the cards, or drag. Drawing, retelling, or describing the topic is not enough on its own.");
+        shape.push("The apply slot has applicationTarget: the taught strand the task must use and the evidence a finished task shows. Write a task the pupil can only get right by using that explanation on a new case the teach slot did not already answer. Name the taught explanation and how the pupil uses it. A task that only says choose a topic and explain its features does not use that explanation. The pupil chooses, using a short question with real choices or three lesson choices. Do not ask only to talk, show, or demonstrate, and do not say sort the cards, match the cards, or drag. Drawing, retelling, or describing the topic is not enough on its own.");
       }
       beatSlots.forEach(function (slot) {
         if (slot.id !== "apply") return;
@@ -3556,7 +3581,7 @@
       "title must not repeat the teacher's request.",
       "A hook may describe the unsolved visible event. Do not invent a mechanic for it. If that event is something the class can see, name a worldEffect type the player already allows: shake, rumble, pulse, glow, highlight, zoom, pan, reveal, crack, move-object, vibrate-object, fade, particles, flash, or sound-cue.",
       "Do not write {name} or a pupil name. participantSelection on a slot chooses who acts. The slot's instruction is what they do.",
-      "Do not copy pedagogicalPurpose, learningRole, interactionIntent, a move name, or a slot id into cue or text. A notice, predict, practise, apply, reveal, or consolidate sentence must not repeat a keyKnowledge sentence. Apply, when it has beats, also returns instruction, target, successCondition, and teachingConnection, and does not return knowledgeUsed. A quiz check slot does not return beat cue or text. Each retrieve beat is one quiz question. When the check has one retrieve beat, return prompt, choices, correct, explain, successEvidence, and teachingConnection. When it has several, return questions in that beat order, one object per beat id, and do not add or remove a question. Each question tests only the knowledge ref on its retrieve beat. The correct answer must depend on that knowledge. A question the class could answer without it is not retrieval."
+      "Do not copy pedagogicalPurpose, learningRole, interactionIntent, a move name, or a slot id into cue or text. A notice, predict, practise, apply, reveal, or consolidate sentence must not repeat a keyKnowledge sentence. Apply, when it has beats, also returns instruction, target, successCondition, and teachingConnection, and does not return knowledgeUsed. A quiz check slot does not return beat cue or text. Each retrieve beat is one quiz question. When the check has one retrieve beat, return prompt, choices, correct, explain, successEvidence, and teachingConnection. When it has several, return questions in that beat order, one object per beat id, and do not add or remove a question. Each question tests only the knowledge ref on its retrieve beat, and only knowledge taught before that question. The correct answer must depend on that knowledge. Do not mark a fact that was left out of the learning map as correct. A question the class could answer without it is not retrieval."
     ]).filter(Boolean).join(" ");
     var schema = {
       type: "object",
@@ -3762,6 +3787,22 @@
     } else if (apply) {
       instruction += " The APPLY task MUST require the pupil to use this knowledge: " + ((apply.requiredKnowledge || []).join(" | ") || "the taught idea") + ". The mechanic and interaction family cannot change. Return instruction, knowledgeUsed, successCondition, and teachingConnection for that slot. knowledgeUsed must name one requiredKnowledge item. A bare sort, move, or sequence is invalid.";
     }
+    if (apply) {
+      var ideaRefs = [];
+      ((apply.teachingBeats) || []).forEach(function (beat) {
+        (beat.knowledgeRefs || []).forEach(function (ref) {
+          if (ideaRefs.indexOf(ref) === -1) ideaRefs.push(ref);
+        });
+      });
+      if (!ideaRefs.length && apply.applicationTarget) ideaRefs = (apply.applicationTarget.knowledgeRefs || []).slice(0, 4);
+      var ideaText = [];
+      ((ctx && ctx.lessonPlan && ctx.lessonPlan.learningMap) || []).forEach(function (item) {
+        if (item && ideaRefs.indexOf(item.id) !== -1 && ideaText.indexOf(item.knowledge) === -1) ideaText.push(item.knowledge);
+      });
+      if (ideaText.length) {
+        instruction += " The taught idea this task must use is: " + ideaText.join(" ") + ". The pupil sentence and the instruction must both name that idea and show how the pupil uses it on a new case. Choosing a topic and explaining features in general does not use it.";
+      }
+    }
     var checkSpec = null;
     specs.forEach(function (spec) { if (spec.slotType === "CHECK") checkSpec = spec; });
     if (checkSpec) {
@@ -3813,7 +3854,7 @@
     var required = [];
     if (/more connected learning points/.test(found)) {
       var depth = depthBudget((ctx && (ctx.yearGroup || ctx.yearAssumption)) || (previous && previous.yearGroup), ctx && ctx.requestedMinutes);
-      required.push("depth: return a connected learningMap of about " + depth.floor + " to " + depth.max + " points that leads to the goal. Start from what a pupil needs first, then the feature or concept, what it does or why, the effect, and how the ideas connect. Each later point lists the earlier points it builds on in dependsOn. Split a big relationship into child-sized steps. A paraphrase, a second example of the same idea, or trivia is not a new point");
+      required.push("depth: return a connected learningMap of about " + depth.floor + " to " + depth.max + " points that leads to the goal. Start from what a pupil needs first, then the feature or concept, what it does or why, the effect, and how the ideas connect. Each later point lists the earlier points it builds on in dependsOn. Split a big relationship into child-sized steps. A paraphrase, a second example of the same idea, or trivia is not a new point. If a selected pack claim was left unconnected and a kept point builds on it, include that claim and point dependsOn at it. Do not invent a new fact to fill the count");
     }
     if (/developed strands/.test(found)) {
       var budget = depthBudget((ctx && (ctx.yearGroup || ctx.yearAssumption)) || (previous && previous.yearGroup), ctx && ctx.requestedMinutes);
@@ -4462,6 +4503,14 @@
     return contentWords(text).filter(function (word) { return !DEPTH_FILLER[word] && !RELATION_STEM[word]; });
   }
 
+  function sharesAdmittedStem(left, right) {
+    var mine = depthWords(left).filter(function (word) { return word.length >= 5; });
+    var theirs = depthWords(right);
+    return mine.some(function (word) {
+      return theirs.some(function (other) { return sameStem(word, other); });
+    });
+  }
+
   function stemIn(word, list) {
     return (list || []).some(function (other) { return sameStem(word, other); });
   }
@@ -4752,12 +4801,37 @@
         return false;
       });
     } else if (unique.some(function (row) { return row.deps.length; })) {
-      connected = unique.filter(function (row) {
+      var linkedRows = [];
+      var orphanRows = [];
+      unique.forEach(function (row) {
         var linked = row.deps.length || unique.some(function (other) { return other.deps.indexOf(row) !== -1; });
-        if (linked) return true;
-        rejected.push({ knowledge: row.text, reason: "not connected to the learning map" });
-        return false;
+        if (linked) linkedRows.push(row);
+        else orphanRows.push(row);
       });
+      // A selected pack claim with no dependsOn is still the earlier idea when the map is
+      // short of the depth floor and a kept point already uses its words. It becomes a
+      // foundation those points build on. It is not a new fact, and it does not merge strands.
+      if (linkedRows.length < budget.floor) {
+        var stillOrphan = [];
+        var anchor = linkedRows.slice();
+        orphanRows.forEach(function (row) {
+          var prior = !row.role || row.role === "fact" || row.role === "concept" || row.role === "foundation" || row.role === "definition";
+          var hits = prior && row.claimIds && row.claimIds.length
+            ? anchor.filter(function (kept) { return sharesAdmittedStem(row.text, kept.text); })
+            : [];
+          if (!hits.length) { stillOrphan.push(row); return; }
+          row.role = "foundation";
+          hits.forEach(function (kept) {
+            if (kept.deps.indexOf(row) === -1) kept.deps.push(row);
+          });
+          linkedRows.push(row);
+        });
+        orphanRows = stillOrphan;
+      }
+      orphanRows.forEach(function (row) {
+        rejected.push({ knowledge: row.text, reason: "not connected to the learning map" });
+      });
+      connected = linkedRows;
     }
     var filtered = depthFilter(connected, ctx);
     var depthDropped = filtered.dropped.map(function (item) {
@@ -4930,7 +5004,11 @@
     var gate = !!ctx.depthRequired && knowledge.length > 0;
     // breadthSettled records a repaired choice of breadth. It does not waive a how or why:
     // a depth-seeking goal still has to meet the depth floor and its developed strands.
-    var shallow = gate && depth.achieved < need && !(settled && !seekingDepth);
+    var strandShort = depth.strandsDeveloped < depth.strandsRequired;
+    // breadthSettled records a repaired choice of breadth. It does not waive a how or why.
+    // Meeting the strand count does not waive the depth floor. The floor is waived after
+    // one repair only while the strand count itself is still the open failure.
+    var shallow = gate && depth.achieved < need && !(settled && !seekingDepth && strandShort);
     var thinStrands = gate && depth.strandsDeveloped < depth.strandsRequired && (
       (scope.scope === "broad" && depth.strandsRequired >= 2) || seekingDepth
     );
