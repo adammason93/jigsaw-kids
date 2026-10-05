@@ -322,7 +322,21 @@ globalThis.handleGenerate = async (req) => {
     const packMs = Date.now() - packStarted;
     const pack = brain.normaliseKnowledgePack(rawPack, ctx);
     const selection = brain.selectPackForLesson(pack, ctx);
-    logMeta({ stage: "KNOWLEDGE_PACK", attemptId, model, packMs, ...brain.knowledgePackLog(pack, selection) });
+    const readiness = brain.assessPackReadiness(pack, selection, ctx);
+    const packReadiness = {
+      status: readiness.status,
+      requiredPairs: readiness.requiredPairs,
+      distinctReady: readiness.distinctReady,
+      factuallyVerified: false,
+      readyPairs: (readiness.readyPairs || []).map((pair) => ({
+        mechanismClaimId: pair.mechanismClaimId,
+        featureClaimId: pair.featureClaimId,
+        feature: pair.feature,
+        explanation: String(pair.explanation || "").slice(0, 160)
+      })),
+      missing: (readiness.missing || []).slice(0, 8)
+    };
+    logMeta({ stage: "KNOWLEDGE_PACK", attemptId, model, packMs, packReadiness, ...brain.knowledgePackLog(pack, selection) });
     if (pack.status === "blocked" || selection.status === "blocked") {
       logMeta({
         stage: "KNOWLEDGE_BLOCKED",
@@ -339,6 +353,26 @@ globalThis.handleGenerate = async (req) => {
         category: "invalid",
         stage: "KNOWLEDGE_BLOCKED",
         meta: { teacherIntent: intentMeta(ctx), knowledgePack: brain.knowledgePackLog(pack, selection) }
+      });
+    }
+    if (readiness.status !== "ready") {
+      logMeta({
+        stage: "PACK_INCOMPLETE",
+        category: "invalid",
+        attemptId,
+        model,
+        packMs,
+        requiredPairs: readiness.requiredPairs,
+        distinctReady: readiness.distinctReady,
+        missing: (readiness.missing || []).slice(0, 12),
+        issues: (readiness.issues || []).slice(0, 4)
+      });
+      return json({
+        ok: false,
+        category: "invalid",
+        stage: "PACK_INCOMPLETE",
+        issues: readiness.issues || [],
+        meta: { teacherIntent: intentMeta(ctx), knowledgePack: brain.knowledgePackLog(pack, selection), packReadiness }
       });
     }
     ctx.knowledgePack = pack;
@@ -360,7 +394,8 @@ globalThis.handleGenerate = async (req) => {
         attemptId,
         planMs,
         issues: (planned.issues || []).slice(0, 8),
-        firstPass: planned.depth || null
+        firstPass: planned.depth || null,
+        packPairs: planned.packPairs || null
       });
       planRepaired = true;
       const planRepairStarted = Date.now();
@@ -371,7 +406,7 @@ globalThis.handleGenerate = async (req) => {
       repairMs += Date.now() - planRepairStarted;
       // breadthSettled marks the repaired breadth choice. A map that already has its strands still has to meet the depth floor.
       planned = brain.normalisePlan(secondPlan, Object.assign({}, ctx, { depthRequired: true, breadthSettled: true, priorPlan: firstPlan }));
-      logMeta({ stage: "PLAN_REPAIR", attemptId, model, ok: !!planned.ok, repairInstruction, repaired: planned.depth || null, issues: (planned.issues || []).slice(0, 8) });
+      logMeta({ stage: "PLAN_REPAIR", attemptId, model, ok: !!planned.ok, repairInstruction, repaired: planned.depth || null, issues: (planned.issues || []).slice(0, 8), packPairs: planned.packPairs || null });
       if (!planned.ok) {
         logMeta({
           stage: "EDUCATIONAL_VALIDATION_FAILED",

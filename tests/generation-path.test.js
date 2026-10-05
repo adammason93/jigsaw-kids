@@ -122,6 +122,10 @@ global.fetch = function (url, init) {
         { text: knowledge[1], depth: "mechanism", kind: "mechanism", confidence: "high", provenance: "model", factuallyVerified: false, ageFit: { from: 1, to: 6 } },
         { text: "Fins, tail and gills work together as one system for living in the sea.", depth: "system", confidence: "medium", provenance: "model", factuallyVerified: false, ageFit: { from: 5, to: 6 } }
       ],
+      mechanisms: [
+        { text: knowledge[0], feature: "pointed body" },
+        { text: knowledge[1], feature: "strong tail" }
+      ],
       concepts: ["shark body"],
       vocabulary: [{ term: "fin", gloss: "a flat part a shark uses to steer" }]
     };

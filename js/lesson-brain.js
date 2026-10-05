@@ -358,6 +358,7 @@
         "Do not write a lesson, stages, activities, beats, questions, interactions, narrative, or pupil wording.",
         "Write a knowledge pack with more true claims than one lesson will teach. A later step selects a subset for the year, the goal, and the duration.",
         "Each claim is one sentence a teacher could check. Include concrete claims a child can observe or name, mechanism claims that say how or why, and system claims that say how several mechanisms work together. A mechanism names one concrete feature and the job that feature does, in words a child in the requested year can say. When the topic is broad, include several mechanisms, each about a different feature, and only when that feature and its job can be stated without guessing. A sentence that only says the subject is adapted, or that an environment influenced its features or behaviour, is not a mechanism. Do not invent a feature or a function to widen the pack. Tag depth as concrete, mechanism, or system.",
+        "strandPairsRequired in the request is how many distinct feature-and-explanation pairs this lesson's breadth needs. A pair is two selected claims: a concrete claim that names one feature or concept, and a different mechanism claim that states how or why that feature works. The mechanisms list repeats each explanation. Its feature field is a short phrase copied from the naming claim, not a new fact. Each pair must be a different teaching idea. Two explanations of the same feature count as one pair. An id on its own is not a pair, and a sentence that only names the feature is not the explanation. Supply that many pairs when the feature and the function can be stated without guessing. Do not invent a feature or a function to reach the number. factuallyVerified stays false: a complete pair is not verification, and verification is not a pair.",
         "ageFit is { from, to } using years 1 to 6. Concrete claims can start at Year 1. A simple mechanism may start at Year 2. A harder mechanism starts at Year 3 or 4. A system claim starts at Year 5 or 6. Age fit is metadata. Do not write a different lesson for each year.",
         "confidence is high, medium, or low. If you are unsure of a name, date, measurement, or local detail, omit that claim. Do not invent it. A named place by itself is allowed. Do not bind that place to specific geology, a mechanism, a date, or a cause unless the teacher material states that binding. High confidence does not make a local binding true, and it does not verify a claim. Do not state a counted list of main types, kinds, or groups unless the teacher asked for that count or the teacher material states that list. If the lesson cannot be taught without an unsupported local binding, set status to blocked and say a source is needed.",
         "provenance is model, unless the sentence is taken from uploadedMaterialSummary, in which case use teacher_material. Do not use retrieved, curated, or curriculum_planning. This step has no web search, curated pack, or curriculum document.",
@@ -376,6 +377,7 @@
         topic: clean(ctx.topic, 120),
         requestedMinutes: ctx.requestedMinutes || null,
         teacherIntent: (ctx.lessonBrief && ctx.lessonBrief.teacherIntent) || null,
+        strandPairsRequired: strandsRequiredFor(ctx),
         curriculumContext: "England primary. The curriculum note is planning guidance only. It is not a factual source in this step."
       })
     };
@@ -3943,7 +3945,7 @@
       instruction += " Correct incorrectly labelled foundations. A feature or adaptation is not a foundation. Point each function or mechanism at its own feature. Preserve the underlying knowledge and the dependencies that are still true. Do not invent a foundation simply to satisfy formatting.";
     }
     if (ctx && ctx.knowledgePack && ctx.knowledgePack.status !== "blocked") {
-      instruction += " Every learningMap point must include claimIds copied from knowledgePack.claims. The sentence may shorten that claim. It must not add a subject fact the claim does not state. Do not teach falsePremise, doNotTeach, rejectedClaims, or a claim held as an unsupported local detail.";
+      instruction += " Every learningMap point must include claimIds copied from knowledgePack.claims. The sentence may shorten that claim. It must not add a subject fact the claim does not state. Do not teach falsePremise, doNotTeach, rejectedClaims, or a claim held as an unsupported local detail. Do not invent a feature or a relationship the knowledge pack does not admit. Where the pack has a feature claim and an explanation of that feature, keep both and point the explanation at that feature.";
     }
     var repairPayload = {
       learningGoal: goal,
@@ -4548,22 +4550,342 @@
     return keys;
   }
 
-  function realiseFeatureLinks(rows, ctx) {
-    var mechanisms = (ctx && ctx.knowledgePack && ctx.knowledgePack.mechanisms) || [];
-    rows.forEach(function (row) {
-      if (row.deps.length || row.needs.length || !EXPLAIN_ROLE[row.role]) return;
-      var mech = null;
-      mechanisms.forEach(function (item) {
-        if (mech || !item || !item.featureClaimId) return;
-        if ((row.claimIds || []).indexOf(item.claimId) !== -1 || sameSentence(item.text, row.text)) mech = item;
-      });
-      if (!mech) return;
-      var targets = rows.filter(function (other) {
-        return other !== row && (other.claimIds || []).indexOf(mech.featureClaimId) !== -1 && NAMED_POINT[other.role || "fact"];
-      });
-      if (targets.length !== 1 || !contentShare(row, targets[0], ctx)) return;
-      row.deps.push(targets[0]);
+  // Same strand count the teaching plan will require. Readiness uses it before any lesson is generated.
+  function strandsRequiredFor(ctx, objective) {
+    ctx = ctx || {};
+    objective = objective || learningGoalOf(ctx) || clean((ctx.lessonBrief && ctx.lessonBrief.learningGoal) || "", 240);
+    var budget = depthBudget(ctx.yearGroup || ctx.yearAssumption, ctx.requestedMinutes);
+    var scope = teachingScope(ctx);
+    var seeking = planSeeksDepth(ctx, objective);
+    var range = strandRange(budget);
+    if (seeking) return seekingStrandMinimum(ctx, budget);
+    if (scope.scope === "broad") return range.low;
+    return 1;
+  }
+
+  function selectedPackClaims(pack, selection) {
+    pack = pack || {};
+    var claims = pack.claims || [];
+    var ids = selection && selection.claimIds;
+    if (ids && ids.length) {
+      var allow = {};
+      ids.forEach(function (id) { allow[id] = 1; });
+      return claims.filter(function (claim) { return claim && allow[claim.claimId]; });
+    }
+    return claims.filter(function (claim) {
+      return claim && !claim.localHold && !claim.classificationHold && !claim.contested;
     });
+  }
+
+  function featureHits(feature, claims, mechanismText) {
+    var words = linkWords(feature);
+    if (!words.length) return [];
+    return (claims || []).filter(function (claim) {
+      if (!claim || sameSentence(claim.text, mechanismText)) return false;
+      var claimWords = linkWords(claim.text);
+      return words.every(function (word) {
+        return claimWords.some(function (other) { return sameStem(word, other); });
+      });
+    });
+  }
+
+  function concreteFeatureClaim(claim, feature) {
+    if (!claim || !clean(claim.text)) return false;
+    if (claim.classificationHold) return false;
+    var words = linkWords(feature);
+    if (!words.length) return false;
+    var claimWords = linkWords(claim.text);
+    var named = words.every(function (word) {
+      return claimWords.some(function (other) { return sameStem(word, other); });
+    });
+    if (!named) return false;
+    return clean(claim.text).split(/\s+/).filter(Boolean).length >= 4;
+  }
+
+  function pairRelevant(featureClaim, explanation, feature, ctx) {
+    ctx = ctx || {};
+    var brief = ctx.lessonBrief || {};
+    var intent = brief.teacherIntent || {};
+    var focus = intent.focusConcepts || brief.focusConcepts || [];
+    var corpus = [
+      intent.learningGoal, brief.learningGoal, intent.requiredEvidence, brief.requiredEvidence,
+      focus.join(" "), ctx.topic, ctx.lessonText, ctx.teacherInstructions, brief.rawRequest
+    ].join(" ");
+    var goal = contentWords(corpus);
+    var mine = contentWords([featureClaim && featureClaim.text, explanation, feature].join(" "));
+    if (!mine.length || !goal.length) return false;
+    function shares(list) {
+      return mine.some(function (word) {
+        return list.some(function (other) { return sameStem(word, other); });
+      });
+    }
+    if (teachingScope(ctx).scope === "broad") return shares(goal);
+    var subject = contentWords(ctx.topic || "");
+    var specific = goal.filter(function (word) {
+      return !subject.some(function (head) { return sameStem(word, head); });
+    });
+    if (!specific.length) return shares(goal);
+    return mine.some(function (word) {
+      if (subject.some(function (head) { return sameStem(word, head); })) return false;
+      return specific.some(function (other) { return sameStem(word, other); });
+    });
+  }
+
+  function sameTeachingIdea(left, right) {
+    if (!left || !right) return false;
+    if (left.featureClaimId && left.featureClaimId === right.featureClaimId) return true;
+    var a = linkWords(left.feature);
+    var b = linkWords(right.feature);
+    return a.some(function (word) {
+      return b.some(function (other) { return sameStem(word, other); });
+    });
+  }
+
+  // featureClaimId is necessary and not sufficient. A ready pair also names a concrete
+  // feature, explains how or why it works, links two different selected claims, and
+  // belongs to the learning goal. Provenance and factuallyVerified are not readiness.
+  function assessPackReadiness(pack, selection, ctx) {
+    ctx = ctx || {};
+    pack = pack || {};
+    selection = selection || {};
+    var empty = {
+      status: "ready",
+      skipped: true,
+      requiredPairs: 0,
+      distinctReady: 0,
+      pairs: [],
+      readyPairs: [],
+      ideas: [],
+      missing: [],
+      issues: [],
+      factuallyVerified: false
+    };
+    if (!pack.claims || !pack.claims.length || pack.status === "blocked" || selection.status === "blocked") return empty;
+    var required = strandsRequiredFor(ctx);
+    var selected = selectedPackClaims(pack, selection);
+    var selectedIds = {};
+    selected.forEach(function (claim) { selectedIds[claim.claimId] = claim; });
+    var byId = {};
+    (pack.claims || []).forEach(function (claim) { byId[claim.claimId] = claim; });
+    var mechanisms = pack.mechanisms || [];
+    var headIds = {};
+    mechanisms.forEach(function (item) {
+      if (item && item.featureClaimId) headIds[item.featureClaimId] = 1;
+    });
+    var examined = [];
+    mechanisms.forEach(function (item) {
+      if (!item || !item.text) return;
+      var feature = clean(item.feature, 80);
+      var featureClaim = item.featureClaimId ? byId[item.featureClaimId] : null;
+      var hits = feature ? featureHits(feature, pack.claims, item.text) : [];
+      var gaps = [];
+      if (!selectedIds[item.claimId]) gaps.push("the explanation is not selected admitted knowledge for this lesson");
+      if (!feature) gaps.push("no concrete feature or concept is named");
+      else if (!item.featureClaimId) gaps.push("the feature phrase does not match one other selected claim, so there is no explicit relationship");
+      else if (!featureClaim) gaps.push("the feature claim id does not resolve to an admitted claim");
+      else if (!selectedIds[featureClaim.claimId]) gaps.push("the feature claim is not selected for this lesson");
+      else if (hits.length !== 1 || hits[0].claimId !== featureClaim.claimId) gaps.push("the feature relationship is ambiguous");
+      else if (!contentShare({ text: item.text }, featureClaim, ctx) || !contentShare({ text: item.text }, { text: feature }, ctx)) gaps.push("the explanation does not share the feature with the selected claim");
+      else if (!concreteFeatureClaim(featureClaim, feature)) gaps.push("the selected claim is not a concrete feature or concept");
+      if (!statesMechanism(item.text)) {
+        gaps.push(item.featureClaimId && featureClaim && selectedIds[featureClaim.claimId]
+          ? "the feature claim resolves, but the explanation does not state how or why"
+          : "the explanation does not state how or why");
+      }
+      if (!gaps.some(function (gap) { return gap.indexOf("not relevant") !== -1; }) && featureClaim && selectedIds[featureClaim.claimId] && !pairRelevant(featureClaim, item.text, feature, ctx)) gaps.push("the pair is not relevant to the learning goal");
+      var ready = !gaps.length;
+      if (!ready && !feature && headIds[item.claimId] && !statesMechanism(item.text)) return;
+      examined.push({
+        mechanismClaimId: item.claimId,
+        featureClaimId: ready ? featureClaim.claimId : (item.featureClaimId || ""),
+        feature: feature,
+        featureText: featureClaim ? featureClaim.text : "",
+        featureClaim: ready ? featureClaim : null,
+        explanation: item.text,
+        ready: ready,
+        validated: ready,
+        gaps: gaps
+      });
+    });
+    var ideas = [];
+    examined.forEach(function (pair) {
+      if (!pair.ready) return;
+      var group = null;
+      ideas.forEach(function (idea) {
+        if (group) return;
+        if (idea.some(function (other) { return sameTeachingIdea(pair, other); })) group = idea;
+      });
+      if (!group) {
+        group = [];
+        ideas.push(group);
+      } else {
+        pair.ready = false;
+        pair.duplicate = true;
+        pair.gaps = ["repeats the teaching idea in \"" + clean(group[0].explanation, 120) + "\""];
+      }
+      group.push(pair);
+    });
+    ideas.forEach(function (group) {
+      group.forEach(function (pair, index) {
+        if (index === 0) return;
+        pair.ready = false;
+        pair.duplicate = true;
+        if (!pair.gaps.length) pair.gaps = ["repeats the teaching idea in \"" + clean(group[0].explanation, 120) + "\""];
+      });
+    });
+    var readyPairs = [];
+    examined.forEach(function (pair) { if (pair.ready) readyPairs.push(pair); });
+    var missing = [];
+    if (ideas.length < required) {
+      missing.push("Missing substance: " + (required - ideas.length) + " more distinct pair" + (required - ideas.length === 1 ? "" : "s") + ". Each pair needs a concrete feature or concept, a separate explanation of how or why that feature works, an explicit relationship between those two selected claims, and relevance to the learning goal.");
+    }
+    if (!mechanisms.length) missing.push("The selected claims do not include a mechanism that explains a feature.");
+    examined.forEach(function (pair) {
+      if (pair.ready) return;
+      var detail = pair.gaps.join("; ");
+      if (detail) detail = detail.charAt(0).toUpperCase() + detail.slice(1);
+      missing.push("Not ready: \"" + clean(pair.explanation, 160) + "\". " + detail + ".");
+    });
+    var status = ideas.length >= required ? "ready" : "incomplete";
+    var issue = status === "ready" ? "" : "PACK_INCOMPLETE: this lesson needs " + required + " distinct feature-and-explanation pairs. The pack has " + ideas.length + ". " + missing.join(" ");
+    return {
+      status: status,
+      skipped: false,
+      requiredPairs: required,
+      distinctReady: ideas.length,
+      pairs: examined,
+      readyPairs: readyPairs,
+      ideas: ideas,
+      missing: missing,
+      issues: issue ? [issue] : [],
+      factuallyVerified: false
+    };
+  }
+
+  function lossReasonForPair(pair, rejected, items) {
+    var found = "";
+    (rejected || []).forEach(function (item) {
+      if (found || !item) return;
+      if (sameSentence(item.knowledge, pair.explanation) || sameSentence(item.knowledge, pair.featureText)) found = item.reason || "removed";
+    });
+    if (found) return found;
+    var head = false;
+    var child = false;
+    var linked = false;
+    (items || []).forEach(function (item) {
+      var ids = item.claimIds || [];
+      if (ids.indexOf(pair.featureClaimId) !== -1) head = true;
+      if (ids.indexOf(pair.mechanismClaimId) !== -1) {
+        child = true;
+        if ((item.dependsOn || []).some(function (id) {
+          return (items || []).some(function (other) {
+            return other.id === id && (other.claimIds || []).indexOf(pair.featureClaimId) !== -1;
+          });
+        })) linked = true;
+      }
+    });
+    if (head && child && !linked) return "the explanation no longer depends on the feature claim";
+    if (!child) return "the explanation is not in the learning map";
+    return "the feature claim is not in the learning map";
+  }
+
+  function pairPreserved(pair, items) {
+    var head = null;
+    var child = null;
+    (items || []).forEach(function (item) {
+      var ids = item.claimIds || [];
+      if (ids.indexOf(pair.featureClaimId) !== -1) head = item;
+      if (ids.indexOf(pair.mechanismClaimId) !== -1) child = item;
+    });
+    if (!head || !child || head === child) return false;
+    return (child.dependsOn || []).indexOf(head.id) !== -1;
+  }
+
+  function packPairReport(readiness, items, rejected) {
+    if (!readiness || readiness.skipped) {
+      return { skipped: true, requiredPairs: 0, distinctReady: 0, preserved: 0, lost: [], issue: "", factuallyVerified: false };
+    }
+    var preserved = 0;
+    var lost = [];
+    (readiness.ideas || []).forEach(function (group) {
+      var pair = group[0];
+      if (group.some(function (item) { return pairPreserved(item, items); })) {
+        preserved += 1;
+        return;
+      }
+      lost.push({
+        mechanismClaimId: pair.mechanismClaimId,
+        featureClaimId: pair.featureClaimId,
+        explanation: pair.explanation,
+        featureText: pair.featureText,
+        reason: lossReasonForPair(pair, rejected, items)
+      });
+    });
+    var issue = "";
+    if (lost.length) {
+      issue = lost.map(function (row) {
+        return "A required feature-and-explanation pair was removed: \"" + clean(row.explanation, 160) + "\" (feature: \"" + clean(row.featureText, 160) + "\"). Reason: " + row.reason + ".";
+      }).join(" ") + " Rechecked readiness: " + preserved + " of " + readiness.requiredPairs + " required pairs remain.";
+    }
+    return {
+      skipped: false,
+      requiredPairs: readiness.requiredPairs,
+      distinctReady: readiness.distinctReady,
+      preserved: preserved,
+      lost: lost,
+      issue: issue,
+      factuallyVerified: false
+    };
+  }
+
+  // A validated pack pair is the strand edge. A model hub does not replace it.
+  // An empty featureClaimId, an ambiguous id, or a thin explanation does not create a head.
+  function realiseFeatureLinks(rows, ctx) {
+    var readiness = assessPackReadiness(ctx && ctx.knowledgePack, ctx && ctx.knowledgeSelection, ctx);
+    if (readiness.skipped) return readiness;
+    readiness.pairs.forEach(function (pair) {
+      if (!pair.validated) return;
+      var row = null;
+      rows.forEach(function (item) {
+        if (row) return;
+        var ids = item.claimIds || [];
+        if (ids.indexOf(pair.mechanismClaimId) !== -1 || sameSentence(item.text, pair.explanation)) row = item;
+      });
+      if (!row) return;
+      if ((row.claimIds || []).indexOf(pair.featureClaimId) !== -1) return;
+      if (!EXPLAIN_ROLE[row.role]) row.role = "mechanism";
+      var targets = [];
+      rows.forEach(function (other) {
+        if (other === row) return;
+        var ids = other.claimIds || [];
+        if (ids.indexOf(pair.featureClaimId) !== -1 || sameSentence(other.text, pair.featureText)) targets.push(other);
+      });
+      var target = targets.length === 1 ? targets[0] : null;
+      if (!target && !targets.length && pair.featureClaim) {
+        target = {
+          key: "pack-" + pair.featureClaimId,
+          text: pair.featureClaim.text,
+          role: pair.featureClaim.kind === "definition" ? "concept" : "feature",
+          label: "",
+          importance: "core",
+          needs: [],
+          deps: [],
+          claimIds: [pair.featureClaimId],
+          index: row.index - 0.01,
+          packSupplied: true
+        };
+        rows.push(target);
+      }
+      if (!target || targets.length > 1) return;
+      if ((target.claimIds || []).indexOf(pair.featureClaimId) === -1) target.claimIds = (target.claimIds || []).concat([pair.featureClaimId]);
+      if (!contentShare(row, target, ctx)) return;
+      if (target.role !== "feature" && target.role !== "concept" && target.role !== "definition") target.role = "feature";
+      if (!NAMED_POINT[target.role]) return;
+      row.deps = [target];
+      row.packEdge = pair.featureClaimId;
+      target.packEdge = pair.featureClaimId;
+    });
+    return readiness;
   }
 
   function mapProposals(parsed, ctx) {
@@ -4969,7 +5291,7 @@
       });
       row.deps = deps;
     });
-    realiseFeatureLinks(unique, ctx);
+    var readiness = realiseFeatureLinks(unique, ctx);
     unique.forEach(function (row) {
       row.kind = mapKind(row.text, row.role, row.deps.length);
       row.answers = seeking && answersContribution(row.text, goal, row);
@@ -5061,6 +5383,7 @@
         answers: !!row.answers
       };
     });
+    var pairReport = packPairReport(readiness, items, rejected);
     return {
       items: items,
       rejected: rejected,
@@ -5070,6 +5393,7 @@
       answered: items.some(function (item) { return item.answers; }),
       depthDropped: depthDropped,
       proposed: proposal.proposed,
+      packPairs: pairReport,
       raw: proposal.rows.map(function (row) { return { text: row.text, knowledgeType: knowledgeRole(row.text, ROLE_TYPE[row.role] || row.label) }; })
     };
   }
@@ -5193,6 +5517,7 @@
     var need = scope.scope === "broad" || map.broad || seekingDepth || planNeedsRelation(relationCtx, objective) || planNeedsProcess(relationCtx, objective) ? map.budget.floor : map.budget.narrowFloor;
     var teaching = buildTeachingPlan(map.items, relationCtx, scope, need, map.budget, map.rejected);
     var depth = teaching.substantiveDepth;
+    var pairReport = map.packPairs;
     var gate = !!ctx.depthRequired && knowledge.length > 0;
     // breadthSettled records a repaired choice of breadth. It does not waive a how or why:
     // a depth-seeking goal still has to meet the depth floor and its developed strands.
@@ -5230,8 +5555,9 @@
     if (ctx.knowledgePack && ctx.knowledgePack.status !== "blocked" && (ctx.knowledgePack.claims || []).length && !map.items.some(function (item) { return item.claimIds && item.claimIds.length; })) {
       issues.push("The learning map must select claim ids from the knowledge pack.");
     }
+    if (pairReport && pairReport.issue) issues.push(pairReport.issue);
     var snapshot = depthSnapshot(map.items, teaching);
-    if (issues.length) return { ok: false, issues: issues, previous: parsed, depth: snapshot, mapRejected: map.rejected.slice(0, MAP_READ_LIMIT) };
+    if (issues.length) return { ok: false, issues: issues, previous: parsed, depth: snapshot, mapRejected: map.rejected.slice(0, MAP_READ_LIMIT), packPairs: pairReport };
     var admittedPlan = {
         title: clean(parsed.title, 80),
         subject: clean(parsed.subject || ctx.subject, 80),
@@ -5256,7 +5582,7 @@
       };
     var grounding = groundingOnPlan(ctx, map.items);
     if (grounding) admittedPlan.knowledgeGrounding = grounding;
-    return { ok: true, depth: snapshot, plan: admittedPlan };
+    return { ok: true, depth: snapshot, plan: admittedPlan, packPairs: pairReport };
   }
 
   function freshId(prefix) {
@@ -7169,6 +7495,21 @@
   function runPipeline(ctx, callModel) {
     var started = Date.now();
     var planRepaired = false;
+    if (ctx && ctx.knowledgePack && ctx.knowledgePack.status !== "blocked" && (ctx.knowledgePack.claims || []).length) {
+      var readiness = assessPackReadiness(ctx.knowledgePack, ctx.knowledgeSelection, ctx);
+      if (readiness.status !== "ready") {
+        return Promise.resolve({
+          ok: false,
+          category: "invalid",
+          stage: "PACK_INCOMPLETE",
+          issues: readiness.issues || [],
+          packReadiness: readiness,
+          repairUsed: false,
+          fallbackUsed: false,
+          durationMs: Date.now() - started
+        });
+      }
+    }
     return Promise.resolve().then(function () {
       return callModel(planBrief(ctx), null);
     }).then(function (firstPlan) {
@@ -7391,6 +7732,7 @@
     knowledgePackBrief: knowledgePackBrief,
     normaliseKnowledgePack: normaliseKnowledgePack,
     selectPackForLesson: selectPackForLesson,
+    assessPackReadiness: assessPackReadiness,
     knowledgePackLog: knowledgePackLog,
     knowledgeTrace: knowledgeTrace,
     conceptCoverageIssues: conceptCoverageIssues,
