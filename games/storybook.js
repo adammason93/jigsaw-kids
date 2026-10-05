@@ -349,6 +349,7 @@
     if (stepGuideAudio) {
       try {
         stepGuideAudio.pause();
+        releaseTtsObjectUrl(stepGuideAudio);
         stepGuideAudio.src = "";
       } catch (eSg) {}
       stepGuideAudio = null;
@@ -395,29 +396,23 @@
     stopStepGuideAudio();
     var text = STEP_GUIDE_TEXT[journeyStep];
     if (!text) return;
-    var ttsUrl = cleverServiceTtsUrl(text);
-    if (ttsUrl) {
-      stepGuideAudio = new Audio(ttsUrl);
-      stepGuidePlaying = true;
+    var started = beginAuthedNarration(text);
+    stepGuideAudio = started.audio;
+    stepGuidePlaying = true;
+    refreshReadStepBtn();
+    stepGuideAudio.onended = function () {
+      if (!stepGuideAudio || stepGuideAudio._sbPhase !== "speech") return;
+      stepGuidePlaying = false;
       refreshReadStepBtn();
-      stepGuideAudio.onended = function () {
-        stepGuidePlaying = false;
-        refreshReadStepBtn();
-      };
-      stepGuideAudio.onerror = function () {
-        stopStepGuideAudio();
+    };
+    started.ready.catch(function () {
+      stopStepGuideAudio();
+      if (!window.EdgeSession) {
         speakStepGuideFallback(text);
-      };
-      var gp = stepGuideAudio.play();
-      if (gp !== undefined) {
-        gp.catch(function () {
-          stopStepGuideAudio();
-          speakStepGuideFallback(text);
-        });
+        return;
       }
-    } else {
       speakStepGuideFallback(text);
-    }
+    });
   }
 
   function readWordOutLoud(word, element) {
@@ -434,38 +429,28 @@
       element.classList.add("sb-word-reading");
     }
     
-    var audioUrl = cleverServiceTtsUrl(word);
-    if (!audioUrl) return;
-    currentAudio = new Audio(audioUrl);
-    
-    var playPromise = currentAudio.play();
-    if (playPromise !== undefined) {
-      playPromise.catch(function(e) {
-        console.error("Word audio playback failed:", e);
-        if (element) {
-          element.classList.remove("sb-word-reading");
-        }
-        stopReading();
-      });
-    }
-    
-    currentAudio.onended = function() {
+    var startedWord = beginAuthedNarration(word);
+    currentAudio = startedWord.audio;
+    currentAudio.onended = function () {
+      if (!currentAudio || currentAudio._sbPhase !== "speech") return;
       if (element) {
         element.classList.remove("sb-word-reading");
       }
       stopReading();
     };
-    currentAudio.onerror = function() {
+    startedWord.ready.catch(function (e) {
+      console.error("Word audio playback failed:", e);
       if (element) {
         element.classList.remove("sb-word-reading");
       }
       stopReading();
-    };
+    });
   }
 
   function stopReading() {
     if (currentAudio) {
       currentAudio.pause();
+      releaseTtsObjectUrl(currentAudio);
       currentAudio.src = "";
       currentAudio = null;
     }
@@ -493,31 +478,23 @@
       btnReadToMe.innerHTML = '<span aria-hidden="true" style="margin: 0;">⏳</span>';
       btnReadToMe.disabled = true;
       
-      var audioUrl = cleverServiceTtsUrl(leftP.text);
-      if (!audioUrl) {
+      var startedRead = beginAuthedNarration(leftP.text);
+      currentAudio = startedRead.audio;
+      currentAudio.onended = function () {
+        if (!currentAudio || currentAudio._sbPhase !== "speech") return;
         stopReading();
-        return;
-      }
-      currentAudio = new Audio(audioUrl);
-      
-      // On iOS, play() must be called synchronously in the click handler
-      var playPromise = currentAudio.play();
-      if (playPromise !== undefined) {
-        playPromise.then(function() {
-          if (!currentAudio) return;
-          btnReadToMe.innerHTML = '<span aria-hidden="true" style="margin: 0;">⏹️</span>';
-          btnReadToMe.disabled = false;
-        }).catch(function(e) {
-          console.error("Audio playback failed:", e);
-          stopReading();
-        });
-      } else {
+      };
+      startedRead.ready.then(function () {
+        if (!currentAudio) return;
         btnReadToMe.innerHTML = '<span aria-hidden="true" style="margin: 0;">⏹️</span>';
         btnReadToMe.disabled = false;
-      }
-      
-      currentAudio.onended = stopReading;
-      currentAudio.onerror = stopReading;
+      }).catch(function (e) {
+        console.error("Audio playback failed:", e);
+        stopReading();
+        if (e && e.message === "no_session") {
+          window.alert(SIGN_IN_MSG);
+        }
+      });
     });
   }
   var spreadArtImg = document.getElementById("sbSpreadArtImg");
@@ -2595,16 +2572,10 @@
   }
 
   function storyImageDisplayUrl(remoteUrl) {
-    var u = String(remoteUrl || "").trim();
-    if (!u) return u;
-    if (u.indexOf("data:") === 0) return u;
-    if (!storyImageNeedsEdgeProxy(u)) return u;
-    var base = functionUrl();
-    if (!base) return u;
-    var key = anonKey();
-    var out = base + "?url=" + encodeURIComponent(u);
-    if (key) out += "&apikey=" + encodeURIComponent(key);
-    return out;
+    // <img> cannot send the user JWT. Signed storage URLs and direct CDN links
+    // load as-is. Canvas fetches that still need the edge proxy attach the
+    // session in tryFetchImageDataUrl.
+    return String(remoteUrl || "").trim();
   }
 
   function sanitizeFilename(raw) {
@@ -2630,7 +2601,6 @@
       // Proxy DALL·E + Fal (and similar) through clever-service ?url= so CORS/shelf encoding works.
       var fetchUrl = url;
       var fUrl = functionUrl();
-      var aKey = anonKey();
       var reqOpts = {
         method: "GET",
         mode: "cors",
@@ -2639,17 +2609,25 @@
         referrerPolicy: "no-referrer",
       };
 
-      if (fUrl && storyImageNeedsEdgeProxy(url)) {
-        fetchUrl = storyImageDisplayUrl(url);
-        if (aKey) {
-          reqOpts.headers = {
-            Authorization: "Bearer " + aKey,
-            apikey: aKey,
-          };
-        }
+      var authedProxy = fUrl && storyImageNeedsEdgeProxy(url);
+      if (authedProxy) {
+        fetchUrl = fUrl + "?url=" + encodeURIComponent(url);
       }
 
-      return fetch(fetchUrl, reqOpts)
+      var send = function (headers) {
+        if (headers) reqOpts.headers = headers;
+        return fetch(fetchUrl, reqOpts);
+      };
+
+      var fetched = authedProxy
+        ? withUserAccessToken().then(function (token) {
+            return send({
+              Authorization: "Bearer " + token,
+              apikey: anonKey(),
+            });
+          })
+        : Promise.resolve(send(null));
+      return fetched
         .then(function (r) {
           if (!r.ok) throw new Error("bad " + r.status);
           return r.blob();
@@ -4236,6 +4214,9 @@
   }
 
   function anonKey() {
+    if (window.EdgeSession && typeof window.EdgeSession.anonKey === "function") {
+      return window.EdgeSession.anonKey();
+    }
     var c =
       typeof window.SCORE_CONFIG !== "undefined"
         ? window.SCORE_CONFIG
@@ -4243,6 +4224,86 @@
           ? window.SCORE_SYNC
           : null;
     return c && c.supabaseAnonKey ? String(c.supabaseAnonKey) : "";
+  }
+
+  var SIGN_IN_MSG =
+    "Sign in with the family password first (⚙️ Settings), then try again.";
+
+  /** Tiny silent wav so iOS will allow play() started inside the tap. */
+  var TTS_UNLOCK_WAV =
+    "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=";
+
+  function withUserAccessToken() {
+    return new Promise(function (resolve, reject) {
+      if (!window.EdgeSession || typeof window.EdgeSession.withAccessToken !== "function") {
+        reject(new Error("no_session"));
+        return;
+      }
+      window.EdgeSession.withAccessToken(function (err, token) {
+        if (err || !token) reject(err || new Error("no_session"));
+        else resolve(token);
+      });
+    });
+  }
+
+  function edgeJsonHeaders(token) {
+    if (window.EdgeSession && typeof window.EdgeSession.authHeaders === "function") {
+      return window.EdgeSession.authHeaders(token);
+    }
+    return {
+      "Content-Type": "application/json",
+      Authorization: "Bearer " + token,
+      apikey: anonKey(),
+    };
+  }
+
+  function releaseTtsObjectUrl(audio) {
+    if (!audio || !audio._sbTtsObjectUrl) return;
+    try {
+      URL.revokeObjectURL(audio._sbTtsObjectUrl);
+    } catch (eRevoke) {}
+    audio._sbTtsObjectUrl = "";
+  }
+
+  function fetchTtsBlob(plainText) {
+    var url = cleverServiceTtsUrl(plainText);
+    if (!url) return Promise.reject(new Error("no_tts_url"));
+    return withUserAccessToken().then(function (token) {
+      return fetch(url, {
+        method: "GET",
+        headers: {
+          Authorization: "Bearer " + token,
+          apikey: anonKey(),
+        },
+      }).then(function (r) {
+        if (r.status === 401) throw new Error("no_session");
+        if (!r.ok) throw new Error("tts_" + r.status);
+        return r.blob();
+      });
+    });
+  }
+
+  /**
+   * Start an Audio element inside the user gesture, then swap in the authed MP3.
+   * @returns {{ audio: HTMLAudioElement, ready: Promise<void> }}
+   */
+  function beginAuthedNarration(plainText) {
+    var audio = new Audio();
+    audio.preload = "auto";
+    audio._sbPhase = "unlock";
+    try {
+      audio.src = TTS_UNLOCK_WAV;
+      var unlock = audio.play();
+      if (unlock && typeof unlock.catch === "function") unlock.catch(function () {});
+    } catch (eUnlock) {}
+    var ready = fetchTtsBlob(plainText).then(function (blob) {
+      audio._sbPhase = "speech";
+      var obj = URL.createObjectURL(blob);
+      audio._sbTtsObjectUrl = obj;
+      audio.src = obj;
+      return audio.play().then(function () {});
+    });
+    return { audio: audio, ready: ready };
   }
 
   function storybookAsyncJobsEnabled() {
@@ -4308,7 +4369,7 @@
       method: "GET",
       headers: {
         Authorization: "Bearer " + key,
-        apikey: key,
+        apikey: anonKey(),
       },
     })
       .then(function (r) {
@@ -5536,23 +5597,19 @@
             })
           : undefined,
       };
-      function postStorybook(asyncFlag) {
+      function postStorybook(asyncFlag, accessToken) {
         var body = Object.assign({}, requestBody);
         if (asyncFlag) body.storybook_async = true;
         return fetch(url, {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: "Bearer " + key,
-            apikey: key,
-          },
+          headers: edgeJsonHeaders(accessToken),
           body: JSON.stringify(body),
         }).then(function (r) {
           return envelopeFromResponse(r);
         });
       }
-      function runStorybookOnce(asyncFlag) {
-        return postStorybook(asyncFlag).then(function (out) {
+      function runStorybookOnce(asyncFlag, accessToken) {
+        return postStorybook(asyncFlag, accessToken).then(function (out) {
           var b =
             out.body && typeof out.body === "object" ? out.body : {};
           if (
@@ -5560,7 +5617,7 @@
             out.status === 501 &&
             b.error === "storybook_async_unconfigured"
           ) {
-            return runStorybookOnce(false);
+            return runStorybookOnce(false, accessToken);
           }
           if (
             asyncFlag &&
@@ -5571,7 +5628,7 @@
             var deadline = Date.now() + 15 * 60 * 1000;
             return pollStorybookJob(
               url,
-              key,
+              accessToken,
               String(b.storybook_job_id),
               deadline,
               function (info) {
@@ -5589,8 +5646,19 @@
           return out;
         });
       }
-      runStorybookOnce(useAsync)
+      withUserAccessToken()
+        .catch(function () {
+          return "";
+        })
+        .then(function (accessToken) {
+          if (!accessToken) {
+            setError(SIGN_IN_MSG);
+            return null;
+          }
+          return runStorybookOnce(useAsync, accessToken);
+        })
         .then(function (out) {
+          if (!out) return;
           if (!out.ok) {
             var b =
               out.body && typeof out.body === "object" ? out.body : {};
@@ -5604,6 +5672,8 @@
             if (isTimeout) {
               msg =
                 "The story maker ran out of time while drawing pictures (the server has a strict time limit — about two minutes total for the whole book). Wait a minute and try again — pick Standard pictures for a faster run (High uses heavier AI steps), use fewer uploaded family photos if you attached many, or ask a grown-up for help. Note: if the AI already started work, your account may still have been charged for some of it even though the book didn’t finish.";
+            } else if (out.status === 401 || b.error === "unauthorized") {
+              msg = SIGN_IN_MSG;
             } else if (b.error === "server_missing_openai") {
               msg =
                 "Story drawing isn’t turned on for this game yet. A grown-up needs to finish setup on the server.";

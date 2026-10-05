@@ -56,7 +56,7 @@ For **High** picture runs that can exceed the platform **~150s** “no response 
 
 - Apply migration **`supabase/migrations/20260505120000_storybook_generation_jobs.sql`**.
 - On **hosted** Edge Functions you usually **do not** add a key manually: **`SUPABASE_SECRET_KEYS`** (JWT signing keys) and often **`SUPABASE_URL`** are **default secrets** — `clever-service` uses **`SUPABASE_SECRET_KEYS['default']`**, with fallback to legacy **`SUPABASE_SERVICE_ROLE_KEY`**. For a second project / fork you can set **`STORYBOOK_SUPABASE_SERVICE_ROLE_KEY`** or **`STORYBOOK_SUPABASE_URL`** instead.
-- Never expose any **secret** key in the browser — the site keeps using the **anon / publishable** key only.
+- Never expose any **secret** key in the browser. The site sends the **signed-in user’s access token** as `Authorization` and the **anon / publishable** key only as `apikey`. An anon-key bearer is rejected with **401** before OpenAI is called.
 - Frontend: set **`storybookAsync: true`** in **`js/score-config.js`**. If secrets are missing, the client falls back to the one-shot POST.
 - Optional: **`STORYBOOK_ASYNC_DEFAULT=1`** makes async the default when the client omits **`storybook_async`**.
 - Local CLI: **`supabase/config.toml`** uses **`[edge_runtime] policy = per_worker`** so background tasks are not cut off after the first response.
@@ -70,13 +70,24 @@ Wall-clock caps still apply to the **whole invocation** (initial HTTP handler **
 - **OpenAI still charges successful steps** even if the app errors afterward — tip: test with **Standard** quality and fewer photos first; use **Dashboard → Edge Logs** and **`[clever-service] storybook_job start <uuid>`** to line up spikes with **`storybook_generation_jobs`** rows.
 - Set **billing / usage alerts** on OpenAI and Supabase.
 
+## Auth
+
+Every path that can call OpenAI (story, `generate_character`, TTS) and every job status/result read requires a **user** JWT. The function calls `auth.getUser(token)`. The anon key and the service role do not count. Apply migration `20261005100000_storybook_jobs_owner.sql` so job rows store `user_id`; polling with only the job id returns **404** unless that user owns the row.
+
+Browser calls must include `Authorization: Bearer <session.access_token>` and `apikey: <anon key>`. If nobody is signed in, the story and character pages ask for the family password instead of calling OpenAI.
+
+CORS allows `https://jigsaw-kids.adammason93.workers.dev` plus `http(s)://localhost` and `http(s)://127.0.0.1` (any port). Extra origins: comma-separated secret `STORYBOOK_ALLOWED_ORIGINS`.
+
 ## Deploy
 
+Apply the owner migration **before** deploying, or job inserts will fail until `user_id` exists.
+
 ```bash
-supabase functions deploy clever-service --no-verify-jwt
+supabase db push
+supabase functions deploy clever-service
 ```
 
-(`verify_jwt` is off in `config.toml` for `[functions.clever-service]` so the static kids’ site can call with the **anon** key; use **Dashboard rate limits** and billing alerts.)
+`verify_jwt` is **on** for `[functions.clever-service]` in `config.toml` (the gateway still accepts the anon key, which is why `getUser` runs inside the function). Do not pass `--no-verify-jwt`. `game-maker` is unchanged.
 
 ### Read-aloud voice (OpenAI TTS)
 

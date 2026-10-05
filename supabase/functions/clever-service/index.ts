@@ -1,15 +1,24 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
+import { AsyncLocalStorage } from "node:async_hooks";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import type { SupabaseClient } from "npm:@supabase/supabase-js@2";
+import {
+  authenticateBearer,
+  bearerTokenFromHeader,
+  corsHeadersForOrigin,
+} from "./guards.ts";
 
-
-const corsHeaders: Record<string, string> = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+type RequestCtx = {
+  cors: Record<string, string>;
+  userId: string;
 };
+
+const requestCtx = new AsyncLocalStorage<RequestCtx>();
+
+function corsHeaders(): Record<string, string> {
+  return requestCtx.getStore()?.cors ?? corsHeadersForOrigin(null);
+}
 
 /**
  * When **`OPENAI_ORGANIZATION`** or **`OPENAI_ORG_ID`** is set to **`org-…`** (from
@@ -1657,8 +1666,45 @@ function sanitizeCharacterReferencePhotos(
 function jsonResponse(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
+    headers: { ...corsHeaders(), "Content-Type": "application/json" },
   });
+}
+
+function currentUserId(): string {
+  return requestCtx.getStore()?.userId ?? "";
+}
+
+/** Valid user session only. Anon key and service role are 401, before OpenAI. */
+async function requireSignedInUser(req: Request): Promise<{ userId: string } | Response> {
+  const token = bearerTokenFromHeader(req.headers.get("Authorization"));
+  const anon = (
+    Deno.env.get("SUPABASE_ANON_KEY") ??
+      Deno.env.get("SUPABASE_PUBLISHABLE_KEY") ??
+      ""
+  ).trim();
+  const decision = await authenticateBearer(token, anon, async (jwt) => {
+    const url = (Deno.env.get("SUPABASE_URL") ?? "").trim();
+    if (!url || !anon) return null;
+    const client = createClient(url, anon, {
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false,
+        detectSessionInUrl: false,
+      },
+    });
+    const { data, error } = await client.auth.getUser(jwt);
+    if (error || !data.user?.id) return null;
+    return data.user.id;
+  });
+  if (!decision.ok) {
+    return jsonResponse(
+      { error: decision.error, detail: decision.detail },
+      decision.status,
+    );
+  }
+  const store = requestCtx.getStore();
+  if (store) store.userId = decision.userId;
+  return { userId: decision.userId };
 }
 
 /**
@@ -3259,9 +3305,11 @@ async function insertPendingStorybookJob(
   client: SupabaseClient,
   id: string,
   payload: StorybookRequestBody,
+  userId: string,
 ): Promise<string | null> {
   const { error } = await client.from("storybook_generation_jobs").insert({
     id,
+    user_id: userId,
     status: "pending",
     progress: 0,
     progress_label: "Queued…",
@@ -4950,15 +4998,25 @@ async function handleGenerateCharacter(
   }
 }
 
-Deno.serve(async (req) => {
+async function handleCleverService(req: Request): Promise<Response> {
+  const extraOrigins = Deno.env.get("STORYBOOK_ALLOWED_ORIGINS") ?? "";
+  const cors = corsHeadersForOrigin(req.headers.get("Origin"), extraOrigins);
+  return await requestCtx.run({ cors, userId: "" }, () => handleCleverServiceInner(req));
+}
+
+async function handleCleverServiceInner(req: Request): Promise<Response> {
   console.info("[clever-service]", req.method);
 
   if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
+    return new Response("ok", { headers: corsHeaders() });
   }
 
   // Optional simple proxy for downloading OpenAI images to avoid strict CORS
   if (req.method === "GET") {
+    const authed = await requireSignedInUser(req);
+    if (authed instanceof Response) return authed;
+    const userId = authed.userId;
+
     const searchParams = new URL(req.url).searchParams;
 
     const storybookJobId = searchParams.get("storybook_job")?.trim();
@@ -4973,6 +5031,7 @@ Deno.serve(async (req) => {
           "status,http_status,result_payload,updated_at,progress,progress_label",
         )
         .eq("id", storybookJobId)
+        .eq("user_id", userId)
         .maybeSingle();
       if (error) {
         console.warn("[storybook_job] select", error.message);
@@ -5033,9 +5092,9 @@ Deno.serve(async (req) => {
         
         return new Response(r.body, {
           headers: {
-            ...corsHeaders,
+            ...corsHeaders(),
             "Content-Type": "audio/mpeg",
-            "Cache-Control": "public, max-age=31536000",
+            "Cache-Control": "private, max-age=3600",
           },
         });
       } catch (e) {
@@ -5059,9 +5118,9 @@ Deno.serve(async (req) => {
       }
       return new Response(res.body, {
         headers: {
-          ...corsHeaders,
+          ...corsHeaders(),
           "Content-Type": res.headers.get("Content-Type") || "image/png",
-          "Cache-Control": "public, max-age=31536000",
+          "Cache-Control": "private, max-age=3600",
         },
       });
     } catch (e) {
@@ -5073,6 +5132,10 @@ Deno.serve(async (req) => {
   if (req.method !== "POST") {
     return jsonResponse({ error: "method_not_allowed" }, 405);
   }
+
+  const authedPost = await requireSignedInUser(req);
+  if (authedPost instanceof Response) return authedPost;
+  const postUserId = authedPost.userId;
 
   const apiKey = Deno.env.get("OPENAI_API_KEY");
   if (!apiKey) {
@@ -5145,7 +5208,7 @@ Deno.serve(async (req) => {
     }
     const jobId = crypto.randomUUID();
     const payload = stripStorybookAsyncFields(body);
-    const insErr = await insertPendingStorybookJob(db, jobId, payload);
+    const insErr = await insertPendingStorybookJob(db, jobId, payload, postUserId);
     if (insErr) {
       return jsonResponse(
         { error: "storybook_job_insert_failed", detail: insErr.slice(0, 220) },
@@ -5164,5 +5227,11 @@ Deno.serve(async (req) => {
 
   return await executeStorybookPipeline(apiKey, body);
 
-});
+}
+
+if (Deno.env.get("CLEVER_SERVICE_NO_LISTEN") !== "1") {
+  Deno.serve(handleCleverService);
+}
+
+export { handleCleverService, currentUserId };
    

@@ -64,14 +64,20 @@
     return base + "/functions/v1/" + (slug || "clever-service");
   }
 
-  function fnAuthHeaders() {
-    var c = window.SCORE_CONFIG || window.SCORE_SYNC || {};
-    var key = c.supabaseAnonKey || "";
-    return {
-      "Content-Type": "application/json",
-      Authorization: "Bearer " + key,
-      apikey: key,
-    };
+  var SIGN_IN_MSG =
+    "Sign in with the family password first, then try again.";
+
+  function withUserAccessToken() {
+    return new Promise(function (resolve, reject) {
+      if (!window.EdgeSession || typeof window.EdgeSession.withAccessToken !== "function") {
+        reject(new Error("no_session"));
+        return;
+      }
+      window.EdgeSession.withAccessToken(function (err, token) {
+        if (err || !token) reject(err || new Error("no_session"));
+        else resolve(token);
+      });
+    });
   }
 
   function compressImageFile(file, cb) {
@@ -201,12 +207,24 @@
       payload.referencePhoto = state.photoDataUrl;
     }
 
-    fetch(url, {
-      method: "POST",
-      headers: fnAuthHeaders(),
-      body: JSON.stringify(payload),
-    })
+    withUserAccessToken()
+      .catch(function () {
+        return "";
+      })
+      .then(function (token) {
+        if (!token) {
+          showBusy(false);
+          setModalError(SIGN_IN_MSG);
+          return null;
+        }
+        return fetch(url, {
+          method: "POST",
+          headers: window.EdgeSession.authHeaders(token),
+          body: JSON.stringify(payload),
+        });
+      })
       .then(function (r) {
+        if (!r) return null;
         return r.text().then(function (t) {
           var json = null;
           try {
@@ -215,6 +233,9 @@
             json = null;
           }
           if (!r.ok) {
+            if (r.status === 401 || (json && json.error === "unauthorized")) {
+              throw new Error(SIGN_IN_MSG);
+            }
             var msg = (json && (json.detail || json.error)) || ("HTTP " + r.status);
             throw new Error(msg);
           }
@@ -222,6 +243,7 @@
         });
       })
       .then(function (json) {
+        if (!json) return;
         if (!json || !json.imageData) {
           throw new Error("Empty response from generator.");
         }
