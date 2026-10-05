@@ -316,6 +316,33 @@ globalThis.handleGenerate = async (req) => {
       brain.applyTeacherIntent(ctx, { ok: false, reason: intentError && intentError.category || "error" });
     }
     logMeta({ stage: "TEACHER_INTENT", attemptId, model, intentMs, teacherIntent: intentMeta(ctx) });
+    phase = "KNOWLEDGE_GROUNDING";
+    const packStarted = Date.now();
+    const rawPack = await callModel(brain.knowledgePackBrief(ctx), apiKey, model, 14e3, 0);
+    const packMs = Date.now() - packStarted;
+    const pack = brain.normaliseKnowledgePack(rawPack, ctx);
+    const selection = brain.selectPackForLesson(pack, ctx);
+    logMeta({ stage: "KNOWLEDGE_PACK", attemptId, model, packMs, ...brain.knowledgePackLog(pack, selection) });
+    if (pack.status === "blocked" || selection.status === "blocked") {
+      logMeta({
+        stage: "KNOWLEDGE_BLOCKED",
+        category: "invalid",
+        attemptId,
+        model,
+        packMs,
+        status: pack.status,
+        selection: selection.status,
+        reason: selection.status === "blocked" ? selection.reason : pack.statusReason
+      });
+      return json({
+        ok: false,
+        category: "invalid",
+        stage: "KNOWLEDGE_BLOCKED",
+        meta: { teacherIntent: intentMeta(ctx), knowledgePack: brain.knowledgePackLog(pack, selection) }
+      });
+    }
+    ctx.knowledgePack = pack;
+    ctx.knowledgeSelection = selection;
     phase = "PLAN_REQUEST";
     logMeta({ stage: "PLAN_REQUEST", attemptId, repair: false, model, ...requestMeta(ctx) });
     const planStarted = Date.now();
@@ -401,7 +428,7 @@ globalThis.handleGenerate = async (req) => {
     );
     const framed = Object.assign({}, withStory, { lessonSkeleton: skeleton });
     const learningMap = brain.learningMapReport(planned.plan, skeleton, ctx);
-    logMeta({ stage: "LEARNING_MAP", attemptId, model, ...learningMap });
+    logMeta({ stage: "LEARNING_MAP", attemptId, model, ...learningMap, knowledgeTrace: brain.knowledgeTrace(planned.plan, skeleton, ctx) });
     try {
       const teachingPlan = typeof brain.teachingPlanReport === "function" ? brain.teachingPlanReport(planned.plan, skeleton, ctx) : null;
       if (teachingPlan) logMeta({ stage: "TEACHING_PLAN", attemptId, model, ...teachingPlan });
@@ -542,7 +569,7 @@ globalThis.handleGenerate = async (req) => {
     return json({ ok: false, category: "invalid", stage, issues: (resolved.issues || []).slice(0, 8), meta: { structuralOk: resolved.structuralOk !== false, repairKind: resolved.repairUsed ? "slot" : "none", repairUsed: !!resolved.repairUsed, repairedSlots, applyRepair, durationRepair, ...routeMeta, qualityWarnings, pupilBeatDiagnostics: (resolved.pupilBeatDiagnostics || []).slice(0, 12), slotDiagnostic: diagnostic, diagnosis: trace } });
   } catch (error) {
     const category = error.category || "provider";
-    const stage = category === "parse" ? phase === "PLAN_REQUEST" ? "PLAN_PARSE" : phase === "STORY_REQUEST" ? "STORY_PARSE" : "CONTENT_PARSE" : category === "timeout" ? phase : "AI_REQUEST_FAILED";
+    const stage = category === "parse" ? phase === "PLAN_REQUEST" ? "PLAN_PARSE" : phase === "STORY_REQUEST" ? "STORY_PARSE" : phase === "KNOWLEDGE_GROUNDING" ? "KNOWLEDGE_PARSE" : "CONTENT_PARSE" : category === "timeout" ? phase : "AI_REQUEST_FAILED";
     logMeta({ stage, category, ms: Date.now() - started, repair: false, model, attemptId });
     return json({ ok: false, category: category === "timeout" ? "timeout" : category === "parse" ? "invalid" : "provider", stage });
   }

@@ -102,7 +102,19 @@ global.fetch = function (url, init) {
   var system = body.messages[0].content;
   var user = body.messages[1].content;
   var payload;
-  if (system.indexOf("You interpret one primary teacher's request.") === 0) {
+  if (system.indexOf("You ground subject knowledge") === 0) {
+    payload = {
+      status: "usable",
+      claims: [
+        { text: knowledge[0], depth: "mechanism", kind: "mechanism", confidence: "high", provenance: "model", factuallyVerified: false, ageFit: { from: 1, to: 6 } },
+        { text: knowledge[1], depth: "mechanism", kind: "mechanism", confidence: "high", provenance: "model", factuallyVerified: false, ageFit: { from: 1, to: 6 } },
+        { text: "A shark has fins and a tail.", depth: "concrete", confidence: "high", provenance: "model", factuallyVerified: false, ageFit: { from: 1, to: 6 } },
+        { text: "Fins, tail and gills work together as one system for living in the sea.", depth: "system", confidence: "medium", provenance: "model", factuallyVerified: false, ageFit: { from: 5, to: 6 } }
+      ],
+      concepts: ["shark body"],
+      vocabulary: [{ term: "fin", gloss: "a flat part a shark uses to steer" }]
+    };
+  } else if (system.indexOf("You interpret one primary teacher's request.") === 0) {
     payload = {
       learningGoal: "Understand how a shark body helps it swim.",
       requiredEvidence: "say how fins help a shark turn",

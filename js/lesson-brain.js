@@ -283,6 +283,544 @@
     return ctx;
   }
 
+  var PACK_PROVENANCE = { model: 1, teacher_material: 1, retrieved: 1, curated: 1, curriculum_planning: 1 };
+  var PACK_KIND = { fact: 1, mechanism: 1, definition: 1, process: 1, caveat: 1, concept: 1, example: 1 };
+  var PACK_STRIP = { lessonArc: 1, beats: 1, questions: 1, activities: 1, narrative: 1, narrativeTheme: 1, pupilWording: 1, stages: 1, lessonPlan: 1, interactions: 1 };
+
+  function stableClaimId(text) {
+    var norm = clean(text, 180).toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+    var hash = 5381;
+    var i;
+    for (i = 0; i < norm.length; i++) {
+      hash = ((hash << 5) + hash) ^ norm.charCodeAt(i);
+      hash = hash | 0;
+    }
+    return "c" + (hash >>> 0).toString(36);
+  }
+
+  function claimOverlap(text, corpus) {
+    var left = contentWords(text);
+    if (!left.length) return 0;
+    var right = contentWords(corpus);
+    var shared = 0;
+    left.forEach(function (word) {
+      if (right.some(function (other) { return sameStem(word, other); })) shared += 1;
+    });
+    return shared / left.length;
+  }
+
+  function wordCovered(word, claimWords) {
+    return claimWords.some(function (other) {
+      if (sameStem(word, other)) return true;
+      return word.length >= 4 && other.length >= 4 && word.slice(0, 4) === other.slice(0, 4);
+    });
+  }
+
+  function wordsCovered(text, claims) {
+    var pointWords = contentWords(text);
+    if (!pointWords.length) return false;
+    var claimWords = [];
+    (claims || []).forEach(function (claim) {
+      contentWords(claim && claim.text).forEach(function (word) { claimWords.push(word); });
+    });
+    return pointWords.every(function (word) { return wordCovered(word, claimWords); });
+  }
+
+  function knowledgePackBrief(ctx) {
+    ctx = ctx || {};
+    return {
+      system: [
+        "You ground subject knowledge for one primary lesson. Return one JSON object and nothing else.",
+        "Do not write a lesson, stages, activities, beats, questions, interactions, narrative, or pupil wording.",
+        "Write a knowledge pack with more true claims than one lesson will teach. A later step selects a subset for the year, the goal, and the duration.",
+        "Each claim is one sentence a teacher could check. Include concrete claims a child can observe or name, mechanism claims that say how or why, and system claims that say how several mechanisms work together. Tag depth as concrete, mechanism, or system.",
+        "ageFit is { from, to } using years 1 to 6. Concrete claims can start at Year 1. A simple mechanism may start at Year 2. A harder mechanism starts at Year 3 or 4. A system claim starts at Year 5 or 6. Age fit is metadata. Do not write a different lesson for each year.",
+        "confidence is high, medium, or low. If you are unsure of a name, date, measurement, or local detail, omit that claim. Do not invent it.",
+        "provenance is model, unless the sentence is taken from uploadedMaterialSummary, in which case use teacher_material. Do not use retrieved, curated, or curriculum_planning. This step has no web search, curated pack, or curriculum document.",
+        "factuallyVerified must be false. You cannot verify your own knowledge. teacherRequested is true only when the teacher asked for that specific claim, not because the claim is about the same topic. Teacher material is not automatic truth.",
+        "If the request assumes something false, set falsePremise to a short statement of that assumption. Do not admit the falsehood as a claim. Admit a correction, with correctsPremise true, only when you can state it without guessing. Set status to qualified when a correction is included. Set status to blocked when you cannot correct the premise without guessing, or when teaching the topic would require invented facts.",
+        "status is usable when the claims are ordinary and you are not flagging a premise problem, a contested point, or a thin topic. status is qualified when a claim is contested, the topic is niche or local, confidence is limited, or a false premise was corrected. status is blocked when the pack must not be taught.",
+        "contested is true when historians or scientists still disagree. Put that in uncertainty. Do not present one side as the only fact.",
+        "mechanisms repeats the how or why claims. concepts are short labels, not sentences. vocabulary is words worth knowing, with a short gloss. misconceptions are optional mistakes children make. A misconception is not a fact to teach.",
+        "JSON shape: { status, falsePremise, blockReason, niche, claims: [{ text, kind, depth, confidence, provenance, teacherRequested, factuallyVerified, contested, uncertainty, ageFit: { from, to }, correctsPremise, importance, accepted }], mechanisms: [{ text }], concepts: [], vocabulary: [{ term, gloss }], misconceptions: [{ text, corrects }], openQuestions: [] }."
+      ].join(" "),
+      user: JSON.stringify({
+        request: clean(ctx.lessonText || ctx.teacherInstructions || "", 4000),
+        uploadedMaterialSummary: clean(ctx.uploadedMaterialSummary || "", 4000),
+        yearGroup: clean(ctx.yearGroup, 20),
+        subject: clean(ctx.subject, 40),
+        topic: clean(ctx.topic, 120),
+        requestedMinutes: ctx.requestedMinutes || null,
+        teacherIntent: (ctx.lessonBrief && ctx.lessonBrief.teacherIntent) || null,
+        curriculumContext: "England primary. The curriculum note is planning guidance only. It is not a factual source in this step."
+      })
+    };
+  }
+
+  function packDepth(raw, text, kind) {
+    var given = clean(raw && raw.depth, 20).toLowerCase();
+    if (given === "concrete" || given === "mechanism" || given === "system") return given;
+    if (kind === "mechanism" || kind === "process") return "mechanism";
+    if (/\b(system|cycle|work together|working together)\b/i.test(text)) return "system";
+    if (statesRelation(text) || statesFunction(text)) return "mechanism";
+    return "concrete";
+  }
+
+  function packAgeFit(raw, depth) {
+    var from = depth === "system" ? 5 : (depth === "mechanism" ? 3 : 1);
+    var to = 6;
+    var given = false;
+    var body = raw && typeof raw.ageFit === "object" ? raw.ageFit : null;
+    if (raw && typeof raw.ageFit === "string") {
+      var nums = String(raw.ageFit).match(/[1-6]/g) || [];
+      if (nums.length === 1) { from = to = Number(nums[0]); given = true; }
+      else if (nums.length >= 2) { from = Number(nums[0]); to = Number(nums[1]); given = true; }
+    }
+    if (body) {
+      var start = Number(body.from != null ? body.from : body.min);
+      var end = Number(body.to != null ? body.to : body.max);
+      if (start >= 1 && start <= 6) { from = start; given = true; }
+      if (end >= 1 && end <= 6) { to = end; given = true; }
+    }
+    if (!given) {
+      from = depth === "system" ? 5 : (depth === "mechanism" ? 3 : 1);
+      to = 6;
+    }
+    if (to < from) to = from;
+    return { from: from, to: to };
+  }
+
+  function packProvenance(rawValue, text, ctx) {
+    var asked = clean(rawValue, 40).toLowerCase().replace(/[\s-]+/g, "_");
+    if (asked === "llm" || asked === "parametric") asked = "model";
+    if (asked === "upload" || asked === "teacher") asked = "teacher_material";
+    if (!PACK_PROVENANCE[asked]) asked = "model";
+  var material = clean((ctx && ctx.uploadedMaterialSummary) || "", 8000);
+  var fromMaterial = !!(material && claimOverlap(text, material) >= 0.6);
+  var ignored = "";
+  if (asked === "retrieved" || asked === "curated" || asked === "curriculum_planning") {
+    ignored = asked;
+    asked = "model";
+  }
+  if (fromMaterial) {
+    return {
+      provenance: "teacher_material",
+      provenanceNote: "teacher-material/unverified" + (ignored ? "; ignored " + ignored + " label" : "")
+    };
+  }
+  if (asked === "teacher_material" || ignored) {
+    var note = ignored
+      ? "downgraded from " + ignored + ": phase 1 has no external source; model-originated/unverified"
+      : "downgraded: the claim is not in the teacher material; model-originated/unverified";
+    return { provenance: "model", provenanceNote: note };
+  }
+  return { provenance: "model", provenanceNote: "model-originated/unverified" };
+}
+
+  function teacherAskedClaim(rawFlag, text, ctx) {
+    var request = clean((ctx && (ctx.lessonText || ctx.teacherInstructions)) || "", 4000);
+    var words = contentWords(text);
+    var flagged = rawFlag === true || String(rawFlag).toLowerCase() === "true";
+    if (words.length >= 2 && claimOverlap(text, request) >= 0.75) return true;
+    var intent = (ctx && ctx.lessonBrief && ctx.lessonBrief.teacherIntent) || {};
+    var focus = (intent.focusConcepts || []).concat(intent.learningGoal ? [intent.learningGoal] : []).join(" ");
+    return !!(flagged && words.length >= 2 && claimOverlap(text, focus) >= 0.75);
+  }
+
+  function affirmsPremise(text, premise) {
+    if (!premise) return false;
+    if (/\b(not|never|aren't|isn't|cannot|can't)\b/i.test(text)) return false;
+    var premiseWords = contentWords(premise);
+    var claimWords = contentWords(text);
+    if (premiseWords.length < 2 || !claimWords.length) return false;
+    var shared = 0;
+    premiseWords.forEach(function (word) {
+      if (claimWords.some(function (other) { return sameStem(word, other); })) shared += 1;
+    });
+    return shared >= Math.min(2, premiseWords.length) && shared / premiseWords.length >= 0.6;
+  }
+
+  function claimCandidates(raw) {
+    var out = [];
+    function push(item, fallbackKind, fallbackDepth) {
+      if (!item) return;
+      if (typeof item === "string") {
+        out.push({ text: item, kind: fallbackKind, depth: fallbackDepth });
+        return;
+      }
+      if (typeof item !== "object") return;
+      var copy = {};
+      var key;
+      for (key in item) copy[key] = item[key];
+      copy.text = item.text || item.claim || item.statement || item.knowledge || "";
+      if (!copy.kind && fallbackKind) copy.kind = fallbackKind;
+      if (!copy.depth && fallbackDepth) copy.depth = fallbackDepth;
+      out.push(copy);
+    }
+    var claims = Array.isArray(raw && raw.claims) ? raw.claims : [];
+    var mechanisms = Array.isArray(raw && raw.mechanisms) ? raw.mechanisms : [];
+    claims.forEach(function (item) { push(item, "fact", ""); });
+    mechanisms.forEach(function (item) { push(item, "mechanism", "mechanism"); });
+    return out.slice(0, 24);
+  }
+
+  function normaliseKnowledgePack(raw, ctx) {
+    ctx = ctx || {};
+    var body = raw && typeof raw === "object" ? raw : {};
+    var stripped = [];
+    Object.keys(PACK_STRIP).forEach(function (key) {
+      if (body[key] != null) stripped.push(key);
+    });
+    var falsePremise = clean(body.falsePremise || body.false_premise || "", 200);
+    var rejected = [];
+    var seen = {};
+    var overrides = 0;
+    var claims = [];
+    claimCandidates(body).forEach(function (item) {
+      var text = clean(item.text, 180);
+      if (!text || text.length < 8) return;
+      var key = text.toLowerCase();
+      if (item.accepted === false || String(item.status || "").toLowerCase() === "rejected") {
+        rejected.push({ text: text, reason: "not accepted" });
+        return;
+      }
+      if (affirmsPremise(text, falsePremise)) {
+        rejected.push({ text: text, reason: "false premise" });
+        return;
+      }
+      if (seen[key]) return;
+      seen[key] = 1;
+      var kind = clean(item.kind, 20).toLowerCase();
+      if (!PACK_KIND[kind]) kind = "fact";
+      var depth = packDepth(item, text, kind);
+      var origin = packProvenance(item.provenance || item.origin, text, ctx);
+      var verifiedFlag = item.factuallyVerified === true || String(item.factuallyVerified).toLowerCase() === "true" || item.verified === true;
+      if (verifiedFlag) overrides += 1;
+      var importance = clean(item.importance, 20).toLowerCase();
+      if (importance !== "supporting" && importance !== "optional") importance = "core";
+      var confidence = clean(item.confidence, 20).toLowerCase();
+      if (confidence !== "high" && confidence !== "medium" && confidence !== "low") confidence = "medium";
+      claims.push({
+        claimId: stableClaimId(text),
+        text: text,
+        kind: kind,
+        depth: depth,
+        confidence: confidence,
+        provenance: origin.provenance,
+        provenanceNote: origin.provenanceNote,
+        teacherRequested: teacherAskedClaim(item.teacherRequested, text, ctx),
+        factuallyVerified: false,
+        contested: item.contested === true || String(item.contested).toLowerCase() === "true",
+        uncertainty: clean(item.uncertainty, 140),
+        ageFit: packAgeFit(item, depth),
+        correctsPremise: item.correctsPremise === true || String(item.correctsPremise).toLowerCase() === "true",
+        importance: importance
+      });
+    });
+    var used = {};
+    claims.forEach(function (claim) {
+      if (!used[claim.claimId]) { used[claim.claimId] = 1; return; }
+      var n = 2;
+      while (used[claim.claimId + n]) n += 1;
+      claim.claimId = claim.claimId + n;
+      used[claim.claimId] = 1;
+    });
+    var mechanisms = claims.filter(function (claim) {
+      return claim.depth === "mechanism" || claim.kind === "mechanism" || claim.kind === "process";
+    }).map(function (claim) {
+      return { claimId: claim.claimId, text: claim.text };
+    });
+    var concepts = (Array.isArray(body.concepts) ? body.concepts : []).map(function (item) {
+      return clean(typeof item === "string" ? item : (item && (item.term || item.label || item.text)) || "", 40);
+    }).filter(function (text) {
+      return text && text.split(/\s+/).length <= 6 && text.indexOf(".") === -1;
+    }).slice(0, 8);
+    var vocabulary = (Array.isArray(body.vocabulary) ? body.vocabulary : []).map(function (item) {
+      if (typeof item === "string") return { term: clean(item, 40), gloss: "" };
+      return { term: clean(item && (item.term || item.word), 40), gloss: clean(item && (item.gloss || item.definition), 120) };
+    }).filter(function (item) { return item.term; }).slice(0, 8);
+    var misconceptions = (Array.isArray(body.misconceptions) ? body.misconceptions : []).map(function (item, index) {
+      var text = clean(typeof item === "string" ? item : (item && (item.text || item.mistake)) || "", 160);
+      if (!text) return null;
+      var hint = clean(item && (item.corrects || item.correction || item.correctClaimId) || "", 180);
+      var claimId = "";
+      claims.forEach(function (claim) {
+        if (claimId) return;
+        if (hint && (claim.claimId === hint || claimOverlap(hint, claim.text) >= 0.6)) claimId = claim.claimId;
+      });
+      return { id: "m" + (index + 1), text: text, correctsClaimId: claimId };
+    }).filter(Boolean).slice(0, 6);
+    var modelStatus = clean(body.status, 20).toLowerCase();
+    if (modelStatus !== "usable" && modelStatus !== "qualified" && modelStatus !== "blocked") modelStatus = "";
+    var qualifiers = [];
+    if (falsePremise) qualifiers.push(claims.length ? "false premise removed from the claims" : "false premise and no correction");
+    if (claims.some(function (claim) { return claim.contested; })) qualifiers.push("contested claims stay in the pack and out of the lesson");
+    if (claims.length && claims.every(function (claim) { return claim.confidence === "low"; })) qualifiers.push("every claim is low confidence");
+    if (body.niche === true || String(body.niche).toLowerCase() === "true") qualifiers.push("niche topic; model knowledge is unverified");
+    if (claims.length && claims.length < 3) qualifiers.push("thin pack");
+    var status = "usable";
+    var statusReason = "Enough claims to select from. Every claim is still unverified.";
+    if (!claims.length) {
+      status = "blocked";
+      statusReason = clean(body.blockReason, 200) || (falsePremise ? "false premise and no claims that can be taught" : "no admitted claims");
+    } else if (modelStatus === "blocked") {
+      status = "blocked";
+      statusReason = clean(body.blockReason, 200) || "the pack is blocked and must not be taught";
+    } else if (qualifiers.length || modelStatus === "qualified") {
+      status = "qualified";
+      statusReason = qualifiers.join("; ") || clean(body.blockReason, 200) || "the pack can be selected only with the recorded limits";
+    }
+    var idSource = claims.map(function (claim) { return claim.claimId; }).join(".");
+    return {
+      id: "kp_" + stableClaimId(idSource || clean(body.topic || (ctx && ctx.topic) || "empty", 80)).slice(1),
+      version: 1,
+      phase: 1,
+      topic: clean(body.topic || (ctx && ctx.topic) || "", 120),
+      subject: clean(body.subject || (ctx && ctx.subject) || "", 40),
+      status: status,
+      statusReason: statusReason,
+      modelStatus: modelStatus,
+      falsePremise: falsePremise,
+      provenanceSummary: "Phase 1: no claim is factually verified. Model-originated claims are unverified. Teacher material is not treated as truth. Retrieved, curated, and curriculum origins are not available in this phase.",
+      verificationOverrides: overrides,
+      claims: claims,
+      mechanisms: mechanisms,
+      concepts: concepts,
+      vocabulary: vocabulary,
+      misconceptions: misconceptions,
+      openQuestions: phraseList(body.openQuestions, 160, 4),
+      rejectedClaims: rejected.slice(0, 8),
+      strippedFields: stripped
+    };
+  }
+
+  function selectPackForLesson(pack, ctx) {
+    ctx = ctx || {};
+    pack = pack || {};
+    var year = Number(yearDigit(ctx.yearGroup || ctx.yearAssumption || (ctx.lessonBrief && ctx.lessonBrief.yearGroup))) || 0;
+    if (!year) year = ctx.yearAssumed ? 3 : 3;
+    var mode = year <= 2 ? "concrete" : (year <= 4 ? "mechanism" : "system");
+    if (!pack.claims || !pack.claims.length || pack.status === "blocked") {
+      return {
+        status: "blocked",
+        reason: pack.status === "blocked" ? (pack.statusReason || "knowledge pack is blocked") : "no claims to select",
+        depthMode: mode,
+        year: year,
+        claimIds: [],
+        heldBack: (pack.claims || []).map(function (claim) { return { claimId: claim.claimId, reason: "pack blocked" }; })
+      };
+    }
+    var held = [];
+    var eligible = [];
+    pack.claims.forEach(function (claim) {
+      var fit = claim.ageFit || { from: 1, to: 6 };
+      if (year < fit.from || year > fit.to) {
+        held.push({ claimId: claim.claimId, depth: claim.depth, reason: "outside age fit" });
+        return;
+      }
+      if (claim.contested) {
+        held.push({ claimId: claim.claimId, depth: claim.depth, reason: "contested" });
+        return;
+      }
+      if (claim.importance === "optional") {
+        held.push({ claimId: claim.claimId, depth: claim.depth, reason: "optional" });
+        return;
+      }
+      var depthOk = false;
+      if (mode === "concrete") depthOk = claim.depth === "concrete" || (claim.depth === "mechanism" && fit.from <= 2);
+      else if (mode === "mechanism") depthOk = claim.depth === "concrete" || claim.depth === "mechanism";
+      else depthOk = claim.depth === "concrete" || claim.depth === "mechanism" || claim.depth === "system";
+      if (!depthOk) {
+        held.push({ claimId: claim.claimId, depth: claim.depth, reason: "other depth" });
+        return;
+      }
+      eligible.push(claim);
+    });
+    var confidenceRank = { high: 0, medium: 1, low: 2 };
+    var depthRank = { concrete: 0, mechanism: 1, system: 2 };
+    eligible.sort(function (a, b) {
+      return (depthRank[a.depth] || 0) - (depthRank[b.depth] || 0) || (confidenceRank[a.confidence] || 1) - (confidenceRank[b.confidence] || 1) || (a.claimId < b.claimId ? -1 : 1);
+    });
+    var strong = eligible.filter(function (claim) { return claim.confidence !== "low"; });
+    if (strong.length >= 2) {
+      eligible.filter(function (claim) { return claim.confidence === "low"; }).forEach(function (claim) {
+        held.push({ claimId: claim.claimId, depth: claim.depth, reason: "low confidence" });
+      });
+      eligible = strong;
+    }
+    var hasPrimary = eligible.some(function (claim) {
+      if (mode === "concrete") return claim.depth === "concrete" || claim.depth === "mechanism";
+      return claim.depth === mode;
+    });
+    var status = "ready";
+    var reason = "";
+    if (!hasPrimary) {
+      status = eligible.length >= 2 ? "qualified" : "blocked";
+      reason = "The pack has no " + mode + " claim that fits Year " + year + ".";
+    } else if (eligible.length < 2) {
+      status = "blocked";
+      reason = "Not enough claims fit Year " + year + " without inventing facts.";
+    } else if (mode === "concrete") {
+      reason = "Year " + year + " selects concrete claims, and a mechanism only when its age fit starts at Year 2 or earlier. System claims stay in the pack.";
+    } else if (mode === "mechanism") {
+      reason = "Year " + year + " selects concrete claims and mechanisms. System claims stay in the pack.";
+    } else {
+      reason = "Year " + year + " selects concrete claims, mechanisms, and system claims. Younger years do not receive the system claims.";
+    }
+    if (pack.status === "qualified" && status === "ready") status = "qualified";
+    return {
+      status: status,
+      reason: reason,
+      depthMode: mode,
+      year: year,
+      claimIds: eligible.map(function (claim) { return claim.claimId; }),
+      heldBack: held
+    };
+  }
+
+  function packForPlanner(pack) {
+    pack = pack || {};
+    return {
+      id: pack.id,
+      status: pack.status,
+      statusReason: pack.statusReason,
+      falsePremise: pack.falsePremise || "",
+      provenanceSummary: pack.provenanceSummary,
+      claims: (pack.claims || []).map(function (claim) {
+        return {
+          claimId: claim.claimId,
+          text: claim.text,
+          kind: claim.kind,
+          depth: claim.depth,
+          confidence: claim.confidence,
+          provenance: claim.provenance,
+          provenanceNote: claim.provenanceNote,
+          teacherRequested: !!claim.teacherRequested,
+          factuallyVerified: false,
+          contested: !!claim.contested,
+          uncertainty: claim.uncertainty || "",
+          ageFit: claim.ageFit,
+          importance: claim.importance,
+          correctsPremise: !!claim.correctsPremise
+        };
+      }),
+      mechanisms: pack.mechanisms || [],
+      concepts: pack.concepts || [],
+      vocabulary: pack.vocabulary || [],
+      misconceptions: pack.misconceptions || [],
+      rejectedClaims: pack.rejectedClaims || [],
+      doNotTeach: (pack.rejectedClaims || []).map(function (item) { return item.text; }).concat(pack.falsePremise ? [pack.falsePremise] : []).slice(0, 8)
+    };
+  }
+
+  function packConstraint(ctx) {
+    if (!ctx || !ctx.knowledgePack || ctx.knowledgePack.status === "blocked" || !(ctx.knowledgePack.claims || []).length) return "";
+    return "knowledgePack.claims is the only source of subject facts. Each learningMap point must include claimIds, an array of claimId values from that pack. knowledgeSelection.claimIds are the only claims eligible for this year, intent, and duration. The knowledge sentence may shorten the cited claim. It must not add a subject fact, name, date, measurement, or mechanism that the cited claim does not already state. The pack holds more claims than this lesson should teach. Select a subset that fits the depth budget. knowledgeSelection.depthMode is concrete, mechanism, or system: concrete names what a child can observe, mechanism says how or why a part works, and system says how several mechanisms work together. Do not satisfy an older year by writing longer words for the same claim. Do not teach falsePremise, doNotTeach, or rejectedClaims. narrativeTheme may be imaginative. The learning map may not invent facts.";
+  }
+
+  function knowledgePackLog(pack, selection) {
+    pack = pack || {};
+    selection = selection || {};
+    return {
+      packId: pack.id || "",
+      status: pack.status || "",
+      statusReason: clean(pack.statusReason, 220),
+      modelStatus: pack.modelStatus || "",
+      falsePremise: clean(pack.falsePremise, 180),
+      provenanceSummary: clean(pack.provenanceSummary, 280),
+      verificationOverrides: pack.verificationOverrides || 0,
+      claimCount: (pack.claims || []).length,
+      claims: (pack.claims || []).slice(0, 18).map(function (claim) {
+        return {
+          claimId: claim.claimId,
+          text: clean(claim.text, 180),
+          kind: claim.kind,
+          depth: claim.depth,
+          confidence: claim.confidence,
+          provenance: claim.provenance,
+          provenanceNote: clean(claim.provenanceNote, 140),
+          teacherRequested: !!claim.teacherRequested,
+          factuallyVerified: false,
+          contested: !!claim.contested,
+          uncertainty: clean(claim.uncertainty, 120),
+          ageFit: claim.ageFit || null,
+          importance: claim.importance || "",
+          correctsPremise: !!claim.correctsPremise
+        };
+      }),
+      mechanisms: (pack.mechanisms || []).slice(0, 12).map(function (item) {
+        return { claimId: item.claimId, text: clean(item.text, 160) };
+      }),
+      concepts: (pack.concepts || []).slice(0, 8),
+      vocabulary: (pack.vocabulary || []).slice(0, 8),
+      misconceptions: (pack.misconceptions || []).slice(0, 6),
+      openQuestions: (pack.openQuestions || []).slice(0, 4),
+      rejectedClaims: (pack.rejectedClaims || []).slice(0, 8),
+      strippedFields: pack.strippedFields || [],
+      selection: {
+        status: selection.status || "",
+        reason: clean(selection.reason, 240),
+        depthMode: selection.depthMode || "",
+        year: selection.year || 0,
+        claimIds: (selection.claimIds || []).slice(0, 18),
+        heldBack: (selection.heldBack || []).slice(0, 18)
+      }
+    };
+  }
+
+  function knowledgeTrace(plan, slots, ctx) {
+    plan = plan || {};
+    ctx = ctx || {};
+    var pack = ctx.knowledgePack || {};
+    var byClaim = {};
+    (pack.claims || []).forEach(function (claim) { byClaim[claim.claimId] = claim; });
+    var byPoint = {};
+    (plan.learningMap || []).forEach(function (item) { byPoint[item.id] = item; });
+    function claimsFor(refs) {
+      var ids = [];
+      (refs || []).forEach(function (ref) {
+        var point = byPoint[ref];
+        ((point && point.claimIds) || []).forEach(function (id) {
+          if (ids.indexOf(id) === -1) ids.push(id);
+        });
+      });
+      return ids;
+    }
+    var beats = [];
+    (slots || []).forEach(function (slot) {
+      if (!slot) return;
+      (slot.beats || []).forEach(function (beat) {
+        if (beats.length >= 40) return;
+        beats.push({
+          stage: slot.id,
+          beatId: beat.id,
+          move: beat.move,
+          mapIds: (beat.knowledgeRefs || []).slice(0, 4),
+          claimIds: claimsFor(beat.knowledgeRefs).slice(0, 4)
+        });
+      });
+    });
+    return {
+      packId: pack.id || "",
+      packStatus: pack.status || "",
+      provenanceSummary: clean(pack.provenanceSummary, 280),
+      depthMode: (ctx.knowledgeSelection && ctx.knowledgeSelection.depthMode) || "",
+      depthReason: clean((ctx.knowledgeSelection && ctx.knowledgeSelection.reason) || "", 240),
+      map: (plan.learningMap || []).slice(0, 14).map(function (item) {
+        return {
+          mapId: item.id,
+          knowledge: clean(item.knowledge, 160),
+          claimIds: (item.claimIds || []).slice(0, 4),
+          provenance: (item.claimIds || []).map(function (id) { return byClaim[id] ? byClaim[id].provenance : ""; }).slice(0, 4),
+          factuallyVerified: false
+        };
+      }),
+      teach: beats.filter(function (beat) { return beat.stage === "teach"; }).slice(0, 24),
+      apply: beats.filter(function (beat) { return beat.stage === "apply"; }),
+      check: beats.filter(function (beat) { return beat.stage === "check"; })
+    };
+  }
+
   function knowledgeLines(ctx) {
     return ((ctx && ctx.lessonPlan && ctx.lessonPlan.keyKnowledge) || []).map(function (item) {
       if (typeof item === "string") return item;
@@ -401,7 +939,7 @@
     var copy = {};
     var key;
     for (key in ctx) {
-      if (key === "organisationId" || key === "classId") continue;
+      if (key === "organisationId" || key === "classId" || key === "knowledgePack" || key === "knowledgeSelection") continue;
       copy[key] = ctx[key];
     }
     if (copy.lessonPlan) copy.lessonPlan = publishPlan(copy.lessonPlan);
@@ -434,6 +972,11 @@
 
   function planBrief(ctx) {
     var safe = forModel(ctx || {});
+    var packNote = packConstraint(ctx);
+    if (packNote) {
+      safe.knowledgePack = packForPlanner(ctx.knowledgePack);
+      safe.knowledgeSelection = ctx.knowledgeSelection || null;
+    }
     var depth = depthBudget((ctx || {}).yearGroup || (ctx || {}).yearAssumption, (ctx || {}).requestedMinutes);
     var system = [
       "You are planning one primary lesson. This response is the internal lesson plan only.",
@@ -450,7 +993,7 @@
       "vocabulary is only the words worth teaching at this age.",
       "lessonBrief.intent says whether this lesson is why, process, compare, definition, procedure, or explain. When lessonBrief.teacherIntent is present, lessonBrief.learningGoal is the only new teaching target, lessonBrief.focusConcepts are the ideas to teach, lessonBrief.priorKnowledge is already known and may be the starting point, and lessonBrief.exclusions must not be retaught. lessonBrief.teacherIntent.requiredEvidence says what a correct check must show. It is not an extra learning point. lessonBrief.preferences and the duration are presentation, not learning points. Do not turn prior knowledge or an exclusion into the lesson target.",
       "When teacherIntent is absent, lessonBrief.concepts are the ideas to teach. Do not treat words such as between, difference, why, or how as the concept.",
-      "Each learningMap point is { id, knowledge, role, importance, dependsOn }. id is p1, p2, and so on. role is foundation, feature, concept, function, cause, effect, mechanism, process, procedure, comparison, example, or connection. A role is only a label: a sentence of six words or a place does not become a cause, function, or process because of its role. The sentence itself must state the relationship. A connection point says how earlier points work together. An example point shows an earlier point in use.",
+      "Each learningMap point is { id, knowledge, role, importance, dependsOn" + (packNote ? ", claimIds" : "") + " }. id is p1, p2, and so on. role is foundation, feature, concept, function, cause, effect, mechanism, process, procedure, comparison, example, or connection. A role is only a label: a sentence of six words or a place does not become a cause, function, or process because of its role. The sentence itself must state the relationship. A connection point says how earlier points work together. An example point shows an earlier point in use.",
       "lessonArc purpose must be exactly one of these words: hook, investigate, teach, apply, check, resolution, recap. Do not write a sentence as the purpose. The system decides which learning points are taught, in what order, and which are checked, and places them on the teach stage and the recap. The hook and the investigate stage must not contain them.",
       "Age changes the plan: vocabulary, how long the sentences are, how deep the explanation goes, the examples, and how hard the reasoning is. Year 1 and Year 2 key knowledge stays in everyday words.",
       "If yearAssumed is true, plan for yearAssumption and say so in yearGroup. Do not pretend the teacher named that year.",
@@ -458,7 +1001,7 @@
       "teachingApproach is two sentences on how to teach this subject. narrativeTheme is a light classroom frame, or an empty string if a story frame would get in the way.",
       subjectGuide(safe.subject, (safe.lessonBrief && safe.lessonBrief.topic) || safe.topic),
       "JSON shape: { title, subject, topic, yearGroup, durationMinutes, learningObjective, successCriteria, priorKnowledge, learningMap: [{ id, knowledge, role, importance, dependsOn }], vocabulary, misconceptions, teachingApproach, narrativeTheme, lessonArc: [{ purpose, learningRole, concept }] }."
-    ].join(" ");
+    ].concat(packNote ? [packNote] : []).join(" ");
     return { system: system, user: JSON.stringify(safe) };
   }
 
@@ -986,7 +1529,8 @@
           knowledge: clean(item.knowledge, 140),
           role: item.role || "",
           importance: item.importance || "",
-          dependsOn: (item.dependsOn || []).slice(0, 6)
+          dependsOn: (item.dependsOn || []).slice(0, 6),
+          claimIds: (item.claimIds || []).slice(0, 4)
         };
       }),
       admitted: map.map(function (item) { return item.id; }).slice(0, 14),
@@ -2573,7 +3117,7 @@
     shape.push("Each slot already has minutes, minimumParticipation, and contentDepth. A slot without beats meets that participation with short spoken lines. A slot with beats meets it only through the planned beat texts. Do not add a lines array beside beats. Do not pad a slot into a long paragraph.");
     var system = shape.concat([
       "hook creates one concrete unsolved problem the class can picture and must not reveal the answer. It is not an empty question such as what lives here or what this lesson is about. investigate asks the class to look, using the slot's interactionIntent. It must not explain the answer and it must not be a pupil spin. teach states every requiredKnowledge fact in short sentences this age can hear. A name sentence says what the thing is. An explain sentence says how or why in new words. Do not leave the teaching as only a list of names. apply must make the pupil use at least one requiredKnowledge item through the slot's interactionIntent, on a new case the teach slot did not already answer. The instruction is a pupil choice that needs the taught idea, such as a short question with real choices or three lesson choices. Do not ask the class only to talk, show, or demonstrate. Do not say sort the cards, match the cards, or drag. instruction is that task. On a legacy apply slot, knowledgeUsed names the requiredKnowledge item the task uses. On an apply slot with beats, do not return knowledgeUsed. successCondition says what a finished action shows. teachingConnection says how the task follows the teaching. Sort the cards, move this, or put these in order is not an apply task unless the taught idea is in the instruction. Choosing a pupil is not the apply slot. check comes after teaching and assesses teacherIntent.requiredEvidence for teacherIntent.learningGoal. A correct answer must be sufficient evidence of requiredEvidence. When the evidence or the retrieve beat's knowledge names more than one necessary part, the correct answer must include every part. Naming only one part leaves the check partial. One stage, one side, one component, a label, or a definition is not enough unless requiredEvidence itself asks only for that. knowledgeChecked names the learning the question tests. successEvidence says what a correct answer shows. teachingConnection says how the question follows the required evidence. Keep the question as easy to read as the year group. resolution is the mission outcome after the check. recap states the taught facts clearly, including the how or why when that was taught, in sentences a pupil could say back. Do not say that the screen is a recap or a mystery.",
-      "A stage with mayRevealAnswer false must not state requiredKnowledge and must not use because, caused by, or due to. Do not add a fact that is not in keyKnowledge.",
+      "A stage with mayRevealAnswer false must not state requiredKnowledge and must not use because, caused by, or due to. Do not add a fact that is not in keyKnowledge. When the plan records knowledgeGrounding, those keyKnowledge sentences are the lesson's selection from the knowledge pack. A story may invent the mission and the characters. It must not invent a subject fact.",
       "For a why lesson, the check correct answer is the cause, reason, or process in keyKnowledge. The visible outcome can be the question or a wrong choice.",
       "When teacherIntent is present, paraphrase the learning goal and the focus concepts. Do not make the class meet preference words, duration words, prior-knowledge labels, or exclusions. Otherwise lessonBrief.concepts are the ideas the class must meet. Do not treat between, difference, why, or how as ideas to teach.",
       "storyPlan is the setting and the mission. Do not turn the lesson into a lesson about stories unless lessonBrief.topic is about stories.",
@@ -2892,7 +3436,10 @@
         ? "Replace only the insufficient learningMap points. Keep the points that already lead to the goal and keep their dependsOn links. Do not paraphrase one idea into several points. Do not add trivia or a nearby fact that leads nowhere. Do not return the failed sentences unchanged. The new sentences must be the knowledge a pupil of this year would say back to achieve the learningGoal. A connector word does not repair a sentence. because, which meant, led to, therefore, significant, and important count only when the words around them are the missing fact. 'It was significant', 'it had an influence', 'it led to changes', 'it had an impact', or 'it is essential' is not that fact. Missing relationship: " + relationship.join(" ")
         : ""
     ].filter(Boolean).join(" ");
-    brief.user = JSON.stringify({
+    if (ctx && ctx.knowledgePack && ctx.knowledgePack.status !== "blocked") {
+      instruction += " Every learningMap point must include claimIds copied from knowledgePack.claims. The sentence may shorten that claim. It must not add a subject fact the claim does not state. Do not teach falsePremise, doNotTeach, or rejectedClaims.";
+    }
+    var repairPayload = {
       learningGoal: goal,
       requiredEvidence: requiredEvidenceOf(ctx) || clean((ctx && ctx.lessonBrief && ctx.lessonBrief.requiredEvidence) || "", 280),
       focusConcepts: (intent.focusConcepts || (ctx && ctx.lessonBrief && ctx.lessonBrief.focusConcepts) || []).slice(0, 4),
@@ -2904,7 +3451,12 @@
       previous: previous || null,
       lesson: forModel(ctx),
       instruction: instruction
-    });
+    };
+    if (ctx && ctx.knowledgePack && ctx.knowledgePack.status !== "blocked") {
+      repairPayload.knowledgePack = packForPlanner(ctx.knowledgePack);
+      repairPayload.knowledgeSelection = ctx.knowledgeSelection || null;
+    }
+    brief.user = JSON.stringify(repairPayload);
     return brief;
   }
 
@@ -3247,6 +3799,85 @@
     return kind;
   }
 
+  function claimIdList(value) {
+    var source = Array.isArray(value) ? value : (value ? [value] : []);
+    var out = [];
+    source.forEach(function (item) {
+      var id = clean(typeof item === "string" ? item : (item && item.claimId) || "", 24);
+      if (!id || !/^c[a-z0-9]+$/i.test(id) || out.indexOf(id) !== -1) return;
+      out.push(id);
+    });
+    return out.slice(0, 4);
+  }
+
+  function eligibleClaims(ctx) {
+    var pack = ctx && ctx.knowledgePack;
+    var claims = (pack && pack.claims) || [];
+    var ids = ctx && ctx.knowledgeSelection && ctx.knowledgeSelection.claimIds;
+    if (ids && ids.length) {
+      var allow = {};
+      ids.forEach(function (id) { allow[id] = 1; });
+      return claims.filter(function (claim) { return allow[claim.claimId]; });
+    }
+    return claims.filter(function (claim) { return !claim.contested; });
+  }
+
+  function repeatsRejected(text, pack) {
+    return (pack.rejectedClaims || []).some(function (item) {
+      if (claimOverlap(text, item.text) < 0.75) return false;
+      if (/\b(not|never|aren't|isn't|cannot|can't)\b/i.test(text) && !/\b(not|never|aren't|isn't|cannot|can't)\b/i.test(item.text)) return false;
+      return claimOverlap(item.text, text) >= 0.6;
+    });
+  }
+
+  function bindRowToPack(row, ctx) {
+    var pack = ctx.knowledgePack;
+    if (repeatsRejected(row.text, pack)) return { ok: false, reason: "rejected claim is not a fact" };
+    var known = {};
+    (pack.claims || []).forEach(function (claim) { known[claim.claimId] = claim; });
+    var eligible = eligibleClaims(ctx);
+    var allow = {};
+    eligible.forEach(function (claim) { allow[claim.claimId] = claim; });
+    var cited = row.claimIds || [];
+    var knownCited = cited.filter(function (id) { return known[id]; });
+    var eligibleCited = knownCited.filter(function (id) { return allow[id]; });
+    if (knownCited.length && !eligibleCited.length) return { ok: false, reason: "claim not selected for this year" };
+    if (eligibleCited.length) {
+      var citedClaims = eligibleCited.map(function (id) { return allow[id]; });
+      if (!wordsCovered(row.text, citedClaims)) return { ok: false, reason: "invented fact outside the knowledge pack" };
+      return { ok: true, claimIds: eligibleCited };
+    }
+    var match = null;
+    eligible.forEach(function (claim) {
+      if (match) return;
+      if (wordsCovered(row.text, [claim])) match = claim;
+    });
+    if (!match) return { ok: false, reason: "invented fact outside the knowledge pack" };
+    return { ok: true, claimIds: [match.claimId] };
+  }
+
+  function groundingOnPlan(ctx, items) {
+    if (!ctx || !ctx.knowledgePack || ctx.knowledgePack.status === "blocked") return null;
+    var byClaim = {};
+    (ctx.knowledgePack.claims || []).forEach(function (claim) { byClaim[claim.claimId] = claim; });
+    return {
+      packId: ctx.knowledgePack.id,
+      status: ctx.knowledgePack.status,
+      provenanceSummary: ctx.knowledgePack.provenanceSummary,
+      premiseCorrected: !!ctx.knowledgePack.falsePremise,
+      depthMode: (ctx.knowledgeSelection && ctx.knowledgeSelection.depthMode) || "",
+      depthReason: (ctx.knowledgeSelection && ctx.knowledgeSelection.reason) || "",
+      selectedClaimIds: ((ctx.knowledgeSelection && ctx.knowledgeSelection.claimIds) || []).slice(),
+      points: (items || []).map(function (item) {
+        return {
+          mapId: item.id,
+          claimIds: (item.claimIds || []).slice(),
+          provenance: (item.claimIds || []).map(function (id) { return byClaim[id] ? byClaim[id].provenance : ""; })
+        };
+      })
+    };
+  }
+
   function mapProposals(parsed) {
     var map = Array.isArray(parsed && parsed.learningMap) && parsed.learningMap.length ? parsed.learningMap : null;
     var legacy = parsed && parsed.keyKnowledge;
@@ -3266,6 +3897,7 @@
         label: label,
         importance: clean(object && raw.importance, 20).toLowerCase() === "supporting" ? "supporting" : "core",
         needs: object && Array.isArray(raw.dependsOn) ? raw.dependsOn.map(function (dep) { return clean(dep, 24); }).filter(Boolean) : [],
+        claimIds: object ? claimIdList(raw.claimIds || raw.claimId) : [],
         index: rows.length
       };
       if (!byKey[row.key]) byKey[row.key] = row;
@@ -3582,7 +4214,16 @@
     var proposal = mapProposals(parsed);
     var rejected = [];
     var unique = [];
+    var packOn = !!(ctx.knowledgePack && ctx.knowledgePack.status !== "blocked" && (ctx.knowledgePack.claims || []).length);
     proposal.rows.forEach(function (row) {
+      if (packOn) {
+        var bound = bindRowToPack(row, ctx);
+        if (!bound.ok) {
+          rejected.push({ knowledge: row.text, reason: bound.reason });
+          return;
+        }
+        row.claimIds = bound.claimIds;
+      }
       var twin = unique.filter(function (kept) { return mapRestates(kept, row, goal); })[0];
       if (twin) {
         row.merged = twin;
@@ -3661,6 +4302,7 @@
         role: row.role || KIND_ROLE[row.kind] || "fact",
         importance: row.importance,
         dependsOn: row.deps.filter(function (dep) { return chosen.indexOf(dep) !== -1; }).map(function (dep) { return idOf[dep.key + "#" + dep.index]; }),
+        claimIds: (row.claimIds || []).slice(),
         answers: !!row.answers
       };
     });
@@ -3755,6 +4397,12 @@
     }
     if (!parsed || typeof parsed !== "object") return { ok: false, issues: ["The lesson plan was not valid structured data."] };
     if (parsed.lessonPlan && typeof parsed.lessonPlan === "object") parsed = parsed.lessonPlan;
+    if (ctx.knowledgePack && ctx.knowledgePack.status === "blocked") {
+      return { ok: false, issues: ["The knowledge pack is blocked."], previous: parsed };
+    }
+    if (ctx.knowledgeSelection && ctx.knowledgeSelection.status === "blocked") {
+      return { ok: false, issues: ["The knowledge pack cannot be selected for this lesson."], previous: parsed };
+    }
     var objective = clean(parsed.learningObjective || (Array.isArray(parsed.objectives) ? parsed.objectives[0] : parsed.objective) || "", 240);
     var relationCtx = Object.assign({}, ctx, { lessonPlan: { learningObjective: objective, topic: parsed.topic || ctx.topic } });
     var map = buildLearningMap(parsed, relationCtx, objective);
@@ -3802,12 +4450,12 @@
     if (ctx.yearGroup && parsed.yearGroup && yearDigit(parsed.yearGroup) && yearDigit(parsed.yearGroup) !== yearDigit(ctx.yearGroup)) {
       issues.push("The plan changed the year group.");
     }
+    if (ctx.knowledgePack && ctx.knowledgePack.status !== "blocked" && (ctx.knowledgePack.claims || []).length && !map.items.some(function (item) { return item.claimIds && item.claimIds.length; })) {
+      issues.push("The learning map must select claim ids from the knowledge pack.");
+    }
     var snapshot = depthSnapshot(map.items, teaching);
     if (issues.length) return { ok: false, issues: issues, previous: parsed, depth: snapshot };
-    return {
-      ok: true,
-      depth: snapshot,
-      plan: {
+    var admittedPlan = {
         title: clean(parsed.title, 80),
         subject: clean(parsed.subject || ctx.subject, 80),
         topic: clean(parsed.topic || ctx.topic, 120),
@@ -3828,8 +4476,10 @@
         teachingApproach: clean(parsed.teachingApproach, 400),
         narrativeTheme: clean(parsed.narrativeTheme, 120),
         lessonArc: contractArc(arc, knowledge)
-      }
-    };
+      };
+    var grounding = groundingOnPlan(ctx, map.items);
+    if (grounding) admittedPlan.knowledgeGrounding = grounding;
+    return { ok: true, depth: snapshot, plan: admittedPlan };
   }
 
   function freshId(prefix) {
@@ -5954,6 +6604,11 @@
     teacherIntentBrief: teacherIntentBrief,
     normaliseTeacherIntent: normaliseTeacherIntent,
     applyTeacherIntent: applyTeacherIntent,
+    knowledgePackBrief: knowledgePackBrief,
+    normaliseKnowledgePack: normaliseKnowledgePack,
+    selectPackForLesson: selectPackForLesson,
+    knowledgePackLog: knowledgePackLog,
+    knowledgeTrace: knowledgeTrace,
     conceptCoverageIssues: conceptCoverageIssues,
     resolveLessonContent: resolveLessonContent,
     runPipeline: runPipeline,
