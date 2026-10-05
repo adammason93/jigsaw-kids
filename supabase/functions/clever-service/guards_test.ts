@@ -2,9 +2,12 @@ import { assertEquals } from "jsr:@std/assert@1";
 import {
   assessStorageProxyUrl,
   authenticateBearer,
+  blankReferencePhotos,
   corsHeadersForOrigin,
   isAllowedStoryOrigin,
+  minimalJobMetadata,
   proxyRedirectAllowed,
+  stripEmbeddedPhotoStrings,
 } from "./guards.ts";
 
 Deno.test("anon-key bearer is 401 and does not look up a user", async () => {
@@ -100,6 +103,46 @@ Deno.test("image proxy does not follow a redirect to another host", () => {
     PROJECT,
   );
   assertEquals(same.ok, true);
+});
+
+Deno.test("job metadata keeps lengths, not photos, names, or plot text", () => {
+  const photo = "data:image/jpeg;base64," + "A".repeat(80);
+  const meta = minimalJobMetadata({
+    childName: "Freya",
+    plotHint: "a secret door",
+    character: "unicorn",
+    place: "beach",
+    heroReferenceImage: photo,
+    characterReferencePhotos: [{ who: "hero", image: photo }],
+  });
+  const packed = JSON.stringify(meta);
+  assertEquals(packed.includes("Freya"), false);
+  assertEquals(packed.includes("secret door"), false);
+  assertEquals(packed.includes("data:image"), false);
+  assertEquals(meta.childNameLen, 5);
+  assertEquals(meta.plotHintLen, "a secret door".length);
+  assertEquals(meta.hadReferencePhotos, true);
+});
+
+Deno.test("terminal photo wipe removes data URLs and blanks the in-memory body", () => {
+  const photo = "data:image/png;base64," + "B".repeat(40);
+  const body: Record<string, unknown> = {
+    childName: "Ada",
+    referencePhoto: photo,
+    heroReferenceImages: [photo],
+  };
+  blankReferencePhotos(body);
+  assertEquals(body.referencePhoto, null);
+  assertEquals(body.heroReferenceImages, null);
+  const stripped = stripEmbeddedPhotoStrings({
+    title: "Hello",
+    imageUrl: "https://example.supabase.co/storage/v1/object/sign/storybook_images_private/a.png",
+    referencePhoto: photo,
+    pages: [{ text: "Hi", imageUrl: photo }],
+  }) as { imageUrl: string; referencePhoto: null; pages: { imageUrl: string | null }[] };
+  assertEquals(stripped.imageUrl.startsWith("https://"), true);
+  assertEquals(stripped.referencePhoto, null);
+  assertEquals(stripped.pages[0].imageUrl, null);
 });
 
 Deno.test("CORS allows the live site and localhost only", () => {

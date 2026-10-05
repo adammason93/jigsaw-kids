@@ -7,13 +7,18 @@ import {
   assessStorageProxyUrl,
   authenticateBearer,
   bearerTokenFromHeader,
+  blankReferencePhotos,
   corsHeadersForOrigin,
+  minimalJobMetadata,
   proxyRedirectAllowed,
+  stripEmbeddedPhotoStrings,
 } from "./guards.ts";
 
 type RequestCtx = {
   cors: Record<string, string>;
   userId: string;
+  /** Signed URL → storage path for images uploaded during this request. */
+  imagePaths: Map<string, string>;
 };
 
 const requestCtx = new AsyncLocalStorage<RequestCtx>();
@@ -2410,7 +2415,33 @@ async function falFluxProTextToImageUrl(
 
 const GPT_IMAGE_DEFAULT_MODEL = "gpt-image-2";
 
-const GPT_IMAGE_BUCKET = "storybook_images";
+/** Private bucket. Objects live at `{user id}/storybook/{file}`. */
+const GPT_IMAGE_BUCKET = "storybook_images_private";
+
+/** Browser-facing signed URL lifetime. Override with STORYBOOK_IMAGE_SIGN_SECONDS (60–86400). */
+function storyImageSignSeconds(): number {
+  const n = Number(Deno.env.get("STORYBOOK_IMAGE_SIGN_SECONDS") ?? "3600");
+  if (!Number.isFinite(n)) return 3600;
+  return Math.max(60, Math.min(24 * 3600, Math.floor(n)));
+}
+
+function rememberStoryImage(url: string, path: string) {
+  requestCtx.getStore()?.imagePaths.set(url, path);
+}
+
+function storyImagePathForUrl(url: string | null): string | null {
+  if (!url) return null;
+  return requestCtx.getStore()?.imagePaths.get(url) ?? null;
+}
+
+/** `{uid}/storybook/file.png` — no traversal, first folder must be the caller. */
+function storyImagePathOwnedBy(userId: string, path: string): boolean {
+  if (!/^[0-9a-f-]{36}$/i.test(userId)) return false;
+  if (!path || path.includes("..") || path.includes("\\") || path.startsWith("/")) return false;
+  const parts = path.split("/");
+  if (parts.length < 3 || parts.some((p) => p.length === 0)) return false;
+  return parts[0] === userId && parts[1] === "storybook";
+}
 const GPT_IMAGE_PROMPT_MAX = 4000;
 
 /** Whitelisted GPT Image `size` values (API rejects unknown strings). */
@@ -2987,35 +3018,82 @@ function randomKey(prefix: string): string {
   return `${prefix}-${crypto.randomUUID()}.png`;
 }
 
+async function signStoryImagePath(
+  client: SupabaseClient,
+  path: string,
+  expiresIn: number,
+): Promise<string> {
+  const { data, error } = await client.storage
+    .from(GPT_IMAGE_BUCKET)
+    .createSignedUrl(path, expiresIn);
+  if (error || !data?.signedUrl) {
+    throw new Error(`storage_sign:${(error?.message ?? "empty").slice(0, 200)}`);
+  }
+  return data.signedUrl;
+}
+
+/**
+ * Upload a generated PNG under the signed-in user's folder and return a
+ * short-lived signed URL plus the durable storage path.
+ * Spread edits keep using the PNG bytes in memory — they do not re-fetch this URL.
+ */
 async function uploadPngToStorybookImages(
   bytes: Uint8Array,
   name: string,
-): Promise<string> {
-  const url = (Deno.env.get("SUPABASE_URL") ?? "").trim();
-  const key = supabaseSecretApiKey() ?? "";
-  if (!url || !key) {
+): Promise<{ url: string; path: string }> {
+  const client = serviceRoleSupabase();
+  const userId = currentUserId();
+  if (!client || !storyImagePathOwnedBy(userId, `${userId}/storybook/x.png`)) {
     throw new Error(
-      "storage_misconfigured: SUPABASE_URL or secret key (SUPABASE_SECRET_KEYS / SUPABASE_SERVICE_ROLE_KEY)",
+      "storage_misconfigured: SUPABASE_URL or secret key (SUPABASE_SECRET_KEYS / SUPABASE_SERVICE_ROLE_KEY) or missing user",
     );
   }
   const cleanName = name.replace(/[^a-zA-Z0-9._-]/g, "");
-  const path = `gptimage/${cleanName}`;
-  const upUrl = `${url.replace(/\/+$/, "")}/storage/v1/object/${GPT_IMAGE_BUCKET}/${path}`;
-  const r = await fetch(upUrl, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${key}`,
-      apikey: key,
-      "Content-Type": "image/png",
-      "x-upsert": "true",
-    },
-    body: new Blob([bytes as unknown as BlobPart], { type: "image/png" }),
+  const path = `${userId}/storybook/${cleanName}`;
+  const { error } = await client.storage.from(GPT_IMAGE_BUCKET).upload(path, bytes, {
+    contentType: "image/png",
+    upsert: true,
   });
-  if (!r.ok) {
-    const t = await r.text();
-    throw new Error(`storage_upload_${r.status}:${t.slice(0, 240)}`);
+  if (error) {
+    throw new Error(`storage_upload:${error.message.slice(0, 240)}`);
   }
-  return `${url.replace(/\/+$/, "")}/storage/v1/object/public/${GPT_IMAGE_BUCKET}/${path}`;
+  const url = await signStoryImagePath(client, path, storyImageSignSeconds());
+  rememberStoryImage(url, path);
+  return { url, path };
+}
+
+/** Refresh signed URLs for storage paths the caller owns. Does not call OpenAI. */
+async function handleResignStoryImages(
+  userId: string,
+  body: { paths?: unknown },
+): Promise<Response> {
+  const client = serviceRoleSupabase();
+  if (!client) {
+    return jsonResponse({ error: "storage_unconfigured" }, 503);
+  }
+  const raw = Array.isArray(body.paths) ? body.paths : [];
+  const paths = raw.filter((p): p is string => typeof p === "string").slice(0, 120);
+  const expiresIn = storyImageSignSeconds();
+  const images: { path: string; url: string }[] = [];
+  const rejected: { path: string; error: string }[] = [];
+  for (const path of paths) {
+    if (!storyImagePathOwnedBy(userId, path)) {
+      rejected.push({ path: path.slice(0, 180), error: "not_owner" });
+      continue;
+    }
+    try {
+      const url = await signStoryImagePath(client, path, expiresIn);
+      images.push({ path, url });
+    } catch {
+      rejected.push({ path, error: "sign_failed" });
+    }
+  }
+  return jsonResponse({
+    bucket: GPT_IMAGE_BUCKET,
+    expiresIn,
+    images,
+    rejected,
+  });
 }
 
 /** Parse a 429 retry hint and add jitter; default 14s + 0–3s jitter. */
@@ -3135,8 +3213,8 @@ async function gptImageGenerate(
   }
 
   const bytes = await gptImageBytesFromImagesResponse(raw);
-  const url = await uploadPngToStorybookImages(bytes, randomKey("anchor"));
-  return { url, bytes };
+  const uploaded = await uploadPngToStorybookImages(bytes, randomKey("anchor"));
+  return { url: uploaded.url, bytes };
 }
 
 async function gptImageEdit(
@@ -3243,8 +3321,8 @@ async function gptImageEdit(
   }
 
   const bytes = await gptImageBytesFromImagesResponse(raw);
-  const url = await uploadPngToStorybookImages(bytes, randomKey("spread"));
-  return { url, bytes };
+  const uploaded = await uploadPngToStorybookImages(bytes, randomKey("spread"));
+  return { url: uploaded.url, bytes };
 }
 
 /** Landscape spread first; some keys/billing paths fail on 1792×1024 — fall back to square. */
@@ -3892,7 +3970,11 @@ async function executeStorybookPipeline(
         : "") +
       plotLightingEnvAddon(plotHint, childName);
 
-    const pagesOut: { text: string; imageUrl: string | null }[] = [];
+    const pagesOut: {
+      text: string;
+      imageUrl: string | null;
+      imageStoragePath: string | null;
+    }[] = [];
     let sceneImageUrl: string | null = null;
     let firstPanelVisualLockUsed = false;
     let falReduxSpreadCount = 0;
@@ -4697,6 +4779,7 @@ async function executeStorybookPipeline(
         pagesOut.push({
           text: p.text.trim(),
           imageUrl,
+          imageStoragePath: storyImagePathForUrl(imageUrl),
         });
       });
     } catch (e) {
@@ -4714,7 +4797,11 @@ async function executeStorybookPipeline(
           detail,
           imageMode,
           title: story.title,
-          pages: story.pages.map((p) => ({ text: p.text.trim(), imageUrl: null })),
+          pages: story.pages.map((p) => ({
+            text: p.text.trim(),
+            imageUrl: null,
+            imageStoragePath: null,
+          })),
         },
         502,
       );
@@ -4730,6 +4817,7 @@ async function executeStorybookPipeline(
       bookColor: bookColorOut,
       readerFont,
       sceneImageUrl,
+      sceneImageStoragePath: storyImagePathForUrl(sceneImageUrl),
       pages: pagesOut,
       meta: {
         childName,
@@ -4763,73 +4851,100 @@ async function executeStorybookPipeline(
     });
 }
 
+function finishedJobPatch(
+  status: "complete" | "failed",
+  httpStatus: number,
+  result: unknown,
+  body: StorybookRequestBody,
+  extra: Record<string, unknown> = {},
+): Record<string, unknown> {
+  const now = new Date().toISOString();
+  return {
+    status,
+    http_status: httpStatus,
+    result_payload: stripEmbeddedPhotoStrings(result),
+    request_payload: minimalJobMetadata(body),
+    completed_at: now,
+    updated_at: now,
+    ...extra,
+  };
+}
+
 async function runStorybookGenerationJob(
   jobId: string,
   bodySnapshot: StorybookRequestBody,
 ): Promise<void> {
-  const client = serviceRoleSupabase();
-  if (!client) return;
-  await patchStorybookJob(client, jobId, {
-    status: "running",
-    progress: 4,
-    progress_label: "Starting your book…",
-    updated_at: new Date().toISOString(),
-  });
-  console.info(`[clever-service] storybook_job start ${jobId}`);
-  const apiKey = Deno.env.get("OPENAI_API_KEY");
-  if (!apiKey) {
-    await patchStorybookJob(client, jobId, {
-      status: "failed",
-      http_status: 500,
-      result_payload: { error: "server_missing_openai" },
-      updated_at: new Date().toISOString(),
-    });
-    return;
-  }
   try {
-    const reportProgress = async (pct: number, label: string) => {
-      await patchStorybookJob(client, jobId, {
-        progress: Math.max(0, Math.min(100, Math.round(pct))),
-        progress_label: label.slice(0, 220),
-        updated_at: new Date().toISOString(),
-      });
-    };
-    const res = await executeStorybookPipeline(
-      apiKey,
-      bodySnapshot,
-      reportProgress,
-    );
-    const textRes = await res.text();
-    let parsed: unknown;
-    try {
-      parsed = JSON.parse(textRes) as unknown;
-    } catch {
-      parsed = {
-        error: "job_non_json_response",
-        detail: textRes.slice(0, 800),
-      };
+    const client = serviceRoleSupabase();
+    if (!client) return;
+    await patchStorybookJob(client, jobId, {
+      status: "running",
+      progress: 4,
+      progress_label: "Starting your book…",
+      updated_at: new Date().toISOString(),
+    });
+    console.info(`[clever-service] storybook_job start ${jobId}`);
+    const apiKey = Deno.env.get("OPENAI_API_KEY");
+    if (!apiKey) {
+      await patchStorybookJob(
+        client,
+        jobId,
+        finishedJobPatch("failed", 500, { error: "server_missing_openai" }, bodySnapshot),
+      );
+      return;
     }
-    await patchStorybookJob(client, jobId, {
-      status: res.ok ? "complete" : "failed",
-      http_status: res.status,
-      result_payload: parsed,
-      ...(res.ok
-        ? {
-          progress: 100,
-          progress_label: "Your book is ready!",
-        }
-        : {}),
-      updated_at: new Date().toISOString(),
-    });
-  } catch (e) {
-    const detail = e instanceof Error ? e.message : String(e);
-    await patchStorybookJob(client, jobId, {
-      status: "failed",
-      http_status: 546,
-      result_payload: { error: "job_exception", detail },
-      updated_at: new Date().toISOString(),
-    });
-    console.error("[clever-service] storybook job exception", jobId, e);
+    try {
+      const reportProgress = async (pct: number, label: string) => {
+        await patchStorybookJob(client, jobId, {
+          progress: Math.max(0, Math.min(100, Math.round(pct))),
+          progress_label: label.slice(0, 220),
+          updated_at: new Date().toISOString(),
+        });
+      };
+      const res = await executeStorybookPipeline(
+        apiKey,
+        bodySnapshot,
+        reportProgress,
+      );
+      const textRes = await res.text();
+      let parsed: unknown;
+      try {
+        parsed = JSON.parse(textRes) as unknown;
+      } catch {
+        parsed = {
+          error: "job_non_json_response",
+          detail: textRes.slice(0, 800),
+        };
+      }
+      await patchStorybookJob(
+        client,
+        jobId,
+        finishedJobPatch(
+          res.ok ? "complete" : "failed",
+          res.status,
+          parsed,
+          bodySnapshot,
+          res.ok
+            ? { progress: 100, progress_label: "Your book is ready!" }
+            : {},
+        ),
+      );
+    } catch (e) {
+      const detail = e instanceof Error ? e.message : String(e);
+      await patchStorybookJob(
+        client,
+        jobId,
+        finishedJobPatch(
+          "failed",
+          546,
+          { error: "job_exception", detail },
+          bodySnapshot,
+        ),
+      );
+      console.error("[clever-service] storybook job exception", jobId, e);
+    }
+  } finally {
+    blankReferencePhotos(bodySnapshot);
   }
 }
 
@@ -5003,7 +5118,10 @@ async function handleGenerateCharacter(
 async function handleCleverService(req: Request): Promise<Response> {
   const extraOrigins = Deno.env.get("STORYBOOK_ALLOWED_ORIGINS") ?? "";
   const cors = corsHeadersForOrigin(req.headers.get("Origin"), extraOrigins);
-  return await requestCtx.run({ cors, userId: "" }, () => handleCleverServiceInner(req));
+  return await requestCtx.run(
+    { cors, userId: "", imagePaths: new Map() },
+    () => handleCleverServiceInner(req),
+  );
 }
 
 async function handleCleverServiceInner(req: Request): Promise<Response> {
@@ -5166,11 +5284,6 @@ async function handleCleverServiceInner(req: Request): Promise<Response> {
   if (authedPost instanceof Response) return authedPost;
   const postUserId = authedPost.userId;
 
-  const apiKey = Deno.env.get("OPENAI_API_KEY");
-  if (!apiKey) {
-    return jsonResponse({ error: "server_missing_openai" }, 500);
-  }
-
   let body: {
     childName?: string;
     character?: string;
@@ -5213,6 +5326,15 @@ async function handleCleverServiceInner(req: Request): Promise<Response> {
   const action = typeof (body as { action?: unknown }).action === "string"
     ? String((body as { action: string }).action)
     : "";
+  if (action === "resign_story_images") {
+    return await handleResignStoryImages(postUserId, body as { paths?: unknown });
+  }
+
+  const apiKey = Deno.env.get("OPENAI_API_KEY");
+  if (!apiKey) {
+    return jsonResponse({ error: "server_missing_openai" }, 500);
+  }
+
   if (action === "generate_character") {
     return await handleGenerateCharacter(apiKey, body as unknown as {
       characterName?: string;
@@ -5236,15 +5358,20 @@ async function handleCleverServiceInner(req: Request): Promise<Response> {
       );
     }
     const jobId = crypto.randomUUID();
-    const payload = stripStorybookAsyncFields(body);
-    const insErr = await insertPendingStorybookJob(db, jobId, payload, postUserId);
+    const payloadForWorker = stripStorybookAsyncFields(body);
+    const insErr = await insertPendingStorybookJob(
+      db,
+      jobId,
+      minimalJobMetadata(payloadForWorker),
+      postUserId,
+    );
     if (insErr) {
       return jsonResponse(
         { error: "storybook_job_insert_failed", detail: insErr.slice(0, 220) },
         500,
       );
     }
-    EdgeRuntime.waitUntil(runStorybookGenerationJob(jobId, payload));
+    EdgeRuntime.waitUntil(runStorybookGenerationJob(jobId, payloadForWorker));
     return jsonResponse(
       {
         storybook_job_id: jobId,

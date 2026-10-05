@@ -2557,6 +2557,96 @@
    * When true, persist only remote URL per page/scene — skip base64 blobs (IndexedDB quota).
    * Supabase public or signed URLs work in `<img>`; ephemeral hosts still encode via proxy.
    */
+  /** Durable private-bucket path from a signed or public URL, if it is ours. */
+  function storagePathFromStoryUrl(url) {
+    var u = String(url || "");
+    var m = /\/storage\/v1\/object\/(?:sign|public|authenticated)\/storybook_images_private\/([^?]+)/i.exec(u);
+    if (!m) return "";
+    try {
+      return decodeURIComponent(m[1]);
+    } catch (eDec) {
+      return m[1];
+    }
+  }
+
+  function resignStoryPaths(paths) {
+    return new Promise(function (resolve) {
+      var unique = [];
+      (paths || []).forEach(function (p) {
+        var s = String(p || "").trim();
+        if (s && unique.indexOf(s) < 0) unique.push(s);
+      });
+      if (!unique.length) {
+        resolve({});
+        return;
+      }
+      var endpoint = functionUrl();
+      if (!endpoint) {
+        resolve({});
+        return;
+      }
+      withUserAccessToken()
+        .then(function (token) {
+          return fetch(endpoint, {
+            method: "POST",
+            headers: edgeJsonHeaders(token),
+            body: JSON.stringify({ action: "resign_story_images", paths: unique }),
+          });
+        })
+        .then(function (r) {
+          return r.json();
+        })
+        .then(function (json) {
+          var map = {};
+          var images = json && json.images;
+          if (Array.isArray(images)) {
+            images.forEach(function (im) {
+              if (im && im.path && im.url) map[im.path] = im.url;
+            });
+          }
+          resolve(map);
+        })
+        .catch(function () {
+          resolve({});
+        });
+    });
+  }
+
+  function applyResignedUrls(st, map) {
+    if (!st || !map) return;
+    var scenePath =
+      st.sceneImageStoragePath || storagePathFromStoryUrl(st.sceneImageUrl);
+    if (scenePath && map[scenePath]) {
+      st.sceneImageStoragePath = scenePath;
+      st.sceneImageUrl = map[scenePath];
+    }
+    (st.pages || []).forEach(function (p) {
+      var path = p.imageStoragePath || storagePathFromStoryUrl(p.imageUrl);
+      if (path && map[path]) {
+        p.imageStoragePath = path;
+        p.imageUrl = map[path];
+      }
+    });
+  }
+
+  function refreshStoryImageUrls(st) {
+    var paths = [];
+    if (!st) return Promise.resolve(st);
+    if (st.sceneImageStoragePath) paths.push(st.sceneImageStoragePath);
+    else {
+      var fromScene = storagePathFromStoryUrl(st.sceneImageUrl);
+      if (fromScene) paths.push(fromScene);
+    }
+    (st.pages || []).forEach(function (p) {
+      var path = p.imageStoragePath || storagePathFromStoryUrl(p.imageUrl);
+      if (path) paths.push(path);
+    });
+    return resignStoryPaths(paths).then(function (map) {
+      applyResignedUrls(st, map);
+      return st;
+    });
+  }
+
   function shelfPreferStoredUrlWithoutBlob(url) {
     if (shelfKeepOriginalRemoteUrl(url)) return true;
     var u = String(url || "").trim().toLowerCase();
@@ -2938,6 +3028,8 @@
         text: p.text,
         imageDataUrl: inline,
         imageUrlFallback: p.imageUrl || null,
+        imageStoragePath:
+          p.imageStoragePath || storagePathFromStoryUrl(p.imageUrl) || null,
       };
     });
     var storedSceneData = sceneDataUrl || null;
@@ -2956,6 +3048,19 @@
       pages: storedPages,
       sceneDataUrl: storedSceneData,
       sceneUrlFallback: sceneUrlFallback || null,
+      sceneImageStoragePath: (function () {
+        var direct = storagePathFromStoryUrl(sceneUrlFallback);
+        if (direct) return direct;
+        for (var si = 0; si < storedPages.length; si++) {
+          if (
+            storedPages[si].imageStoragePath &&
+            storedPages[si].imageUrlFallback === sceneUrlFallback
+          ) {
+            return storedPages[si].imageStoragePath;
+          }
+        }
+        return null;
+      })(),
     });
     saveShelf(list, cloudDone, onWritten);
   }
@@ -2993,15 +3098,23 @@
       storyLength: storyLengthFromShelfItem(item),
       /* Prefer remote asset when present so reopen matches stored PNG (not shelf JPEG). */
       sceneImageUrl: item.sceneUrlFallback || item.sceneDataUrl || null,
+      sceneImageStoragePath:
+        item.sceneImageStoragePath ||
+        storagePathFromStoryUrl(item.sceneUrlFallback) ||
+        null,
       pages: item.pages.map(function (p) {
         return {
           text: p.text,
           imageUrl: p.imageUrlFallback || p.imageDataUrl || null,
+          imageStoragePath:
+            p.imageStoragePath || storagePathFromStoryUrl(p.imageUrlFallback) || null,
         };
       }),
     };
     spreadIndex = 0;
-    showBook();
+    refreshStoryImageUrls(story).then(function () {
+      showBook();
+    });
   }
 
   /**
@@ -3134,6 +3247,15 @@
     if (coverSrc) {
       var img = document.createElement("img");
       img.src = coverSrc;
+      var coverPath =
+        (pageIdxCover < 0 && item.sceneImageStoragePath) ||
+        (pageIdxCover >= 0 &&
+          item.pages &&
+          item.pages[pageIdxCover] &&
+          item.pages[pageIdxCover].imageStoragePath) ||
+        storagePathFromStoryUrl(coverSrc) ||
+        "";
+      if (coverPath) img.setAttribute("data-storage-path", coverPath);
       img.alt = "";
       img.decoding = "async";
       img.loading = "lazy";
@@ -3204,9 +3326,24 @@
     }
 
     shelfEl.classList.add("sb-shelf-has-books");
+    var coverPaths = [];
     for (var i = 0; i < list.length; i++) {
       shelfEl.appendChild(createCoverCardWrap(list[i]));
+      if (list[i].sceneImageStoragePath) coverPaths.push(list[i].sceneImageStoragePath);
+      (list[i].pages || []).forEach(function (p) {
+        if (p && p.imageStoragePath) coverPaths.push(p.imageStoragePath);
+      });
     }
+    resignStoryPaths(coverPaths).then(function (map) {
+      if (!shelfEl) return;
+      Array.prototype.forEach.call(
+        shelfEl.querySelectorAll("img[data-storage-path]"),
+        function (img) {
+          var pth = img.getAttribute("data-storage-path");
+          if (pth && map[pth]) img.src = map[pth];
+        },
+      );
+    });
     updateCarouselButtons();
   }
 
@@ -3430,10 +3567,13 @@
     var origLabel = btnDownload.textContent;
     btnDownload.disabled = true;
     btnDownload.textContent = "Preparing…";
-    Promise.all([
-      fetchAllPageDataUrls(),
-      tryFetchImageDataUrl(story.sceneImageUrl || ""),
-    ])
+    refreshStoryImageUrls(story)
+      .then(function () {
+        return Promise.all([
+          fetchAllPageDataUrls(),
+          tryFetchImageDataUrl(story.sceneImageUrl || ""),
+        ]);
+      })
       .then(function (arr) {
         var html = buildStandaloneBookHtml(
           story.title,
@@ -5764,8 +5904,15 @@
             readerArtLayout: readBookSpreadLayoutFromWizard(),
             storyTextMode: readStoryTextModeFromWizard(),
             storyLength: readStoryLengthFromWizard(),
-            pages: out.body.pages || [],
+            pages: (out.body.pages || []).map(function (p) {
+              return {
+                text: p && p.text ? p.text : "",
+                imageUrl: p && p.imageUrl ? p.imageUrl : null,
+                imageStoragePath: p && p.imageStoragePath ? p.imageStoragePath : null,
+              };
+            }),
             sceneImageUrl: out.body.sceneImageUrl || null,
+            sceneImageStoragePath: out.body.sceneImageStoragePath || null,
           };
           spreadIndex = 0;
           showBook();

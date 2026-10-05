@@ -27,7 +27,10 @@ supabase secrets set BOOK_ASSETS_BASE_URL=https://your-site.example
 
 # Illustrations — OpenAI GPT Image (recommended)
 # Anchor = text-to-image, spreads 2–6 = images/edits with the anchor as reference.
-# Requires the public storage bucket created by migration 20260501093000_storybook_images_public_bucket.sql.
+# New illustrations are uploaded to the private bucket from migration 20261005110000_storybook_images_private.sql
+# (`{user id}/storybook/{file}.png`). The response includes a signed URL (default 1 hour, `STORYBOOK_IMAGE_SIGN_SECONDS`)
+# and `imageStoragePath` / `sceneImageStoragePath`. Re-sign with POST `{ "action": "resign_story_images", "paths": [...] }`.
+# The old public `storybook_images` bucket is not deleted by that migration.
 supabase secrets set STORYBOOK_IMAGE_MODE=gptimage
 # supabase secrets set STORYBOOK_GPTIMAGE_MODEL=gpt-image-2   # omitted default; or gpt-image-1.5 to save vs Image 2, etc.
 # **`high`** **`pictureBookQuality`** + default **`gpt-image-2`** → **cost-parity** caps (1024², tighter edit **`quality`**) unless you opt out — keeps picture spend nearer legacy ~£0.40–0.60 (**verify** usage). **`input_fidelity`** is not sent on **`gpt-image-2`** edits (API omits; rejects the field); **`STORYBOOK_GPTIMAGE_INPUT_FIDELITY`** still applies to **`gpt-image-1.x`** / **1.5** edit routes.
@@ -54,7 +57,8 @@ supabase secrets set STORYBOOK_IMAGE_MODE=gptimage
 
 For **High** picture runs that can exceed the platform **~150s** “no response yet” limit, the client can send **`storybook_async: true`** on the same POST body. The function returns **202** with **`storybook_job_id`** and finishes in the background via **`EdgeRuntime.waitUntil`**. Poll **`GET …/functions/v1/clever-service?storybook_job={uuid}`** until **`storybook_job_status`** is **`complete`** or **`failed`** — the **`result`** object matches the JSON a synchronous POST would have returned (success body or **`error`** / **`detail`**).
 
-- Apply migration **`supabase/migrations/20260505120000_storybook_generation_jobs.sql`**.
+- Apply migration **`supabase/migrations/20260505120000_storybook_generation_jobs.sql`**, then **`20261005100000_storybook_jobs_owner.sql`** and **`20261005120000_storybook_jobs_completed_at.sql`**.
+- The row stores **metadata only** (character, place, name length, plot length, whether a photo was sent). The photos and the full request stay in memory for that invocation. Every terminal update (missing key, complete, failed, exception) sets `request_payload` back to that metadata and sets `completed_at`. A check constraint rejects new `data:image` payloads. Existing rows are **not** scrubbed by the migration.
 - On **hosted** Edge Functions you usually **do not** add a key manually: **`SUPABASE_SECRET_KEYS`** (JWT signing keys) and often **`SUPABASE_URL`** are **default secrets** — `clever-service` uses **`SUPABASE_SECRET_KEYS['default']`**, with fallback to legacy **`SUPABASE_SERVICE_ROLE_KEY`**. For a second project / fork you can set **`STORYBOOK_SUPABASE_SERVICE_ROLE_KEY`** or **`STORYBOOK_SUPABASE_URL`** instead.
 - Never expose any **secret** key in the browser. The site sends the **signed-in user’s access token** as `Authorization` and the **anon / publishable** key only as `apikey`. An anon-key bearer is rejected with **401** before OpenAI is called.
 - Frontend: set **`storybookAsync: true`** in **`js/score-config.js`**. If secrets are missing, the client falls back to the one-shot POST.
@@ -69,6 +73,36 @@ Wall-clock caps still apply to the **whole invocation** (initial HTTP handler **
 - The storybook UI **disables “Make my book”** and ignores double-taps while a request is running so kids don’t accidentally start **two** books (two charges).
 - **OpenAI still charges successful steps** even if the app errors afterward — tip: test with **Standard** quality and fewer photos first; use **Dashboard → Edge Logs** and **`[clever-service] storybook_job start <uuid>`** to line up spikes with **`storybook_generation_jobs`** rows.
 - Set **billing / usage alerts** on OpenAI and Supabase.
+
+## Image response contract
+
+Generated pictures are stored in the **private** bucket `storybook_images_private` at `{user uuid}/storybook/{file}.png`. The story JSON keeps working for current readers because `imageUrl` is still a URL, now a **signed** URL.
+
+| Field | Meaning |
+| --- | --- |
+| `pages[].imageUrl` | Signed URL. Default lifetime **3600 seconds** (`STORYBOOK_IMAGE_SIGN_SECONDS`, clamped 60–86400). |
+| `pages[].imageStoragePath` | Durable path inside `storybook_images_private`, e.g. `{uid}/storybook/spread-{uuid}.png`. Null for legacy Fal/DALL·E URLs that were not copied into the bucket. |
+| `sceneImageUrl` / `sceneImageStoragePath` | Same pair for the cover/anchor still. |
+
+Spread edits use the anchor **PNG bytes in memory**. They do not depend on the signed URL.
+
+Re-sign (signed-in user only; paths must start with that user’s id):
+
+```http
+POST /functions/v1/clever-service
+Authorization: Bearer <user access token>
+apikey: <anon key>
+
+{ "action": "resign_story_images", "paths": ["{uid}/storybook/spread-….png"] }
+```
+
+```json
+{ "bucket": "storybook_images_private", "expiresIn": 3600, "images": [{ "path": "…", "url": "https://…" }], "rejected": [] }
+```
+
+The shelf stores `imageStoragePath` and asks for fresh URLs when a book is opened, when covers are drawn, and before a download. The downloaded HTML file embeds image bytes so it does not depend on the signed URL afterwards.
+
+Existing public `/object/public/storybook_images/…` URLs are left in place until the founder runs the manual cleanup script.
 
 ## Auth
 

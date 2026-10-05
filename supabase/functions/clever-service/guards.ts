@@ -168,6 +168,79 @@ export function proxyRedirectAllowed(
   return verdict;
 }
 
+const PHOTO_PAYLOAD_KEYS = [
+  "heroReferenceImage",
+  "heroReferenceImages",
+  "characterReferencePhotos",
+  "referencePhoto",
+  "referenceImage",
+];
+
+function stringLooksLikePhoto(value: string): boolean {
+  if (/^data:image\//i.test(value)) return true;
+  return value.length > 2000 && /^[A-Za-z0-9+/=\s]+$/.test(value);
+}
+
+/** True when the request is carrying an uploaded face or reference image. */
+export function bodyHasReferencePhoto(body: Record<string, unknown>): boolean {
+  for (const key of PHOTO_PAYLOAD_KEYS) {
+    const value = body[key];
+    if (typeof value === "string" && value.trim().length > 0) return true;
+    if (Array.isArray(value)) {
+      for (const item of value) {
+        if (typeof item === "string" && item.trim().length > 0) return true;
+        if (item && typeof item === "object") {
+          const rec = item as Record<string, unknown>;
+          const img = rec.image ?? rec.dataUrl ?? rec.url;
+          if (typeof img === "string" && img.trim().length > 0) return true;
+        }
+      }
+    }
+  }
+  return false;
+}
+
+/**
+ * What is allowed to sit in storybook_generation_jobs.request_payload.
+ * No names, no plot text, no image bytes.
+ */
+export function minimalJobMetadata(body: Record<string, unknown>): Record<string, unknown> {
+  const child = String(body.childName ?? "");
+  const plot = String(body.plotHint ?? "");
+  return {
+    v: 1,
+    character: String(body.character ?? "").slice(0, 80),
+    place: String(body.place ?? "").slice(0, 80),
+    pictureBookQuality: String(body.pictureBookQuality ?? "").slice(0, 40),
+    childNameLen: child.trim().length,
+    plotHintLen: plot.trim().length,
+    hadReferencePhotos: bodyHasReferencePhoto(body),
+  };
+}
+
+/** Drop photo fields on the in-memory body once generation has finished. */
+export function blankReferencePhotos(body: Record<string, unknown>): void {
+  for (const key of PHOTO_PAYLOAD_KEYS) {
+    if (key in body) body[key] = null;
+  }
+}
+
+/** Remove data-URLs and long base64 strings from a finished payload. Keeps https image URLs. */
+export function stripEmbeddedPhotoStrings(value: unknown): unknown {
+  if (typeof value === "string") return stringLooksLikePhoto(value) ? null : value;
+  if (Array.isArray(value)) return value.map((item) => stripEmbeddedPhotoStrings(item));
+  if (!value || typeof value !== "object") return value;
+  const out: Record<string, unknown> = {};
+  for (const [key, item] of Object.entries(value as Record<string, unknown>)) {
+    if (PHOTO_PAYLOAD_KEYS.includes(key)) {
+      out[key] = null;
+      continue;
+    }
+    out[key] = stripEmbeddedPhotoStrings(item);
+  }
+  return out;
+}
+
 export function corsHeadersForOrigin(
   origin: string | null,
   extraEnv = "",
