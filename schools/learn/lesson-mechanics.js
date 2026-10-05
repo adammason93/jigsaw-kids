@@ -164,7 +164,7 @@
     var recap = (slide.recap || []).map(function (line) { return "<li>" + escape(line) + "</li>"; }).join("");
     return "<div class=\"lesson-story lesson-act lesson-act--sequence lesson-finish-scene\">" +
       "<div>" + sceneNote(slide, ctx) + "<p class=\"lesson-kicker\">" + escape(slide.sceneLabel || "Finish") + "</p>" + outcome +
-      (recap ? "<p class=\"lesson-kicker\">What we discovered</p><ul class=\"lesson-recap\">" + recap + "</ul>" : "") +
+      (recap ? "<p class=\"lesson-kicker\">Today we learned</p><p class=\"lesson-kicker\">What we discovered</p><ul class=\"lesson-recap\">" + recap + "</ul>" : "") +
       "</div></div>";
   }
 
@@ -736,9 +736,10 @@
         (stage === "slip" ? "<p class=\"lesson-dust\" aria-hidden=\"true\"></p>" : "<button type=\"button\" class=\"lesson-go lesson-push\" data-world=\"push\">" + escape(current.instruction || "Push") + "</button>") +
         "</div></div>";
     }
-    if (current.type === "hotspot" || current.type === "tap-to-reveal" || current.type === "inspect") {
-      if (state && state.revealed) return "<div class=\"lesson-layer is-lit\" data-interaction=\"hotspot\"></div>";
-      return "<div class=\"lesson-layer\" data-interaction=\"hotspot\"><button type=\"button\" class=\"lesson-spot\" data-world=\"spot\">" + escape(current.instruction || "Look more closely") + "</button></div>";
+    if (current.type === "hotspot" || current.type === "tap-to-reveal" || current.type === "inspect" || current.type === "choose") {
+      var spotKind = current.type === "choose" ? "choose" : "hotspot";
+      if (state && state.revealed) return "<div class=\"lesson-layer is-lit\" data-interaction=\"" + spotKind + "\"></div>";
+      return "<div class=\"lesson-layer\" data-interaction=\"" + spotKind + "\"><button type=\"button\" class=\"lesson-spot\" data-world=\"spot\">" + escape(current.instruction || (current.type === "choose" ? "Choose one" : "Look more closely")) + "</button></div>";
     }
     return "";
   }
@@ -757,7 +758,11 @@
     if (info.unknown) return { mode: "standard", html: "<div id=\"lessonMechanic\"></div>", invalid: true };
     if (type === "mystery") return { mode: "game", html: mystery(slide || {}, ctx) };
     if (type === "doors") return { mode: "game", html: doors(slide || {}, ctx) };
-    if (type === "done" || type === "complete") return { mode: "celebration", html: "<div class=\"lesson-pending\"><p class=\"lesson-kicker\">Finish</p>" + lines(slide) + "</div>" };
+    if (type === "done" || type === "complete") {
+      var learned = (slide.lines || []).map(function (line) { return String(line || "").trim(); }).filter(Boolean);
+      var recap = learned.length ? "<p class=\"lesson-kicker\">Today we learned</p><ul class=\"lesson-recap\">" + learned.map(function (line) { return "<li>" + escape(line) + "</li>"; }).join("") + "</ul>" : lines(slide);
+      return { mode: "celebration", html: "<div class=\"lesson-pending\"><p class=\"lesson-kicker\">Finish</p><h2 class=\"lesson-copy\">Today we learned</h2>" + recap + "</div>" };
+    }
     return { mode: "story", html: story(slide || {}, ctx) };
   }
 

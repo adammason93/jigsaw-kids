@@ -229,8 +229,8 @@ var worker = fs.readFileSync(path.join(__dirname, "../workers-site/index.ts"), "
 var sw = fs.readFileSync(path.join(__dirname, "../sw.js"), "utf8");
 assert.strictEqual(createHtml.indexOf("flow.js"), -1);
 assert.strictEqual(createHtml.indexOf("create.js"), -1);
-assert.ok(createHtml.indexOf("creator.js?v=19") !== -1);
-assert.ok(createHtml.indexOf("creator-core.js?v=23") !== -1);
+assert.ok(createHtml.indexOf("creator.js?v=20") !== -1);
+assert.ok(createHtml.indexOf("creator-core.js?v=24") !== -1);
 assert.ok(creatorJs.indexOf("What are we learning today?") !== -1);
 assert.ok(creatorJs.indexOf("Tell Wondii what you would like your class to learn.") !== -1);
 assert.strictEqual(creatorJs.indexOf("Groups or devices"), -1);

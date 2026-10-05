@@ -15,12 +15,12 @@
   ];
 
   var CAPABILITIES = [
-    { id: "quiz", name: "Quiz", description: "A class question with a correct answer.", purpose: "Check understanding", minutes: 4, modes: ["whole_class", "teacher_class", "two", "multiple", "individual", "custom"] },
-    { id: "spin", name: "Spin a pupil", description: "Choose someone from today's class.", purpose: "Choose a pupil", minutes: 1, modes: ["whole_class", "teacher_class", "two", "multiple", "individual", "custom"] },
-    { id: "word_search", name: "Word search", description: "Find the lesson words in a grid.", purpose: "Vocabulary recap", minutes: 6, modes: ["whole_class", "teacher_class", "two", "multiple", "individual", "custom"] },
-    { id: "story", name: "Story", description: "Read a short passage together.", purpose: "Introduce the idea", minutes: 3, modes: ["whole_class", "teacher_class", "two", "multiple", "individual", "custom"] },
-    { id: "mystery", name: "Mystery", description: "Reveal one idea from the lesson.", purpose: "A surprise recall", minutes: 2, modes: ["whole_class", "teacher_class", "two", "multiple", "individual", "custom"] },
-    { id: "doors", name: "Pick a door", description: "The class chooses one of three doors.", purpose: "Choose together", minutes: 2, modes: ["whole_class", "teacher_class", "two", "multiple", "individual", "custom"] }
+    { id: "quiz", name: "Quiz", description: "A scored question the class answers on the board.", purpose: "Check", minutes: 4, modes: ["whole_class", "teacher_class", "two", "multiple", "individual", "custom"] },
+    { id: "spin", name: "Spin a pupil", description: "Chooses who answers the next question. Not a game by itself.", purpose: "Choose a pupil", minutes: 1, modes: ["whole_class", "teacher_class", "two", "multiple", "individual", "custom"] },
+    { id: "word_search", name: "Word search", description: "A grid the class plays in this lesson.", purpose: "Practise", minutes: 6, modes: ["whole_class", "teacher_class", "two", "multiple", "individual", "custom"] },
+    { id: "story", name: "Read together", description: "Hook or teaching the class hears. Not a separate game.", purpose: "Teach", minutes: 3, modes: ["whole_class", "teacher_class", "two", "multiple", "individual", "custom"] },
+    { id: "mystery", name: "Today we learned", description: "One fact to reveal at the end. Not a separate game.", purpose: "Exit", minutes: 2, modes: ["whole_class", "teacher_class", "two", "multiple", "individual", "custom"] },
+    { id: "doors", name: "Pick a door", description: "Three real choices to talk about. Not a matching or sorting board.", purpose: "Choose together", minutes: 2, modes: ["whole_class", "teacher_class", "two", "multiple", "individual", "custom"] }
   ];
 
   function uid(prefix) {
@@ -569,16 +569,159 @@
     };
   }
 
-  function readingActivity(mechanic, title, lines, minutes) {
+  function readingActivity(mechanic, title, lines, minutes, purpose) {
     return {
       id: uid(mechanic),
       mechanic: mechanic,
-      purpose: mechanic === "story" ? "Introduce the idea" : mechanic === "mystery" ? "A surprise recall" : "Choose together",
+      purpose: purpose || (mechanic === "story" ? "Teach" : mechanic === "mystery" ? "Exit" : "Choose together"),
       title: title,
       minutes: minutes,
       why: lines[0],
       config: { lines: lines }
     };
+  }
+
+  function topicKey(topic) {
+    return String(topic || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+  }
+
+  function titleWord(word) {
+    var text = String(word || "").toLowerCase();
+    return text ? text.charAt(0).toUpperCase() + text.slice(1) : "";
+  }
+
+  function lessonPack(hook, teach, questions, words, exit, objective) {
+    return {
+      questions: questions,
+      words: words,
+      hook: hook,
+      teach: teach,
+      exit: exit,
+      story: hook.concat(teach),
+      mystery: exit,
+      objective: objective
+    };
+  }
+
+  function foilWords(shown) {
+    var pool = ["Magnet", "River", "Adjective", "Fraction", "Empire", "Cloud", "Noun", "Habitat"];
+    var used = {};
+    (shown || []).forEach(function (word) { used[String(word).toLowerCase()] = 1; });
+    return pool.filter(function (word) { return !used[word.toLowerCase()]; });
+  }
+
+  function vocabLesson(topic, words, goal) {
+    var shown = words.slice(0, 4).map(titleWord);
+    var foils = foilWords(shown);
+    var questions = [];
+    shown.slice(0, 3).forEach(function (word, index) {
+      var wrong = [foils[index] || foils[0], foils[index + 1] || foils[1], foils[index + 2] || foils[2]];
+      questions.push(questionSpec(
+        "Which word do we need when we talk about " + topic + "?",
+        [word].concat(wrong),
+        word,
+        word + " is one of the words for " + topic + "."
+      ));
+    });
+    if (goal) {
+      questions.push(questionSpec(goal + " True or false?", ["True", "False"], "true", goal, "boolean"));
+    }
+    var listed = shown.slice(0, 3).join(", ");
+    return lessonPack(
+      ["The class is about to use some important words for " + topic + "."],
+      ["The words to listen for are " + listed + "."],
+      questions,
+      words.slice(0, 8),
+      ["Today we learned these words for " + topic + ": " + listed + "."],
+      goal || ("Use the important words for " + topic + ".")
+    );
+  }
+
+  function topicBank(ctx) {
+    var key = topicKey(ctx.topic);
+    var early = ctx.yearNumber > 0 && ctx.yearNumber <= 2;
+    if (key === "gravity") {
+      var gravityQs = [
+        questionSpec("What happens when you let go of a ball?", ["It falls towards the ground", "It floats up to the ceiling", "It stays where you let go", "It rolls uphill by itself"], "It falls towards the ground", "Gravity pulls the ball towards the ground."),
+        questionSpec("What pulls the ball down?", ["Gravity", "The colour of the ball", "A label on the ball", "The ball deciding to drop"], "Gravity", "Gravity is the pull towards the Earth."),
+        questionSpec("True or false: gravity pulls objects towards the Earth.", ["True", "False"], "true", "Gravity pulls objects towards the Earth.", "boolean"),
+        questionSpec("Which of these is pulled down by gravity?", ["A dropped pencil", "A word written on the board", "A times table", "A page number"], "A dropped pencil", "A dropped pencil falls because gravity pulls it.")
+      ];
+      if (!early) {
+        gravityQs.push(questionSpec("A feather falls more slowly than a stone because...", ["Air can slow the feather down", "Gravity switches off for a feather", "The stone is not pulled at all", "Feathers have no weight"], "Air can slow the feather down", "Gravity still pulls the feather. Air can slow it."));
+      }
+      return lessonPack(
+        ["The teacher holds a ball, then lets go."],
+        ["Gravity is a force. It pulls the ball towards the Earth."],
+        gravityQs,
+        ["GRAVITY", "FORCE", "EARTH", "PULL", "FALL"],
+        ["Today we learned that gravity pulls objects towards the Earth."],
+        "Explain that gravity pulls objects towards the Earth."
+      );
+    }
+    if (key === "volcano" || key === "volcanoes") {
+      return lessonPack(
+        ["A mountain starts to rumble, and the class needs to know why."],
+        ["Magma is molten rock under the ground. When it reaches the surface it is called lava."],
+        [
+          questionSpec("Molten rock under the ground is called...", ["Magma", "A cloud", "A fossil", "A river"], "Magma", "Molten rock underground is magma."),
+          questionSpec("Magma that reaches the surface is called...", ["Lava", "Magma still", "Rain", "Ash only"], "Lava", "Lava is magma that has come out of the volcano."),
+          questionSpec("What can push magma up and out?", ["Pressure building under the ground", "A pupil blowing on the mountain", "The water cycle", "A magnet"], "Pressure building under the ground", "Pressure can force magma up through the volcano."),
+          questionSpec("True or false: every mountain is a volcano.", ["True", "False"], "false", "A volcano is an opening where magma can come out. Not every mountain is a volcano.", "boolean"),
+          questionSpec("A volcano is...", ["An opening in the Earth's surface", "A cloud that has landed", "A frozen puddle", "A straight Roman road"], "An opening in the Earth's surface", "A volcano is an opening where molten rock can escape.")
+        ],
+        ["VOLCANO", "MAGMA", "LAVA", "ERUPT", "CRATER"],
+        ["Today we learned that magma becomes lava when it leaves the volcano."],
+        "Describe how magma leaves a volcano as lava."
+      );
+    }
+    if (key === "romans" || key === "roman" || key === "roman britain") {
+      return lessonPack(
+        ["A long straight road appears on a map of Britain, and it was not always there."],
+        ["The Romans came from Rome. They invaded Britain and built roads and towns."],
+        [
+          questionSpec("Where did the Romans come from?", ["Rome", "A Viking longship", "The inside of a volcano", "The Moon"], "Rome", "The Romans came from Rome."),
+          questionSpec("The Romans invaded...", ["Britain", "The water cycle", "A fraction", "A circuit"], "Britain", "The Romans invaded Britain."),
+          questionSpec("What did the Romans build so people could travel between towns?", ["Long straight roads", "Only sandcastles", "Clouds", "Times tables"], "Long straight roads", "Roman roads were long and straight."),
+          questionSpec("True or false: the Romans built towns in Britain.", ["True", "False"], "true", "The Romans built towns as well as roads.", "boolean"),
+          questionSpec("Which word names the large area the Romans ruled?", ["Empire", "Lava", "Quarter", "Switch"], "Empire", "The Roman Empire was the large area they ruled.")
+        ],
+        ["ROMAN", "EMPIRE", "ROME", "ROAD", "BRITAIN"],
+        ["Today we learned that the Romans invaded Britain and built roads and towns."],
+        "Say where the Romans came from and what they built in Britain."
+      );
+    }
+    if (key === "day and night") {
+      return lessonPack(
+        ["It is light in the playground, then later the same playground is dark."],
+        ["The Earth spins. The side facing the Sun has day. The side facing away has night."],
+        [
+          questionSpec("Why does a place have day and then night?", ["The Earth spins", "The Sun goes to bed", "The Moon switches the Sun off", "Clouds cover the Sun every evening"], "The Earth spins", "Day and night happen because the Earth spins."),
+          questionSpec("The side of the Earth facing the Sun has...", ["Day", "Night all the time", "No gravity", "Winter only"], "Day", "The side facing the Sun is in daylight."),
+          questionSpec("The side facing away from the Sun has...", ["Night", "Day all the time", "No Earth", "Summer only"], "Night", "The side facing away from the Sun is in night."),
+          questionSpec("True or false: the Sun travels under the ground at night.", ["True", "False"], "false", "The Earth spins. The Sun does not travel under the ground.", "boolean")
+        ],
+        ["EARTH", "SPIN", "DAY", "NIGHT", "SUN"],
+        ["Today we learned that day and night happen because the Earth spins."],
+        "Explain that day and night happen because the Earth spins."
+      );
+    }
+    if (key === "adjectives" || key === "adjective") {
+      return lessonPack(
+        ["The class hears 'the boat', then 'the red boat'."],
+        ["An adjective describes a noun. In 'the red boat', red describes the boat."],
+        [
+          questionSpec("Which word is the adjective in 'the red boat'?", ["Red", "The", "Boat", "In"], "Red", "Red describes the boat, so red is the adjective."),
+          questionSpec("An adjective...", ["Describes a noun", "Is always a verb", "Replaces the full stop", "Is a times table"], "Describes a noun", "An adjective describes a noun."),
+          questionSpec("Which sentence uses an adjective?", ["The small dog ran", "The dog ran", "Ran the dog", "Dog ran the"], "The small dog ran", "Small describes the dog."),
+          questionSpec("True or false: 'blue' can describe a noun.", ["True", "False"], "true", "Blue can describe a noun, as in 'the blue door'.", "boolean")
+        ],
+        ["ADJECTIVE", "NOUN", "DESCRIBE", "SENTENCE"],
+        ["Today we learned that an adjective describes a noun."],
+        "Use an adjective to describe a noun."
+      );
+    }
+    return null;
   }
 
   function contentFor(ctx) {
@@ -587,16 +730,26 @@
     var early = ctx.yearNumber <= 2;
     var questions = [];
     var words = [];
-    var story = [];
-    var mystery = [];
+    var hook = [];
+    var teach = [];
+    var exit = [];
     var objective = "";
+    var known = topicBank(ctx);
+    if (known) {
+      return Object.assign(known, {
+        title: topic + " adventure",
+        quizTitle: topic + " check",
+        followTitle: "Your turn"
+      });
+    }
     if (topic === "Fractions") {
       words = ["HALF", "QUARTER", "EQUAL", "WHOLE", "SHARE", "PART"];
       if (thing !== "shape") {
         var extra = thing.toUpperCase().replace(/[^A-Z]/g, "");
         if (extra.length >= 3 && extra.length <= 14 && words.indexOf(extra) === -1) words.push(extra);
       }
-      story = ["Today we are learning about fractions.", "We will look at halves and quarters" + (thing === "shape" ? "." : " of a " + thing + ".")];
+      hook = ["Someone is about to share a " + thing + ", and the pieces must be fair."];
+      teach = ["A half is 1 of 2 equal pieces. A quarter is 1 of 4 equal pieces" + (thing === "shape" ? "." : " of a " + thing + ".")];
       questions.push(questionSpec("A " + thing + " is shared fairly between 2 people. What does each person get?", ["A half", "The whole " + thing, "Nothing", "Three pieces"], "A half", "Each person gets a half."));
       questions.push(questionSpec("A " + thing + " is cut into 4 equal pieces. What is one piece called?", ["A quarter", "A half", "A whole", "A pair"], "A quarter", "One of four equal pieces is a quarter."));
       questions.push(questionSpec("Which is more of the " + thing + "?", ["A half", "A quarter", "None of it", "Two wholes"], "A half", "A half is more than a quarter."));
@@ -608,7 +761,7 @@
       if (!early) {
         questions.push(questionSpec("Two quarters of a " + thing + " make...", ["A half", "A whole", "Nothing", "Three wholes"], "A half", "Two quarters make a half."));
       }
-      mystery = ["A half is bigger than a quarter."];
+      exit = ["Today we learned that two halves make one whole, and a half is more than a quarter."];
       objective = "Understand that a whole can be shared into equal halves and quarters.";
     } else if (topic === "Phonics") {
       var sounds = ctx.graphemes.length ? ctx.graphemes : ["sh", "ch"];
@@ -623,7 +776,8 @@
         oo: ["MOON", "BOOK", "FOOD", "POOL"]
       };
       sounds.forEach(function (sound) { words = words.concat(banks[sound] || []); });
-      story = ["Today we are listening for " + sounds.join(" and ") + ".", "The class will spot those sounds in words."];
+      hook = ["A sound is hiding at the start of a word."];
+      teach = ["Today the class is listening for " + sounds.join(" and ") + ", then spotting those sounds in words."];
       sounds.slice(0, 3).forEach(function (sound) {
         var bank = banks[sound] || ["SHIP"];
         questions.push(questionSpec("Which word uses the sound " + sound + "?", [bank[0], "DOG", "LEG", "SUN"], bank[0], bank[0] + " uses the sound " + sound + "."));
@@ -632,66 +786,78 @@
       if (sounds.length >= 2) {
         questions.push(questionSpec("Which word uses " + sounds[1] + ", not " + sounds[0] + "?", [(banks[sounds[1]] || ["CHAT"])[0], (banks[sounds[0]] || ["SHIP"])[0], "MAT", "PEN"], (banks[sounds[1]] || ["CHAT"])[0], "That word uses " + sounds[1] + "."));
       }
-      mystery = ["Listen for the sound at the start of the word."];
+      exit = ["Today we learned to listen for " + sounds.join(" and ") + " in words."];
       objective = "Hear and spot today's sounds in words.";
     } else if (topic === "Water cycle") {
       words = ["EVAPORATION", "CONDENSATION", "RAIN", "CLOUD", "WATER", "COLLECT"];
-      story = ["Water moves from puddles to clouds and back again.", "That journey is called the water cycle."];
-      questions.push(questionSpec("Water rising from a puddle into the air is called...", ["Evaporation", "Freezing", "Digging", "Melting"], "Evaporation", "That change is called evaporation."));
-      questions.push(questionSpec("Water droplets gathering to make a cloud is called...", ["Condensation", "Evaporation", "Boiling", "Digging"], "Condensation", "That change is called condensation."));
-      questions.push(questionSpec("Water falling from a cloud is called...", ["Precipitation", "Evaporation", "Collection", "Melting"], "Precipitation", "Rain falling is precipitation."));
-      questions.push(questionSpec("What heats the water in a puddle?", ["The sun", "The moon", "A pencil", "A book"], "The sun", "The sun warms the water."));
-      questions.push(questionSpec("Clouds are made of...", ["Tiny water droplets", "Dry sand", "Rocks", "Leaves"], "Tiny water droplets", "Clouds are made of tiny water droplets."));
+      hook = ["A puddle is shrinking in the sun, and the class cannot see where the water went."];
+      teach = ["Water rises as evaporation, gathers into clouds by condensation, and falls as precipitation. That journey is the water cycle."];
+      questions.push(questionSpec("Water rising from a puddle into the air is called...", ["Evaporation", "Condensation", "Collection", "Freezing"], "Evaporation", "That change is called evaporation."));
+      questions.push(questionSpec("Water droplets gathering to make a cloud is called...", ["Condensation", "Evaporation", "Precipitation", "Collection"], "Condensation", "That change is called condensation."));
+      questions.push(questionSpec("Water falling from a cloud is called...", ["Precipitation", "Evaporation", "Collection", "Condensation"], "Precipitation", "Rain falling is precipitation."));
+      questions.push(questionSpec("What heats the water in a puddle?", ["The sun", "The moon", "The wind alone", "The dark of night"], "The sun", "The sun warms the water."));
+      questions.push(questionSpec("Clouds are made of...", ["Tiny water droplets", "Dry sand", "Solid rock", "Dry leaves"], "Tiny water droplets", "Clouds are made of tiny water droplets."));
       questions.push(questionSpec("The water cycle can...", ["Happen again and again", "Happen only once", "Stop the rain forever", "Remove all water"], "Happen again and again", "The same water can move around again."));
-      questions.push(questionSpec("A puddle drying up in the sun is...", ["Evaporation", "Collection", "Freezing", "Digging"], "Evaporation", "The water rises as evaporation."));
+      questions.push(questionSpec("A puddle drying up in the sun is...", ["Evaporation", "Collection", "Precipitation", "Freezing"], "Evaporation", "The water rises as evaporation."));
       questions.push(questionSpec("Rain, snow and hail are all...", ["Precipitation", "Evaporation", "Condensation", "Collection"], "Precipitation", "Water falling from clouds is precipitation."));
       if (ctx.yearNumber >= 3) {
-        questions.push(questionSpec("Water flowing back into rivers and the sea is called...", ["Collection", "Evaporation", "Freezing", "Digging"], "Collection", "Water returning is collection."));
-        questions.push(questionSpec("Which comes first when a puddle warms up?", ["Evaporation", "Collection", "A river", "Digging"], "Evaporation", "Warm water evaporates first."));
+        questions.push(questionSpec("Water flowing back into rivers and the sea is called...", ["Collection", "Evaporation", "Precipitation", "Condensation"], "Collection", "Water returning is collection."));
+        questions.push(questionSpec("Which comes first when a puddle warms up?", ["Evaporation", "Collection", "Precipitation", "A river filling"], "Evaporation", "Warm water evaporates first."));
         questions.push(questionSpec("True or false: clouds are made from water.", ["True", "False"], "true", "Clouds are made from water.", "boolean"));
-        questions.push(questionSpec("Water vapour cooling into droplets is...", ["Condensation", "Evaporation", "Digging", "Melting a rock"], "Condensation", "Cooling vapour makes condensation."));
-        questions.push(questionSpec("Where does collected water often end up?", ["Rivers and the sea", "Inside a pencil", "On the moon", "In a book"], "Rivers and the sea", "Collected water flows to rivers and the sea."));
-        questions.push(questionSpec("What drives the water cycle?", ["The sun", "A ruler", "A chair", "A sock"], "The sun", "The sun gives the water cycle its energy."));
-        questions.push(questionSpec("Snow falling from a cloud is a kind of...", ["Precipitation", "Evaporation", "Collection", "Digging"], "Precipitation", "Snow falling is precipitation."));
-        questions.push(questionSpec("After it rains, water in rivers is part of...", ["Collection", "Evaporation only", "A times table", "A magnet"], "Collection", "Rivers collecting water is collection."));
+        questions.push(questionSpec("Water vapour cooling into droplets is...", ["Condensation", "Evaporation", "Collection", "Precipitation"], "Condensation", "Cooling vapour makes condensation."));
+        questions.push(questionSpec("Where does collected water often end up?", ["Rivers and the sea", "Inside a closed pencil case", "On the moon", "In a dry book"], "Rivers and the sea", "Collected water flows to rivers and the sea."));
+        questions.push(questionSpec("What drives the water cycle?", ["The sun", "A ruler", "A chair", "A closed door"], "The sun", "The sun gives the water cycle its energy."));
+        questions.push(questionSpec("Snow falling from a cloud is a kind of...", ["Precipitation", "Evaporation", "Collection", "Condensation"], "Precipitation", "Snow falling is precipitation."));
+        questions.push(questionSpec("After it rains, water in rivers is part of...", ["Collection", "Evaporation only", "Condensation only", "A magnet"], "Collection", "Rivers collecting water is collection."));
       }
-      mystery = ["The same water can rise, make a cloud, and fall again."];
+      exit = ["Today we learned that the same water can rise, make a cloud, and fall again."];
       objective = "Understand how water moves from puddles to clouds and back again.";
-    } else if (topic === "Electricity" || (ctx.vocabulary || []).length >= 3) {
+    } else if (topic === "Electricity") {
       words = (ctx.vocabulary || []).slice(0, 8);
-      if (words.length < 3) words = ["CIRCUIT", "BATTERY", "SWITCH", "BULB"];
-      var shown = words.slice(0, 4).map(function (word) { return word.charAt(0) + word.slice(1).toLowerCase(); });
-      story = ["Today the class is learning about " + topic + ".", "The important words include " + shown.slice(0, 3).join(", ") + "."];
-      questions.push(questionSpec("Which word belongs with " + topic + "?", [shown[0], "Shadow", "Echo", "Friction"], shown[0], shown[0] + " belongs with " + topic + "."));
-      if (shown[1]) questions.push(questionSpec("Which of these is also from " + topic + "?", [shown[1], "Shadow", "Echo", "Friction"], shown[1], shown[1] + " is from " + topic + "."));
-      if (shown[2]) questions.push(questionSpec("Which word is from today's " + topic + " lesson?", [shown[2], "Shadow", "Echo", "Friction"], shown[2], shown[2] + " is from the lesson."));
+      if (words.length < 3) words = ["CIRCUIT", "CELL", "BULB", "SWITCH"];
+      var shown = words.slice(0, 4).map(titleWord);
+      hook = ["A lamp will not light, and the pieces are sitting apart."];
+      teach = ["A bulb lights only when the circuit is a complete loop. A switch can open or close that path. The words include " + shown.slice(0, 3).join(", ") + "."];
+      questions.push(questionSpec("A bulb lights when the circuit is...", ["A complete loop", "Left with a gap", "Missing the cell", "Open at the switch"], "A complete loop", "Electricity needs a complete path."));
+      questions.push(questionSpec("An open switch...", ["Leaves a gap so the bulb stays off", "Always makes the bulb brighter", "Removes the need for a cell", "Turns the wire into water"], "Leaves a gap so the bulb stays off", "An open switch breaks the circuit."));
+      questions.push(questionSpec("Which of these belongs in a simple circuit?", [shown[0] || "Cell", "A cloud", "An adjective", "A Roman road"], shown[0] || "Cell", (shown[0] || "Cell") + " belongs in this electricity lesson."));
+      if (shown[1]) questions.push(questionSpec("Which other word is from this circuit lesson?", [shown[1], "Magma", "Quarter", "Empire"], shown[1], shown[1] + " is one of today's circuit words."));
       if ((ctx.goals || [])[0]) questions.push(questionSpec(ctx.goals[0] + " True or false?", ["True", "False"], "true", ctx.goals[0], "boolean"));
-      mystery = ["A complete path is needed before a bulb can light."];
-      objective = "Use the important words from " + topic + ".";
+      exit = ["Today we learned that a complete circuit is needed before a bulb can light."];
+      objective = "Explain that a bulb needs a complete circuit.";
+    } else if ((ctx.vocabulary || []).length >= 3) {
+      var vocab = vocabLesson(topic, (ctx.vocabulary || []).slice(0, 8), (ctx.goals || [])[0] || "");
+      questions = vocab.questions;
+      words = vocab.words;
+      hook = vocab.hook;
+      teach = vocab.teach;
+      exit = vocab.exit;
+      objective = vocab.objective;
     } else {
       var timesMatch = String(topic).match(/^(\d{1,2}) times table$/);
       if (timesMatch) {
         var factor = Number(timesMatch[1]);
-        story = [
+        hook = ["The class is about to count in groups of " + factor + "."];
+        teach = [
           "The " + factor + " times table is groups of " + factor + ".",
           factor + " groups of 3 means " + factor + " + " + factor + " + " + factor + ", which equals " + (factor * 3) + "."
         ];
         questions = timesQuestions(factor, ctx.yearNumber);
-        mystery = ["Groups of " + factor + " help the class remember the " + factor + " times table."];
+        exit = ["Today we learned that groups of " + factor + " make the " + factor + " times table."];
         objective = "Remember the " + factor + " times table.";
-      } else {
-        story = [];
-        mystery = [];
       }
     }
     return {
       questions: questions,
       words: words,
-      story: story,
-      mystery: mystery,
+      hook: hook,
+      teach: teach,
+      exit: exit,
+      story: hook.concat(teach),
+      mystery: exit,
       objective: objective,
-      title: topic + " recap",
-      quizTitle: topic + " challenge",
+      title: topic + " adventure",
+      quizTitle: topic + " check",
       followTitle: "Your turn"
     };
   }
@@ -712,38 +878,63 @@
       var batch = specs.splice(0, Math.min(count, specs.length));
       return add(makeQuiz(title, batch, batch[0].explain, participation));
     }
-    if (ctx.targetMinutes >= 12 && bank.story.length) {
-      add(readingActivity("story", ctx.topic + " together", bank.story, storyMinutes(bank.story)));
+    var hookLines = (bank.hook && bank.hook.length) ? bank.hook : (bank.story || []).slice(0, 1);
+    var teachLines = (bank.teach && bank.teach.length) ? bank.teach : (bank.story || []).slice(1);
+    var exitLines = (bank.exit && bank.exit.length) ? bank.exit : (bank.mystery || []);
+    if (ctx.targetMinutes >= 8 && hookLines.length) {
+      add(readingActivity("story", ctx.topic + " begins", hookLines, storyMinutes(hookLines), "Hook"));
+    }
+    if (ctx.targetMinutes >= 12 && teachLines.length) {
+      add(readingActivity("story", "Teach " + ctx.topic, teachLines, storyMinutes(teachLines), "Teach"));
     }
     var wantSpin = ctx.targetMinutes >= 8;
+    var wantExit = exitLines.length > 0;
     var search = null;
     if (bank.words.length >= 3) {
-      search = searchActivity("Find the words", bank.words, ctx.topic);
+      search = searchActivity("Practise the words", bank.words, ctx.topic);
+      search.purpose = "Practise";
       search.minutes = Math.min(6, Math.max(3, Math.round(bank.words.length * 0.8)));
     }
-    var reserved = (wantSpin ? 1 : 0) + (search ? search.minutes : 0);
+    var reserved = (wantSpin ? 1 : 0) + (search ? search.minutes : 0) + (wantExit ? 2 : 0);
     var quizRoom = Math.max(0, band.high - sum - reserved);
     var aim = Math.min(quizRoom, Math.max(2, ctx.targetMinutes - sum - reserved));
     var keep = wantSpin && specs.length > 3 ? 2 : 0;
     var mainCount = Math.min(Math.max(0, specs.length - keep), Math.max(2, Math.round(aim * (wantSpin ? 0.6 : 1))));
     if (mainCount < 1) mainCount = Math.min(specs.length, Math.max(aim, 1));
-    takeQuiz(bank.quizTitle || (ctx.topic + " challenge"), mainCount, "whole_class");
+    takeQuiz(bank.quizTitle || (ctx.topic + " check"), mainCount, "whole_class");
     if (search) add(search);
-    if (wantSpin) add(spinActivity(ctx.topic));
-    var followAim = Math.min(band.high - sum, Math.max(0, ctx.targetMinutes - sum));
+    if (wantSpin) {
+      var spin = spinActivity(ctx.topic);
+      spin.purpose = "Practise";
+      add(spin);
+    }
+    var followAim = Math.max(0, band.high - sum - (wantExit ? 2 : 0));
     if (followAim >= 2 && specs.length) {
       takeQuiz(bank.followTitle || "Your turn", Math.min(specs.length, followAim), wantSpin ? "selected_pupil" : "whole_class");
     }
-    while (sum < band.low && specs.length) {
-      if (!takeQuiz(ctx.topic + " practice", Math.min(specs.length, Math.max(2, band.high - sum)), "whole_class")) break;
+    while (sum < band.low - (wantExit && sum + 2 <= band.high ? 2 : 0) && specs.length) {
+      if (!takeQuiz(ctx.topic + " practice", Math.min(specs.length, Math.max(2, band.high - sum - (wantExit ? 2 : 0))), "whole_class")) break;
     }
-    if (sum < band.low && bank.mystery.length) add(readingActivity("mystery", "Remember this", bank.mystery, 2));
+    var exitCeiling = Math.min(band.high, (ctx.targetMinutes || band.high) + 2);
+    if (wantExit && sum + 2 > exitCeiling) {
+      activities.forEach(function (activity) {
+        if (sum + 2 <= exitCeiling || activity.mechanic !== "word_search") return;
+        var spare = activity.minutes - 3;
+        var cut = Math.min(Math.max(0, spare), (sum + 2) - exitCeiling);
+        if (cut > 0) {
+          activity.minutes -= cut;
+          sum -= cut;
+        }
+      });
+    }
+    if (wantExit && sum + 2 <= exitCeiling) add(readingActivity("mystery", "Today we learned", exitLines, 2, "Exit"));
     if (!activities.length || !activities.some(function (activity) { return activity.mechanic === "quiz" && activity.config && activity.config.prompt && !placeholderText(activity.config.prompt); })) {
       return { ok: false, activities: [], message: "We couldn't finish one of the activities." };
     }
     activities.forEach(function (activity) {
       var meta = capability(activity.mechanic);
       if (meta && !activity.purpose) activity.purpose = meta.purpose;
+      if (activity.mechanic === "quiz" && activity.config && (activity.config.participation === "selected_pupil" || activity.config.participation === "spin")) activity.purpose = "Practise";
       if (activity.mechanic === "word_search" && playMode(ctx.playMode).engine !== "none") activity.config.participation = "team_turn";
     });
     return { ok: true, activities: activities, minutes: sum, title: bank.title, objective: bank.objective || "" };
@@ -873,7 +1064,7 @@
   function placeholderText(value) {
     var text = String(value || "").trim().toLowerCase();
     if (!text) return true;
-    return text === "question not written yet" || text === "this quiz needs a question." || text === "question goes here" || text === "add question" || text === "tbc" || text === "todo" || text === "example question" || text === "insert answer" || text === "a question from the lesson you provided.";
+    return text === "question not written yet" || text === "this quiz needs a question." || text === "question goes here" || text === "add question" || text === "tbc" || text === "todo" || text === "example question" || text === "insert answer" || text === "a question from the lesson you provided." || text === "this matches today's lesson" || text === "this is a different idea" || text === "this was not in the lesson";
   }
 
   function activityIssue(activity, registry) {
@@ -1281,7 +1472,52 @@
       slide.lines = [question.prompt];
       if (!slide.reveal && question.explain) slide.reveal = question.explain;
     });
-    return slides;
+    return weavePlayedSlides(slides);
+  }
+
+  function weavePlayedSlides(slides) {
+    var out = [];
+    (slides || []).forEach(function (slide) {
+      var part = slide && slide.participation;
+      var prev = out[out.length - 1];
+      var asksPupil = slide && slide.type === "question" && (part === "selected_pupil" || part === "spin");
+      if (asksPupil && (!prev || prev.type !== "spin")) {
+        var prompt = (slide.question && slide.question.prompt) || "";
+        out.push({
+          type: "spin",
+          kicker: "Choose someone",
+          prompt: prompt,
+          teacherCue: prompt,
+          lines: prompt ? [prompt] : [],
+          avoidRepeat: true,
+          preferFresh: true,
+          visualAction: { type: "point" }
+        });
+      }
+      if (slide && slide.type === "mystery" && (!slide.kicker || slide.kicker === "Remember this" || slide.kicker === "Recap")) {
+        slide.kicker = "Today we learned";
+      }
+      out.push(slide);
+    });
+    var hasExit = out.some(function (slide) {
+      return slide && (slide.type === "mystery" || slide.kicker === "Today we learned" || slide.beat === "debrief");
+    });
+    if (!hasExit && out.length) {
+      var fact = "";
+      out.forEach(function (slide) {
+        var question = slide.question || (slide.questions && slide.questions[0]);
+        if (question && question.explain) fact = question.explain;
+      });
+      if (fact) {
+        out.push({
+          type: "mystery",
+          kicker: "Today we learned",
+          lines: ["Today we learned: " + fact],
+          visualAction: { type: "sequence" }
+        });
+      }
+    }
+    return out;
   }
 
   function toAdventure(draft, orgId) {

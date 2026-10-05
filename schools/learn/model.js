@@ -31,14 +31,14 @@
     { id: "story", title: "Story", text: "A personalised illustrated adventure built around the learning objective." },
     { id: "word_search", title: "Word search", text: "A vocabulary word search using the lesson’s important words." },
     { id: "quiz", title: "Pop quiz", text: "Short questions based on the learning objectives." },
-    { id: "circuit_game", title: "Circuit mini game", text: "Complete a simple circuit so the bulb lights.", topic: /electric/i },
-    { id: "comprehension", title: "Comprehension", text: "Questions based on the story and the lesson.", needs: "story" },
-    { id: "maths", title: "Maths challenge", text: "Age-appropriate maths woven into the topic, only when it belongs there." },
-    { id: "stem", title: "STEM challenge", text: "A science, technology, engineering or maths problem." },
-    { id: "matching", title: "Matching game", text: "Match words, components or definitions." },
-    { id: "sequencing", title: "Sequencing", text: "Put steps, events or a process in order." },
-    { id: "creative", title: "Creative challenge", text: "Apply the learning through design or problem solving." },
-    { id: "exit_ticket", title: "Exit ticket", text: "Three short questions at the end of the lesson, tied to the learning objectives." }
+    { id: "circuit_game", title: "Not in this lesson", text: "The electricity demo is a separate page, not a lesson activity.", topic: /electric/i, unplayable: true },
+    { id: "comprehension", title: "Not in this lesson", text: "Use a quiz for questions about the story.", needs: "story", unplayable: true },
+    { id: "maths", title: "Not in this lesson", text: "Use a quiz for number questions.", unplayable: true },
+    { id: "stem", title: "Not in this lesson", text: "A STEM board is not a lesson activity.", unplayable: true },
+    { id: "matching", title: "Not in this lesson", text: "Matching is not a board the class can play. Use a quiz or pick a door.", unplayable: true },
+    { id: "sequencing", title: "Not in this lesson", text: "Sequencing is not a board the class can play. Use a quiz.", unplayable: true },
+    { id: "creative", title: "Not in this lesson", text: "A creative board is not a lesson activity.", unplayable: true },
+    { id: "exit_ticket", title: "Not in this lesson", text: "Use a quiz for the end-of-lesson check.", unplayable: true }
   ];
 
   var CHARACTERS = [
@@ -359,6 +359,7 @@
 
   function offeredActivities(map) {
     return ACTIVITIES.filter(function (item) {
+      if (item.unplayable) return false;
       if (item.topic && !item.topic.test(map.topic || "")) return false;
       return true;
     });
@@ -368,12 +369,12 @@
     var topic = (map.topic || "").toLowerCase();
     var subject = (map.subject || "").toLowerCase();
     var ids;
-    if (/electric/.test(topic)) ids = ["story", "circuit_game", "word_search", "quiz"];
-    else if (subject === "maths") ids = ["maths", "quiz", "matching"];
-    else if (subject === "english") ids = ["story", "word_search", "comprehension", "quiz"];
+    if (/electric/.test(topic)) ids = ["story", "word_search", "quiz"];
+    else if (subject === "maths") ids = ["quiz", "word_search"];
+    else if (subject === "english") ids = ["story", "word_search", "quiz"];
     else if (subject === "history" || subject === "geography") ids = ["story", "word_search", "quiz"];
-    else if (subject === "science") ids = ["story", "word_search", "matching", "quiz"];
-    else ids = ["word_search", "quiz", "matching"];
+    else if (subject === "science") ids = ["story", "word_search", "quiz"];
+    else ids = ["story", "word_search", "quiz"];
     var offered = offeredActivities(map).map(function (item) { return item.id; });
     ids = ids.filter(function (id) { return offered.indexOf(id) !== -1; });
     return { recommended: ids, available: offered.filter(function (id) { return ids.indexOf(id) === -1; }) };

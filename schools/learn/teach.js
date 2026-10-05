@@ -22,15 +22,15 @@
 
   var TEMPLATES = [
     { id: "quick_quiz", title: "Quick quiz", text: "A short knowledge check.", activities: ["quiz"], minutes: 5, images: false },
-    { id: "vocabulary", title: "Vocabulary blast", text: "Key words and what they mean.", activities: ["word_search", "matching"], minutes: 10, images: false },
+    { id: "vocabulary", title: "Vocabulary blast", text: "Key words and what they mean.", activities: ["word_search", "quiz"], minutes: 10, images: false },
     { id: "story", title: "Story adventure", text: "Learning through a narrative.", activities: ["story", "quiz"], minutes: 20, images: true },
     { id: "stem", title: "STEM mission", text: "A problem-solving challenge.", activities: ["stem"], minutes: 15, images: false },
     { id: "retrieval", title: "Retrieval practice", text: "Recall something already taught.", activities: ["quiz"], minutes: 5, images: false },
     { id: "exit_ticket", title: "Exit ticket", text: "A short check before the lesson ends.", activities: ["exit_ticket"], minutes: 5, images: false },
     { id: "starter", title: "Lesson starter", text: "A quick activity to begin.", activities: ["quiz"], minutes: 5, images: false },
-    { id: "matching", title: "Match and sort", text: "Match words, parts or meanings.", activities: ["matching"], minutes: 8, images: false },
-    { id: "sequencing", title: "Sequencing challenge", text: "Put a process or events in order.", activities: ["sequencing"], minutes: 8, images: false },
-    { id: "end_topic", title: "End-of-topic challenge", text: "Review several learning objectives.", activities: ["quiz", "matching", "stem"], minutes: 20, images: false }
+    { id: "matching", title: "Choose the match", text: "A quiz that asks which idea belongs. Not a matching board.", activities: ["quiz"], minutes: 8, images: false },
+    { id: "sequencing", title: "What comes next", text: "A quiz about order. Not a sequencing board.", activities: ["quiz"], minutes: 8, images: false },
+    { id: "end_topic", title: "End-of-topic challenge", text: "Review several learning objectives.", activities: ["quiz", "word_search"], minutes: 20, images: false }
   ];
 
   var SUBJECTS = ["Science", "Maths", "English", "History", "Geography"];
@@ -160,29 +160,13 @@
 
   function questionsFor(map, count) {
     if (electricTopic(map)) return ELECTRIC_QUESTIONS.slice(0, count || 3);
-    var objectives = (map.learningObjectives || []).filter(Boolean);
-    if (!objectives.length && map.topic) objectives = [map.topic];
-    return objectives.slice(0, count || 3).map(function (objective, index) {
-      return {
-        id: "draft_" + index,
-        objective: objective,
-        prompt: objective,
-        draft: true,
-        choices: [
-          { id: "A", text: "This matches today's lesson" },
-          { id: "B", text: "This is a different idea" },
-          { id: "C", text: "This was not in the lesson" }
-        ],
-        correct: "A",
-        explain: "Check this against the learning objective before the lesson. It is a draft, not a checked question."
-      };
-    });
+    return [];
   }
 
   function activitiesForTime(minutes, map) {
     var ids = Learn.recommendations(map).recommended.slice();
     if (minutes <= 5) {
-      return ids.filter(function (id) { return id === "quiz" || id === "maths" || id === "circuit_game"; }).slice(0, 2);
+      return ids.filter(function (id) { return id === "quiz" || id === "word_search"; }).slice(0, 2);
     }
     if (minutes <= 10) return ids.filter(function (id) { return id !== "story"; }).slice(0, 3);
     return ids;
