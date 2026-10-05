@@ -2808,7 +2808,7 @@
     }
     if (/developed strands/.test(found)) {
       var span = strandRange(depthBudget((ctx && (ctx.yearGroup || ctx.yearAssumption)) || (previous && previous.yearGroup), ctx && ctx.requestedMinutes));
-      required.push("strands: this topic is broad, so the learningMap needs " + span.low + " to " + Math.max(span.low, span.high) + " separate strands that each develop one idea. A strand names a feature, part, event, or idea and then explains how or why it works, with a function, mechanism, cause, process, or procedure point that depends on it. The first point of each strand depends only on the foundation. A list of separate facts is not a strand");
+      required.push("strands: this topic is broad, so the learningMap needs " + span.low + " to " + Math.max(span.low, span.high) + " separate strands that each develop one idea. A strand names a feature, part, event, or idea and then explains how or why it works, with a function, mechanism, cause, process, or procedure point that depends on it. The first point of each strand depends only on the foundation. A list of separate facts is not a strand. Development is read only from dependsOn: a point counts as developing a strand only when its dependsOn lists the earlier point of that strand it builds on. For example p2 names a feature with dependsOn [\"p1\"], and p3 explains what that feature does with dependsOn [\"p2\"]. A sentence with because, helps, or work together and an empty dependsOn is still a separate fact. Every point except the foundation must have a non-empty dependsOn");
     }
     if (/outcome, not the reason/.test(found)) {
       if (seeksContribution(ctx, objective)) {
@@ -3423,6 +3423,20 @@
     return !!(EXPLAINED_KIND[item.kind] || ((item.dependsOn || []).length && RELATIONAL_ROLE[item.role]));
   }
 
+  function depthSnapshot(items, teaching) {
+    var depth = (teaching && teaching.substantiveDepth) || {};
+    return {
+      map: (items || []).slice(0, 12).map(function (item) {
+        return { id: item.id, role: item.role, dependsOn: (item.dependsOn || []).slice(0, 6), knowledge: clean(item.knowledge, 160) };
+      }),
+      requiredDepth: depth.required,
+      achievedDepth: depth.achieved,
+      requiredStrands: depth.strandsRequired,
+      developedStrands: depth.strandsDeveloped,
+      met: !!depth.met
+    };
+  }
+
   function buildTeachingPlan(items, ctx, scope, required, depth, dropped) {
     var nodes = items.map(function (item, index) {
       return { key: item.id, role: item.role, deps: (item.dependsOn || []).slice(), index: index };
@@ -3468,7 +3482,12 @@
           if (other && other !== id && needs.indexOf(other) === -1) needs.push(other);
         });
       });
-      var isDeveloped = /^t/.test(id) && (mine.some(function (point) { return point.explained; }) || (mine.some(function (point) { return point.category === "substantive"; }) && mine.some(function (point) { return point.category === "supporting"; })));
+      var isDeveloped = /^t/.test(id) && mine.some(function (point) {
+        if (!point.explained && point.category !== "supporting") return false;
+        return depsOf[point.id].some(function (dep) {
+          return refs.indexOf(dep) !== -1 && points.some(function (other) { return other.id === dep && other.category === "substantive"; });
+        });
+      });
       if (isDeveloped) developed += 1;
       return {
         id: id,
@@ -3740,9 +3759,11 @@
     if (ctx.yearGroup && parsed.yearGroup && yearDigit(parsed.yearGroup) && yearDigit(parsed.yearGroup) !== yearDigit(ctx.yearGroup)) {
       issues.push("The plan changed the year group.");
     }
-    if (issues.length) return { ok: false, issues: issues, previous: parsed };
+    var snapshot = depthSnapshot(map.items, teaching);
+    if (issues.length) return { ok: false, issues: issues, previous: parsed, depth: snapshot };
     return {
       ok: true,
+      depth: snapshot,
       plan: {
         title: clean(parsed.title, 80),
         subject: clean(parsed.subject || ctx.subject, 80),
@@ -4432,8 +4453,13 @@
     return issues;
   }
 
+  function beatSkeleton(skeleton) {
+    return Array.isArray(skeleton) && skeleton.some(function (slot) { return slot && slot.beats && slot.beats.length; }) ? skeleton : null;
+  }
+
   function substanceIssues(activities, ctx) {
     if (ctx && ctx.lessonSkeleton) return participationIssues(activities, ctx.lessonSkeleton);
+    if (ctx && ctx.participationSkeleton) return participationIssues(activities, ctx.participationSkeleton);
     var target = Number(ctx && ctx.requestedMinutes) || 15;
     if (target < 12) return [];
     var taught = 0;
@@ -5333,9 +5359,11 @@
     if (request.length >= 12) {
       scrubRequest(activities, request, requestReplacement(request, ctx.topic || (ctx.lessonPlan && ctx.lessonPlan.topic) || ""));
     }
+    var carriedSkeleton = ctx.lessonSkeleton ? null : beatSkeleton(parsed.lessonSkeleton);
     var issueCtx = Object.assign({}, ctx, {
       lessonPlan: ctx.lessonPlan || parsed.lessonPlan || null,
-      storyPlan: storyPlan
+      storyPlan: storyPlan,
+      participationSkeleton: carriedSkeleton
     });
     if (storyPlan && storyPlan.enabled !== false) {
       tuneShots(activities);
@@ -5463,7 +5491,7 @@
       objectives: objectives,
       vocabulary: (parsed.vocabulary || []).map(function (item) { return clean(item, 40); }).filter(Boolean).slice(0, 12),
       lessonPlan: lessonPlan,
-      lessonSkeleton: ctx.lessonSkeleton || null,
+      lessonSkeleton: ctx.lessonSkeleton || carriedSkeleton || null,
       storyPlan: keptStory,
       activities: activities,
       targetMinutes: Number(ctx.requestedMinutes) || sum,

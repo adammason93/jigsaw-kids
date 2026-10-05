@@ -332,13 +332,18 @@ globalThis.handleGenerate = async (req) => {
         model,
         attemptId,
         planMs,
-        issues: (planned.issues || []).slice(0, 8)
+        issues: (planned.issues || []).slice(0, 8),
+        firstPass: planned.depth || null
       });
       planRepaired = true;
       const planRepairStarted = Date.now();
-      const secondPlan = await callModel(brain.planRepairBrief(ctx, planned.issues || [], planned.previous), apiKey, model, 2e4);
+      const planRepairBrief = brain.planRepairBrief(ctx, planned.issues || [], planned.previous);
+      let repairInstruction = [];
+      try { repairInstruction = (JSON.parse(planRepairBrief.user).relationshipRequired || []).slice(0, 6).map((line) => String(line).slice(0, 900)); } catch (_error) { repairInstruction = []; }
+      const secondPlan = await callModel(planRepairBrief, apiKey, model, 2e4);
       repairMs += Date.now() - planRepairStarted;
       planned = brain.normalisePlan(secondPlan, Object.assign({}, ctx, { depthRequired: true, breadthSettled: true }));
+      logMeta({ stage: "PLAN_REPAIR", attemptId, model, ok: !!planned.ok, repairInstruction, repaired: planned.depth || null, issues: (planned.issues || []).slice(0, 8) });
       if (!planned.ok) {
         logMeta({
           stage: "EDUCATIONAL_VALIDATION_FAILED",
