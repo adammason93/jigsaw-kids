@@ -441,7 +441,7 @@ assert.strictEqual(legacy.plan.learningMap.length, 2);
 
 var briefText = Brain.planBrief({ lessonBrief: { learningGoal: shark.goal }, yearGroup: "Year 1", requestedMinutes: 15 }).system;
 assert.ok(briefText.indexOf("about 5 to 6 points") !== -1);
-assert.ok(briefText.indexOf("learningMap: [{ id, knowledge, role, importance, dependsOn }]") !== -1);
+assert.ok(briefText.indexOf("learningMap: [{ id, knowledge, role, importance, dependsOn, explains }]") !== -1);
 assert.strictEqual(briefText.indexOf("two in Year 1 and Year 2"), -1);
 assert.ok(/shark/i.test(briefText) === false, "the plan brief carries no topic-specific facts");
 var olderBrief = Brain.planBrief({ lessonBrief: { learningGoal: "x" }, yearGroup: "Year 6", requestedMinutes: 20 }).system;
