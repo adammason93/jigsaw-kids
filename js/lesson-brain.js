@@ -666,22 +666,39 @@
     };
   }
 
+  function soleMove(list, index, move) {
+    var ref = (list[index].refs || [])[0];
+    if (!ref) return false;
+    return !list.some(function (other, otherIndex) {
+      return otherIndex !== index && other.move === move && (other.refs || [])[0] === ref;
+    });
+  }
+
   function trimMoves(list, cap) {
     var next = (list || []).slice();
-    ["exemplify", "connect", "compare", "predict", "model"].forEach(function (move) {
+    function dropMove(move, keepSole) {
       while (next.length > cap) {
         var index = -1;
         for (var i = next.length - 1; i >= 0; i -= 1) {
-          if (next[i].move === move) { index = i; break; }
+          if (next[i].move !== move) continue;
+          if (keepSole && soleMove(next, i, move)) continue;
+          index = i;
+          break;
         }
         if (index === -1) break;
         next.splice(index, 1);
       }
-    });
+    }
+    ["predict", "compare", "connect"].forEach(function (move) { dropMove(move, false); });
+    ["exemplify", "model"].forEach(function (move) { dropMove(move, true); });
     while (next.length > cap && next.length > 1) {
       var drop = -1;
       for (var end = next.length - 1; end >= 0; end -= 1) {
-        if (next[end].move !== "name" && next[end].move !== "explain") { drop = end; break; }
+        var move = next[end].move;
+        if (move === "name" || move === "explain") continue;
+        if ((move === "model" || move === "exemplify") && soleMove(next, end, move)) continue;
+        drop = end;
+        break;
       }
       if (drop === -1) break;
       next.splice(drop, 1);
@@ -959,6 +976,68 @@
       });
     });
     return { taught: order, at: at, before: before };
+  }
+
+  function teachingTrace(plan, slots, ctx) {
+    plan = plan || {};
+    ctx = ctx || {};
+    var year = beatYear((ctx.yearGroup || ctx.yearAssumption) || plan.yearGroup);
+    var depth = plan.depthBudget || depthBudget(year, plan.durationMinutes);
+    var items = beatKnowledge(plan, year);
+    var textOf = {};
+    items.forEach(function (item) { textOf[item.id] = item.text; });
+    var look = teachingLookup(plan);
+    var ledger = taughtLedger(slots);
+    function strandOf(ref) {
+      return look && look.point[ref] ? look.point[ref].strand : "";
+    }
+    var beats = [];
+    var byRef = {};
+    (slots || []).forEach(function (slot) {
+      if (!slot) return;
+      (slot.beats || []).forEach(function (beat) {
+        (beat.knowledgeRefs || []).forEach(function (ref) {
+          var row = {
+            stage: slot.id,
+            beatId: beat.id,
+            move: beat.move,
+            ref: ref,
+            strand: strandOf(ref),
+            knowledge: textOf[ref] || ""
+          };
+          beats.push(row);
+          if (!byRef[ref]) byRef[ref] = { ref: ref, strand: row.strand, knowledge: row.knowledge, learned: "", used: "", checked: "", consolidated: "" };
+          var entry = byRef[ref];
+          if (TEACHING_MOVES[beat.move]) {
+            var learned = beat.move + " in " + slot.id;
+            if (!entry.learned) entry.learned = learned;
+            else if (entry.learned.indexOf(beat.move + " ") !== 0 && entry.learned.indexOf(", " + beat.move) === -1) entry.learned += ", then " + beat.move;
+          }
+          if (!entry.used && (beat.move === "practise" || beat.move === "apply")) entry.used = beat.move + " in " + slot.id;
+          if (!entry.checked && beat.move === "retrieve") entry.checked = beat.id;
+          if (!entry.consolidated && beat.move === "consolidate") entry.consolidated = beat.id;
+        });
+      });
+    });
+    var check = (slots || []).filter(function (slot) { return slot && slot.id === "check"; })[0];
+    var checkStrands = [];
+    ((check && check.beats) || []).forEach(function (beat) {
+      var strand = strandOf((beat.knowledgeRefs || [])[0]);
+      if (strand && checkStrands.indexOf(strand) === -1) checkStrands.push(strand);
+    });
+    return {
+      year: depth.year,
+      minutes: depth.minutes,
+      depthFloor: depth.floor,
+      depthMax: depth.max,
+      questionBudget: depth.questions,
+      checkQuestions: ((check && check.beats) || []).filter(function (beat) { return beat.move === "retrieve"; }).length,
+      checkStrands: checkStrands,
+      taughtBeforeApply: (ledger.before.apply || []).slice(),
+      taughtBeforeCheck: (ledger.before.check || []).slice(),
+      beats: beats,
+      knowledge: Object.keys(byRef).map(function (ref) { return byRef[ref]; })
+    };
   }
 
   function learningMapReport(plan, slots, ctx) {
@@ -1342,6 +1421,7 @@
     year = beatYear(year);
     if (hasLearningMap(plan)) return planMapBeats(skeleton, plan, year);
     var bounds = beatLimit(year);
+    var depth = depthBudget(year, plan && plan.durationMinutes);
     var items = beatKnowledge(plan, year);
     if (!items.length) return (skeleton || []).map(function (slot) { return Object.assign({}, slot, { beats: [] }); });
     var first = items[0].id;
@@ -1359,26 +1439,35 @@
     });
     if (year >= 3 && items.length >= 2) teach.push({ move: "connect", refs: [items[0].id, items[1].id] });
     var taught = {};
-    packBeats("teach", teach, bounds.cap).forEach(function (beat) {
-      if (beat.move === "name" || beat.move === "explain" || beat.move === "model") {
+    var teachCap = Math.max(teach.length, 1);
+    packBeats("teach", teach, teachCap).forEach(function (beat) {
+      if (beat.move === "name" || beat.move === "explain" || beat.move === "model" || beat.move === "exemplify") {
         (beat.knowledgeRefs || []).forEach(function (ref) { taught[ref] = true; });
       }
     });
     var focus = first;
     var focused = false;
-    packBeats("teach", teach, bounds.cap).forEach(function (beat) {
+    packBeats("teach", teach, teachCap).forEach(function (beat) {
       if (!focused && (beat.move === "explain" || beat.move === "model") && beat.knowledgeRefs[0]) {
         focus = beat.knowledgeRefs[0];
         focused = true;
       }
     });
-    var teachBeats = packBeats("teach", teach, bounds.cap);
+    var teachBeats = packBeats("teach", teach, teachCap);
     var connect = null;
     teachBeats.forEach(function (beat) { if (beat.move === "connect") connect = beat; });
-    var checkRefs = year >= 5 && connect ? connect.knowledgeRefs.slice() : [focus];
     var named = items.filter(function (item) { return taught[item.id]; }).map(function (item) { return item.id; });
     if (!named.length) named = [first];
-    var checkBeats = [{ move: "retrieve", refs: checkRefs }];
+    var checkPool = items.filter(function (item) { return taught[item.id] && (ASSESSABLE[item.kind] || item.id === focus); });
+    if (!checkPool.length) checkPool = items.filter(function (item) { return item.id === focus; });
+    var checkRefs = checkPool.slice(0, depth.questions).map(function (item) { return item.id; });
+    if (year >= 5 && connect) {
+      connect.knowledgeRefs.forEach(function (ref) {
+        if (checkRefs.length < depth.questions && checkRefs.indexOf(ref) === -1) checkRefs.push(ref);
+      });
+    }
+    if (!checkRefs.length) checkRefs = [focus];
+    var checkBeats = checkRefs.map(function (ref) { return { move: "retrieve", refs: [ref] }; });
     var recap = year >= 4
       ? [{ move: "consolidate", refs: named.slice() }]
       : named.map(function (ref) { return { move: "consolidate", refs: [ref] }; });
@@ -1396,8 +1485,16 @@
       recap: recap
     };
     return (skeleton || []).map(function (slot) {
-      var beats = packBeats(slot.id, shaped[slot.id] || [], bounds.cap).filter(function (beat) { return BEAT_MOVES[beat.move]; });
-      return Object.assign({}, slot, { beats: beats });
+      var list = shaped[slot.id] || [];
+      var cap = slot.id === "teach" || slot.id === "check" || slot.id === "recap" ? Math.max(list.length, 1) : bounds.cap;
+      var beats = packBeats(slot.id, list, cap).filter(function (beat) { return BEAT_MOVES[beat.move]; });
+      var next = Object.assign({}, slot, { beats: beats });
+      if (slot.id === "check") {
+        var textOf = {};
+        items.forEach(function (item) { textOf[item.id] = item.text; });
+        next.requiredKnowledge = checkRefs.map(function (ref) { return textOf[ref]; }).filter(Boolean);
+      }
+      return next;
     });
   }
 
@@ -1508,15 +1605,15 @@
       notice: "notice directs attention to one concrete unsolved problem and does not give the later explanation. It is not an empty question such as what lives here." + (beatYear(year) <= 2 ? " A Year 1 or Year 2 notice beat is one sentence: one looking question or one looking instruction. It is never an instruction followed by a question." : ""),
       predict: "predict asks for a prediction from what the class can already use.",
       name: "name states the planned knowledge clearly in one short everyday sentence. It says what the thing is, not only a bare label.",
-      explain: "explain says how or why the referenced knowledge works, in new words and in one short sentence.",
-      exemplify: "exemplify gives one age-appropriate example of the referenced knowledge.",
-      model: "model demonstrates the planned process or procedure.",
+      explain: "explain says how or why the referenced knowledge works, in new words and in one short sentence. Naming the thing is not an explanation.",
+      exemplify: "exemplify gives one concrete example of the referenced knowledge. Do not say only that an example exists.",
+      model: "model shows the step or action of the referenced knowledge. Do not say only that there is a worked step.",
       compare: "compare points to a relevant similarity or difference.",
       connect: "connect states how the referenced knowledge joins the ideas taught before it.",
-      practise: "practise is short pupil-facing preparation for the task. It refers to the knowledge the child is about to use on a new case. It does not merely say use your knowledge. It does not duplicate the entire task instruction or repeat the taught sentence.",
-      apply: "apply is a short pupil-facing bridge from the taught knowledge into the task. It makes clear what idea the pupil should use. It does not replace the task itself.",
-      reveal: "reveal resolves the adventure using the taught knowledge.",
-      consolidate: "consolidate restates the learned knowledge itself, including the how or why when that was taught, not that the lesson is finished."
+      practise: "practise is short pupil-facing preparation for the task. It refers to the knowledge the child is about to use on a new case. It does not merely say use your knowledge. It does not write only 'use it in what you make'. It does not duplicate the entire task instruction or repeat the taught sentence.",
+      apply: "apply is a short pupil-facing bridge from the taught knowledge into the task. It names the idea the pupil should use. It does not replace the task itself, and it is not a request to repeat the fact.",
+      reveal: "reveal settles the adventure by stating the taught knowledge. When the adventure has a mission, the sentence is that mission's payoff. Do not say only that the class can now use the idea.",
+      consolidate: "consolidate restates the learned knowledge itself, including the how or why when that was taught. Do not say only that the lesson is finished or that the class can now use the idea."
     };
     var lines = Object.keys(meaning).filter(function (move) { return seen[move]; }).map(function (move) { return meaning[move]; });
     return lines.length ? "Pupil text for each planned move: " + lines.join(" ") : "";
@@ -1602,6 +1699,7 @@
         });
       }
       var textReason = pupilCopyReason(text, year, minimum, blocked);
+      if (!textReason) textReason = beatSubstanceReason(beat, text, items);
       if (textReason) row(textReason);
       if (cue) {
         var cueReason = pupilCopyReason(cue, year, 4, blocked);
@@ -1627,9 +1725,109 @@
       "too many sentences for year": young ? "It has more than one sentence. Year 1 and Year 2 need exactly one sentence. Do not write an instruction followed by a question. Keep one of them as the whole sentence." : "It has more than two sentences. Use one or two sentences.",
       "internal-copy collision": "It copies an internal label. Write words a pupil would hear.",
       "copies a knowledge sentence": "It copies the knowledge sentence word for word. Say the same idea in new words.",
-      "copies the name sentence": "It repeats the name sentence. Explain the idea in new words."
+      "copies the name sentence": "It repeats the name sentence. Explain the idea in new words.",
+      "does not explain": "It names the thing but does not say how or why. Add the cause, the step, or what it does.",
+      "does not give an example": "It does not give a real example. Name one concrete case of the taught idea.",
+      "does not demonstrate": "It does not show the step. Walk through the action the pupil should watch.",
+      "does not use the taught knowledge": "It does not ask the pupil to use the taught idea. Give a new case that needs that idea.",
+      "does not transfer the taught knowledge": "It does not name the taught idea the task will use. Point at that idea, not at the lesson in general.",
+      "does not settle the taught knowledge": "It celebrates finishing. State the taught idea that settles the mission.",
+      "does not bring the learning together": "It talks about the lesson. State the knowledge the class can now say."
     };
     return fixes[reason] || "Rewrite this beat.";
+  }
+
+  var ACTION_VERB = /\b(grip|grips|gripping|breathe|breathes|breathing|push|pushes|pushing|pull|pulls|pulling|lift|lifts|lifting|steer|steers|steering|carry|carries|carrying|soak|soaks|soaking|move|moves|moving|turn|turns|turning|slide|slides|sliding|spread|spreads|sweep|sweeps|drive|drives|catch|catches|hold|holds|keep|keeps|slow|slows|flow|flows|flowing|flood|floods|multiply|multiplies|add|adds|divide|divides|wear|wears|drop|drops|join|joins|balance|balances|pick|picks|picking|drag|drags|dragging|build|builds|building|feed|feeds|feeding|grow|grows|growing)\b/i;
+  var META_SHELL = /\b(the class can now|we learned|what we learned|the idea about|today we|you now know|idea from this lesson|let'?s think)\b/i;
+
+  function knowledgeOverlap(text, knowledge) {
+    var used = contentWords(text);
+    var seen = {};
+    return contentWords(knowledge).filter(function (bit) {
+      if (bit.length < 4 || seen[bit]) return false;
+      if (!used.some(function (word) { return sameStem(word, bit); })) return false;
+      seen[bit] = 1;
+      return true;
+    });
+  }
+
+  function knowledgeOf(refs, items) {
+    return (refs || []).map(function (ref) {
+      var found = "";
+      (items || []).forEach(function (item) { if (item.id === ref) found = item.text; });
+      return found;
+    }).filter(Boolean).join(" ");
+  }
+
+  function resultSo(text) {
+    return /\bso\b(?!\s+(?:that|far|much|many|easily|well))/i.test(String(text || ""));
+  }
+
+  function bareLabel(text) {
+    return /^(a |an |the )?[a-z0-9' -]{0,48}\b(is|are|was|were|has|have)\b/i.test(clean(text));
+  }
+
+  function explainsBeat(text, knowledge) {
+    var body = String(text || "").replace(/^\s*this matters because\s+/i, "");
+    var causal = statesRelation(body) || statesFunction(body) || ACTION_VERB.test(body) || resultSo(body);
+    var hits = knowledgeOverlap(text, knowledge);
+    if (causal && hits.length >= 1) return true;
+    return hits.length >= 3 && !bareLabel(body);
+  }
+
+  function genericExample(text) {
+    return /\bhere is one clear example\b/i.test(text) || /\bexample of (the |this )?idea\b/i.test(text) || /\bthe idea in use\b/i.test(text);
+  }
+
+  function bareUse(text) {
+    var norm = clean(text).toLowerCase().replace(/[.?!]+$/g, "").trim();
+    return /^use\b.+\bin what you make$/.test(norm) || /\buse your knowledge\b/.test(norm);
+  }
+
+  function emptyMeta(text, knowledge) {
+    return META_SHELL.test(text) && knowledgeOverlap(text, knowledge).length < 2;
+  }
+
+  function beatSubstanceReason(beat, text, items) {
+    var knowledge = knowledgeOf(beat.knowledgeRefs, items);
+    if (!knowledge || !beat || !beat.move) return "";
+    var hits = knowledgeOverlap(text, knowledge);
+    if (beat.move === "explain") return explainsBeat(text, knowledge) ? "" : "does not explain";
+    if (beat.move === "exemplify") {
+      if ((genericExample(text) && hits.length < 2) || !hits.length) return "does not give an example";
+      return "";
+    }
+    if (beat.move === "model") {
+      if ((!hits.length && /\b(worked step|say what changes)\b/i.test(text)) || !hits.length) return "does not demonstrate";
+      if (!/\b(first|then|next|step|watch)\b/i.test(text) && !explainsBeat(text, knowledge)) return "does not demonstrate";
+      return "";
+    }
+    if (beat.move === "practise") {
+      if (bareUse(text) || emptyMeta(text, knowledge) || !hits.length) return "does not use the taught knowledge";
+      if (!/\b(show|choose|find|point|sort|decide|build|label|match|move|push|complete|pick|try|shade|group|order|arrange|compare|predict|use|make|place|put|trace)\b/i.test(text)) return "does not use the taught knowledge";
+      return "";
+    }
+    if (beat.move === "apply") {
+      if (bareUse(text) || emptyMeta(text, knowledge) || !hits.length) return "does not transfer the taught knowledge";
+      if (/^(what|why|which|who)\b/i.test(clean(text))) return "does not transfer the taught knowledge";
+      return "";
+    }
+    if (beat.move === "reveal") return emptyMeta(text, knowledge) || !hits.length ? "does not settle the taught knowledge" : "";
+    if (beat.move === "consolidate") return emptyMeta(text, knowledge) || !hits.length ? "does not bring the learning together" : "";
+    return "";
+  }
+
+  function substanceIssue(beat, reason) {
+    var phrase = {
+      "does not explain": "does not explain the idea",
+      "does not give an example": "does not give an example",
+      "does not demonstrate": "does not demonstrate the idea",
+      "does not use the taught knowledge": "does not use the taught knowledge",
+      "does not transfer the taught knowledge": "does not use the taught knowledge",
+      "does not settle the taught knowledge": "does not settle the taught knowledge",
+      "does not bring the learning together": "does not bring the learning together"
+    }[reason] || "does not teach";
+    return "The " + beat.id + " beat " + phrase + ".";
   }
 
   var APPLY_REPAIR_FIX = {
@@ -1663,6 +1861,11 @@
       if (!reveal && item && sameSentence(text, item.text)) issues.push("The " + beat.id + " beat repeats a knowledge sentence.");
       if (beat.move === "name" && ref) names[ref] = text;
       if (beat.move === "explain" && ref && sameSentence(text, names[ref])) issues.push("The " + beat.id + " beat repeats the name sentence.");
+      var copyOk = pupilSentence(text, year, minimum) && !blocked.some(function (field) { return sameSentence(text, field); });
+      if (copyOk) {
+        var substance = beatSubstanceReason(beat, text, items);
+        if (substance) issues.push(substanceIssue(beat, substance));
+      }
     });
     return issues;
   }
@@ -1828,6 +2031,19 @@
     });
   }
 
+  var DEPICT = { draw: 1, drawing: 1, write: 1, writing: 1, sketch: 1, sketching: 1, picture: 1 };
+
+  function disguisedRecall(instruction, sentence) {
+    var words = linkWords(instruction).filter(function (word) { return word.length >= 4; });
+    if (!words.some(function (word) { return RESTATE[word]; })) return false;
+    if (!words.some(function (word) { return DEPICT[word]; })) return false;
+    var sentenceWords = linkWords(sentence);
+    return !words.some(function (word) {
+      if (RESTATE[word] || DEPICT[word]) return false;
+      return !sentenceWords.some(function (bit) { return sameWord(word, bit); });
+    });
+  }
+
   function applyAlignment(activity, required) {
     var instruction = applyInstructionOf(activity);
     var named = activity && activity.knowledgeUsed || "";
@@ -1866,6 +2082,7 @@
       return { status: "unresolved", reason: "unlisted-action", matchedKnowledge: matched, evidence: hits };
     }
     if (restatesNamed(instruction, matched)) return { status: "unresolved", reason: "restatement", matchedKnowledge: matched, evidence: hits };
+    if (disguisedRecall(instruction, matched)) return { status: "fail", reason: "not-an-action", matchedKnowledge: matched, evidence: hits };
     if (hits.length >= 2 || (hits.length >= 1 && bits.length > 0 && hits.length === bits.length && bits.length <= 2)) {
       return { status: "pass", reason: "relation-covered", matchedKnowledge: matched, evidence: hits };
     }
@@ -2134,6 +2351,25 @@
     if (slot === "check") return ["The check scores knowledge that was not taught."];
     if (slot === "apply") return ["The apply task uses knowledge that was not taught."];
     return ["The " + slot + " uses knowledge that was not taught."];
+  }
+
+  function retrieveSubstanceIssues(activity, slot, items) {
+    var retrieves = ((slot && slot.beats) || (activity && activity.beats) || []).filter(function (beat) {
+      return beat && beat.move === "retrieve";
+    });
+    if (!retrieves.length) return [];
+    var questions = checkQuestionsOf(activity);
+    var issues = [];
+    retrieves.forEach(function (beat, index) {
+      var knowledge = knowledgeOf(beat.knowledgeRefs, items);
+      if (!knowledge) return;
+      var question = questions.length > 1 ? (questions[index] || {}) : (questions[0] || {});
+      var blob = [question.prompt, question.correct, question.explain].join(" ");
+      if (!knowledgeOverlap(blob, knowledge).length) {
+        issues.push("The check slot does not retrieve the taught knowledge for " + (beat.id || "this question") + ".");
+      }
+    });
+    return issues;
   }
 
   function checkSlotIssues(activity, ctx) {
@@ -2590,7 +2826,7 @@
       "title must not repeat the teacher's request.",
       "A hook may describe the unsolved visible event. Do not invent a mechanic for it. If that event is something the class can see, name a worldEffect type the player already allows: shake, rumble, pulse, glow, highlight, zoom, pan, reveal, crack, move-object, vibrate-object, fade, particles, flash, or sound-cue.",
       "Do not write {name} or a pupil name. participantSelection on a slot chooses who acts. The slot's instruction is what they do.",
-      "Do not copy pedagogicalPurpose, learningRole, interactionIntent, a move name, or a slot id into cue or text. A notice, predict, practise, apply, reveal, or consolidate sentence must not repeat a keyKnowledge sentence. Apply, when it has beats, also returns instruction, target, successCondition, and teachingConnection, and does not return knowledgeUsed. A quiz check slot does not return beat cue or text. Each retrieve beat is one quiz question. When the check has one retrieve beat, return prompt, choices, correct, explain, successEvidence, and teachingConnection. When it has several, return questions in that beat order, one object per beat id, and do not add or remove a question. Each question tests only the knowledge ref on its retrieve beat."
+      "Do not copy pedagogicalPurpose, learningRole, interactionIntent, a move name, or a slot id into cue or text. A notice, predict, practise, apply, reveal, or consolidate sentence must not repeat a keyKnowledge sentence. Apply, when it has beats, also returns instruction, target, successCondition, and teachingConnection, and does not return knowledgeUsed. A quiz check slot does not return beat cue or text. Each retrieve beat is one quiz question. When the check has one retrieve beat, return prompt, choices, correct, explain, successEvidence, and teachingConnection. When it has several, return questions in that beat order, one object per beat id, and do not add or remove a question. Each question tests only the knowledge ref on its retrieve beat. The correct answer must depend on that knowledge. A question the class could answer without it is not retrieval."
     ]).filter(Boolean).join(" ");
     var schema = {
       type: "object",
@@ -5442,6 +5678,12 @@
           issues.push(issue);
           ownIssue(owners, slot.id, issue);
         });
+        if (slot.id === "check") {
+          retrieveSubstanceIssues(activity, slot, beatItems).forEach(function (issue) {
+            issues.push(issue);
+            ownIssue(owners, slot.id, issue);
+          });
+        }
       });
     }
     if (ctx.lessonSkeleton) {
@@ -5923,6 +6165,7 @@
     depthBudget: depthBudget,
     buildLearningMap: buildLearningMap,
     taughtLedger: taughtLedger,
+    teachingTrace: teachingTrace,
     learningMapReport: learningMapReport,
     teachingScope: teachingScope,
     teachingPlanReport: teachingPlanReport,

@@ -180,14 +180,14 @@ function speak(beat, items) {
     predict: "Say what you think is happening before the explanation.",
     name: known + ".",
     explain: "This matters because " + known.charAt(0).toLowerCase() + known.slice(1) + ".",
-    exemplify: "Here is one clear example of the idea in use.",
-    model: "Watch this worked step and say what changes.",
+    exemplify: "For example, " + lastLongWord(known) + " shows the idea.",
+    model: "First watch " + lastLongWord(known) + ", then check it.",
     compare: "Look at both sides and say what is different.",
     connect: known + ".",
-    practise: "Use " + known + " in what you make.",
-    apply: "Use " + known + " in what you make.",
-    reveal: "The class can now use the idea from this lesson.",
-    consolidate: "The class can now use the idea about " + lastLongWord(known) + "."
+    practise: "Show a new case with " + lastLongWord(known) + ".",
+    apply: "You will use " + lastLongWord(known) + " on the new case.",
+    reveal: "So " + lastLongWord(known) + " settles the mission.",
+    consolidate: "So " + lastLongWord(known) + " is the idea to keep."
   }[beat.move];
   return { id: beat.id, cue: "", text: text };
 }
