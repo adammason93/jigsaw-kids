@@ -340,6 +340,7 @@ Deno.serve(async (req) => {
       try { repairInstruction = (JSON.parse(planRepairBrief.user).relationshipRequired || []).slice(0, 6).map((line) => String(line).slice(0, 900)); } catch (_error) { repairInstruction = []; }
       const secondPlan = await callModel(planRepairBrief, apiKey, model, 2e4);
       repairMs += Date.now() - planRepairStarted;
+      // breadthSettled marks the repaired breadth choice. normalisePlan still enforces depth-seeking strands.
       planned = brain.normalisePlan(secondPlan, Object.assign({}, ctx, { depthRequired: true, breadthSettled: true }));
       logMeta({ stage: "PLAN_REPAIR", attemptId, model, ok: !!planned.ok, repairInstruction, repaired: planned.depth || null, issues: (planned.issues || []).slice(0, 8) });
       if (!planned.ok) {
