@@ -25,8 +25,7 @@
     "rock-paper-scissors.html": ["logic", "Logic"],
     "snake-arcade.html": ["stem", "Play"],
     "zuma.html": ["stem", "Play"],
-    "marble-tilt.html": ["stem", "Play"],
-    "drive-mad.html": ["stem", "Play"]
+    "marble-tilt.html": ["stem", "Play"]
   };
 
   var theme = THEME[file] || ["logic", "Play"];

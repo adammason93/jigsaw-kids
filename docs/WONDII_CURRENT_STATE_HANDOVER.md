@@ -203,7 +203,6 @@ Visual status is chrome-only. A “verified” cell means a screenshot showed pa
 | Block Stack | `games/block-stack.html` | LEGACY | shell | In-page | Screenshot not reviewed. |
 | Zuma | `games/zuma.html`, `zuma.js` | LEGACY | shell | In-page | Screenshot not reviewed. |
 | Marble Maze | `games/marble-tilt.html` | LEGACY | shell | In-page | End state did not show a results screen. |
-| Drive Mad | `games/drive-mad.html` | LEGACY | shell | In-page | Screenshot not reviewed. |
 
 ### Classroom slides (one player: `schools/learn/present.js`)
 

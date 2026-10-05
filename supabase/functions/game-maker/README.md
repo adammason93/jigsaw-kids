@@ -62,3 +62,18 @@ Deploy **only** `dynamic-action`. Do not deploy every function in one go — tha
 Ship the static site **before** this function. The updated page sends the family access token. If the function goes out first, the old page still sends the anon key and Make a 3D Game will ask the family to sign in until the site update is live.
 
 The `entrypoint` path is relative to the `supabase` folder (next to `config.toml`). If the CLI says that file is missing, upgrade the CLI.
+
+## Check the live function matches this folder
+
+`[functions.dynamic-action]` is already the alias. There is no `supabase/functions/dynamic-action/` directory; the entrypoint above is the source of that slug.
+
+The page `POST`s `{ "prompt": "..." }` with the signed-in access token as `Authorization` and the anon key as `apikey`. It reads `{ "html": "..." }`. Errors use `error`, plus `detail` or `code` (`sign_in_required` on **401**). That matches `handler.ts`.
+
+Merging this repo does not update the function that is already running. To see those bytes, use the dashboard or:
+
+```bash
+supabase functions list
+supabase functions download dynamic-action
+```
+
+Diff the download against `index.ts` and `handler.ts` in this folder.

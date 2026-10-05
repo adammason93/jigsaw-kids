@@ -47,8 +47,6 @@
   --theme-marble-tilt-soft: #ede6e3;
   --theme-link-grid: #0d9488;
   --theme-link-grid-soft: #ccfbf1;
-  --theme-drive-mad: #f59e0b;
-  --theme-drive-mad-soft: #fef3c7;
   --theme-block-stack: #5c6d3e;
   --theme-block-stack-soft: #c4d6a7;
   --theme-storybook: #db2777;
@@ -990,11 +988,6 @@ a.game-card--story-magic .game-card__thumb {
 .game-card--link-grid {
   --card-accent: var(--theme-link-grid);
   --card-soft: var(--theme-link-grid-soft);
-}
-
-.game-card--drive-mad {
-  --card-accent: var(--theme-drive-mad);
-  --card-soft: var(--theme-drive-mad-soft);
 }
 
 .game-card--block-stack {

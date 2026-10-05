@@ -68,6 +68,6 @@ Shell buttons are real buttons with a visible focus ring. Help and result dialog
 
 ## Still legacy
 
-Snakes and Ladders, Snap, Connect Four, Math Race, Runner, Rock Paper Scissors, Marble Tilt, Jigsaw, Block Stack, Zuma, Drive Mad, Link Grid, Star Catcher, Prompt game.
+Snakes and Ladders, Snap, Connect Four, Math Race, Runner, Rock Paper Scissors, Marble Tilt, Jigsaw, Block Stack, Zuma, Link Grid, Star Catcher, Prompt game.
 
 Storybook and My Characters are not GameShell games. The electricity demo is a demo.

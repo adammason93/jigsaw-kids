@@ -179,15 +179,6 @@
       accent: "purple",
     },
     {
-      id: "drive-mad",
-      title: "Drive Mad",
-      desc: "Drive your truck over bumpy tracks.",
-      href: "games/drive-mad.html",
-      img: "games/images/portal/drive-mad.svg",
-      cats: ["racing"],
-      accent: "orange",
-    },
-    {
       id: "block-stack",
       title: "Block Stack",
       desc: "Stack the falling blocks and clear lines.",
