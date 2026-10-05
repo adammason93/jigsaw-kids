@@ -104,7 +104,9 @@ apikey: <anon key>
 
 The shelf stores `imageStoragePath` and asks for fresh URLs when a book is opened, when covers are drawn, and before a download. The downloaded HTML file embeds image bytes so it does not depend on the signed URL afterwards.
 
-Existing public `/object/public/storybook_images/…` URLs are left in place until the founder runs the manual cleanup script.
+Existing public `/object/public/storybook_images/…` URLs are left in place until the founder decides what to do with them. The shelf still keeps those public URLs (`shelfKeepOriginalRemoteUrl`), so deleting the objects without migrating them makes old books lose their pictures.
+
+`scripts/storybook-images-public-cleanup.ts` is **not** a migration and is **not** run by this repository. Dry-run prints an inventory. `--execute` (also requires `CONFIRM_STORYBOOK_PUBLIC_DELETE=yes`) copies referenced objects into `storybook_images_private/{user id}/storybook/migrated/`, rewrites cloud `shelf.json` files to storage paths, deletes **every** public object, and marks the bucket private. Books that were never uploaded to `storybook_room` are not in that inventory. The other choice is to skip the script and accept that those old pictures disappear.
 
 ## Auth
 
