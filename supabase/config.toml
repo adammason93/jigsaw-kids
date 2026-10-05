@@ -14,7 +14,14 @@ enabled = true
 verify_jwt = false
 
 [functions.game-maker]
-verify_jwt = false
+# Make a 3D Game. The gateway checks the bearer JWT. The function also rejects
+# the public anon key (it is a valid JWT, but not a signed-in user).
+# The live slug is `dynamic-action` — see the next section. Source stays here.
+verify_jwt = true
+
+[functions.dynamic-action]
+entrypoint = "./functions/game-maker/index.ts"
+verify_jwt = true
 
 [functions.learn-generate]
 verify_jwt = true
