@@ -4098,7 +4098,7 @@
 
   function statesFunction(text) {
     var value = String(text || "");
-    return /\b(helps|helping|help|reduces|reduced|reducing|reduce|allows|allowed|allowing|allow|enables|enabled|enabling|enable|causes|caused|causing|cause|affects|affected|affecting|affect|lets|let|makes|made|making|make|changes|changed|changing|change|aids|aided|aid)\b\s+[a-z0-9]/i.test(value);
+    return /\b(helps|helping|help|reduces|reduced|reducing|reduce|allows|allowed|allowing|allow|enables|enabled|enabling|enable|causes|caused|causing|cause|affects|affected|affecting|affect|lets|let|makes|made|making|make|changes|changed|changing|change|aids|aided|aiding|aid)\b\s+[a-z0-9]/i.test(value);
   }
 
   function sameStem(left, right) {
