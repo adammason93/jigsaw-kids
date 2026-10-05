@@ -1877,6 +1877,36 @@
     return { status: "unresolved", reason: "partial-overlap", matchedKnowledge: matched, evidence: hits };
   }
 
+  function labelledApplyKnowledge(instruction, stamped, required) {
+    var named = clean(stamped, 180);
+    if (!named) return "";
+    var verdict = applyAlignment({ applyInstruction: instruction, knowledgeUsed: named }, required || []);
+    if (verdict.status !== "fail" || verdict.reason !== "different-knowledge") return named;
+    var replacement = "";
+    var replacementHits = 0;
+    (required || []).forEach(function (sentence) {
+      if (!sentence || sentence === named) return;
+      var hits = hitBits(instruction, sentence);
+      var bits = linkBits(sentence);
+      var ratio = bits.length ? hits.length / bits.length : 0;
+      if (!hits.length || ratio < 0.5 || hits.length <= replacementHits) return;
+      var trial = applyAlignment({ applyInstruction: instruction, knowledgeUsed: sentence }, required || []);
+      if (trial.status === "fail") return;
+      replacement = sentence;
+      replacementHits = hits.length;
+    });
+    return replacement || named;
+  }
+
+  function knowledgeForQuestion(asked, stamped, pool) {
+    var tag = clean(stamped, 180);
+    if (!tag || !pool || pool.length < 2) return tag;
+    var linked = knowledgeLink(asked, pool);
+    if (!linked || linked === tag) return tag;
+    if (hitBits(asked, linked).length > hitBits(asked, tag).length) return clean(linked, 180);
+    return tag;
+  }
+
   function applyReady(activity, required) {
     var aligned = applyAlignment(activity, required);
     return aligned.status === "pass" ? aligned.matchedKnowledge : "";
@@ -2160,7 +2190,11 @@
     var question = questions[at] || checkQuestionOf(activity);
     var evidence = requiredEvidenceOf(ctx);
     var taught = retrieveTexts(activity, ctx);
-    if (questions.length > 1 && taught[at]) evidence = taught[at];
+    if (questions.length > 1) {
+      var named = question.knowledgeChecked;
+      if (named && taught.indexOf(named) !== -1) evidence = named;
+      else if (taught[at]) evidence = taught[at];
+    }
     return {
       yearGroup: (ctx && ctx.yearGroup) || "",
       prompt: question.prompt,
@@ -2268,6 +2302,15 @@
     raw = raw && typeof raw === "object" ? raw : {};
     var map = readSlotMap(raw);
     var plan = (ctx && ctx.lessonPlan) || {};
+    var knowledgeYear = (ctx && (ctx.yearGroup || ctx.yearAssumption)) || plan.yearGroup;
+    function knowledgeText(ref) {
+      var found = "";
+      if (!ref) return found;
+      beatKnowledge(plan, knowledgeYear).forEach(function (item) {
+        if (item.id === ref) found = item.text;
+      });
+      return found;
+    }
     var stageTitle = { hook: "Arrival", investigate: "Mission", teach: "Discovery", apply: "Try it", check: "Look", resolution: "Home", recap: "Recap" };
     var activities = (skeleton || []).map(function (slot) {
       var content = map[slot.id] || {};
@@ -2278,13 +2321,7 @@
       var beatApply = !!(beats.length && slot.id === "apply");
       if (!beatApply && slot.id === "apply" && content.instruction && !spoken.length) spoken = [content.instruction];
       var refs = beats.length && beats[0].knowledgeRefs ? beats[0].knowledgeRefs : [];
-      var refText = refs.map(function (ref) {
-        var found = "";
-        beatKnowledge(plan, (ctx && (ctx.yearGroup || ctx.yearAssumption)) || plan.yearGroup).forEach(function (item) {
-          if (item.id === ref) found = item.text;
-        });
-        return found;
-      }).filter(Boolean).join(" ");
+      var refText = refs.map(knowledgeText).filter(Boolean).join(" ");
       var interaction = null;
       if (slot.interactionIntent) {
         interaction = {
@@ -2299,6 +2336,11 @@
         ? content.questions
         : (content.prompt ? [{ id: "", prompt: content.prompt, choices: content.choices || [], correct: content.correct, explain: content.explain, knowledgeChecked: checked, successEvidence: content.successEvidence, teachingConnection: content.teachingConnection }] : []);
       var retrieves = beats.filter(function (beat) { return beat.move === "retrieve"; });
+      var retrievePool = [];
+      retrieves.forEach(function (beat) {
+        var text = knowledgeText(beat && beat.knowledgeRefs && beat.knowledgeRefs[0]);
+        if (text && retrievePool.indexOf(text) === -1) retrievePool.push(text);
+      });
       var questionSource = retrieves.length > 1 ? retrieves.map(function (beat, index) {
         var match = null;
         provided.forEach(function (item) { if (item && item.id === beat.id) match = item; });
@@ -2307,20 +2349,17 @@
       var config = slot.mechanic === "quiz"
         ? { points: 1, participation: "whole_class", questions: (questionSource.length ? questionSource : [{}]).map(function (item, index) {
           var beat = retrieves[index];
-          var ref = beat && beat.knowledgeRefs && beat.knowledgeRefs[0];
-          var taught = "";
-          if (ref) {
-            beatKnowledge(plan, (ctx && (ctx.yearGroup || ctx.yearAssumption)) || plan.yearGroup).forEach(function (entry) {
-              if (entry.id === ref) taught = entry.text;
-            });
-          }
+          var taught = knowledgeText(beat && beat.knowledgeRefs && beat.knowledgeRefs[0]);
+          var asked = [item.prompt, item.correct].filter(Boolean).join(" ");
+          var tag = taught || item.knowledgeChecked || checked;
+          if (taught && retrievePool.length > 1) tag = knowledgeForQuestion(asked, tag, retrievePool);
           return {
             id: (beat && beat.id) || item.id || "",
             prompt: item.prompt,
             choices: item.choices || [],
             correct: item.correct,
             explain: item.explain,
-            knowledgeChecked: taught || item.knowledgeChecked || checked,
+            knowledgeChecked: tag,
             successEvidence: item.successEvidence,
             teachingConnection: item.teachingConnection
           };
@@ -2337,7 +2376,7 @@
         participantSelection: slot.participantSelection,
         learningInteraction: slot.interactionIntent ? { type: slot.interactionIntent } : null,
         applyInstruction: slot.id === "apply" ? (beatApply ? (content.instruction || "") : (content.instruction || spoken[0] || "")) : "",
-        knowledgeUsed: slot.id === "apply" ? (beats.length ? (refText || "") : (content.knowledgeUsed || "")) : "",
+        knowledgeUsed: slot.id === "apply" ? (beats.length ? labelledApplyKnowledge(content.instruction || "", refText || "", slot.requiredKnowledge || []) : (content.knowledgeUsed || "")) : "",
         successCondition: slot.id === "apply" ? (content.successCondition || "") : "",
         teachingConnection: slot.id === "apply" ? (content.teachingConnection || "") : "",
         scene: { beat: slot.beat, kind: slot.id === "teach" ? "teach" : (slot.id === "resolution" ? "resolution" : (slot.id === "recap" ? "debrief" : "challenge")), interaction: interaction },

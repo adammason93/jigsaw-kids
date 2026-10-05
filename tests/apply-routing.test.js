@@ -118,6 +118,151 @@ assert.notStrictEqual(unrelatedAligned.status, "pass", "G unrelated");
 var frame = frameFor(unrelatedKnowledge);
 var raw = { title: "prime numbers mission", objectives: unrelatedKnowledge, slots: filledSlots(unrelatedKnowledge, unrelatedTask) };
 
+var cartilage = "Sharks have a skeleton made of cartilage.";
+var ecosystem = "Sharks help keep the ocean ecosystem healthy.";
+var fish = "Sharks are a type of fish.";
+var sharkGoal = "Pupils should understand basic facts about sharks and their habitats.";
+var sharkEvidence = "Pupils can describe at least two characteristics of sharks and where they live.";
+var sharkRequest = "Year 1 science lesson about sharks and their habitats.";
+var sharkPlan = Brain.normalisePlan({
+  learningObjective: sharkGoal,
+  subject: "Science",
+  topic: "sharks",
+  keyKnowledge: [cartilage, ecosystem, fish],
+  lessonArc: [{ purpose: "teach" }, { purpose: "check" }]
+}, {
+  subject: "Science",
+  topic: "sharks",
+  yearGroup: "Year 1",
+  requestedMinutes: 15,
+  pupilCount: 4,
+  lessonText: sharkRequest,
+  lessonBrief: { concepts: ["marine life", "habitats"], intent: "explain", rawRequest: sharkRequest }
+}).plan;
+assert.ok(sharkPlan.keyKnowledge.indexOf(cartilage) !== -1 && sharkPlan.keyKnowledge.indexOf(ecosystem) !== -1, sharkPlan.keyKnowledge.join(" | "));
+var sharkFrame = {
+  subject: "Science",
+  topic: "sharks",
+  yearGroup: "Year 1",
+  requestedMinutes: 15,
+  pupilCount: 4,
+  lessonPlan: sharkPlan,
+  lessonText: sharkRequest,
+  lessonBrief: {
+    concepts: ["marine life", "habitats"],
+    intent: "explain",
+    rawRequest: sharkRequest,
+    teacherIntent: {
+      ok: true,
+      learningGoal: sharkGoal,
+      requiredEvidence: sharkEvidence,
+      focusConcepts: ["marine life", "habitats", "shark species"]
+    }
+  }
+};
+sharkFrame.lessonSkeleton = Brain.planBeats(Brain.lessonSkeleton(sharkPlan, sharkFrame), sharkPlan, "Year 1");
+sharkFrame.storyPlan = Brain.storyFromPlan(sharkPlan, sharkFrame);
+var sharkItems = Brain.beatKnowledge(sharkPlan, "Year 1");
+function sharkSentence(beat) {
+  var item = sharkItems[0];
+  sharkItems.forEach(function (entry) { if (entry.id === (beat.knowledgeRefs || [])[0]) item = entry; });
+  var known = String(item.text || "").replace(/[.?!]$/, "");
+  var text = {
+    notice: "Look at the scene and say what you can see.",
+    name: item.kind === "relationship" ? "The class gives this idea its own name." : item.text,
+    explain: item.kind === "relationship" ? known + " in the ocean." : "This is how that idea works for a shark.",
+    exemplify: "Here is one clear example of the idea in use.",
+    practise: "Use the idea about sharks in what you make.",
+    retrieve: "Which sentence matches the idea you just learned?",
+    reveal: "The class can now use the idea from this lesson.",
+    consolidate: "The class can now use the idea about sharks."
+  }[beat.move];
+  return { id: beat.id, cue: "", text: text };
+}
+var sharkSlots = {};
+sharkFrame.lessonSkeleton.forEach(function (slot) {
+  var beats = (slot.beats || []).filter(function (beat) { return beat.move !== "retrieve"; }).map(sharkSentence);
+  if (slot.id === "apply") {
+    sharkSlots.apply = {
+      beats: (slot.beats || []).map(sharkSentence),
+      instruction: "Select how sharks help the ocean.",
+      target: ecosystem,
+      successCondition: "The pupil selects how sharks help the ocean.",
+      teachingConnection: "The task uses the ocean idea."
+    };
+  } else if (slot.id === "check") {
+    var retrieves = (slot.beats || []).filter(function (beat) { return beat.move === "retrieve"; });
+    sharkSlots.check = {
+      questions: retrieves.map(function (beat, index) {
+        var swapped = index === 0
+          ? { prompt: "How do sharks help the ocean stay healthy?", correct: "They keep the ecosystem healthy." }
+          : { prompt: "What do sharks have that helps them swim?", correct: "Cartilage" };
+        return {
+          id: beat.id,
+          prompt: swapped.prompt,
+          choices: [swapped.correct, "A different idea that was not taught."],
+          correct: swapped.correct,
+          explain: "That answer matches the idea the question asks about.",
+          successEvidence: "The pupil chose the matching idea.",
+          teachingConnection: "The question follows the taught idea."
+        };
+      })
+    };
+  } else sharkSlots[slot.id] = { beats: beats };
+});
+var sharkRaw = { title: "Sharks mission", objectives: [sharkGoal], slots: sharkSlots };
+var sharkGate = aligned("Select how sharks help the ocean.", cartilage, sharkPlan.keyKnowledge);
+assert.strictEqual(sharkGate.status, "fail", "the gate still rejects a named mismatch");
+assert.strictEqual(sharkGate.reason, "different-knowledge");
+var sharkPreview = Brain.accept(sharkRaw, sharkFrame);
+var sharkApply = (sharkPreview.adventure || sharkPreview.previous).activities.filter(function (activity) { return activity.slotId === "apply"; })[0];
+var sharkCheck = (sharkPreview.adventure || sharkPreview.previous).activities.filter(function (activity) { return activity.slotId === "check"; })[0];
+assert.strictEqual(sharkApply.knowledgeUsed, ecosystem, "a beat stamp follows the taught fact the task uses");
+assert.notStrictEqual(sharkPreview.applyAlignment.deterministicReason, "different-knowledge");
+var sharkBlockers = (sharkPreview.issues || []).filter(function (issue) {
+  return String(issue).indexOf("semantic knowledge alignment") === -1 && String(issue).indexOf("evidence alignment") === -1;
+});
+assert.strictEqual(sharkBlockers.length, 0, (sharkPreview.issues || []).join(" | "));
+assert.strictEqual(sharkCheck.config.questions[0].knowledgeChecked, ecosystem);
+assert.strictEqual(sharkCheck.config.questions[1].knowledgeChecked, cartilage);
+var recallSlots = JSON.parse(JSON.stringify(sharkSlots));
+recallSlots.apply.instruction = "What keeps the ocean ecosystem healthy?";
+var recallPreview = Brain.accept({ title: "Sharks mission", objectives: [sharkGoal], slots: recallSlots }, sharkFrame);
+var recallApply = (recallPreview.adventure || recallPreview.previous).activities.filter(function (activity) { return activity.slotId === "apply"; })[0];
+assert.strictEqual(recallApply.knowledgeUsed, cartilage, "a recall task does not borrow another fact's label");
+assert.strictEqual(recallPreview.applyAlignment.deterministicReason, "recall-only");
+assert.strictEqual(recallPreview.ok, false);
+var legacySkeleton = Brain.lessonSkeleton(sharkPlan, sharkFrame);
+var legacyFrame = Object.assign({}, sharkFrame, { lessonSkeleton: legacySkeleton });
+var legacySlots = {
+  hook: { lines: ["Something in this ocean has started to go wrong."] },
+  investigate: { lines: ["Look closely and say what you notice before anyone explains it."], instruction: "Look closely and say what you notice." },
+  teach: { lines: [cartilage, ecosystem, "Say it once more so the class can use it."] },
+  apply: {
+    instruction: "Select how sharks help the ocean.",
+    target: ecosystem,
+    knowledgeUsed: cartilage,
+    successCondition: "The pupil selects how sharks help the ocean.",
+    teachingConnection: "The task uses the ocean idea."
+  },
+  check: {
+    prompt: "Which statement matches the lesson?",
+    choices: [ecosystem, "A different idea that was not taught."],
+    correct: ecosystem,
+    explain: "That statement matches the idea the class has just used.",
+    knowledgeChecked: ecosystem,
+    successEvidence: "The pupil chose the ocean idea.",
+    teachingConnection: "The question follows the taught idea."
+  },
+  resolution: { lines: ["The mission can continue now that the class has used the idea."] },
+  recap: { lines: [cartilage, ecosystem] }
+};
+var legacyPreview = Brain.accept({ title: "Sharks mission", objectives: [sharkGoal], slots: legacySlots }, legacyFrame);
+var legacyApply = (legacyPreview.adventure || legacyPreview.previous).activities.filter(function (activity) { return activity.slotId === "apply"; })[0];
+assert.strictEqual(legacyApply.knowledgeUsed, cartilage, "an explicit knowledge label is not rewritten");
+assert.strictEqual(legacyPreview.applyAlignment.deterministicReason, "different-knowledge");
+assert.strictEqual(legacyPreview.ok, false);
+
 Brain.resolveLessonContent(raw, frame, {
   judge: function () { return { ok: true, relationship: "unrelated", reason: "The castle drawing does not use factors.", ms: 4 }; },
   repair: function () { return { slots: { apply: unrelatedTask } }; }
@@ -144,7 +289,36 @@ Brain.resolveLessonContent(raw, frame, {
   );
   assert.strictEqual(forced.applyAlignment.deterministicStatus, "fail");
   assert.strictEqual(forced.ok, false);
-  console.log("apply-routing ok");
+  var seen = [];
+  var checked = [];
+  return Brain.resolveLessonContent(sharkRaw, sharkFrame, {
+    judge: function (input) {
+      seen.push(input.knowledgeUsed);
+      return { ok: true, relationship: "apply", reason: "The pupil has to use how sharks help the ocean.", ms: 3 };
+    },
+    checkJudge: function (input) {
+      checked.push({ prompt: input.prompt, requiredEvidence: input.requiredEvidence });
+      return { ok: true, coverage: "sufficient", reason: "The answer shows that fact.", demonstratedEvidence: input.requiredEvidence, ms: 2 };
+    },
+    repair: function () { throw new Error("the repaired label must not need another repair"); }
+  }).then(function (sharkResult) {
+    assert.strictEqual(sharkResult.ok, true, (sharkResult.issues || []).join(" | "));
+    assert.strictEqual(sharkResult.repairUsed, false);
+    assert.strictEqual(sharkResult.applyAlignment.deterministicReason, "unlisted-action");
+    assert.notStrictEqual(sharkResult.applyAlignment.finalDeterministicReason, "different-knowledge");
+    assert.strictEqual(sharkResult.applyAlignment.semanticJudgeUsed, true);
+    assert.strictEqual(sharkResult.applyAlignment.semanticRelationship, "apply");
+    assert.deepStrictEqual(seen, [ecosystem]);
+    var done = sharkResult.adventure.activities.filter(function (activity) { return activity.slotId === "apply"; })[0];
+    assert.strictEqual(done.knowledgeUsed, ecosystem);
+    assert.strictEqual(done.applyInstruction, "Select how sharks help the ocean.");
+    var quiz = sharkResult.adventure.activities.filter(function (activity) { return activity.slotId === "check"; })[0];
+    assert.strictEqual(quiz.config.questions[1].knowledgeChecked, cartilage);
+    assert.strictEqual(checked[0].requiredEvidence, ecosystem);
+    assert.strictEqual(checked[1].requiredEvidence, cartilage);
+    assert.strictEqual(sharkResult.adventure.activities.map(function (activity) { return activity.slotId; }).join(","), "hook,investigate,teach,apply,check,resolution,recap");
+    console.log("apply-routing ok");
+  });
 }).catch(function (error) {
   console.error(error);
   process.exit(1);
