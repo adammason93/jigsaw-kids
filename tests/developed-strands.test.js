@@ -38,10 +38,13 @@ assert.ok(first.depth.achievedDepth >= first.depth.requiredDepth, "the failure i
 assert.deepStrictEqual(first.depth.map.map(function (row) { return row.dependsOn.length; }), [0, 0, 0, 0, 0, 0], "the diagnostic carries the first-pass dependencies");
 
 var settled = plan(production, { breadthSettled: true });
-assert.strictEqual(settled.ok, true, "after the one repair the policy records the shallow map instead of blocking");
-assert.strictEqual(settled.plan.teachingPlan.substantiveDepth.strandsDeveloped, 0);
-assert.strictEqual(settled.plan.teachingPlan.substantiveDepth.met, false, "a flat map is recorded as met:false");
-settled.plan.teachingPlan.strands.forEach(function (row) {
+assert.strictEqual(settled.ok, false, "a repaired flat map still has to develop its strands");
+assert.ok((settled.issues || []).indexOf("The learning map needs two or more developed strands for this broad topic.") !== -1, (settled.issues || []).join("; "));
+assert.strictEqual(settled.depth.developedStrands, 0);
+assert.strictEqual(settled.depth.met, false, "a flat map is recorded as met:false");
+var inspected = plan(production, { depthRequired: false });
+assert.strictEqual(inspected.ok, true, (inspected.issues || []).join("; "));
+inspected.plan.teachingPlan.strands.forEach(function (row) {
   assert.strictEqual(row.developed, false, row.id + " is a single point and is not developed");
 });
 
@@ -73,13 +76,13 @@ var plain = repaired.map(function (row) { return Object.assign({}, row); });
 plain[2].knowledge = "The tail and fins push water back to move the shark fast.";
 assert.strictEqual(plan(plain).plan.teachingPlan.substantiveDepth.strandsDeveloped, 2);
 var unlinked = repaired.map(function (row) { return Object.assign({}, row, { dependsOn: row.id === "k1" ? [] : ["k1"] }); });
-var hub = plan(unlinked, { breadthSettled: true }).plan.teachingPlan.substantiveDepth;
+var hub = plan(unlinked, { depthRequired: false }).plan.teachingPlan.substantiveDepth;
 assert.strictEqual(hub.strandsDeveloped, 0, "points that each hang off the foundation are separate facts, not developed strands");
 
 // A connection that spans undeveloped strands does not manufacture development.
 var spanning = production.map(function (row) { return Object.assign({}, row); });
 spanning[5].dependsOn = ["k2", "k4"];
-var span = plan(spanning, { breadthSettled: true }).plan.teachingPlan;
+var span = plan(spanning, { depthRequired: false }).plan.teachingPlan;
 assert.strictEqual(span.substantiveDepth.strandsDeveloped, 0, "a connection point does not develop the strands it links");
 
 // An example that depends on the idea it shows develops that idea.
@@ -87,6 +90,6 @@ var example = repaired.slice(0, 3).concat([
   { id: "k4", knowledge: "Sharks have gills on the sides of their heads.", role: "feature", importance: "core", dependsOn: ["k1"] },
   { id: "k5", knowledge: "A great white shark has five gill slits on each side.", role: "example", importance: "supporting", dependsOn: ["k4"] }
 ]);
-assert.strictEqual(plan(example, { breadthSettled: true }).plan.teachingPlan.substantiveDepth.strandsDeveloped, 2);
+assert.strictEqual(plan(example, { depthRequired: false }).plan.teachingPlan.substantiveDepth.strandsDeveloped, 2);
 
 console.log("developed strand tests passed");
