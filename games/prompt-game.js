@@ -54,6 +54,43 @@
     }
   }
 
+  /**
+   * Signed-in family access token from the existing Supabase client.
+   * Never the public anon key — that key is a JWT and would pass the gateway.
+   */
+  function signedInAccessToken() {
+    return new Promise(function (resolve) {
+      var cloud = window.KidsScoreCloud;
+      if (!cloud || typeof cloud.getSession !== "function") {
+        resolve("");
+        return;
+      }
+      var settled = false;
+      var timer = setTimeout(function () {
+        if (settled) return;
+        settled = true;
+        resolve("");
+      }, 12000);
+      try {
+        cloud.getSession(function (session) {
+          if (settled) return;
+          settled = true;
+          clearTimeout(timer);
+          var token =
+            session && session.user && session.access_token
+              ? String(session.access_token)
+              : "";
+          resolve(token);
+        });
+      } catch (e) {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        resolve("");
+      }
+    });
+  }
+
   async function createGame() {
     var url = gameMakerUrl();
     var key = anonKey();
@@ -70,6 +107,13 @@
       return;
     }
 
+    setStatus("Checking your sign-in…");
+    var token = await signedInAccessToken();
+    if (!token) {
+      setStatus("Please sign in to make a game.", true);
+      return;
+    }
+
     setLoading(true);
     setStatus("Asking the game maker to build your 3D game…");
     if (wrapEl) wrapEl.hidden = true;
@@ -79,7 +123,7 @@
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: "Bearer " + key,
+          Authorization: "Bearer " + token,
           apikey: key,
         },
         body: JSON.stringify({ prompt: prompt }),
@@ -89,6 +133,10 @@
         data = await res.json();
       } catch (e) {
         data = {};
+      }
+      if (res.status === 401) {
+        setStatus("Please sign in to make a game.", true);
+        return;
       }
       if (!res.ok) {
         var detail =
