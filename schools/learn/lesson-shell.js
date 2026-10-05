@@ -377,9 +377,19 @@
       var teams = (result.teamScores || []).map(function (team) {
         return "<p class=\"lesson-score\"><span>" + escape(team.name) + " team</span><strong>" + team.points + "</strong></p>";
       }).join("");
-      var title = screen === "complete" ? "Adventure complete!" : "Lesson ended";
+      var learned = [];
+      slides.forEach(function (item) {
+        if (!item) return;
+        var finale = item.type === "mystery" || item.kicker === "Today we learned" || item.beat === "debrief" || item.kind === "debrief";
+        if (!finale && item.type !== "done" && item.type !== "complete") return;
+        (item.lines || []).forEach(function (line) { if (line && learned.indexOf(line) === -1) learned.push(line); });
+        (item.recap || []).forEach(function (line) { if (line && learned.indexOf(line) === -1) learned.push(line); });
+      });
+      var learnedList = learned.map(function (line) { return "<li>" + escape(line) + "</li>"; }).join("");
+      var title = screen === "complete" ? "Today we learned" : "Lesson ended";
       var lead = screen === "ended" ? "What you finished has been kept." : "The class finished this adventure.";
       html = shell(model, "<section class=\"lesson-finish\" id=\"lessonSummary\"><p class=\"lesson-kicker\">" + escape(model.title) + "</p><h2>" + title + "</h2><p class=\"lesson-copy\">" + lead + "</p>" +
+        (learnedList ? "<ul class=\"lesson-recap\">" + learnedList + "</ul>" : "") +
         (teams || "<p class=\"lesson-score lesson-score--class\"><span>Class reward</span><strong>" + (result.classReward || 0) + "</strong></p>") +
         "<p class=\"lesson-copy\">" + (result.roundsCompleted || 0) + " of " + (result.roundsTotal || slides.length) + " rounds. " + (((result.participation && result.participation.knownPupils) || 0) + ((result.participation && result.participation.anonymousJoiners) || 0)) + " taking part.</p>" +
         "<p class=\"lesson-copy\">" + ((result.responses && result.responses.correct) || 0) + " correct. " + ((result.responses && result.responses.incorrect) || 0) + " to look at again.</p></section>", slides, slides.length ? slides.length - 1 : 0, "", screen === "complete" ? "Complete" : "Ended");
@@ -727,7 +737,7 @@
     if (!step || !play) return false;
     if (step.beatIndex != null && (Number(play.beat) || 0) < Number(step.beatIndex)) return false;
     if ((step.type === "move" || step.type === "drag") && !play.slipped && !play.revealed) return true;
-    if ((step.type === "hotspot" || step.type === "tap-to-reveal" || step.type === "inspect") && !play.revealed) return true;
+    if ((step.type === "hotspot" || step.type === "tap-to-reveal" || step.type === "inspect" || step.type === "choose") && !play.revealed) return true;
     return false;
   }
 

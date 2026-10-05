@@ -256,7 +256,8 @@
       : (returnStep === "confirm"
         ? "<button type=\"button\" class=\"creator-go\" id=\"saveSetup\">Use this setup</button>"
         : "<button type=\"button\" class=\"creator-go\" id=\"build\">" + (draft.generationError ? "Try again" : "Build my adventure") + "</button>");
-    return progress() + "<h1>How should the class play?</h1>" + failed + "<div class=\"creator-modes\">" + modes + "</div>" + teams +
+    var yearNote = draft.year ? "" : "<p class=\"creator-warn\" role=\"status\">Choose a year group before building. This lesson will not assume Year 3.</p>";
+    return progress() + "<h1>How should the class play?</h1>" + yearNote + failed + "<div class=\"creator-modes\">" + modes + "</div>" + teams +
       actions(["<button type=\"button\" class=\"creator-quiet\" data-go=\"" + back + "\">Back</button>", primary]);
   }
 
@@ -325,7 +326,8 @@
         "</div></div></div>" +
         (editing === index ? editForm(activity, index) : "") + "</article>";
     }).join("");
-    var picker = adding ? "<div class=\"creator-paths\">" + Core.capabilities(Mechanics).map(function (item) {
+    var pickerNote = adding ? "<p class=\"creator-note\">The class can play a quiz, a spin, or a word search. Reading together, a reveal, and pick a door are not extra games.</p>" : "";
+    var picker = adding ? pickerNote + "<div class=\"creator-paths\">" + Core.capabilities(Mechanics).map(function (item) {
       return "<button type=\"button\" class=\"creator-path\" data-add=\"" + item.id + "\"><strong>" + escape(item.name) + "</strong><span>" + escape(item.description) + "</span></button>";
     }).join("") + "</div>" : "<button type=\"button\" class=\"creator-text\" id=\"addActivity\">+ Add activity</button>";
     var nextStep = draft.quick ? "attendance" : "review";
@@ -410,7 +412,8 @@
       return "<li>" + escape((beat ? beat + " — " : "") + (activity.title || activity.mechanic || "Scene")) + (role ? " · " + escape(role) : "") + "</li>";
     }).join("");
     var ageLine = draft.year || "";
-    if (draft.yearAssumption) ageLine = draft.yearAssumption + " assumed, because no class year was set";
+    if (!draft.year) ageLine = "Year not set. Choose a learning level before the class plays.";
+    else if (draft.yearAssumption && !/^year 3, about 7 to 8/i.test(draft.yearAssumption)) ageLine = draft.year + " · " + draft.yearAssumption;
     return progress() + "<h1>" + escape((story.title) || draft.title || "Review") + "</h1>" +
       "<p>" + escape(draft.subject || "Subject not set") + " · " + escape(ageLine || "Learning level not set") + "</p>" +
       (objective ? "<p><strong>Objective.</strong> " + escape(objective) + "</p>" : "") +
@@ -636,7 +639,9 @@
     draft.lessonPlan = adventure.lessonPlan || null;
     draft.storyPlan = adventure.storyPlan || null;
     draft.visualAssets = adventure.visualAssets || null;
-    draft.yearAssumption = adventure.yearAssumed ? (adventure.yearAssumption || "Year 3, about 7 to 8 years old") : "";
+    var assumedYear = adventure.yearAssumed ? (adventure.yearAssumption || "") : "";
+    if (/^year 3, about 7 to 8/i.test(assumedYear)) assumedYear = "";
+    draft.yearAssumption = assumedYear;
     draft.generation = adventure.meta || { fallbackUsed: false };
     draft.generationError = "";
   }
@@ -747,6 +752,14 @@
 
   function beginBuild() {
     readSourceFields();
+    if (!draft.year) {
+      generationToken += 1;
+      buildAt = -1;
+      notice = "Choose a year group before building this lesson.";
+      step = "class";
+      paint();
+      return;
+    }
     var token = ++generationToken;
     buildAt = 0;
     var lines = ["Planning your lesson...", "Shaping the mission...", "Building the adventure...", "Checking everything..."];

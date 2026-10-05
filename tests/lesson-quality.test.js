@@ -48,8 +48,9 @@ var unnamed = draftFor("Teach the class what shadows are for 10 minutes.");
 var assumed = Brain.contextFrom(unnamed, {});
 assert.strictEqual(assumed.yearGroup, "");
 assert.strictEqual(assumed.yearAssumed, true);
-assert.ok(assumed.yearAssumption.indexOf("Year 3") !== -1);
-assert.ok(Brain.planBrief(assumed).user.indexOf("Year 3, about 7 to 8 years old") !== -1);
+assert.strictEqual(assumed.yearAssumption, "");
+assert.ok(Brain.planBrief(assumed).system.indexOf("Do not assume Year 3") !== -1);
+assert.strictEqual(Brain.planBrief(assumed).user.indexOf("Year 3, about 7 to 8 years old"), -1);
 
 function taught() {
   return {
@@ -241,7 +242,7 @@ assert.strictEqual(skeleton[1].mechanic, "story");
 assert.strictEqual(skeleton[1].learningInteraction ? skeleton[1].interactionIntent : skeleton[1].interactionIntent, "inspect");
 assert.notStrictEqual(skeleton[1].mechanic, "spin");
 assert.strictEqual(skeleton[3].mechanic, "story");
-assert.strictEqual(skeleton[3].interactionIntent, "move");
+assert.strictEqual(skeleton[3].interactionIntent, "quiz");
 assert.notStrictEqual(skeleton[3].mechanic, "spin");
 assert.strictEqual(skeleton[1].participantSelection.mode, "random");
 assert.notStrictEqual(skeleton[1].participantSelection.mode, skeleton[1].mechanic);
@@ -262,7 +263,7 @@ assert.ok(forced.previous.activities.findIndex(function (activity) { return acti
 assert.ok(forced.previous.activities.findIndex(function (activity) { return activity.slotId === "recap"; }) > forced.previous.activities.findIndex(function (activity) { return activity.slotId === "resolution"; }));
 var maths = Brain.lessonSkeleton({ subject: "Maths", topic: "equivalent fractions", keyKnowledge: ["One half matches two quarters.", "Equivalent fractions name the same amount."], lessonArc: [] }, { subject: "Maths", requestedMinutes: 15 });
 assert.strictEqual(maths[1].interactionIntent, "compare");
-assert.strictEqual(maths[3].interactionIntent, "match");
+assert.strictEqual(maths[3].interactionIntent, "quiz");
 var budgetSum = skeleton.reduce(function (sum, slot) { return sum + slot.minutes; }, 0);
 assert.ok(budgetSum >= 12 && budgetSum <= 18);
 assert.strictEqual(skeleton[0].minimumParticipation, 1);
@@ -303,7 +304,7 @@ var adjectivePass = acceptSlots("English", "adjectives", "Year 3", adjectiveKnow
   teachingConnection: "The sort uses the idea that adjectives describe nouns."
 });
 assert.strictEqual(adjectivePass.ok, true, (adjectivePass.issues || []).join("; "));
-assert.strictEqual(adjectivePass.adventure.activities[3].learningInteraction.type, "sort");
+assert.strictEqual(adjectivePass.adventure.activities[3].learningInteraction.type, "word_search");
 var adjectiveFail = acceptSlots("English", "adjectives", "Year 3", adjectiveKnowledge, { instruction: "Sort the cards.", knowledgeUsed: "Sort the cards." });
 assert.strictEqual(adjectiveFail.ok, false);
 assert.strictEqual(adjectiveFail.structuralOk, true);
@@ -320,7 +321,7 @@ var romanPass = acceptSlots("History", "Romans", "Year 4", romanKnowledge, {
   teachingConnection: "The task uses the reasons the class has just learned."
 }, "why");
 assert.strictEqual(romanPass.ok, true, (romanPass.issues || []).join("; "));
-assert.strictEqual(romanPass.adventure.activities[3].learningInteraction.type, "sequence");
+assert.strictEqual(romanPass.adventure.activities[3].learningInteraction.type, "quiz");
 var weatherKnowledge = ["Weather is the day-to-day state of the atmosphere.", "Climate is the average weather over a long period."];
 var weatherPass = acceptSlots("Geography", "weather and climate", "Year 2", weatherKnowledge, {
   instruction: "Sort these examples into weather or climate.",
@@ -330,7 +331,7 @@ var weatherPass = acceptSlots("Geography", "weather and climate", "Year 2", weat
 }, "compare");
 assert.strictEqual(weatherPass.ok, true, (weatherPass.issues || []).join("; "));
 assert.strictEqual(weatherPass.adventure.activities[1].learningInteraction.type, "compare");
-assert.strictEqual(weatherPass.adventure.activities[3].learningInteraction.type, "sort");
+assert.strictEqual(weatherPass.adventure.activities[3].learningInteraction.type, "doors");
 var weatherFail = acceptSlots("Geography", "weather and climate", "Year 2", weatherKnowledge, { instruction: "Sort the cards." }, "compare");
 assert.strictEqual(weatherFail.ok, false);
 assert.ok((weatherFail.slotIds || []).indexOf("apply") !== -1);
@@ -342,7 +343,7 @@ var platePass = acceptSlots("Science", "causes of earthquakes", "Year 1", ["Huge
 }, "why");
 assert.strictEqual(platePass.ok, true, (platePass.issues || []).join("; "));
 assert.strictEqual(platePass.adventure.activities[1].learningInteraction.type, "inspect");
-assert.strictEqual(platePass.adventure.activities[3].learningInteraction.type, "move");
+assert.strictEqual(platePass.adventure.activities[3].learningInteraction.type, "quiz");
 var fractionPass = acceptSlots("Maths", "equivalent fractions", "Year 4", ["One half matches two quarters.", "Equivalent fractions name the same amount."], {
   instruction: "Match the fractions that name the same amount.",
   knowledgeUsed: "Equivalent fractions name the same amount.",
@@ -351,7 +352,7 @@ var fractionPass = acceptSlots("Maths", "equivalent fractions", "Year 4", ["One 
 });
 assert.strictEqual(fractionPass.ok, true, (fractionPass.issues || []).join("; "));
 assert.strictEqual(fractionPass.adventure.activities[1].learningInteraction.type, "compare");
-assert.strictEqual(fractionPass.adventure.activities[3].learningInteraction.type, "match");
+assert.strictEqual(fractionPass.adventure.activities[3].learningInteraction.type, "quiz");
 var shortPlan = Brain.normalisePlan({
   learningObjective: "Explain why the Romans came to Britain.",
   subject: "History",
@@ -386,7 +387,7 @@ assert.strictEqual(applySpec.slotType, "APPLY");
 assert.strictEqual(applySpec.subject, "History");
 assert.strictEqual(applySpec.year, "Year 4");
 assert.ok(applySpec.requiredKnowledge.length >= 1);
-assert.strictEqual(applySpec.interactionFamily, "sequence");
+assert.strictEqual(applySpec.interactionFamily, "quiz");
 assert.ok(applySpec.originalInstruction);
 assert.ok(applySpec.failure.join(" ").indexOf("apply slot") !== -1);
 assert.ok(applySpec.output.knowledgeUsed === "");

@@ -19,7 +19,7 @@
     "todo": 1,
     "a question from the lesson you provided.": 1
   };
-  var AGE_FALLBACK = "Year 3, about 7 to 8 years old";
+  var AGE_FALLBACK = "";
   var STOP = {
     about: 1, after: 1, again: 1, also: 1, because: 1, before: 1, class: 1, could: 1,
     from: 1, have: 1, into: 1, lesson: 1, lessons: 1, make: 1, minute: 1, minutes: 1,
@@ -350,9 +350,9 @@
       classId: draft.classId || "",
       organisationId: extra.organisationId || "",
       yearGroup: year,
-      ageRange: year ? ageRange(year) : "7 to 8",
+      ageRange: year ? ageRange(year) : "",
       yearAssumed: assumed,
-      yearAssumption: assumed ? AGE_FALLBACK : "",
+      yearAssumption: "",
       subject: clean(draft.subject, 80),
       topic: clean(draft.topic, 120),
       requestedMinutes: target,
@@ -362,9 +362,9 @@
         title: clean(draft.title, 80),
         durationMinutes: target,
         yearGroup: year,
-        ageRange: year ? ageRange(year) : "7 to 8",
+        ageRange: year ? ageRange(year) : "",
         yearAssumed: assumed,
-        yearAssumption: assumed ? AGE_FALLBACK : "",
+        yearAssumption: "",
         learningObjective: clean((draft.goals || [])[0], 240),
         vocabulary: (draft.vocabulary || []).map(function (word) { return clean(word, 40); }).filter(Boolean).slice(0, 12),
         intent: semantics.intent,
@@ -449,7 +449,7 @@
       "Each learningMap point is { id, knowledge, role, importance, dependsOn }. id is p1, p2, and so on. role is foundation, feature, concept, function, cause, effect, mechanism, process, procedure, comparison, example, or connection. A role is only a label: a sentence of six words or a place does not become a cause, function, or process because of its role. The sentence itself must state the relationship. A connection point says how earlier points work together. An example point shows an earlier point in use.",
       "lessonArc purpose must be exactly one of these words: hook, investigate, teach, apply, check, resolution, recap. Do not write a sentence as the purpose. The system decides which learning points are taught, in what order, and which are checked, and places them on the teach stage and the recap. The hook and the investigate stage must not contain them.",
       "Age changes the plan: vocabulary, how long the sentences are, how deep the explanation goes, the examples, and how hard the reasoning is. Year 1 and Year 2 key knowledge stays in everyday words.",
-      "If yearAssumed is true, plan for yearAssumption and say so in yearGroup. Do not pretend the teacher named that year.",
+      "If yearAssumed is true, the teacher has not chosen a year. Do not assume Year 3, an age, or any year group. Leave yearGroup empty and keep the language clear for a primary class. Do not pretend the teacher named a year.",
       "lessonBrief.topic is the specific concept to teach. Do not widen it into a broader topic.",
       "teachingApproach is two sentences on how to teach this subject. narrativeTheme is a light classroom frame, or an empty string if a story frame would get in the way.",
       subjectGuide(safe.subject, (safe.lessonBrief && safe.lessonBrief.topic) || safe.topic),
@@ -493,14 +493,18 @@
     });
   }
 
+  function playedIntent(intent) {
+    return { match: "quiz", sort: "doors", sequence: "quiz", move: "doors", drag: "doors" }[intent] || intent || "";
+  }
+
   function pedagogy(subject, topic) {
     var text = (String(subject || "") + " " + String(topic || "")).toLowerCase();
-    if (/math|fraction|number|times|shape|measure/.test(text)) return { investigate: "compare", apply: "match" };
-    if (/english|grammar|adjective|sentence|writing|phonics/.test(text)) return { investigate: "compare", apply: "sort" };
-    if (/history|roman|empire|ancient|viking|tudor/.test(text)) return { investigate: "inspect", apply: "sequence" };
-    if (/geograph|river|map|climate|place|weather/.test(text)) return { investigate: "compare", apply: "sort" };
-    if (/science|force|gravity|volcano|material|plant|animal|space|magnet|electric/.test(text)) return { investigate: "inspect", apply: "move" };
-    return { investigate: "inspect", apply: "sort" };
+    if (/math|fraction|number|times|shape|measure/.test(text)) return { investigate: "compare", apply: "quiz" };
+    if (/english|grammar|adjective|sentence|writing|phonics/.test(text)) return { investigate: "compare", apply: "word_search" };
+    if (/history|roman|empire|ancient|viking|tudor/.test(text)) return { investigate: "inspect", apply: "quiz" };
+    if (/geograph|river|map|climate|place|weather/.test(text)) return { investigate: "compare", apply: "doors" };
+    if (/science|force|gravity|volcano|material|plant|animal|space|magnet|electric/.test(text)) return { investigate: "inspect", apply: "quiz" };
+    return { investigate: "inspect", apply: "quiz" };
   }
 
   function skeletonMinutes(target) {
@@ -2283,9 +2287,12 @@
       }).filter(Boolean).join(" ");
       var interaction = null;
       if (slot.interactionIntent) {
+        var played = playedIntent(slot.interactionIntent);
+        var visual = played === "word_search" ? "inspect" : (played === "quiz" || played === "doors" ? "choose" : played);
+        var target = content.target || (played === "word_search" ? "words" : (played === "quiz" || played === "doors" ? "choices" : (FAMILY_TARGET[visual] || "world")));
         interaction = {
-          type: slot.interactionIntent,
-          target: content.target || FAMILY_TARGET[slot.interactionIntent] || "world",
+          type: visual,
+          target: target,
           instruction: beatApply ? (content.instruction || "") : (content.instruction || (spoken[0] || "")),
           successCondition: content.successCondition || ""
         };
@@ -2331,7 +2338,7 @@
         why: slot.pedagogicalPurpose,
         beats: beats,
         participantSelection: slot.participantSelection,
-        learningInteraction: slot.interactionIntent ? { type: slot.interactionIntent } : null,
+        learningInteraction: slot.interactionIntent ? { type: playedIntent(slot.interactionIntent) } : null,
         applyInstruction: slot.id === "apply" ? (beatApply ? (content.instruction || "") : (content.instruction || spoken[0] || "")) : "",
         knowledgeUsed: slot.id === "apply" ? (beats.length ? (refText || "") : (content.knowledgeUsed || "")) : "",
         successCondition: slot.id === "apply" ? (content.successCondition || "") : "",
@@ -2520,7 +2527,7 @@
         shape.push("lessonPlan.teachingThreads groups the knowledge into strands. Teach beats on the same strand build one idea in order: name introduces the feature or idea, explain says how or why it works, exemplify shows it in use, and connect says what it leads to or how the strands work together. Each beat adds to the one before it. Do not say the same sentence twice in different words.");
       }
       if (skeleton.some(function (slot) { return slot.id === "apply" && slot.applicationTarget; })) {
-        shape.push("The apply slot has applicationTarget: the taught strand the task must use and the evidence a finished task shows. Write a task the pupil can only get right by using that explanation on a new case, for example predicting, choosing, sorting, matching, or fixing something. Drawing, retelling, or describing the topic is not enough on its own.");
+        shape.push("The apply slot has applicationTarget: the taught strand the task must use and the evidence a finished task shows. Write a task the pupil can only get right by using that explanation on a new case, for example predicting, choosing, or explaining a new example. Do not ask the class to sort cards, match pairs, drag pieces, or put steps in order. Those boards are not in this lesson. A choice is a question or three doors. Lesson words belong in a word search. Drawing, retelling, or describing the topic is not enough on its own.");
       }
       beatSlots.forEach(function (slot) {
         if (slot.id !== "apply") return;
@@ -2529,7 +2536,7 @@
     }
     shape.push("Each slot already has minutes, minimumParticipation, and contentDepth. A slot without beats meets that participation with short spoken lines. A slot with beats meets it only through the planned beat texts. Do not add a lines array beside beats. Do not pad a slot into a long paragraph.");
     var system = shape.concat([
-      "hook creates the unsolved problem and must not reveal the answer. investigate asks the class to look, using the slot's interactionIntent. It must not explain the answer and it must not be a pupil spin. teach states every requiredKnowledge fact in short sentences this age can hear. apply must make the pupil use at least one requiredKnowledge item through the slot's interactionIntent. instruction is that task. On a legacy apply slot, knowledgeUsed names the requiredKnowledge item the task uses. On an apply slot with beats, do not return knowledgeUsed. successCondition says what a finished action shows. teachingConnection says how the task follows the teaching. Sort the cards, move this, or put these in order is not an apply task unless the taught idea is in the instruction. Choosing a pupil is not the apply slot. check comes after teaching and assesses teacherIntent.requiredEvidence for teacherIntent.learningGoal. A correct answer must be sufficient evidence of requiredEvidence. One stage, one side, one component, a label, or a definition is not enough unless requiredEvidence itself asks only for that. knowledgeChecked names the learning the question tests. successEvidence says what a correct answer shows. teachingConnection says how the question follows the required evidence. Keep the question as easy to read as the year group. resolution is the mission outcome after the check. recap states the taught facts. Do not say that the screen is a recap or a mystery.",
+      "hook creates the unsolved problem and must not reveal the answer. investigate asks the class to look, using the slot's interactionIntent. It must not explain the answer and it must not be a pupil spin. teach states every requiredKnowledge fact in short sentences this age can hear. apply must make the pupil use at least one requiredKnowledge item through the slot's interactionIntent. instruction is that task. On a legacy apply slot, knowledgeUsed names the requiredKnowledge item the task uses. On an apply slot with beats, do not return knowledgeUsed. successCondition says what a finished action shows. teachingConnection says how the task follows the teaching. Do not ask the class to sort cards, match pairs, drag pieces, or put steps in order. Those are not games in this lesson. interactionIntent quiz means a choice question, doors means three real options, and word_search means the lesson words. Choosing a pupil is not the apply slot. check comes after teaching and assesses teacherIntent.requiredEvidence for teacherIntent.learningGoal. A correct answer must be sufficient evidence of requiredEvidence. One stage, one side, one component, a label, or a definition is not enough unless requiredEvidence itself asks only for that. knowledgeChecked names the learning the question tests. successEvidence says what a correct answer shows. teachingConnection says how the question follows the required evidence. Keep the question as easy to read as the year group. resolution is the mission outcome after the check. recap states the taught facts. Do not say that the screen is a recap or a mystery.",
       "A stage with mayRevealAnswer false must not state requiredKnowledge and must not use because, caused by, or due to. Do not add a fact that is not in keyKnowledge.",
       "For a why lesson, the check correct answer is the cause, reason, or process in keyKnowledge. The visible outcome can be the question or a wrong choice.",
       "When teacherIntent is present, paraphrase the learning goal and the focus concepts. Do not make the class meet preference words, duration words, prior-knowledge labels, or exclusions. Otherwise lessonBrief.concepts are the ideas the class must meet. Do not treat between, difference, why, or how as ideas to teach.",
@@ -5486,7 +5493,7 @@
       topic: clean(parsed.topic || ctx.topic, 120),
       yearGroup: ctx.yearGroup || "",
       yearAssumed: !!ctx.yearAssumed,
-      yearAssumption: ctx.yearAssumed ? (ctx.yearAssumption || AGE_FALLBACK) : "",
+      yearAssumption: ctx.yearAssumed ? (ctx.yearAssumption || "") : "",
       title: title || ((ctx.topic || "Learning") + " Adventure"),
       objectives: objectives,
       vocabulary: (parsed.vocabulary || []).map(function (item) { return clean(item, 40); }).filter(Boolean).slice(0, 12),

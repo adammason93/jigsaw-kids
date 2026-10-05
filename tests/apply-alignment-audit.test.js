@@ -371,13 +371,13 @@ assert.deepStrictEqual(applySpec.failure, [SEMANTIC]);
 assert.ok(hookSpec.failure.indexOf(SEMANTIC) === -1);
 assert.strictEqual(frame.lessonSkeleton.map(function (slot) { return slot.id; }).join(","), "hook,investigate,teach,apply,check,resolution,recap");
 assert.strictEqual(frame.lessonSkeleton[3].mechanic, "story");
-assert.strictEqual(frame.lessonSkeleton[3].interactionIntent, "move");
+assert.strictEqual(frame.lessonSkeleton[3].interactionIntent, "quiz");
 var families = {
-  Maths: ["compare", "match"],
-  English: ["compare", "sort"],
-  History: ["inspect", "sequence"],
-  Geography: ["compare", "sort"],
-  Science: ["inspect", "move"]
+  Maths: ["compare", "quiz"],
+  English: ["compare", "word_search"],
+  History: ["inspect", "quiz"],
+  Geography: ["compare", "doors"],
+  Science: ["inspect", "quiz"]
 };
 Object.keys(families).forEach(function (subject) {
   var familyPlan = Brain.normalisePlan({
