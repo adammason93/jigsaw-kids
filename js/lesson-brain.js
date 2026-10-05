@@ -388,6 +388,12 @@
     delete copy.droppedKnowledge;
     delete copy.mapRejected;
     delete copy.depthBudget;
+    if (copy.teachingPlan) {
+      copy.teachingThreads = (copy.teachingPlan.strands || []).map(function (row) {
+        return { id: row.id, purpose: row.purpose, knowledgeRefs: (row.knowledgeRefs || []).slice() };
+      });
+      delete copy.teachingPlan;
+    }
     return copy;
   }
 
@@ -413,6 +419,15 @@
     return "Choose the teaching moves that suit this subject. Explain the idea before a scored question.";
   }
 
+  function scopeGuide(ctx, depth) {
+    var scope = teachingScope(ctx);
+    var span = strandRange(depth);
+    if (scope.scope === "broad") {
+      return "Scope: the teacher named a broad topic. Choose a coherent scope yourself for this year and duration: one foundation point, then " + (span.low === span.high ? span.low : span.low + " to " + span.high) + " strands about the ideas that matter most for understanding this topic at this age, and a connection point if the strands work together. Do not shrink the lesson to one fact, do not write an encyclopedia list, and do not wait for the teacher to name the subtopics.";
+    }
+    return "Scope: the teacher asked about one relationship, method, or idea. Stay inside it: every strand must lead to the learning goal. Go deeper, not wider: the parts or steps involved, how each one works, and what that achieves for the goal. Do not add other aspects of the wider topic.";
+  }
+
   function planBrief(ctx) {
     var safe = forModel(ctx || {});
     var depth = depthBudget((ctx || {}).yearGroup || (ctx || {}).yearAssumption, (ctx || {}).requestedMinutes);
@@ -422,7 +437,8 @@
       "Decide what the children should understand. Then decide what to teach so they can understand it. The classroom activities are chosen in a later step.",
       "Work in this order: the teacher's request, the context, one learning objective, the key knowledge, prior knowledge, misconceptions, vocabulary, the teaching sequence, then where a check or a recap belongs.",
       "learningObjective is one sentence a teacher could say. successCriteria are two or three things the class can do if the lesson worked.",
-      "learningMap is the connected journey of learning points a pupil needs in order to achieve lessonBrief.learningGoal. Each point is one child-sized idea in one sentence. Together the points must be sufficient. Build it as a journey: the foundation a pupil needs first, then the feature or concept, then what it does or why it happens, then the effect, then how the ideas connect, then an application. Each later point lists in dependsOn the ids of the earlier points it builds on. Do not write a disconnected list of facts about the topic. For this year and about " + depth.minutes + " minutes, aim for about " + depth.floor + " to " + depth.max + " points. This is a target, not a quota: a narrow goal about one specific feature may need fewer, and never more than " + depth.max + ". Do not reach the number with a restatement, a paraphrase, trivia, or a second example of the same idea. Do not invent quotations, dates, or events. A simplified explanation must still be true. When the goal asks how something helps, causes, affects, works, changes, gets, carries, or transports, or why something happens or matters, the points must lead to the goal: at least one point states the relationship the goal asks about, and every other point is a step towards it. A nearby fact about the same topic that leads nowhere does not belong. importance is core for a point the goal cannot do without and supporting for a helpful step.",
+      "learningMap is the connected journey of learning points a pupil needs in order to achieve lessonBrief.learningGoal. Each point is one child-sized idea in one sentence. Together the points must be sufficient. Build it from strands. The foundation is what a pupil needs first. A strand develops one idea: a point that names the feature, part, event, step, or idea; then a point that explains how or why it works (a function, mechanism, cause, process, or procedure); then, where it matters, a point saying what that leads to. The first point of a strand lists only the foundation in dependsOn. Each later point in a strand lists the point before it. A connection point lists the last points of two or more strands and says how they work together. An example point lists the point it shows. Every point adds new information: do not restate an earlier point in other words, do not write a point that only says these things help, and do not write a point about learning the topic itself. Do not write a disconnected list of facts about the topic. For this year and about " + depth.minutes + " minutes, aim for about " + depth.floor + " to " + depth.max + " points. This is a target, not a quota: a narrow goal about one specific feature may need fewer, and never more than " + depth.max + ". Do not reach the number with a restatement, a paraphrase, trivia, or a second example of the same idea. Do not invent quotations, dates, or events. A simplified explanation must still be true. When the goal asks how something helps, causes, affects, works, changes, gets, carries, or transports, or why something happens or matters, the points must lead to the goal: at least one point states the relationship the goal asks about, and every other point is a step towards it. A nearby fact about the same topic that leads nowhere does not belong. importance is core for a point the goal cannot do without and supporting for a helpful step.",
+      scopeGuide(ctx || {}, depth),
       "Match the goal. Why or cause: state the reason, not only what is seen or where it happens. Significance or importance: state the change, event, or contribution and why it mattered. Compare: include what is needed about both sides. Process: state the change or sequence, not only the parts, inputs, places, or outputs. Procedure or use: write the actions the pupil carries out, not only the name of the step. Definition: a short definition and only the characteristics or examples needed to use it. Explain: the facts that specific goal needs, not a generic list about the topic.",
       "A sentence that only names the topic, states identity, gives a famous number or date, says something is important or significant, or says where something happens does not meet a relationship the goal requires.",
       "For a young year, use a simple true model: the parts, how they move, and what that movement does. Do not teach the visible effect as the cause. The ground shaking is what an earthquake does, not why it happens.",
@@ -430,7 +446,7 @@
       "vocabulary is only the words worth teaching at this age.",
       "lessonBrief.intent says whether this lesson is why, process, compare, definition, procedure, or explain. When lessonBrief.teacherIntent is present, lessonBrief.learningGoal is the only new teaching target, lessonBrief.focusConcepts are the ideas to teach, lessonBrief.priorKnowledge is already known and may be the starting point, and lessonBrief.exclusions must not be retaught. lessonBrief.teacherIntent.requiredEvidence says what a correct check must show. It is not an extra learning point. lessonBrief.preferences and the duration are presentation, not learning points. Do not turn prior knowledge or an exclusion into the lesson target.",
       "When teacherIntent is absent, lessonBrief.concepts are the ideas to teach. Do not treat words such as between, difference, why, or how as the concept.",
-      "Each learningMap point is { id, knowledge, role, importance, dependsOn }. id is p1, p2, and so on. role is foundation, feature, concept, function, cause, effect, process, procedure, comparison, example, or connection. A role is only a label: a sentence of six words or a place does not become a cause, function, or process because of its role. The sentence itself must state the relationship. A connection point says how earlier points work together. An example point shows an earlier point in use.",
+      "Each learningMap point is { id, knowledge, role, importance, dependsOn }. id is p1, p2, and so on. role is foundation, feature, concept, function, cause, effect, mechanism, process, procedure, comparison, example, or connection. A role is only a label: a sentence of six words or a place does not become a cause, function, or process because of its role. The sentence itself must state the relationship. A connection point says how earlier points work together. An example point shows an earlier point in use.",
       "lessonArc purpose must be exactly one of these words: hook, investigate, teach, apply, check, resolution, recap. Do not write a sentence as the purpose. The system decides which learning points are taught, in what order, and which are checked, and places them on the teach stage and the recap. The hook and the investigate stage must not contain them.",
       "Age changes the plan: vocabulary, how long the sentences are, how deep the explanation goes, the examples, and how hard the reasoning is. Year 1 and Year 2 key knowledge stays in everyday words.",
       "If yearAssumed is true, plan for yearAssumption and say so in yearGroup. Do not pretend the teacher named that year.",
@@ -684,7 +700,170 @@
     return out;
   }
 
+  function teachingLookup(plan) {
+    var tp = plan && plan.teachingPlan;
+    if (!tp || tp.version !== 1 || !Array.isArray(tp.points)) return null;
+    var point = {};
+    tp.points.forEach(function (row) { if (row && row.id) point[row.id] = row; });
+    return { plan: tp, point: point };
+  }
+
+  function strandItems(items, look, strand) {
+    return items.filter(function (item) { return look.point[item.id] && look.point[item.id].strand === strand; });
+  }
+
+  function teachingApplication(plan, items, look) {
+    var strands = (look.plan.strands || []).filter(function (row) { return /^t/.test(row.id); });
+    function explainedIn(id) {
+      return strandItems(items, look, id).filter(function (item) { return look.point[item.id].explained; });
+    }
+    var answer = items.filter(function (item) {
+      var point = look.point[item.id] || {};
+      return item.answers && item.kind === "relationship" && point.strand !== "synthesis";
+    })[0];
+    var chosen = answer ? { id: look.point[answer.id].strand } : strands.slice().sort(function (a, b) {
+      return explainedIn(b.id).length - explainedIn(a.id).length || b.knowledgeRefs.length - a.knowledgeRefs.length || strands.indexOf(a) - strands.indexOf(b);
+    })[0];
+    var pool = chosen ? strandItems(items, look, chosen.id).filter(function (item) { return item.role !== "example"; }) : [];
+    if (!pool.length) pool = items.filter(function (item) { return item.role !== "example"; });
+    if (!pool.length) pool = items.slice();
+    var explained = pool.filter(function (item) { return look.point[item.id] && look.point[item.id].explained; });
+    var focus = answer || explained.slice(-1)[0] || pool[pool.length - 1];
+    var used = pool.slice(0, 4);
+    if (used.indexOf(focus) === -1) used = used.slice(0, 3).concat([focus]);
+    return {
+      strand: chosen ? chosen.id : "",
+      focus: focus,
+      refs: used.map(function (item) { return item.id; }),
+      knowledge: used.map(function (item) { return item.text; }),
+      evidence: "The pupil uses the taught explanation to get a new case right: " + clean(focus.text, 160)
+    };
+  }
+
+  function recapChunks(refs, look, year) {
+    var size = year >= 4 ? 4 : (refs.length <= 4 ? 1 : 3);
+    var groups = [];
+    refs.forEach(function (ref) {
+      var strand = (look.point[ref] || {}).strand || "";
+      var last = groups[groups.length - 1];
+      if (last && (last.strand === strand || last.strand === "f" || strand === "synthesis")) {
+        last.refs.push(ref);
+        if (last.strand === "f") last.strand = strand;
+      } else groups.push({ strand: strand, refs: [ref] });
+    });
+    var chunks = [];
+    groups.forEach(function (group) {
+      var current = chunks[chunks.length - 1];
+      if (current && current.length + group.refs.length <= size) {
+        group.refs.forEach(function (ref) { current.push(ref); });
+        return;
+      }
+      for (var i = 0; i < group.refs.length; i += size) chunks.push(group.refs.slice(i, i + size));
+    });
+    return chunks;
+  }
+
+  function planThreadBeats(skeleton, plan, year, look) {
+    var bounds = beatLimit(year);
+    var depth = depthBudget(year, plan.durationMinutes);
+    var items = mapBeatItems(plan);
+    if (!items.length) return (skeleton || []).map(function (slot) { return Object.assign({}, slot, { beats: [] }); });
+    var textOf = {};
+    var byId = {};
+    items.forEach(function (item) { textOf[item.id] = item.text; byId[item.id] = item; });
+    function strandOf(id) { return (look.point[id] || {}).strand || ""; }
+    var hasExample = items.some(function (item) { return item.role === "example" && item.dependsOn.length; });
+    var exemplified = false;
+    var teach = [];
+    items.forEach(function (item) {
+      var point = look.point[item.id] || {};
+      var strand = strandOf(item.id);
+      var inStrand = items.filter(function (other) { return strandOf(other.id) === strand; });
+      var parent = item.dependsOn.filter(function (dep) { return strandOf(dep) === strand; }).slice(-1)[0] || "";
+      var last = inStrand[inStrand.length - 1] === item;
+      if (item.role === "connection" && item.dependsOn.length) {
+        teach.push({ move: "connect", refs: [item.id, item.dependsOn[item.dependsOn.length - 1]] });
+        return;
+      }
+      if (item.role === "example" && item.dependsOn.length) {
+        teach.push({ move: "exemplify", refs: [item.id, item.dependsOn[0]] });
+        return;
+      }
+      if (item.kind === "procedure") {
+        teach.push({ move: "name", refs: [item.id] });
+        if (year >= 3) teach.push({ move: "model", refs: [item.id] });
+        return;
+      }
+      if (point.explained || item.kind === "relationship") {
+        if (!item.dependsOn.length) teach.push({ move: "name", refs: [item.id] });
+        var consequence = parent && last && inStrand.length >= 3 && (look.point[parent] || {}).explained;
+        teach.push({ move: consequence ? "connect" : "explain", refs: consequence ? [item.id, parent] : [item.id] });
+        return;
+      }
+      teach.push({ move: "name", refs: [item.id] });
+      if (item.kind === "definition" && !hasExample && !exemplified) {
+        teach.push({ move: "exemplify", refs: [item.id] });
+        exemplified = true;
+      }
+    });
+    var taught = [];
+    teach.forEach(function (step) {
+      if (TEACHING_MOVES[step.move]) step.refs.forEach(function (ref) { if (taught.indexOf(ref) === -1) taught.push(ref); });
+    });
+    var taughtItems = taught.map(function (ref) { return byId[ref]; }).filter(Boolean);
+    var application = teachingApplication(plan, taughtItems, look);
+    var focus = application.focus.id;
+    var ranked = taughtItems.map(function (item, order) {
+      var point = look.point[item.id] || {};
+      var base = item.role === "example" ? 0 : (ASSESSABLE[item.kind] || (point.explained ? 4 : 0));
+      return { item: item, order: order, score: base ? base + (item.answers ? 3 : 0) + (item.importance === "core" ? 2 : 0) : 0 };
+    }).filter(function (row) { return row.score > 0; }).sort(function (a, b) {
+      return b.score - a.score || a.order - b.order;
+    });
+    var picked = [];
+    var used = {};
+    ranked.forEach(function (row) {
+      var strand = strandOf(row.item.id);
+      if (picked.length < depth.questions && !used[strand]) { picked.push(row.item); used[strand] = true; }
+    });
+    ranked.forEach(function (row) {
+      if (picked.length < depth.questions && picked.indexOf(row.item) === -1) picked.push(row.item);
+    });
+    if (!picked.length) picked = [application.focus];
+    picked.sort(function (a, b) { return taughtItems.indexOf(a) - taughtItems.indexOf(b); });
+    var checkRefs = picked.map(function (item) { return item.id; });
+    var recapRefs = recapChunks(taught, look, year);
+    var first = items[0].id;
+    var comparison = items.filter(function (item) { return item.kind === "comparison"; });
+    var hook = [{ move: "notice", refs: [first] }];
+    if (year >= 3) hook.push({ move: "predict", refs: [first] });
+    var investigate = [{ move: "notice", refs: [first] }];
+    if (year >= 3 && comparison.length) investigate.push({ move: "compare", refs: comparison.slice(0, 2).map(function (item) { return item.id; }) });
+    var shaped = {
+      hook: hook,
+      investigate: investigate,
+      teach: teach,
+      apply: [{ move: year <= 3 ? "practise" : "apply", refs: [focus] }],
+      check: checkRefs.map(function (ref) { return { move: "retrieve", refs: [ref] }; }),
+      resolution: [{ move: "reveal", refs: [checkRefs[0]] }],
+      recap: recapRefs.map(function (refs) { return { move: "consolidate", refs: refs }; })
+    };
+    return (skeleton || []).map(function (slot) {
+      var list = shaped[slot.id] || [];
+      var cap = slot.id === "teach" || slot.id === "check" || slot.id === "recap" ? Math.max(list.length, 1) : bounds.cap;
+      var beats = packBeats(slot.id, list, cap).filter(function (beat) { return BEAT_MOVES[beat.move]; });
+      var next = Object.assign({}, slot, { beats: beats });
+      if (slot.id === "check") next.requiredKnowledge = checkRefs.map(function (ref) { return textOf[ref]; });
+      if (slot.id === "apply") {
+        next.applicationTarget = { strand: application.strand, knowledgeRefs: application.refs.slice(), knowledge: application.knowledge.slice(), evidence: application.evidence };
+      }
+      return next;
+    });
+  }
+
   function planMapBeats(skeleton, plan, year) {
+    var look = teachingLookup(plan);
+    if (look) return planThreadBeats(skeleton, plan, year, look);
     var bounds = beatLimit(year);
     var depth = depthBudget(year, plan.durationMinutes);
     var items = mapBeatItems(plan);
@@ -820,6 +999,108 @@
     };
   }
 
+  function slotById(slots, id) {
+    return (slots || []).filter(function (slot) { return slot && (slot.id === id || slot.slotId === id); })[0] || null;
+  }
+
+  function assessmentCandidates(plan, slots) {
+    var look = teachingLookup(plan);
+    if (!look) return [];
+    var ledger = taughtLedger(slots);
+    var before = ledger.before.check || ledger.taught;
+    var apply = slotById(slots, "apply");
+    var applyRefs = (apply && apply.applicationTarget && apply.applicationTarget.knowledgeRefs) || [];
+    var focus = ((apply && apply.beats && apply.beats[0] && apply.beats[0].knowledgeRefs) || [])[0] || "";
+    var textOf = {};
+    (plan.learningMap || []).forEach(function (item) { textOf[item.id] = item.knowledge; });
+    return look.plan.points.filter(function (point) {
+      return point.category === "substantive" || point.category === "synthesis";
+    }).slice(0, 10).map(function (point) {
+      var level = point.id === focus || (point.explained && applyRefs.indexOf(point.id) !== -1 && point.category === "substantive") ? "application" : (point.explained || point.category === "synthesis" ? "explanation" : "retrieval");
+      return {
+        strand: point.strand,
+        knowledgeRefs: [point.id],
+        evidence: clean((level === "retrieval" ? "The pupil recalls that " : "The pupil explains that ") + String(textOf[point.id] || "").replace(/^./, function (c) { return c.toLowerCase(); }), 180),
+        taughtBefore: before.indexOf(point.id) !== -1,
+        level: level
+      };
+    });
+  }
+
+  function recapTakeaways(plan, slots) {
+    var look = teachingLookup(plan);
+    var recap = slotById(slots, "recap");
+    if (!recap) return [];
+    var textOf = {};
+    (plan.learningMap || []).forEach(function (item) { textOf[item.id] = item.knowledge; });
+    var out = [];
+    (recap.beats || []).filter(function (beat) { return beat.move === "consolidate"; }).forEach(function (beat) {
+      var refs = beat.knowledgeRefs || [];
+      var groups = [];
+      refs.forEach(function (ref) {
+        var strand = look && look.point[ref] ? look.point[ref].strand : "";
+        var group = groups.filter(function (row) { return row.strand === strand; })[0];
+        if (!group) groups.push(group = { strand: strand, refs: [] });
+        group.refs.push(ref);
+      });
+      var major = groups.filter(function (row) { return row.strand !== "f"; });
+      (major.length ? major : groups).forEach(function (group) {
+        var key = look ? group.refs.filter(function (ref) { return look.point[ref] && (look.point[ref].explained || look.point[ref].category === "synthesis"); }).slice(-1)[0] : "";
+        var ref = key || group.refs[group.refs.length - 1] || "";
+        out.push({ beatId: beat.id, knowledgeRefs: group.refs.slice(), strand: group.strand, takeaway: clean(textOf[ref], 140) });
+      });
+    });
+    return out.slice(0, 6);
+  }
+
+  function teachingPlanReport(plan, slots, ctx) {
+    plan = plan || {};
+    var look = teachingLookup(plan);
+    if (!look) return null;
+    var tp = look.plan;
+    var teach = slotById(slots, "teach");
+    var apply = slotById(slots, "apply");
+    var scenes = null;
+    try { scenes = planScenes(slots, plan, ctx || {}); } catch (e) { scenes = null; }
+    function strandsFor(refs) {
+      var out = [];
+      (refs || []).forEach(function (ref) {
+        var strand = look.point[ref] && look.point[ref].strand;
+        if (strand && out.indexOf(strand) === -1) out.push(strand);
+      });
+      return out;
+    }
+    var target = apply && apply.applicationTarget;
+    return {
+      scope: tp.scope,
+      scopeReason: clean(tp.scopeReason, 140),
+      substantiveDepth: Object.assign({}, tp.substantiveDepth),
+      threads: (tp.strands || []).slice(0, 8).map(function (row) {
+        return {
+          id: row.id,
+          purpose: clean(row.purpose, 100),
+          knowledgeRefs: (row.knowledgeRefs || []).slice(0, 8),
+          dependencies: (row.dependencies || []).slice(0, 6),
+          substantivePoints: (row.substantivePoints || []).slice(0, 8),
+          supportingPoints: (row.supportingPoints || []).slice(0, 8),
+          developed: !!row.developed
+        };
+      }),
+      teachingProgression: ((teach && teach.beats) || []).slice(0, 24).map(function (beat) {
+        return { beatId: beat.id, move: beat.move, knowledgeRefs: (beat.knowledgeRefs || []).slice(0, 4), threadId: strandsFor(beat.knowledgeRefs)[0] || "" };
+      }),
+      sceneCoverage: (scenes || []).slice(0, 12).map(function (scene) {
+        var refs = (scene.knowledgeRefs || []).concat(scene.usesRefs || []);
+        return { sceneId: scene.id, purpose: scene.purpose, threadIds: strandsFor(refs), knowledgeRefs: (scene.knowledgeRefs || []).slice(0, 12) };
+      }),
+      applicationCandidate: target ? { thread: target.strand, knowledgeRefs: (target.knowledgeRefs || []).slice(0, 4), expectedEvidence: clean(target.evidence, 200) } : null,
+      assessmentCandidates: assessmentCandidates(plan, slots),
+      checkRefs: (((slotById(slots, "check") || {}).beats) || []).map(function (beat) { return (beat.knowledgeRefs || [])[0] || ""; }),
+      recapTakeaways: recapTakeaways(plan, slots),
+      rejectedAsDepth: (tp.rejectedAsDepth || []).slice(0, 10)
+    };
+  }
+
   var SCENE_STAGES = ["hook", "investigate", "teach", "apply", "check", "resolution", "recap"];
   var SCENE_LABELS = { investigate: "Explore", learn: "Discover", connect: "Connect", synthesise: "Try it", challenge: "Challenge", finish: "Finish" };
   var SCENE_SHOTS = { investigate: "hook", learn: "teach", connect: "teach", synthesise: "apply", challenge: "check", finish: "resolution" };
@@ -871,8 +1152,14 @@
       }
       return ref;
     }
+    var look = teachingLookup(plan);
+    function strandOf(beat) {
+      var ref = (beat.knowledgeRefs || [])[0];
+      return look && ref && look.point[ref] ? look.point[ref].strand : "";
+    }
     function connective(beat) {
       var ref = (beat.knowledgeRefs || [])[0];
+      if (strandOf(beat)) return strandOf(beat) === "synthesis";
       return beat.move === "connect" || !!(ref && info[ref] && info[ref].kind === "connection");
     }
     function keyOf(beat) {
@@ -927,7 +1214,19 @@
       if (chunk.length) split.push(group(chunk));
     });
     groups = split;
+    function strandsIn(item) {
+      var out = [];
+      if (!look) return out;
+      item.refs.forEach(function (ref) {
+        var strand = look.point[ref] && look.point[ref].strand;
+        if (strand && /^t/.test(strand) && out.indexOf(strand) === -1) out.push(strand);
+      });
+      return out;
+    }
     function affinity(a, b) {
+      var shared = strandsIn(a);
+      if (strandsIn(b).some(function (strand) { return shared.indexOf(strand) !== -1; })) return true;
+      if (look && strandsIn(a).length && strandsIn(b).length) return false;
       return b.refs.some(function (ref) {
         var deps = (info[ref] && info[ref].dependsOn) || [];
         return deps.some(function (dep) { return a.refs.indexOf(dep) !== -1; });
@@ -2217,6 +2516,12 @@
       shape.push("A slot with beats does not use title or lines. Its pupil prose is the beats array only. Each beat object is { id, cue, text }. id is copied from the planned beat. cue may be empty. text is required pupil prose. Do not add, remove, reorder, or rename beats. Do not choose a move or a knowledge ref. Do not invent a replacement beat.");
       shape.push(beatResponseExample(skeleton));
       shape.push(moveGuide(skeleton, (ctx && (ctx.yearGroup || (sourcePlan && sourcePlan.yearGroup))) || ""));
+      if (sourcePlan && sourcePlan.teachingPlan) {
+        shape.push("lessonPlan.teachingThreads groups the knowledge into strands. Teach beats on the same strand build one idea in order: name introduces the feature or idea, explain says how or why it works, exemplify shows it in use, and connect says what it leads to or how the strands work together. Each beat adds to the one before it. Do not say the same sentence twice in different words.");
+      }
+      if (skeleton.some(function (slot) { return slot.id === "apply" && slot.applicationTarget; })) {
+        shape.push("The apply slot has applicationTarget: the taught strand the task must use and the evidence a finished task shows. Write a task the pupil can only get right by using that explanation on a new case, for example predicting, choosing, sorting, matching, or fixing something. Drawing, retelling, or describing the topic is not enough on its own.");
+      }
       beatSlots.forEach(function (slot) {
         if (slot.id !== "apply") return;
         shape.push("The apply slot is one response. Return its planned beats, including " + slot.beats.map(function (beat) { return beat.id; }).join(", ") + ", with cue and text, together with instruction, target, successCondition, and teachingConnection. The beat pupil copy and the task fields are both required. Do not omit the planned beat because the task instruction is present. Do not return knowledgeUsed. The beat prepares the pupil for the task and is not the task. The instruction is the action.");
@@ -2418,6 +2723,7 @@
         if (spec.rejectedBeats.length) spec.pupilCopyRequirements = pupilCopyContract(year);
         else delete spec.rejectedBeats;
       }
+      if (slot.id === "apply" && slot.applicationTarget) spec.applicationTarget = slot.applicationTarget;
       if (slot.id === "apply" && activity && spec.failure.some(function (item) { return /apply slot does not use the taught knowledge/.test(item); })) {
         var verdict = applyAlignment(activity, slot.requiredKnowledge || []);
         if (verdict.status === "fail" && APPLY_REPAIR_FIX[verdict.reason]) spec.applyFailure = APPLY_REPAIR_FIX[verdict.reason];
@@ -2499,6 +2805,10 @@
     if (/more connected learning points/.test(found)) {
       var depth = depthBudget((ctx && (ctx.yearGroup || ctx.yearAssumption)) || (previous && previous.yearGroup), ctx && ctx.requestedMinutes);
       required.push("depth: return a connected learningMap of about " + depth.floor + " to " + depth.max + " points that leads to the goal. Start from what a pupil needs first, then the feature or concept, what it does or why, the effect, and how the ideas connect. Each later point lists the earlier points it builds on in dependsOn. Split a big relationship into child-sized steps. A paraphrase, a second example of the same idea, or trivia is not a new point");
+    }
+    if (/developed strands/.test(found)) {
+      var span = strandRange(depthBudget((ctx && (ctx.yearGroup || ctx.yearAssumption)) || (previous && previous.yearGroup), ctx && ctx.requestedMinutes));
+      required.push("strands: this topic is broad, so the learningMap needs " + span.low + " to " + Math.max(span.low, span.high) + " separate strands that each develop one idea. A strand names a feature, part, event, or idea and then explains how or why it works, with a function, mechanism, cause, process, or procedure point that depends on it. The first point of each strand depends only on the foundation. A list of separate facts is not a strand");
     }
     if (/outcome, not the reason/.test(found)) {
       if (seeksContribution(ctx, objective)) {
@@ -2878,7 +3188,7 @@
     return shared >= 2 && shared / Math.min(a.length, b.length) >= 0.5;
   }
 
-  var MAP_ROLES = { foundation: 1, feature: 1, concept: 1, "function": 1, cause: 1, effect: 1, process: 1, procedure: 1, comparison: 1, example: 1, connection: 1, definition: 1, fact: 1 };
+  var MAP_ROLES = { foundation: 1, feature: 1, concept: 1, "function": 1, cause: 1, effect: 1, mechanism: 1, process: 1, procedure: 1, comparison: 1, example: 1, connection: 1, definition: 1, fact: 1 };
   var ROLE_TYPE = { definition: "definition", procedure: "procedure", comparison: "comparison", effect: "effect", fact: "fact", foundation: "fact", feature: "fact", concept: "fact", example: "fact", connection: "fact" };
   var KIND_ROLE = { relationship: "function", procedure: "procedure", definition: "definition", comparison: "comparison", connection: "connection", example: "example", fact: "fact" };
   var MAP_READ_LIMIT = 14;
@@ -2979,6 +3289,229 @@
     return score;
   }
 
+  var RELATIONAL_ROLE = { "function": 1, cause: 1, effect: 1, mechanism: 1, process: 1 };
+  var DEPTH_FILLER = { thing: 1, things: 1, part: 1, parts: 1, way: 1, ways: 1, special: 1, important: 1, different: 1, many: 1, lots: 1, various: 1, together: 1, kind: 1, kinds: 1, type: 1, types: 1, well: 1, really: 1, very: 1, good: 1 };
+  var DEPTH_REJECTION = { paraphrase: 1, "generic-connection": 1, "unsupported-example": 1, repetition: 1, "low-substance": 1 };
+  var EXPLAINED_KIND = { relationship: 1, procedure: 1, comparison: 1 };
+
+  function teachingScope(ctx) {
+    ctx = ctx || {};
+    var brief = ctx.lessonBrief || {};
+    var ask = clean(brief.rawRequest || ctx.lessonText || ctx.teacherInstructions || "", 400).toLowerCase() || clean(ctx.topic, 200).toLowerCase();
+    if (/\bhow to\b/.test(ask) || brief.intent === "procedure") return { scope: "narrow", reason: "procedure: the request names one method to learn" };
+    if (/\bwhat (?:is|are) (?:a|an)\b|\bwhat (?:a|an) [a-z]+ (?:is|means)\b/.test(ask) || brief.intent === "definition") return { scope: "narrow", reason: "definition: the request names one idea to define" };
+    var asked = ask.match(/\b(?:how|why|what makes|what causes|what happens when|difference between|compare)\b[^.?!]{3,80}/);
+    if (asked) return { scope: "narrow", reason: "relationship: the request asks " + clean(asked[0], 80) };
+    return { scope: "broad", reason: "topic: the request names a topic without one relationship, so Wondii chooses a coherent scope" };
+  }
+
+  function strandRange(depth) {
+    return { low: depth.floor >= 4 ? 2 : 1, high: Math.max(1, Math.floor((depth.max - 1) / 2)) };
+  }
+
+  function depthWords(text) {
+    return contentWords(text).filter(function (word) { return !DEPTH_FILLER[word] && !RELATION_STEM[word]; });
+  }
+
+  function stemIn(word, list) {
+    return (list || []).some(function (other) { return sameStem(word, other); });
+  }
+
+  function metaPoint(text) {
+    return /\b(?:learning|studying|knowing|understanding|finding out)\s+(?:more\s+)?about\b/i.test(String(text || ""));
+  }
+
+  function askedWords(ctx) {
+    var brief = (ctx && ctx.lessonBrief) || {};
+    return contentWords([brief.rawRequest, ctx && ctx.lessonText, ctx && ctx.teacherInstructions].join(" "));
+  }
+
+  function depthFilter(rows, ctx) {
+    var asked = askedWords(ctx);
+    var kept = [];
+    var seen = [];
+    var dropped = [];
+    mapOrder(rows).forEach(function (row) {
+      var mine = depthWords(row.text);
+      var novel = mine.filter(function (word) { return !stemIn(word, seen); });
+      var linking = row.role === "connection" && row.deps.length;
+      var reason = "";
+      if (metaPoint(row.text) && !novel.some(function (word) { return stemIn(word, asked); })) reason = "generic-connection";
+      else if (!linking && row.role !== "example" && kept.length && !novel.length) reason = "repetition";
+      row.depthWords = mine;
+      if (reason) { dropped.push({ row: row, reason: reason }); return; }
+      kept.push(row);
+      mine.forEach(function (word) { seen.push(word); });
+    });
+    var gone = dropped.map(function (item) { return item.row; });
+    function resolve(dep, trail) {
+      if (gone.indexOf(dep) === -1) return [dep];
+      if (trail.indexOf(dep) !== -1) return [];
+      return dep.deps.reduce(function (out, next) { return out.concat(resolve(next, trail.concat([dep]))); }, []);
+    }
+    kept.forEach(function (row) {
+      var deps = [];
+      row.deps.forEach(function (dep) {
+        resolve(dep, []).forEach(function (target) {
+          if (target !== row && kept.indexOf(target) !== -1 && deps.indexOf(target) === -1) deps.push(target);
+        });
+      });
+      row.deps = deps;
+    });
+    kept.sort(function (a, b) { return a.index - b.index; });
+    return { kept: kept, dropped: dropped };
+  }
+
+  function strandsOf(nodes) {
+    var byKey = {};
+    var below = {};
+    nodes.forEach(function (node) { byKey[node.key] = node; });
+    nodes.forEach(function (node) {
+      node.deps.forEach(function (dep) { if (byKey[dep]) below[dep] = (below[dep] || 0) + 1; });
+    });
+    function ordered(list) {
+      var placed = [];
+      var left = list.slice();
+      while (left.length) {
+        var ready = left.filter(function (node) {
+          return node.deps.every(function (dep) { return !byKey[dep] || placed.indexOf(byKey[dep]) !== -1 || list.indexOf(byKey[dep]) === -1; });
+        })[0] || left[0];
+        placed.push(ready);
+        left.splice(left.indexOf(ready), 1);
+      }
+      return placed;
+    }
+    var order = ordered(nodes.slice().sort(function (a, b) { return a.index - b.index; }));
+    var group = {};
+    var strands = [];
+    order.forEach(function (node) {
+      var deps = node.deps.filter(function (dep) { return byKey[dep] && group[dep]; });
+      var under = below[node.key] || 0;
+      if (!deps.length && under && (node.role === "foundation" || (under >= 2 && (node.role === "concept" || node.role === "definition")))) {
+        group[node.key] = "f";
+        return;
+      }
+      var groups = [];
+      deps.forEach(function (dep) { if (groups.indexOf(group[dep]) === -1) groups.push(group[dep]); });
+      if (node.role === "connection" && deps.length >= 2 && groups.length >= 2) {
+        group[node.key] = "synthesis";
+        return;
+      }
+      if (node.role === "example" && deps.length) {
+        group[node.key] = group[deps[0]];
+        return;
+      }
+      var open = deps.filter(function (dep) { return group[dep] !== "f"; });
+      if (!open.length) {
+        var id = "t" + (strands.length + 1);
+        strands.push(id);
+        group[node.key] = id;
+        return;
+      }
+      var latest = open.slice().sort(function (a, b) { return order.indexOf(byKey[b]) - order.indexOf(byKey[a]); })[0];
+      group[node.key] = group[latest];
+    });
+    var flat = order.filter(function (node) { return group[node.key] === "f"; });
+    strands.forEach(function (id) {
+      order.forEach(function (node) { if (group[node.key] === id) flat.push(node); });
+    });
+    order.forEach(function (node) { if (group[node.key] === "synthesis") flat.push(node); });
+    return { order: ordered(flat), group: group, strands: strands };
+  }
+
+  function explainedPoint(item) {
+    return !!(EXPLAINED_KIND[item.kind] || ((item.dependsOn || []).length && RELATIONAL_ROLE[item.role]));
+  }
+
+  function buildTeachingPlan(items, ctx, scope, required, depth, dropped) {
+    var nodes = items.map(function (item, index) {
+      return { key: item.id, role: item.role, deps: (item.dependsOn || []).slice(), index: index };
+    });
+    var strands = strandsOf(nodes);
+    var seen = [];
+    var earlier = [];
+    var points = items.map(function (item) {
+      var deps = item.dependsOn || [];
+      var kind = mapKind(item.knowledge, item.role, deps.length);
+      var mine = depthWords(item.knowledge);
+      var novel = mine.filter(function (word) { return !stemIn(word, seen); });
+      var echoes = mine.length >= 5 && novel.length <= 1 && earlier.some(function (other) {
+        return mine.filter(function (word) { return stemIn(word, other); }).length / mine.length >= 0.75;
+      });
+      mine.forEach(function (word) { seen.push(word); });
+      earlier.push(mine);
+      var row = { id: item.id, kind: kind, role: item.role, dependsOn: deps };
+      var category = "substantive";
+      if (item.role === "example") category = deps.length ? "supporting" : "unsupported-example";
+      else if (item.role === "connection" && deps.length) category = deps.length >= 2 && !metaPoint(item.knowledge) ? "synthesis" : "generic-connection";
+      else if (kind !== "procedure" && echoes) category = "paraphrase";
+      else if (kind !== "procedure" && ((!deps.length && !mine.length) || (deps.length && mine.length <= 2 && novel.length <= 1))) category = "low-substance";
+      return { id: item.id, strand: strands.group[item.id] || "t1", category: category, explained: category === "substantive" && explainedPoint(row) };
+    });
+    var count = { substantive: 0, supporting: 0, synthesis: 0 };
+    points.forEach(function (point) { if (count[point.category] !== undefined) count[point.category] += 1; });
+    var achieved = count.substantive + Math.min(count.supporting, 1) + Math.min(count.synthesis, 1);
+    var groupIds = (points.some(function (point) { return point.strand === "f"; }) ? ["f"] : []).concat(strands.strands);
+    if (points.some(function (point) { return point.strand === "synthesis"; })) groupIds.push("synthesis");
+    var textOf = {};
+    var depsOf = {};
+    items.forEach(function (item) { textOf[item.id] = item.knowledge; depsOf[item.id] = item.dependsOn || []; });
+    var developed = 0;
+    var list = groupIds.map(function (id) {
+      var mine = points.filter(function (point) { return point.strand === id; });
+      var refs = mine.map(function (point) { return point.id; });
+      var lead = mine.filter(function (point) { return point.category === "substantive"; })[0] || mine[0];
+      var needs = [];
+      refs.forEach(function (ref) {
+        depsOf[ref].forEach(function (dep) {
+          var other = (points.filter(function (point) { return point.id === dep; })[0] || {}).strand;
+          if (other && other !== id && needs.indexOf(other) === -1) needs.push(other);
+        });
+      });
+      var isDeveloped = /^t/.test(id) && (mine.some(function (point) { return point.explained; }) || (mine.some(function (point) { return point.category === "substantive"; }) && mine.some(function (point) { return point.category === "supporting"; })));
+      if (isDeveloped) developed += 1;
+      return {
+        id: id,
+        purpose: id === "f" ? "foundation" : (id === "synthesis" ? "connect the strands" : clean(textOf[lead.id], 100)),
+        knowledgeRefs: refs,
+        dependencies: needs,
+        substantivePoints: mine.filter(function (point) { return point.category === "substantive"; }).map(function (point) { return point.id; }),
+        supportingPoints: mine.filter(function (point) { return point.category !== "substantive"; }).map(function (point) { return point.id; }),
+        developed: isDeveloped
+      };
+    });
+    var range = strandRange(depth);
+    var rejected = (dropped || []).map(function (item) {
+      var reason = /^restates\b/.test(item.reason) ? "repetition" : item.reason;
+      var row = { knowledge: clean(item.knowledge, 120), ref: "", reason: reason, taught: false };
+      if (!DEPTH_REJECTION[reason]) { row.reason = "other"; row.detail = clean(item.reason, 60); }
+      return row;
+    });
+    points.forEach(function (point) {
+      if (point.category === "low-substance" || point.category === "paraphrase" || point.category === "generic-connection" || point.category === "unsupported-example") {
+        rejected.push({ knowledge: clean(textOf[point.id], 120), ref: point.id, reason: point.category, taught: true });
+      }
+    });
+    return {
+      version: 1,
+      scope: scope.scope,
+      scopeReason: scope.reason,
+      substantiveDepth: {
+        required: required,
+        achieved: achieved,
+        substantive: count.substantive,
+        supporting: count.supporting,
+        synthesis: count.synthesis,
+        strandsRequired: scope.scope === "broad" ? range.low : 1,
+        strandsDeveloped: developed,
+        met: achieved >= required && (scope.scope !== "broad" || developed >= range.low)
+      },
+      strands: list,
+      points: points,
+      rejectedAsDepth: rejected.slice(0, 10)
+    };
+  }
+
   function buildLearningMap(parsed, ctx, objective) {
     ctx = ctx || {};
     var goal = planGoalText(ctx, objective);
@@ -3034,6 +3567,12 @@
         return false;
       });
     }
+    var filtered = depthFilter(connected, ctx);
+    var depthDropped = filtered.dropped.map(function (item) {
+      rejected.push({ knowledge: item.row.text, reason: item.reason });
+      return { knowledge: item.row.text, reason: item.reason };
+    });
+    connected = filtered.kept;
     var chosen = connected;
     if (connected.length > budget.max) {
       chosen = [];
@@ -3047,7 +3586,10 @@
         if (chosen.indexOf(row) === -1) rejected.push({ knowledge: row.text, reason: "over the depth budget" });
       });
     }
-    var ordered = mapOrder(chosen);
+    var strandNodes = chosen.map(function (row) {
+      return { key: row.key + "#" + row.index, row: row, role: row.role || KIND_ROLE[row.kind] || "fact", index: row.index, deps: row.deps.filter(function (dep) { return chosen.indexOf(dep) !== -1; }).map(function (dep) { return dep.key + "#" + dep.index; }) };
+    });
+    var ordered = strandsOf(strandNodes).order.map(function (node) { return node.row; });
     var idOf = {};
     ordered.forEach(function (row, index) { idOf[row.key + "#" + row.index] = "k" + (index + 1); });
     var items = ordered.map(function (row) {
@@ -3067,6 +3609,7 @@
       seeking: seeking,
       broad: seeking && broadContribution(goal),
       answered: items.some(function (item) { return item.answers; }),
+      depthDropped: depthDropped,
       proposed: proposal.proposed,
       raw: proposal.rows.map(function (row) { return { text: row.text, knowledgeType: knowledgeRole(row.text, ROLE_TYPE[row.role] || row.label) }; })
     };
@@ -3168,12 +3711,17 @@
     var issues = [];
     if (objective.length < 12) issues.push("The lesson plan needs a learning objective.");
     var settled = !!ctx.breadthSettled;
-    var counted = map.items.filter(function (item) { return item.role !== "example"; }).length;
-    var need = map.broad || planNeedsRelation(relationCtx, objective) || planNeedsProcess(relationCtx, objective) ? map.budget.floor : map.budget.narrowFloor;
-    var shallow = !!ctx.depthRequired && !settled && knowledge.length > 0 && counted < need;
+    var scope = teachingScope(relationCtx);
+    var need = scope.scope === "broad" || map.broad || planNeedsRelation(relationCtx, objective) || planNeedsProcess(relationCtx, objective) ? map.budget.floor : map.budget.narrowFloor;
+    var teaching = buildTeachingPlan(map.items, relationCtx, scope, need, map.budget, map.rejected);
+    var depth = teaching.substantiveDepth;
+    var gate = !!ctx.depthRequired && !settled && knowledge.length > 0;
+    var shallow = gate && depth.achieved < need;
+    var thinStrands = gate && scope.scope === "broad" && depth.strandsRequired >= 2 && depth.strandsDeveloped < depth.strandsRequired;
     var oneEnough = answered && knowledge.length >= 1 && (!map.broad || settled);
     if (knowledge.length < 2 && !oneEnough && !shallow) issues.push("The lesson plan needs the key knowledge.");
     if (shallow) issues.push("The learning map needs more connected learning points.");
+    if (thinStrands) issues.push("The learning map needs two or more developed strands for this broad topic.");
     if (seeksContribution(relationCtx, objective) && !answered && !rawEntries.some(function (item) { return statesRelation(item.text); })) {
       issues.push("The key knowledge states the outcome, not the reason.");
     }
@@ -3207,9 +3755,10 @@
         keyKnowledge: knowledge,
         knowledge: entries,
         learningMap: map.items,
-        droppedKnowledge: map.rejected.map(function (item) { return item.knowledge; }),
+        droppedKnowledge: map.rejected.filter(function (item) { return item.reason !== "repetition" && item.reason !== "paraphrase"; }).map(function (item) { return item.knowledge; }),
         mapRejected: map.rejected.slice(0, MAP_READ_LIMIT),
         depthBudget: map.budget,
+        teachingPlan: teaching,
         vocabulary: textList(parsed.vocabulary, 40, 8),
         misconceptions: textList(parsed.misconceptions, 160, 4),
         teachingApproach: clean(parsed.teachingApproach, 400),
@@ -5299,6 +5848,10 @@
     buildLearningMap: buildLearningMap,
     taughtLedger: taughtLedger,
     learningMapReport: learningMapReport,
+    teachingScope: teachingScope,
+    teachingPlanReport: teachingPlanReport,
+    assessmentCandidates: assessmentCandidates,
+    recapTakeaways: recapTakeaways,
     planScenes: planScenes,
     sceneReport: sceneReport,
     keepBeatPlan: keepBeatPlan,

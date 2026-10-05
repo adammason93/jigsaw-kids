@@ -397,6 +397,12 @@ globalThis.handleGenerate = async (req) => {
     const framed = Object.assign({}, withStory, { lessonSkeleton: skeleton });
     const learningMap = brain.learningMapReport(planned.plan, skeleton, ctx);
     logMeta({ stage: "LEARNING_MAP", attemptId, model, ...learningMap });
+    try {
+      const teachingPlan = typeof brain.teachingPlanReport === "function" ? brain.teachingPlanReport(planned.plan, skeleton, ctx) : null;
+      if (teachingPlan) logMeta({ stage: "TEACHING_PLAN", attemptId, model, ...teachingPlan });
+    } catch (error) {
+      logMeta({ stage: "TEACHING_PLAN", attemptId, model, error: "report-failed" });
+    }
     phase = "CONTENT_REQUEST";
     logMeta({ stage: "CONTENT_REQUEST", attemptId, repair: false, model, planMs, storyMs, arc: arcMeta(planned.plan) });
     const contentStarted = Date.now();
