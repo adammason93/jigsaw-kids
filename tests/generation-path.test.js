@@ -37,15 +37,15 @@ function speak(beat, items) {
     predict: "Say what you think is happening before the explanation.",
     name: item.kind === "relationship" || item.kind === "procedure" ? "The class gives this idea its own name." : item.text,
     explain: item.text,
-    exemplify: "Here is one clear example of the idea in use.",
-    model: "Watch this worked step and say what changes.",
+    exemplify: "For example, you can see it when " + known.charAt(0).toLowerCase() + known.slice(1) + ".",
+    model: "First follow this step: " + known.charAt(0).toLowerCase() + known.slice(1) + ", then check what changed.",
     compare: "Look at both sides and say what is different.",
     connect: "These two ideas belong together in this lesson.",
-    practise: "Use " + known + " in what you make.",
-    apply: "Use " + known + " in what you make.",
+    practise: "Show a new case where " + known.charAt(0).toLowerCase() + known.slice(1) + ".",
+    apply: "Show a new case where " + known.charAt(0).toLowerCase() + known.slice(1) + ".",
     retrieve: "Which sentence matches the idea you just learned?",
-    reveal: "The class can now use the idea about " + token + ".",
-    consolidate: "The class can now use the idea about " + token + "."
+    reveal: "So, " + known.charAt(0).toLowerCase() + known.slice(1) + ".",
+    consolidate: "So, " + known.charAt(0).toLowerCase() + known.slice(1) + "."
   }[beat.move];
   return { id: beat.id, cue: "", text: text };
 }
