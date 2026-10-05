@@ -1,26 +1,28 @@
 # Knowledge quality gate evidence
 
-Recorded from `normalisePlan` on this branch, before `planBeats`, except the combined lesson in the last section.
+Recorded from `normalisePlan` on this branch, before `planBeats`. The combined lesson in section C was not rebuilt after the strand-minimum change.
 
 ## Method
 
 This environment has no `OPENAI_API_KEY`, no Anthropic key, and no Supabase secrets, so a live plan model was not called. Every map below is the object the production `normalisePlan` path admits or rejects with `depthRequired: true`. That is the same call `learn-generate` makes before `planBeats`. Shallow rows also set `breadthSettled: true`, which is the flag on the one plan repair. `planBeats` is not called for sections A and B.
 
-Lessons are 15 minutes. The hard gate uses the existing depth budget:
+Lessons are 15 minutes unless a row says otherwise. The hard gate uses the existing depth budget. A depth-seeking goal asks for developed strands on this scale:
 
-| Band | Depth floor | Narrow floor | Developed strands required for a depth-seeking goal |
+| Band | Depth floor | Narrow floor | Developed strands for a 15-minute depth-seeking goal |
 | --- | --- | --- | --- |
-| Year 1–2 | 5 | 3 | 2 (`strandRange.low`; the floor is at least 4) |
-| Year 3–4 | 6 | 4 | 2 |
-| Year 5–6 | 7 | 5 | 2 |
+| Year 1–2 | 5 | 3 | 2 |
+| Year 3–4 | 6 | 4 | 3 |
+| Year 5–6 | 7 | 5 | 3 |
 
-`strandRange.high` stays a prompt target (2 for Year 1–2, 2 to 3 for older 15-minute lessons). It is not a hard minimum, so a coherent two-strand map is not rejected for lacking a third strand. A short lesson whose floor drops below 4 still uses `strandRange.low` of 1. That is the existing year architecture, not a new quota.
+Year 5–6 does not require a fourth strand. The older step is the higher depth floor, clearer mechanisms, a connection, vocabulary, and reasoning. A foundation may sit beside the strands in a simple sentence.
 
-The planner prompt asks Year 1–2 for everyday feature-then-how strands, Year 3–4 for several important ideas with a consequence where it matters, and Year 5–6 for mechanisms plus a connection. Deeper for older pupils is a higher substantive floor and a clearer how or why, not a longer list of names.
+A short lesson whose floor drops below 4 still uses `strandRange.low` of 1. A 12-minute Year 4 lesson has a maximum of 6 points, which cannot hold a foundation and three strands, so it stays at 2. An 8-minute Year 5 river map is required 1 and is admitted. That is the existing budget, not a new quota.
+
+The planner prompt asks Year 1–2 for two everyday feature-then-how strands, and Year 3–6 for three developed strands. Year 5–6 also asks for mechanisms and a connection, and says deeper is not a fourth strand of names.
 
 ## What now fails closed
 
-A depth-seeking goal uses the depth floor, not the narrow floor, and needs developed strands. Depth-seeking means the goal asks how or why something is adapted, survives, or works, how one thing affects another, or a cause, effect, or contribution. A procedure (`how to`, or intent `procedure`) stays on the narrow floor and one strand. A comparison stays out of this gate.
+A depth-seeking goal uses the depth floor, not the narrow floor, and needs the strand minimum above. Depth-seeking means the goal asks how or why something is adapted, survives, or works, how one thing affects another, or a cause, effect, or contribution. A procedure (`how to`, or intent `procedure`) stays on the narrow floor and one strand. A comparison stays out of this gate. A broad topic that is not depth-seeking stays at `strandRange.low` (2 for a standard lesson).
 
 `breadthSettled` may still waive a short point list when the goal is not depth-seeking. It does not waive a developed-strand failure, and it does not waive the depth floor for a how or why goal.
 
@@ -36,7 +38,7 @@ Proposed points: sharks live in the ocean; sharks have fins, gills, teeth, a tai
 
 `breadthSettled: true` on all three.
 
-Year 1 and Year 2. Required depth 5, achieved 3, strands required 2, developed 0, `met` false. The budget trims the list to six points. Admitted before `planBeats`:
+Year 2. Required depth 5, achieved 3, strands required 2, developed 0, `met` false. The budget trims the list to six points:
 
 - k1 foundation: Sharks live in the ocean.
 - k2 feature, depends on k1: Sharks have fins.
@@ -47,15 +49,13 @@ Year 1 and Year 2. Required depth 5, achieved 3, strands required 2, developed 0
 
 Issues: "The learning map needs more connected learning points." and "The learning map needs developed strands that explain how or why, not only a name."
 
-Year 4. Required 6, achieved 4, strands required 2, developed 0. The same issues. Skin and the pointed nose stay on the map and still do not develop a strand.
+Year 4. Required 6, achieved 4, strands required 3, developed 0. The same issues. Skin and the pointed nose stay on the map and still do not develop a strand.
 
-Year 6. Required 7, achieved 4, strands required 2, developed 0. The same issues.
+Year 6. Required 7, achieved 4, strands required 3, developed 0. The same issues.
 
-"Sharks have fins." remains on the map. It is not a developed strand. A second probe that labels "Sharks have fins." and "Sharks have gills." as `mechanism` and `function` is also developed 0.
+"Sharks have fins." remains on the map. It is not a developed strand.
 
-One real strand is not a pass. Five linked points that all hang off one chain (pointed body, then the slide of water, then the tail push, then chasing) develop 1 strand. Year 2 already meets the point floor and is still rejected for strands.
-
-### Developed maps that are admitted
+### Developed maps
 
 Year 2, five points, required 5, achieved 5, strands required 2, developed 2, `met` true.
 
@@ -67,21 +67,26 @@ Year 2, five points, required 5, achieved 5, strands required 2, developed 2, `m
 
 A pupil can say two hows: the pointed body lets water slide past, and the tail pushes water back.
 
-The same five points fail Year 4 even with `breadthSettled: true`. Required depth is 6, achieved is 5, developed strands are already 2. The repair flag does not waive that floor.
+The same five points fail Year 4 even with `breadthSettled: true`. Required depth is 6, achieved is 5, developed strands are 2 and the minimum is 3.
 
-Year 4, six points, required 6, achieved 6, developed 2, `met` true. The Year 2 map plus:
+A sixth point on the same tail strand ("That forward push lets the shark chase fish in the ocean.") meets the Year 4 point floor: required 6, achieved 6, developed 2. It is still rejected. The issue is only the strand gate. `breadthSettled` does not waive it.
 
-- k6 effect, depends on k5: That forward push lets the shark chase fish in the ocean.
+Year 4, seven points, required 6, achieved 7, strands required 3, developed 3, `met` true. The Year 2 map plus a third strand:
 
-A pupil can add the consequence: the push is what lets the shark chase.
+- k6 feature, depends on k1: A shark has gills on the sides of its head.
+- k7 mechanism, depends on k6: Gills take oxygen out of the water so that the shark can breathe.
 
-Those six points fail Year 6. Required depth is 7, achieved is 6.
+The foundation stays a simple sentence. The three hows are the pointed body, the tail, and the gills.
 
-Year 6, seven points, required 7, achieved 7, developed 2, `met` true. The Year 4 map plus:
+Those six points of body plus tail fail Year 6. Required depth is 7, achieved is 6, strands required 3, developed 2.
 
-- k7 connection, depends on k3 and k6: The pointed body and the tail work together so the shark can move through the ocean.
+The seven-point three-strand map meets Year 6 as well: required 7, achieved 7, strands required 3, developed 3, `met` true. A fourth strand is not required.
 
-A pupil can connect the two strands. The connection is synthesis. It does not fake a third developed strand. Giving this seven-point map to Year 2 keeps six points (the connection is over the Year 2 maximum) and still passes, with the same two strands in everyday sentences.
+Year 6 can also keep a connection as an eighth point, still with three developed strands. Required 7, achieved 8, strands required 3, developed 3. The connection is synthesis. It does not count as a fourth strand.
+
+- k8 connection, depends on k3, k5, and k7: The pointed body, the tail and the gills work together so the shark can live and hunt in the ocean.
+
+Giving the eight-point map to Year 2 keeps six points (the gills explanation and the connection are over the Year 2 maximum) and still passes, with two developed strands.
 
 ## B. Other topics
 
@@ -89,9 +94,9 @@ Same 15-minute bands. Shallow rows use `breadthSettled: true`.
 
 ### Geography: How do rivers shape the land?
 
-Name list (banks, bed, source, mouth, water, "rivers are long") is rejected for Year 2, Year 4, and Year 6. Developed strands 0. Required depth 5, 6, and 7. "Rivers have banks." stays on the map and is not a developed explanation. Many of those short names are too thin to count toward the floor (Year 2 achieved depth 1), which is a separate miss from the strand gate.
+A name list (banks, bed, source, mouth, water, "rivers are long") is rejected for Year 2, Year 4, and Year 6. Developed strands 0. Required depth 5, 6, and 7. Strands required 2, 3, and 3. Year 2 achieved depth is 1. "Rivers have banks." is not a developed explanation.
 
-Year 2 admitted map, required 5, achieved 5, developed 2:
+Year 2 admitted map, required 5, achieved 5, strands 2/2:
 
 - A river is water moving downhill across the land.
 - Fast water hits the rock and soil in the river bed.
@@ -99,17 +104,20 @@ Year 2 admitted map, required 5, achieved 5, developed 2:
 - The river picks up the pieces of worn rock.
 - The water carries that rock downstream, so new land builds where the river slows.
 
-Year 4 adds the consequence: a slow bend drops some of that rock, which changes the shape of the bank. Required 6, achieved 6, developed 2.
+Year 4 adds a third strand. Required 6, achieved 7, strands 3/3:
 
-Year 6 adds the connection: wearing rock away and dropping it further on work together, so the river reshapes the land along its whole path. Required 7, achieved 7, developed 2.
+- A river bends where the land is flatter.
+- The outside of the bend flows faster, so it wears that bank away.
+
+Year 6 adds the connection and still requires 3 strands, not 4. Required 7, achieved 8, strands 3/3: wearing rock away, carrying it and bending the banks work together, so the river reshapes the land along its whole path.
 
 The Year 2 river map fails Year 4 with `breadthSettled: true`.
 
 ### History: Why did the Romans build roads in Britain?
 
-A name list (Romans built roads, roads were straight, roads were made of stone) is rejected in every band. Developed strands 0, and the why-goal also fails "The key knowledge states the outcome, not the reason." Required depth 5, 6, and 7.
+A name list (Romans built roads, roads were straight, roads were made of stone) is rejected in every band. Developed strands 0. The why-goal also fails "The key knowledge states the outcome, not the reason." Required depth 5, 6, and 7. Strands required 2, 3, and 3. Achieved depth on this name list is 3.
 
-Year 2 admitted map, developed 2:
+Year 2 admitted map, strands 2/2:
 
 - The Romans ruled a large part of Britain.
 - Roman towns were a long way apart.
@@ -117,15 +125,18 @@ Year 2 admitted map, developed 2:
 - Traders needed to carry food and goods between those towns.
 - The roads carried those goods so that towns could share what they grew.
 
-Year 4 adds: messages could travel along the same roads, which kept the army in touch.
+Year 4 adds a third strand. Required 6, achieved 7, strands 3/3:
 
-Year 6 adds: moving soldiers and carrying goods worked together, so the roads held Roman Britain together.
+- Roman governors needed news from distant towns.
+- Riders carried those messages along the roads, so an order could arrive while the army was still away.
+
+Year 6 adds the connection. Required 7, achieved 8, strands 3/3: moving soldiers, carrying goods and sending messages worked together, so the roads held Roman Britain together.
 
 ### Science: How do plants make their own food?
 
-"Plants need water.", "Plants have leaves.", and "Plants are green." are rejected for Year 2 and Year 6 with `breadthSettled: true`. Required depth 5 and 7, achieved 3, strands required 2, developed 0. Issues include the strand gate, the depth floor, "the outcome, not the reason", and "the parts, not the change." "Plants need water." stays on the map.
+"Plants grow in soil.", "Plants need water.", "Plants have leaves.", and "Plants are green." are rejected for Year 2 and Year 6 with `breadthSettled: true`. Year 2 required 5, achieved 2, strands 2/0. Year 6 required 7, achieved 2, strands 3/0. Issues include the strand gate, the depth floor, "the outcome, not the reason", and "the parts, not the change."
 
-Year 2 admitted map, developed 2:
+Year 2 admitted map, strands 2/2:
 
 - A plant makes food inside its leaves.
 - Leaves look green because they hold chlorophyll.
@@ -133,17 +144,20 @@ Year 2 admitted map, developed 2:
 - The leaf takes in carbon dioxide from the air.
 - Water from the roots joins that gas, so the leaf can make sugar.
 
-Year 4 adds the consequence: the plant uses that sugar to grow, and it releases oxygen while the food is made.
+Year 4 adds a third strand. Required 6, achieved 7, strands 3/3:
 
-Year 6 adds the connection: sunlight, water and carbon dioxide work together, so the leaf makes food the rest of the plant can use.
+- The leaf stores some of the sugar it makes.
+- Stored sugar feeds the plant when there is no sunlight, and the leaf releases oxygen while the food is made.
+
+Year 6 adds the connection. Required 7, achieved 8, strands 3/3: sunlight, water and stored sugar work together, so the leaf makes food the rest of the plant can use.
 
 ### A further how or why, not an animal list
 
-"Why do shadows change during the day?" with only "Shadows are dark." and "Shadows can be long." fails Year 4. Required depth 6 (not the narrow floor of 4), strands required 2, developed 0, and `breadthSettled` does not accept it.
+"Why do shadows change during the day?" with only "Shadows are dark." and "Shadows can be long." fails Year 4. Required depth 6 (not the narrow floor of 4), achieved 2, strands required 3, developed 0. Issues are the point floor, the strand gate, and "the outcome, not the reason." `breadthSettled` does not accept it.
 
 ### What stays a procedure
 
-"Show the class how to add two-digit numbers in columns." Year 4, four steps, one developed strand. Required depth is the narrow floor 4, strands required 1, `met` true. The depth-seeking rule does not pull a method lesson up to two strands.
+"Show the class how to add two-digit numbers in columns." Year 4, four steps, one developed strand. Required depth is the narrow floor 4, strands required 1, `met` true. The depth-seeking rule does not pull a method lesson up to three strands.
 
 ### What a breadth repair may still accept
 
@@ -153,57 +167,10 @@ Year 6 adds the connection: sunlight, water and carbon dioxide work together, so
 
 PR #13 (`cursor/teaching-beat-quality-ecad`) was merged only in a detached test checkout with this branch's `js/lesson-brain.js`. `git merge-file` reported no conflicts. That checkout was not committed, not pushed, and not merged to `main`. PR #13 stays open.
 
-No live content model was available. The lesson below is the merged brain's `normalisePlan` (with `depthRequired: true`), then `lessonSkeleton` and `planBeats`, then pupil sentences written into those beats and passed through the merged `accept()`. Apply alignment passed on its own (`relation-covered`). The check contract is unresolved until the evidence judge, which is the production behaviour; this harness supplied `coverage: "sufficient"` because each correct choice is the admitted sentence. Those sentences are not a live model sample. The beat order, moves, and knowledge refs are the Teaching Beat Layer's. This change does not alter that layer.
+The pupil-facing sample from the previous revision used a Year 4 shark map with two developed strands and a chase consequence. That map is no longer admitted: required depth 6, achieved 6, strands required 3, developed 2. The only issue is the strand gate. This adjustment did not rebuild the pupil sentences or call `planBeats` again. No live content model was available.
 
-Teacher request: "How are sharks adapted to living in the ocean?" Year 4, 15 minutes.
-
-Admitted map before `planBeats`. Required 6, achieved 6, strands required 2, developed 2, `met` true.
-
-- k1 foundation: Sharks are fish that live in the ocean.
-- k2 feature, depends on k1: A shark has a smooth, pointed body.
-- k3 mechanism, depends on k2: The pointed shape lets water slide past, so the shark can swim more easily.
-- k4 feature, depends on k1: A shark has a strong tail.
-- k5 mechanism, depends on k4: The tail pushes water backwards so that the shark swims forward.
-- k6 effect, depends on k5: That forward push lets the shark chase fish in the ocean.
-
-`accept()` returned ok. Pupil-facing text:
-
-Hook, notice: Look at the shark gliding past and say what you notice.
-
-Hook, predict: Say what you think lets this shark move so easily, before the explanation.
-
-Investigate, notice: Look at the shark's shape and say what you notice about how it meets the water.
-
-Teach, name k1: Sharks are fish that live in the ocean.
-
-Teach, exemplify k1: For example, a hammerhead is a fish that lives in the ocean and hunts over a reef.
-
-Teach, name k2: A shark has a smooth, pointed body.
-
-Teach, explain k3: The pointed shape lets water slide past, so the shark can swim more easily.
-
-Teach, name k4: A shark has a strong tail.
-
-Teach, explain k5: The tail pushes water backwards so that the shark swims forward.
-
-Teach, connect k6 and k5: The pointed body lets water slide past and the tail pushes water back, so the shark can chase fish.
-
-Apply, task on k6: Push the model shark forward so its tail drives it after the fish.
-
-Check, three retrieves, within the Year 4 question budget of 3:
-
-- Where sharks live. Correct: Sharks are fish that live in the ocean. Other: Sharks are mammals that come onto the sand to live.
-- The pointed body. Correct: The pointed shape lets water slide past, so the shark can swim more easily. Other: The pointed shape blocks the water, so the shark can only float.
-- Chasing. Correct: That forward push lets the shark chase fish in the ocean. Other: The forward push makes the shark sink, so it cannot chase fish.
-
-Resolution, reveal: The shark can hunt in the ocean because its body is built to move through the water.
-
-Recap, consolidate the body strand: A shark has a smooth, pointed body, and that shape lets water slide past so the shark can swim more easily.
-
-Recap, consolidate the tail strand: A strong tail pushes water backwards so the shark swims forward and can chase fish in the ocean.
-
-Chain: teacher request, admitted map with two how-strands and a consequence, Teaching Beat Layer order, teach the mechanisms, exemplify the foundation, practise by pushing the model, retrieve three taught ideas, consolidate both strands, resolve the mission.
+The Year 4 map `normalisePlan` admits now is the seven-point map in section A: pointed body, tail, and gills. Required 6, achieved 7, strands required 3, developed 3, `met` true.
 
 ## Pins
 
-`schools/learn/create.html` loads `lesson-brain.js?v=59`. The boot harness stays on `lesson-brain.js?v=53` because `tests/generate-loader.test.js` locks that pin. After a future merge, `learn-generate` must be redeployed: the edge function imports its own copy of `js/lesson-brain.js`.
+`schools/learn/create.html` loads `lesson-brain.js?v=60`. The boot harness stays on `lesson-brain.js?v=53` because `tests/generate-loader.test.js` locks that pin. After a future merge, `learn-generate` must be redeployed: the edge function imports its own copy of `js/lesson-brain.js`.

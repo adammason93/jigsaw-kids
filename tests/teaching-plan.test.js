@@ -66,7 +66,8 @@ var FIXTURES = {
       { id: "p2", knowledge: "On 2 September 1666 the Great Fire began in a baker's shop on Pudding Lane.", role: "concept", importance: "core", dependsOn: ["p1"] },
       { id: "p3", knowledge: "The fire spread quickly because the wooden houses were packed close together and a strong wind blew the flames.", role: "cause", importance: "core", dependsOn: ["p2"] },
       { id: "p4", knowledge: "The fire destroyed about 13,000 homes, so thousands of people had nowhere to live.", role: "effect", importance: "core", dependsOn: ["p3"] },
-      { id: "p5", knowledge: "London was rebuilt with brick and stone and wider streets so that fire could not spread as easily.", role: "effect", importance: "core", dependsOn: ["p4"] },
+      { id: "p5", knowledge: "London was rebuilt with brick and stone and wider streets so that fire could not spread as easily.", role: "effect", importance: "core", dependsOn: ["p1"] },
+      { id: "p5b", knowledge: "Stone churches replaced the burned ones, which changed London's skyline.", role: "effect", importance: "core", dependsOn: ["p5"] },
       { id: "p6", knowledge: "People tried to stop the fire with leather buckets and by pulling houses down.", role: "concept", importance: "core", dependsOn: ["p1"] },
       { id: "p7", knowledge: "Blowing up houses made gaps called firebreaks, which stopped the fire because the flames had nothing left to burn.", role: "cause", importance: "core", dependsOn: ["p6"] },
       { id: "p8", knowledge: "Crowded wooden streets explain why the fire spread so far, and the brick rebuilding shows how London learned from it.", role: "connection", importance: "core", dependsOn: ["p3", "p5", "p7"] }
@@ -136,6 +137,8 @@ var FIXTURES = {
       { id: "p4", knowledge: "A mirror reflects light in one clear direction, but a rough surface scatters it in many directions.", role: "comparison", importance: "core", dependsOn: ["p3"] },
       { id: "p5", knowledge: "Light enters the eye through the pupil.", role: "feature", importance: "core", dependsOn: ["p1"] },
       { id: "p6", knowledge: "The eye detects the light, and the brain turns the signal into the image we see.", role: "mechanism", importance: "core", dependsOn: ["p5"] },
+      { id: "p10", knowledge: "Some materials block light.", role: "feature", importance: "core", dependsOn: ["p1"] },
+      { id: "p11", knowledge: "A shadow forms behind the object because light travels in straight lines and cannot bend around it.", role: "mechanism", importance: "core", dependsOn: ["p10"] },
       { id: "p7", knowledge: "Light allows us to see an object when it reflects off the object and travels in a straight line into our eyes.", role: "connection", importance: "core", dependsOn: ["p3", "p6"] },
       { id: "p8", knowledge: "We can read a book in a lit room because light reflects off the page into our eyes.", role: "example", importance: "supporting", dependsOn: ["p7"] },
       { id: "p9", knowledge: "Light from the Sun takes about eight minutes to reach Earth.", role: "concept", importance: "supporting", dependsOn: [] }

@@ -431,13 +431,14 @@
     }
     var depthLine = "";
     if (planSeeksDepth(ctx)) {
-      var count = span.low === span.high ? String(span.low) : span.low + " to " + span.high;
-      if (!year || year <= 2) {
-        depthLine = " Year 1 and Year 2 stay in everyday words: one foundation, then " + count + " developed strand" + (span.high === 1 ? "" : "s") + ". Each strand names a feature and says how or why it works. A short true how or why is enough; do not inflate the wording.";
+      var minimum = seekingStrandMinimum(ctx, depth);
+      var count = String(minimum);
+      if (year <= 2) {
+        depthLine = " Year 1 and Year 2 stay in everyday words: one foundation, then " + count + " developed strand" + (minimum === 1 ? "" : "s") + ". Each strand names a feature and says how or why it works. A short true how or why is enough; do not inflate the wording.";
       } else if (year <= 4) {
-        depthLine = " Year 3 and Year 4 need " + count + " developed strands: several important ideas inside this goal. Each strand names a feature or event, then how or why it works, then the consequence where it matters.";
+        depthLine = " Year 3 and Year 4 need " + count + " developed strands: several important ideas inside this goal. Each strand names a feature or event, then how or why it works, then the consequence where it matters. Keep the foundation in a simple sentence.";
       } else {
-        depthLine = " Year 5 and Year 6 need " + count + " developed strands with real mechanisms and a connection between them. Deeper means a clearer how or why, not a longer list of names.";
+        depthLine = " Year 5 and Year 6 need " + count + " developed strands with real mechanisms and a connection between them. Deeper means a clearer how or why, richer vocabulary and reasoning, not a fourth strand of names.";
       }
       depthLine += " A sentence that only names what something has is a foundation, not a developed strand, until a later point explains it and depends on it.";
     }
@@ -2862,9 +2863,12 @@
       required.push("depth: return a connected learningMap of about " + depth.floor + " to " + depth.max + " points that leads to the goal. Start from what a pupil needs first, then the feature or concept, what it does or why, the effect, and how the ideas connect. Each later point lists the earlier points it builds on in dependsOn. Split a big relationship into child-sized steps. A paraphrase, a second example of the same idea, or trivia is not a new point");
     }
     if (/developed strands/.test(found)) {
-      var span = strandRange(depthBudget((ctx && (ctx.yearGroup || ctx.yearAssumption)) || (previous && previous.yearGroup), ctx && ctx.requestedMinutes));
+      var budget = depthBudget((ctx && (ctx.yearGroup || ctx.yearAssumption)) || (previous && previous.yearGroup), ctx && ctx.requestedMinutes);
+      var span = strandRange(budget);
       var broadTopic = /broad topic/.test(found);
-      required.push("strands: " + (broadTopic ? "this topic is broad, so the learningMap needs " : "the learningMap needs ") + span.low + " to " + Math.max(span.low, span.high) + " separate strands that each develop one idea. A strand names a feature, part, event, or idea and then explains how or why it works, with a function, mechanism, cause, process, or procedure point that depends on it. The first point of each strand depends only on the foundation. A list of separate facts is not a strand. A sentence that only names what something has is not the explanation. Prefer two linked strands over a list of names. Drop spare one-line facts instead of keeping a list of names with empty dependsOn. Development is read only from dependsOn: a point counts as developing a strand only when its dependsOn lists the earlier point of that strand it builds on. For example p2 names a feature with dependsOn [\"p1\"], and p3 explains what that feature does with dependsOn [\"p2\"]. A sentence with because, helps, or work together and an empty dependsOn is still a separate fact. Every point except the foundation must have a non-empty dependsOn");
+      var low = broadTopic ? span.low : (planSeeksDepth(ctx, objective) ? seekingStrandMinimum(ctx, budget) : span.low);
+      var prefer = low >= 3 ? "Prefer three linked strands over a list of names." : "Prefer two linked strands over a list of names.";
+      required.push("strands: " + (broadTopic ? "this topic is broad, so the learningMap needs " : "the learningMap needs ") + low + " separate strands that each develop one idea. A strand names a feature, part, event, or idea and then explains how or why it works, with a function, mechanism, cause, process, or procedure point that depends on it. The first point of each strand depends only on the foundation. A list of separate facts is not a strand. A sentence that only names what something has is not the explanation. " + prefer + " Drop spare one-line facts instead of keeping a list of names with empty dependsOn. Development is read only from dependsOn: a point counts as developing a strand only when its dependsOn lists the earlier point of that strand it builds on. For example p2 names a feature with dependsOn [\"p1\"], and p3 explains what that feature does with dependsOn [\"p2\"]. A sentence with because, helps, or work together and an empty dependsOn is still a separate fact. Every point except the foundation must have a non-empty dependsOn");
     }
     if (/outcome, not the reason/.test(found)) {
       if (seeksContribution(ctx, objective)) {
@@ -3365,6 +3369,17 @@
     return { low: depth.floor >= 4 ? 2 : 1, high: Math.max(1, Math.floor((depth.max - 1) / 2)) };
   }
 
+  // A standard depth-seeking lesson needs more than one developed idea from Year 3.
+  // Year 1–2 stay at two. A short budget keeps strandRange.low so the map can still fit.
+  function seekingStrandMinimum(ctx, depth) {
+    var range = strandRange(depth);
+    if (range.low < 2) return range.low;
+    var year = beatYear((ctx && (ctx.yearGroup || ctx.yearAssumption)) || "");
+    if (year <= 2) return 2;
+    if (depth.max >= 7) return 3;
+    return range.low;
+  }
+
   function depthWords(text) {
     return contentWords(text).filter(function (word) { return !DEPTH_FILLER[word] && !RELATION_STEM[word]; });
   }
@@ -3570,7 +3585,7 @@
     });
     var range = strandRange(depth);
     var seeking = planSeeksDepth(ctx);
-    var strandsRequired = scope.scope === "broad" || seeking ? range.low : 1;
+    var strandsRequired = seeking ? seekingStrandMinimum(ctx, depth) : (scope.scope === "broad" ? range.low : 1);
     var rejected = (dropped || []).map(function (item) {
       var reason = /^restates\b/.test(item.reason) ? "repetition" : item.reason;
       var row = { knowledge: clean(item.knowledge, 120), ref: "", reason: reason, taught: false };
@@ -3828,7 +3843,7 @@
     var oneEnough = answered && knowledge.length >= 1 && (!map.broad || settled);
     if (knowledge.length < 2 && !oneEnough && !shallow) issues.push("The lesson plan needs the key knowledge.");
     if (shallow) issues.push("The learning map needs more connected learning points.");
-    if (thinStrands && scope.scope === "broad" && depth.strandsRequired >= 2) issues.push("The learning map needs two or more developed strands for this broad topic.");
+    if (thinStrands && scope.scope === "broad" && !seekingDepth && depth.strandsRequired >= 2) issues.push("The learning map needs two or more developed strands for this broad topic.");
     else if (thinStrands) issues.push("The learning map needs developed strands that explain how or why, not only a name.");
     if (seeksContribution(relationCtx, objective) && !answered && !rawEntries.some(function (item) { return statesRelation(item.text); })) {
       issues.push("The key knowledge states the outcome, not the reason.");

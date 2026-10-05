@@ -54,13 +54,14 @@ var fixtures = [
     map: [
       { id: "p1", knowledge: "A noun is a naming word for a person, place or thing.", role: "foundation", importance: "supporting", dependsOn: [] },
       { id: "p2", knowledge: "An adjective is a word that describes a noun.", role: "concept", importance: "core", dependsOn: ["p1"] },
-      { id: "p3", knowledge: "An adjective usually sits just before the noun it describes.", role: "feature", importance: "supporting", dependsOn: ["p1"] },
+      { id: "p3", knowledge: "An adjective has a usual place in a sentence.", role: "feature", importance: "core", dependsOn: ["p1"] },
       { id: "p4", knowledge: "An adjective adds detail to a noun so that the writing tells the reader more.", role: "function", importance: "core", dependsOn: ["p2"] },
       { id: "p5", knowledge: "Adjectives add detail to nouns so that writing tells the reader more.", role: "function", importance: "core", dependsOn: ["p2"] },
       { id: "p6", knowledge: "A precise adjective changes the picture so that the writing paints a clearer scene.", role: "effect", importance: "core", dependsOn: ["p4"] },
-      { id: "p7", knowledge: "In the cold, dark cave, the words cold and dark let the reader feel the scene.", role: "example", importance: "supporting", dependsOn: ["p3"] },
-      { id: "p8", knowledge: "Verbs are doing words.", role: "concept", importance: "supporting", dependsOn: [] },
-      { id: "p9", knowledge: "Choosing adjectives carefully makes writing more descriptive for the reader.", role: "connection", importance: "core", dependsOn: ["p4", "p6"] }
+      { id: "p10", knowledge: "Some adjectives name a feeling, as in a lonely road.", role: "feature", importance: "core", dependsOn: ["p1"] },
+      { id: "p11", knowledge: "A feeling adjective changes the mood so that the reader knows how the place feels.", role: "effect", importance: "core", dependsOn: ["p10"] },
+      { id: "p7", knowledge: "It sits just before the noun, which changes the order of the words.", role: "effect", importance: "core", dependsOn: ["p3"] },
+      { id: "p8", knowledge: "Verbs are doing words.", role: "concept", importance: "supporting", dependsOn: [] }
     ],
     rejected: ["Adjectives add detail to nouns so that writing tells the reader more.", "Verbs are doing words."],
     chain: ["function", "effect"],
@@ -73,14 +74,16 @@ var fixtures = [
     goal: "Understand why the Great Fire of London spread so quickly and what changed afterwards.",
     map: [
       { id: "p1", knowledge: "In 1666 a fire started in a bakery on Pudding Lane.", role: "foundation", importance: "supporting", dependsOn: [] },
-      { id: "p2", knowledge: "The fire spread quickly because the wooden houses stood close together.", role: "cause", importance: "core", dependsOn: ["p1"] },
-      { id: "p3", knowledge: "The fire spread quickly because a strong wind blew the flames between streets.", role: "cause", importance: "core", dependsOn: ["p2"] },
-      { id: "p4", knowledge: "The fire spread quickly because people had no fire engines to stop it.", role: "cause", importance: "core", dependsOn: ["p1"] },
+      { id: "p2", knowledge: "Wooden houses stood close together along narrow streets.", role: "feature", importance: "core", dependsOn: ["p1"] },
+      { id: "p2b", knowledge: "The fire spread quickly because the wooden houses stood close together.", role: "cause", importance: "core", dependsOn: ["p2"] },
+      { id: "p3", knowledge: "A strong wind blew across London that night.", role: "feature", importance: "core", dependsOn: ["p1"] },
+      { id: "p3b", knowledge: "The wind carried the flames across the gaps, so that the fire reached the next street.", role: "cause", importance: "core", dependsOn: ["p3"] },
+      { id: "p4", knowledge: "People had no fire engines that could stop a fire this large.", role: "feature", importance: "core", dependsOn: ["p1"] },
+      { id: "p4b", knowledge: "The fire burned thousands of homes because nothing could put the flames out.", role: "cause", importance: "core", dependsOn: ["p4"] },
       { id: "p5", knowledge: "The fire spread fast because houses were wooden and close together.", role: "cause", importance: "core", dependsOn: ["p1"] },
-      { id: "p6", knowledge: "The fire burned thousands of homes, which meant many people lost their homes.", role: "effect", importance: "core", dependsOn: ["p2", "p3", "p4"] },
-      { id: "p7", knowledge: "London was rebuilt with brick and stone so that a fire could not spread as easily.", role: "effect", importance: "core", dependsOn: ["p6"] },
+      { id: "p7", knowledge: "London was rebuilt with brick and stone so that a fire could not spread as easily.", role: "effect", importance: "core", dependsOn: ["p4b"] },
       { id: "p8", knowledge: "London had a lot of churches.", role: "foundation", importance: "supporting", dependsOn: [] },
-      { id: "p9", knowledge: "Close wooden houses, wind and no fire engines together explain why the fire spread so fast and why London was rebuilt in brick.", role: "connection", importance: "core", dependsOn: ["p2", "p3", "p4", "p7"] }
+      { id: "p9", knowledge: "Close wooden houses, wind and no fire engines together explain why the fire spread so fast and why London was rebuilt in brick.", role: "connection", importance: "core", dependsOn: ["p2b", "p3b", "p4b"] }
     ],
     rejected: ["The fire spread fast because houses were wooden and close together.", "London had a lot of churches."],
     chain: ["cause", "effect"],
@@ -97,10 +100,10 @@ var fixtures = [
       { id: "p3", knowledge: "This erosion wears away the rock, which changes the landscape by making the valley deeper.", role: "effect", importance: "core", dependsOn: ["p2"] },
       { id: "p4", knowledge: "The river carries the worn material downstream.", role: "process", importance: "core", dependsOn: ["p1"] },
       { id: "p5", knowledge: "Where the river slows down, it drops mud and sand, which changes the landscape by building new land.", role: "effect", importance: "core", dependsOn: ["p4"] },
-      { id: "p6", knowledge: "On a bend the river wears away the outside bank and drops sand on the inside, which makes the meander grow.", role: "effect", importance: "supporting", dependsOn: ["p3", "p5"] },
+      { id: "p6", knowledge: "On a bend the river wears away the outside bank and drops sand on the inside, which makes the meander grow.", role: "effect", importance: "supporting", dependsOn: ["p1"] },
       { id: "p7", knowledge: "Fish live in many rivers.", role: "foundation", importance: "supporting", dependsOn: [] },
       { id: "p8", knowledge: "Erosion, transport and deposition work together to change the landscape over time.", role: "connection", importance: "core", dependsOn: ["p3", "p4", "p5"] },
-      { id: "p9", knowledge: "A deep river valley was carved by a river wearing away rock for thousands of years.", role: "example", importance: "supporting", dependsOn: ["p3"] }
+      { id: "p9", knowledge: "A deep river valley was carved by a river wearing away rock for thousands of years.", role: "example", importance: "supporting", dependsOn: ["p6"] }
     ],
     rejected: ["Fish live in many rivers."],
     chain: ["process", "effect"],

@@ -68,11 +68,12 @@ var sharkShallow = [
   { id: "p8", knowledge: "These parts help sharks survive in the ocean.", role: "function", importance: "core", dependsOn: ["p2"] }
 ];
 var sharkBand = { "Year 1": 5, "Year 2": 5, "Year 4": 6, "Year 6": 7 };
+var strandMin = { "Year 1": 2, "Year 2": 2, "Year 4": 3, "Year 6": 3 };
 Object.keys(sharkBand).forEach(function (year) {
   var made = admit(year, sharkAsk, sharkGoal, sharkShallow, { breadthSettled: true });
   failsClosed(made);
   assert.strictEqual(depthOf(made).requiredDepth, sharkBand[year], year + " uses the depth floor, not the narrow floor");
-  assert.strictEqual(depthOf(made).requiredStrands, 2);
+  assert.strictEqual(depthOf(made).requiredStrands, strandMin[year]);
   assert.ok(knowledgeText(made).indexOf("Sharks have fins.") !== -1, "a name can stay as a foundation");
 });
 
@@ -96,34 +97,50 @@ function sharkRich(count) {
     { id: "p3", knowledge: "The pointed shape lets water slide past, so the shark can swim more easily.", role: "mechanism", importance: "core", dependsOn: ["p2"] },
     { id: "p4", knowledge: "A shark has a strong tail.", role: "feature", importance: "core", dependsOn: ["p1"] },
     { id: "p5", knowledge: "The tail pushes water backwards so that the shark swims forward.", role: "mechanism", importance: "core", dependsOn: ["p4"] },
-    { id: "p6", knowledge: "That forward push lets the shark chase fish in the ocean.", role: "effect", importance: "core", dependsOn: ["p5"] },
-    { id: "p7", knowledge: "The pointed body and the tail work together so the shark can move through the ocean.", role: "connection", importance: "core", dependsOn: ["p3", "p6"] }
+    { id: "p6", knowledge: "A shark has gills on the sides of its head.", role: "feature", importance: "core", dependsOn: ["p1"] },
+    { id: "p7", knowledge: "Gills take oxygen out of the water so that the shark can breathe.", role: "mechanism", importance: "core", dependsOn: ["p6"] },
+    { id: "p8", knowledge: "The pointed body, the tail and the gills work together so the shark can live and hunt in the ocean.", role: "connection", importance: "core", dependsOn: ["p3", "p5", "p7"] }
   ].slice(0, count);
 }
 
 var young = admit("Year 2", sharkAsk, sharkGoal, sharkRich(5));
 assert.strictEqual(young.ok, true, (young.issues || []).join("; "));
 assert.strictEqual(depthOf(young).requiredDepth, 5);
+assert.strictEqual(depthOf(young).requiredStrands, 2);
 assert.strictEqual(depthOf(young).developedStrands, 2);
 assert.strictEqual(depthOf(young).met, true);
-var youngTooThinForOlder = admit("Year 4", sharkAsk, sharkGoal, sharkRich(5), { breadthSettled: true });
-assert.strictEqual(youngTooThinForOlder.ok, false, "breadthSettled must not waive a depth-seeking floor");
-assert.ok((youngTooThinForOlder.issues || []).join(" ").indexOf("more connected learning points") !== -1);
+var twoStrands = admit("Year 4", sharkAsk, sharkGoal, sharkRich(5), { breadthSettled: true });
+assert.strictEqual(twoStrands.ok, false, "breadthSettled must not waive a depth-seeking floor");
+assert.ok((twoStrands.issues || []).join(" ").indexOf("more connected learning points") !== -1);
+var middleShort = admit("Year 4", sharkAsk, sharkGoal, sharkRich(5).concat([
+  { id: "p6", knowledge: "That forward push lets the shark chase fish in the ocean.", role: "effect", importance: "core", dependsOn: ["p5"] }
+]), { breadthSettled: true });
+assert.strictEqual(middleShort.ok, false, "two developed strands are not enough in Year 4");
+assert.strictEqual(depthOf(middleShort).developedStrands, 2);
+assert.strictEqual(depthOf(middleShort).requiredStrands, 3);
+assert.ok((middleShort.issues || []).join(" ").indexOf("developed strands that explain how or why") !== -1);
 
-var middle = admit("Year 4", sharkAsk, sharkGoal, sharkRich(6));
+var middle = admit("Year 4", sharkAsk, sharkGoal, sharkRich(7));
 assert.strictEqual(middle.ok, true, (middle.issues || []).join("; "));
 assert.strictEqual(depthOf(middle).requiredDepth, 6);
-assert.strictEqual(depthOf(middle).developedStrands, 2);
-assert.ok(knowledgeText(middle).indexOf("chase fish in the ocean") !== -1);
+assert.strictEqual(depthOf(middle).requiredStrands, 3);
+assert.strictEqual(depthOf(middle).developedStrands, 3);
+assert.ok(knowledgeText(middle).indexOf("shark can breathe") !== -1);
 var middleShortOfOlder = admit("Year 6", sharkAsk, sharkGoal, sharkRich(6));
 assert.strictEqual(middleShortOfOlder.ok, false);
 assert.strictEqual(depthOf(middleShortOfOlder).requiredDepth, 7);
+assert.strictEqual(depthOf(middleShortOfOlder).requiredStrands, 3);
+var year6Three = admit("Year 6", sharkAsk, sharkGoal, sharkRich(7));
+assert.strictEqual(year6Three.ok, true, (year6Three.issues || []).join("; "));
+assert.strictEqual(depthOf(year6Three).requiredStrands, 3);
+assert.strictEqual(depthOf(year6Three).developedStrands, 3);
 
-var older = admit("Year 6", sharkAsk, sharkGoal, sharkRich(7));
+var older = admit("Year 6", sharkAsk, sharkGoal, sharkRich(8));
 assert.strictEqual(older.ok, true, (older.issues || []).join("; "));
 assert.strictEqual(depthOf(older).requiredDepth, 7);
-assert.strictEqual(depthOf(older).achievedDepth, 7);
-assert.strictEqual(depthOf(older).developedStrands, 2);
+assert.strictEqual(depthOf(older).achievedDepth, 8);
+assert.strictEqual(depthOf(older).requiredStrands, 3);
+assert.strictEqual(depthOf(older).developedStrands, 3);
 assert.ok(knowledgeText(older).indexOf("work together") !== -1, "Year 6 keeps the connection");
 
 function named(ask, goal, feature, nameOnly) {
@@ -154,16 +171,19 @@ function riverRich(count) {
     { id: "p3", knowledge: "That water wears the rock away, so the valley grows deeper.", role: "mechanism", importance: "core", dependsOn: ["p2"] },
     { id: "p4", knowledge: "The river picks up the pieces of worn rock.", role: "feature", importance: "core", dependsOn: ["p1"] },
     { id: "p5", knowledge: "The water carries that rock downstream, so new land builds where the river slows.", role: "mechanism", importance: "core", dependsOn: ["p4"] },
-    { id: "p6", knowledge: "A slow bend drops some of that rock, which changes the shape of the bank.", role: "effect", importance: "core", dependsOn: ["p5"] },
-    { id: "p7", knowledge: "Wearing rock away and dropping it further on work together, so the river reshapes the land along its whole path.", role: "connection", importance: "core", dependsOn: ["p3", "p6"] }
+    { id: "p6", knowledge: "A river bends where the land is flatter.", role: "feature", importance: "core", dependsOn: ["p1"] },
+    { id: "p6b", knowledge: "The outside of the bend flows faster, so it wears that bank away.", role: "mechanism", importance: "core", dependsOn: ["p6"] },
+    { id: "p7", knowledge: "Wearing rock away, carrying it and bending the banks work together, so the river reshapes the land along its whole path.", role: "connection", importance: "core", dependsOn: ["p3", "p5", "p6b"] }
   ].slice(0, count);
 }
 var riverYoung = admit("Year 2", riverAsk, riverGoal, riverRich(5));
-var riverMiddle = admit("Year 4", riverAsk, riverGoal, riverRich(6));
-var riverOlder = admit("Year 6", riverAsk, riverGoal, riverRich(7));
+var riverMiddle = admit("Year 4", riverAsk, riverGoal, riverRich(7));
+var riverOlder = admit("Year 6", riverAsk, riverGoal, riverRich(8));
 assert.strictEqual(riverYoung.ok, true, (riverYoung.issues || []).join("; "));
 assert.strictEqual(riverMiddle.ok, true, (riverMiddle.issues || []).join("; "));
 assert.strictEqual(riverOlder.ok, true, (riverOlder.issues || []).join("; "));
+assert.deepStrictEqual([depthOf(riverYoung).requiredStrands, depthOf(riverMiddle).requiredStrands, depthOf(riverOlder).requiredStrands], [2, 3, 3]);
+assert.deepStrictEqual([depthOf(riverYoung).developedStrands, depthOf(riverMiddle).developedStrands, depthOf(riverOlder).developedStrands], [2, 3, 3]);
 assert.deepStrictEqual([depthOf(riverYoung).requiredDepth, depthOf(riverMiddle).requiredDepth, depthOf(riverOlder).requiredDepth], [5, 6, 7]);
 assert.ok(knowledgeText(riverOlder).indexOf("work together") !== -1);
 assert.strictEqual(admit("Year 4", riverAsk, riverGoal, riverRich(5), { breadthSettled: true }).ok, false);
@@ -177,13 +197,14 @@ function plantRich(count) {
     { id: "p3", knowledge: "Chlorophyll catches sunlight, which makes the leaf able to start building food.", role: "mechanism", importance: "core", dependsOn: ["p2"] },
     { id: "p4", knowledge: "The leaf takes in carbon dioxide from the air.", role: "feature", importance: "core", dependsOn: ["p1"] },
     { id: "p5", knowledge: "Water from the roots joins that gas, so the leaf can make sugar.", role: "mechanism", importance: "core", dependsOn: ["p4"] },
-    { id: "p6", knowledge: "The plant uses that sugar to grow, and it releases oxygen while the food is made.", role: "effect", importance: "core", dependsOn: ["p5"] },
-    { id: "p7", knowledge: "Sunlight, water and carbon dioxide work together, so the leaf makes food the rest of the plant can use.", role: "connection", importance: "core", dependsOn: ["p3", "p6"] }
+    { id: "p6", knowledge: "The leaf stores some of the sugar it makes.", role: "feature", importance: "core", dependsOn: ["p1"] },
+    { id: "p6b", knowledge: "Stored sugar feeds the plant when there is no sunlight, and the leaf releases oxygen while the food is made.", role: "mechanism", importance: "core", dependsOn: ["p6"] },
+    { id: "p7", knowledge: "Sunlight, water and stored sugar work together, so the leaf makes food the rest of the plant can use.", role: "connection", importance: "core", dependsOn: ["p3", "p5", "p6b"] }
   ].slice(0, count);
 }
 var plantYoung = admit("Year 2", plantAsk, plantGoal, plantRich(5));
-var plantMiddle = admit("Year 4", plantAsk, plantGoal, plantRich(6));
-var plantOlder = admit("Year 6", plantAsk, plantGoal, plantRich(7));
+var plantMiddle = admit("Year 4", plantAsk, plantGoal, plantRich(7));
+var plantOlder = admit("Year 6", plantAsk, plantGoal, plantRich(8));
 assert.strictEqual(plantYoung.ok, true, (plantYoung.issues || []).join("; "));
 assert.strictEqual(plantMiddle.ok, true, (plantMiddle.issues || []).join("; "));
 assert.strictEqual(plantOlder.ok, true, (plantOlder.issues || []).join("; "));
@@ -214,13 +235,14 @@ function roadRich(count) {
     { id: "p3", knowledge: "Straight roads let soldiers move quickly because the route did not wander.", role: "mechanism", importance: "core", dependsOn: ["p2"] },
     { id: "p4", knowledge: "Traders needed to carry food and goods between those towns.", role: "feature", importance: "core", dependsOn: ["p1"] },
     { id: "p5", knowledge: "The roads carried those goods so that towns could share what they grew.", role: "function", importance: "core", dependsOn: ["p4"] },
-    { id: "p6", knowledge: "Messages could travel along the same roads, which kept the army in touch.", role: "effect", importance: "core", dependsOn: ["p3"] },
-    { id: "p7", knowledge: "Moving soldiers and carrying goods worked together, so the roads held Roman Britain together.", role: "connection", importance: "core", dependsOn: ["p3", "p5"] }
+    { id: "p6", knowledge: "Roman governors needed news from distant towns.", role: "feature", importance: "core", dependsOn: ["p1"] },
+    { id: "p6b", knowledge: "Riders carried those messages along the roads, so an order could arrive while the army was still away.", role: "mechanism", importance: "core", dependsOn: ["p6"] },
+    { id: "p7", knowledge: "Moving soldiers, carrying goods and sending messages worked together, so the roads held Roman Britain together.", role: "connection", importance: "core", dependsOn: ["p3", "p5", "p6b"] }
   ].slice(0, count);
 }
 assert.strictEqual(admit("Year 2", roadAsk, roadGoal, roadRich(5)).ok, true);
-assert.strictEqual(admit("Year 4", roadAsk, roadGoal, roadRich(6)).ok, true);
-assert.strictEqual(admit("Year 6", roadAsk, roadGoal, roadRich(7)).ok, true);
+assert.strictEqual(admit("Year 4", roadAsk, roadGoal, roadRich(7)).ok, true);
+assert.strictEqual(admit("Year 6", roadAsk, roadGoal, roadRich(8)).ok, true);
 
 var shadowAsk = "Why do shadows change during the day?";
 var shadowGoal = "Pupils will understand why shadows change during the day.";
@@ -234,6 +256,7 @@ var shadowShallow = admit("Year 4", shadowAsk, shadowGoal, [
 ], { breadthSettled: true });
 failsClosed(shadowShallow);
 assert.strictEqual(depthOf(shadowShallow).requiredDepth, 6);
+assert.strictEqual(depthOf(shadowShallow).requiredStrands, 3);
 
 var addAsk = "Show the class how to add two-digit numbers in columns.";
 var addGoal = "Pupils will add two-digit numbers in columns.";
@@ -279,8 +302,12 @@ function scopeLine(year) {
   }).system;
 }
 assert.ok(/Year 1 and Year 2 stay in everyday words/.test(scopeLine("Year 1")));
+assert.ok(/then 2 developed strands/.test(scopeLine("Year 2")));
+assert.ok(/need 3 developed strands/.test(scopeLine("Year 4")));
 assert.ok(/several important ideas/.test(scopeLine("Year 4")));
+assert.ok(/need 3 developed strands/.test(scopeLine("Year 6")));
 assert.ok(/real mechanisms and a connection/.test(scopeLine("Year 6")));
+assert.ok(/not a fourth strand/.test(scopeLine("Year 6")));
 assert.strictEqual(scopeLine("Year 2").indexOf("two in Year 1 and Year 2"), -1);
 
 console.log("knowledge quality gate tests passed");

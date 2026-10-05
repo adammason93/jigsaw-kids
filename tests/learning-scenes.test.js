@@ -28,12 +28,13 @@ var LESSONS = {
     goal: "Understand why the Great Fire of London spread so quickly and what changed afterwards.",
     map: [
       { id: "p1", knowledge: "In 1666 a fire started in a bakery on Pudding Lane.", role: "foundation", importance: "supporting", dependsOn: [] },
-      { id: "p2", knowledge: "The fire spread quickly because the wooden houses stood close together.", role: "cause", importance: "core", dependsOn: ["p1"] },
-      { id: "p3", knowledge: "The fire spread quickly because a strong wind blew the flames between streets.", role: "cause", importance: "core", dependsOn: ["p2"] },
-      { id: "p4", knowledge: "The fire spread quickly because people had no fire engines to stop it.", role: "cause", importance: "core", dependsOn: ["p1"] },
-      { id: "p6", knowledge: "The fire burned thousands of homes, which meant many people lost their homes.", role: "effect", importance: "core", dependsOn: ["p2", "p3", "p4"] },
-      { id: "p7", knowledge: "London was rebuilt with brick and stone so that a fire could not spread as easily.", role: "effect", importance: "core", dependsOn: ["p6"] },
-      { id: "p9", knowledge: "Close wooden houses, wind and no fire engines together explain why the fire spread so fast and why London was rebuilt in brick.", role: "connection", importance: "core", dependsOn: ["p2", "p3", "p4", "p7"] }
+      { id: "p2", knowledge: "Wooden houses stood close together along narrow streets.", role: "feature", importance: "core", dependsOn: ["p1"] },
+      { id: "p2b", knowledge: "The fire spread quickly because those close houses gave the flames fuel.", role: "cause", importance: "core", dependsOn: ["p2"] },
+      { id: "p3", knowledge: "A strong wind blew across London that night.", role: "feature", importance: "core", dependsOn: ["p1"] },
+      { id: "p3b", knowledge: "The wind carried the flames across the gaps, so that the fire reached the next street.", role: "cause", importance: "core", dependsOn: ["p3"] },
+      { id: "p4", knowledge: "People had no fire engines that could stop a fire this large.", role: "feature", importance: "core", dependsOn: ["p1"] },
+      { id: "p4b", knowledge: "The fire burned thousands of homes because nothing could put the flames out.", role: "cause", importance: "core", dependsOn: ["p4"] },
+      { id: "p9", knowledge: "Close wooden houses, wind and no fire engines together explain why the fire spread so fast.", role: "connection", importance: "core", dependsOn: ["p2b", "p3b", "p4b"] }
     ]
   },
   river: {
@@ -46,9 +47,9 @@ var LESSONS = {
       { id: "p3", knowledge: "This erosion wears away the rock, which changes the landscape by making the valley deeper.", role: "effect", importance: "core", dependsOn: ["p2"] },
       { id: "p4", knowledge: "The river carries the worn material downstream.", role: "process", importance: "core", dependsOn: ["p1"] },
       { id: "p5", knowledge: "Where the river slows down, it drops mud and sand, which changes the landscape by building new land.", role: "effect", importance: "core", dependsOn: ["p4"] },
-      { id: "p6", knowledge: "On a bend the river wears away the outside bank and drops sand on the inside, which makes the meander grow.", role: "effect", importance: "supporting", dependsOn: ["p3", "p5"] },
+      { id: "p6", knowledge: "On a bend the river wears away the outside bank and drops sand on the inside, which makes the meander grow.", role: "effect", importance: "supporting", dependsOn: ["p1"] },
       { id: "p8", knowledge: "Erosion, transport and deposition work together to change the landscape over time.", role: "connection", importance: "core", dependsOn: ["p3", "p4", "p5"] },
-      { id: "p9", knowledge: "A deep river valley was carved by a river wearing away rock for thousands of years.", role: "example", importance: "supporting", dependsOn: ["p3"] }
+      { id: "p9", knowledge: "A deep river valley was carved by a river wearing away rock for thousands of years.", role: "example", importance: "supporting", dependsOn: ["p6"] }
     ]
   }
 };
