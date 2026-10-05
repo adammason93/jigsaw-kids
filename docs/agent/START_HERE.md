@@ -58,6 +58,6 @@ Reply with exactly these headings, in this order.
 - Never print secrets: anon key, JWTs, `OPENAI_API_KEY`, passwords, access tokens.
 - No permanent pupil accounts.
 - Run tests as `node tests/<file>.test.js` from the repo root (CommonJS, Node 20). There is no `package.json` test runner.
-- Never deploy the local `supabase/functions/learn-generate/index.ts` or `supabase/functions/learn-visuals/index.ts`. Both are stale. See `ARCHITECTURE.md`.
+- Deploy `supabase/functions/learn-generate/index.ts`. It is the boot pipeline and imports local `js/lesson-brain.js`. Never deploy the thin plan → story → `accept` path in its place. Never deploy `supabase/functions/learn-visuals/index.ts` (stale). See `ARCHITECTURE.md`.
 - Commit with a HEREDOC message. No `--no-verify`, no force push, no amend.
 - Do not generate a production lesson yourself. The human runs canaries.
