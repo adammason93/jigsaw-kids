@@ -73,7 +73,8 @@ Promise.resolve().then(function () {
     if (href.indexOf("/rest/v1/organisation_members") !== -1) return Promise.resolve(jsonResponse([{ role: "teacher", status: "active" }], 200));
     if (href.indexOf("api.openai.com") !== -1) {
       var body = JSON.parse(init.body);
-      modelSystems.push(body.messages[0].content);
+      var system = body.messages[0].content;
+      modelSystems.push(system);
       openaiCalls += 1;
       if (openaiCalls === 1) {
         return Promise.resolve(jsonResponse({
@@ -86,6 +87,18 @@ Promise.resolve().then(function () {
             preferences: [],
             subject: "Science",
             subjectConfidence: "high"
+          }) } }]
+        }, 200));
+      }
+      if (system.indexOf("You ground subject knowledge") === 0) {
+        return Promise.resolve(jsonResponse({
+          choices: [{ message: { content: JSON.stringify({
+            status: "usable",
+            claims: [
+              { text: "Lightning is a bright flash in a storm cloud.", depth: "concrete", confidence: "high", provenance: "model", factuallyVerified: false, ageFit: { from: 1, to: 6 } },
+              { text: "A storm cloud can hold a strong electrical charge.", depth: "concrete", confidence: "high", provenance: "model", factuallyVerified: false, ageFit: { from: 1, to: 6 } },
+              { text: "The flash happens when that charge jumps.", depth: "mechanism", confidence: "high", provenance: "model", factuallyVerified: false, ageFit: { from: 3, to: 6 } }
+            ]
           }) } }]
         }, 200));
       }
@@ -110,8 +123,10 @@ Promise.resolve().then(function () {
 }).then(function (response) {
   assert.ok(response);
   assert.ok(stages.indexOf("TEACHER_INTENT") !== -1, stages.join(","));
-  assert.ok(stages.indexOf("TEACHER_INTENT") < stages.indexOf("PLAN_REQUEST"));
+  assert.ok(stages.indexOf("TEACHER_INTENT") < stages.indexOf("KNOWLEDGE_PACK"), stages.join(","));
+  assert.ok(stages.indexOf("KNOWLEDGE_PACK") < stages.indexOf("PLAN_REQUEST"), stages.join(","));
   assert.ok(modelSystems[0].indexOf("You interpret one primary teacher's request.") !== -1);
+  assert.ok(modelSystems[1].indexOf("You ground subject knowledge") === 0);
   assert.ok(modelSystems.length < 5);
   console.log = originalLog;
   global.fetch = originalFetch;

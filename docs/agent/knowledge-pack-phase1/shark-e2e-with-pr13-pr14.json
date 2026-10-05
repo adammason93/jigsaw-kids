@@ -1,0 +1,1326 @@
+{
+  "liveModel": false,
+  "note": "Boot pipeline with scripted model payloads. Gates, claim binding, beats and pupil materialiser are the real code.",
+  "matrixId": "y4-shark-adaptations",
+  "lesson": {
+    "ok": true,
+    "stage": "COMPLETE",
+    "issues": [],
+    "stages": [
+      "TEACHER_INTENT",
+      "KNOWLEDGE_PACK",
+      "PLAN_REQUEST",
+      "STORY_REQUEST",
+      "LEARNING_MAP",
+      "TEACHING_PLAN",
+      "CONTENT_REQUEST",
+      "CONTENT_VALIDATE",
+      "APPLY_ALIGNMENT",
+      "CHECK_ALIGNMENT",
+      "COMPLETE"
+    ],
+    "knowledgePackLog": {
+      "event": "learn-generate",
+      "stage": "KNOWLEDGE_PACK",
+      "attemptId": "kp-phase1-shark",
+      "model": "gpt-4o-mini",
+      "packMs": 0,
+      "packId": "kp_10odpbz",
+      "status": "usable",
+      "statusReason": "Enough claims to select from. Every claim is still unverified.",
+      "modelStatus": "usable",
+      "falsePremise": "",
+      "provenanceSummary": "Phase 1: no claim is factually verified. Model-originated claims are unverified. Teacher material is not treated as truth. Retrieved, curated, and curriculum origins are not available in this phase.",
+      "verificationOverrides": 0,
+      "claimCount": 9,
+      "claims": [
+        {
+          "claimId": "c1uwmm8v",
+          "text": "A shark is a fish with fins, gills and a tail.",
+          "kind": "definition",
+          "depth": "concrete",
+          "confidence": "high",
+          "provenance": "model",
+          "provenanceNote": "model-originated/unverified",
+          "teacherRequested": false,
+          "factuallyVerified": false,
+          "contested": false,
+          "uncertainty": "",
+          "ageFit": {
+            "from": 1,
+            "to": 6
+          },
+          "importance": "core",
+          "correctsPremise": false
+        },
+        {
+          "claimId": "c66lxbg",
+          "text": "A shark has gills on the side of its head.",
+          "kind": "fact",
+          "depth": "concrete",
+          "confidence": "high",
+          "provenance": "model",
+          "provenanceNote": "model-originated/unverified",
+          "teacherRequested": false,
+          "factuallyVerified": false,
+          "contested": false,
+          "uncertainty": "",
+          "ageFit": {
+            "from": 1,
+            "to": 6
+          },
+          "importance": "core",
+          "correctsPremise": false
+        },
+        {
+          "claimId": "cmqr5m5",
+          "text": "Gills take oxygen from the water so that a shark can breathe.",
+          "kind": "mechanism",
+          "depth": "mechanism",
+          "confidence": "high",
+          "provenance": "model",
+          "provenanceNote": "model-originated/unverified",
+          "teacherRequested": false,
+          "factuallyVerified": false,
+          "contested": false,
+          "uncertainty": "",
+          "ageFit": {
+            "from": 3,
+            "to": 6
+          },
+          "importance": "core",
+          "correctsPremise": false
+        },
+        {
+          "claimId": "c1mnmv6n",
+          "text": "A shark has a strong tail.",
+          "kind": "fact",
+          "depth": "concrete",
+          "confidence": "high",
+          "provenance": "model",
+          "provenanceNote": "model-originated/unverified",
+          "teacherRequested": false,
+          "factuallyVerified": false,
+          "contested": false,
+          "uncertainty": "",
+          "ageFit": {
+            "from": 1,
+            "to": 6
+          },
+          "importance": "core",
+          "correctsPremise": false
+        },
+        {
+          "claimId": "c6uqz6n",
+          "text": "The tail pushes water backwards so that the shark moves forward.",
+          "kind": "mechanism",
+          "depth": "mechanism",
+          "confidence": "high",
+          "provenance": "model",
+          "provenanceNote": "model-originated/unverified",
+          "teacherRequested": false,
+          "factuallyVerified": false,
+          "contested": false,
+          "uncertainty": "",
+          "ageFit": {
+            "from": 3,
+            "to": 6
+          },
+          "importance": "core",
+          "correctsPremise": false
+        },
+        {
+          "claimId": "c1226kz2",
+          "text": "A shark has a pointed body shape.",
+          "kind": "fact",
+          "depth": "concrete",
+          "confidence": "high",
+          "provenance": "model",
+          "provenanceNote": "model-originated/unverified",
+          "teacherRequested": false,
+          "factuallyVerified": false,
+          "contested": false,
+          "uncertainty": "",
+          "ageFit": {
+            "from": 1,
+            "to": 6
+          },
+          "importance": "core",
+          "correctsPremise": false
+        },
+        {
+          "claimId": "c1mop7pp",
+          "text": "The pointed shape lets water slide past the body so that the shark slows down less.",
+          "kind": "mechanism",
+          "depth": "mechanism",
+          "confidence": "high",
+          "provenance": "model",
+          "provenanceNote": "model-originated/unverified",
+          "teacherRequested": false,
+          "factuallyVerified": false,
+          "contested": false,
+          "uncertainty": "",
+          "ageFit": {
+            "from": 3,
+            "to": 6
+          },
+          "importance": "core",
+          "correctsPremise": false
+        },
+        {
+          "claimId": "c66eto5",
+          "text": "Fins, tail and gills work together as one system that lets a shark hunt in open water.",
+          "kind": "mechanism",
+          "depth": "system",
+          "confidence": "medium",
+          "provenance": "model",
+          "provenanceNote": "model-originated/unverified",
+          "teacherRequested": false,
+          "factuallyVerified": false,
+          "contested": false,
+          "uncertainty": "",
+          "ageFit": {
+            "from": 5,
+            "to": 6
+          },
+          "importance": "core",
+          "correctsPremise": false
+        },
+        {
+          "claimId": "cibzkg1",
+          "text": "Sharks keep fish numbers in balance, so the ocean stays healthy.",
+          "kind": "caveat",
+          "depth": "system",
+          "confidence": "low",
+          "provenance": "model",
+          "provenanceNote": "model-originated/unverified",
+          "teacherRequested": false,
+          "factuallyVerified": false,
+          "contested": false,
+          "uncertainty": "This is a broad food-web claim, not a mechanism of the body.",
+          "ageFit": {
+            "from": 5,
+            "to": 6
+          },
+          "importance": "optional",
+          "correctsPremise": false
+        }
+      ],
+      "mechanisms": [
+        {
+          "claimId": "cmqr5m5",
+          "text": "Gills take oxygen from the water so that a shark can breathe."
+        },
+        {
+          "claimId": "c6uqz6n",
+          "text": "The tail pushes water backwards so that the shark moves forward."
+        },
+        {
+          "claimId": "c1mop7pp",
+          "text": "The pointed shape lets water slide past the body so that the shark slows down less."
+        },
+        {
+          "claimId": "c66eto5",
+          "text": "Fins, tail and gills work together as one system that lets a shark hunt in open water."
+        }
+      ],
+      "concepts": [
+        "adaptation",
+        "gills"
+      ],
+      "vocabulary": [
+        {
+          "term": "gill",
+          "gloss": "a body part that takes oxygen from water"
+        }
+      ],
+      "misconceptions": [
+        {
+          "id": "m1",
+          "text": "Sharks are mammals.",
+          "correctsClaimId": "c1uwmm8v"
+        }
+      ],
+      "openQuestions": [],
+      "rejectedClaims": [],
+      "strippedFields": [],
+      "selection": {
+        "status": "ready",
+        "reason": "Year 4 selects concrete claims and mechanisms. System claims stay in the pack.",
+        "depthMode": "mechanism",
+        "year": 4,
+        "claimIds": [
+          "c1226kz2",
+          "c1mnmv6n",
+          "c1uwmm8v",
+          "c66lxbg",
+          "c1mop7pp",
+          "c6uqz6n",
+          "cmqr5m5"
+        ],
+        "heldBack": [
+          {
+            "claimId": "c66eto5",
+            "depth": "system",
+            "reason": "outside age fit"
+          },
+          {
+            "claimId": "cibzkg1",
+            "depth": "system",
+            "reason": "outside age fit"
+          }
+        ]
+      }
+    },
+    "learningMapLog": {
+      "event": "learn-generate",
+      "stage": "LEARNING_MAP",
+      "attemptId": "kp-phase1-shark",
+      "model": "gpt-4o-mini",
+      "teacherGoal": "Pupils explain how a shark's body helps it live and hunt in the sea.",
+      "learningMapCount": 7,
+      "learningMapIds": [
+        "k1",
+        "k2",
+        "k3",
+        "k4",
+        "k5",
+        "k6",
+        "k7"
+      ],
+      "learningMap": [
+        {
+          "id": "k1",
+          "knowledge": "A shark is a fish with fins, gills and a tail.",
+          "role": "foundation",
+          "importance": "core",
+          "dependsOn": [],
+          "claimIds": [
+            "c1uwmm8v"
+          ]
+        },
+        {
+          "id": "k2",
+          "knowledge": "A shark has gills on the side of its head.",
+          "role": "feature",
+          "importance": "core",
+          "dependsOn": [
+            "k1"
+          ],
+          "claimIds": [
+            "c66lxbg"
+          ]
+        },
+        {
+          "id": "k3",
+          "knowledge": "Gills take oxygen from the water so that a shark can breathe.",
+          "role": "mechanism",
+          "importance": "core",
+          "dependsOn": [
+            "k2"
+          ],
+          "claimIds": [
+            "cmqr5m5"
+          ]
+        },
+        {
+          "id": "k4",
+          "knowledge": "A shark has a strong tail.",
+          "role": "feature",
+          "importance": "core",
+          "dependsOn": [
+            "k1"
+          ],
+          "claimIds": [
+            "c1mnmv6n"
+          ]
+        },
+        {
+          "id": "k5",
+          "knowledge": "The tail pushes water backwards so that the shark moves forward.",
+          "role": "mechanism",
+          "importance": "core",
+          "dependsOn": [
+            "k4"
+          ],
+          "claimIds": [
+            "c6uqz6n"
+          ]
+        },
+        {
+          "id": "k6",
+          "knowledge": "A shark has a pointed body shape.",
+          "role": "feature",
+          "importance": "core",
+          "dependsOn": [
+            "k1"
+          ],
+          "claimIds": [
+            "c1226kz2"
+          ]
+        },
+        {
+          "id": "k7",
+          "knowledge": "The pointed shape lets water slide past the body so that the shark slows down less.",
+          "role": "mechanism",
+          "importance": "core",
+          "dependsOn": [
+            "k6"
+          ],
+          "claimIds": [
+            "c1mop7pp"
+          ]
+        }
+      ],
+      "admitted": [
+        "k1",
+        "k2",
+        "k3",
+        "k4",
+        "k5",
+        "k6",
+        "k7"
+      ],
+      "rejected": [
+        {
+          "knowledge": "Sharks keep the ocean healthy by being important predators.",
+          "reason": "invented fact outside the knowledge pack"
+        }
+      ],
+      "depthBudget": {
+        "year": 4,
+        "minutes": 15,
+        "durationKnown": true,
+        "floor": 6,
+        "narrowFloor": 4,
+        "max": 8,
+        "questions": 3
+      },
+      "beats": [
+        {
+          "beatId": "hook:0",
+          "move": "notice",
+          "refs": [
+            "k1"
+          ]
+        },
+        {
+          "beatId": "hook:1",
+          "move": "predict",
+          "refs": [
+            "k1"
+          ]
+        },
+        {
+          "beatId": "investigate:0",
+          "move": "notice",
+          "refs": [
+            "k1"
+          ]
+        },
+        {
+          "beatId": "teach:0",
+          "move": "name",
+          "refs": [
+            "k1"
+          ]
+        },
+        {
+          "beatId": "teach:1",
+          "move": "exemplify",
+          "refs": [
+            "k1"
+          ]
+        },
+        {
+          "beatId": "teach:2",
+          "move": "name",
+          "refs": [
+            "k2"
+          ]
+        },
+        {
+          "beatId": "teach:3",
+          "move": "explain",
+          "refs": [
+            "k3"
+          ]
+        },
+        {
+          "beatId": "teach:4",
+          "move": "name",
+          "refs": [
+            "k4"
+          ]
+        },
+        {
+          "beatId": "teach:5",
+          "move": "explain",
+          "refs": [
+            "k5"
+          ]
+        },
+        {
+          "beatId": "teach:6",
+          "move": "name",
+          "refs": [
+            "k6"
+          ]
+        },
+        {
+          "beatId": "teach:7",
+          "move": "explain",
+          "refs": [
+            "k7"
+          ]
+        },
+        {
+          "beatId": "apply:0",
+          "move": "apply",
+          "refs": [
+            "k3"
+          ]
+        },
+        {
+          "beatId": "check:0",
+          "move": "retrieve",
+          "refs": [
+            "k3"
+          ]
+        },
+        {
+          "beatId": "check:1",
+          "move": "retrieve",
+          "refs": [
+            "k5"
+          ]
+        },
+        {
+          "beatId": "check:2",
+          "move": "retrieve",
+          "refs": [
+            "k7"
+          ]
+        },
+        {
+          "beatId": "resolution:0",
+          "move": "reveal",
+          "refs": [
+            "k3"
+          ]
+        },
+        {
+          "beatId": "recap:0",
+          "move": "consolidate",
+          "refs": [
+            "k1",
+            "k2",
+            "k3"
+          ]
+        },
+        {
+          "beatId": "recap:1",
+          "move": "consolidate",
+          "refs": [
+            "k4",
+            "k5",
+            "k6",
+            "k7"
+          ]
+        }
+      ],
+      "taughtBeforeApply": [
+        "k1",
+        "k2",
+        "k3",
+        "k4",
+        "k5",
+        "k6",
+        "k7"
+      ],
+      "taughtBeforeCheck": [
+        "k1",
+        "k2",
+        "k3",
+        "k4",
+        "k5",
+        "k6",
+        "k7"
+      ],
+      "applyRefs": [
+        "k3"
+      ],
+      "checkRefs": [
+        "k3",
+        "k5",
+        "k7"
+      ],
+      "recapRefs": [
+        "k1",
+        "k2",
+        "k3",
+        "k4",
+        "k5",
+        "k6",
+        "k7"
+      ],
+      "knowledgeTrace": {
+        "packId": "kp_10odpbz",
+        "packStatus": "usable",
+        "provenanceSummary": "Phase 1: no claim is factually verified. Model-originated claims are unverified. Teacher material is not treated as truth. Retrieved, curated, and curriculum origins are not available in this phase.",
+        "depthMode": "mechanism",
+        "depthReason": "Year 4 selects concrete claims and mechanisms. System claims stay in the pack.",
+        "map": [
+          {
+            "mapId": "k1",
+            "knowledge": "A shark is a fish with fins, gills and a tail.",
+            "claimIds": [
+              "c1uwmm8v"
+            ],
+            "provenance": [
+              "model"
+            ],
+            "factuallyVerified": false
+          },
+          {
+            "mapId": "k2",
+            "knowledge": "A shark has gills on the side of its head.",
+            "claimIds": [
+              "c66lxbg"
+            ],
+            "provenance": [
+              "model"
+            ],
+            "factuallyVerified": false
+          },
+          {
+            "mapId": "k3",
+            "knowledge": "Gills take oxygen from the water so that a shark can breathe.",
+            "claimIds": [
+              "cmqr5m5"
+            ],
+            "provenance": [
+              "model"
+            ],
+            "factuallyVerified": false
+          },
+          {
+            "mapId": "k4",
+            "knowledge": "A shark has a strong tail.",
+            "claimIds": [
+              "c1mnmv6n"
+            ],
+            "provenance": [
+              "model"
+            ],
+            "factuallyVerified": false
+          },
+          {
+            "mapId": "k5",
+            "knowledge": "The tail pushes water backwards so that the shark moves forward.",
+            "claimIds": [
+              "c6uqz6n"
+            ],
+            "provenance": [
+              "model"
+            ],
+            "factuallyVerified": false
+          },
+          {
+            "mapId": "k6",
+            "knowledge": "A shark has a pointed body shape.",
+            "claimIds": [
+              "c1226kz2"
+            ],
+            "provenance": [
+              "model"
+            ],
+            "factuallyVerified": false
+          },
+          {
+            "mapId": "k7",
+            "knowledge": "The pointed shape lets water slide past the body so that the shark slows down less.",
+            "claimIds": [
+              "c1mop7pp"
+            ],
+            "provenance": [
+              "model"
+            ],
+            "factuallyVerified": false
+          }
+        ],
+        "teach": [
+          {
+            "stage": "teach",
+            "beatId": "teach:0",
+            "move": "name",
+            "mapIds": [
+              "k1"
+            ],
+            "claimIds": [
+              "c1uwmm8v"
+            ]
+          },
+          {
+            "stage": "teach",
+            "beatId": "teach:1",
+            "move": "exemplify",
+            "mapIds": [
+              "k1"
+            ],
+            "claimIds": [
+              "c1uwmm8v"
+            ]
+          },
+          {
+            "stage": "teach",
+            "beatId": "teach:2",
+            "move": "name",
+            "mapIds": [
+              "k2"
+            ],
+            "claimIds": [
+              "c66lxbg"
+            ]
+          },
+          {
+            "stage": "teach",
+            "beatId": "teach:3",
+            "move": "explain",
+            "mapIds": [
+              "k3"
+            ],
+            "claimIds": [
+              "cmqr5m5"
+            ]
+          },
+          {
+            "stage": "teach",
+            "beatId": "teach:4",
+            "move": "name",
+            "mapIds": [
+              "k4"
+            ],
+            "claimIds": [
+              "c1mnmv6n"
+            ]
+          },
+          {
+            "stage": "teach",
+            "beatId": "teach:5",
+            "move": "explain",
+            "mapIds": [
+              "k5"
+            ],
+            "claimIds": [
+              "c6uqz6n"
+            ]
+          },
+          {
+            "stage": "teach",
+            "beatId": "teach:6",
+            "move": "name",
+            "mapIds": [
+              "k6"
+            ],
+            "claimIds": [
+              "c1226kz2"
+            ]
+          },
+          {
+            "stage": "teach",
+            "beatId": "teach:7",
+            "move": "explain",
+            "mapIds": [
+              "k7"
+            ],
+            "claimIds": [
+              "c1mop7pp"
+            ]
+          }
+        ],
+        "apply": [
+          {
+            "stage": "apply",
+            "beatId": "apply:0",
+            "move": "apply",
+            "mapIds": [
+              "k3"
+            ],
+            "claimIds": [
+              "cmqr5m5"
+            ]
+          }
+        ],
+        "check": [
+          {
+            "stage": "check",
+            "beatId": "check:0",
+            "move": "retrieve",
+            "mapIds": [
+              "k3"
+            ],
+            "claimIds": [
+              "cmqr5m5"
+            ]
+          },
+          {
+            "stage": "check",
+            "beatId": "check:1",
+            "move": "retrieve",
+            "mapIds": [
+              "k5"
+            ],
+            "claimIds": [
+              "c6uqz6n"
+            ]
+          },
+          {
+            "stage": "check",
+            "beatId": "check:2",
+            "move": "retrieve",
+            "mapIds": [
+              "k7"
+            ],
+            "claimIds": [
+              "c1mop7pp"
+            ]
+          }
+        ]
+      }
+    },
+    "pupil": [
+      {
+        "slot": "hook",
+        "beats": [
+          {
+            "id": "hook:0",
+            "move": "notice",
+            "knowledgeRefs": [
+              "k1"
+            ],
+            "text": "Look at the shark and say what you can see."
+          },
+          {
+            "id": "hook:1",
+            "move": "predict",
+            "knowledgeRefs": [
+              "k1"
+            ],
+            "text": "Say what you think the gills are for."
+          }
+        ],
+        "lines": [
+          "Look at the shark and say what you can see.",
+          "Say what you think the gills are for."
+        ],
+        "questions": []
+      },
+      {
+        "slot": "investigate",
+        "beats": [
+          {
+            "id": "investigate:0",
+            "move": "notice",
+            "knowledgeRefs": [
+              "k1"
+            ],
+            "text": "Look at the shark and say what you can see."
+          }
+        ],
+        "lines": [
+          "Look at the shark and say what you can see."
+        ],
+        "questions": []
+      },
+      {
+        "slot": "teach",
+        "beats": [
+          {
+            "id": "teach:0",
+            "move": "name",
+            "knowledgeRefs": [
+              "k1"
+            ],
+            "text": "A shark is a fish with fins, gills and a tail."
+          },
+          {
+            "id": "teach:1",
+            "move": "exemplify",
+            "knowledgeRefs": [
+              "k1"
+            ],
+            "text": "You can see this when a shark is a fish with fins, gills and a tail."
+          },
+          {
+            "id": "teach:2",
+            "move": "name",
+            "knowledgeRefs": [
+              "k2"
+            ],
+            "text": "A shark has gills on the side of its head."
+          },
+          {
+            "id": "teach:3",
+            "move": "explain",
+            "knowledgeRefs": [
+              "k3"
+            ],
+            "text": "Gills take oxygen from the water so that a shark can breathe."
+          },
+          {
+            "id": "teach:4",
+            "move": "name",
+            "knowledgeRefs": [
+              "k4"
+            ],
+            "text": "A shark has a strong tail."
+          },
+          {
+            "id": "teach:5",
+            "move": "explain",
+            "knowledgeRefs": [
+              "k5"
+            ],
+            "text": "The tail pushes water backwards so that the shark moves forward."
+          },
+          {
+            "id": "teach:6",
+            "move": "name",
+            "knowledgeRefs": [
+              "k6"
+            ],
+            "text": "A shark has a pointed body shape."
+          },
+          {
+            "id": "teach:7",
+            "move": "explain",
+            "knowledgeRefs": [
+              "k7"
+            ],
+            "text": "The pointed shape lets water slide past the body so that the shark slows down less."
+          }
+        ],
+        "lines": [
+          "A shark is a fish with fins, gills and a tail.",
+          "You can see this when a shark is a fish with fins, gills and a tail.",
+          "A shark has gills on the side of its head.",
+          "Gills take oxygen from the water so that a shark can breathe.",
+          "A shark has a strong tail.",
+          "The tail pushes water backwards so that the shark moves forward."
+        ],
+        "questions": []
+      },
+      {
+        "slot": "apply",
+        "beats": [
+          {
+            "id": "apply:0",
+            "move": "apply",
+            "knowledgeRefs": [
+              "k3"
+            ],
+            "text": "Choose the body part that helps: gills take oxygen from the water so that a shark can breathe."
+          }
+        ],
+        "lines": [
+          "Choose the body part that helps: gills take oxygen from the water so that a shark can breathe."
+        ],
+        "questions": []
+      },
+      {
+        "slot": "check",
+        "beats": [
+          {
+            "id": "check:0",
+            "move": "retrieve",
+            "knowledgeRefs": [
+              "k3"
+            ],
+            "text": "Which sentence matches the idea you just learned?"
+          },
+          {
+            "id": "check:1",
+            "move": "retrieve",
+            "knowledgeRefs": [
+              "k5"
+            ],
+            "text": "Which sentence matches the idea you just learned?"
+          },
+          {
+            "id": "check:2",
+            "move": "retrieve",
+            "knowledgeRefs": [
+              "k7"
+            ],
+            "text": "Which sentence matches the idea you just learned?"
+          }
+        ],
+        "lines": [],
+        "questions": [
+          {
+            "prompt": "Which sentence explains this idea? Gills take oxygen from the water so that a shark can breathe.",
+            "correct": "Gills take oxygen from the water so that a shark can breathe.",
+            "choices": [
+              "Gills take oxygen from the water so that a shark can breathe.",
+              "The shark is a mammal because it lives in the sea."
+            ]
+          },
+          {
+            "prompt": "Which sentence explains this idea? The tail pushes water backwards so that the shark moves forward.",
+            "correct": "The tail pushes water backwards so that the shark moves forward.",
+            "choices": [
+              "The tail pushes water backwards so that the shark moves forward.",
+              "The shark is a mammal because it lives in the sea."
+            ]
+          },
+          {
+            "prompt": "Which sentence explains this idea? The pointed shape lets water slide past the body so that the shark slows down less.",
+            "correct": "The pointed shape lets water slide past the body so that the shark slows down le",
+            "choices": [
+              "The pointed shape lets water slide past the body so that the shark slows down le",
+              "The shark is a mammal because it lives in the sea."
+            ]
+          }
+        ]
+      },
+      {
+        "slot": "resolution",
+        "beats": [
+          {
+            "id": "resolution:0",
+            "move": "reveal",
+            "knowledgeRefs": [
+              "k3"
+            ],
+            "text": "So, gills take oxygen from the water so that a shark can breathe."
+          }
+        ],
+        "lines": [
+          "So, gills take oxygen from the water so that a shark can breathe."
+        ],
+        "questions": []
+      },
+      {
+        "slot": "recap",
+        "beats": [
+          {
+            "id": "recap:0",
+            "move": "consolidate",
+            "knowledgeRefs": [
+              "k1",
+              "k2",
+              "k3"
+            ],
+            "text": "So, a shark is a fish with fins, gills and a tail."
+          },
+          {
+            "id": "recap:1",
+            "move": "consolidate",
+            "knowledgeRefs": [
+              "k4",
+              "k5",
+              "k6",
+              "k7"
+            ],
+            "text": "So, a shark has a strong tail."
+          }
+        ],
+        "lines": [
+          "So, a shark is a fish with fins, gills and a tail.",
+          "So, a shark has a strong tail."
+        ],
+        "questions": []
+      }
+    ],
+    "responseLearningMap": {
+      "teacherGoal": "Pupils explain how a shark's body helps it live and hunt in the sea.",
+      "learningMapCount": 7,
+      "learningMapIds": [
+        "k1",
+        "k2",
+        "k3",
+        "k4",
+        "k5",
+        "k6",
+        "k7"
+      ],
+      "learningMap": [
+        {
+          "id": "k1",
+          "knowledge": "A shark is a fish with fins, gills and a tail.",
+          "role": "foundation",
+          "importance": "core",
+          "dependsOn": [],
+          "claimIds": [
+            "c1uwmm8v"
+          ]
+        },
+        {
+          "id": "k2",
+          "knowledge": "A shark has gills on the side of its head.",
+          "role": "feature",
+          "importance": "core",
+          "dependsOn": [
+            "k1"
+          ],
+          "claimIds": [
+            "c66lxbg"
+          ]
+        },
+        {
+          "id": "k3",
+          "knowledge": "Gills take oxygen from the water so that a shark can breathe.",
+          "role": "mechanism",
+          "importance": "core",
+          "dependsOn": [
+            "k2"
+          ],
+          "claimIds": [
+            "cmqr5m5"
+          ]
+        },
+        {
+          "id": "k4",
+          "knowledge": "A shark has a strong tail.",
+          "role": "feature",
+          "importance": "core",
+          "dependsOn": [
+            "k1"
+          ],
+          "claimIds": [
+            "c1mnmv6n"
+          ]
+        },
+        {
+          "id": "k5",
+          "knowledge": "The tail pushes water backwards so that the shark moves forward.",
+          "role": "mechanism",
+          "importance": "core",
+          "dependsOn": [
+            "k4"
+          ],
+          "claimIds": [
+            "c6uqz6n"
+          ]
+        },
+        {
+          "id": "k6",
+          "knowledge": "A shark has a pointed body shape.",
+          "role": "feature",
+          "importance": "core",
+          "dependsOn": [
+            "k1"
+          ],
+          "claimIds": [
+            "c1226kz2"
+          ]
+        },
+        {
+          "id": "k7",
+          "knowledge": "The pointed shape lets water slide past the body so that the shark slows down less.",
+          "role": "mechanism",
+          "importance": "core",
+          "dependsOn": [
+            "k6"
+          ],
+          "claimIds": [
+            "c1mop7pp"
+          ]
+        }
+      ],
+      "admitted": [
+        "k1",
+        "k2",
+        "k3",
+        "k4",
+        "k5",
+        "k6",
+        "k7"
+      ],
+      "rejected": [
+        {
+          "knowledge": "Sharks keep the ocean healthy by being important predators.",
+          "reason": "invented fact outside the knowledge pack"
+        }
+      ],
+      "depthBudget": {
+        "year": 4,
+        "minutes": 15,
+        "durationKnown": true,
+        "floor": 6,
+        "narrowFloor": 4,
+        "max": 8,
+        "questions": 3
+      },
+      "beats": [
+        {
+          "beatId": "hook:0",
+          "move": "notice",
+          "refs": [
+            "k1"
+          ]
+        },
+        {
+          "beatId": "hook:1",
+          "move": "predict",
+          "refs": [
+            "k1"
+          ]
+        },
+        {
+          "beatId": "investigate:0",
+          "move": "notice",
+          "refs": [
+            "k1"
+          ]
+        },
+        {
+          "beatId": "teach:0",
+          "move": "name",
+          "refs": [
+            "k1"
+          ]
+        },
+        {
+          "beatId": "teach:1",
+          "move": "exemplify",
+          "refs": [
+            "k1"
+          ]
+        },
+        {
+          "beatId": "teach:2",
+          "move": "name",
+          "refs": [
+            "k2"
+          ]
+        },
+        {
+          "beatId": "teach:3",
+          "move": "explain",
+          "refs": [
+            "k3"
+          ]
+        },
+        {
+          "beatId": "teach:4",
+          "move": "name",
+          "refs": [
+            "k4"
+          ]
+        },
+        {
+          "beatId": "teach:5",
+          "move": "explain",
+          "refs": [
+            "k5"
+          ]
+        },
+        {
+          "beatId": "teach:6",
+          "move": "name",
+          "refs": [
+            "k6"
+          ]
+        },
+        {
+          "beatId": "teach:7",
+          "move": "explain",
+          "refs": [
+            "k7"
+          ]
+        },
+        {
+          "beatId": "apply:0",
+          "move": "apply",
+          "refs": [
+            "k3"
+          ]
+        },
+        {
+          "beatId": "check:0",
+          "move": "retrieve",
+          "refs": [
+            "k3"
+          ]
+        },
+        {
+          "beatId": "check:1",
+          "move": "retrieve",
+          "refs": [
+            "k5"
+          ]
+        },
+        {
+          "beatId": "check:2",
+          "move": "retrieve",
+          "refs": [
+            "k7"
+          ]
+        },
+        {
+          "beatId": "resolution:0",
+          "move": "reveal",
+          "refs": [
+            "k3"
+          ]
+        },
+        {
+          "beatId": "recap:0",
+          "move": "consolidate",
+          "refs": [
+            "k1",
+            "k2",
+            "k3"
+          ]
+        },
+        {
+          "beatId": "recap:1",
+          "move": "consolidate",
+          "refs": [
+            "k4",
+            "k5",
+            "k6",
+            "k7"
+          ]
+        }
+      ],
+      "taughtBeforeApply": [
+        "k1",
+        "k2",
+        "k3",
+        "k4",
+        "k5",
+        "k6",
+        "k7"
+      ],
+      "taughtBeforeCheck": [
+        "k1",
+        "k2",
+        "k3",
+        "k4",
+        "k5",
+        "k6",
+        "k7"
+      ],
+      "applyRefs": [
+        "k3"
+      ],
+      "checkRefs": [
+        "k3",
+        "k5",
+        "k7"
+      ],
+      "recapRefs": [
+        "k1",
+        "k2",
+        "k3",
+        "k4",
+        "k5",
+        "k6",
+        "k7"
+      ]
+    }
+  }
+}
