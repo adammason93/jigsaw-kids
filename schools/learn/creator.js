@@ -660,6 +660,10 @@
     step = "activities";
   }
 
+  // The teacher never waits longer than this for artwork. Pictures still in flight
+  // keep generating and replace the Wondii backdrop if they land before saving.
+  var WORLD_BUDGET_MS = 90000;
+
   function createWorld(token) {
     var Visuals = window.WondiiVisualAdventure;
     var orgId = org().organisationId || "";
@@ -692,10 +696,22 @@
     var cloud = window.KidsScoreCloud;
     var sync = window.SCORE_SYNC || {};
     var worldStarted = Date.now();
+    var settled = false;
+    var budgetHit = false;
+    var deadline = setTimeout(function () {
+      budgetHit = true;
+      finish();
+    }, WORLD_BUDGET_MS);
     function finish() {
-      if (token !== generationToken) return;
+      clearTimeout(deadline);
+      if (settled || token !== generationToken) return;
+      settled = true;
+      queue.forEach(function (id) {
+        if (id === "characters" || pictures.some(function (item) { return item.id === id; })) return;
+        pictures.push({ id: id, status: "failed", fallback: true, usedByScenes: [], failure: "world_budget" });
+      });
       draft.visualAssets = pictures;
-      draft.visualTiming = { ms: Date.now() - worldStarted, count: queue.length, concurrency: 3 };
+      draft.visualTiming = { ms: Date.now() - worldStarted, count: queue.length, concurrency: 3, budgetHit: budgetHit };
       if (Visuals.stampActivities) Visuals.stampActivities(draft.activities, pictures);
       if (window.WondiiVisuals && WondiiVisuals.bind) WondiiVisuals.bind(pictures);
       buildAt = -1;
@@ -703,8 +719,10 @@
     }
     function requestAsset(id, done) {
       if (token !== generationToken) return;
-      buildLine = id === "characters" ? "Creating the characters..." : "Creating the world...";
-      paint();
+      if (!settled) {
+        buildLine = id === "characters" ? "Creating the characters..." : "Creating the world...";
+        paint();
+      }
       function send(sessionToken) {
         var headers = { "Content-Type": "application/json" };
         if (sessionToken) headers.Authorization = "Bearer " + sessionToken;
@@ -726,6 +744,21 @@
       }
       function take(body) {
         var asset = body && body.asset;
+        if (settled) {
+          // A picture that lands after the world budget replaces its backdrop placeholder.
+          if (token === generationToken && draft.visualAssets === pictures && id !== "characters" && asset && asset.status === "ready" && asset.publicUrl) {
+            var at = -1;
+            pictures.forEach(function (item, index) { if (item.id === id) at = index; });
+            if (at >= 0) {
+              pictures[at] = asset;
+              var saved = loadLocal();
+              if (saved && saved.id === draft.id) saveLocal();
+            }
+          }
+          if (id === "characters" && asset && asset.storagePath) sheetPath = asset.storagePath;
+          if (done) done();
+          return;
+        }
         if (id === "characters") {
           if (asset && asset.storagePath) sheetPath = asset.storagePath;
         } else if (asset) pictures.push(asset);
