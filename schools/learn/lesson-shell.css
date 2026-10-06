@@ -536,7 +536,7 @@
 
 /* Patch 6: frame label on a world picture (story picture vs teaching picture). */
 .lesson-world-tag {
-  position: absolute; top: 76px; right: 18px; z-index: 3; margin: 0;
+  position: absolute; top: 112px; right: 18px; z-index: 3; margin: 0;
   padding: 6px 12px; border-radius: 999px; background: rgba(20, 27, 77, .82); color: #fff;
   font: 600 0.95rem/1.2 Nunito, system-ui, sans-serif; max-width: 46vw; pointer-events: none;
 }
