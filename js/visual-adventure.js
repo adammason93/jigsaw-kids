@@ -1077,13 +1077,21 @@
   }
   function sentencesOf(text) { return String(text || "").split(/(?<=[.!?])\s+(?=[A-Z"'(\u201c])/).map(function (s) { return s.trim(); }).filter(Boolean); }
   // The animal a unit is about: a capitalised name its own claims use mid-sentence, else "".
+  // Patch 9: a name that opens a claim ("Spinosaurus's webbed feet ...") also counts when the
+  // unit's own passage uses that word capitalised mid-sentence (", Spinosaurus lived"). Live run
+  // 24's teaching pictures named no animal (every explanation opened with the name), and one
+  // came back as a sea reptile.
+  function midSentenceName(word, passage) {
+    return new RegExp("[a-z0-9,;:\u2014\u2013-]\\s+" + word + "(?![a-z])").test(String(passage || ""));
+  }
   function unitSubject(unit) {
     var name = "";
     [unit && unit.explanation, unit && unit.feature, unit && unit.featureQuote, unit && unit.explanationQuote].forEach(function (text) {
       if (name) return;
       String(text || "").split(/\s+/).forEach(function (raw, index) {
-        var word = raw.replace(/[^A-Za-z'-]/g, "").replace(/'s$/i, "");
-        if (!name && index > 0 && /^[A-Z][a-z]{3,}$/.test(word) && PERIODS.indexOf(word) === -1) name = word;
+        var word = raw.replace(/[\u2019]/g, "'").replace(/[^A-Za-z'-]/g, "").replace(/'s$/i, "");
+        if (name || !/^[A-Z][a-z]{3,}$/.test(word) || PERIODS.indexOf(word) !== -1) return;
+        if (index > 0 || midSentenceName(word, unit && unit.passageText)) name = word;
       });
     });
     return name;
