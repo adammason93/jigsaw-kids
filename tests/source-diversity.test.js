@@ -28,6 +28,10 @@ var d = R.diversifyHosts(museum.concat(publisher).map(function (u) { return { ur
 assert.deepStrictEqual(d.slice(0, 5), museum.slice(0, 3).concat(publisher));
 assert.deepStrictEqual(d.slice(5), museum.slice(3));
 
+// Subdomains share a site's slots, and document downloads never take a slot.
+var mixed = R.diversifyHosts([{ url: museum[0] }, { url: "https://data.nhm.ac.uk/x.html" }, { url: "https://jobs.nhm.ac.uk/y.html" }, { url: publisher[0] }], 2).map(function (i) { return i.url; });
+assert.deepStrictEqual(mixed, [museum[0], "https://data.nhm.ac.uk/x.html", publisher[0], "https://jobs.nhm.ac.uk/y.html"]);
+
 var request = { topic: "Dinosaurs", yearGroup: "Year 3", learningGoal: "how dinosaurs adapted" };
 // Positive: with 6 slots, the museum takes 3 and the other host's pages get slots.
 R.researchTopic(request, { fetch: stubFetch, providers: [provider(museum.concat(publisher))], maxSources: 6 }).then(function (record) {
@@ -36,6 +40,10 @@ R.researchTopic(request, { fetch: stubFetch, providers: [provider(museum.concat(
   assert.strictEqual(hosts.filter(function (h) { return h === "kids.nationalgeographic.com"; }).length, 2, hosts.join(","));
   assert.strictEqual(hosts.filter(function (h) { return h === "nhm.ac.uk"; }).length, 4, "the free slot goes back to the museum");
   // Negative: when only one host is available it may fill every slot (no slot is left empty).
+  return R.researchTopic(request, { fetch: stubFetch, providers: [provider(["https://data.nhm.ac.uk/dataset/a/resource/b/download/guide.pdf", "https://jobs.nhm.ac.uk/Job/GetJobAdvertDocument?Id=1"].concat(museum))], maxSources: 6 });
+}).then(function (record) {
+  assert.ok(record.refused.filter(function (r) { return r.reason === "not a readable page (document download)"; }).length === 2, "downloads are refused before they take a slot");
+  assert.ok(!record.sources.some(function (s) { return /download|Job/.test(s.url); }));
   return R.researchTopic(request, { fetch: stubFetch, providers: [provider(museum)], maxSources: 6 });
 }).then(function (record) {
   assert.strictEqual(record.sources.length, 6);

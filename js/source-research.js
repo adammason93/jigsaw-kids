@@ -486,13 +486,23 @@
     return chosen;
   }
 
-  // Keeps the order, but moves a host's pages past its first `cap` to the end of the list.
-  function diversifyHosts(list, cap) {
+  // One site is one allowlist rule (nhm.ac.uk covers www., data. and jobs.), so subdomains
+  // share a site's slots.
+  function siteOf(url, list) {
+    var allowed = isAllowedUrl(url, list);
+    return allowed.ok && allowed.rule ? allowed.rule : hostOf(url);
+  }
+  // A document download is not a readable page: these were refused after taking fetch slots
+  // (live run 11: PDFs and job adverts on data.nhm.ac.uk and jobs.nhm.ac.uk).
+  var NOT_A_PAGE = /(?:\.pdf(?:$|[?#])|\/download\/|GetJobAdvertDocument)/i;
+
+  // Keeps the order, but moves a site's pages past its first `cap` to the end of the list.
+  function diversifyHosts(list, cap, allowlist) {
     var counts = {};
     var first = [];
     var later = [];
     (list || []).forEach(function (item) {
-      var host = hostOf(item.url);
+      var host = siteOf(item.url, allowlist);
       if ((counts[host] || 0) < cap) { counts[host] = (counts[host] || 0) + 1; first.push(item); } else later.push(item);
     });
     return first.concat(later);
@@ -554,6 +564,7 @@
           var allowed = isAllowedUrl(item.url, ports.allowlist);
           if (!allowed.ok) { record.refused.push({ url: item.url, reason: allowed.reason }); return; }
           var label = clean(item.title, 160) || (/wikipedia\.org$/.test(hostOf(item.url)) ? wikiTitleFromUrl(item.url) : "");
+          if (NOT_A_PAGE.test(String(item.url))) { record.refused.push({ url: item.url, reason: "not a readable page (document download)" }); return; }
           if (NOT_EXPLANATORY_TITLE.test(label)) { record.refused.push({ url: item.url, reason: "not an explanatory article: " + label }); return; }
           if (item.description && NOT_EXPLANATORY_DESCRIPTION.test(item.description)) { record.refused.push({ url: item.url, reason: "not an explanatory article: " + label + " (" + item.description + ")" }); return; }
           queue.push(item);
@@ -575,7 +586,7 @@
       queue = queue.map(function (item, index) { return { item: item, index: index, hits: topicHits(item), rank: kindRank(item) }; })
         .sort(function (a, b) { return (b.hits > 0) - (a.hits > 0) || a.rank - b.rank || a.index - b.index; })
         .map(function (row) { return row.item; });
-      var evidenceQueue = diversifyHosts(queue.filter(function (item) { return isEvidenceUrl(item.url, ports.allowlist); }), hostCap);
+      var evidenceQueue = diversifyHosts(queue.filter(function (item) { return isEvidenceUrl(item.url, ports.allowlist); }), hostCap, ports.allowlist);
       var discoveryQueue = queue.filter(function (item) { return !isEvidenceUrl(item.url, ports.allowlist); }).slice(0, ports.maxDiscovery || 3);
       var picked = evidenceQueue.slice(0, maxSources + 4);
       var n = 0;
@@ -613,7 +624,7 @@
           return;
         }
         if (!result.ok) { record.refused.push({ url: result.url, reason: result.reason }); return; }
-        var host = hostOf(result.url);
+        var host = siteOf(result.url, ports.allowlist);
         if ((perHost[host] || 0) >= hostCap) { deferred.push(result); return; }
         perHost[host] = (perHost[host] || 0) + 1;
         ordered.push(result);
