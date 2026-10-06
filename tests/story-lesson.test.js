@@ -41,19 +41,39 @@ assert.ok(/comparison with a story character's body/.test(brief.system));
 
 // Scale pictures: the child beside the fossil; a number not in the cited claims is a warning.
 var scaled = S.parseStory({ title: "T", characters: [{ name: "Mia", role: "explorer", look: "yellow raincoat" }], scenes: [
-  { id: "s1", kind: "idea", ideaId: "i1", title: "The giant tooth", image: { description: "Mia in the museum", pastLife: [] }, teachingImage: { subject: "fossil T. rex tooth", feature: "its great length", view: "scale", comparedWith: "Mia", claimIds: ["i1c1"] },
+  { id: "s1", kind: "idea", ideaId: "i1", title: "The giant tooth", image: { description: "Mia in the museum", pastLife: [] }, teachingImage: { subject: "fossil T. rex tooth", feature: "its great length", view: "character", comparedWith: "Mia", claimIds: ["i1c1"] },
     beats: [{ role: "problem", speaker: "Mia", text: "How big was it?", claimIds: [] }, { role: "compare", speaker: "Narrator", text: "The tooth was 30 cm long, longer than Mia's hand, and 12 times sharper.", claimIds: ["i1c1"] }] }
 ], quiz: [], resolution: [], recap: [] }).story;
 var plan = S.imagePlan(scaled);
 var teach = plan.assets.filter(function (a) { return a.id === "teach-s1"; })[0];
 assert.strictEqual(teach.scaleCharacter, "Mia");
-assert.ok(/beside Mia, a present-day child/.test(teach.prompt) && /no living prehistoric animals/.test(teach.prompt));
-assert.ok(/size against Mia/.test(teach.frameLabel));
+assert.ok(/Mia \(yellow raincoat\) beside or acting out fossil T. rex tooth/.test(teach.prompt) && /present-day child; anything from a past period is a fossil/.test(teach.prompt));
+assert.ok(/the fact shown with Mia/.test(teach.frameLabel));
 var scene = plan.assets.filter(function (a) { return a.id === "scene-s1"; })[0];
-assert.ok(/No living prehistoric animals/.test(scene.prompt));
-var warn = S.codeWarnings(scaled, knowledge, { requestedMinutes: 30 }).filter(function (w) { return w.check === "scale"; });
+assert.ok(/Nothing from a past period appears alive or in person/.test(scene.prompt));
+// A story set in one past period (history) keeps every person and object in that period.
+var roman = JSON.parse(JSON.stringify(scaled)); roman.era = "Roman Britain";
+assert.ok(/Everything belongs to one past period, Roman Britain/.test(S.imagePlan(roman, { subject: "History", yearGroup: "Year 4" }).assets[0].prompt));
+
+// One year-band profile drives every rule: Y1, Y3 and Y6 differ in ideas, beats, choices and quiz.
+var y1 = S.yearProfile("Year 1"), y3 = S.yearProfile("Y3"), y6 = S.yearProfile("Year 6");
+assert.deepStrictEqual([y1.ideas, y3.ideas, y6.ideas], [[2, 3], [3, 4], [4, 4]]);
+assert.deepStrictEqual([y1.quiz, y3.quiz, y6.quiz], [5, 6, 8]);
+assert.strictEqual(y1.activityChoices, 2);
+assert.ok(y1.sentenceWords < y3.sentenceWords && y3.sentenceWords < y6.sentenceWords);
+assert.strictEqual(S.yearProfile("Reception").year, 1);
+var k1 = { ideas: [{ id: "i1", title: "Plants", question: "What do plants need?", claims: [{ id: "i1c1", text: "Plants need water.", role: "explanation" }] }], claims: {} };
+var b1 = S.storyBrief({ yearGroup: "Year 1", topic: "Plants", subject: "Science", lessonText: "Plants" }, k1).system;
+var b6 = S.storyBrief({ yearGroup: "Year 6", topic: "Evolution", subject: "Science", lessonText: "Evolution" }, k1).system;
+assert.ok(/QUIZ\. 5 questions/.test(b1) && /QUIZ\. 8 questions/.test(b6));
+assert.ok(/2 choices with exactly one correct/.test(b1) && /3 choices with exactly one correct/.test(b6));
+assert.ok(!/role compare\)/.test(b1) && /role compare\)/.test(b6));
+// Generic support rules: questions and correct arithmetic with invented numbers are story.
+assert.ok(/A question that only asks/.test(brief.system) || /A question that only asks/.test(S.supportBrief([], knowledge, story, { topic: "x" }).system));
+assert.ok(/Correct arithmetic or reasoning with invented numbers/.test(S.supportBrief([], knowledge, story, { topic: "x" }).system));
+var warn = S.codeWarnings(scaled, knowledge, { requestedMinutes: 30, yearGroup: "Year 3" }).filter(function (w) { return w.check === "scale"; });
 assert.ok(warn.some(function (w) { return /12/.test(w.text); }), "a number not in the cited claims is reported");
-assert.ok(!warn.some(function (w) { return /no teaching picture shows a child/.test(w.text); }));
+assert.ok(!warn.some(function (w) { return /no teaching picture shows a character/.test(w.text); }));
 
 // Fallback: a failing cited beat becomes its claim text; a failing quiz answer removes the question.
 var fb = JSON.parse(JSON.stringify(scaled));

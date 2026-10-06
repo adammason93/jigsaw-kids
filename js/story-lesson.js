@@ -57,13 +57,34 @@
   function uniq(arr) { var out = []; arr.forEach(function (x) { if (x && out.indexOf(x) === -1) out.push(x); }); return out; }
   function ids(value) { return list(value).map(function (x) { return clean(x, 20); }).filter(Boolean); }
 
+
+  // ---------- 0. Year-band profile ----------
+  // One generic profile per year group (Y1 to Y6). Every story, content, interaction and quiz rule
+  // below reads from it; nothing is tuned per topic or subject. Reception and unknown years use Y1
+  // and Y3 respectively.
+  var BANDS = {
+    1: { ideas: [2, 3], claimsPerIdea: 2, claims: [4, 8], characters: "2", plot: "one simple goal, one small problem that the characters fix, a happy ending; no subplots; told in time order", sentenceWords: 10, beatSentences: "one short sentence", openingBeats: [2, 3], ideaBeats: [4, 6], climaxBeats: [2, 3], roles: ["problem", "discovery", "explain", "example", "use"], keyWords: 3, vocabulary: "only everyday words a five or six year old says; at most 3 subject words, each shown or explained the moment it appears", activityChoices: 2, activity: "notice one obvious feature in a new, very concrete example; the two choices are clearly different", quiz: 5, quizChoices: 3, quizLevel: "recognise and recall what was shown in the story; one idea per question; very short prompts (at most 10 words)", partBeats: 3, minutes: 20 },
+    2: { ideas: [2, 3], claimsPerIdea: 2, claims: [5, 9], characters: "2", plot: "a clear goal, one problem and one small setback, a happy ending; told in time order", sentenceWords: 12, beatSentences: "one or two short sentences", openingBeats: [2, 4], ideaBeats: [5, 7], climaxBeats: [2, 4], roles: ["problem", "discovery", "explain", "example", "use"], keyWords: 4, vocabulary: "everyday words; at most 4 subject words, each explained where it appears", activityChoices: 3, activity: "apply one taught idea to a new concrete example; wrong choices clearly wrong", quiz: 5, quizChoices: 3, quizLevel: "mostly recall, one or two simple apply questions; short prompts (at most 12 words)", partBeats: 3, minutes: 25 },
+    3: { ideas: [3, 4], claimsPerIdea: 3, claims: [8, 14], characters: "2 or 3", plot: "a clear goal, stakes, rising tension with at least one setback, a climax and a payoff that only works because of what was learned", sentenceWords: 15, beatSentences: "one or two short sentences", openingBeats: [3, 5], ideaBeats: [6, 9], climaxBeats: [3, 5], roles: ["problem", "discovery", "explain", "example", "compare", "use"], keyWords: 6, vocabulary: "everyday words; up to 6 subject words, each explained in the story", activityChoices: 3, activity: "apply one taught idea to a new example; one wrong choice is plausible", quiz: 6, quizChoices: 3, quizLevel: "a mix of recall and apply, including at least one how-we-know question", partBeats: 4, minutes: 30 },
+    4: { ideas: [3, 4], claimsPerIdea: 3, claims: [9, 14], characters: "2 or 3", plot: "a clear goal, stakes, rising tension with a setback and a turning point, a climax and a payoff earned by what was learned", sentenceWords: 17, beatSentences: "one or two sentences", openingBeats: [3, 5], ideaBeats: [6, 9], climaxBeats: [3, 5], roles: ["problem", "discovery", "explain", "example", "compare", "use"], keyWords: 7, vocabulary: "up to 7 subject words, each explained in the story", activityChoices: 3, activity: "apply a taught idea to a new example; wrong choices are plausible", quiz: 6, quizChoices: 3, quizLevel: "recall, apply and one explain-why question", partBeats: 4, minutes: 35 },
+    5: { ideas: [4, 4], claimsPerIdea: 3, claims: [10, 14], characters: "3", plot: "a clear goal and stakes, two setbacks, a twist or surprise, a climax where ideas are combined, and character growth", sentenceWords: 20, beatSentences: "one to three sentences", openingBeats: [3, 5], ideaBeats: [7, 10], climaxBeats: [4, 6], roles: ["problem", "discovery", "explain", "example", "compare", "use"], keyWords: 8, vocabulary: "subject words used precisely and explained once", activityChoices: 3, activity: "combine two taught ideas or weigh evidence in a new case; wrong choices reflect common misconceptions", quiz: 7, quizChoices: 3, quizLevel: "mostly apply and explain, including how-we-know and compare questions; wrong choices reflect misconceptions", partBeats: 4, minutes: 40 },
+    6: { ideas: [4, 4], claimsPerIdea: 3, claims: [10, 14], characters: "3", plot: "a clear goal and stakes, two setbacks, a twist, a climax that needs every idea combined, character growth and a satisfying, earned resolution", sentenceWords: 22, beatSentences: "one to three sentences", openingBeats: [3, 5], ideaBeats: [7, 10], climaxBeats: [4, 6], roles: ["problem", "discovery", "explain", "example", "compare", "use"], keyWords: 8, vocabulary: "subject words used precisely and explained once", activityChoices: 3, activity: "reason with two or more taught ideas or judge how strong the evidence is in a new case; wrong choices reflect misconceptions", quiz: 8, quizChoices: 3, quizLevel: "mostly apply, explain and infer, including how-we-know and limits-of-evidence questions; wrong choices reflect misconceptions", partBeats: 4, minutes: 45 }
+  };
+  function yearProfile(year) {
+    var n = yearNumber(year);
+    if (!n && /reception|eyfs|ks1|key stage 1/i.test(String(year || ""))) n = 1;
+    var band = n ? Math.max(1, Math.min(6, n)) : 3;
+    return Object.assign({ year: band, age: (band + 4) + " to " + (band + 5) }, JSON.parse(JSON.stringify(BANDS[band])));
+  }
+
   // ---------- 1. Learning ideas ----------
   function ideaPlanBrief(request) {
+    var yp = yearProfile(request.yearGroup);
     return {
       system: [
         "You plan the knowledge for one primary lesson in England. Return one JSON object and nothing else. This is a plan, not lesson content: do not state facts.",
-        "Pick 3 or 4 connected learning ideas a strong teacher would teach on this topic for this year group (age " + ageOf(request.yearGroup) + "), aligned where sensible with the England National Curriculum programme of study for that year; name the area in curriculumLink.",
-        "Make the ideas substantial and evidence-based: include HOW WE KNOW (the evidence scientists or historians use and what can be worked out from it), and make at least two ideas about drawing conclusions from evidence, where a clue leads to a conclusion (for example a body part or trace that tells us about food, behaviour or movement). Include, where it fits, that ideas can change when new evidence is found.",
+        "Pick " + (yp.ideas[0] === yp.ideas[1] ? yp.ideas[0] : yp.ideas[0] + " or " + yp.ideas[1]) + " connected learning ideas a strong teacher would teach on this topic for this year group (age " + yp.age + "), pitched at that year's depth, aligned where sensible with the England National Curriculum programme of study for that year; name the area in curriculumLink.",
+        "Make the ideas substantial and adapt them to the subject: include HOW WE KNOW in the way that subject knows things (science: evidence and what can be worked out from it; history: sources and what they tell us; geography: maps, observation and data; maths: how we can check or prove it; English: what in the text or language shows it), and make at least two ideas about reasoning from a clue or example to a conclusion. Include, where it fits the subject, that ideas can change when new evidence is found.",
         "The ideas must connect: each later idea builds on an earlier one; say how in linksTo.",
         "question is what pupils can answer by the end. searchQueries are 2 short web searches that would find child-appropriate explanatory pages from museums, universities or educational publishers. keywords are 4 to 8 words likely to appear in a passage that explains the idea.",
         "JSON shape: { \"ideas\": [ { \"id\": \"i1\", \"title\": \"\", \"question\": \"\", \"curriculumLink\": \"\", \"linksTo\": \"\", \"searchQueries\": [\"\", \"\"], \"keywords\": [] } ] }."
@@ -72,7 +93,8 @@
     };
   }
 
-  function parseIdeaPlan(raw) {
+  function parseIdeaPlan(raw, request) {
+    var min = yearProfile(request && request.yearGroup).ideas[0];
     var rows = list(raw && raw.ideas).slice(0, 4);
     var ideas = rows.map(function (row, index) {
       return {
@@ -85,10 +107,20 @@
         keywords: list(row && row.keywords).map(function (q) { return clean(q, 30).toLowerCase(); }).filter(Boolean).slice(0, 8)
       };
     }).filter(function (idea) { return idea.title && idea.question; });
-    return { ok: ideas.length >= 3, ideas: ideas, issues: ideas.length >= 3 ? [] : ["IDEA_PLAN: fewer than 3 ideas"] };
+    return { ok: ideas.length >= min, ideas: ideas, issues: ideas.length >= min ? [] : ["IDEA_PLAN: fewer than " + min + " ideas"] };
   }
 
   // ---------- 2. Research ----------
+  // Which retrieved passages each idea's knowledge call sees (also re-run when a saved record is reused).
+  function rankIdeaPassages(record, ideas, request, ports) {
+    var R = researchApi(ports);
+    record.ideaPassageIds = {};
+    ideas.forEach(function (idea) {
+      var req = { topic: request.topic, learningGoal: idea.question + " " + idea.title, requiredEvidence: idea.keywords.join(" "), focusConcepts: idea.keywords };
+      record.ideaPassageIds[idea.id] = R.rankPassages(record.passages, req, { maxPassages: 9, maxPerSource: 3, maxChars: 9000 }).map(function (row) { return row.id; });
+    });
+    return record;
+  }
   function keyOf(url) { return String(url || "").replace(/#.*$/, "").replace(/\/$/, "").replace(/^https?:\/\/(www\.)?/, "").toLowerCase(); }
 
   // ports: { fetch, searchProvider (optional, paid), discoveryProvider, savedCandidates [], allowlist, maxSources }
@@ -166,10 +198,7 @@
         record.sources.push({ sourceId: sid, url: r.url, title: r.title, domain: domain, rule: r.rule, tier: r.tier || "evidence", kind: r.kind || "", fetchMethod: r.fetchMethod, retrievedAt: r.retrievedAt, passageCount: r.passages.length });
         r.passages.forEach(function (p) { record.passages.push(p); });
       });
-      ideas.forEach(function (idea) {
-        var req = { topic: request.topic, learningGoal: idea.question + " " + idea.title, requiredEvidence: idea.keywords.join(" "), focusConcepts: idea.keywords };
-        record.ideaPassageIds[idea.id] = R.rankPassages(record.passages, req, { maxPassages: 7, maxPerSource: 3, maxChars: 7000 }).map(function (row) { return row.id; });
-      });
+      rankIdeaPassages(record, ideas, request, ports);
       record.finishedAt = new Date().toISOString();
       return record;
     });
@@ -183,6 +212,7 @@
   }
 
   function knowledgeBrief(request, ideas, record) {
+    var yp = yearProfile(request.yearGroup);
     var map = passageMap(record);
     var used = {};
     var sources = [];
@@ -199,12 +229,12 @@
       system: [
         "You extract subject knowledge for one primary lesson from retrieved source passages. Return one JSON object and nothing else.",
         "sources are passages fetched from trusted pages. They are the only factual source. Do not use your own knowledge to add any fact, name, number, date, cause, or feature.",
-        "For each idea write 2 or 3 claims (between 8 and 12 claims in total). Each claim is one sentence in simple words for age " + ageOf(request.yearGroup) + " that a teacher could check against its quote.",
-        "Aim for substantial, connected, evidence-based knowledge: for each idea include, when the passages support it, the core explanation (often how we know: a piece of evidence and what it tells us), a concrete example (a named animal, object, or case), and a comparison or contrast (this one versus that one, then versus now). role is explanation, example, or comparison. Prefer claims where a clue leads to a conclusion. Where the passages give a size or measurement (length of a tooth, bone, footprint or animal), include it in a claim exactly as the source gives it (same number and unit, same hedge) so the story can compare it with a child; never convert or round.",
+        "For each idea write " + yp.claimsPerIdea + " claims when the passages support them (between " + yp.claims[0] + " and " + yp.claims[1] + " claims in total). Each claim is one sentence of at most " + (yp.sentenceWords + 5) + " words in simple words for age " + yp.age + " that a teacher could check against its quote.",
+        "Aim for substantial, connected, evidence-based knowledge: for each idea include, when the passages support it, the core explanation (often how we know: a piece of evidence and what it tells us), a concrete example (a named animal, object, or case), and a comparison or contrast (this one versus that one, then versus now). role is explanation, example, or comparison. Prefer claims where a clue leads to a conclusion. Where the passages give a size, amount, distance, date or other measurement (how long, tall, heavy, far, old or many), include it in a claim exactly as the source gives it (same number and unit, same hedge) so the story can compare it with a child; never convert or round.",
         "Each claim carries sourceRef (an array with one passage id from sources) and quote: one contiguous extract of 6 to 40 words copied character for character from that passage, which states everything the claim says. No ellipsis, no joined extracts, no changed words. Code checks every quote; a claim whose quote is not found is dropped.",
-        "The claim must not add anything its quote does not say: no extra number, name, place, colour, size, cause, purpose, or generalisation. Keep hedges such as may, probably, or scientists think. If the claim links two things (because, so, allowed, helped, let, used for, shows, tells us), the quote itself must state that link. A claim about one named animal must not be widened to all animals.",
+        "The claim must not add anything its quote does not say: no extra person or actor (do not add scientists, historians or people if the quote does not name them), number, name, place, colour, size, cause, purpose, or generalisation. Keep hedges such as may, probably, or scientists think. If the claim links two things (because, so, allowed, helped, let, used for, shows, tells us), the quote itself must state that link. A claim about one named animal must not be widened to all animals.",
         "Leave out frightening or graphic detail. If the passages cannot support an idea, return it with no claims.",
-        "vocabulary: up to 6 key words for the lesson, each with a short child-friendly gloss supported by its quote, sourceRef and quote as for claims.",
+        "vocabulary: up to " + yp.keyWords + " key words for the lesson, each with a short child-friendly gloss supported by its quote, sourceRef and quote as for claims.",
         "JSON shape: { \"ideas\": [ { \"id\": \"i1\", \"claims\": [ { \"text\": \"\", \"role\": \"explanation\", \"sourceRef\": [\"S1-P01\"], \"quote\": \"\" } ] } ], \"vocabulary\": [ { \"term\": \"\", \"gloss\": \"\", \"sourceRef\": [\"S1-P01\"], \"quote\": \"\" } ] }."
       ].join(" "),
       user: JSON.stringify({ request: clean(request.lessonText, 400), topic: clean(request.topic, 120), yearGroup: clean(request.yearGroup, 20), ideas: ideas.map(function (i) { return { id: i.id, title: i.title, question: i.question, curriculumLink: i.curriculumLink }; }), sources: sources })
@@ -277,24 +307,24 @@
   // ---------- 4. Story ----------
   function storyBrief(request, knowledge, opts) {
     opts = opts || {};
-    var minutes = Number(request.requestedMinutes) || 30;
+    var yp = yearProfile(request.yearGroup);
+    var minutes = Number(request.requestedMinutes) || yp.minutes;
     return {
       system: [
         "You are an award-winning children's author and an expert primary teacher. Write one story-led lesson as one JSON object and nothing else.",
-        "THE STORY must be great in its own right: 2 or 3 named, child-friendly main characters with distinct personalities; a clear goal stated in the opening scene; stakes (what goes wrong if they fail); rising tension with at least one setback; a climax; and a satisfying payoff that only works because of what the characters learned. Warm, funny and exciting for age " + ageOf(request.yearGroup) + ", never frightening. Short sentences and lively dialogue.",
-        "THE STORY DOES THE TEACHING. Write one idea scene for each idea in knowledge, in the given order (each builds on the last). In every idea scene: the characters hit a real problem in the plot that they cannot solve yet (role problem); they discover the knowledge that solves it from someone or something in the story world, such as a museum expert, a book or a label (role discovery); the knowledge is explained properly: what it is and how we know (role explain), a concrete example (role example) and a comparison or contrast (role compare); then they use it to solve the problem and move the plot on (role use). The knowledge must be what unlocks the plot, not decoration. A 'how do we know' thread works well: the characters solve a mystery by reading clues in the evidence.",
-        "FACTS. knowledge lists the only facts you may state. Any sentence that says something about the real world (science, history, animals, how we know, dates, sizes, places, how things work) is a fact sentence: it carries claimIds naming the claims it relies on and says no more than those claims say. Simpler words are fine; never add a number, name, colour, size, place, cause or purpose, and keep hedges such as may, probably or scientists think. A pure story sentence (what characters do, feel, or say about the plot) has claimIds [] and must not slip in a real-world fact. Never use your own knowledge for a fact. Teach every claim at least once.",
-        "MEASURE IT AGAINST THE CHARACTERS. Make the learning personal: wherever a size, scale or feature is taught, the story moment compares it with one of the child characters (a tooth held next to a child's hand, a child standing inside a footprint, a leg bone lying beside a child to show it is longer than them). Any number in that moment must come from a cited claim, word for word in meaning; if no claim gives a measurement, compare only in words the claims support (for example longer than a hand only when a cited claim says how long it is or that it is very large), and never invent a figure. Put that scale moment in a beat with role compare or example and cite the claim. The children are present-day characters and stand only beside fossils, footprints, bones, casts and models.", "PEOPLE AND THE PAST. The adventure is clearly fiction. Never put present-day people beside living animals or people from the deep past, and do not use time travel. If the topic is about the deep past, the characters stay in the present day and meet the past through evidence (fossils, skeletons, footprints, museum displays, models, books). Animals from different periods never appear alive together.",
-        "ACTIVITIES. Exactly 2 idea scenes (choose the 2 that fit best) contain an activity: a decision point in the plot that the class makes for the characters (for example 'Which clue tells us this animal ate plants?'). The activity uses a NEW example the class has not been told about (a new object, fossil, trace or situation described only by its features), so pupils apply what they learned instead of recalling a sentence. newCase describes the new example in one or two sentences, without saying the answer. instruction is the question the class answers. 3 choices with exactly one correct. Every choice has feedback explaining why it is right or wrong using the taught knowledge (feedback is a fact sentence with claimIds). successText is one story sentence about what the characters do next. Put the beats that come after the decision as role use.",
-        "QUIZ. 6 questions after the last idea scene, covering every idea (at least one per idea). Short prompts. Each has 3 choices with exactly one defensible correct answer; wrong choices are plausible to a child but clearly false according to the knowledge (never something that is also true). The question must not contain its answer. explain says why the answer is right using the claims (a fact sentence with claimIds).",
-        "Also write a climax scene (kind climax, 3 to 5 beats) where the characters combine what they learned, a resolution (2 or 3 beats: the payoff) and a recap with one line per idea (fact sentences with claimIds) that shows how the ideas connect.",
-        "Sizes: opening 3 to 5 beats; each idea scene 6 to 9 beats including at least one beat of each role problem, discovery, explain, example, compare and use. Each beat is one or two short sentences. The whole lesson should take about " + minutes + " minutes in class.",
-        "PICTURES. Every scene has image: one sentence describing the story picture (place, characters, action, key objects), and pastLife: a list of any living things from the deep past shown alive in it (it must be empty whenever people are in the picture). Every idea scene has teachingImage: what a teaching picture must show so pupils can SEE the evidence or feature taught in that scene (for example a side-by-side of two kinds of fossil tooth, a fossil footprint, a feather impression in rock, or one named animal's body part): subject (one named thing from the claims), feature, view (close-up, comparison, or scale), comparedWith (for a comparison, also from the claims; for scale, the name of the child character who stands or holds a hand beside it), claimIds. Use view scale whenever the scene teaches a size: the picture then shows that child beside the fossil or evidence so pupils can judge its size against a child.",
-        "Words: everyday words for the year group; a key science word is fine when the story explains it.",
-        "JSON shape: { \"title\": \"\", \"characters\": [ { \"name\": \"\", \"role\": \"\", \"personality\": \"\", \"look\": \"short visual description\" } ], \"setting\": \"\", \"goal\": \"\", \"stakes\": \"\", \"scenes\": [ { \"id\": \"opening\", \"kind\": \"opening\", \"title\": \"\", \"image\": { \"description\": \"\", \"pastLife\": [] }, \"beats\": [ { \"role\": \"story\", \"speaker\": \"Narrator or a character name\", \"text\": \"\", \"claimIds\": [] } ] }, { \"id\": \"s1\", \"kind\": \"idea\", \"ideaId\": \"i1\", \"title\": \"\", \"image\": { \"description\": \"\", \"pastLife\": [] }, \"teachingImage\": { \"subject\": \"\", \"feature\": \"\", \"view\": \"comparison\", \"comparedWith\": \"\", \"claimIds\": [] }, \"beats\": [ { \"role\": \"problem\", \"speaker\": \"\", \"text\": \"\", \"claimIds\": [] } ], \"activity\": null } ], \"quiz\": [ { \"prompt\": \"\", \"choices\": [\"\", \"\", \"\"], \"correct\": \"\", \"explain\": \"\", \"ideaId\": \"i1\", \"claimIds\": [] } ], \"resolution\": [ { \"role\": \"story\", \"speaker\": \"\", \"text\": \"\", \"claimIds\": [] } ], \"recap\": [ { \"text\": \"\", \"claimIds\": [] } ] }. An activity is { \"instruction\": \"\", \"newCase\": \"\", \"choices\": [ { \"text\": \"\", \"correct\": true, \"feedback\": \"\", \"claimIds\": [] } ], \"successText\": \"\", \"claimIds\": [] }."
+        "THE STORY must be great in its own right and pitched for age " + yp.age + ": " + yp.characters + " named, child-friendly main characters with distinct personalities (ordinary children the class can picture themselves as, plus at most one helper); the goal is stated in the opening scene; plot for this age: " + yp.plot + ". Warm, funny and exciting, never frightening. Sentences of at most " + yp.sentenceWords + " words and lively dialogue.",
+        "THE STORY DOES THE TEACHING. Write one idea scene for each idea in knowledge, in the given order (each builds on the last). In every idea scene (roles needed for this age: " + yp.roles.join(", ") + "): the characters hit a real problem in the plot that they cannot solve yet (role problem); they discover the knowledge that solves it from someone or something in the story world that suits the subject, such as an expert, a book, a map, a label, an object or an experiment (role discovery); the knowledge is explained properly: what it is and how we know (role explain), a concrete example (role example)" + (yp.roles.indexOf("compare") !== -1 ? " and a comparison or contrast (role compare)" : "") + "; then they use it to solve the problem and move the plot on (role use). The knowledge must be what unlocks the plot, not decoration. A 'how do we know' thread works well: the characters solve a mystery by reading clues (evidence, sources, maps, patterns or the words of a text, whatever suits the subject).",
+        "FACTS. knowledge lists the only facts you may state. Any sentence that says something about the real world (how things work, living things, people and events in the past, places, dates, sizes, amounts, how we know) is a fact sentence: it carries claimIds naming the claims it relies on and says no more than those claims say. Simpler words are fine; never add a number, name, colour, size, place, cause or purpose, and keep hedges such as may, probably or scientists think. A pure story sentence (what characters do, feel, or say about the plot) has claimIds [] and must not slip in a real-world fact. Never use your own knowledge for a fact. Teach every claim at least once.",
+        "MAKE FACTS VISIBLE THROUGH THE CHARACTERS. Make the learning personal: wherever the story teaches a size, amount, distance, process or feature, a story moment shows it happening to or beside one of the characters, so pupils can see it against someone like them (for example a child standing beside a fossil bone that is longer than they are; a character who stays on the ground instead of floating away to show gravity; a child walking the length of a long ship; two characters sharing objects into equal groups; a character's actions showing what a verb means). Any number in that moment must come from a cited claim; if no claim gives a measurement, compare only in words the claims support (for example longer than a child only when a cited claim says how long it is or that it is very large), and never invent a figure. Put that moment in a beat with role compare or example and cite the claim.", "PEOPLE AND TIME. The adventure is clearly fiction and has one era: either present-day (era \"present-day\") or one named past period (era names it). In a past-period story every person, object and place belongs to that period. In a present-day story the characters meet the past only through evidence (objects, sources, ruins, fossils, museum displays, models, books, replicas) and do not time travel, unless a scene is plainly framed as imagination (role story, said to be imagined). Present-day people never appear beside living animals or people from a past period, and living things from different periods never appear together.", "ACTIVITIES. Exactly 2 activities, placed wherever they best suit the story (any idea scene or the climax, after the knowledge they use has been taught): a decision point in the plot that the class makes for the characters (for example 'Which clue tells us this animal ate plants?', 'Which source would tell us what Romans ate?', 'Which group has the same number?'). The activity uses a NEW example the class has not been told about (a new object, source, place, number problem, sentence or situation described only by its features), so pupils apply what they learned instead of recalling a sentence. newCase describes the new example in one or two sentences, without saying the answer. instruction is the question the class answers. " + yp.activityChoices + " choices with exactly one correct. Difficulty for this age: " + yp.activity + ". Every choice has feedback explaining why it is right or wrong using the taught knowledge (feedback is a fact sentence with claimIds). successText is one story sentence about what the characters do next. Put the beats that come after the decision as role use.",
+        "QUIZ. " + yp.quiz + " questions after the last idea scene, covering every idea (at least one per idea). Level for this age: " + yp.quizLevel + ". Each has " + yp.quizChoices + " choices with exactly one defensible correct answer; wrong choices are plausible to a child but clearly false according to the knowledge (never something that is also true). The question must not contain its answer. explain says why the answer is right using the claims (a fact sentence with claimIds).",
+        "Also write a climax scene (kind climax, " + yp.climaxBeats[0] + " to " + yp.climaxBeats[1] + " beats) where the characters combine what they learned, a resolution (2 or 3 beats: the payoff) and a recap with one line per idea (fact sentences with claimIds) that shows how the ideas connect.",
+        "Sizes: opening " + yp.openingBeats[0] + " to " + yp.openingBeats[1] + " beats; each idea scene " + yp.ideaBeats[0] + " to " + yp.ideaBeats[1] + " beats including at least one beat of each role " + yp.roles.join(", ") + ". Each beat is " + yp.beatSentences + ". The whole lesson should take about " + minutes + " minutes in class.",
+        "PICTURES serve the story and make the facts visible. Every scene has image: one sentence describing the story picture (place, characters, action, key objects), and pastLife: a list of any extinct or deep-past living things shown alive in it (it must be empty whenever people are in the picture). Every idea scene has teachingImage: what a teaching picture must show so pupils can SEE the evidence, feature or process taught in that scene (for example two kinds of tooth side by side, a footprint, an old source, a map feature, objects in equal groups): subject (one named thing from the claims), feature, view (close-up, comparison, or character), comparedWith (for a comparison, the other thing, also from the claims; for character, the name of the character), claimIds. Use view character whenever a size, amount or process is taught: the picture shows that character beside or acting out the fact (standing beside the object for scale, staying on the ground, holding the source), so pupils judge it against someone like them.",
+        "Words: " + yp.vocabulary + ".",
+        "JSON shape: { \"title\": \"\", \"characters\": [ { \"name\": \"\", \"role\": \"\", \"personality\": \"\", \"look\": \"short visual description\" } ], \"setting\": \"\", \"era\": \"present-day\", \"goal\": \"\", \"stakes\": \"\", \"scenes\": [ { \"id\": \"opening\", \"kind\": \"opening\", \"title\": \"\", \"image\": { \"description\": \"\", \"pastLife\": [] }, \"beats\": [ { \"role\": \"story\", \"speaker\": \"Narrator or a character name\", \"text\": \"\", \"claimIds\": [] } ] }, { \"id\": \"s1\", \"kind\": \"idea\", \"ideaId\": \"i1\", \"title\": \"\", \"image\": { \"description\": \"\", \"pastLife\": [] }, \"teachingImage\": { \"subject\": \"\", \"feature\": \"\", \"view\": \"comparison\", \"comparedWith\": \"\", \"claimIds\": [] }, \"beats\": [ { \"role\": \"problem\", \"speaker\": \"\", \"text\": \"\", \"claimIds\": [] } ], \"activity\": null } ], \"quiz\": [ { \"prompt\": \"\", \"choices\": [\"\", \"\", \"\"], \"correct\": \"\", \"explain\": \"\", \"ideaId\": \"i1\", \"claimIds\": [] } ], \"resolution\": [ { \"role\": \"story\", \"speaker\": \"\", \"text\": \"\", \"claimIds\": [] } ], \"recap\": [ { \"text\": \"\", \"claimIds\": [] } ] }. Any idea scene or the climax may carry \"activity\" (null when none). An activity is { \"instruction\": \"\", \"newCase\": \"\", \"choices\": [ { \"text\": \"\", \"correct\": true, \"feedback\": \"\", \"claimIds\": [] } ], \"successText\": \"\", \"claimIds\": [] }."
       ].join(" "),
       user: JSON.stringify({
-        request: clean(request.lessonText, 400), topic: clean(request.topic, 120), yearGroup: clean(request.yearGroup, 20), minutes: minutes,
+        request: clean(request.lessonText, 400), topic: clean(request.topic, 120), subject: clean(request.subject, 40), yearGroup: clean(request.yearGroup, 20), minutes: minutes,
         knowledge: knowledge.ideas.map(function (idea) { return { id: idea.id, title: idea.title, question: idea.question, linksTo: idea.linksTo, claims: idea.claims.map(function (c) { return { id: c.id, text: c.text, role: c.role }; }) }; }),
         vocabulary: (opts.vocabulary || []).map(function (v) { return { term: v.term, gloss: v.gloss }; })
       })
@@ -310,7 +340,7 @@
   function parseStory(raw) {
     var issues = [];
     var story = {
-      title: clean(raw && raw.title, 120), setting: clean(raw && raw.setting, 300), goal: clean(raw && raw.goal, 300), stakes: clean(raw && raw.stakes, 300),
+      title: clean(raw && raw.title, 120), setting: clean(raw && raw.setting, 300), era: clean(raw && raw.era, 60) || "present-day", goal: clean(raw && raw.goal, 300), stakes: clean(raw && raw.stakes, 300),
       characters: list(raw && raw.characters).slice(0, 4).map(function (c) { return { name: clean(c && c.name, 30), role: clean(c && c.role, 80), personality: clean(c && c.personality, 160), look: clean(c && c.look, 200) }; }).filter(function (c) { return c.name; }),
       scenes: [], quiz: [], resolution: [], recap: []
     };
@@ -324,7 +354,7 @@
         id: kind === "opening" ? "opening" : kind === "climax" ? "climax" : "s" + ideaCount,
         kind: kind, ideaId: clean(s && s.ideaId, 10), title: clean(s && s.title, 80),
         image: { description: clean(s && s.image && s.image.description, 400), pastLife: list(s && s.image && s.image.pastLife).map(function (x) { return clean(x, 40); }).filter(Boolean).slice(0, 4) },
-        teachingImage: t && typeof t === "object" ? { subject: clean(t.subject, 80), feature: clean(t.feature, 200), view: /scale/i.test(String(t.view || "")) ? "scale" : /compar/i.test(String(t.view || "")) ? "comparison" : "close-up", comparedWith: clean(t.comparedWith, 80), claimIds: ids(t.claimIds) } : null,
+        teachingImage: t && typeof t === "object" ? { subject: clean(t.subject, 80), feature: clean(t.feature, 200), view: /scale|character/i.test(String(t.view || "")) ? "character" : /compar/i.test(String(t.view || "")) ? "comparison" : "close-up", comparedWith: clean(t.comparedWith, 80), claimIds: ids(t.claimIds) } : null,
         beats: list(s && s.beats).slice(0, 12).map(normBeat).filter(function (b) { return b.text; }),
         activity: null
       };
@@ -378,7 +408,7 @@
         "You check every pupil-facing sentence of a story-led primary lesson against its sources. Return one JSON object and nothing else.",
         "For each item decide factual: true when the sentence says anything about the real world (science, history, animals, how we know, dates, sizes, places, how things work), even inside dialogue or story; false when it is only story (what invented characters do, feel or say about the plot, or an invented example in an activity that is described but not claimed to be real).",
         "For a factual item, read cited (the claims it names, each with its verbatim quote and the source passage). verdict is supported only when the quotes, read in their passages, state everything the sentence says about the real world; simpler words for children are fine when the meaning is the same; story framing around the fact (who says it, where, feelings) is fine. verdict is partial when part is supported and part is added; unsupported when it adds a real-world fact, number, name, colour, size, cause, purpose or generalisation the quotes do not state, drops a hedge the source keeps, widens a fact about one animal to all, contradicts them, or cites nothing. For a quiz-answer item, judge whether the answer to the question is supported. For an activity-feedback item, judge the real-world reasons it gives; the invented example itself is story.",
-        "A comparison with a story character's body (longer than Mia's hand, taller than Sam, big enough to stand in) is factual: it is supported only when a cited quote gives the size (or says it is very large or small) and the comparison follows plainly from it for an ordinary child of the year group; any number must match the quote. For a story-only item verdict is story.",
+        "A comparison with a story character's body (longer than Mia's hand, taller than Sam, big enough to stand in) is factual: it is supported only when a cited quote gives the size (or says it is very large or small) and the comparison follows plainly from it for an ordinary child of the year group; any number must match the quote. A question that only asks (and does not assume a fact) is story. Correct arithmetic or reasoning with invented numbers or examples in the story or an activity is story; wrong arithmetic is unsupported. For a story-only item verdict is story.",
         "wordsNotInSource lists words of the sentence that appear in no cited quote or passage. Place each one in wording (simpler wording for words in the quotes), story (story or character words that state no real-world fact), or addedFacts (it states something real the quotes do not say). problem: one short sentence saying what is unsupported; empty when supported or story.",
         "Do not use your own knowledge to fill a gap and do not judge truth in the world; judge only support by the cited quotes.",
         "JSON shape: { \"results\": [ { \"id\": \"\", \"factual\": true, \"verdict\": \"supported\" or \"partial\" or \"unsupported\" or \"story\", \"problem\": \"\", \"wording\": [], \"story\": [], \"addedFacts\": [] } ] }."
@@ -447,8 +477,8 @@
   function locate(story, id) {
     var m, sc;
     if ((m = id.match(/^(opening|climax|s\d+)\.b(\d+)$/))) { sc = sceneById(story, m[1]); return sc && sc.beats[Number(m[2])] ? { obj: sc.beats[Number(m[2])], field: "text" } : null; }
-    if ((m = id.match(/^(s\d+)\.act\.(instruction|newCase|successText)$/))) { sc = sceneById(story, m[1]); return sc && sc.activity ? { obj: sc.activity, field: m[2], activityOf: sc } : null; }
-    if ((m = id.match(/^(s\d+)\.act\.c(\d+)\.feedback$/))) { sc = sceneById(story, m[1]); return sc && sc.activity && sc.activity.choices[Number(m[2])] ? { obj: sc.activity.choices[Number(m[2])], field: "feedback", activityOf: sc } : null; }
+    if ((m = id.match(/^(climax|s\d+)\.act\.(instruction|newCase|successText)$/))) { sc = sceneById(story, m[1]); return sc && sc.activity ? { obj: sc.activity, field: m[2], activityOf: sc } : null; }
+    if ((m = id.match(/^(climax|s\d+)\.act\.c(\d+)\.feedback$/))) { sc = sceneById(story, m[1]); return sc && sc.activity && sc.activity.choices[Number(m[2])] ? { obj: sc.activity.choices[Number(m[2])], field: "feedback", activityOf: sc } : null; }
     if ((m = id.match(/^quiz\.q(\d+)\.(answer|explain)$/))) return story.quiz[Number(m[1])] ? { obj: story.quiz[Number(m[1])], field: m[2] === "answer" ? "correct" : "explain", quizIndex: Number(m[1]) } : null;
     if ((m = id.match(/^resolution\.b(\d+)$/))) return story.resolution[Number(m[1])] ? { obj: story.resolution[Number(m[1])], field: "text" } : null;
     if ((m = id.match(/^recap\.r(\d+)$/))) return story.recap[Number(m[1])] ? { obj: story.recap[Number(m[1])], field: "text" } : null;
@@ -535,8 +565,8 @@
         "vocabulary: words a child of age " + ageOf(request.yearGroup) + " is unlikely to know that the lesson does not explain (at most 8).",
         "questions: for each quiz question (index from 0): oneDefensibleAnswer, wrongChoicesFalse (every wrong choice is clearly false according to knowledge; a wrong choice that is also true or partly true makes this false), plausibleDistractors, assessesTaught, notCircular; add a note when any is false.",
         "activities: for each activity (by scene id): newExample (the case is new, not a sentence already taught), usesTaughtKnowledge, feedbackExplainsWhy, oneCorrect; add a note when any is false.",
-        "depth: for each idea: hasExplanation, hasExample, hasComparison, howWeKnow (the lesson says what evidence tells us this).",
-        "periods: any place where animals from different periods appear alive together or present-day people appear beside living animals from the deep past (pictures or text).",
+        "depth: for each idea: hasExplanation, hasExample, hasComparison, howWeKnow (the lesson says how we know, in the way this subject knows things: evidence, sources, observation, checking or the text). Judge depth for the year group: " + yearProfile(request.yearGroup).quizLevel + ".",
+        "periods: any place where things from different periods appear together, or present-day people appear beside living things or people from a past period, other than through evidence or a scene plainly framed as imagination (pictures or text).",
         "JSON shape: { \"story\": { \"rating\": 0, \"notes\": [] }, \"vocabulary\": [ { \"word\": \"\", \"where\": \"\" } ], \"questions\": [ { \"index\": 0, \"oneDefensibleAnswer\": true, \"wrongChoicesFalse\": true, \"plausibleDistractors\": true, \"assessesTaught\": true, \"notCircular\": true, \"note\": \"\" } ], \"activities\": [ { \"scene\": \"\", \"newExample\": true, \"usesTaughtKnowledge\": true, \"feedbackExplainsWhy\": true, \"oneCorrect\": true, \"note\": \"\" } ], \"depth\": [ { \"ideaId\": \"\", \"hasExplanation\": true, \"hasExample\": true, \"hasComparison\": true, \"howWeKnow\": true, \"note\": \"\" } ], \"periods\": [ { \"where\": \"\", \"note\": \"\" } ] }."
       ].join(" "),
       user: JSON.stringify({ yearGroup: clean(request.yearGroup, 20), knowledge: knowledge.ideas.map(function (i) { return { id: i.id, title: i.title, claims: i.claims.map(function (c) { return c.id + ": " + c.text; }) }; }), lesson: storyView(story) })
@@ -589,26 +619,27 @@
   function codeWarnings(story, knowledge, request) {
     var w = [];
     var ideaScenes = story.scenes.filter(function (s) { return s.kind === "idea"; });
-    var acts = ideaScenes.filter(function (s) { return s.activity; });
-    if (knowledge.ideas.length < 3) w.push({ check: "knowledge", text: "only " + knowledge.ideas.length + " ideas have supported claims (3 to 4 wanted)" });
+    var yp = yearProfile(request.yearGroup);
+    var acts = story.scenes.filter(function (s) { return s.activity; });
+    if (knowledge.ideas.length < yp.ideas[0]) w.push({ check: "knowledge", text: "only " + knowledge.ideas.length + " ideas have supported claims (" + yp.ideas.join(" to ") + " wanted for Year " + yp.year + ")" });
     var claimCount = Object.keys(knowledge.claims).length;
-    if (claimCount < 6) w.push({ check: "knowledge", text: "only " + claimCount + " supported claims (6 to 10 wanted)" });
+    if (claimCount < yp.claims[0]) w.push({ check: "knowledge", text: "only " + claimCount + " supported claims (" + yp.claims.join(" to ") + " wanted for Year " + yp.year + ")" });
     if (acts.length < 2) w.push({ check: "activities", text: acts.length + " choose activities (2 wanted)" });
     acts.forEach(function (s) { var n = s.activity.choices.filter(function (c) { return c.correct; }).length; if (n !== 1) w.push({ check: "activities", text: s.id + " activity has " + n + " correct choices" }); });
-    if (story.quiz.length < 5 || story.quiz.length > 8) w.push({ check: "quiz", text: story.quiz.length + " quiz questions (5 to 8 wanted)" });
+    if (Math.abs(story.quiz.length - yp.quiz) > 1 || story.quiz.length < 5 || story.quiz.length > 8) w.push({ check: "quiz", text: story.quiz.length + " quiz questions (" + yp.quiz + " wanted for Year " + yp.year + ")" });
     knowledge.ideas.forEach(function (idea) { if (!story.quiz.some(function (q) { return q.ideaId === idea.id || q.claimIds.some(function (id) { return id.indexOf(idea.id + "c") === 0; }); })) w.push({ check: "quiz", text: "no quiz question on idea " + idea.id + " (" + idea.title + ")" }); });
     ideaScenes.forEach(function (s) {
       var roles = s.beats.map(function (b) { return b.role; });
-      var missing = ["problem", "explain", "example", "compare", "use"].filter(function (r) { return roles.indexOf(r) === -1; });
+      var missing = yp.roles.filter(function (r) { return r !== "discovery" && roles.indexOf(r) === -1; });
       if (missing.length) w.push({ check: "structure", text: s.id + " (" + s.title + ") has no " + missing.join(", ") + " beat" });
     });
     var taught = {};
     pupilItems(story).forEach(function (i) { i.claimIds.forEach(function (id) { taught[id] = 1; }); });
     Object.keys(knowledge.claims).forEach(function (id) { if (!taught[id]) w.push({ check: "coverage", text: "claim " + id + " is never taught: " + knowledge.claims[id].text }); });
     // Scale against the characters: a sourced measurement should get a child-beside-it moment and picture.
-    var MEASURE = /\b\d+(?:[.,]\d+)?\s*(?:cm|centimetres?|mm|millimetres?|m|metres?|meters?|feet|foot|ft|inches|in|kg|kilograms?|tonnes?|tons?)\b/i;
+    var MEASURE = /\b\d+(?:[.,]\d+)?\s*(?:cm|centimetres?|mm|millimetres?|m|metres?|meters?|km|kilometres?|miles?|feet|foot|ft|inches|in|kg|kilograms?|g|grams?|tonnes?|tons?|litres?|ml|years?|degrees)\b/i;
     var measured = Object.keys(knowledge.claims).filter(function (id) { return MEASURE.test(knowledge.claims[id].text); });
-    if (measured.length && !ideaScenes.some(function (s) { return s.teachingImage && s.teachingImage.view === "scale"; })) w.push({ check: "scale", text: "sizes are taught (" + measured.join(", ") + ") but no teaching picture shows a child beside the evidence for scale" });
+    if (measured.length && !ideaScenes.some(function (s) { return s.teachingImage && s.teachingImage.view === "character"; })) w.push({ check: "scale", text: "measurements are taught (" + measured.join(", ") + ") but no teaching picture shows a character beside or acting out the fact" });
     pupilItems(story).forEach(function (i) {
       var nums = String(i.text).match(/\b\d+(?:[.,]\d+)?\b/g) || [];
       if (!nums.length || /^quiz/.test(i.id)) return;
@@ -617,17 +648,18 @@
       if (stray.length) w.push({ check: "scale", text: i.id + " uses a number not in its cited claims (" + stray.join(", ") + "): " + clean(i.text, 160) });
     });
     var est = estimateMinutes(story);
-    var want = Number(request.requestedMinutes) || 30;
+    var want = Number(request.requestedMinutes) || yp.minutes;
     if (Math.abs(est - want) > Math.max(5, want * 0.25)) w.push({ check: "timing", text: "estimated " + est + " minutes against " + want + " requested" });
     return w;
   }
 
   // ---------- 7. Pictures (plan only; generation is the caller's job) ----------
   var STORY_STYLE = "Rich, painterly children's picture-book illustration with depth, natural light and expressive characters; a proper storybook scene, not clip art and not a flat cartoon. It is clearly an imagined story scene.";
-  var TEACH_STYLE = "Clear, accurate natural-history-museum style illustration for a primary science lesson, realistic textures, plain soft background, the evidence or feature large and easy to see.";
+  var TEACH_STYLE = "Clear, accurate, realistic educational illustration for a primary lesson, the same painterly picture-book world as the story but simpler, plain soft background, the evidence, feature or process large and easy to see.";
   var COMPOSITION = "Composition: a text panel will cover the lower left of the picture (the left 58%, from halfway down to near the bottom). Keep every important subject in the top half or the right 42% of the picture, and keep the lower-left area plain background.";
 
-  function imagePlan(story) {
+  function imagePlan(story, request) {
+    request = request || {};
     var assets = [];
     var limitations = [];
     var cast = story.characters.map(function (c) { return c.name + " (" + (c.look || c.role) + ")"; }).join("; ");
@@ -640,7 +672,9 @@
         rule = "No people anywhere in the picture. The only living animal shown is " + past[0] + ", one kind of animal only.";
         if (past.length > 1) limitations.push({ id: "scene-" + s.id, limitation: "The story listed " + past.join(", ") + " alive together; the picture keeps one kind (" + past[0] + ") so periods are never mixed." });
       } else {
-        rule = "The people are present-day characters. No living prehistoric animals anywhere: anything from the deep past appears only as fossils, skeletons, footprints, models or museum displays.";
+        rule = /present/i.test(story.era || "present-day")
+          ? "The people are present-day characters. Nothing from a past period appears alive or in person: extinct animals, ancient people and past events appear only as fossils, remains, objects, sources, ruins, models, pictures or museum displays."
+          : "Everything belongs to one past period, " + clean(story.era, 60) + ": its people, clothes, buildings and objects only, with nothing modern and nothing from another period.";
       }
       var prompt = [STORY_STYLE, "Scene: " + clean(s.image && s.image.description, 400), past.length ? "" : "Characters: " + cast + ".", story.setting ? "Setting: " + clean(story.setting, 200) + "." : "", rule, "No text, letters, numbers or labels anywhere in the image. Child-friendly, not frightening.", COMPOSITION].filter(Boolean).join(" ");
       assets.push({ id: "scene-" + s.id, type: "scene", sceneId: s.id, framing: "story", frameLabel: "Story picture: an imagined adventure scene", prompt: prompt, brief: { educationalFocus: s.title }, pastLife: past.slice(0, 1) });
@@ -648,16 +682,17 @@
     story.scenes.forEach(function (s) {
       var t = s.teachingImage;
       if (!t || !t.subject) return;
-      var child = t.view === "scale" ? story.characters.filter(function (c) { return t.comparedWith && c.name.toLowerCase() === String(t.comparedWith).toLowerCase(); })[0] || story.characters[0] : null;
+      var child = t.view === "character" ? story.characters.filter(function (c) { return t.comparedWith && c.name.toLowerCase() === String(t.comparedWith).toLowerCase(); })[0] || story.characters[0] : null;
+      var present = /present/i.test(story.era || "present-day");
       var view = child
-        ? "A size comparison: " + t.subject + " (a fossil, cast or model, not a living animal) shown at true scale beside " + child.name + ", a present-day child (" + clean(child.look || child.role, 120) + "), standing or holding a hand next to it so its size can be judged against the child. What to notice: " + t.feature + "."
+        ? "The fact made visible with a story character: " + child.name + " (" + clean(child.look || child.role, 120) + ") beside or acting out " + t.subject + ", drawn at true relative size, so pupils can judge it against someone like them. What to notice: " + t.feature + "." + (present ? " " + child.name + " is a present-day child; anything from a past period is a fossil, remain, object, model or replica, never alive." : "")
         : t.view === "comparison" && t.comparedWith
         ? "A side-by-side comparison in two clearly separate panels across the top half of the picture: on the left, " + t.subject + "; on the right, " + t.comparedWith + ". The difference to notice: " + t.feature + "."
         : "A close-up of " + t.subject + " that makes this easy to see: " + t.feature + ".";
-      var people = child ? "The only person is that one child, beside the fossil or evidence; no living prehistoric animals." : "No people.";
-      var prompt = [TEACH_STYLE, view, "Show only what is described, one kind of animal or object per panel. " + people + " No text, letters, numbers, rulers with numbers, arrows or labels.", COMPOSITION].join(" ");
-      if (t.view === "scale" && !child) limitations.push({ id: "teach-" + s.id, limitation: "Scale picture asked for but the story has no characters; drawn without a child." });
-      assets.push({ id: "teach-" + s.id, type: "teaching", sceneId: s.id, framing: "teaching", view: t.view, subject: t.subject, compared: t.comparedWith, feature: t.feature, claimIds: t.claimIds, scaleCharacter: child ? child.name : "", frameLabel: "Teaching picture: " + (child ? "size against " + child.name : t.view === "comparison" ? "comparison" : "close-up") + " of the evidence (not part of the story)", prompt: prompt });
+      var people = child ? "The only person is " + child.name + "." : "No people.";
+      var prompt = [TEACH_STYLE, request.subject ? "Subject: " + clean(request.subject, 40) + ", " + clean(request.yearGroup, 20) + "." : "", view, "Show only what is described, one kind of thing per panel. " + people + " No text, letters, numbers, rulers with numbers, arrows or labels.", COMPOSITION].filter(Boolean).join(" ");
+      if (t.view === "character" && !child) limitations.push({ id: "teach-" + s.id, limitation: "A character picture was asked for but the story has no characters; drawn without one." });
+      assets.push({ id: "teach-" + s.id, type: "teaching", sceneId: s.id, framing: "teaching", view: t.view, subject: t.subject, compared: t.comparedWith, feature: t.feature, claimIds: t.claimIds, scaleCharacter: child ? child.name : "", frameLabel: "Teaching picture: " + (child ? "the fact shown with " + child.name : t.view === "comparison" ? "comparison" : "close-up") + " (a teaching picture, not a story scene)", prompt: prompt });
     });
     return { assets: assets, limitations: limitations };
   }
@@ -714,7 +749,8 @@
       placeActivity();
       var parts = [];
       // Even parts of at most SCENE_PART_BEATS lines so the text panel never overflows (5 lines -> 3 + 2).
-      var size = Math.ceil(ordered.length / Math.max(1, Math.ceil(ordered.length / SCENE_PART_BEATS)));
+      var partMax = yearProfile(request.yearGroup).partBeats || SCENE_PART_BEATS;
+      var size = Math.ceil(ordered.length / Math.max(1, Math.ceil(ordered.length / partMax)));
       for (var i = 0; i < ordered.length; i += size) parts.push(ordered.slice(i, i + size));
       parts.forEach(function (part, index) {
         var beatIds = part.map(function (b) { return b.id; });
@@ -791,7 +827,7 @@
     }
     function done(ok, stage, extra) { return Object.assign({ ok: ok, stage: stage, trace: trace, warnings: state.warnings, repairs: state.repairs, fallbacks: state.fallbacks }, extra || {}); }
     return (ports.ideas ? Promise.resolve({ ideas: ports.ideas }) : call("plan", ideaPlanBrief(request))).then(function (rawPlan) {
-      var plan = parseIdeaPlan(rawPlan);
+      var plan = parseIdeaPlan(rawPlan, request);
       trace.ideas = plan.ideas;
       log("STORY_IDEAS", { ideas: plan.ideas.map(function (i) { return i.id + ": " + i.title; }) });
       if (!plan.ok) return done(false, "IDEA_PLAN_FAILED", { issues: plan.issues });
@@ -818,7 +854,7 @@
                 if (!support.ok) return done(false, "FACT_SUPPORT_BLOCKED", { issues: support.failing.map(function (f) { return f.id + ": " + f.problem; }), story: story, support: support, knowledge: knowledge, record: record, pack: admitted.pack });
                 return qualityPass(story, knowledge, request, call, ports, state, log).then(function (quality) {
                   codeWarnings(story, knowledge, request).forEach(function (w) { state.warnings.push(w); });
-                  return done(true, "COMPLETE", { story: story, knowledge: knowledge, vocabulary: admitted.vocabulary, record: record, pack: admitted.pack, support: support, quality: quality, imagePlan: imagePlan(story) });
+                  return done(true, "COMPLETE", { story: story, knowledge: knowledge, vocabulary: admitted.vocabulary, record: record, pack: admitted.pack, support: support, quality: quality, imagePlan: imagePlan(story, request) });
                 });
               });
             });
@@ -848,11 +884,35 @@
           var still = failing.filter(function (f) { return applied.indexOf(f.id) === -1; }).concat(rows2.filter(function (r) { return !r.ok; }));
           var fb = fallback(story, still, knowledge);
           fb.forEach(function (x) { state.fallbacks.push(x); state.warnings.push({ check: "support-fallback", text: x.id + ": " + x.action + (x.problem ? " (" + clean(x.problem, 160) + ")" : "") }); });
-          // Final pass over everything now in the lesson. Anything still unsupported blocks.
-          return check(pupilItems(story), "support-final").then(function (finalRows) {
+          // Final pass. Every pupil-facing sentence now in the lesson must have a passing verdict for
+          // exactly this text and these claims: carried from an earlier check, or (for fallback lines)
+          // the checked claim's own text. Anything else is checked once; whatever still fails gets the
+          // code fallback (claim text or removal), which needs no model call. Nothing unsupported stays.
+          var passed = {};
+          function keyOf(r) { return r.text + "|" + r.claimIds.slice().sort().join(","); }
+          first.concat(rows2).forEach(function (r) { if (r.ok) passed[keyOf(r)] = r; });
+          function settled(items) {
+            return items.map(function (i) {
+              var prev = passed[keyOf(i)];
+              if (prev) return Object.assign({}, prev, { id: i.id, kind: i.kind, carried: true });
+              var claimText = i.claimIds.length === 1 && knowledge.claims[i.claimIds[0]] && clean(knowledge.claims[i.claimIds[0]].text, 700) === i.text.replace(/^\((?:correct|wrong) choice: [^)]*\)\s*/, "");
+              if (claimText) return { id: i.id, kind: i.kind, text: i.text, claimIds: i.claimIds, factual: true, verdict: "supported", problem: "", ok: true, byConstruction: "the checked claim's own text" };
+              return null;
+            });
+          }
+          var now = pupilItems(story);
+          var known = settled(now);
+          var open = now.filter(function (i, n) { return !known[n]; });
+          return check(open, "support-final").then(function (rows3) {
+            var bad3 = rows3.filter(function (r) { return !r.ok; });
+            var fb2 = fallback(story, bad3, knowledge);
+            fb2.forEach(function (x) { state.fallbacks.push(x); state.warnings.push({ check: "support-fallback", text: x.id + ": " + x.action + (x.problem ? " (" + clean(x.problem, 160) + ")" : "") }); });
+            rows3.forEach(function (r) { if (r.ok) passed[keyOf(r)] = r; });
+            var finalItems = pupilItems(story);
+            var finalRows = settled(finalItems).map(function (r, n) { return r || { id: finalItems[n].id, kind: finalItems[n].kind, text: finalItems[n].text, claimIds: finalItems[n].claimIds, factual: null, verdict: "unchecked", problem: "not checked after the last fallback", ok: false }; });
             var bad = finalRows.filter(function (r) { return !r.ok; });
-            log("STORY_SUPPORT_FINAL", { items: finalRows.length, failing: bad.length, repaired: applied.length, fallbacks: fb.length });
-            return { ok: !bad.length, rows: finalRows, first: first, afterRepair: rows2, failing: bad };
+            log("STORY_SUPPORT_FINAL", { items: finalRows.length, failing: bad.length, repaired: applied.length, fallbacks: fb.length + fb2.length, checkedAgain: open.length });
+            return { ok: !bad.length, rows: finalRows, first: first, afterRepair: rows2, finalCheck: rows3, failing: bad };
           });
         });
       });
@@ -897,9 +957,9 @@
   }
 
   return {
-    STAGES: STAGES, LABEL: LABEL, COMPOSITION: COMPOSITION,
+    STAGES: STAGES, LABEL: LABEL, COMPOSITION: COMPOSITION, yearProfile: yearProfile, BANDS: BANDS,
     ideaPlanBrief: ideaPlanBrief, parseIdeaPlan: parseIdeaPlan,
-    researchIdeas: researchIdeas, knowledgeBrief: knowledgeBrief, admitClaims: admitClaims,
+    researchIdeas: researchIdeas, rankIdeaPassages: rankIdeaPassages, knowledgeBrief: knowledgeBrief, admitClaims: admitClaims,
     entailmentBrief: entailmentBrief, applyEntailment: applyEntailment, knowledgeOf: knowledgeOf,
     storyBrief: storyBrief, parseStory: parseStory, pupilItems: pupilItems,
     supportBrief: supportBrief, annotateWords: annotateWords, judgeSupport: judgeSupport,

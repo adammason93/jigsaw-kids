@@ -8,6 +8,7 @@
 
    Usage: OPENAI_API_KEY=... node scripts/source-grounded/story.js --out DIR --cap USD
             [--total-cap 4.5 --base-guard USD --shared-ledgers a.jsonl,b.jsonl]
+            [--reuse-research DIR] reuse DIR's idea plan and fetched passages (free)
             [--saved-research a.json,b.json]  replay URLs found by earlier paid searches (free)
             [--no-search]                     no new paid web search
             [--stub]                          offline: stubbed model transport and saved passages
@@ -113,9 +114,18 @@ function runText() {
   var ports = { fetch: harnessFetch, log: log, callModel: callModel, storyEffort: arg("story-effort", "medium"), maxSources: Number(arg("max-sources", "22")) };
   var files = String(arg("saved-research", "")).split(",").filter(Boolean);
   if (files.length) ports.savedCandidates = savedCandidates(files);
-  if (!flag("no-search") && !stub) ports.searchProvider = Research.openaiWebSearchProvider({ apiKey: key, focusGroups: [{ ids: ["nhm", "bitesize", "natgeo-kids", "britannica", "amnh", "smithsonian", "australian-museum", "field-museum"], focus: "Museum, BBC Bitesize, National Geographic Kids or Britannica pages for primary pupils that explain this idea and how scientists know it (the evidence and what it tells us)." }], maxToolCalls: 1 });
+  if (!flag("no-search") && !stub) ports.searchProvider = Research.openaiWebSearchProvider({ apiKey: key, focusGroups: [{ ids: ["nhm", "bitesize", "natgeo-kids", "britannica", "amnh", "smithsonian", "australian-museum", "field-museum"], focus: "Pages for primary pupils (museums, BBC Bitesize, National Geographic Kids, Britannica, universities) that explain this idea and how we know it." }], maxToolCalls: 1 });
   ports.discoveryProvider = Research.wikipediaProvider({ hosts: ["simple.wikipedia.org"], perQuery: 1 });
   if (stub) Object.assign(ports, require("./story-stub.js").ports(request, arg("stub-record", "")));
+  // Reuse an earlier run's idea plan and fetched research (no plan or search calls); the passages
+  // each idea sees are re-ranked with the current code.
+  if (arg("reuse-research", "")) {
+    var dir = path.resolve(arg("reuse-research"));
+    var prior = JSON.parse(fs.readFileSync(path.join(dir, "result.json"), "utf8"));
+    ports.ideas = prior.trace.ideas;
+    ports.record = Story.rankIdeaPassages(JSON.parse(fs.readFileSync(path.join(dir, "sources", "research-record.json"), "utf8")), ports.ideas, request, ports);
+    log("REUSED_RESEARCH", { from: dir, ideas: ports.ideas.length, sources: ports.record.sources.length, passages: ports.record.passages.length });
+  }
   return Story.generateStoryLesson(request, ports);
 }
 
