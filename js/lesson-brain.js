@@ -4369,9 +4369,62 @@
     return { questions: questions, slotFailures: slotFailures };
   }
 
+  // Patch 9, research mode only: per-beat repair targets for a beat slot (recap, teach...). Live
+  // run 21's recap repair returned the recap word for word: the failures named a beat but the
+  // brief only showed the old text as the output to fill. A beat's failures are those that name
+  // it ("beat recap:1") or quote its words; an untaught-knowledge failure is pinned to the beat
+  // and the word that trips it (the same test as droppedLeak).
+  function beatRepairTargets(beats, failure, plan) {
+    var dropped = (plan && plan.droppedKnowledge) || [];
+    var kept = ((plan && plan.keyKnowledge) || []).join(" ").toLowerCase();
+    var owned = [];
+    var rows = (beats || []).map(function (beat) {
+      var id = String((beat && beat.id) || "");
+      var text = clean(beat && (beat.text || (beat.pupil && beat.pupil.text)), 280);
+      var lower = text.toLowerCase();
+      var failing = [];
+      function quotes(f) { return (String(f).match(/"([^"]{2,})"/g) || []).some(function (m) { return new RegExp("\\b" + m.slice(1, -1).toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\b").test(lower); }); }
+      (failure || []).forEach(function (f) {
+        var named = /\bbeat [a-z]+:\d+/.test(f);
+        if ((named && f.indexOf("beat " + id) !== -1 && new RegExp("beat " + id.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\b").test(f)) || (!named && quotes(f))) {
+          failing.push(f); if (owned.indexOf(f) === -1) owned.push(f);
+        }
+        if (/uses knowledge that was not taught/.test(f)) {
+          dropped.forEach(function (item) {
+            contentWords(item).forEach(function (word) {
+              if (word.length >= 4 && kept.indexOf(word) === -1 && lower.indexOf(word) !== -1) {
+                var line = "This line uses \"" + word + "\", a word from knowledge this lesson left out (\"" + clean(item, 100) + "\"). Say it with the taught words instead.";
+                if (failing.indexOf(line) === -1) failing.push(line);
+                if (owned.indexOf(f) === -1) owned.push(f);
+              }
+            });
+          });
+        }
+      });
+      return { id: id, text: text, failing: failing };
+    });
+    return { beats: rows, slotFailures: (failure || []).filter(function (f) { return owned.indexOf(f) === -1; }) };
+  }
+
   // Patch 9, research mode only, after the slot repair: a check question that failed nothing (and
   // no slot-wide check failure) keeps its first version, so a repair cannot break a passing
   // question; and a repaired slot that came back unchanged is rejected.
+  // What the pupil sees in a slot, so a repair that returns the same words in another shape
+  // (beats filled, title and lines left empty) still counts as unchanged. Live run 21's recap
+  // came back word for word and was not caught.
+  function slotFace(slot) {
+    slot = slot || {};
+    function txt(v) { return clean(typeof v === "string" ? v : (v && v.text) || "", 400).toLowerCase(); }
+    var beats = (slot.beats || []).map(function (b) { return [String((b && b.id) || ""), txt(b && (b.text || (b.pupil && b.pupil.text)))]; }).filter(function (b) { return b[1]; });
+    return JSON.stringify({
+      beats: beats,
+      lines: beats.length ? [] : (slot.lines || []).map(txt),
+      instruction: txt(slot.instruction), prompt: txt(slot.prompt), correct: txt(slot.correct), explain: txt(slot.explain),
+      choices: (slot.choices || []).map(txt),
+      questions: (slot.questions || []).map(function (q) { q = q || {}; return [txt(q.prompt), (q.choices || []).map(txt), txt(q.correct), txt(q.explain), txt(q.successEvidence), txt(q.teachingConnection)]; })
+    });
+  }
+
   function targetRepair(previous, merged, accepted) {
     var before = readSlotMap(previous);
     var after = merged && merged.slots ? merged.slots : {};
@@ -4391,7 +4444,7 @@
       }
     }
     (accepted.slotIds || []).forEach(function (id) {
-      if (before[id] && after[id] && JSON.stringify(before[id]) === JSON.stringify(after[id]) && ((accepted.slotIssues || {})[id] || []).length) {
+      if (before[id] && after[id] && slotFace(before[id]) === slotFace(after[id]) && ((accepted.slotIssues || {})[id] || []).length) {
         notes.push("The repair returned the " + id + " slot unchanged. A repair must change what failed.");
       }
     });
@@ -4457,6 +4510,13 @@
         });
         if (spec.rejectedBeats.length) spec.pupilCopyRequirements = pupilCopyContract(year);
         else delete spec.rejectedBeats;
+      }
+      if (researchMode(ctx) && slot.id !== "apply" && slot.beats && slot.beats.length && !quizRetrieve && activity && activity.beats && spec.failure.length) {
+        var beatTargets = beatRepairTargets((activity.beats || []).map(function (row) { return { id: row && row.id, text: row && row.pupil && row.pupil.text }; }), spec.failure, ctx && ctx.lessonPlan);
+        if (beatTargets.beats.some(function (row) { return row.failing.length; })) {
+          spec.currentBeats = beatTargets.beats;
+          spec.beatFailures = beatTargets.slotFailures;
+        }
       }
       if (slot.id === "apply" && slot.applicationTarget) spec.applicationTarget = slot.applicationTarget;
       if (slot.id === "apply" && researchMode(ctx)) {
@@ -4552,6 +4612,7 @@
       if (spec.slotType !== "RECAP" || !spec.rejectedBeats || !spec.rejectedBeats.length) return;
       instruction += " Rewrite only the rejected recap consolidate beat. Keep the other beat ids. Do not regenerate the plan or the lesson. " + (spec.pupilCopyRequirements || "");
     });
+    if (specs.some(function (spec) { return spec.currentBeats; })) instruction += " currentBeats shows each beat's text now and the checks it failed (failing). Rewrite a beat that has failing items so it fixes every one of them; the new text must differ from the old text. Copy a beat whose failing list is empty exactly as it is.";
     instruction += " Do not return activities, mechanics, or a new stage.";
     brief.user = JSON.stringify({
       slotsToRewrite: specs,
@@ -9591,6 +9652,7 @@
     pictureCountIssues: pictureCountIssues,
     strandRepairLine: strandRepairLine,
     repairTargets: repairTargets,
+    beatRepairTargets: beatRepairTargets,
     targetRepair: targetRepair,
     applyTaskShapeIssues: applyTaskShapeIssues,
     sameRelationship: sameRelationship,
