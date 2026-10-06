@@ -4516,6 +4516,23 @@
         if (beatTargets.beats.some(function (row) { return row.failing.length; })) {
           spec.currentBeats = beatTargets.beats;
           spec.beatFailures = beatTargets.slotFailures;
+          // Live run 22: with the old text pre-filled in output, the recap came back unchanged
+          // again. A failing beat's output text is left empty, and the beat shows how the teach
+          // slot said the same idea (same knowledgeRefs), whose words already passed.
+          var teachSlot = skeleton.filter(function (s) { return s && s.id === "teach"; })[0] || null;
+          var teachActivity = ((previous && previous.activities) || []).filter(function (a) { return a && a.slotId === "teach"; })[0] || null;
+          spec.currentBeats.forEach(function (row) {
+            if (!row.failing.length) return;
+            (spec.output.beats || []).forEach(function (out) { if (out.id === row.id) out.text = ""; });
+            var refs = ((slot.beats || []).filter(function (b) { return b.id === row.id; })[0] || {}).knowledgeRefs || [];
+            if (slot.id === "teach" || !teachSlot || !teachActivity || !refs.length) return;
+            var lines = [];
+            (teachSlot.beats || []).forEach(function (tb) {
+              if (!(tb.knowledgeRefs || []).some(function (r) { return refs.indexOf(r) !== -1; })) return;
+              (teachActivity.beats || []).forEach(function (ab) { var t = ab && ab.id === tb.id && ab.pupil && clean(ab.pupil.text, 280); if (t && lines.indexOf(t) === -1) lines.push(t); });
+            });
+            if (lines.length) row.taughtLines = lines;
+          });
         }
       }
       if (slot.id === "apply" && slot.applicationTarget) spec.applicationTarget = slot.applicationTarget;
@@ -4612,7 +4629,7 @@
       if (spec.slotType !== "RECAP" || !spec.rejectedBeats || !spec.rejectedBeats.length) return;
       instruction += " Rewrite only the rejected recap consolidate beat. Keep the other beat ids. Do not regenerate the plan or the lesson. " + (spec.pupilCopyRequirements || "");
     });
-    if (specs.some(function (spec) { return spec.currentBeats; })) instruction += " currentBeats shows each beat's text now and the checks it failed (failing). Rewrite a beat that has failing items so it fixes every one of them; the new text must differ from the old text. Copy a beat whose failing list is empty exactly as it is.";
+    if (specs.some(function (spec) { return spec.currentBeats; })) instruction += " currentBeats shows each beat's text now and the checks it failed (failing). Rewrite a beat that has failing items so it fixes every one of them; the new text must differ from the old text. Its text in output is left empty: write it new. taughtLines, where given, shows how the teach slot said the same idea; keep its key words. Copy a beat whose failing list is empty exactly as it is.";
     instruction += " Do not return activities, mechanics, or a new stage.";
     brief.user = JSON.stringify({
       slotsToRewrite: specs,

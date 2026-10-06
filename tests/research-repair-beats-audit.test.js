@@ -47,12 +47,22 @@ var brief = JSON.parse(Brain.slotRepairBrief(ctxFor(true), ["recap"], issues, ac
 var spec = brief.slotsToRewrite[0];
 assert.ok(spec.currentBeats && spec.currentBeats[1].failing.length === 1 && !spec.currentBeats[0].failing.length, JSON.stringify(spec.currentBeats));
 assert.ok(/currentBeats shows each beat's text now/.test(brief.instruction));
+// Live run 22: the failing beat's output text is empty (no old text to copy), passing beats keep
+// theirs, and the failing beat carries the teach lines for the same knowledgeRefs.
+assert.strictEqual(spec.output.beats[1].text, "");
+assert.ok(spec.output.beats[0].text && spec.output.beats[2].text);
+var teachAct = acc.previous.activities.filter(function (a) { return a.slotId === "teach"; })[0];
+var teachText = function (id) { return teachAct.beats.filter(function (b) { return b.id === id; })[0].pupil.text; };
+assert.deepStrictEqual(spec.currentBeats[1].taughtLines, [teachText("teach:2"), teachText("teach:3")]);
+assert.ok(!spec.currentBeats[0].taughtLines);
+assert.ok(/Its text in output is left empty: write it new/.test(brief.instruction));
 var plainAcc = Brain.accept(copy(raw), ctxFor(false));
 var plain = JSON.parse(Brain.slotRepairBrief(ctxFor(false), ["recap"], issues, plainAcc.previous).user);
 assert.ok(!plain.slotsToRewrite[0].currentBeats && !/currentBeats/.test(plain.instruction), "default brief unchanged");
 
 // 3. A recap returned with the same words in the output shape counts as unchanged; a changed beat does not.
-var out = brief.slotsToRewrite[0].output;
+var recapAct = acc.previous.activities.filter(function (a) { return a.slotId === "recap"; })[0];
+var out = { beats: recapAct.beats.map(function (b) { return { id: b.id, text: b.pupil.text }; }) };
 var same = Brain.mergeSlotContent(acc.previous, { slots: { recap: copy(out) } });
 var acceptedRecap = { previous: acc.previous, slotIds: ["recap"], slotIssues: { recap: recapFail.slice() }, issues: issues };
 assert.deepStrictEqual(Brain.targetRepair(acc.previous, same, acceptedRecap).unchanged, ["The repair returned the recap slot unchanged. A repair must change what failed."]);
