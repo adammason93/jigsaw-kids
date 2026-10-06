@@ -13,7 +13,7 @@
             [--no-search]                     no new paid web search
             [--stub]                          offline: stubbed model transport and saved passages
             [--no-images] [--reuse DIR]       reuse DIR's result.json (no text calls) for pictures
-            [--minutes 30] [--story-effort medium] */
+            [--minutes 30] [--story-effort medium] [--story-model gpt-6.1-sol --story-max-tokens 16000] */
 
 var fs = require("fs");
 var path = require("path");
@@ -112,6 +112,7 @@ function runText() {
     return Promise.resolve(saved);
   }
   var ports = { fetch: harnessFetch, log: log, callModel: callModel, storyEffort: arg("story-effort", "medium"), maxSources: Number(arg("max-sources", "22")) };
+  if (arg("story-model", "")) { ports.models = { story: arg("story-model") }; ports.storyMaxTokens = Number(arg("story-max-tokens", "16000")); }
   var files = String(arg("saved-research", "")).split(",").filter(Boolean);
   if (files.length) ports.savedCandidates = savedCandidates(files);
   if (!flag("no-search") && !stub) ports.searchProvider = Research.openaiWebSearchProvider({ apiKey: key, focusGroups: [{ ids: ["nhm", "bitesize", "natgeo-kids", "britannica", "amnh", "smithsonian", "australian-museum", "field-museum"], focus: "Pages for primary pupils (museums, BBC Bitesize, National Geographic Kids, Britannica, universities) that explain this idea and how we know it." }], maxToolCalls: 1 });

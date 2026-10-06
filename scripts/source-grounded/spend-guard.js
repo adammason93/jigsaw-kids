@@ -14,10 +14,11 @@ var PRICES = {
     "gpt-4o-mini": "https://developers.openai.com/api/docs/models/gpt-4o-mini (re-checked 6 Oct 2026 08:02 BST, BUDGET.md)",
     "gpt-4.1-mini": "https://developers.openai.com/api/docs/models/gpt-4.1-mini ($0.40 in / $1.60 out), read 6 Oct 2026; used only for the web search step",
     "gpt-6-luna": "https://developers.openai.com/api/docs/models/gpt-6-luna ($0.10 in / $0.50 out, standard), read 6 Oct 2026; used for the web search step and, experimentally in research mode only, the knowledge, entailment and repair calls",
+    "gpt-6.1-sol": "https://developers.openai.com/api/docs/pricing (Flagship models, standard, short context: $2.00 in / $10.00 out per 1M), read 6 Oct 2026 13:50 BST; used only for the story call of story-led research lessons",
     "web_search": "https://developers.openai.com/api/docs/pricing (Tools: web search $10.00 / 1k calls; gpt-4o-mini and gpt-4.1-mini search content billed as a fixed 8,000 input-token block per call), read 6 Oct 2026",
     "gpt-image-2.5-sunburst": "https://developers.openai.com/api/docs/pricing (Image generation, standard: text in $5.00, image in $8.00, image out $30.00 per 1M), read 6 Oct 2026"
   },
-  text: { "gpt-4o-mini": { input: 0.15, output: 0.60 }, "gpt-4.1-mini": { input: 0.40, output: 1.60 }, "gpt-6-luna": { input: 0.10, output: 0.50 } },
+  text: { "gpt-4o-mini": { input: 0.15, output: 0.60 }, "gpt-4.1-mini": { input: 0.40, output: 1.60 }, "gpt-6-luna": { input: 0.10, output: 0.50 }, "gpt-6.1-sol": { input: 2.00, output: 10.00 } },
   webSearchPerCall: 0.01,
   webSearchContentTokens: 8000,
   // Reasoning models bill search content at model rates with no fixed block; the guard
