@@ -682,6 +682,8 @@
     story.scenes.forEach(function (s) {
       var t = s.teachingImage;
       if (!t || !t.subject) return;
+      var feature = String(t.feature || "").replace(/[.\s]+$/, "");
+      t = Object.assign({}, t, { feature: feature });
       var child = t.view === "character" ? story.characters.filter(function (c) { return t.comparedWith && c.name.toLowerCase() === String(t.comparedWith).toLowerCase(); })[0] || story.characters[0] : null;
       var present = /present/i.test(story.era || "present-day");
       var view = child
