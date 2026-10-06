@@ -419,10 +419,21 @@ function visualUnits(adventure, ctx) {
   var teachIds = teach.map(function (b) { return b.id; });
   return units.map(function (u) {
     var row = (lineage.units || []).filter(function (l) { return l.unitId === u.unitId; })[0] || {};
-    var ids = (row.explainBeats || []).filter(function (id) { return teachIds.indexOf(id) !== -1; });
-    if (!ids.length) ids = (row.beats || []).filter(function (id) { return teachIds.indexOf(id) !== -1; });
-    return Object.assign({}, u, { beatIds: ids });
+    return Object.assign({}, u, { beatIds: unitBeatIds(teach, row, u.unitId) });
   });
+}
+
+// The teach beats a unit's picture belongs on: every teach beat that cites only this unit (the
+// feature beat as well as the explanation beat), so the feature sentence never sits under the
+// previous unit's picture. A beat citing several units keeps the last picture shown. Falls back
+// to the lineage row when beats carry no unit ids.
+function unitBeatIds(teachBeats, row, unitId) {
+  var teachIds = (teachBeats || []).map(function (b) { return b.id; });
+  var own = (teachBeats || []).filter(function (b) { return Array.isArray(b.unitIds) && b.unitIds.length === 1 && b.unitIds[0] === unitId; }).map(function (b) { return b.id; });
+  if (own.length) return own;
+  var ids = ((row && row.explainBeats) || []).filter(function (id) { return teachIds.indexOf(id) !== -1; });
+  if (!ids.length) ids = ((row && row.beats) || []).filter(function (id) { return teachIds.indexOf(id) !== -1; });
+  return ids;
 }
 
 function teachingPlan(adventure, units, count) {
@@ -638,4 +649,4 @@ function runFinish(opts) {
   });
 }
 
-module.exports = { runFinish: runFinish, renderHtml: renderHtml, checkSupport: checkSupport, checkSentenceSupport: checkSentenceSupport, checkResearchRules: checkResearchRules, ruleContext: ruleContext, finalPackRow: finalPackRow, visualUnits: visualUnits, teachingPlan: teachingPlan, stampTeachingVisuals: stampTeachingVisuals, teachingVisionRow: teachingVisionRow, applyOf: applyOf, questionsOf: questionsOf, pupilTextItems: pupilTextItems, teachingPairs: teachingPairs, usedPack: usedPack, chooseAssets: chooseAssets, imagePromptFor: imagePromptFor, IMAGE_MODEL: IMAGE_MODEL, IMAGE_SIZE: IMAGE_SIZE, IMAGE_QUALITY: IMAGE_QUALITY };
+module.exports = { runFinish: runFinish, renderHtml: renderHtml, checkSupport: checkSupport, checkSentenceSupport: checkSentenceSupport, checkResearchRules: checkResearchRules, ruleContext: ruleContext, finalPackRow: finalPackRow, visualUnits: visualUnits, unitBeatIds: unitBeatIds, teachingPlan: teachingPlan, stampTeachingVisuals: stampTeachingVisuals, teachingVisionRow: teachingVisionRow, applyOf: applyOf, questionsOf: questionsOf, pupilTextItems: pupilTextItems, teachingPairs: teachingPairs, usedPack: usedPack, chooseAssets: chooseAssets, imagePromptFor: imagePromptFor, IMAGE_MODEL: IMAGE_MODEL, IMAGE_SIZE: IMAGE_SIZE, IMAGE_QUALITY: IMAGE_QUALITY };
