@@ -39,10 +39,14 @@ function packetFor(run, frozenTest, brain) {
   var selection = brain.selectPackForLesson(pack, c);
   var selected = {};
   (selection.claimIds || []).forEach(function (id) { selected[id] = 1; });
+  // When the frozen code's selection is blocked there is no selected set. The
+  // flag is then null ("n/a") and the scorer treats every admitted claim as in
+  // scope, so the rubric is not silently narrowed by a gate outcome.
+  var selectionAvailable = selection.status !== "blocked";
   var claims = pack.claims.map(function (claim, i) {
     var k = "K" + (i + 1);
     idMap[k] = claim.claimId;
-    return { id: k, text: claim.text, selectedForLesson: !!selected[claim.claimId] };
+    return { id: k, text: claim.text, selectedForLesson: selectionAvailable ? !!selected[claim.claimId] : null };
   });
   var rev = {};
   Object.keys(idMap).forEach(function (k) { rev[idMap[k]] = k; });
@@ -59,6 +63,7 @@ function packetFor(run, frozenTest, brain) {
   return {
     packet: Object.assign(base, {
       packProduced: true,
+      selectionNote: selectionAvailable ? "" : "Code selection is not available for this packet. Treat every admitted claim as selected (in scope for units and for the S3 = 0 check).",
       claims: claims,
       units: units,
       vocabulary: (pack.vocabulary || []).map(function (v) { return { term: v.term, gloss: v.gloss }; })
@@ -75,8 +80,10 @@ function packetMarkdown(id, p) {
   p.units.forEach(function (u) {
     lines.push("### " + u.unit, "- **Element:** " + (u.element ? u.element.id + ": \"" + u.element.text + "\"" : "(" + u.elementNote + ")"), "- **Feature phrase:** \"" + u.featurePhrase + "\"", "- **Explanation:** " + u.explanation.id + ": \"" + u.explanation.text + "\"", "");
   });
-  lines.push("## All admitted claims", "", "| Id | Selected for lesson | Text |", "|---|---|---|");
-  p.claims.forEach(function (c) { lines.push("| " + c.id + " | " + (c.selectedForLesson ? "yes" : "no") + " | " + c.text.replace(/\|/g, "/") + " |"); });
+  lines.push("## All admitted claims", "");
+  if (p.selectionNote) lines.push(p.selectionNote, "");
+  lines.push("| Id | Selected for lesson | Text |", "|---|---|---|");
+  p.claims.forEach(function (c) { lines.push("| " + c.id + " | " + (c.selectedForLesson === null ? "n/a" : (c.selectedForLesson ? "yes" : "no")) + " | " + c.text.replace(/\|/g, "/") + " |"); });
   if (p.vocabulary.length) {
     lines.push("", "## Vocabulary", "");
     p.vocabulary.forEach(function (v) { lines.push("- **" + v.term + "**: " + (v.gloss || "")); });
