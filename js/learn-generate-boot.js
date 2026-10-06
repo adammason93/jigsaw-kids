@@ -51,15 +51,14 @@ async function callModel(brief, apiKey, model, timeoutMs, temperature) {
       method: "POST",
       signal: control.signal,
       headers: { Authorization: "Bearer " + apiKey, "Content-Type": "application/json" },
-      body: JSON.stringify({
+      body: JSON.stringify(Object.assign({
         model,
-        temperature: typeof temperature === "number" ? temperature : 0.4,
         response_format: { type: "json_object" },
         messages: [
           { role: "system", content: brief.system },
           { role: "user", content: brief.user }
         ]
-      })
+      }, /^(?:gpt-5|gpt-6|o\d)/.test(String(model)) ? { reasoning_effort: "low", max_completion_tokens: 16e3 } : { temperature: typeof temperature === "number" ? temperature : 0.4 }))
     });
     if (!response.ok) {
       const failed = new Error("provider");
@@ -343,7 +342,7 @@ globalThis.handleGenerate = async (req) => {
           learningGoal: intent.learningGoal || "",
           requiredEvidence: intent.requiredEvidence || "",
           focusConcepts: intent.focusConcepts || []
-        }, { fetch, providers, maxSources: 8 });
+        }, { fetch, providers, maxSources: 12 });
       } catch (error) {
         researchError = String(error && error.message || error).slice(0, 120);
       }
@@ -365,23 +364,56 @@ globalThis.handleGenerate = async (req) => {
       ctx.researchEvidence = research;
     }
     phase = "KNOWLEDGE_GROUNDING";
+    // EXPERIMENTAL, research mode only: the knowledge, entailment and source-repair calls use
+    // LESSON_RESEARCH_MODEL (default gpt-6-luna). This is not a production model switch; with
+    // LESSON_RESEARCH unset every call keeps LESSON_MODEL.
+    const knowledgeModel = ctx.researchEvidence ? ((Deno.env.get("LESSON_RESEARCH_MODEL") ?? "").trim() || "gpt-6-luna") : model;
     const packStarted = Date.now();
-    const rawPack = await callModel(brain.knowledgePackBrief(ctx), apiKey, model, ctx.researchEvidence ? 9e4 : 14e3, 0);
-    const packMs = Date.now() - packStarted;
-    const pack = brain.normaliseKnowledgePack(rawPack, ctx);
-    if (pack.sourceMode === "retrieved" && pack.status !== "blocked") {
+    const rawPack = await callModel(brain.knowledgePackBrief(ctx), apiKey, knowledgeModel, ctx.researchEvidence ? 9e4 : 14e3, 0);
+    let packMs = Date.now() - packStarted;
+    let pack = brain.normaliseKnowledgePack(rawPack, ctx);
+    const entail = async (candidate, pass) => {
+      if (candidate.sourceMode !== "retrieved" || candidate.status === "blocked") return;
       const entailStarted = Date.now();
       let entailment = { ok: false, results: {} };
       try {
-        entailment = brain.parseSourceEntailment(await callModel(brain.sourceEntailmentBrief(pack, ctx), apiKey, model, 6e4, 0));
+        entailment = brain.parseSourceEntailment(await callModel(brain.sourceEntailmentBrief(candidate, ctx), apiKey, knowledgeModel, 6e4, 0));
       } catch (_entailError) {
         entailment = { ok: false, results: {} };
       }
-      brain.applySourceEntailment(pack, entailment);
-      logMeta({ stage: "SOURCE_ENTAILMENT", attemptId, model, entailMs: Date.now() - entailStarted, ran: !!entailment.ok, counts: pack.sourceAudit && pack.sourceAudit.entailment || null, label: brain.SOURCE_SUPPORT_LABEL });
+      brain.applySourceEntailment(candidate, entailment);
+      logMeta({ stage: "SOURCE_ENTAILMENT", attemptId, model: knowledgeModel, pass, entailMs: Date.now() - entailStarted, ran: !!entailment.ok, counts: candidate.sourceAudit && candidate.sourceAudit.entailment || null, label: brain.SOURCE_SUPPORT_LABEL });
+    };
+    await entail(pack, "first");
+    let selection = brain.selectPackForLesson(pack, ctx);
+    let readiness = brain.assessPackReadiness(pack, selection, ctx);
+    // One source repair, research mode only: the exact rejections go back to the knowledge
+    // step once. The repaired pack passes the same quote check, entailment and readiness gate.
+    const repairable = pack.sourceMode === "retrieved" && !pack.falsePremise && (pack.status !== "blocked" || pack.needsSource);
+    if (repairable && (readiness.status !== "ready" || pack.status === "blocked")) {
+      const feedback = brain.sourceRepairFeedback(pack, selection, readiness, ctx);
+      logMeta({ stage: "PACK_SOURCE_REPAIR", attemptId, model: knowledgeModel, firstPass: { status: pack.status, readyPairs: readiness.distinctReady, requiredPairs: readiness.requiredPairs }, feedback: feedback.map((row) => ({ problem: row.problem, item: String(row.item || "").slice(0, 120) })) });
+      try {
+        const repairStarted = Date.now();
+        const rawRepair = await callModel(brain.sourceRepairBrief(pack, selection, readiness, ctx), apiKey, knowledgeModel, 9e4, 0);
+        const repaired = brain.normaliseKnowledgePack(rawRepair, ctx);
+        await entail(repaired, "repair");
+        const repairedSelection = brain.selectPackForLesson(repaired, ctx);
+        const repairedReadiness = brain.assessPackReadiness(repaired, repairedSelection, ctx);
+        // Both packs passed the same quote check, entailment and gate. A repair that loses
+        // ready pairs is not used; the first pack (and its verdict) stands.
+        const keptFirst = repairedReadiness.distinctReady < readiness.distinctReady && pack.status !== "blocked";
+        if (!keptFirst) {
+          pack = repaired;
+          selection = repairedSelection;
+          readiness = repairedReadiness;
+        }
+        packMs += Date.now() - repairStarted;
+        logMeta({ stage: "PACK_SOURCE_REPAIR_RESULT", attemptId, model: knowledgeModel, status: repaired.status, readyPairs: repairedReadiness.distinctReady, requiredPairs: repairedReadiness.requiredPairs, keptFirst });
+      } catch (_repairError) {
+        logMeta({ stage: "PACK_SOURCE_REPAIR_RESULT", attemptId, model: knowledgeModel, failed: true });
+      }
     }
-    const selection = brain.selectPackForLesson(pack, ctx);
-    const readiness = brain.assessPackReadiness(pack, selection, ctx);
     const packReadiness = {
       status: readiness.status,
       requiredPairs: readiness.requiredPairs,
@@ -395,7 +427,7 @@ globalThis.handleGenerate = async (req) => {
       })),
       missing: (readiness.missing || []).slice(0, 8)
     };
-    logMeta({ stage: "KNOWLEDGE_PACK", attemptId, model, packMs, packReadiness, ...brain.knowledgePackLog(pack, selection) });
+    logMeta({ stage: "KNOWLEDGE_PACK", attemptId, model: knowledgeModel, packMs, packReadiness, ...brain.knowledgePackLog(pack, selection) });
     if (pack.status === "blocked" || selection.status === "blocked") {
       logMeta({
         stage: "KNOWLEDGE_BLOCKED",

@@ -138,7 +138,7 @@ assert.ok(/Do not use your own knowledge/.test(entailBrief.system));
 // Regression (live run 1): a link the quote does not state is unsupported, and a mechanism needs its own explaining quote.
 assert.ok(/Two facts that the quote only lists side by side do not support a link/.test(entailBrief.system));
 assert.ok(/A quote that only names or lists the feature does not support a mechanism/.test(brief.system));
-var verdicts = admitted.map(function (c) { return { claimId: c.claimId, verdict: "supported", missing: "" }; });
+var verdicts = admitted.map(function (c) { return { claimId: c.claimId, verdict: "supported", missing: "", linkQuote: c.sourceQuote, wording: c.wordsNotInSource || [] }; });
 var parsed = Brain.parseSourceEntailment({ results: verdicts.concat([{ claimId: "x", verdict: "certain" }]) });
 assert.strictEqual(parsed.ok, true);
 assert.strictEqual(parsed.results.x, undefined);

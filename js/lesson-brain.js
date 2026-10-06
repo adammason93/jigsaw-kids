@@ -453,6 +453,7 @@
       ok: true,
       refs: ordered,
       quote: quote,
+      passageText: String(passages[matched].text || ""),
       urls: ordered.map(function (id) { return clean(passages[id].url, 300); }),
       titles: ordered.map(function (id) { return clean(passages[id].title, 160); })
     };
@@ -468,6 +469,21 @@
     });
   }
 
+  // Sentences in the passages that state a cause, purpose or result in their own words.
+  // Listing them points the model at quotes that can carry a mechanism; it adds no fact and
+  // changes no check (the link gate still reads the quote the model picks).
+  function linkSentencesForBrief(ctx) {
+    var out = [];
+    researchPassagesForBrief(ctx).forEach(function (item) {
+      String(item.text || "").split(/(?<=[.!?])\s+(?=[A-Z"'(])/).forEach(function (sentence) {
+        var text = clean(sentence, 320);
+        if (out.length >= 40 || text.split(/\s+/).length < 6 || !quoteStatesLink(text)) return;
+        out.push({ sourceRef: item.id, sentence: text });
+      });
+    });
+    return out;
+  }
+
   function researchPackBrief(ctx) {
     return {
       system: [
@@ -477,7 +493,8 @@
         "Every claim, mechanism, and vocabulary item carries sourceRef, an array of one or two passage ids from sources, and quote, one contiguous extract of 6 to 40 words copied character for character from one cited passage that supports the claim. Do not join extracts, do not use an ellipsis, and do not change words inside the quote. Code checks the quote against the passage. A claim whose quote is not found in a cited passage is dropped.",
         "The claim text may use simpler words for the year group, but it must keep the meaning of the quote and must not add anything the quote does not say. Keep a hedge such as may, probably, or scientists think when the source hedges.",
         "Write a knowledge pack with more claims than one lesson will teach. A later step selects a subset for the year, the goal, and the duration. Each claim is one sentence a teacher could check against its quote. Tag depth as concrete, mechanism, or system.",
-        "teacherIntent.learningGoal is the objective. Aim the pack at that objective while staying inside the teacher's topic. strandPairsRequired is how many distinct feature-and-explanation pairs this lesson needs. A pair is two separate claims. The feature claim is concrete and names one feature, part, or piece of evidence in at least six words. The mechanism claim says how or why that same feature works or what it shows, and it states the link in words such as because, so that, so it could, which lets, which means, or allowed. A sentence that only names the feature, or only says it helped, is not the explanation. Both claims of a pair cite passages that support them. The mechanism's own quote must state the how or why, for example what the feature was used for, what it did, or why it worked. A quote that only names or lists the feature does not support a mechanism, even when the feature claim uses the same quote. Do not add a purpose, cause, or result that the quote does not state. If no passage states how or why a feature works, leave that pair out.",
+        "teacherIntent.learningGoal is the objective. Aim the pack at that objective while staying inside the teacher's topic. strandPairsRequired is how many distinct feature-and-explanation pairs this lesson needs. A pair is two separate claims. The feature claim is concrete and names one feature, part, or piece of evidence in at least six words. The mechanism claim says how or why that same feature works or what it shows, and it states the link in words such as because, so that, so it could, which lets, which means, or allowed. A sentence that only names the feature, or only says it helped, is not the explanation. Both claims of a pair cite passages that support them. The mechanism's own quote must state the how or why, for example what the feature was used for, what it did, or why it worked. A quote that only names or lists the feature does not support a mechanism, even when the feature claim uses the same quote. Do not add a purpose, cause, or result that the quote does not state. If no passage states how or why a feature works, leave that pair out. Write the mechanism with the working part and what it does, the way a passage states it, for example \"long legs let them take longer strides, so they could run faster\", but only when a passage says so. \"X helped them Y\" on its own does not say how: write what the feature did, using the passage's own link words such as allowed, let, so, because, or used to. A claim that links two facts needs a quote that states that link; two facts a passage only lists side by side are not a link.",
+        "linkSentences lists sentences from the passages that state a cause, purpose, or result in their own words. A mechanism quote should come from one of them or from another sentence that states the link itself. A feature claim says only what its own quote says; do not add a detail from the next sentence.",
         "mechanisms repeats each mechanism claim with the same text, sourceRef, and quote, plus feature: a short phrase of two to four words copied from its feature claim. The words of that feature phrase must appear in the feature claim and the mechanism claim, and in no other claim, so the pair is unambiguous. Each pair must be a different teaching idea about a different feature. Supply strandPairsRequired pairs when the passages support them. If the passages support fewer, supply fewer. Never invent a feature or a function to reach the number.",
         "ageFit is { from, to } using years 1 to 6. Concrete claims can start at Year 1. A simple mechanism may start at Year 2. A harder mechanism starts at Year 3 or 4. A system claim starts at Year 5 or 6. Leave out passage content that is not suitable for the requested year, such as graphic injury or frightening detail.",
         "provenance is retrieved for every claim. factuallyVerified must be false: a quote shows where a claim came from, and it is not human verification. confidence is high, medium, or low, and it is not evidence. teacherRequested is true only when the teacher asked for that specific claim.",
@@ -495,6 +512,7 @@
         teacherIntent: (ctx.lessonBrief && ctx.lessonBrief.teacherIntent) || null,
         strandPairsRequired: strandsRequiredFor(ctx),
         sources: researchPassagesForBrief(ctx),
+        linkSentences: linkSentencesForBrief(ctx),
         curriculumContext: "England primary. The curriculum note is planning guidance only. It is not a factual source in this step."
       })
     };
@@ -508,17 +526,38 @@
       return claim && claim.provenance === "retrieved" && claim.quoteVerified;
     }).slice(0, 24).map(function (claim) {
       var first = passages[(claim.sourceRef || [])[0]] || {};
-      return { claimId: claim.claimId, claim: claim.text, quote: claim.sourceQuote, passage: clean(first.text, 1600) };
+      var item = { claimId: claim.claimId, claim: claim.text, quote: claim.sourceQuote, passage: clean(first.text, 1600) };
+      if ((claim.wordsNotInSource || []).length) item.wordsNotInSource = claim.wordsNotInSource.slice();
+      return item;
     });
     return {
       system: [
         "You check whether a source extract supports a sentence written for a primary lesson. Return one JSON object and nothing else.",
         "For each item, read quote and its passage. verdict is supported only when the quote, read in its passage, states everything the claim says. Simpler wording for children is fine when the meaning is the same. verdict is partial when part of the claim is supported and part is added. verdict is unsupported when the claim adds a fact, number, name, cause, purpose, or generalisation the quote does not state, drops a hedge the source keeps, or contradicts it. When the claim links two things with which, so, because, helped, allowed, or to, the quote must state that link. Two facts that the quote only lists side by side do not support a link between them.",
         "Do not use your own knowledge to fill a gap. Do not judge whether the claim is true in the world, only whether this quote supports it.",
-        "JSON shape: { \"results\": [{ \"claimId\": \"\", \"verdict\": \"supported\" or \"partial\" or \"unsupported\", \"missing\": \"\" }] }."
+        "linkQuote: when the claim states a purpose, cause, result, or how-or-why link and you judge it supported, copy the exact words from quote (at least five, no ellipsis) that state that link. Code checks them. Otherwise linkQuote is an empty string.",
+        "wordsNotInSource lists claim words that appear in neither the quote nor its passage. Put each one either in wording, when it is only simpler wording for words in the quote, or in addedFacts, when the claim uses it to state something the quote does not say (for example a place, a part, a habit, a speed, or a purpose). A claim with any addedFacts is not supported. A word you do not place counts as added.",
+        "JSON shape: { \"results\": [{ \"claimId\": \"\", \"verdict\": \"supported\" or \"partial\" or \"unsupported\", \"missing\": \"\", \"linkQuote\": \"\", \"wording\": [], \"addedFacts\": [] }] }."
       ].join(" "),
       user: JSON.stringify({ items: items })
     };
+  }
+
+  // Claim words that appear in neither the quote nor its passage (topic words aside). The
+  // entailment step must account for each one as simpler wording; anything else holds the
+  // claim (live case: "Dinosaurs laid eggs in nests" from "Like other reptiles, they laid
+  // eggs.", where the passage never mentions nests).
+  var SOURCE_WORD_STOP = { the: 1, and: 1, that: 1, this: 1, with: 1, from: 1, into: 1, they: 1, them: 1, their: 1, there: 1, these: 1, those: 1, were: 1, have: 1, been: 1, being: 1, some: 1, many: 1, most: 1, more: 1, much: 1, very: 1, also: 1, than: 1, then: 1, which: 1, what: 1, when: 1, where: 1, while: 1, would: 1, could: 1, should: 1, might: 1, about: 1, other: 1, such: 1, like: 1, each: 1, every: 1, only: 1, just: 1, does: 1, did: 1, done: 1, make: 1, made: 1, makes: 1, help: 1, helps: 1, helped: 1, helping: 1, lets: 1, allowed: 1, allow: 1, allows: 1, because: 1, over: 1, onto: 1, upon: 1, your: 1, its: 1, it: 1 };
+  function sourceWords(text) {
+    return String(text || "").toLowerCase().replace(/[\u2019']s\b/g, "").split(/[^a-z]+/).filter(function (word) { return word.length >= 4 && !SOURCE_WORD_STOP[word]; });
+  }
+  function sourceStem(word) { return word.replace(/ies$/, "y").replace(/(?:es|s|ed|ing|ly)$/, "").slice(0, 5); }
+  function wordsNotInSource(claimText, quote, passageText, topic) {
+    var have = {};
+    sourceWords([quote, passageText, topic].join(" ")).forEach(function (word) { have[sourceStem(word)] = 1; });
+    var out = [];
+    sourceWords(claimText).forEach(function (word) { if (!have[sourceStem(word)] && out.indexOf(word) === -1) out.push(word); });
+    return out.slice(0, 12);
   }
 
   function parseSourceEntailment(raw) {
@@ -531,10 +570,23 @@
       var id = clean(row.claimId, 40);
       var verdict = clean(row.verdict, 20).toLowerCase();
       if (!id || (verdict !== "supported" && verdict !== "partial" && verdict !== "unsupported")) return;
-      out[id] = { verdict: verdict, missing: clean(row.missing, 200) };
+      function list(value) { return (Array.isArray(value) ? value : []).map(function (word) { return clean(word, 40).toLowerCase(); }).filter(Boolean).slice(0, 20); }
+      out[id] = { verdict: verdict, missing: clean(row.missing, 200), linkQuote: clean(row.linkQuote, 300), wording: list(row.wording), addedFacts: list(row.addedFacts) };
     });
     return { ok: true, results: out };
   }
+
+  // A claim that links a feature to a purpose, cause or result needs a quote that states
+  // that link itself. Two facts that a passage only lists side by side (for example
+  // "had feathers, and were probably warm-blooded") do not support "feathers helped
+  // them stay warm". This runs in code after the model verdict and can only hold a claim.
+  var CLAIM_LINK = /\b(?:because|so that|so (?:it|they|that|the|its|their)\b|which (?:may have |might have |probably )?(?:help(?:ed|s)?|let|lets|allowed|allows|meant|means|made|makes|kept|keeps|gave|gives|enabled|enables)|help(?:ed|s)?|help (?:it|them)|allow(?:s|ed|ing)?|enabl(?:e|es|ed|ing)|lets? (?:it|them|the|a)|in order to|to help|for (?:protection|defen[cs]e|safety)|used (?:for|to)|as a result|caus(?:e|es|ed|ing)|therefore|thanks to|meaning|made it possible)\b/i;
+  var QUOTE_LINK = /\b(?:because|so that|so (?:it|they|that|the|its|their)\b|which (?:may have |might have |probably )?(?:help(?:ed|s)?|let|lets|allowed|allows|meant|means|made|makes|kept|keeps|gave|gives|enabled|enables)|help(?:ed|s)?|help(?:ing)? (?:it|them|to)|allow(?:s|ed|ing)?|enabl(?:e|es|ed|ing)|lets? (?:it|them|the|a)|in order to|to help|for (?:protection|defen[cs]e|safety|eating|fighting|display)|used (?:for|to|as)|as a result|caus(?:e|es|ed|ing)|therefore|thus|hence|thanks to|meaning|made it possible|reasons?|why|this (?:allowed|meant|made|let|help(?:ed)?|gave|would|means|makes|lets)|would (?:make|have|help|allow)|gave (?:it|them)|to (?:protect|defend|reach|catch|eat|grind|crush|slice|tear|cut|support|keep|stay|run|move|attract|show|scare|fight|hunt|find|breathe|cool|warm|walk|swim|fly|bite|chew|hold|carry|balance|signal|communicate))\b/i;
+
+  // The link words a linkQuote must contain: QUOTE_LINK without its bare "to + verb" branch.
+  var LINK_WORDS = new RegExp(QUOTE_LINK.source.replace(/\|to \(\?:protect[^)]*\)\)\\b$/, ")\\b"), "i");
+  function claimStatesLink(text) { return CLAIM_LINK.test(String(text || "")); }
+  function quoteStatesLink(text) { return QUOTE_LINK.test(String(text || "")); }
 
   function applySourceEntailment(pack, parsed) {
     if (!pack || pack.sourceMode !== "retrieved") return pack;
@@ -544,8 +596,38 @@
       if (claim.provenance !== "retrieved") return;
       var row = results[claim.claimId];
       var verdict = row ? row.verdict : "unchecked";
+      var note = row ? row.missing : "no entailment verdict was returned";
+      if (verdict === "supported" && claimStatesLink(claim.text) && !quoteStatesLink(claim.sourceQuote)) {
+        verdict = "unsupported";
+        note = "LINK_NOT_IN_QUOTE: the claim states a purpose, cause or result, and the quote does not state that link.";
+        counts.linkHeld = (counts.linkHeld || 0) + 1;
+      }
+      // Link-quote rule: a how/why claim needs the exact passage words that state the link.
+      // They must sit inside the claim's own verified quote and use link words themselves.
+      if (verdict === "supported" && claimStatesLink(claim.text)) {
+        var linkQuote = row && row.linkQuote || "";
+        var linkOk = linkQuote.split(/\s+/).filter(Boolean).length >= 5 && quoteKey(claim.sourceQuote).indexOf(quoteKey(linkQuote)) !== -1 && LINK_WORDS.test(linkQuote);
+        if (linkOk) claim.linkQuote = linkQuote;
+        else {
+          verdict = "partial";
+          note = "LINK_NOT_QUOTED: the check did not give words from the quote that state the how-or-why link" + (linkQuote ? " (gave \"" + clean(linkQuote, 120) + "\")" : "") + ".";
+          counts.linkNotQuoted = (counts.linkNotQuoted || 0) + 1;
+        }
+      }
+      // Added-detail rule: every claim word absent from the quote and passage must be
+      // accounted for as simpler wording.
+      if (verdict === "supported" && (claim.wordsNotInSource || []).length) {
+        var wording = (row && row.wording) || [];
+        var addedFacts = (row && row.addedFacts) || [];
+        var unexplained = claim.wordsNotInSource.filter(function (word) { return wording.indexOf(word) === -1 || addedFacts.indexOf(word) !== -1; });
+        if (unexplained.length) {
+          verdict = "partial";
+          note = "ADDED_DETAIL: the claim adds words its source does not state (" + unexplained.join(", ") + ").";
+          counts.addedDetail = (counts.addedDetail || 0) + 1;
+        }
+      }
       claim.entailment = verdict;
-      claim.entailmentNote = row ? row.missing : "no entailment verdict was returned";
+      claim.entailmentNote = note;
       counts[verdict] += 1;
       if (verdict === "supported") {
         claim.sourceSupport = SOURCE_SUPPORT_LABEL;
@@ -568,6 +650,86 @@
       pack.statusReason = "NEEDS_SOURCE: no retrieved claim passed the quote check and the automated entailment check.";
     }
     return pack;
+  }
+
+  function closestSentence(quote, text) {
+    var want = quoteKey(quote).split(/[^a-z0-9']+/).filter(function (w) { return w.length > 2; });
+    if (!want.length) return "";
+    var best = "";
+    var bestScore = 0;
+    String(text || "").split(/(?<=[.!?])\s+/).forEach(function (sentence) {
+      var have = quoteKey(sentence);
+      var score = want.filter(function (w) { return have.indexOf(w) !== -1; }).length / want.length;
+      if (score > bestScore) { bestScore = score; best = sentence.trim(); }
+    });
+    return bestScore >= 0.5 ? clean(best, 400) : "";
+  }
+
+  // The exact reasons each item failed, for one source-repair call. Feedback only: the
+  // repaired pack goes back through the same quote check, entailment and readiness gate.
+  function sourceRepairFeedback(pack, selection, readiness, ctx) {
+    var passages = researchPassages(ctx) || {};
+    var rows = [];
+    ((pack && pack.sourceAudit && pack.sourceAudit.rejected) || []).forEach(function (row) {
+      var item = { item: row.text, problem: row.reason, cited: row.sourceRef || [], quoteGiven: row.quote || "" };
+      if (row.reason === "QUOTE_NOT_FOUND" || row.reason === "UNRESOLVED_SOURCE") {
+        var elsewhere = Object.keys(passages).filter(function (id) { return row.quote && quoteInPassage(row.quote, passages[id].text).ok; });
+        if (elsewhere.length) {
+          item.problem = "WRONG_PASSAGE";
+          item.fix = "The quote is in " + elsewhere.join(", ") + ", not in the cited passage. Cite the passage that contains it.";
+        } else {
+          var near = "";
+          (row.sourceRef || []).some(function (id) { near = passages[id] ? closestSentence(row.quote, passages[id].text) : ""; return !!near; });
+          item.problem = row.reason === "UNRESOLVED_SOURCE" ? "UNRESOLVED_SOURCE" : "REWORDED_QUOTE";
+          item.fix = near
+            ? "The quote was reworded. The closest sentence in the cited passage is: \"" + near + "\". Copy a quote character for character, or drop the item if that sentence does not support it."
+            : "No cited passage contains this quote. Copy a quote character for character from a passage that supports the item, or drop the item.";
+        }
+      } else if (row.reason === "QUOTE_NOT_CONTIGUOUS") {
+        item.fix = "Use one contiguous extract with no ellipsis.";
+      } else if (row.reason === "QUOTE_TOO_SHORT") {
+        item.fix = "Use a quote of at least six words.";
+      }
+      rows.push(item);
+    });
+    ((pack && pack.claims) || []).forEach(function (claim) {
+      if (claim.provenance !== "retrieved" || !claim.sourceHold) return;
+      rows.push({
+        item: claim.text,
+        claimId: claim.claimId,
+        problem: "ENTAILMENT_" + String(claim.entailment || "unchecked").toUpperCase(),
+        cited: claim.sourceRef || [],
+        quoteGiven: claim.sourceQuote || "",
+        fix: (claim.entailmentNote ? claim.entailmentNote + " " : "") + "Rewrite the claim so it says only what the quote states, or cite a quote that states the link, or drop it."
+      });
+    });
+    ((readiness && readiness.pairs) || []).forEach(function (pair) {
+      if (pair.ready) return;
+      rows.push({
+        item: pair.explanation || "",
+        problem: "PAIR_NOT_READY",
+        feature: pair.feature || "",
+        gaps: (pair.gaps || []).slice(0, 4),
+        fix: "A mechanism must state how or why the feature works, in words such as because, so it could, which lets, allowed, or let, as the passage states it. \"Helped\" on its own does not state a mechanism. The feature phrase must appear in exactly one concrete feature claim."
+      });
+    });
+    return rows.slice(0, 40);
+  }
+
+  function sourceRepairBrief(pack, selection, readiness, ctx) {
+    var first = researchPackBrief(ctx);
+    var previous = ((pack && pack.claims) || []).map(function (claim) {
+      return { claimId: claim.claimId, text: claim.text, depth: claim.depth, ageFit: claim.ageFit || null, sourceRef: claim.sourceRef || [], quote: claim.sourceQuote || "", entailment: claim.entailment || "", held: !!claim.sourceHold };
+    });
+    var readyPairs = ((readiness && readiness.pairs) || []).filter(function (pair) { return pair.ready; }).map(function (pair) { return { feature: pair.feature, featureClaimId: pair.featureClaimId, explanation: pair.explanation }; });
+    var user = JSON.parse(first.user);
+    user.previousPack = { claims: previous, mechanisms: ((pack && pack.mechanisms) || []).map(function (m) { return { text: m.text, feature: m.feature }; }) };
+    user.rejections = sourceRepairFeedback(pack, selection, readiness, ctx);
+    user.readiness = { requiredPairs: readiness && readiness.requiredPairs, readyPairCount: readiness && readiness.distinctReady, readyPairs: readyPairs };
+    return {
+      system: first.system + " This is the single repair of a knowledge pack that failed checks. rejections lists each failed item with the exact problem and how to fix it. Return a complete new knowledge pack in the same JSON shape. Copy every claim that passed (held is false and it is not in rejections) and every pair in readiness.readyPairs unchanged, with the same text, sourceRef, quote, and ageFit. Fix an item only from the sources; if the sources cannot support it, drop it. The repaired pack goes through the same quote check, entailment check, and readiness check. There is no further repair.",
+      user: JSON.stringify(user)
+    };
   }
 
   function knowledgePackBrief(ctx) {
@@ -923,6 +1085,7 @@
         entry.sourceUrls = sourced.urls.slice();
         entry.sourceTitles = sourced.titles.slice();
         entry.quoteVerified = true;
+        entry.wordsNotInSource = wordsNotInSource(entry.text, sourced.quote, sourced.passageText, ctx && ctx.topic);
         entry.entailment = "pending";
         entry.sourceSupport = "quote-verified; automated entailment check pending";
         entry.sourceHold = true;
@@ -8056,6 +8219,10 @@
     sourceEntailmentBrief: sourceEntailmentBrief,
     parseSourceEntailment: parseSourceEntailment,
     applySourceEntailment: applySourceEntailment,
+    sourceRepairBrief: sourceRepairBrief,
+    sourceRepairFeedback: sourceRepairFeedback,
+    claimStatesLink: claimStatesLink,
+    quoteStatesLink: quoteStatesLink,
     SOURCE_SUPPORT_LABEL: SOURCE_SUPPORT_LABEL,
     knowledgeTrace: knowledgeTrace,
     conceptCoverageIssues: conceptCoverageIssues,

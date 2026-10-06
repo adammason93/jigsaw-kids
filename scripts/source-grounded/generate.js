@@ -7,7 +7,8 @@
    the lesson is whatever the boot returns.
 
    Usage: OPENAI_API_KEY=... node scripts/source-grounded/generate.js --out DIR --cap USD
-          [--research wikipedia,openai] [--attempt NAME]
+          [--research wikipedia,openai] [--attempt NAME] [--ledger FILE]
+   --ledger lets several runs share one ledger, so one cap covers them all.
    Writes DIR/lesson/generate-response.json, DIR/lesson/generate-trace.json,
    DIR/sources/research-record.json, DIR/sources/knowledge-pack.json. */
 
@@ -36,20 +37,22 @@ var marker = "const brain = globalThis.WondiiLessonBrain;";
 if (boot.indexOf(marker) === -1) { console.error("boot marker missing"); process.exit(1); }
 // Trace hooks only observe: they copy what the boot passes and return the original result.
 boot = boot.replace(marker, marker + "\n" + [
-  "globalThis.__sgTrace = globalThis.__sgTrace || { plans: [] };",
+  "globalThis.__sgTrace = globalThis.__sgTrace || { plans: [], packs: [], rawPacks: [] };",
   "const __sgBrief = brain.knowledgePackBrief.bind(brain);",
   "brain.knowledgePackBrief = function (ctx) { try { globalThis.__sgTrace.research = ctx && ctx.researchEvidence ? JSON.parse(JSON.stringify(ctx.researchEvidence)) : null; globalThis.__sgTrace.intent = ctx && ctx.lessonBrief ? JSON.parse(JSON.stringify(ctx.lessonBrief.teacherIntent || null)) : null; } catch (e) {} return __sgBrief(ctx); };",
   "const __sgNormPack = brain.normaliseKnowledgePack.bind(brain);",
-  "brain.normaliseKnowledgePack = function (raw, ctx) { try { globalThis.__sgTrace.rawPack = JSON.parse(JSON.stringify(raw)); } catch (e) {} return __sgNormPack(raw, ctx); };",
+  "brain.normaliseKnowledgePack = function (raw, ctx) { try { globalThis.__sgTrace.rawPacks.push(JSON.parse(JSON.stringify(raw))); } catch (e) {} return __sgNormPack(raw, ctx); };",
   "const __sgSelect = brain.selectPackForLesson.bind(brain);",
-  "brain.selectPackForLesson = function (pack, ctx) { var s = __sgSelect(pack, ctx); try { globalThis.__sgTrace.pack = JSON.parse(JSON.stringify(pack)); globalThis.__sgTrace.selection = JSON.parse(JSON.stringify(s)); } catch (e) {} return s; };",
+  "brain.selectPackForLesson = function (pack, ctx) { var s = __sgSelect(pack, ctx); try { var copy = { pack: JSON.parse(JSON.stringify(pack)), selection: JSON.parse(JSON.stringify(s)) }; var seen = globalThis.__sgTrace.packs.filter(function (row) { return row.pack.id === copy.pack.id; })[0]; if (seen) { seen.pack = copy.pack; seen.selection = copy.selection; } else globalThis.__sgTrace.packs.push(copy); } catch (e) {} return s; };",
   "const __sgNormPlan = brain.normalisePlan.bind(brain);",
   "brain.normalisePlan = function (raw, ctx) { var r = __sgNormPlan(raw, ctx); try { globalThis.__sgTrace.plans.push({ raw: JSON.parse(JSON.stringify(raw)), ok: !!(r && r.ok), issues: (r && r.issues) || [], depth: r && r.depth || null, mapRejected: r && (r.mapRejected || (r.plan && r.plan.mapRejected)) || [] }); } catch (e) {} return r; };"
 ].join("\n"));
 
-var ledgerPath = path.join(outDir, "spend-ledger.jsonl");
+var ledgerPath = path.resolve(arg("ledger", path.join(outDir, "spend-ledger.jsonl")));
 var guard = Guard.createGuard({
   capUsd: capUsd, ledgerPath: ledgerPath, redact: key,
+  // --total-cap 2.5 --base-guard USD --shared-ledgers a.jsonl,b.jsonl: refuse when the shared total would pass.
+  totalCapUsd: Number(arg("total-cap", "0")), baseGuardUsd: Number(arg("base-guard", "0")), sharedLedgers: String(arg("shared-ledgers", "")).split(",").filter(Boolean).map(function (f) { return path.resolve(f); }),
   labelFor: function (href, body) {
     if (href.indexOf("/responses") !== -1) return attempt + ":research-web-search";
     var system = body && body.messages && body.messages[0] && String(body.messages[0].content || "");
@@ -106,9 +109,13 @@ var started = Date.now();
 }).then(function (response) { return response.json(); }).then(function (body) {
   var trace = global.__sgTrace || {};
   fs.writeFileSync(path.join(outDir, "lesson/generate-response.json"), JSON.stringify(body, null, 2));
-  fs.writeFileSync(path.join(outDir, "lesson/generate-trace.json"), JSON.stringify({ attempt: attempt, request: request, researchMode: researchMode, model: "gpt-4o-mini", ok: !!body.ok, stage: body.stage || "", issues: body.issues || [], elapsedMs: Date.now() - started, stages: logs.map(function (row) { return row.stage; }), logs: logs, intent: trace.intent || null, plans: trace.plans || [], selection: trace.selection || null, outbound: outbound, spend: guard.state() }, null, 2));
+  fs.writeFileSync(path.join(outDir, "lesson/generate-trace.json"), JSON.stringify({ attempt: attempt, request: request, researchMode: researchMode, model: "gpt-4o-mini", knowledgeModel: researchMode ? "gpt-6-luna (experimental, research mode only)" : "gpt-4o-mini", ok: !!body.ok, stage: body.stage || "", issues: body.issues || [], elapsedMs: Date.now() - started, stages: logs.map(function (row) { return row.stage; }), logs: logs, intent: trace.intent || null, plans: trace.plans || [], outbound: outbound, spend: guard.state() }, null, 2));
   if (trace.research) fs.writeFileSync(path.join(outDir, "sources/research-record.json"), JSON.stringify(trace.research, null, 2));
-  if (trace.pack) fs.writeFileSync(path.join(outDir, "sources/knowledge-pack.json"), JSON.stringify({ rawModelPack: trace.rawPack || null, normalisedPack: trace.pack, selection: trace.selection || null }, null, 2));
+  // The pack the boot used is the one named in the KNOWLEDGE_PACK log (the repair may be kept or not).
+  var used = logs.filter(function (row) { return row.stage === "KNOWLEDGE_PACK"; })[0];
+  var packs = trace.packs || [];
+  var finalRow = packs.filter(function (row) { return used && row.pack.id === used.packId; })[0] || packs[packs.length - 1];
+  if (finalRow) fs.writeFileSync(path.join(outDir, "sources/knowledge-pack.json"), JSON.stringify({ rawModelPacks: trace.rawPacks || [], normalisedPack: finalRow.pack, selection: finalRow.selection, allPacks: packs.map(function (row) { return { packId: row.pack.id, pack: row.pack, selection: row.selection }; }) }, null, 2));
   console.log = originalLog;
   console.log(JSON.stringify({ ok: !!body.ok, stage: body.stage || "", issues: (body.issues || []).slice(0, 6), elapsedMs: Date.now() - started, spend: guard.state() }, null, 1));
 }).catch(function (error) {

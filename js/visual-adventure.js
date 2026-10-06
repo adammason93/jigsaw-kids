@@ -962,6 +962,16 @@
     return "";
   }
 
+  // Deep-time topics: the explorer characters are present-day people, and no person ever saw a
+  // living dinosaur. A scene with people shows the past only as fossils, skeletons or models.
+  var DEEP_TIME = /\b(?:dinosaurs?|prehistoric|fossils?|jurassic|cretaceous|triassic|mesozoic|pterosaurs?|ichthyosaurs?|plesiosaurs?|sauropods?|palaeontolog\w*|paleontolog\w*)\b/i;
+
+  function periodGuard(adventure) {
+    var text = [adventure && adventure.topic, adventure && adventure.subject, adventure && adventure.title].join(" ");
+    if (!DEEP_TIME.test(text)) return "";
+    return "The explorers are present-day people. Dinosaurs died out millions of years before any people lived, so never show a person beside a living dinosaur. When people are in the scene, show dinosaurs only as fossils, skeletons, or museum models. A scene of living dinosaurs has no people in it. Give every animal the body features the lesson teaches, in correct proportions.";
+  }
+
   function buildAdventurePrompt(adventure, asset, characters) {
     var shot = shotFor(asset) || {};
     var brief = (asset && asset.brief) || {};
@@ -977,6 +987,7 @@
       NO_TEXT,
       SAFETY,
       guard,
+      periodGuard(adventure),
       "Place: " + place + ".",
       continuityLine(story),
       avatarDirection(adventure),
@@ -1214,6 +1225,7 @@
     visualsAllowed: visualsAllowed,
     charactersForAdventure: charactersForAdventure,
     buildAdventurePrompt: buildAdventurePrompt,
+    periodGuard: periodGuard,
     stampActivities: stampActivities,
     scheduleVisualAssets: scheduleVisualAssets,
     attachResult: attachResult,

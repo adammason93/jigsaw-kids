@@ -280,6 +280,15 @@
 
   // Provider: OpenAI Responses API web_search with allowed-domain filters. Paid. Only the URLs
   // are used; the model's text answer and the search snippets are discarded.
+  // Focused searches: one web search call per group of teaching sites, so one site cannot
+  // fill every slot and children's teaching sites get a turn. Groups are allowlist ids; a
+  // group whose ids are not on the allowlist is skipped. Reusable for any topic.
+  var SEARCH_GROUPS = [
+    { ids: ["nhm"], focus: "Natural History Museum pages (nhm.ac.uk) that explain how the parts or features in this topic worked or what they were used for, and how scientists know (the evidence, and how it forms or is found)." },
+    { ids: ["bitesize"], focus: "BBC Bitesize pages (bbc.co.uk/bitesize, web pages not PDFs) for primary pupils on this topic, including how we know about it." },
+    { ids: ["britannica", "natgeo-kids"], focus: "Britannica or National Geographic Kids pages that explain how the parts or features in this topic worked, and how scientists know." }
+  ];
+
   function openaiWebSearchProvider(options) {
     options = options || {};
     // gpt-4o-mini and gpt-4.1-mini both reject web_search domain filters (HTTP 400, live
@@ -287,64 +296,96 @@
     // the cheapest listed model ($0.10 in / $0.50 out per 1M tokens).
     var model = options.model || "gpt-6-luna";
     var reasoning = /^(?:gpt-5|gpt-6|o\d)/.test(model);
+    function groupsFor(allowlist) {
+      var rules = allowlist || SOURCE_ALLOWLIST;
+      if (options.focusGroups === false) return [{ domains: allowedDomains(rules), focus: "", maxToolCalls: options.maxToolCalls || 3 }];
+      return (options.focusGroups || SEARCH_GROUPS).map(function (group) {
+        var domains = rules.filter(function (rule) { return rule.domain && group.ids.indexOf(rule.id) !== -1; }).map(function (rule) { return rule.domain; });
+        return { domains: domains, focus: group.focus, maxToolCalls: options.maxToolCalls || 1 };
+      }).filter(function (group) { return group.domains.length; });
+    }
+    function searchOne(group, queries, ports, request) {
+      var input = [
+        "Find web pages that explain this primary-school topic to children, from the allowed sites only.",
+        "Topic: " + clean(request.topic, 120) + ". Year group: " + clean(request.yearGroup, 20) + ".",
+        request.learningGoal ? "Lesson objective: " + clean(request.learningGoal, 240) + "." : "",
+        request.requiredEvidence ? "The class must be able to: " + clean(request.requiredEvidence, 240) + " Prefer pages that explain how or why, not only lists of names." : "",
+        group.focus ? "Look for: " + group.focus : "Look for pages that explain how the parts or features in this topic work or what they were used for, and pages that explain how scientists know.",
+        "Search for: " + (queries || []).slice(0, 3).join("; ") + ".",
+        "Reply with a short list of the page URLs you found, one per line, and nothing else."
+      ].filter(Boolean).join("\n");
+      var body = {
+        model: model,
+        tools: [{ type: "web_search", search_context_size: "low", filters: { allowed_domains: group.domains }, user_location: { type: "approximate", country: "GB" } }],
+        tool_choice: "required",
+        max_tool_calls: group.maxToolCalls,
+        max_output_tokens: reasoning ? 2000 : 600,
+        include: ["web_search_call.action.sources"],
+        input: input
+      };
+      if (reasoning) body.reasoning = { effort: "low" };
+      return ports.fetch("https://api.openai.com/v1/responses", Object.assign({
+        method: "POST",
+        headers: { Authorization: "Bearer " + options.apiKey, "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      }, withTimeout(60000))).then(function (res) {
+        return res.text().then(function (text) {
+          var parsed = null;
+          try { parsed = JSON.parse(text); } catch (e) { parsed = null; }
+          if (!res.ok || !parsed) return { urls: [], searchCalls: 0, error: "HTTP " + res.status + " " + clean(parsed && parsed.error && parsed.error.message, 160) };
+          var urls = [];
+          var searchCalls = 0;
+          function add(url, title, how) {
+            if (!url) return;
+            var bare = String(url).replace(/[?&]utm_[^&#]*/g, "").replace(/[?&]$/, "");
+            if (urls.some(function (item) { return item.url === bare; })) return;
+            urls.push({ url: bare, title: clean(title, 160), provider: "openai-web-search", query: (queries || []).join("; "), via: how, snippetIgnored: true, group: group.domains.join(",") });
+          }
+          (parsed.output || []).forEach(function (item) {
+            if (item.type === "web_search_call") {
+              searchCalls += 1;
+              var sources = item.action && item.action.sources;
+              (sources || []).forEach(function (source) { add(source.url, source.title, "sources"); });
+            }
+            if (item.type === "message") {
+              (item.content || []).forEach(function (part) {
+                (part.annotations || []).forEach(function (note) { if (note.type === "url_citation") add(note.url, note.title, "citation"); });
+                String(part.text || "").replace(/https:\/\/[^\s)\]>"']+/g, function (found) { add(found.replace(/[.,;]+$/, ""), "", "text"); return found; });
+              });
+            }
+          });
+          return { urls: urls, searchCalls: searchCalls, usage: parsed.usage || null };
+        });
+      }).catch(function (error) { return { urls: [], searchCalls: 0, error: String(error && error.message || error) }; });
+    }
     return {
       id: "openai-web-search",
       paid: true,
       model: model,
+      groups: function (allowlist) { return groupsFor(allowlist); },
       search: function (queries, ports, request) {
         if (!options.apiKey) return Promise.resolve({ candidates: [], calls: 0, error: "no api key" });
-        var domains = allowedDomains(ports.allowlist);
-        var input = [
-          "Find web pages that explain this primary-school topic to children, from the allowed sites only.",
-          "Topic: " + clean(request.topic, 120) + ". Year group: " + clean(request.yearGroup, 20) + ".",
-          request.learningGoal ? "Lesson objective: " + clean(request.learningGoal, 240) + "." : "",
-          request.requiredEvidence ? "The class must be able to: " + clean(request.requiredEvidence, 240) + " Prefer pages that explain how or why, not only lists of names." : "",
-          "Search for: " + (queries || []).slice(0, 3).join("; ") + ".",
-          "Reply with a short list of the page URLs you found, one per line, and nothing else."
-        ].filter(Boolean).join("\n");
-        var body = {
-          model: model,
-          tools: [{ type: "web_search", search_context_size: "low", filters: { allowed_domains: domains }, user_location: { type: "approximate", country: "GB" } }],
-          tool_choice: "required",
-          max_tool_calls: options.maxToolCalls || 2,
-          max_output_tokens: reasoning ? 2000 : 600,
-          include: ["web_search_call.action.sources"],
-          input: input
-        };
-        if (reasoning) body.reasoning = { effort: "low" };
-        return ports.fetch("https://api.openai.com/v1/responses", Object.assign({
-          method: "POST",
-          headers: { Authorization: "Bearer " + options.apiKey, "Content-Type": "application/json" },
-          body: JSON.stringify(body)
-        }, withTimeout(60000))).then(function (res) {
-          return res.text().then(function (text) {
-            var parsed = null;
-            try { parsed = JSON.parse(text); } catch (e) { parsed = null; }
-            if (!res.ok || !parsed) return { candidates: [], calls: 1, error: "HTTP " + res.status + " " + clean(parsed && parsed.error && parsed.error.message, 160) };
-            var urls = [];
-            var searchCalls = 0;
-            function add(url, title, how) {
-              if (!url) return;
-              var bare = String(url).replace(/[?&]utm_[^&#]*/g, "").replace(/[?&]$/, "");
-              if (urls.some(function (item) { return item.url === bare; })) return;
-              urls.push({ url: bare, title: clean(title, 160), provider: "openai-web-search", query: (queries || []).join("; "), via: how, snippetIgnored: true });
-            }
-            (parsed.output || []).forEach(function (item) {
-              if (item.type === "web_search_call") {
-                searchCalls += 1;
-                var sources = item.action && item.action.sources;
-                (sources || []).forEach(function (source) { add(source.url, source.title, "sources"); });
-              }
-              if (item.type === "message") {
-                (item.content || []).forEach(function (part) {
-                  (part.annotations || []).forEach(function (note) { if (note.type === "url_citation") add(note.url, note.title, "citation"); });
-                  String(part.text || "").replace(/https:\/\/[^\s)\]>"']+/g, function (found) { add(found.replace(/[.,;]+$/, ""), "", "text"); return found; });
-                });
-              }
+        var groups = groupsFor(ports.allowlist);
+        return Promise.all(groups.map(function (group) { return searchOne(group, queries, ports, request); })).then(function (results) {
+          // Round-robin across groups so each group's best page is queued before any group's second.
+          var candidates = [];
+          var longest = Math.max.apply(null, results.map(function (r) { return r.urls.length; }).concat([0]));
+          for (var i = 0; i < longest; i++) {
+            results.forEach(function (r) {
+              var item = r.urls[i];
+              if (item && !candidates.some(function (c) { return c.url === item.url; })) candidates.push(item);
             });
-            return { candidates: urls, calls: 1, searchCalls: searchCalls, usage: parsed.usage || null, model: model };
-          });
-        }).catch(function (error) { return { candidates: [], calls: 1, error: String(error && error.message || error) }; });
+          }
+          var errors = results.map(function (r) { return r.error; }).filter(Boolean);
+          return {
+            candidates: candidates,
+            calls: groups.length,
+            searchCalls: results.reduce(function (sum, r) { return sum + (r.searchCalls || 0); }, 0),
+            usage: results.map(function (r) { return r.usage; }),
+            model: model,
+            error: errors.length === results.length && errors.length ? errors.join(" | ") : ""
+          };
+        });
       }
     };
   }
@@ -365,6 +406,16 @@
   }
 
   // Lexical ranking only. It decides what the knowledge step reads; it is not support.
+  // A sentence that names a body part or feature and says what it did is the evidence a
+  // mechanism needs, so passages with one rank above definitions and general history.
+  // Live runs (6 Oct 2026) chose mostly abstract passages (definitions, extinction, a craft page).
+  var FEATURE_PART = /\b(?:legs?|necks?|tails?|teeth|tooth|jaws?|claws?|horns?|spikes?|plates?|armou?r|feathers?|wings?|skin|scales?|skulls?|bones?|beaks?|eyes?|nose|nostrils?|arms?|hands?|feet|foot|thumbs?|muscles?|frills?|crests?|fins?|shells?|fur|hair|stance|hips?|stomachs?|brains?|roots?|leaves|leaf|stems?|petals?|seeds?|spines?|hooves|paws|trunks?|tusks?|gills?|lungs?)\b/i;
+  var FEATURE_FUNCTION = /\b(?:allow(?:s|ed)?|let(?:s)?|enabl(?:e|es|ed)|help(?:s|ed)?|used (?:for|to|as)|use[sd]? (?:its|their|the)\b|so (?:that|it|they) (?:could|can|would)|which (?:means|meant)|because|in order to|as a result|to (?:protect|defend|reach|catch|eat|grind|crush|slice|tear|cut|support|balance|attract|scare|fight|hunt|breathe|grip|hold|carry|chew|bite|run|walk|swim|fly|keep|stay))\b/i;
+  var ACTIVITY_PAGE = /\b(?:you will need|you'll need|glue|scissors|cardboard|sellotape|step \d|print out|colouring|book (?:your )?tickets|opening times|gift shop)\b/i;
+  function featureFunctionSentences(text) {
+    return String(text || "").split(/(?<=[.!?])\s+/).filter(function (sentence) { return FEATURE_PART.test(sentence) && FEATURE_FUNCTION.test(sentence); }).length;
+  }
+
   function rankPassages(passages, request, options) {
     options = options || {};
     var topicWords = keywords(request.topic).map(stem);
@@ -374,23 +425,26 @@
       var topicHits = topicWords.filter(function (w) { return words.indexOf(w) !== -1; }).length;
       var goalHits = goalWords.filter(function (w) { return words.indexOf(w) !== -1; }).length;
       var explains = /\b(because|so that|which (?:let|lets|allowed|helped|meant|means)|allowed|in order to|so it could|so they could|used (?:its|their) |used (?:for|to)|helped (?:it|them)|to help|to protect|for (?:defen[cs]e|protection))\b/i.test(passage.text) ? 1.5 : 0;
-      var score = topicHits * 2 + goalHits + explains - (passage.text.length < 160 ? 1 : 0);
+      var featureLinks = featureFunctionSentences(passage.text);
+      var feature = featureLinks ? 3 + Math.min(featureLinks - 1, 2) : 0;
+      var activity = ACTIVITY_PAGE.test(passage.text) ? 3 : 0;
+      var score = topicHits * 2 + goalHits + explains + feature - activity - (passage.text.length < 160 ? 1 : 0);
       return { passage: passage, score: score, index: index };
     });
     scored.sort(function (a, b) { return b.score - a.score || a.index - b.index; });
     var perSource = {};
     var chosen = [];
-    var budget = options.maxChars || 18000;
+    var budget = options.maxChars || 24000;
     var used = 0;
     scored.forEach(function (row) {
-      if (chosen.length >= (options.maxPassages || 30)) return;
+      if (chosen.length >= (options.maxPassages || 36)) return;
       if (row.score <= 0) return;
       var source = row.passage.sourceId;
       if ((perSource[source] || 0) >= (options.maxPerSource || 8)) return;
       if (used + row.passage.text.length > budget) return;
       perSource[source] = (perSource[source] || 0) + 1;
       used += row.passage.text.length;
-      chosen.push({ id: row.passage.id, score: row.score });
+      chosen.push({ id: row.passage.id, score: row.score, featureLinks: featureFunctionSentences(row.passage.text) });
     });
     return chosen;
   }
@@ -497,6 +551,8 @@
     fetchSource: fetchSource,
     wikipediaProvider: wikipediaProvider,
     openaiWebSearchProvider: openaiWebSearchProvider,
+    SEARCH_GROUPS: SEARCH_GROUPS,
+    featureFunctionSentences: featureFunctionSentences,
     buildQueries: buildQueries,
     rankPassages: rankPassages,
     researchTopic: researchTopic

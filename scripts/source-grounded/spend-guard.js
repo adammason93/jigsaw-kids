@@ -13,7 +13,7 @@ var PRICES = {
   source: {
     "gpt-4o-mini": "https://developers.openai.com/api/docs/models/gpt-4o-mini (re-checked 6 Oct 2026 08:02 BST, BUDGET.md)",
     "gpt-4.1-mini": "https://developers.openai.com/api/docs/models/gpt-4.1-mini ($0.40 in / $1.60 out), read 6 Oct 2026; used only for the web search step",
-    "gpt-6-luna": "https://developers.openai.com/api/docs/models/gpt-6-luna ($0.10 in / $0.50 out, standard), read 6 Oct 2026; used only for the web search step",
+    "gpt-6-luna": "https://developers.openai.com/api/docs/models/gpt-6-luna ($0.10 in / $0.50 out, standard), read 6 Oct 2026; used for the web search step and, experimentally in research mode only, the knowledge, entailment and repair calls",
     "web_search": "https://developers.openai.com/api/docs/pricing (Tools: web search $10.00 / 1k calls; gpt-4o-mini and gpt-4.1-mini search content billed as a fixed 8,000 input-token block per call), read 6 Oct 2026",
     "gpt-image-2.5-sunburst": "https://developers.openai.com/api/docs/pricing (Image generation, standard: text in $5.00, image in $8.00, image out $30.00 per 1M), read 6 Oct 2026"
   },
@@ -57,6 +57,21 @@ function createGuard(options) {
     row.capUsd = capUsd;
     row.guardSpentAfter = Number(state.guardSpent.toFixed(6));
     fs.appendFileSync(ledgerPath, JSON.stringify(row) + "\n");
+  }
+  // Shared total: other agents' and earlier steps' ledgers plus a fixed prior figure count
+  // against options.totalCapUsd. They are re-read before every call (both ledger formats).
+  function sharedGuardSpent() {
+    var total = Number(options.baseGuardUsd || 0);
+    (options.sharedLedgers || []).forEach(function (file) {
+      if (!file || file === ledgerPath || !fs.existsSync(file)) return;
+      fs.readFileSync(file, "utf8").split("\n").filter(Boolean).forEach(function (line) {
+        var row = {};
+        try { row = JSON.parse(line); } catch (e) { return; }
+        if (row.event === "settled") total += Number(row.guardUsd || 0);
+        else if (!row.event && row.guard != null) total += Number(row.guard || 0);
+      });
+    });
+    return total;
   }
   function redact(text) { return key ? String(text).split(key).join("[redacted]") : String(text); }
 
@@ -138,6 +153,14 @@ function createGuard(options) {
         return Promise.reject(new Error("SPEND_GUARD_REFUSED: " + est.error));
       }
       var guardEstimate = est.listedUsd * margin;
+      if (options.totalCapUsd > 0) {
+        var shared = sharedGuardSpent();
+        if (shared + state.guardSpent + guardEstimate > options.totalCapUsd) {
+          state.refused += 1;
+          write({ event: "refused", label: label, endpoint: href, kind: est.kind, model: est.model, worstListedUsd: est.listedUsd, worstGuardUsd: guardEstimate, sharedGuardUsd: Number(shared.toFixed(6)), reason: "shared total plus worst case would pass the total cap" });
+          return Promise.reject(new Error("SPEND_GUARD_REFUSED: total cap " + options.totalCapUsd + " would be exceeded"));
+        }
+      }
       if (state.guardSpent + guardEstimate > capUsd) {
         state.refused += 1;
         write({ event: "refused", label: label, endpoint: href, kind: est.kind, model: est.model, worstListedUsd: est.listedUsd, worstGuardUsd: guardEstimate, reason: "guard spend plus worst case would pass the cap" });
@@ -168,6 +191,7 @@ function createGuard(options) {
   return {
     wrap: wrap,
     estimate: estimate,
+    sharedGuardSpent: sharedGuardSpent,
     state: function () { return { capUsd: capUsd, guardSpent: Number(state.guardSpent.toFixed(6)), listedSpent: Number(state.listedSpent.toFixed(6)), remaining: Number((capUsd - state.guardSpent).toFixed(6)), calls: state.calls, refused: state.refused }; },
     redact: redact
   };

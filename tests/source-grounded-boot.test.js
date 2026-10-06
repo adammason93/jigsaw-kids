@@ -97,7 +97,7 @@ global.fetch = function (url, init) {
     }
     if (system.indexOf("You check whether a source extract supports") === 0) {
       var items = JSON.parse(body.messages[1].content).items;
-      return chat({ results: items.map(function (item) { return { claimId: item.claimId, verdict: "supported", missing: "" }; }) });
+      return chat({ results: items.map(function (item) { return { claimId: item.claimId, verdict: "supported", missing: "", linkQuote: item.quote, wording: item.wordsNotInSource || [] }; }) });
     }
     return chat({});
   }

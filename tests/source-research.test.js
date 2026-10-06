@@ -13,14 +13,39 @@ var R = require("../js/source-research.js");
 var searchProvider = R.openaiWebSearchProvider({ apiKey: "k" });
 assert.strictEqual(searchProvider.model, "gpt-6-luna");
 assert.strictEqual(searchProvider.paid, true);
-var sentBody = null;
-searchProvider.search(["Dinosaurs"], { fetch: function (url, init) { sentBody = JSON.parse(init.body); return Promise.resolve({ ok: true, status: 200, text: function () { return Promise.resolve(JSON.stringify({ output: [{ type: "web_search_call", action: { sources: [{ url: "https://www.nhm.ac.uk/discover/dino.html" }] } }], usage: {} })); } }); } }, { topic: "Dinosaurs", yearGroup: "Year 3", requiredEvidence: "explain how a feature helped" }).then(function (result) {
-  assert.deepStrictEqual(sentBody.tools[0].filters.allowed_domains, R.allowedDomains());
-  assert.strictEqual(sentBody.model, "gpt-6-luna");
-  assert.deepStrictEqual(sentBody.reasoning, { effort: "low" });
-  assert.ok(/explain how or why/.test(sentBody.input));
-  assert.strictEqual(result.candidates[0].url, "https://www.nhm.ac.uk/discover/dino.html");
+// Focused searches (live run 3, 6 Oct 2026: one broad search returned NHM pages only). One call
+// per group of teaching sites, each filtered to that group's allowlisted domains, one tool call
+// each, results interleaved so every group's best page is queued early.
+var sentBodies = [];
+searchProvider.search(["Dinosaurs"], { fetch: function (url, init) {
+  var body = JSON.parse(init.body);
+  sentBodies.push(body);
+  var domain = body.tools[0].filters.allowed_domains[0];
+  var out = domain === "bbc.co.uk" ? { error: { message: "boom" } } : { output: [{ type: "web_search_call", action: { sources: [{ url: "https://www." + domain + "/a" }, { url: "https://www." + domain + "/b" }] } }], usage: {} };
+  return Promise.resolve({ ok: domain !== "bbc.co.uk", status: domain === "bbc.co.uk" ? 500 : 200, text: function () { return Promise.resolve(JSON.stringify(out)); } });
+} }, { topic: "Dinosaurs", yearGroup: "Year 3", requiredEvidence: "explain how a feature helped" }).then(function (result) {
+  assert.strictEqual(sentBodies.length, 3);
+  assert.deepStrictEqual(sentBodies.map(function (b) { return b.tools[0].filters.allowed_domains; }), [["nhm.ac.uk"], ["bbc.co.uk"], ["britannica.com", "kids.nationalgeographic.com"]]);
+  sentBodies.forEach(function (body) {
+    assert.ok(body.tools[0].filters.allowed_domains.every(function (d) { return R.allowedDomains().indexOf(d) !== -1; }));
+    assert.strictEqual(body.model, "gpt-6-luna");
+    assert.deepStrictEqual(body.reasoning, { effort: "low" });
+    assert.strictEqual(body.max_tool_calls, 1);
+    assert.ok(/explain how or why/.test(body.input));
+  });
+  assert.ok(/how scientists know/.test(sentBodies[0].input));
+  assert.ok(/bitesize/.test(sentBodies[1].input));
+  // One failed group does not lose the others; order is round-robin.
+  assert.deepStrictEqual(result.candidates.map(function (c) { return c.url; }), ["https://www.nhm.ac.uk/a", "https://www.britannica.com/a", "https://www.nhm.ac.uk/b", "https://www.britannica.com/b"]);
+  assert.strictEqual(result.calls, 3);
+  assert.strictEqual(result.error, "");
   assert.strictEqual(result.candidates[0].snippetIgnored, true);
+});
+// The single broad search is still available and keeps the whole allowlist filter.
+var broadBody = null;
+R.openaiWebSearchProvider({ apiKey: "k", focusGroups: false }).search(["Dinosaurs"], { fetch: function (url, init) { broadBody = JSON.parse(init.body); return Promise.resolve({ ok: true, status: 200, text: function () { return Promise.resolve(JSON.stringify({ output: [], usage: {} })); } }); } }, { topic: "Dinosaurs", yearGroup: "Year 3" }).then(function () {
+  assert.deepStrictEqual(broadBody.tools[0].filters.allowed_domains, R.allowedDomains());
+  assert.strictEqual(broadBody.max_tool_calls, 3);
 });
 
 // Allowlist: one config list, https only, subdomains of allowed hosts, BBC only under /bitesize.
@@ -95,6 +120,21 @@ var ranked = R.rankPassages(pool, request).map(function (r) { return r.id; });
 assert.strictEqual(ranked[0], "S1-P02");
 assert.strictEqual(ranked.indexOf("S1-P01"), -1);
 assert.strictEqual(R.rankPassages(pool, request, { maxPerSource: 1 }).filter(function (r) { return /^S1/.test(r.id); }).length, 1);
+
+// Feature-function ranking (live runs, 6 Oct 2026: most chosen passages were definitions,
+// extinction, or a craft page). A sentence naming a body part and what it did ranks above a
+// definition with more topic words; a craft/activity page ranks below both.
+var request2 = { topic: "Dinosaurs", yearGroup: "Year 3", learningGoal: "Pupils will understand how dinosaurs adapted to their environments.", focusConcepts: ["adaptation"] };
+var pool2 = [
+  { id: "S1-P01", sourceId: "S1", text: "Dinosaurs are a group of reptiles. The word dinosaur means terrible lizard. Dinosaurs dominated the land for over 140 million years before dinosaurs died out.", section: "" },
+  { id: "S2-P01", sourceId: "S2", text: "Stegosaurus had four long spikes on its tail. It used its tail to defend itself, so it could swing the spikes at a dinosaur that attacked it.", section: "" },
+  { id: "S3-P01", sourceId: "S3", text: "Make your own dinosaur. You will need cardboard, glue and scissors. Cut out the dinosaur legs and tail and stick them on.", section: "" }
+];
+var ranked2 = R.rankPassages(pool2, request2);
+assert.deepStrictEqual(ranked2.map(function (r) { return r.id; }).slice(0, 2), ["S2-P01", "S1-P01"]);
+assert.ok(ranked2[0].featureLinks >= 1);
+assert.strictEqual(R.featureFunctionSentences("Dinosaurs lived for 165 million years."), 0);
+assert.strictEqual(R.featureFunctionSentences("Long necks let sauropods reach high leaves."), 1);
 
 // End to end with a stubbed network: snippets are ignored, off-list and film pages are refused,
 // a redirect off the allowlist is refused, and only fetched page text becomes passages.
