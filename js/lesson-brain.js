@@ -8570,13 +8570,11 @@
       });
     }
     if (ctx.lessonSkeleton && researchMode(ctx)) {
+      // Research rules always block, before and after the slot repair (patch 7). Live run 14
+      // completed with no APPLY choice because these were downgraded to warnings after repair.
       researchRuleIssues(activities, issueCtx).forEach(function (row) {
-        if (ctx.semanticWarningsAllowed) {
-          qualityWarnings.push({ slotId: row.slotId, slotType: row.slotId, outcome: "research-rule", issue: row.text, reason: row.text, repairAttempted: true, postRepair: true });
-        } else {
-          issues.push(row.text);
-          ownIssue(owners, row.slotId, row.text);
-        }
+        issues.push(row.text);
+        ownIssue(owners, row.slotId, row.text);
       });
     }
     if (dropped) issues.push("An activity uses a game Wondii cannot play.");

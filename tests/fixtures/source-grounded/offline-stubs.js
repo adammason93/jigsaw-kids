@@ -39,11 +39,11 @@ function articleHtml(text) {
 var goal = "Pupils will understand how the teeth, necks and armour of dinosaurs helped them survive.";
 var TEXT = {
   teethF: "Meat-eating dinosaurs like Tyrannosaurus had sharp curved teeth with jagged edges.",
-  teethM: "The jagged edges on sharp curved teeth worked like a saw, so they could slice through meat.",
+  teethM: "The jagged edges on the sharp curved teeth of Tyrannosaurus worked like a saw, so they could slice through meat.",
   neckF: "Many sauropod dinosaurs had very long necks on their huge bodies.",
   neckM: "A very long neck let a sauropod reach high leaves so that it could feed without moving much.",
   armourF: "Ankylosaurus had thick bony plates covering the whole of its back.",
-  armourM: "The thick bony plates acted like armour, which means predators found it hard to bite through."
+  armourM: "The thick bony plates of Ankylosaurus acted like armour, which means predators found it hard to bite through."
 };
 function claimFrom(sources, text, depth, quote) {
   var hit = sources.filter(function (s) { return s.text.indexOf(quote) !== -1; })[0];
@@ -69,7 +69,7 @@ function speak(beat, items) {
   items.forEach(function (entry) { if (entry.id === (beat.knowledgeRefs || [])[0]) item = entry; });
   var known = String(item.text || "").replace(/[.?!]$/, "");
   var lower = known.charAt(0).toLowerCase() + known.slice(1);
-  var text = { notice: "Look at the scene and say what you can see.", predict: "Say what you think is happening before the explanation.", name: item.text, explain: item.text,
+  var text = { notice: "Look at the scene and say what you can see.", predict: "Say what you think is happening before we find out.", name: item.text, explain: item.text,
     exemplify: "For example, you can see it when " + lower + ".", model: "First follow this step: " + lower + ", then check what changed.", compare: "Look at both sides and say what is different.",
     connect: "These two ideas belong together in this lesson.", practise: "Show a new case where " + lower + ".", apply: "Show a new case where " + lower + ".",
     retrieve: "Which sentence matches the idea you just learned?", reveal: "So, " + lower + ".", consolidate: "So, " + lower + "." }[beat.move] || item.text;
@@ -125,7 +125,8 @@ function openai(href, body) {
     // Patch 6: a research-mode brief (sourceWording present) asks for a choose task on a new example.
     // Test fixture built from the brief's own source wording, not lesson content.
     if (slot.id === "apply" && Array.isArray(safe.sourceWording) && safe.sourceWording.length) {
-      var w = safe.sourceWording[0];
+      // The wording row of the unit this apply beat teaches (patch 7: research rules now block).
+      var w = safe.sourceWording.filter(function (row) { return String(beats[0].text).toLowerCase().indexOf(String(row.feature || "").toLowerCase()) !== -1; })[0] || safe.sourceWording[0];
       slots.apply.instruction = beats[0].text + " Choose the animal that fits.";
       slots.apply.choices = [
         { text: "The animal with " + w.feature, correct: true, feedback: "The source says " + w.feature + " meant they could " + w.keepThisResult + "." },
