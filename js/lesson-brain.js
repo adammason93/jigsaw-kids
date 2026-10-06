@@ -8701,12 +8701,13 @@
         "You write the Try it task for one primary science lesson. Return one JSON object and nothing else.",
         "Use only the reason in reasonQuote. The class has just been taught it (taughtSentences).",
         "newCase.text is one new example the teaching did not answer: a made-up case that starts with Imagine, about new or made-up animals, never about an animal in animalNamesAlreadyTaught. Set newCase.kind to transfer.",
+        "Describe a made-up animal in plain words (for example: a new animal whose nostrils sit high on its snout). Never invent a name for it, in any field: a made-up name is a hard word for the class and fails the check.",
         "instruction is one short question of at most 140 characters that ends with a question mark and asks the class to choose.",
         "choices has two or three options; exactly one has correct true. Every option's feedback is one or two sentences that name the feature and say what reasonQuote says it did. The correct option's feedback keeps keepThisResult in the source's words, including keyWords and every comparisonWord.",
         "Never use a vaguer word for the result (better, easier, well, efficiently, good) and never add always, never, completely or fully. Never say an animal adapted, evolved, needed or got a feature, or had it in order to or so that it could do something.",
         "Use everyday words for " + (year || "this year group") + ". successText is one sentence saying what picking the correct choice shows.",
         "beats gives one or two short sentences for each applyBeats id that set up the new example in new words: name the feature and ask the class to compare or decide (for example: Compare the two animals and decide ...); do not start with What, Why or Which, and never repeat or closely reword a taught sentence.",
-        "If fixThese is not empty, previous failed those checks: fix every one.",
+        "If fixThese is not empty, previous failed those checks: write a changed task that fixes every one. Never return previous unchanged, and leave out every word that fixThese quotes.",
         "JSON shape: { \"beats\": [{ \"id\": \"\", \"text\": \"\" }], \"newCase\": { \"text\": \"\", \"kind\": \"transfer\" }, \"instruction\": \"\", \"choices\": [{ \"text\": \"\", \"correct\": true, \"feedback\": \"\" }], \"successText\": \"\" }."
       ].join(" "),
       user: JSON.stringify(payload)
