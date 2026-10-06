@@ -113,6 +113,18 @@ var request = { lessonText: "Teach Year 3 about dinosaurs", yearGroup: "Year 3",
     assert.ok(html.indexOf(Visuals.FRAME_LABELS.teaching) !== -1 && html.indexOf(Visuals.FRAME_LABELS.story) !== -1);
     assert.ok(/Causal link: /.test(html) && /Timing/.test(html));
 
+    // Causal link: positive (run 14 shape: "This allowed ..." follows the feature sentence) and negative (no link words).
+    var passage = { id: "P1", url: "https://www.nhm.ac.uk/x", tier: "evidence", text: "They had straight back legs, perpendicular to their bodies. This allowed them to use less energy to move than other reptiles. They lived on land." };
+    function pairPack(mQuote) {
+      var byId = { f: { claimId: "f", text: "Dinosaurs had straight back legs.", sourceQuote: "They had straight back legs, perpendicular to their bodies.", sourceRef: ["P1"], entailment: "supported" }, m: { claimId: "m", text: "Straight back legs let them use less energy to move.", sourceQuote: mQuote, sourceRef: ["P1"], entailment: "supported" } };
+      return { byId: byId, readiness: { readyPairs: [{ feature: "straight back legs", featureClaimId: "f", mechanismClaimId: "m" }] } };
+    }
+    var linked = Finish.teachingPairs(pairPack("This allowed them to use less energy to move than other reptiles."), { passages: [passage] })[0];
+    assert.strictEqual(linked.causalLink.result, "pass", JSON.stringify(linked.causalLink));
+    assert.strictEqual(linked.causalLink.pointsBackToFeature, true);
+    var listed = Finish.teachingPairs(pairPack("They lived on land."), { passages: [passage] })[0];
+    assert.strictEqual(listed.causalLink.result, "fail", "a quote with no link words does not state the link");
+
     // Negative and positive vision rows.
     var good = Finish.teachingVisionRow({ id: "teach-u1", framing: "teaching", slotId: "teach", view: "comparison", feature: "legs" }, "", { featureVisible: "yes", matchesBeat: "yes", humansWithLivingDinosaurs: false, nonGroupAnimalShownAsGroup: false, mixedPeriods: false, anatomyProblems: [], textInImage: false, childSafety: "ok" });
     assert.strictEqual(good.ok, true);

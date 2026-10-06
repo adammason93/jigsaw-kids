@@ -71,6 +71,10 @@ boot = boot.replace(marker, marker + "\n" + [
   "brain.normaliseKnowledgePack = function (raw, ctx) { try { globalThis.__sgTrace.rawPacks.push(JSON.parse(JSON.stringify(raw))); } catch (e) {} return __sgNormPack(raw, ctx); };",
   "const __sgSelect = brain.selectPackForLesson.bind(brain);",
   "brain.selectPackForLesson = function (pack, ctx) { var s = __sgSelect(pack, ctx); try { var copy = { pack: JSON.parse(JSON.stringify(pack)), selection: JSON.parse(JSON.stringify(s)) }; var seen = globalThis.__sgTrace.packs.filter(function (row) { return row.pack.id === copy.pack.id; })[0]; if (seen) { seen.pack = copy.pack; seen.selection = copy.selection; } else globalThis.__sgTrace.packs.push(copy); } catch (e) {} return s; };",
+  // Patch 6: keep the content model's first raw output (the apply and check slots) so a missing
+  // APPLY choice can be told apart from a parsing loss. Observe only.
+  "const __sgResolve = brain.resolveLessonContent.bind(brain);",
+  "brain.resolveLessonContent = function (first, ctx, opts) { try { var raw = typeof first === 'string' ? JSON.parse(first) : first; var slots = raw && (raw.slots || raw); globalThis.__sgTrace.contentRaw = { apply: slots && slots.apply ? JSON.parse(JSON.stringify(slots.apply)) : null, check: slots && slots.check ? JSON.parse(JSON.stringify(slots.check)) : null, keys: raw ? Object.keys(raw).slice(0, 20) : [] }; } catch (e) { globalThis.__sgTrace.contentRaw = { error: String(e && e.message || e).slice(0, 120) }; } return __sgResolve(first, ctx, opts); };",
   "const __sgNormPlan = brain.normalisePlan.bind(brain);",
   "brain.normalisePlan = function (raw, ctx) { var r = __sgNormPlan(raw, ctx); try { globalThis.__sgTrace.plans.push({ raw: JSON.parse(JSON.stringify(raw)), learningMap: r && r.plan && r.plan.learningMap ? JSON.parse(JSON.stringify(r.plan.learningMap)) : null, ok: !!(r && r.ok), issues: (r && r.issues) || [], depth: r && r.depth || null, mapRejected: r && (r.mapRejected || (r.plan && r.plan.mapRejected)) || [] }); } catch (e) {} return r; };"
 ].join("\n"));
@@ -138,7 +142,7 @@ var started = Date.now();
 }).then(function (response) { return response.json(); }).then(function (body) {
   var trace = global.__sgTrace || {};
   fs.writeFileSync(path.join(outDir, "lesson/generate-response.json"), JSON.stringify(body, null, 2));
-  fs.writeFileSync(path.join(outDir, "lesson/generate-trace.json"), JSON.stringify({ attempt: attempt, request: request, researchMode: researchMode, model: "gpt-4o-mini", knowledgeModel: researchMode ? "gpt-6-luna (experimental, research mode only)" : "gpt-4o-mini", ok: !!body.ok, stage: body.stage || "", issues: body.issues || [], elapsedMs: Date.now() - started, stages: logs.map(function (row) { return row.stage; }), logs: logs, intent: trace.intent || null, plans: trace.plans || [], outbound: outbound, spend: guard.state() }, null, 2));
+  fs.writeFileSync(path.join(outDir, "lesson/generate-trace.json"), JSON.stringify({ attempt: attempt, request: request, researchMode: researchMode, model: "gpt-4o-mini", knowledgeModel: researchMode ? "gpt-6-luna (experimental, research mode only)" : "gpt-4o-mini", ok: !!body.ok, stage: body.stage || "", issues: body.issues || [], elapsedMs: Date.now() - started, stages: logs.map(function (row) { return row.stage; }), logs: logs, intent: trace.intent || null, plans: trace.plans || [], contentRaw: trace.contentRaw || null, outbound: outbound, spend: guard.state() }, null, 2));
   if (trace.research) fs.writeFileSync(path.join(outDir, "sources/research-record.json"), JSON.stringify(trace.research, null, 2));
   // The pack the boot used is the one named in the KNOWLEDGE_PACK log (the repair may be kept or not).
   var used = logs.filter(function (row) { return row.stage === "KNOWLEDGE_PACK"; })[0];

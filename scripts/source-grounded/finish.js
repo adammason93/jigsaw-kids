@@ -80,11 +80,23 @@ function teachingPairs(pack, research) {
     var row = { feature: pair.feature, featureClaim: side(feature), explanation: side(mechanism) };
     if (research) {
       var shared = (feature.sourceRef || []).filter(function (id) { return (mechanism.sourceRef || []).indexOf(id) !== -1; });
+      // The explanation's own verified quote must state the link (link words), and must name the
+      // feature or point back to it ("This", "It") from the passage that states the feature,
+      // with the feature's quote earlier in that passage.
+      var quote = mechanism.sourceQuote || "";
+      var statesLink = Brain.quoteStatesLink(quote);
+      var featureWords = String(pair.feature || "").toLowerCase().split(/[^a-z]+/).filter(function (w) { return w.length >= 4; });
+      var namesFeature = featureWords.some(function (w) { return quote.toLowerCase().indexOf(w.slice(0, 5)) !== -1; });
+      var passageText = shared.length && passages[shared[0]] ? String(passages[shared[0]].text || "") : "";
+      var pointsBack = /^\s*(?:this|these|it|its|they|their|that)\b/i.test(quote) && !!passageText && passageText.indexOf(feature.sourceQuote || "\u0000") !== -1 && passageText.indexOf(feature.sourceQuote) <= passageText.indexOf(quote.slice(0, 30));
       row.causalLink = {
         linkQuote: mechanism.linkQuote || "",
+        quoteStatesLink: statesLink,
+        namesFeature: namesFeature,
+        pointsBackToFeature: pointsBack,
         samePassage: shared.length > 0,
-        result: mechanism.linkQuote && mechanism.entailment === "supported" ? "pass" : "fail",
-        method: "code: the entailment check's linkQuote (>= 5 words, inside the explanation's verified quote, uses link words) + feature and explanation cite the same passage"
+        result: mechanism.entailment === "supported" && statesLink && (namesFeature || pointsBack) ? "pass" : "fail",
+        method: "code: explanation claim entailment supported + its verified quote states the link (link words) + the quote names the feature, or begins This/It/... and follows the feature's quote in the same passage. The entailment check's linkQuote is shown when it set one."
       };
     }
     return row;
