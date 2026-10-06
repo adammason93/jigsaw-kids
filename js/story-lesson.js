@@ -600,7 +600,7 @@
     return {
       system: [
         "You rewrite flagged quiz questions in a primary lesson. Return one JSON object and nothing else.",
-        "Each rewritten question has a short prompt that does not contain its answer, 3 choices with exactly one defensible correct answer, wrong choices that are plausible to a child of age " + ageOf(request.yearGroup) + " but clearly false according to knowledge (never also true or partly true), an explain sentence that says why using only the cited claims, and claimIds. Use only knowledge; add no fact.",
+        "Each rewritten question has a short prompt that does not contain its answer, 3 choices with exactly one defensible correct answer, wrong choices that are plausible to a child of age " + ageOf(request.yearGroup) + " but clearly false according to knowledge (never also true or partly true), an explain sentence that says why using only the cited claims, and claimIds. Wrong choices are common misconceptions or near misses of the same kind as the answer (for example another food, another clue, another place, another number), not absolute statements with never, only, certainly or no, and not facts borrowed from another idea. Use only knowledge; add no fact, and add no person or actor (such as scientists or researchers) the cited claims do not name.",
         "JSON shape: { \"questions\": [ { \"index\": 0, \"prompt\": \"\", \"choices\": [\"\", \"\", \"\"], \"correct\": \"\", \"explain\": \"\", \"claimIds\": [] } ] }."
       ].join(" "),
       user: JSON.stringify({ knowledge: Object.keys(knowledge.claims).map(function (id) { return { id: id, text: knowledge.claims[id].text }; }), flagged: flagged.map(function (f) { return { index: f.index, problem: f.text, question: story.quiz[f.index] }; }) })
@@ -810,13 +810,9 @@
   // ports: { callModel(brief, { purpose, model, effort, maxTokens, timeoutMs }) -> parsed JSON, fetch,
   //          searchProvider, discoveryProvider, savedCandidates, allowlist, log(stage, data),
   //          models: { plan, knowledge, entail, story, check, quality }, ideas (reuse), record (reuse) }
-  function generateStoryLesson(request, ports) {
-    ports = ports || {};
-    var models = Object.assign({ plan: "gpt-6-luna", knowledge: "gpt-6-luna", entail: "gpt-6-luna", story: "gpt-6-luna", check: "gpt-6-luna", quality: "gpt-6-luna" }, ports.models || {});
-    var log = ports.log || function () {};
-    var trace = { request: request, models: models, calls: [], raw: {} };
-    var state = { warnings: [], repairs: [], fallbacks: [] };
-    function call(purpose, brief, extra) {
+  var DEFAULT_MODELS = { plan: "gpt-6-luna", knowledge: "gpt-6-luna", entail: "gpt-6-luna", story: "gpt-6-luna", check: "gpt-6-luna", quality: "gpt-6-luna" };
+  function caller(ports, models, trace) {
+    return function call(purpose, brief, extra) {
       var started = Date.now();
       var model = models[purpose.split(":")[0]] || models.check;
       return Promise.resolve(ports.callModel(brief, Object.assign({ purpose: purpose, model: model }, extra || {}))).then(function (out) {
@@ -824,7 +820,41 @@
         (trace.raw[purpose] = trace.raw[purpose] || []).push(out);
         return out;
       });
-    }
+    };
+  }
+
+  // Re-run only the non-blocking review (quality warnings, one question rewrite that must pass the
+  // support check) and the code warnings on a finished lesson, e.g. after the review rules change.
+  // The story and its support verdicts are untouched; nothing here can add an unsupported sentence.
+  function mergeRows(support, rows) {
+    if (!support || !rows || !rows.length) return;
+    var byId = {}; rows.forEach(function (r) { byId[r.id] = r; });
+    support.rows = support.rows.map(function (r) { return byId[r.id] || r; });
+  }
+
+  function reviewAgain(result, request, ports) {
+    ports = ports || {};
+    var models = Object.assign({}, DEFAULT_MODELS, ports.models || {});
+    var trace = result.trace || { calls: [], raw: {} };
+    trace.calls = trace.calls || []; trace.raw = trace.raw || {};
+    var state = { warnings: (result.warnings || []).filter(function (w) { return w.check === "support-fallback" || w.check === "shape"; }), repairs: (result.repairs || []).filter(function (r) { return r.kind !== "questions"; }), fallbacks: result.fallbacks || [] };
+    var before = JSON.parse(JSON.stringify(result.story.quiz));
+    return qualityPass(result.story, result.knowledge, request, caller(ports, models, trace), ports, state, ports.log || function () {}).then(function (quality) {
+      codeWarnings(result.story, result.knowledge, request).forEach(function (w) { state.warnings.push(w); });
+      trace.reviewAgain = { at: new Date().toISOString(), quizBefore: before };
+      // Rewritten questions passed the support check; record their rows so the lesson's support table stays complete.
+      mergeRows(result.support, quality.rewrittenRows);
+      return Object.assign(result, { quality: quality, warnings: state.warnings, repairs: state.repairs, imagePlan: imagePlan(result.story, request), trace: trace });
+    });
+  }
+
+  function generateStoryLesson(request, ports) {
+    ports = ports || {};
+    var models = Object.assign({}, DEFAULT_MODELS, ports.models || {});
+    var log = ports.log || function () {};
+    var trace = { request: request, models: models, calls: [], raw: {} };
+    var state = { warnings: [], repairs: [], fallbacks: [] };
+    var call = caller(ports, models, trace);
     function done(ok, stage, extra) { return Object.assign({ ok: ok, stage: stage, trace: trace, warnings: state.warnings, repairs: state.repairs, fallbacks: state.fallbacks }, extra || {}); }
     return (ports.ideas ? Promise.resolve({ ideas: ports.ideas }) : call("plan", ideaPlanBrief(request))).then(function (rawPlan) {
       var plan = parseIdeaPlan(rawPlan, request);
@@ -853,6 +883,7 @@
               return supportPass(story, knowledge, request, call, ports, state, log).then(function (support) {
                 if (!support.ok) return done(false, "FACT_SUPPORT_BLOCKED", { issues: support.failing.map(function (f) { return f.id + ": " + f.problem; }), story: story, support: support, knowledge: knowledge, record: record, pack: admitted.pack });
                 return qualityPass(story, knowledge, request, call, ports, state, log).then(function (quality) {
+                  mergeRows(support, quality.rewrittenRows);
                   codeWarnings(story, knowledge, request).forEach(function (w) { state.warnings.push(w); });
                   return done(true, "COMPLETE", { story: story, knowledge: knowledge, vocabulary: admitted.vocabulary, record: record, pack: admitted.pack, support: support, quality: quality, imagePlan: imagePlan(story, request) });
                 });
@@ -922,7 +953,7 @@
   function qualityPass(story, knowledge, request, call, ports, state, log) {
     return call("quality", qualityBrief(story, knowledge, request), { maxTokens: 16000, timeoutMs: 180000 }).then(function (raw) {
       var warnings = qualityWarnings(raw);
-      var flagged = warnings.filter(function (w) { return w.check === "question" && w.fields && (w.fields.indexOf("oneDefensibleAnswer") !== -1 || w.fields.indexOf("wrongChoicesFalse") !== -1 || w.fields.indexOf("notCircular") !== -1) && story.quiz[w.index]; });
+      var flagged = warnings.filter(function (w) { return w.check === "question" && w.fields && (w.fields.indexOf("oneDefensibleAnswer") !== -1 || w.fields.indexOf("wrongChoicesFalse") !== -1 || w.fields.indexOf("notCircular") !== -1 || w.fields.indexOf("plausibleDistractors") !== -1) && story.quiz[w.index]; });
       if (!flagged.length || ports.noQuestionRepair) { warnings.forEach(function (w) { state.warnings.push(w); }); log("STORY_QUALITY", { warnings: warnings.length }); return { raw: raw, warnings: warnings }; }
       return call("quality:questions", questionRepairBrief(story, knowledge, flagged, request), { maxTokens: 12000, timeoutMs: 180000 }).then(function (rawQ) {
         var candidates = [];
@@ -940,9 +971,13 @@
         var p = items.length ? call("check:support-questions", supportBrief(items, knowledge, story, request), { maxTokens: 12000, timeoutMs: 180000 }).then(function (r) { return judgeSupport(items, r, knowledge, story); }) : Promise.resolve([]);
         return p.then(function (rows) {
           var kept = [];
+          var keptRows = [];
           candidates.forEach(function (c, i) {
             var mine = rows.filter(function (r) { return r.id === "quiz.q" + i + ".answer" || r.id === "quiz.q" + i + ".explain"; });
-            if (mine.length && mine.every(function (r) { return r.ok; })) { story.quiz[c.index] = c.q; kept.push(c.index); }
+            if (mine.length && mine.every(function (r) { return r.ok; })) {
+              story.quiz[c.index] = c.q; kept.push(c.index);
+              mine.forEach(function (r) { keptRows.push(Object.assign({}, r, { id: r.id.replace("quiz.q" + i + ".", "quiz.q" + c.index + "."), rewritten: true })); });
+            }
           });
           state.repairs.push({ kind: "questions", asked: flagged.map(function (f) { return f.index; }), replaced: kept });
           warnings.forEach(function (w) {
@@ -950,7 +985,7 @@
             state.warnings.push(w);
           });
           log("STORY_QUALITY", { warnings: warnings.length, questionsRewritten: kept.length });
-          return { raw: raw, warnings: warnings, rewritten: kept };
+          return { raw: raw, warnings: warnings, rewritten: kept, rewrittenRows: keptRows };
         });
       });
     });
@@ -967,6 +1002,6 @@
     qualityBrief: qualityBrief, qualityWarnings: qualityWarnings, questionRepairBrief: questionRepairBrief,
     codeWarnings: codeWarnings, estimateMinutes: estimateMinutes,
     imagePlan: imagePlan, buildAdventure: buildAdventure, storyView: storyView,
-    generateStoryLesson: generateStoryLesson
+    generateStoryLesson: generateStoryLesson, reviewAgain: reviewAgain
   };
 });

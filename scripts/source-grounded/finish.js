@@ -19,7 +19,8 @@ var Brain = require("../../js/lesson-brain.js");
 
 var IMAGE_MODEL = "gpt-image-2.5-sunburst";
 var IMAGE_SIZE = "1536x1024";
-var IMAGE_QUALITY = "low";
+// SG_IMAGE_QUALITY (harness only) lets a run ask for medium; the default stays low.
+var IMAGE_QUALITY = process.env.SG_IMAGE_QUALITY === "medium" ? "medium" : "low";
 var CHECK_MODEL = "gpt-4o-mini";
 var IMAGE_ORDER = ["hook", "teach", "apply", "check", "investigate", "resolution", "recap", "opening", "discovery"];
 var LABEL = "provisional automated check; not human review";

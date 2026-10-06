@@ -13,6 +13,7 @@
             [--no-search]                     no new paid web search
             [--stub]                          offline: stubbed model transport and saved passages
             [--no-images] [--reuse DIR]       reuse DIR's result.json (no text calls) for pictures
+            [--review-again]                  with --reuse: re-run only the non-blocking review and question rewrite
             [--minutes 30] [--story-effort medium] [--story-model gpt-6.1-sol --story-max-tokens 16000] */
 
 var fs = require("fs");
@@ -109,6 +110,7 @@ function runText() {
   if (arg("reuse", "")) {
     var saved = JSON.parse(fs.readFileSync(path.join(path.resolve(arg("reuse")), "result.json"), "utf8"));
     log("REUSED_TEXT", { from: arg("reuse"), stage: saved.stage });
+    if (flag("review-again") && saved.ok) return Story.reviewAgain(saved, request, { callModel: callModel, log: log, fetch: harnessFetch });
     return Promise.resolve(saved);
   }
   var ports = { fetch: harnessFetch, log: log, callModel: callModel, storyEffort: arg("story-effort", "medium"), maxSources: Number(arg("max-sources", "22")) };
