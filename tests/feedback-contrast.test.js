@@ -26,3 +26,15 @@ assert.ok(contrast(rule[1], yes) >= 4.5, "yes feedback contrast " + contrast(rul
 // Negative: the old white text fails on the same backgrounds.
 assert.ok(contrast("#fff", again) < 4.5 && contrast("#fff", yes) < 4.5);
 console.log("feedback contrast tests passed");
+
+// Choose feedback over a picture sits on the navy panel rgba(20, 27, 77, .72-.9): light text.
+(function () {
+  var navy = "#141b4d";
+  var again2 = css.match(/\.lesson\.has-fallback \.lesson-choose \.lesson-react--again \{ color: (#[0-9a-fA-F]{3,6}); \}/);
+  var yes2 = css.match(/\.lesson\.has-fallback \.lesson-choose \.lesson-react--yes \{ color: (#[0-9a-fA-F]{3,6}); \}/);
+  assert.ok(again2 && yes2, "choose feedback colour rules present");
+  assert.ok(contrast(again2[1], navy) >= 4.5 && contrast(yes2[1], navy) >= 4.5);
+  // Negative: the default "again" brown fails on navy.
+  assert.ok(contrast("#9a6230", navy) < 4.5);
+  console.log("choose feedback contrast tests passed");
+})();

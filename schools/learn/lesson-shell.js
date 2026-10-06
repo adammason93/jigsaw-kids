@@ -671,7 +671,7 @@
           ui.play = completeSpot(ui.play, steps);
           render(rootEl, model);
         } else if (kind === "choose") {
-          var pick = Number(btn.getAttribute("data-pick"));
+          var pick = Number(btn.getAttribute("data-option"));
           var picked = (current.choices || [])[pick];
           if (!picked) return;
           ui.play = choosePlay(ui.play, steps, pick, picked.correct === true);

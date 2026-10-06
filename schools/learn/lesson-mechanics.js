@@ -142,7 +142,7 @@
     var buttons = step.choices.map(function (choice, i) {
       var right = solved && choice.correct === true;
       var again = tried.indexOf(i) !== -1 && choice.correct !== true;
-      return "<button type=\"button\" class=\"lesson-choice" + (right ? " is-right" : "") + (again ? " is-again" : "") + "\" data-world=\"choose\" data-pick=\"" + i + "\"" + (solved || again ? " disabled" : "") + "><span>" + escape(choice.text) + "</span></button>";
+      return "<button type=\"button\" class=\"lesson-choice" + (right ? " is-right" : "") + (again ? " is-again" : "") + "\" data-world=\"choose\" data-option=\"" + i + "\"" + (solved || again ? " disabled" : "") + "><span>" + escape(choice.text) + "</span></button>";
     }).join("");
     var feedback = "";
     if (pickedChoice) {

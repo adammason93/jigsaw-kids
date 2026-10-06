@@ -39,7 +39,7 @@ assert.strictEqual((Mechanics.render(slide, { immersed: false, interact: play })
 play = Shell.choosePlay(play, [step], 0, false);
 html = Mechanics.render(slide, { immersed: true, interact: play }).html;
 assert.ok(/data-choose-feedback="again"[^>]*>Not quite\. Sprawling legs make an animal use more energy to move\./.test(html), html);
-assert.ok(/lesson-choice is-again" data-world="choose" data-pick="0" disabled/.test(html));
+assert.ok(/lesson-choice is-again" data-world="choose" data-option="0" disabled/.test(html));
 assert.strictEqual(html.indexOf("data-choose-success"), -1);
 assert.strictEqual(Shell.waitingOn(step, play), true);
 
@@ -48,7 +48,7 @@ play = Shell.choosePlay(play, [step], 1, true);
 assert.strictEqual(play.beat, 0);
 html = Mechanics.render(slide, { immersed: true, interact: play }).html;
 assert.ok(/data-choose-feedback="right"[^>]*>Yes\. Straight legs under the body let an animal use less energy to move\./.test(html));
-assert.ok(/lesson-choice is-right" data-world="choose" data-pick="1" disabled/.test(html));
+assert.ok(/lesson-choice is-right" data-world="choose" data-option="1" disabled/.test(html));
 assert.ok(html.indexOf("data-choose-success=\"1\"") !== -1);
 assert.strictEqual(Shell.waitingOn(step, play), false);
 
@@ -69,3 +69,16 @@ assert.strictEqual(played.newCase.kind, "transfer");
 assert.ok(!slides.some(function (s) { return (Mechanics.interactionsOf(s) || []).some(function (i) { return i.sourceType === "choose"; }); }));
 
 console.log("apply choose player tests passed");
+
+// Correction (run 14 real-player walk): choose buttons must not carry data-pick, which the shell
+// binds to the quiz pick action; a choose click then also raised the quiz "Nearly!" toast, which
+// stayed on screen after the correct choice.
+(function () {
+  var shellSrc = fs.readFileSync(path.join(__dirname, "../schools/learn/lesson-shell.js"), "utf8");
+  var chosen = Mechanics.render(slide, { immersed: true, interact: { index: 3, step: 0, beat: 0, revealed: false } }).html;
+  assert.ok(chosen.indexOf("data-pick=") === -1, "choose buttons never carry the quiz pick attribute");
+  assert.strictEqual((chosen.match(/data-world="choose" data-option="\d"/g) || []).length, 2);
+  assert.ok(/getAttribute\("data-option"\)/.test(shellSrc), "the choose handler reads data-option");
+  assert.ok(/querySelectorAll\("\[data-pick\]"\)/.test(shellSrc), "the quiz pick binding is unchanged");
+  console.log("apply choose attribute tests passed");
+})();

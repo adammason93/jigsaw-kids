@@ -544,3 +544,11 @@
 }
 .lesson-choose .lesson-case { font-weight: 700; }
 .lesson-choose .lesson-choices { margin-top: 10px; }
+/* Over a picture the choose panel is dark navy: per-choice feedback and a tried wrong choice
+   need light colours to stay readable. */
+.lesson.has-world .lesson-choose .lesson-react--again,
+.lesson.has-fallback .lesson-choose .lesson-react--again { color: #ffc98a; }
+.lesson.has-world .lesson-choose .lesson-react--yes,
+.lesson.has-fallback .lesson-choose .lesson-react--yes { color: #8ff0c0; }
+.lesson.has-world .lesson-choice.is-again,
+.lesson.has-fallback .lesson-choice.is-again { opacity: .62; border-color: #ffc98a; }
