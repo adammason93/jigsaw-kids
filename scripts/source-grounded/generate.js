@@ -10,12 +10,15 @@
           [--research wikipedia,openai] [--attempt NAME] [--ledger FILE]
    --ledger lets several runs share one ledger, so one cap covers them all.
    Writes DIR/lesson/generate-response.json, DIR/lesson/generate-trace.json,
-   DIR/sources/research-record.json, DIR/sources/knowledge-pack.json. */
+   DIR/sources/research-record.json, DIR/sources/knowledge-pack.json.
+   When the boot returns a complete lesson, the same run finishes it (finish.js): 4 images,
+   checks 1-4, DIR/lesson/lesson.html and lesson.json. --no-finish skips that; --images N. */
 
 var fs = require("fs");
 var path = require("path");
 var Guard = require("./spend-guard.js");
 var Research = require("../../js/source-research.js");
+var Finish = require("./finish.js");
 
 function arg(name, fallback) {
   var at = process.argv.indexOf("--" + name);
@@ -45,7 +48,7 @@ boot = boot.replace(marker, marker + "\n" + [
   "const __sgSelect = brain.selectPackForLesson.bind(brain);",
   "brain.selectPackForLesson = function (pack, ctx) { var s = __sgSelect(pack, ctx); try { var copy = { pack: JSON.parse(JSON.stringify(pack)), selection: JSON.parse(JSON.stringify(s)) }; var seen = globalThis.__sgTrace.packs.filter(function (row) { return row.pack.id === copy.pack.id; })[0]; if (seen) { seen.pack = copy.pack; seen.selection = copy.selection; } else globalThis.__sgTrace.packs.push(copy); } catch (e) {} return s; };",
   "const __sgNormPlan = brain.normalisePlan.bind(brain);",
-  "brain.normalisePlan = function (raw, ctx) { var r = __sgNormPlan(raw, ctx); try { globalThis.__sgTrace.plans.push({ raw: JSON.parse(JSON.stringify(raw)), ok: !!(r && r.ok), issues: (r && r.issues) || [], depth: r && r.depth || null, mapRejected: r && (r.mapRejected || (r.plan && r.plan.mapRejected)) || [] }); } catch (e) {} return r; };"
+  "brain.normalisePlan = function (raw, ctx) { var r = __sgNormPlan(raw, ctx); try { globalThis.__sgTrace.plans.push({ raw: JSON.parse(JSON.stringify(raw)), learningMap: r && r.plan && r.plan.learningMap ? JSON.parse(JSON.stringify(r.plan.learningMap)) : null, ok: !!(r && r.ok), issues: (r && r.issues) || [], depth: r && r.depth || null, mapRejected: r && (r.mapRejected || (r.plan && r.plan.mapRejected)) || [] }); } catch (e) {} return r; };"
 ].join("\n"));
 
 var ledgerPath = path.resolve(arg("ledger", path.join(outDir, "spend-ledger.jsonl")));
@@ -55,7 +58,9 @@ var guard = Guard.createGuard({
   totalCapUsd: Number(arg("total-cap", "0")), baseGuardUsd: Number(arg("base-guard", "0")), sharedLedgers: String(arg("shared-ledgers", "")).split(",").filter(Boolean).map(function (f) { return path.resolve(f); }),
   labelFor: function (href, body) {
     if (href.indexOf("/responses") !== -1) return attempt + ":research-web-search";
-    var system = body && body.messages && body.messages[0] && String(body.messages[0].content || "");
+    if (href.indexOf("/images/") !== -1) return attempt + ":image:" + String(body && body.size || "") + ":" + String(body && body.quality || "");
+    var first = body && body.messages && body.messages[0];
+    var system = first ? (typeof first.content === "string" ? first.content : JSON.stringify(first.content)) : "";
     return attempt + ":text:" + system.slice(0, 60);
   }
 });
@@ -118,6 +123,12 @@ var started = Date.now();
   if (finalRow) fs.writeFileSync(path.join(outDir, "sources/knowledge-pack.json"), JSON.stringify({ rawModelPacks: trace.rawPacks || [], normalisedPack: finalRow.pack, selection: finalRow.selection, allPacks: packs.map(function (row) { return { packId: row.pack.id, pack: row.pack, selection: row.selection }; }) }, null, 2));
   console.log = originalLog;
   console.log(JSON.stringify({ ok: !!body.ok, stage: body.stage || "", issues: (body.issues || []).slice(0, 6), elapsedMs: Date.now() - started, spend: guard.state() }, null, 1));
+  if (!body.ok || !body.adventure || process.argv.indexOf("--no-finish") !== -1) return null;
+  console.log("finishing: images, checks 1-4, lesson.html");
+  return Finish.runFinish({ adventure: body.adventure, logs: logs, trace: trace, outDir: outDir, apiKey: key, fetch: global.fetch, imageCount: Number(arg("images", "4")) }).then(function (out) {
+    var c = out.lesson.checks;
+    console.log(JSON.stringify({ html: out.html, images: out.lesson.images.map(function (i) { return i.id + ":" + i.status; }), checks: { support: c.support.problems, age: c.age.problems, questions: c.questions.problems, images: c.images.problems }, spend: guard.state() }, null, 1));
+  });
 }).catch(function (error) {
   console.log = originalLog;
   fs.writeFileSync(path.join(outDir, "lesson/generate-trace.json"), JSON.stringify({ attempt: attempt, harnessError: guard.redact(String(error && error.stack || error)), stages: logs.map(function (row) { return row.stage; }), logs: logs, outbound: outbound, spend: guard.state() }, null, 2));
