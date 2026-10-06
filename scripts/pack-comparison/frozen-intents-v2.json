@@ -1,0 +1,231 @@
+{
+  "T1": {
+    "sourceArtifact": "wondii-canary/pack-comparison-live/calls/0001-intent-T1-a1.json",
+    "sourceSha256": "c235b0b88fede0d1e6b5556d3f594d94357e593ad724e046064c1e97c0bdeb59",
+    "generatedBy": "gpt-4o-mini-2024-07-18",
+    "generatedIn": "OLD-CONTRACT BASELINE run, Tue 6 Oct 2026 (shared by both arms)",
+    "context": {
+      "yearGroup": "Year 1",
+      "subject": "Science",
+      "topic": "Parts of a plant",
+      "requestedMinutes": 15,
+      "lessonText": "Year 1 science. Teach children about the parts of a plant."
+    },
+    "rawTeacherIntent": {
+      "yearGroup": "Year 1",
+      "subject": "Science",
+      "subjectConfidence": "explicit",
+      "learningGoal": "Students will be able to identify and name the different parts of a plant.",
+      "requiredEvidence": "Students can label a diagram of a plant with its parts.",
+      "focusConcepts": [
+        "parts of a plant",
+        "functions of plant parts"
+      ],
+      "priorKnowledge": [],
+      "exclusions": [],
+      "preferences": [],
+      "durationMinutes": 15
+    }
+  },
+  "T2": {
+    "sourceArtifact": "wondii-canary/pack-comparison-live/calls/0002-intent-T2-a1.json",
+    "sourceSha256": "9773459499df420ed396af8a44982bb0d3f1a4a8105adfa6e528c26d4fdbd9a9",
+    "generatedBy": "gpt-4o-mini-2024-07-18",
+    "generatedIn": "OLD-CONTRACT BASELINE run, Tue 6 Oct 2026 (shared by both arms)",
+    "context": {
+      "yearGroup": "Year 2",
+      "subject": "Maths",
+      "topic": "Adding and subtracting in any order",
+      "requestedMinutes": 15,
+      "lessonText": "Year 2 maths. Show children why adding numbers in any order gives the same answer, but subtracting does not."
+    },
+    "rawTeacherIntent": {
+      "yearGroup": "Year 2",
+      "subject": "Maths",
+      "subjectConfidence": "explicit",
+      "learningGoal": "Understand that adding numbers in any order gives the same answer, while subtracting does not.",
+      "requiredEvidence": "Demonstrate the commutative property of addition with examples and explain why subtraction does not follow this property.",
+      "focusConcepts": [
+        "commutative property of addition",
+        "subtraction",
+        "number relationships"
+      ],
+      "priorKnowledge": [],
+      "exclusions": [],
+      "preferences": [],
+      "durationMinutes": 15
+    }
+  },
+  "T3": {
+    "sourceArtifact": "wondii-canary/live-kg-packs/y3-dinosaurs.json",
+    "sourceSha256": "d828dc711140d09d4dcc48088f096a433805c87303fb9a7cd76b096e330cafaa",
+    "generatedBy": "gpt-4o-mini-2024-07-18",
+    "context": {
+      "yearGroup": "Year 3",
+      "subject": "Science",
+      "topic": "Dinosaurs",
+      "requestedMinutes": 15,
+      "lessonText": "Teach children about dinosaurs."
+    },
+    "rawTeacherIntent": {
+      "yearGroup": "Year 3",
+      "subject": "Science",
+      "subjectConfidence": "explicit",
+      "learningGoal": "Pupils should understand the different types of dinosaurs and their characteristics.",
+      "requiredEvidence": "Pupils can identify and describe at least three different types of dinosaurs and their features.",
+      "focusConcepts": [
+        "types of dinosaurs",
+        "dinosaur characteristics",
+        "fossils"
+      ],
+      "priorKnowledge": [],
+      "exclusions": [],
+      "preferences": [],
+      "durationMinutes": 15
+    }
+  },
+  "T4": {
+    "sourceArtifact": "wondii-canary/live-kg-packs/y4-sharks.json",
+    "sourceSha256": "277d9082af3f5e4ba7bd9a3d6484aec0924725b4ef9b22b761713ba4dad36e18",
+    "generatedBy": "gpt-4o-mini-2024-07-18",
+    "context": {
+      "yearGroup": "Year 4",
+      "subject": "Science",
+      "topic": "Shark adaptations",
+      "requestedMinutes": 15,
+      "lessonText": "How are sharks adapted to living in the ocean?"
+    },
+    "rawTeacherIntent": {
+      "yearGroup": "Year 4",
+      "subject": "Science",
+      "subjectConfidence": "explicit",
+      "learningGoal": "Pupils should understand how sharks are adapted to their ocean environment.",
+      "requiredEvidence": "Pupils can explain at least three adaptations of sharks and how each one helps them survive in the ocean.",
+      "focusConcepts": [
+        "adaptations",
+        "marine ecosystems",
+        "predator-prey relationships"
+      ],
+      "priorKnowledge": [],
+      "exclusions": [],
+      "preferences": [],
+      "durationMinutes": 15
+    }
+  },
+  "T5": {
+    "sourceArtifact": "wondii-canary/pack-comparison-live/calls/0003-intent-T5-a1.json",
+    "sourceSha256": "86aa526f05b36ecb824ce107bc35dc616a1a3407e255c1fc60e559e5eb75a91a",
+    "generatedBy": "gpt-4o-mini-2024-07-18",
+    "generatedIn": "OLD-CONTRACT BASELINE run, Tue 6 Oct 2026 (shared by both arms)",
+    "context": {
+      "yearGroup": "Year 4",
+      "subject": "English",
+      "topic": "Fronted adverbials",
+      "requestedMinutes": 15,
+      "lessonText": "Year 4 English. Teach how fronted adverbials help a reader."
+    },
+    "rawTeacherIntent": {
+      "yearGroup": "Year 4",
+      "subject": "English",
+      "subjectConfidence": "explicit",
+      "learningGoal": "Students will understand how fronted adverbials enhance the clarity and detail of sentences for the reader.",
+      "requiredEvidence": "Students will identify and use fronted adverbials in their writing to improve sentence structure.",
+      "focusConcepts": [
+        "fronted adverbials",
+        "sentence structure",
+        "clarity in writing"
+      ],
+      "priorKnowledge": [],
+      "exclusions": [],
+      "preferences": [],
+      "durationMinutes": 15
+    }
+  },
+  "T6": {
+    "sourceArtifact": "wondii-canary/live-kg-packs/y5-henry.json",
+    "sourceSha256": "777a522c482c821ff32428d472ff14b7e9cffa74563b75c831cf592ef1542686",
+    "generatedBy": "gpt-4o-mini-2024-07-18",
+    "context": {
+      "yearGroup": "Year 5",
+      "subject": "History",
+      "topic": "Henry VIII and Rome",
+      "requestedMinutes": 20,
+      "lessonText": "Why did Henry VIII break with Rome?"
+    },
+    "rawTeacherIntent": {
+      "yearGroup": "Year 5",
+      "subject": "History",
+      "subjectConfidence": "explicit",
+      "learningGoal": "Understand the reasons behind Henry VIII's break with Rome.",
+      "requiredEvidence": "Explain at least two reasons that led to Henry VIII's decision to break with Rome.",
+      "focusConcepts": [
+        "The role of the Pope",
+        "Political power and control",
+        "Religious reform",
+        "Personal motivations of Henry VIII"
+      ],
+      "priorKnowledge": [],
+      "exclusions": [],
+      "preferences": [],
+      "durationMinutes": 20
+    }
+  },
+  "T7": {
+    "sourceArtifact": "wondii-canary/pack-comparison-live/calls/0004-intent-T7-a1.json",
+    "sourceSha256": "ea0150ee4d8da7937daa4270bf20ccbbba006b5f2325bd551c1f1f37f04dc48e",
+    "generatedBy": "gpt-4o-mini-2024-07-18",
+    "generatedIn": "OLD-CONTRACT BASELINE run, Tue 6 Oct 2026 (shared by both arms)",
+    "context": {
+      "yearGroup": "Year 6",
+      "subject": "Geography",
+      "topic": "Landslides",
+      "requestedMinutes": 15,
+      "lessonText": "Year 6 geography. How do landslides happen?"
+    },
+    "rawTeacherIntent": {
+      "yearGroup": "Year 6",
+      "subject": "Geography",
+      "subjectConfidence": "explicit",
+      "learningGoal": "Students should understand the process and causes of landslides.",
+      "requiredEvidence": "Students can explain the factors that lead to a landslide and describe the sequence of events that occur during one.",
+      "focusConcepts": [
+        "causes of landslides",
+        "types of landslides",
+        "impact of landslides"
+      ],
+      "priorKnowledge": [],
+      "exclusions": [],
+      "preferences": [],
+      "durationMinutes": 15
+    }
+  },
+  "T8": {
+    "sourceArtifact": "wondii-canary/live-kg-packs/y6-mam-tor.json",
+    "sourceSha256": "c25d6e0f5df7d42dec0095bf95cad331b3f23cd52a874d67205e094a82afdd84",
+    "generatedBy": "gpt-4o-mini-2024-07-18",
+    "context": {
+      "yearGroup": "Year 6",
+      "subject": "Geography",
+      "topic": "Mam Tor",
+      "requestedMinutes": 20,
+      "lessonText": "Explain how the geology of Mam Tor caused the landslip."
+    },
+    "rawTeacherIntent": {
+      "yearGroup": "Year 6",
+      "subject": "Geography",
+      "subjectConfidence": "explicit",
+      "learningGoal": "Understand how the geology of Mam Tor contributed to the landslip.",
+      "requiredEvidence": "Explain the relationship between the geological features of Mam Tor and the occurrence of the landslip.",
+      "focusConcepts": [
+        "geological features",
+        "landslip processes",
+        "erosion",
+        "landform changes"
+      ],
+      "priorKnowledge": [],
+      "exclusions": [],
+      "preferences": [],
+      "durationMinutes": 20
+    }
+  }
+}

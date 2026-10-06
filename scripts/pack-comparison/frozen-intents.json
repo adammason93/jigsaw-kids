@@ -1,0 +1,116 @@
+{
+  "T3": {
+    "sourceArtifact": "wondii-canary/live-kg-packs/y3-dinosaurs.json",
+    "sourceSha256": "d828dc711140d09d4dcc48088f096a433805c87303fb9a7cd76b096e330cafaa",
+    "generatedBy": "gpt-4o-mini-2024-07-18",
+    "context": {
+      "yearGroup": "Year 3",
+      "subject": "Science",
+      "topic": "Dinosaurs",
+      "requestedMinutes": 15,
+      "lessonText": "Teach children about dinosaurs."
+    },
+    "rawTeacherIntent": {
+      "yearGroup": "Year 3",
+      "subject": "Science",
+      "subjectConfidence": "explicit",
+      "learningGoal": "Pupils should understand the different types of dinosaurs and their characteristics.",
+      "requiredEvidence": "Pupils can identify and describe at least three different types of dinosaurs and their features.",
+      "focusConcepts": [
+        "types of dinosaurs",
+        "dinosaur characteristics",
+        "fossils"
+      ],
+      "priorKnowledge": [],
+      "exclusions": [],
+      "preferences": [],
+      "durationMinutes": 15
+    }
+  },
+  "T4": {
+    "sourceArtifact": "wondii-canary/live-kg-packs/y4-sharks.json",
+    "sourceSha256": "277d9082af3f5e4ba7bd9a3d6484aec0924725b4ef9b22b761713ba4dad36e18",
+    "generatedBy": "gpt-4o-mini-2024-07-18",
+    "context": {
+      "yearGroup": "Year 4",
+      "subject": "Science",
+      "topic": "Shark adaptations",
+      "requestedMinutes": 15,
+      "lessonText": "How are sharks adapted to living in the ocean?"
+    },
+    "rawTeacherIntent": {
+      "yearGroup": "Year 4",
+      "subject": "Science",
+      "subjectConfidence": "explicit",
+      "learningGoal": "Pupils should understand how sharks are adapted to their ocean environment.",
+      "requiredEvidence": "Pupils can explain at least three adaptations of sharks and how each one helps them survive in the ocean.",
+      "focusConcepts": [
+        "adaptations",
+        "marine ecosystems",
+        "predator-prey relationships"
+      ],
+      "priorKnowledge": [],
+      "exclusions": [],
+      "preferences": [],
+      "durationMinutes": 15
+    }
+  },
+  "T6": {
+    "sourceArtifact": "wondii-canary/live-kg-packs/y5-henry.json",
+    "sourceSha256": "777a522c482c821ff32428d472ff14b7e9cffa74563b75c831cf592ef1542686",
+    "generatedBy": "gpt-4o-mini-2024-07-18",
+    "context": {
+      "yearGroup": "Year 5",
+      "subject": "History",
+      "topic": "Henry VIII and Rome",
+      "requestedMinutes": 20,
+      "lessonText": "Why did Henry VIII break with Rome?"
+    },
+    "rawTeacherIntent": {
+      "yearGroup": "Year 5",
+      "subject": "History",
+      "subjectConfidence": "explicit",
+      "learningGoal": "Understand the reasons behind Henry VIII's break with Rome.",
+      "requiredEvidence": "Explain at least two reasons that led to Henry VIII's decision to break with Rome.",
+      "focusConcepts": [
+        "The role of the Pope",
+        "Political power and control",
+        "Religious reform",
+        "Personal motivations of Henry VIII"
+      ],
+      "priorKnowledge": [],
+      "exclusions": [],
+      "preferences": [],
+      "durationMinutes": 20
+    }
+  },
+  "T8": {
+    "sourceArtifact": "wondii-canary/live-kg-packs/y6-mam-tor.json",
+    "sourceSha256": "c25d6e0f5df7d42dec0095bf95cad331b3f23cd52a874d67205e094a82afdd84",
+    "generatedBy": "gpt-4o-mini-2024-07-18",
+    "context": {
+      "yearGroup": "Year 6",
+      "subject": "Geography",
+      "topic": "Mam Tor",
+      "requestedMinutes": 20,
+      "lessonText": "Explain how the geology of Mam Tor caused the landslip."
+    },
+    "rawTeacherIntent": {
+      "yearGroup": "Year 6",
+      "subject": "Geography",
+      "subjectConfidence": "explicit",
+      "learningGoal": "Understand how the geology of Mam Tor contributed to the landslip.",
+      "requiredEvidence": "Explain the relationship between the geological features of Mam Tor and the occurrence of the landslip.",
+      "focusConcepts": [
+        "geological features",
+        "landslip processes",
+        "erosion",
+        "landform changes"
+      ],
+      "priorKnowledge": [],
+      "exclusions": [],
+      "preferences": [],
+      "durationMinutes": 20
+    }
+  }
+}
