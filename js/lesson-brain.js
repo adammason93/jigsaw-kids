@@ -8589,6 +8589,8 @@
     if (row.teleological !== "no") out.push({ slotId: "check", text: "The check slot " + label + " uses goal-directed wording or could not be checked for it (" + (row.teleological === "yes" ? clean(row.teleologyReason || "it presents a feature as a goal", 140) : "unchecked counts as a fail") + "). Ask what the feature did or let the animal do, not how or why the animal adapted, needed or got it." });
     if (row.circular === "yes") out.push({ slotId: "check", text: "The check slot " + label + " is circular (" + clean(row.circularReason || "the answer repeats the question", 140) + "). The correct answer must add the taught fact, not restate the question." });
     (row.distractors || []).forEach(function (d) {
+      // The correct answer is not a wrong choice; a verdict on it is the audit misreading the question.
+      if (d && auditKey(d.choice) && auditKey(d.choice) === auditKey(q.correct)) return;
       if (d && (d.trueInGeneral === "yes" || d.trueInGeneral === "partly")) out.push({ slotId: "check", text: "The check slot " + label + " has a wrong choice (\"" + clean(d.choice, 100) + "\") that is " + (d.trueInGeneral === "yes" ? "true" : "partly true") + " in general (" + clean(d.reason, 140) + "). Every wrong choice must be plainly false about the animal, not a vaguer or other true reason." });
     });
     return out;
@@ -8599,14 +8601,18 @@
       yearGroup: clean(input && input.yearGroup, 40),
       taughtSentences: textList(input && input.taughtSentences, 280, 12),
       sourcePassages: ((input && input.sourcePassages) || []).slice(0, 6).map(function (p) { return { id: clean(p.id, 24), text: clean(p.text, 900) }; }),
-      questions: ((input && input.questions) || []).slice(0, 6).map(function (q) { return { prompt: clean(q.prompt, 240), choices: (q.choices || []).map(function (c) { return clean(typeof c === "string" ? c : (c && c.text), 120); }), correct: clean(q.correct, 120) }; })
+      questions: ((input && input.questions) || []).slice(0, 6).map(function (q) {
+        var choices = (q.choices || []).map(function (c) { return clean(typeof c === "string" ? c : (c && c.text), 120); });
+        // Live run 21: the audit judged the correct answer as a wrong choice. Name the wrong ones.
+        return { prompt: clean(q.prompt, 240), choices: choices, correct: clean(q.correct, 120), wrongChoices: choices.filter(function (c) { return auditKey(c) !== auditKey(q.correct); }) };
+      })
     };
     return {
       system: [
         "You audit the check questions of one primary science lesson. Return one JSON object and nothing else.",
         "For each question: copy its prompt exactly. teleological is yes when the question or any choice presents a body feature as a goal or a need: asking how or why an animal adapted, evolved, needed, grew or got a feature, or saying it had a feature in order to or so that it could do something. Asking what a feature did or let the animal do is not teleological. Answer yes or no; never leave it out.",
         "circular is yes when the correct answer only repeats words or facts the question already states, so a pupil could answer from the question alone.",
-        "For each wrong choice: trueInGeneral is yes when the statement is true about this animal or this kind of animal, partly when it is partly true or a vaguer version of the correct reason (for example moved more easily for used less energy, or a long neck when the question asks what helped it reach high), and no when it is plainly false. Use the source passages and general knowledge.",
+        "For each wrong choice (wrongChoices; never the correct answer): trueInGeneral is yes when the statement is true about this animal or this kind of animal, partly when it is partly true or a vaguer version of the correct reason (for example moved more easily for used less energy, or a long neck when the question asks what helped it reach high), and no when it is plainly false. Use the source passages and general knowledge.",
         "JSON shape: { \"questions\": [{ \"prompt\": \"\", \"teleological\": \"yes\" or \"no\", \"teleologyReason\": \"\", \"circular\": \"yes\" or \"no\", \"circularReason\": \"\", \"distractors\": [{ \"choice\": \"\", \"trueInGeneral\": \"yes\" or \"partly\" or \"no\", \"reason\": \"\" }] }] }."
       ].join(" "),
       user: JSON.stringify(payload)

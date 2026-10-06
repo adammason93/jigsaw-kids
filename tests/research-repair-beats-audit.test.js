@@ -3,6 +3,8 @@
 // Patch 9, research mode only. Live run 21 (12:43 BST) stopped at the final check:
 // - the recap repair returned the recap word for word (the brief showed only the old text to
 //   fill) and the unchanged check missed it (same words, different shape);
+// - the question audit judged the correct answer ("Swim with its webbed feet.") as a wrong
+//   choice that is true in general.
 var assert = require("assert");
 var Brain = require("../js/lesson-brain.js");
 var run9 = require("./fixtures/source-grounded/run9-lesson-lineage.json");
@@ -57,4 +59,14 @@ assert.deepStrictEqual(Brain.targetRepair(acc.previous, same, acceptedRecap).unc
 var changed = copy(out); changed.beats[1].text = "A different recap line.";
 assert.deepStrictEqual(Brain.targetRepair(acc.previous, Brain.mergeSlotContent(acc.previous, { slots: { recap: changed } }), acceptedRecap).unchanged, []);
 
+// 4. The audit names the wrong choices, and a verdict on the correct answer is not a wrong-choice failure.
+var q = { prompt: "What did Spinosaurus's webbed feet help it do?", choices: ["Swim with its webbed feet.", "Climb trees."], correct: "Swim with its webbed feet." };
+var ab = JSON.parse(Brain.questionAuditBrief({ yearGroup: "Year 3", taughtSentences: [], sourcePassages: [], questions: [q] }).user);
+assert.deepStrictEqual(ab.questions[0].wrongChoices, ["Climb trees."]);
+function audit(rows) { return { questions: [{ prompt: q.prompt, teleological: "no", circular: "no", distractors: rows }] }; }
+assert.deepStrictEqual(Brain.questionAuditIssues(q, 1, audit([{ choice: "Swim with its webbed feet.", trueInGeneral: "yes", reason: "The source says so." }, { choice: "Climb trees.", trueInGeneral: "no", reason: "No." }])), []);
+// A real wrong choice judged true still fails (the rule is unchanged).
+var bad = Brain.questionAuditIssues(q, 1, audit([{ choice: "Climb trees.", trueInGeneral: "partly", reason: "Some did." }]));
+assert.strictEqual(bad.length, 1);
+assert.ok(/Question 2 has a wrong choice \("Climb trees\."\) that is partly true/.test(bad[0].text));
 console.log("research repair beats and audit tests passed");
