@@ -728,7 +728,8 @@
   // ---------- 8. Adventure for the Wondii player ----------
   function lineFor(b) {
     var who = clean(b.speaker, 40);
-    if (!who || /^narrator$/i.test(who)) return b.text;
+    // A narration line that the model tagged with a character ("Mina examined...") reads without a prefix.
+    if (!who || /^narrator$/i.test(who) || String(b.text).indexOf(who + " ") === 0) return b.text;
     return who + ": " + b.text;
   }
   function ideaIdsOf(claimIds) { return uniq((claimIds || []).map(function (id) { return String(id).replace(/c\d+$/, ""); })); }
