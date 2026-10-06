@@ -30,6 +30,8 @@ var PRICES = {
   // Worst-case output tokens for one image. OpenAI's calculator gives 196 (1024x1024 low)
   // and 158 (1536x1024 low); 600 covers medium at these sizes.
   imageOutputWorst: 600,
+  // Reference images on /v1/images/edits are read at high fidelity; worst case per input image.
+  imageInputWorstPerReference: 8000,
   // No max_tokens is sent by the lesson boot, so the text worst case is the model's cap.
   textOutputWorst: 16384
 };
@@ -112,6 +114,16 @@ function createGuard(options) {
       var pt = Math.ceil(String(body.prompt || "").length / 3);
       return { kind: "image", model: body.model, listedUsd: (pt * ip.textInput + PRICES.imageOutputWorst * ip.imageOutput) / 1e6, inTokens: pt, outTokens: PRICES.imageOutputWorst };
     }
+    if (href.indexOf("/v1/images/edits") !== -1) {
+      var ep = PRICES.image[body.model];
+      if (!ep) return { error: "no verified price for image model " + body.model };
+      if (Number(body.n || 1) !== 1) return { error: "only n=1 is allowed" };
+      if (["low", "medium"].indexOf(body.quality) === -1) return { error: "image quality must be low or medium under this guard" };
+      var refs = Math.max(1, Number(body.references || 1));
+      var et = Math.ceil(String(body.prompt || "").length / 3);
+      var it = refs * PRICES.imageInputWorstPerReference;
+      return { kind: "image", model: body.model, listedUsd: (et * ep.textInput + it * ep.imageInput + PRICES.imageOutputWorst * ep.imageOutput) / 1e6, inTokens: et + it, outTokens: PRICES.imageOutputWorst };
+    }
     return { error: "endpoint not priced by the guard: " + href.replace(/\?.*$/, "") };
   }
 
@@ -146,7 +158,12 @@ function createGuard(options) {
       var href = String(url);
       if (href.indexOf("https://api.openai.com/") !== 0) return realFetch(url, init);
       var body = {};
-      try { body = JSON.parse(init && init.body || "{}"); } catch (e) { body = {}; }
+      if (init && init.body && typeof init.body === "object" && typeof init.body.getAll === "function") {
+        // Multipart (images/edits): read the priced fields from the form.
+        body = { model: init.body.get("model"), prompt: init.body.get("prompt"), quality: init.body.get("quality"), n: init.body.get("n") || 1, references: init.body.getAll("image[]").length };
+      } else {
+        try { body = JSON.parse(init && init.body || "{}"); } catch (e) { body = {}; }
+      }
       var est = estimate(href, body);
       var label = (options.labelFor && options.labelFor(href, body)) || "";
       if (est.error) {

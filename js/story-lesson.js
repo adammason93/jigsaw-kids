@@ -654,15 +654,34 @@
   }
 
   // ---------- 7. Pictures (plan only; generation is the caller's job) ----------
-  var STORY_STYLE = "Rich, painterly children's picture-book illustration with depth, natural light and expressive characters; a proper storybook scene, not clip art and not a flat cartoon. It is clearly an imagined story scene.";
-  var TEACH_STYLE = "Clear, accurate, realistic educational illustration for a primary lesson, the same painterly picture-book world as the story but simpler, plain soft background, the evidence, feature or process large and easy to see.";
+  // One locked art style for every picture in a lesson (story scenes, teaching pictures and the cast
+  // sheet), so the lesson looks like one book. The cast sheet is drawn first; every other picture is
+  // drawn with it as a reference image so characters keep their faces, hair, skin tone and outfits.
+  var LOCKED_STYLE = "Art style, identical in every picture of this lesson: warm painterly children's picture-book illustration with soft natural light, gentle textured brushwork, rounded friendly character design with consistent proportions, and a soft, rich palette of warm creams, golden light, muted teal and soft red accents; a proper storybook painting, not clip art, not a flat cartoon and not photo-real.";
+  var STORY_STYLE = LOCKED_STYLE + " This is an imagined story scene.";
+  var TEACH_STYLE = LOCKED_STYLE + " This is a teaching picture in the same style: a simpler composition on a plain, softly lit background in the same palette, with the evidence, feature or process large and easy to see.";
+  var REFERENCE_RULE = "The attached image is this lesson's character and style reference sheet. Draw every character who appears exactly as on the sheet (same face, hair, skin tone, body proportions and outfit) and match the sheet's art style and palette. Do not copy the sheet's layout or plain background.";
+  var STYLE_REFERENCE_RULE = "The attached image is this lesson's style reference sheet. Match its art style, brushwork and palette exactly, but do not include any of its characters or its layout.";
   var COMPOSITION = "Composition: a text panel will cover the lower left of the picture (the left 58%, from halfway down to near the bottom). Keep every important subject in the top half or the right 42% of the picture, and keep the lower-left area plain background.";
+  var SIZE_WORDS = /\b\d+(?:[.,]\d+)?\s*(?:cm|centimetres?|mm|millimetres?|m|metres?|meters?|km|kilometres?|feet|foot|ft|inches|kg|kilograms?|tonnes?|tons?)\b/i;
 
-  function imagePlan(story, request) {
+  // opts.knowledge (optional): claims, so a picture that sets a character beside evidence can use a
+  // sourced size; with no sourced size it is drawn at a modest size with neutral framing.
+  function imagePlan(story, request, opts) {
     request = request || {};
+    opts = opts || {};
+    var claims = (opts.knowledge && opts.knowledge.claims) || {};
     var assets = [];
     var limitations = [];
     var cast = story.characters.map(function (c) { return c.name + " (" + (c.look || c.role) + ")"; }).join("; ");
+    var present = /present/i.test(story.era || "present-day");
+    if (story.characters.length) {
+      assets.push({ id: "cast-sheet", type: "reference", framing: "reference", frameLabel: "Character and style reference sheet (not shown to pupils)", reference: false,
+        prompt: [LOCKED_STYLE, "A character reference sheet for one picture book: " + story.characters.map(function (c) { return c.name + ", " + clean(c.role, 60) + ", wearing " + clean(c.look || "simple everyday clothes", 160).replace(/^[A-Z](?=[a-z])/, function (m) { return m.toLowerCase(); }); }).join("; ") + ".",
+          "Each character shown once, full length, standing in a relaxed friendly pose, facing slightly towards the viewer, side by side with space between them, at their true relative heights (children are child-sized, adults adult-sized), on a plain warm cream background. Their outfits are fixed for the whole book.",
+          present ? "They are present-day people." : "They belong to " + clean(story.era, 60) + ", with clothes of that period.",
+          "No text, letters, numbers, labels or name tags. Child-friendly."].join(" ") });
+    } else limitations.push({ id: "cast-sheet", limitation: "The story has no named characters, so no reference sheet was drawn." });
     var scenes = story.scenes.slice();
     if (story.resolution.length) scenes.push({ id: "resolution", kind: "resolution", title: "Payoff", image: { description: story.resolution.map(function (b) { return b.text; }).join(" "), pastLife: [] } });
     scenes.forEach(function (s) {
@@ -672,12 +691,12 @@
         rule = "No people anywhere in the picture. The only living animal shown is " + past[0] + ", one kind of animal only.";
         if (past.length > 1) limitations.push({ id: "scene-" + s.id, limitation: "The story listed " + past.join(", ") + " alive together; the picture keeps one kind (" + past[0] + ") so periods are never mixed." });
       } else {
-        rule = /present/i.test(story.era || "present-day")
-          ? "The people are present-day characters. Nothing from a past period appears alive or in person: extinct animals, ancient people and past events appear only as fossils, remains, objects, sources, ruins, models, pictures or museum displays."
+        rule = present
+          ? "The people are present-day characters. Nothing from a past period appears alive or in person: extinct animals, ancient people and past events appear only as fossils, remains, objects, sources, ruins, models, pictures or museum displays. Toys, puppets and models look clearly like toys, puppets and models."
           : "Everything belongs to one past period, " + clean(story.era, 60) + ": its people, clothes, buildings and objects only, with nothing modern and nothing from another period.";
       }
-      var prompt = [STORY_STYLE, "Scene: " + clean(s.image && s.image.description, 400), past.length ? "" : "Characters: " + cast + ".", story.setting ? "Setting: " + clean(story.setting, 200) + "." : "", rule, "No text, letters, numbers or labels anywhere in the image. Child-friendly, not frightening.", COMPOSITION].filter(Boolean).join(" ");
-      assets.push({ id: "scene-" + s.id, type: "scene", sceneId: s.id, framing: "story", frameLabel: "Story picture: an imagined adventure scene", prompt: prompt, brief: { educationalFocus: s.title }, pastLife: past.slice(0, 1) });
+      var prompt = [STORY_STYLE, past.length ? "" : REFERENCE_RULE, "Scene: " + clean(s.image && s.image.description, 400), past.length ? "" : "Characters: " + cast + ".", story.setting ? "Setting: " + clean(story.setting, 200) + ", in the lesson palette." : "", rule, "No text, letters, numbers or labels anywhere in the image. Child-friendly, not frightening.", COMPOSITION].filter(Boolean).join(" ");
+      assets.push({ id: "scene-" + s.id, type: "scene", sceneId: s.id, framing: "story", frameLabel: "Story picture: an imagined adventure scene", prompt: prompt, brief: { educationalFocus: s.title }, pastLife: past.slice(0, 1), reference: !past.length && story.characters.length > 0 });
     });
     story.scenes.forEach(function (s) {
       var t = s.teachingImage;
@@ -685,18 +704,25 @@
       var feature = String(t.feature || "").replace(/[.\s]+$/, "");
       t = Object.assign({}, t, { feature: feature });
       var child = t.view === "character" ? story.characters.filter(function (c) { return t.comparedWith && c.name.toLowerCase() === String(t.comparedWith).toLowerCase(); })[0] || story.characters[0] : null;
-      var present = /present/i.test(story.era || "present-day");
+      // Scale rule: a character beside evidence follows a sourced size when a cited claim gives one;
+      // otherwise nothing is exaggerated and the framing is neutral (no size comparison implied).
+      var sized = t.claimIds.map(function (id) { return claims[id] && claims[id].text; }).filter(function (text) { return text && SIZE_WORDS.test(text); });
+      var scale = "";
+      if (child) scale = sized.length
+        ? "Size: draw " + t.subject + " at its real size as the source gives it (" + clean(sized[0], 200) + "), next to " + child.name + ", an ordinary child of age " + yearProfile(request.yearGroup).age + ", so the comparison is true."
+        : "Size: the sources give no size, so do not exaggerate. Show " + t.subject + " at a modest, believable size on a table or display with " + child.name + " looking at it from a little distance, so the picture does not suggest any size comparison.";
       var view = child
-        ? "The fact made visible with a story character: " + child.name + " (" + clean(child.look || child.role, 120) + ") beside or acting out " + t.subject + ", drawn at true relative size, so pupils can judge it against someone like them. What to notice: " + t.feature + "." + (present ? " " + child.name + " is a present-day child; anything from a past period is a fossil, remain, object, model or replica, never alive." : "")
+        ? "The fact made visible with a story character: " + child.name + " beside or acting out " + t.subject + ". What to notice: " + t.feature + ". " + scale + (present ? " " + child.name + " is a present-day child; anything from a past period is a fossil, remain, object, model or replica, never alive." : "")
         : t.view === "comparison" && t.comparedWith
-        ? "A side-by-side comparison in two clearly separate panels across the top half of the picture: on the left, " + t.subject + "; on the right, " + t.comparedWith + ". The difference to notice: " + t.feature + "."
+        ? "A side-by-side comparison in two clearly separate panels across the top half of the picture: on the left, " + t.subject + "; on the right, " + t.comparedWith + ". The difference to notice: " + t.feature + ". Draw both at the same scale."
         : "A close-up of " + t.subject + " that makes this easy to see: " + t.feature + ".";
       var people = child ? "The only person is " + child.name + "." : "No people.";
-      var prompt = [TEACH_STYLE, request.subject ? "Subject: " + clean(request.subject, 40) + ", " + clean(request.yearGroup, 20) + "." : "", view, "Show only what is described, one kind of thing per panel. " + people + " No text, letters, numbers, rulers with numbers, arrows or labels.", COMPOSITION].filter(Boolean).join(" ");
+      var prompt = [TEACH_STYLE, child ? REFERENCE_RULE : story.characters.length ? STYLE_REFERENCE_RULE : "", request.subject ? "Subject: " + clean(request.subject, 40) + ", " + clean(request.yearGroup, 20) + "." : "", view, "Show only what is described, one kind of thing per panel. " + people + " No text, letters, numbers, rulers with numbers, arrows or labels.", COMPOSITION].filter(Boolean).join(" ");
       if (t.view === "character" && !child) limitations.push({ id: "teach-" + s.id, limitation: "A character picture was asked for but the story has no characters; drawn without one." });
-      assets.push({ id: "teach-" + s.id, type: "teaching", sceneId: s.id, framing: "teaching", view: t.view, subject: t.subject, compared: t.comparedWith, feature: t.feature, claimIds: t.claimIds, scaleCharacter: child ? child.name : "", frameLabel: "Teaching picture: " + (child ? "the fact shown with " + child.name : t.view === "comparison" ? "comparison" : "close-up") + " (a teaching picture, not a story scene)", prompt: prompt });
+      if (child && !sized.length) limitations.push({ id: "teach-" + s.id, limitation: "No sourced size for " + t.subject + ": drawn at a modest size with neutral framing, not as a size comparison." });
+      assets.push({ id: "teach-" + s.id, type: "teaching", sceneId: s.id, framing: "teaching", view: t.view, subject: t.subject, compared: t.comparedWith, feature: t.feature, claimIds: t.claimIds, scaleCharacter: child ? child.name : "", sourcedSize: sized[0] || "", frameLabel: "Teaching picture: " + (child ? "the fact shown with " + child.name : t.view === "comparison" ? "comparison" : "close-up") + " (a teaching picture, not a story scene)", prompt: prompt, reference: !!child || story.characters.length > 0 });
     });
-    return { assets: assets, limitations: limitations };
+    return { assets: assets, limitations: limitations, style: LOCKED_STYLE };
   }
 
   // ---------- 8. Adventure for the Wondii player ----------
@@ -803,7 +829,7 @@
       activities: activities, storyScenes: scenesOut,
       targetMinutes: Number(request.requestedMinutes) || 30,
       estimateMinutes: activities.reduce(function (sum, a) { return sum + (a.minutes || 0); }, 0),
-      visualAssets: assets.filter(function (a) { return a.status === "ready"; }).map(function (a) { return { id: a.id, type: a.type, status: "ready", fallback: false, publicUrl: a.publicUrl, frameLabel: a.frameLabel, model: a.model, dimensions: a.dimensions }; }),
+      visualAssets: assets.filter(function (a) { return a.status === "ready" && a.type !== "reference"; }).map(function (a) { return { id: a.id, type: a.type, status: "ready", fallback: false, publicUrl: a.publicUrl, frameLabel: a.frameLabel, model: a.model, dimensions: a.dimensions }; }),
       meta: { mode: "story-research", label: LABEL, fallbackUsed: false }
     };
   }
@@ -846,7 +872,7 @@
       trace.reviewAgain = { at: new Date().toISOString(), quizBefore: before };
       // Rewritten questions passed the support check; record their rows so the lesson's support table stays complete.
       mergeRows(result.support, quality.rewrittenRows);
-      return Object.assign(result, { quality: quality, warnings: state.warnings, repairs: state.repairs, imagePlan: imagePlan(result.story, request), trace: trace });
+      return Object.assign(result, { quality: quality, warnings: state.warnings, repairs: state.repairs, imagePlan: imagePlan(result.story, request, { knowledge: result.knowledge }), trace: trace });
     });
   }
 
@@ -887,7 +913,7 @@
                 return qualityPass(story, knowledge, request, call, ports, state, log).then(function (quality) {
                   mergeRows(support, quality.rewrittenRows);
                   codeWarnings(story, knowledge, request).forEach(function (w) { state.warnings.push(w); });
-                  return done(true, "COMPLETE", { story: story, knowledge: knowledge, vocabulary: admitted.vocabulary, record: record, pack: admitted.pack, support: support, quality: quality, imagePlan: imagePlan(story, request) });
+                  return done(true, "COMPLETE", { story: story, knowledge: knowledge, vocabulary: admitted.vocabulary, record: record, pack: admitted.pack, support: support, quality: quality, imagePlan: imagePlan(story, request, { knowledge: knowledge }) });
                 });
               });
             });

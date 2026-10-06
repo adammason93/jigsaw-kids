@@ -12,6 +12,7 @@
             [--saved-research a.json,b.json]  replay URLs found by earlier paid searches (free)
             [--no-search]                     no new paid web search
             [--stub]                          offline: stubbed model transport and saved passages
+            [--only-images id,id]             draw only these pictures (cast-sheet first); others stay planned
             [--no-images] [--reuse DIR]       reuse DIR's result.json (no text calls) for pictures
             [--review-again]                  with --reuse: re-run only the non-blocking review and question rewrite
             [--minutes 30] [--story-effort medium] [--story-model gpt-6.1-sol --story-max-tokens 16000] */
@@ -21,6 +22,7 @@ var path = require("path");
 var Guard = require("./spend-guard.js");
 var Research = require("../../js/source-research.js");
 var Brain = require("../../js/lesson-brain.js");
+var StoryImages = require("./story-images.js");
 var Story = require("../../js/story-lesson.js");
 var Finish = require("./finish.js");
 var Visuals = require("../../js/visual-adventure.js");
@@ -54,6 +56,7 @@ function harnessFetch(url, init) {
   var href = String(url);
   if (href.indexOf("https://api.openai.com/") === 0) {
     if (stub) return Promise.reject(new Error("stub mode: no paid call"));
+    if (init && init.body && typeof init.body.getAll === "function") { outbound.push({ kind: "openai", url: href, purpose: "image-edit" }); return guarded(url, init); }
     var body = init && init.body ? JSON.parse(init.body) : {};
     var purpose = body.__purpose; delete body.__purpose;
     outbound.push({ kind: "openai", url: href, purpose: purpose || "" });
@@ -111,6 +114,8 @@ function runText() {
     var saved = JSON.parse(fs.readFileSync(path.join(path.resolve(arg("reuse")), "result.json"), "utf8"));
     log("REUSED_TEXT", { from: arg("reuse"), stage: saved.stage });
     if (flag("review-again") && saved.ok) return Story.reviewAgain(saved, request, { callModel: callModel, log: log, fetch: harnessFetch });
+    // The picture plan is rebuilt with the current code (style, cast sheet, scale rule).
+    if (saved.ok) saved.imagePlan = Story.imagePlan(saved.story, request, { knowledge: saved.knowledge });
     return Promise.resolve(saved);
   }
   var ports = { fetch: harnessFetch, log: log, callModel: callModel, storyEffort: arg("story-effort", "medium"), maxSources: Number(arg("max-sources", "22")) };
@@ -162,15 +167,13 @@ runText().then(function (result) {
   if (!result.ok) { process.exitCode = 3; return null; }
   var plan = result.imagePlan;
   var assetsPromise = flag("no-images") || stub ? Promise.resolve(plan.assets.map(function (a) { return Object.assign({}, a, { status: "planned" }); }))
-    : Finish.generateImages(harnessFetch, key, { topic: request.topic }, outDir, plan.assets.length, flag("reuse-images"), { assets: plan.assets, promptFor: function (adv, a) { return a.prompt; } }).then(function (images) {
-      return images.map(function (img) { var a = plan.assets.filter(function (x) { return x.id === img.id; })[0] || {}; return Object.assign({}, a, img, { frameLabel: a.frameLabel }); });
-    });
+    : StoryImages.drawImages(harnessFetch, key, plan.assets, outDir, { quality: process.env.SG_IMAGE_QUALITY || "medium", only: arg("only-images", "") ? arg("only-images").split(",") : null, log: log });
   return assetsPromise.then(function (images) {
     var adventure = Story.buildAdventure(result.story, result.knowledge, request, { assets: images, vocabulary: result.vocabulary });
     var sceneText = {};
     result.story.scenes.forEach(function (s) { sceneText["scene-" + s.id] = s.title + ": " + s.image.description; });
     sceneText["scene-resolution"] = result.story.resolution.map(function (b) { return b.text; }).join(" ");
-    var ready = images.filter(function (i) { return i.status === "ready"; });
+    var ready = images.filter(function (i) { return i.status === "ready" && i.id !== "cast-sheet"; });
     var vision = flag("no-vision") || stub ? Promise.resolve([]) : ready.reduce(function (chain, a) { return chain.then(function (rows) { return visionCheck(a, adventure, sceneText[a.id] || "").then(function (r) { rows.push(r); return rows; }); }); }, Promise.resolve([]));
     return vision.then(function (visionRows) {
       var warnings = (result.warnings || []).slice();
