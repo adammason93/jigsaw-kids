@@ -101,7 +101,11 @@ global.fetch = function (url, init) {
       var one = goodPack(sources);
       return chat({ status: "usable", claims: one.claims.slice(0, 2), mechanisms: one.mechanisms.slice(0, 1) });
     }
-    if (kind === "repair") return chat(state.repairGood ? goodPack(JSON.parse(user).sources) : badPack(JSON.parse(user).sources));
+    if (kind === "repair") {
+      var rs = JSON.parse(user).sources;
+      if (state.repairEmpty) return chat({ status: "usable", claims: goodPack(rs).claims.slice(0, 1), mechanisms: [] });
+      return chat(state.repairGood ? goodPack(rs) : badPack(rs));
+    }
     if (kind === "entail") return chat({ results: JSON.parse(user).items.map(function (item) { return { claimId: item.claimId, verdict: "supported", missing: "", linkQuote: item.quote, wording: item.wordsNotInSource || [] }; }) });
     return chat({});
   }
@@ -136,7 +140,9 @@ Promise.resolve().then(function () {
   assert.ok(problems.indexOf("REWORDED_QUOTE") !== -1 || problems.indexOf("WRONG_PASSAGE") !== -1, problems.join(","));
   assert.ok(problems.indexOf("ENTAILMENT_UNSUPPORTED") !== -1, problems.join(","));
   assert.ok(feedback.some(function (r) { return r.problem === "ENTAILMENT_UNSUPPORTED" && /LINK_NOT_IN_QUOTE/.test(r.fix); }));
-  assert.ok(feedback.some(function (r) { return r.problem === "PAIR_NOT_READY" && /helped them eat meat/.test(r.item) && /does not state how or why/.test(r.gaps.join(" ")); }), JSON.stringify(feedback));
+  // Tense parity: "helped them eat meat" states a job, so that pair is no longer sent back as
+  // not ready. (Before the parity commit it was rejected for the past tense alone.)
+  assert.ok(!feedback.some(function (r) { return r.problem === "PAIR_NOT_READY" && /helped them eat meat/.test(r.item); }), JSON.stringify(feedback));
   var reworded = feedback.filter(function (r) { return r.problem === "REWORDED_QUOTE"; })[0];
   if (reworded) assert.ok(/closest sentence/.test(reworded.fix) || /No cited passage/.test(reworded.fix));
   // Experimental research model: knowledge, entailment and repair use gpt-6-luna; other calls keep LESSON_MODEL.
@@ -158,6 +164,7 @@ Promise.resolve().then(function () {
   assert.strictEqual(state.stages.indexOf("PLAN_REQUEST"), -1);
   // A repair that loses ready pairs is not used: the first pack stands (both were gated alike).
   state.firstOnePair = true;
+  state.repairEmpty = true;
   return run("repair-worse");
 }).then(function (body) {
   assert.strictEqual(calls("repair").length, 1);
@@ -176,6 +183,7 @@ Promise.resolve().then(function () {
   assert.ok(packUser.linkSentences.some(function (row) { return /so the teeth could slice through meat/.test(row.sentence); }), JSON.stringify(packUser.linkSentences));
   assert.ok(!packUser.linkSentences.some(function (row) { return /Most of the smaller dinosaurs had feathers/.test(row.sentence); }));
   state.firstOnePair = false;
+  state.repairEmpty = false;
   state.research = "";
   return run("research-off");
 }).then(function () {

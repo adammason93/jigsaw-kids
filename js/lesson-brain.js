@@ -710,7 +710,7 @@
         problem: "PAIR_NOT_READY",
         feature: pair.feature || "",
         gaps: (pair.gaps || []).slice(0, 4),
-        fix: "A mechanism must state how or why the feature works, in words such as because, so it could, which lets, allowed, or let, as the passage states it. \"Helped\" on its own does not state a mechanism. The feature phrase must appear in exactly one concrete feature claim."
+        fix: "A mechanism must state how or why the feature works, in words such as because, so it could, which lets, allowed, or let, as the passage states it. A verb such as helped with no stated job (\"features helped dinosaurs\") does not state a mechanism. The feature phrase must appear in exactly one concrete feature claim."
       });
     });
     return rows.slice(0, 40);
@@ -4657,7 +4657,7 @@
 
   function statesFunction(text) {
     var value = String(text || "");
-    return /\b(helps|helping|help|reduces|reduced|reducing|reduce|allows|allowed|allowing|allow|enables|enabled|enabling|enable|causes|caused|causing|cause|affects|affected|affecting|affect|lets|let|makes|made|making|make|changes|changed|changing|change|aids|aided|aiding|aid)\b\s+[a-z0-9]/i.test(value);
+    return /\b(helps|helped|helping|help|reduces|reduced|reducing|reduce|allows|allowed|allowing|allow|enables|enabled|enabling|enable|causes|caused|causing|cause|affects|affected|affecting|affect|lets|let|makes|made|making|make|changes|changed|changing|change|aids|aided|aiding|aid)\b\s+[a-z0-9]/i.test(value);
   }
 
   function sameStem(left, right) {
@@ -4673,7 +4673,7 @@
   var CONTRIBUTION_VERBS = "help|helps|helping|cause|causes|caused|affect|affects|affected|work|works|working|change|changes|changed|contribute|contributes|contributing|make|makes|made|aid|aids|get|gets|getting|obtain|obtains|transport|transports|transporting|carry|carries|carrying|adapt|adapts|adapted|adapting|survive|survives|survived|surviving";
   var WHOLE_HEAD = { body: 1, bodies: 1, system: 1, systems: 1 };
   var RELATION_STEM = {
-    help: 1, helps: 1, helping: 1, reduce: 1, reduces: 1, reduced: 1, reducing: 1,
+    help: 1, helps: 1, helped: 1, helping: 1, reduce: 1, reduces: 1, reduced: 1, reducing: 1,
     allow: 1, allows: 1, allowed: 1, allowing: 1, enable: 1, enables: 1, enabled: 1,
     cause: 1, causes: 1, caused: 1, causing: 1, affect: 1, affects: 1, affected: 1,
     let: 1, lets: 1, make: 1, makes: 1, made: 1, making: 1, change: 1, changes: 1, changed: 1,
