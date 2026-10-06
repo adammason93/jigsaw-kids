@@ -125,6 +125,35 @@
     return steps[step];
   }
 
+  // Patch 6: a choose step is a meaningful choice on a new example. Each choice carries its own
+  // feedback; the step is solved only when the class picks the correct choice (observable:
+  // the right choice turns green, its feedback shows, and Next appears). Class screen only.
+  function chooseStep(slide, state) {
+    var step = currentInteraction(slide, state);
+    return step && step.type === "choose" && Array.isArray(step.choices) && step.choices.length ? step : null;
+  }
+
+  function chooseHtml(step, state) {
+    var picked = state && state.chosen != null && state.chosen !== "" ? Number(state.chosen) : -1;
+    var tried = (state && state.tried) || [];
+    var pickedChoice = picked >= 0 ? step.choices[picked] : null;
+    var solved = !!(pickedChoice && pickedChoice.correct === true && state && state.revealed);
+    var example = step.newCase && step.newCase.text ? "<p class=\"lesson-copy lesson-case\">" + escape(step.newCase.text) + "</p>" : "";
+    var buttons = step.choices.map(function (choice, i) {
+      var right = solved && choice.correct === true;
+      var again = tried.indexOf(i) !== -1 && choice.correct !== true;
+      return "<button type=\"button\" class=\"lesson-choice" + (right ? " is-right" : "") + (again ? " is-again" : "") + "\" data-world=\"choose\" data-pick=\"" + i + "\"" + (solved || again ? " disabled" : "") + "><span>" + escape(choice.text) + "</span></button>";
+    }).join("");
+    var feedback = "";
+    if (pickedChoice) {
+      feedback = "<p class=\"lesson-react " + (pickedChoice.correct === true ? "lesson-react--yes" : "lesson-react--again") + "\" role=\"status\" data-choose-feedback=\"" + (pickedChoice.correct === true ? "right" : "again") + "\">" + escape((pickedChoice.correct === true ? "Yes. " : "Not quite. ") + (pickedChoice.feedback || "")) + "</p>";
+      if (pickedChoice.correct !== true) feedback += "<p class=\"lesson-cue lesson-choose-again\">Try another choice.</p>";
+    }
+    var success = solved ? "<p class=\"lesson-kicker lesson-choose-done\" data-choose-success=\"1\">Solved</p>" : "";
+    return "<div class=\"lesson-choose\" data-interaction=\"choose\"><p class=\"lesson-kicker\">" + escape(step.instruction || "Choose one") + "</p>" + example +
+      "<div class=\"lesson-choices\">" + buttons + "</div>" + feedback + success + "</div>";
+  }
+
   function againScaffold(quiz, choiceId) {
     var picked = "";
     ((quiz && quiz.choices) || []).forEach(function (choice) {
@@ -188,6 +217,11 @@
     var body = shown.map(function (line, index) {
       return "<p class=\"lesson-copy" + (index === shown.length - 1 && shown.length > 1 ? " is-new" : "") + "\">" + escape(line) + "</p>";
     }).join("");
+    var choosing = chooseStep(slide, state);
+    if (choosing) {
+      actType = "choose";
+      body += chooseHtml(choosing, state);
+    }
     return "<div class=\"lesson-story lesson-act lesson-act--" + actType + " lesson-scene-story\">" +
       (slide.image && !ctx.immersed ? "<img class=\"lesson-scene\" src=\"" + escape(slide.image) + "\" alt=\"" + escape(slide.alt || "") + "\" />" : "") +
       "<div>" + sceneNote(slide, ctx) + pupilLine(slide) + "<p class=\"lesson-kicker\">" + escape(lead) + "</p>" + body +
@@ -224,6 +258,11 @@
       body = "<details class=\"lesson-hotspot\"><summary>Look here</summary>" + body + "</details>";
     }
     var actType = current && current.type === "move" ? "move" : action.type;
+    var choosing = chooseStep(slide, ctx.interact || {});
+    if (choosing) {
+      actType = "choose";
+      body += chooseHtml(choosing, ctx.interact || {});
+    }
     return "<div class=\"lesson-story lesson-act lesson-act--" + escape(actType) + "\">" +
       (slide.image && !ctx.immersed ? "<img class=\"lesson-scene\" src=\"" + escape(slide.image) + "\" alt=\"" + escape(slide.alt || "") + "\" />" : "") +
       "<div>" + sceneNote(slide, ctx) + pupilLine(slide) + "<p class=\"lesson-kicker\">" + escape(lead) + "</p>" + body +
@@ -761,5 +800,5 @@
     return { mode: "story", html: story(slide || {}, ctx) };
   }
 
-  return { render: render, mount: mount, destroy: destroyCurrent, pupilsToday: pupilCountCopy, actionOf: actionOf, interactionsOf: interactionsOf, layerHtml: layerHtml, earthquakeMove: earthquakeMove, stepReached: stepReached };
+  return { render: render, mount: mount, destroy: destroyCurrent, pupilsToday: pupilCountCopy, actionOf: actionOf, interactionsOf: interactionsOf, layerHtml: layerHtml, earthquakeMove: earthquakeMove, stepReached: stepReached, chooseStep: chooseStep, chooseHtml: chooseHtml };
 });

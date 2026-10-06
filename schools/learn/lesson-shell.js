@@ -664,6 +664,13 @@
           if (current.responseEffect) playCue(current.responseEffect.type);
           ui.play = completeSpot(ui.play, steps);
           render(rootEl, model);
+        } else if (kind === "choose") {
+          var pick = Number(btn.getAttribute("data-pick"));
+          var picked = (current.choices || [])[pick];
+          if (!picked) return;
+          ui.play = choosePlay(ui.play, steps, pick, picked.correct === true);
+          if (picked.correct === true && current.responseEffect) playCue(current.responseEffect.type);
+          render(rootEl, model);
         } else if (kind === "push") {
           if (!ui.play.stuck) {
             ui.play.stuck = true;
@@ -728,7 +735,23 @@
     if (step.beatIndex != null && (Number(play.beat) || 0) < Number(step.beatIndex)) return false;
     if ((step.type === "move" || step.type === "drag") && !play.slipped && !play.revealed) return true;
     if ((step.type === "hotspot" || step.type === "tap-to-reveal" || step.type === "inspect") && !play.revealed) return true;
+    if (step.type === "choose" && Array.isArray(step.choices) && step.choices.length && !play.revealed) return true;
     return false;
+  }
+
+  // Patch 6: record a choice on a choose step. A wrong choice shows its own feedback and stays
+  // on the step; the correct choice solves it (revealed), which lets Next appear.
+  function choosePlay(play, steps, pick, correct) {
+    var tried = ((play && play.tried) || []).slice();
+    if (tried.indexOf(pick) === -1) tried.push(pick);
+    var next = Object.assign({}, play || {}, { chosen: pick, tried: tried, revealed: !!correct });
+    if (correct && (next.step || 0) < (steps || []).length - 1) {
+      next.step = (next.step || 0) + 1;
+      next.revealed = false;
+      next.chosen = null;
+      next.tried = [];
+    }
+    return next;
   }
 
   function completeSpot(play, steps) {
@@ -869,6 +892,7 @@
     render: render,
     waitingOn: waitingOn,
     completeSpot: completeSpot,
+    choosePlay: choosePlay,
     primaryLabel: primaryLabel,
     advancePlay: advancePlay,
     screenFor: screenFor,
