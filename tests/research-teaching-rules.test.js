@@ -140,6 +140,14 @@ a.apply.choices = [
   { text: "The animal with legs sprawled out to the side", correct: false, feedback: "Not this one. Sprawling legs make an animal use more energy to move." }
 ];
 a.apply.newCase = { text: "Imagine two new reptiles: one has legs straight under its body and one has legs sprawled out to the side.", kind: "transfer", sourceRef: [], quote: "" };
+a.resolution.beats[0].pupil.text = "Now we know what these dinosaur features let them do!";
+// Patch 7: research accept needs the question audit; a clean audit (test values) for the fixed questions.
+function cleanAudit(questions) {
+  return { ok: true, questions: questions.map(function (q) {
+    return { prompt: q.prompt, teleological: "no", circular: "no", distractors: q.choices.filter(function (c) { return c !== q.correct; }).map(function (c) { return { choice: c, trueInGeneral: "no", reason: "test" }; }) };
+  }) };
+}
+judged.questionAudit = cleanAudit(a.check.config.questions);
 var passed = Brain.accept(copy(fixed), Object.assign(ctxFor(true), judged));
 assert.strictEqual(passed.ok, true, (passed.issues || []).join(" | "));
 var adv = passed.adventure;

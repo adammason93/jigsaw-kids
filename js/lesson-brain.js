@@ -4110,6 +4110,7 @@
       "Use everyday words for " + (year || "this year group") + ". Avoid long technical words; if one is needed, explain it in the same sentence (for example: perpendicular, which means at a right angle).",
       "Say what a feature did or how it worked. Do not say an animal had, grew, or developed a feature in order to do something, and do not ask why an animal had a feature.",
       "Each check question's correct answer uses the words of a teach sentence. Each wrong choice must be false according to evidencePassages; do not use a feature the sources say also helped with the same job.",
+      "Each wrong choice must be plainly false about the animal: not another true fact, not a vaguer version of the right reason (moved more easily for used less energy), and not a body part that also helps with the same job. A question must not give its own answer: the correct answer adds the taught fact instead of repeating the question's words. Never ask how or why an animal adapted, evolved, needed or got a feature; ask what the feature did or let the animal do.",
       "apply is a choice on a new example. newCase.text describes one new example the teach slot did not answer: either a case stated in evidencePassages (kind sourced, with sourceRef and an exact quote copied from that passage) or a made-up case that starts with Imagine and can be solved with one taught reason (kind transfer, sourceRef empty, quote empty). instruction asks the class to choose. choices has two or three options with exactly one correct; each feedback is one or two sentences that say why that option is right or wrong using the taught reason, and the correct feedback uses that unit's keyWords. successCondition says the class picks the choice that the taught reason supports.",
       "The apply beats set up the new example in new words. Never repeat or closely reword a teach sentence or a sourceSays sentence in an apply beat (copying a knowledge sentence fails validation); the taught reason belongs in the correct choice's feedback.",
       "An animal's name that sourceWording uses (for example the name of the animal a unit is about) may be used as it is; it is the subject, not a hard word."
@@ -8238,7 +8239,11 @@
   var TELEOLOGY = [
     /\bwhy\s+(?:did|do|does|would)\b[^?.!]{0,80}\b(?:have|has|had|develop|developed|grow|grew|evolve|evolved|get|got|need|needed)\b/i,
     /\b(?:developed|evolved|grew|got|gained)\b[^.?!]{0,60}\b(?:in order to|so that|so they could|so it could|to help them|to be able to)\b/i,
-    /\b(?:had|have|has)\b[^.?!]{0,60}\b(?:in order to|so that they could|so that it could)\b/i
+    /\b(?:had|have|has)\b[^.?!]{0,60}\b(?:in order to|so that they could|so that it could)\b/i,
+    // Patch 7: "adapt to ...", "how did X adapt", "evolved to ..." present a feature as a goal.
+    /\badapt(?:s|ed|ing)?\s+(?:to|in order to|so)\b/i,
+    /\bhow\s+(?:did|do|does)\b[^?.!]{0,60}\badapt\b/i,
+    /\b(?:evolved|developed|grew)\s+to\s+[a-z]+/i
   ];
   function teleological(text) {
     return TELEOLOGY.some(function (re) { return re.test(String(text || "")); });
@@ -8288,6 +8293,13 @@
       if (answerWords.length && answerWords.length - missing.length < need) {
         issues.push({ slotId: "check", text: "The check slot " + label + " has a correct answer (\"" + answer + "\") whose words were not taught: " + missing.map(function (w) { return "\"" + w + "\""; }).join(", ") + ". The answer must match a sentence the teach slot says, in its words." });
       }
+      // Patch 7: a circular question: the correct answer only restates the stem's own premise
+      // ("Why did dinosaurs with straight back legs use less energy?" -> "Because their legs were straight.").
+      var stemWords = ruleContent(q.prompt, topicWords);
+      var restated = ruleContent(answer.replace(/^\s*because\b/i, ""), topicWords);
+      if (restated.length && restated.every(function (w) { return stemWords.some(function (t) { return ruleWordMatch(t, w); }); })) {
+        issues.push({ slotId: "check", text: "The check slot " + label + " is circular: its correct answer (\"" + answer + "\") only repeats words the question already gives. Ask about what the feature did (or which feature did a job) so the answer adds the taught fact." });
+      }
       var jobWords = ruleContent([q.prompt, answer].join(" "), topicWords.concat(["feature", "features", "part", "body", "animal", "animals", "help", "helped", "better", "most", "best", "true", "correct"]));
       (q.choices || []).forEach(function (choice) {
         var text = choiceText(choice);
@@ -8301,8 +8313,96 @@
         })[0];
         if (hit) issues.push({ slotId: "check", text: "The check slot " + label + " has a wrong choice (\"" + text + "\") that the sources support as at least partly true (" + hit.id + ": \"" + clean(hit.text, 140) + "\"). Use a wrong choice the sources do not support." });
       });
+      issues = issues.concat(questionAuditIssues(q, index, ctx && ctx.questionAudit));
     });
     return issues;
+  }
+
+  // Patch 7: the question audit (one model call per content version, research mode only) judges
+  // what code cannot: a wrong choice that is true or partly true in general, a circular question,
+  // and goal-directed wording. Its verdicts block. A question the audit did not return, or a
+  // teleology verdict that is not "no", fails ("unchecked" counts as a fail).
+  function auditKey(text) { return clean(text, 240).toLowerCase().replace(/[^a-z0-9]+/g, " ").trim(); }
+  function questionAuditIssues(q, index, audit) {
+    var label = "Question " + (index + 1);
+    var rows = (audit && Array.isArray(audit.questions)) ? audit.questions : [];
+    var row = rows.filter(function (r) { return r && auditKey(r.prompt) === auditKey(q.prompt); })[0];
+    if (!row) return [{ slotId: "check", text: "The check slot " + label + " was not checked for partly-true wrong choices, circular wording or goal-directed wording (an unchecked question fails). Keep the question short and clear so it can be checked." }];
+    var out = [];
+    if (row.teleological !== "no") out.push({ slotId: "check", text: "The check slot " + label + " uses goal-directed wording or could not be checked for it (" + (row.teleological === "yes" ? clean(row.teleologyReason || "it presents a feature as a goal", 140) : "unchecked counts as a fail") + "). Ask what the feature did or let the animal do, not how or why the animal adapted, needed or got it." });
+    if (row.circular === "yes") out.push({ slotId: "check", text: "The check slot " + label + " is circular (" + clean(row.circularReason || "the answer repeats the question", 140) + "). The correct answer must add the taught fact, not restate the question." });
+    (row.distractors || []).forEach(function (d) {
+      if (d && (d.trueInGeneral === "yes" || d.trueInGeneral === "partly")) out.push({ slotId: "check", text: "The check slot " + label + " has a wrong choice (\"" + clean(d.choice, 100) + "\") that is " + (d.trueInGeneral === "yes" ? "true" : "partly true") + " in general (" + clean(d.reason, 140) + "). Every wrong choice must be plainly false about the animal, not a vaguer or other true reason." });
+    });
+    return out;
+  }
+
+  function questionAuditBrief(input) {
+    var payload = {
+      yearGroup: clean(input && input.yearGroup, 40),
+      taughtSentences: textList(input && input.taughtSentences, 280, 12),
+      sourcePassages: ((input && input.sourcePassages) || []).slice(0, 6).map(function (p) { return { id: clean(p.id, 24), text: clean(p.text, 900) }; }),
+      questions: ((input && input.questions) || []).slice(0, 6).map(function (q) { return { prompt: clean(q.prompt, 240), choices: (q.choices || []).map(function (c) { return clean(typeof c === "string" ? c : (c && c.text), 120); }), correct: clean(q.correct, 120) }; })
+    };
+    return {
+      system: [
+        "You audit the check questions of one primary science lesson. Return one JSON object and nothing else.",
+        "For each question: copy its prompt exactly. teleological is yes when the question or any choice presents a body feature as a goal or a need: asking how or why an animal adapted, evolved, needed, grew or got a feature, or saying it had a feature in order to or so that it could do something. Asking what a feature did or let the animal do is not teleological. Answer yes or no; never leave it out.",
+        "circular is yes when the correct answer only repeats words or facts the question already states, so a pupil could answer from the question alone.",
+        "For each wrong choice: trueInGeneral is yes when the statement is true about this animal or this kind of animal, partly when it is partly true or a vaguer version of the correct reason (for example moved more easily for used less energy, or a long neck when the question asks what helped it reach high), and no when it is plainly false. Use the source passages and general knowledge.",
+        "JSON shape: { \"questions\": [{ \"prompt\": \"\", \"teleological\": \"yes\" or \"no\", \"teleologyReason\": \"\", \"circular\": \"yes\" or \"no\", \"circularReason\": \"\", \"distractors\": [{ \"choice\": \"\", \"trueInGeneral\": \"yes\" or \"partly\" or \"no\", \"reason\": \"\" }] }] }."
+      ].join(" "),
+      user: JSON.stringify(payload)
+    };
+  }
+
+  function parseQuestionAudit(payload) {
+    var rows = payload && Array.isArray(payload.questions) ? payload.questions : null;
+    if (!rows) return { ok: false, questions: [] };
+    function yn(v, allowed) { var t = String(v || "").toLowerCase().trim(); return allowed.indexOf(t) !== -1 ? t : "unchecked"; }
+    return { ok: true, questions: rows.filter(function (r) { return r && typeof r === "object"; }).slice(0, 6).map(function (r) {
+      return {
+        prompt: clean(r.prompt, 240),
+        teleological: yn(r.teleological, ["yes", "no"]),
+        teleologyReason: clean(r.teleologyReason, 200),
+        circular: yn(r.circular, ["yes", "no"]),
+        circularReason: clean(r.circularReason, 200),
+        distractors: (Array.isArray(r.distractors) ? r.distractors : []).slice(0, 4).map(function (d) { d = d || {}; return { choice: clean(d.choice, 120), trueInGeneral: yn(d.trueInGeneral, ["yes", "partly", "no"]), reason: clean(d.reason, 200) }; })
+      };
+    }) };
+  }
+
+  // The check questions of a content response, read the way accept() reads them (no side effects).
+  function researchCheckQuestions(source, ctx) {
+    var parsed = source;
+    if (typeof parsed === "string") { try { parsed = JSON.parse(parsed); } catch (e) { return []; } }
+    if (!parsed || typeof parsed !== "object") return [];
+    parsed = JSON.parse(JSON.stringify(parsed));
+    if (ctx && ctx.lessonSkeleton) parsed = materialiseSkeleton(ctx.lessonSkeleton, parsed, ctx);
+    if (parsed && parsed.adventure && typeof parsed.adventure === "object") parsed = parsed.adventure;
+    var allowed = ctx && ctx.availableMechanics && ctx.availableMechanics.length ? ctx.availableMechanics : MECHANICS;
+    var check = null;
+    ((parsed && parsed.activities) || []).forEach(function (item) { var a = activityFrom(item, allowed); if (a && a.slotId === "check") check = a; });
+    return check ? checkQuestionsOf(check).filter(function (q) { return q && q.prompt; }) : [];
+  }
+
+  function questionAuditInput(source, ctx) {
+    var units = researchUnits(ctx);
+    var passages = researchPassages(ctx) || {};
+    var refs = [];
+    units.forEach(function (u) { (u.sourceRefs || []).forEach(function (id) { if (refs.indexOf(id) === -1) refs.push(id); }); });
+    var parsed = source;
+    var taught = [];
+    try {
+      var slots = readSlotMap(typeof source === "string" ? JSON.parse(source) : source);
+      ((slots.teach && slots.teach.beats) || []).forEach(function (b) { var t = clean(b && (b.text || (b.pupil && b.pupil.text)), 280); if (t) taught.push(t); });
+    } catch (e) { taught = []; }
+    return {
+      yearGroup: (ctx && ctx.yearGroup) || "",
+      taughtSentences: taught,
+      sourcePassages: refs.filter(function (id) { return passages[id]; }).map(function (id) { return { id: id, text: passages[id].text }; }),
+      questions: researchCheckQuestions(parsed, ctx)
+    };
   }
 
   // APPLY: a meaningful choice on a new example, with feedback that depends on the answer and
@@ -8710,10 +8810,22 @@
     var repairedSlots = [];
     var heldApply = null;
     var warnAfterRepair = false;
+    var questionAudit = null;
+    var auditing = !!(ctx && ctx.lessonSkeleton && researchMode(ctx));
     function policyCtx(extra) {
       var next = Object.assign({}, ctx, extra || {});
       if (warnAfterRepair) next.semanticWarningsAllowed = true;
+      if (auditing) next.questionAudit = questionAudit;
       return next;
+    }
+    // Patch 7, research mode: audit the check questions of each content version before accepting it.
+    function audited(source) {
+      if (!auditing) return Promise.resolve();
+      questionAudit = null;
+      if (!ports.questionAudit) return Promise.resolve();
+      return Promise.resolve().then(function () { return ports.questionAudit(questionAuditInput(source, ctx)); }).then(function (value) {
+        questionAudit = value && value.ok ? value : null;
+      }).catch(function () { questionAudit = null; });
     }
     function pack(result, repairUsed) {
       return {
@@ -8790,9 +8902,15 @@
       }
       return step(0, []);
     }
-    var accepted = accept(raw, ctx);
-    var firstReport = accepted.applyAlignment || null;
-    var firstCheck = accepted.checkAlignment || null;
+    var accepted = null;
+    var firstReport = null;
+    var firstCheck = null;
+    if (!auditing) return start(accept(raw, ctx));
+    return audited(raw).then(function () { return start(accept(raw, policyCtx())); });
+    function start(first) {
+    accepted = first;
+    firstReport = accepted.applyAlignment || null;
+    firstCheck = accepted.checkAlignment || null;
     if (accepted.ok || accepted.structuralOk === false) return Promise.resolve(pack(accepted, false));
     return judged(raw, accepted).then(function (firstJudge) {
       if (firstJudge && firstJudge.stop) return pack(firstJudge.result, false);
@@ -8808,6 +8926,7 @@
           var merged = mergeSlotContent(accepted.previous, second);
           heldApply = null;
           warnAfterRepair = true;
+          return audited(merged).then(function () {
           var repaired = accept(merged, policyCtx());
           return judged(merged, repaired).then(function (secondJudge) {
             if (secondJudge && secondJudge.result) repaired = secondJudge.result;
@@ -8817,9 +8936,11 @@
               return pack(repaired, true);
             });
           });
+          });
         });
       });
     });
+    }
   }
 
   function runPipeline(ctx, callModel) {
@@ -9077,6 +9198,11 @@
     teleological: teleological,
     teleologyIssues: teleologyIssues,
     questionIssues: questionIssues,
+    questionAuditIssues: questionAuditIssues,
+    questionAuditBrief: questionAuditBrief,
+    parseQuestionAudit: parseQuestionAudit,
+    questionAuditInput: questionAuditInput,
+    researchCheckQuestions: researchCheckQuestions,
     applyChoiceIssues: applyChoiceIssues,
     normaliseMinutes: normaliseMinutes,
     objectiveIssues: objectiveIssues,

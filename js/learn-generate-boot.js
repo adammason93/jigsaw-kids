@@ -573,7 +573,24 @@ globalThis.handleGenerate = async (req) => {
     logMeta({ stage: "CONTENT_VALIDATE", attemptId, repair: false, model, contentMs, contentBeats: brain.boundedBeatLog(first) });
     let repairUser = null;
     let repairRaw = null;
-    const resolved = await brain.resolveLessonContent(first, framed, {
+    // Patch 7, research mode only: the check questions are audited (partly-true wrong choices,
+    // circular stems, goal-directed wording) by the research model before each accept; the
+    // verdicts block. Without research no port is passed, so nothing changes.
+    const auditPort = ctx.researchEvidence && typeof brain.questionAuditBrief === "function" ? {
+      questionAudit: async (input) => {
+        const auditStarted = Date.now();
+        try {
+          const payload = await callModel(brain.questionAuditBrief(input), apiKey, knowledgeModel, 6e4, 0);
+          const parsed = brain.parseQuestionAudit(payload);
+          logMeta({ stage: "QUESTION_AUDIT", attemptId, model: knowledgeModel, auditMs: Date.now() - auditStarted, ok: parsed.ok, questions: (input && input.questions || []).map((q) => String(q.prompt || "").slice(0, 160)), verdicts: parsed.questions });
+          return parsed;
+        } catch (error) {
+          logMeta({ stage: "QUESTION_AUDIT", attemptId, model: knowledgeModel, auditMs: Date.now() - auditStarted, ok: false, error: error && error.category || "error" });
+          return { ok: false, questions: [] };
+        }
+      }
+    } : {};
+    const resolved = await brain.resolveLessonContent(first, framed, Object.assign({
       judge: async (input) => {
         const judgeStarted = Date.now();
         try {
@@ -616,7 +633,7 @@ globalThis.handleGenerate = async (req) => {
         logMeta({ stage: "CONTENT_REPAIR", attemptId, repair: true, model, repairBeats: brain.boundedBeatLog(repairRaw) });
         return repairRaw;
       }
-    });
+    }, auditPort));
     const applyAlignment = resolved.applyAlignment || {};
     logMeta({
       stage: "APPLY_ALIGNMENT",
