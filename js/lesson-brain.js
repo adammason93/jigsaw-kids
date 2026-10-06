@@ -170,8 +170,27 @@
     return (list || []).some(function (item) { return clean(item, 80).toLowerCase() === key; });
   }
 
+  // Intent framing (hypothesis under test, Oct 2026). Years 3 to 6 only.
+  // An open-ended topic request gets one explanatory objective; a stated objective
+  // is kept as stated. Years 1 and 2, and requests with no known year, keep the
+  // original prompt unchanged.
+  var EXPLICIT_OBJECTIVE = /\b(?:name|names|naming|label|labels|labelling|labeling|identify|identifying|classify|classifying|sort|sorting|group|grouping|recall|recalling|list|listing|recognise|recognize|describe|describing|compare|comparing|explain|explaining|measure|measuring|calculate|calculating|count|counting|add|adding|subtract|subtracting|multiply|multiplying|divide|dividing|spell|spelling|write|writing|read|reading|use|using|order|ordering|sequence|draw|drawing|plot|locate|find|retell|summarise|summarize|practise|practice|know|learn|memorise|memorize|remember|understand|state|match|solve|investigate|interpret|estimate|convert|punctuate|perform|create|design|make|how|why|what|which|when|where|that)\b/i;
+  var INTENT_FRAMING_OPEN = "This request names a topic but states no objective. For this year group, propose one concrete, age-appropriate explanatory learningGoal within the teacher's topic: how something in that topic works or happens, or why it happens or matters. Choose one relationship, not a list of types, names, or facts. Stay within the topic the teacher gave. requiredEvidence then names that how or why relationship, and focusConcepts are the ideas needed for it.";
+  var INTENT_FRAMING_EXPLICIT = "The teacher states an objective. Keep that objective as stated in learningGoal, whether it is naming, labelling, identifying, classifying, sorting, recalling facts, a skill, or an explanation. Do not rewrite it as a how or why objective, and do not add an explanation the teacher did not ask for.";
+
+  function intentFraming(ctx) {
+    var raw = clean((ctx && (ctx.lessonText || ctx.teacherInstructions)) || "", 500);
+    var yearText = clean(ctx && ctx.yearGroup, 20) || ((raw.match(/\byear\s*[1-6]\b/i) || [])[0] || "");
+    var year = Number((yearText.match(/[1-6]/) || [])[0] || 0);
+    if (year < 3 || year > 6) return { mode: "unchanged", year: year || null };
+    var request = raw.replace(/\byear\s*[1-6]\b/gi, " ");
+    return { mode: EXPLICIT_OBJECTIVE.test(request) ? "preserve-explicit" : "explanatory-objective", year: year };
+  }
+
   function teacherIntentBrief(ctx) {
     var raw = clean((ctx && (ctx.lessonText || ctx.teacherInstructions)) || "", 500);
+    var framing = intentFraming(ctx);
+    var framingLine = framing.mode === "explanatory-objective" ? [INTENT_FRAMING_OPEN] : framing.mode === "preserve-explicit" ? [INTENT_FRAMING_EXPLICIT] : [];
     return {
       system: [
         "You interpret one primary teacher's request. Return one JSON object and nothing else.",
@@ -189,9 +208,10 @@
         "If the teacher names a misconception, keep the mistake out of focusConcepts and make learningGoal the idea that corrects it.",
         "The lesson should build from what pupils already know toward the new goal. The new goal is the teaching target.",
         "requiredEvidence is one short statement of what a pupil must show before the teacher can conclude the learning goal was achieved. Name the thinking the pupil does and the content or relationship that must be covered. A comparison names both sides. A sequence names the whole order, not one stage. Using or measuring is not replaced by naming or defining. Do not make the evidence harder than the goal. Do not turn prior knowledge, exclusions, or presentation preferences into the evidence unless they are the goal itself. Do not put a count of types, kinds, examples, or features into requiredEvidence unless the teacher asked for that count.",
-        "Do not invent a different topic. If the request is unclear, keep learningGoal close to what was asked and leave uncertain fields empty.",
+        "Do not invent a different topic. If the request is unclear, keep learningGoal close to what was asked and leave uncertain fields empty."
+      ].concat(framingLine, [
         "JSON shape: {\"yearGroup\":\"\",\"subject\":\"\",\"subjectConfidence\":\"explicit\" or \"inferred\" or \"uncertain\",\"learningGoal\":\"\",\"requiredEvidence\":\"\",\"focusConcepts\":[],\"priorKnowledge\":[],\"exclusions\":[],\"preferences\":[],\"durationMinutes\":null}."
-      ].join(" "),
+      ]).join(" "),
       user: JSON.stringify({
         request: raw,
         statedYear: clean(ctx && ctx.yearGroup, 20),
@@ -7727,6 +7747,7 @@
     checkJudgePlan: checkJudgePlan,
     checkEvidenceInput: checkEvidenceInput,
     teacherIntentBrief: teacherIntentBrief,
+    intentFraming: intentFraming,
     normaliseTeacherIntent: normaliseTeacherIntent,
     applyTeacherIntent: applyTeacherIntent,
     knowledgePackBrief: knowledgePackBrief,
