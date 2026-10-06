@@ -412,8 +412,19 @@ function ruleContext(adventure, trace, pack) {
     yearGroup: req.yearGroup || adventure.yearGroup, subject: req.subject || adventure.subject, topic: req.topic || adventure.topic,
     requestedMinutes: req.requestedMinutes || adventure.targetMinutes, lessonText: req.lessonText || "",
     lessonBrief: { intent: "explain", rawRequest: req.lessonText || "", learningGoal: intent.learningGoal, requiredEvidence: intent.requiredEvidence, focusConcepts: intent.focusConcepts, teacherIntent: intent },
-    researchEvidence: trace.research, knowledgePack: pack.final.pack, knowledgeSelection: pack.final.selection, lessonPlan: adventure.lessonPlan
+    researchEvidence: trace.research, knowledgePack: pack.final.pack, knowledgeSelection: pack.final.selection, lessonPlan: adventure.lessonPlan,
+    questionAudit: lastQuestionAudit(trace)
   };
+}
+
+// Patch 9: the research rules include the question audit's verdicts (patch 7). The finish rule
+// check had no audit, so every question failed as "unchecked". It now uses the boot's last
+// QUESTION_AUDIT verdicts (the audit of the final content). A verdict only counts for a question
+// whose prompt it copies exactly (Brain.questionAuditIssues); any other question still fails.
+function lastQuestionAudit(trace) {
+  var rows = ((trace && trace.logs) || []).filter(function (row) { return row && row.stage === "QUESTION_AUDIT" && row.ok && Array.isArray(row.verdicts); });
+  var last = rows[rows.length - 1];
+  return last ? { ok: true, questions: JSON.parse(JSON.stringify(last.verdicts)), source: "boot QUESTION_AUDIT (" + (last.model || "") + ")" } : null;
 }
 
 function finalPackRow(trace, pack) {
@@ -672,4 +683,4 @@ function runFinish(opts) {
   });
 }
 
-module.exports = { runFinish: runFinish, renderHtml: renderHtml, checkSupport: checkSupport, checkSentenceSupport: checkSentenceSupport, checkResearchRules: checkResearchRules, ruleContext: ruleContext, finalPackRow: finalPackRow, visualUnits: visualUnits, unitBeatIds: unitBeatIds, teachingPlan: teachingPlan, stampTeachingVisuals: stampTeachingVisuals, teachingVisionRow: teachingVisionRow, applyOf: applyOf, questionsOf: questionsOf, pupilTextItems: pupilTextItems, teachingPairs: teachingPairs, usedPack: usedPack, chooseAssets: chooseAssets, imagePromptFor: imagePromptFor, IMAGE_MODEL: IMAGE_MODEL, IMAGE_SIZE: IMAGE_SIZE, IMAGE_QUALITY: IMAGE_QUALITY };
+module.exports = { runFinish: runFinish, lastQuestionAudit: lastQuestionAudit, renderHtml: renderHtml, checkSupport: checkSupport, checkSentenceSupport: checkSentenceSupport, checkResearchRules: checkResearchRules, ruleContext: ruleContext, finalPackRow: finalPackRow, visualUnits: visualUnits, unitBeatIds: unitBeatIds, teachingPlan: teachingPlan, stampTeachingVisuals: stampTeachingVisuals, teachingVisionRow: teachingVisionRow, applyOf: applyOf, questionsOf: questionsOf, pupilTextItems: pupilTextItems, teachingPairs: teachingPairs, usedPack: usedPack, chooseAssets: chooseAssets, imagePromptFor: imagePromptFor, IMAGE_MODEL: IMAGE_MODEL, IMAGE_SIZE: IMAGE_SIZE, IMAGE_QUALITY: IMAGE_QUALITY };
