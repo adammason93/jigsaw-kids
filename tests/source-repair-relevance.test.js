@@ -30,6 +30,10 @@ var passages = [
   "text": "Gathering enough food using the least effort possible was something these giants were good at. Sauropods had very long necks , which allowed them to stand still and stretch high, low and wide for the best plants around. Part of the reason elephants can grow so big is because their trunk lets them forage for food without moving much, in a similar way. Extremely long necks also meant sauropods could pluck leaves from the tops of tall trees, which were out of reach to most other animals - much like giraffes do today. Sauropods' long necks were beneficial for other reasons too, which we'll come to later. One of the reasons sauropods were able to have such long necks was because they had relatively small heads. This was possible because they had fewer teeth . They swallowed without chewing."
  }
 ];
+// The relevance-correction commit lets a cited page's title or lead supply the topic, which
+// makes this neck pair relevant. This test is about the repair feedback for a pair held only for
+// relevance, so it removes the page titles (the S8 lead does not name the topic) to keep that hold.
+passages = passages.map(function (p) { return Object.assign({}, p, { title: "" }); });
 var intent = {"ok": true, "yearGroup": "Year 3", "subject": "Science", "subjectConfidence": "explicit", "learningGoal": "Pupils will understand how dinosaurs adapted to their environments.", "requiredEvidence": "Pupils can explain how a specific dinosaur's features helped it survive in its habitat.", "focusConcepts": ["adaptation", "habitat", "survival", "features"], "priorKnowledge": [], "exclusions": [], "preferences": [], "durationMinutes": 15};
 var ctx = {
   yearGroup: "Year 3", subject: "Science", topic: "Dinosaurs", requestedMinutes: 15, lessonText: "Teach Year 3 about dinosaurs",

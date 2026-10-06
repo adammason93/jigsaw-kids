@@ -5107,10 +5107,82 @@
     return contentWords(corpus);
   }
 
+  // Relevance correction (source-grounded lesson PR, its own commit). Live Year 3 runs 5 and 6
+  // held "Sauropods' very long necks let them stand still and stretch high, low and wide to reach
+  // plants" (verbatim NHM, entailment supported) only because "sauropods" is not the word
+  // "dinosaurs". The cited page can supply the topic: when the page title or lead names the
+  // teacher's topic, the topic counts for a pair that names a body feature and states what it
+  // does, under a goal about features or adaptation. The page alone never makes a claim
+  // relevant: an off-goal claim (no body feature, no stated job) gets nothing from it.
+  var BODY_FEATURE = /\b(?:legs?|necks?|tails?|teeth|tooth|jaws?|claws?|horns?|spikes?|plates?|armou?r|feathers?|wings?|skin|scales?|skulls?|bones?|beaks?|eyes?|nose|nostrils?|arms?|hands?|feet|foot|thumbs?|muscles?|frills?|crests?|fins?|shells?|fur|hair|stance|hips?|stomachs?|bell(?:y|ies)|brains?|roots?|leaves|leaf|stems?|petals?|seeds?|spines?|hooves|paws|trunks?|tusks?|gills?|lungs?|heads?)\b/i;
+  var FEATURE_GOAL = /\b(?:adapt\w*|features?|body|bodies|body parts?|surviv\w*)\b/;
+  // A body-feature pair describes what the animal or plant had and what that did for it.
+  // Activities (people making, wearing or measuring things) are not that, even on a topic page.
+  var FEATURE_OWNED = /\b(?:had|has|have|were|was|are|is|grew|grows)\b/i;
+  var HUMAN_ACTOR = /\b(?:children|child|pupils?|kids?|students?|you|your|we|our|people|class|teachers?|humans?|visitors?)\b/i;
+
+  function pageLead(passages, url) {
+    var first = null;
+    Object.keys(passages).forEach(function (id) {
+      var item = passages[id];
+      if (!item || item.url !== url) return;
+      var n = Number((String(id).match(/P(\d+)$/) || [])[1] || 9999);
+      if (!first || n < first.n) first = { n: n, text: item.text };
+    });
+    return first ? ((String(first.text).match(/^[^.!?]*[.!?]?/) || [""])[0]) : "";
+  }
+
+  function pageNamesTopic(featureClaim, ctx) {
+    var topic = contentWords((ctx && ctx.topic) || "");
+    var passages = researchPassages(ctx);
+    if (!topic.length || !passages || !featureClaim) return false;
+    return sourceRefsOf(featureClaim).some(function (id) {
+      var item = passages[id];
+      if (!item) return false;
+      var context = contentWords([item.title || "", pageLead(passages, item.url)].join(" "));
+      return topic.every(function (head) { return context.some(function (word) { return sameStem(word, head); }); });
+    });
+  }
+
+  function pageTopicCounts(featureClaim, explanation, feature, ctx) {
+    var brief = (ctx && ctx.lessonBrief) || {};
+    var intent = brief.teacherIntent || {};
+    var goalText = [intent.learningGoal, brief.learningGoal, intent.requiredEvidence, brief.requiredEvidence, (intent.focusConcepts || brief.focusConcepts || []).join(" ")].join(" ").toLowerCase();
+    if (!FEATURE_GOAL.test(goalText)) return false;
+    if (!feature || !BODY_FEATURE.test(feature)) return false;
+    if (!featureClaim || !BODY_FEATURE.test(featureClaim.text || "") || !FEATURE_OWNED.test(featureClaim.text || "")) return false;
+    if (HUMAN_ACTOR.test(featureClaim.text || "") || HUMAN_ACTOR.test(explanation || "")) return false;
+    if (!statesMechanism(explanation)) return false;
+    return pageNamesTopic(featureClaim, ctx);
+  }
+
+  // The same correction where the plan stage decides whether a learning point answers an
+  // adaptation goal ("how dinosaurs adapted ..."). That check reads the goal's subject word, so a
+  // pack pair about "ornithischians" from the "Dinosaur" page was dropped as not connected to the
+  // goal in live run 8. A point bound to a ready-style pack pair counts when the subject is the
+  // teacher's topic and the pair passes pageTopicCounts. The verb rule is unchanged.
+  function pageTopicAnswers(row, goal, ctx) {
+    if (!row || !(row.claimIds || []).length || !adaptationAsk(goal)) return false;
+    if (!statesFunction(row.text) && !statesRelation(row.text)) return false;
+    var head = contributionHead(goal);
+    var topic = contentWords((ctx && ctx.topic) || "");
+    if (!head || !topic.some(function (word) { return sameStem(word, head); })) return false;
+    var pack = ctx && ctx.knowledgePack;
+    if (!pack) return false;
+    var byId = {};
+    (pack.claims || []).forEach(function (claim) { byId[claim.claimId] = claim; });
+    return (pack.mechanisms || []).some(function (item) {
+      if (!item || !item.featureClaimId || row.claimIds.indexOf(item.claimId) === -1) return false;
+      var featureClaim = byId[item.featureClaimId];
+      return !!featureClaim && pageTopicCounts(featureClaim, row.text, item.feature, ctx);
+    });
+  }
+
   function pairRelevant(featureClaim, explanation, feature, ctx) {
     ctx = ctx || {};
     var goal = goalWords(ctx);
     var mine = contentWords([featureClaim && featureClaim.text, explanation, feature].join(" "));
+    if (pageTopicCounts(featureClaim, explanation, feature, ctx)) mine = mine.concat(contentWords(ctx.topic || ""));
     if (!mine.length || !goal.length) return false;
     function shares(list) {
       return mine.some(function (word) {
@@ -5792,7 +5864,7 @@
     var readiness = realiseFeatureLinks(unique, ctx);
     unique.forEach(function (row) {
       row.kind = mapKind(row.text, row.role, row.deps.length);
-      row.answers = seeking && answersContribution(row.text, goal, row);
+      row.answers = seeking && (answersContribution(row.text, goal, row) || pageTopicAnswers(row, goal, ctx));
     });
     var connected = unique;
     if (seeking && unique.some(function (row) { return row.answers; })) {
