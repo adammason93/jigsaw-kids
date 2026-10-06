@@ -486,6 +486,18 @@
     return chosen;
   }
 
+  // Keeps the order, but moves a host's pages past its first `cap` to the end of the list.
+  function diversifyHosts(list, cap) {
+    var counts = {};
+    var first = [];
+    var later = [];
+    (list || []).forEach(function (item) {
+      var host = hostOf(item.url);
+      if ((counts[host] || 0) < cap) { counts[host] = (counts[host] || 0) + 1; first.push(item); } else later.push(item);
+    });
+    return first.concat(later);
+  }
+
   // The research step. ports: { fetch, now, providers: [provider], allowlist, maxSources }.
   function researchTopic(request, ports) {
     ports = ports || {};
@@ -514,6 +526,10 @@
       return Promise.resolve(record);
     }
     var maxSources = ports.maxSources || 6;
+    // Source diversity: one host may take at most half the source slots while other evidence
+    // hosts are available. Live runs 10 and 11 (6 Oct 2026) filled all 12 slots from one museum
+    // site (mostly hub and fossil-finding pages) and other evidence pages never got a slot.
+    var hostCap = Math.max(2, Math.ceil(maxSources / 2));
     return Promise.all(providers.map(function (provider) {
       return Promise.resolve(provider.search(queries, ports, request)).then(function (result) {
         record.providers.push({ id: provider.id, paid: !!provider.paid, calls: result.calls || 0, searchCalls: result.searchCalls || 0, found: (result.candidates || []).length, error: result.error || "", usage: result.usage || null });
@@ -559,7 +575,7 @@
       queue = queue.map(function (item, index) { return { item: item, index: index, hits: topicHits(item), rank: kindRank(item) }; })
         .sort(function (a, b) { return (b.hits > 0) - (a.hits > 0) || a.rank - b.rank || a.index - b.index; })
         .map(function (row) { return row.item; });
-      var evidenceQueue = queue.filter(function (item) { return isEvidenceUrl(item.url, ports.allowlist); });
+      var evidenceQueue = diversifyHosts(queue.filter(function (item) { return isEvidenceUrl(item.url, ports.allowlist); }), hostCap);
       var discoveryQueue = queue.filter(function (item) { return !isEvidenceUrl(item.url, ports.allowlist); }).slice(0, ports.maxDiscovery || 3);
       var picked = evidenceQueue.slice(0, maxSources + 4);
       var n = 0;
@@ -588,13 +604,24 @@
       });
     }).then(function (results) {
       var kept = 0;
+      var perHost = {};
+      var deferred = [];
+      var ordered = [];
       (results || []).forEach(function (result) {
         if (result.ok && result.tier && result.tier !== "evidence") {
           record.refused.push({ url: result.url, reason: "not an evidence-tier source (discovery only)" });
           return;
         }
-        if (!result.ok || kept >= maxSources) {
-          record.refused.push({ url: result.url, reason: result.ok ? "source cap reached" : result.reason });
+        if (!result.ok) { record.refused.push({ url: result.url, reason: result.reason }); return; }
+        var host = hostOf(result.url);
+        if ((perHost[host] || 0) >= hostCap) { deferred.push(result); return; }
+        perHost[host] = (perHost[host] || 0) + 1;
+        ordered.push(result);
+      });
+      // Slots other hosts could not fill go back to the deferred pages, in their original order.
+      ordered.concat(deferred).forEach(function (result) {
+        if (kept >= maxSources) {
+          record.refused.push({ url: result.url, reason: "source cap reached" });
           return;
         }
         kept += 1;
@@ -624,6 +651,7 @@
     featureFunctionSentences: featureFunctionSentences,
     buildQueries: buildQueries,
     rankPassages: rankPassages,
+    diversifyHosts: diversifyHosts,
     researchTopic: researchTopic
   };
 });
