@@ -66,7 +66,9 @@ function pack(sources) {
 }
 function speak(beat, items) {
   var item = items[0];
-  items.forEach(function (entry) { if (entry.id === (beat.knowledgeRefs || [])[0]) item = entry; });
+  // A consolidating beat cites feature then explanation; it recaps the explanation (patch 7).
+  var ref = beat.move === "consolidate" ? (beat.knowledgeRefs || []).slice(-1)[0] : (beat.knowledgeRefs || [])[0];
+  items.forEach(function (entry) { if (entry.id === ref) item = entry; });
   var known = String(item.text || "").replace(/[.?!]$/, "");
   var lower = known.charAt(0).toLowerCase() + known.slice(1);
   var text = { notice: "Look at the scene and say what you can see.", predict: "Say what you think is happening before we find out.", name: item.text, explain: item.text,

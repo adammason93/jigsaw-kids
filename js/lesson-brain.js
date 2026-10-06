@@ -4107,6 +4107,7 @@
     return [
       "Research lesson rules. sourceWording lists each taught unit with the source's own sentence (sourceSays) and its result (keepThisResult).",
       "The teach explain beat and the recap beat for a unit keep that result in the source's words, including keyWords and any comparison word such as less or more. Do not swap it for a vaguer word such as efficiently, better, easier, or well.",
+      "Every teach, recap and apply sentence about a unit's result keeps the source's concrete meaning: never make it bigger or vaguer (say breathe even with most of its snout under water, not breathe underwater; say use less energy to move, not move better), and never add always, never, completely or fully.",
       "Use everyday words for " + (year || "this year group") + ". Avoid long technical words; if one is needed, explain it in the same sentence (for example: perpendicular, which means at a right angle).",
       "Say what a feature did or how it worked. Do not say an animal had, grew, or developed a feature in order to do something, and do not ask why an animal had a feature.",
       "Each check question's correct answer uses the words of a teach sentence. Each wrong choice must be false according to evidencePassages; do not use a feature the sources say also helped with the same job.",
@@ -8110,12 +8111,20 @@
     var missing = key.filter(function (term) { return kept.indexOf(term) === -1; });
     var need = key.length <= 2 ? key.length : Math.ceil(key.length * 0.6);
     var lostDirection = (unit.directions || []).filter(function (d) { return words.indexOf(d) === -1; });
-    var sourceWords = ruleTokens(unit.explanationQuote + " " + unit.passageText);
+    // Patch 7: a vaguer word is excused only when the source's own explanation sentence uses it
+    // (run 14's passage had "better supported" elsewhere, which excused "move better").
+    var sourceWords = ruleTokens(unit.explanationQuote || unit.explanation || "");
     var vague = [];
     String(text).toLowerCase().replace(VAGUE_SUBSTITUTES, function (m) { if (sourceWords.indexOf(m) === -1 && vague.indexOf(m) === -1) vague.push(m); return m; });
+    var overstated = [];
+    String(text).toLowerCase().replace(OVERSTATEMENTS, function (m) { var w = m.replace(/\s+/g, " "); if (sourceWords.indexOf(w.split(" ")[0]) === -1 && overstated.indexOf(w) === -1) overstated.push(w); return m; });
     var ok = kept.length >= need && !lostDirection.length;
-    return { ok: ok, kept: kept, missing: missing, lostDirection: lostDirection, vague: vague };
+    return { ok: ok, kept: kept, missing: missing, lostDirection: lostDirection, vague: vague, overstated: overstated };
   }
+  // Patch 7: absolute words that overstate a concrete source result. Flagged only when the
+  // source's explanation sentence does not use them. ("Could breathe underwater" for "breathe
+  // even with most of its snout submerged" fails on the dropped key words instead.)
+  var OVERSTATEMENTS = /\b(completely|fully|totally|entirely|always|never|anywhere|everywhere|perfectly|forever|fastest|strongest|biggest)\b/gi;
 
   function meaningIssues(activities, ctx, units) {
     var issues = [];
@@ -8130,20 +8139,53 @@
         });
         if (!rows.length) return;
         var results = rows.map(function (beat) { return { beat: beat, check: meaningCheck(beatPupilText(beat), unit) }; });
-        // The teach slot needs one sentence that keeps the meaning; no recap sentence may lose it.
+        // Patch 7 (blocking): the teach slot needs one sentence that keeps the meaning and no
+        // teach sentence about this explanation may replace or overstate it; every recap
+        // sentence about it must keep the meaning.
+        var replaced = function (r) { return r.check.vague.length || r.check.overstated.length || r.check.lostDirection.length; };
         var failing = slotId === "teach"
-          ? (results.some(function (r) { return r.check.ok; }) ? [] : results.slice(0, 1))
-          : results.filter(function (r) { return !r.check.ok && (r.check.vague.length || r.check.lostDirection.length); });
-        failing.forEach(function (r) {
-          var bits = [];
-          if (r.check.missing.length) bits.push("it drops the source words " + r.check.missing.map(function (w) { return "\"" + w + "\""; }).join(", "));
-          if (r.check.lostDirection.length) bits.push("it loses \"" + r.check.lostDirection.join("\", \"") + "\"");
-          if (r.check.vague.length) bits.push("it uses the vaguer \"" + r.check.vague.join("\", \"") + "\" instead");
-          issues.push({ slotId: slotId, text: "The " + slotId + " slot changes what the source says about " + clean(unit.feature, 60) + " (" + unit.unitId + ", beat " + r.beat.id + "): the source says \"" + clean(unit.resultClause, 120) + "\", but " + bits.join("; ") + ". Keep the source's meaning and its key words." });
-        });
+          ? results.filter(replaced).concat(results.some(function (r) { return r.check.ok; }) ? [] : results.filter(function (r) { return !replaced(r); }).slice(0, 1))
+          : results.filter(function (r) { return !r.check.ok || replaced(r); });
+        failing.forEach(function (r) { issues.push(meaningRow(slotId, unit, "beat " + r.beat.id, r.check)); });
       });
+      issues = issues.concat(applyMeaningIssues(activities, ctx, unit));
     });
     return issues;
+  }
+
+  function meaningRow(slotId, unit, where, check) {
+    var bits = [];
+    if (check.missing.length && !check.ok) bits.push("it drops the source words " + check.missing.map(function (w) { return "\"" + w + "\""; }).join(", "));
+    if (check.lostDirection.length) bits.push("it loses \"" + check.lostDirection.join("\", \"") + "\"");
+    if (check.vague.length) bits.push("it uses the vaguer \"" + check.vague.join("\", \"") + "\" instead");
+    if (check.overstated.length) bits.push("it overstates the source with \"" + check.overstated.join("\", \"") + "\"");
+    return { slotId: slotId, text: "The " + slotId + " slot changes what the source says about " + clean(unit.feature, 60) + " (" + unit.unitId + ", " + where + "): the source says \"" + clean(unit.resultClause, 120) + "\", but " + bits.join("; ") + ". Keep the source's meaning and its key words." };
+  }
+
+  // Patch 7: APPLY keeps the source's meaning too. For the unit the task uses, no apply text
+  // (beat, instruction, new example, choices, feedback) may use a vaguer or overstated result,
+  // and the correct choice's feedback must keep the source's key words.
+  function applyMeaningIssues(activities, ctx, unit) {
+    var apply = (activities || []).filter(function (a) { return a.slotId === "apply"; })[0];
+    if (!apply) return [];
+    var plan = (ctx && ctx.lessonPlan) || {};
+    var inter = (apply.scene && apply.scene.interaction) || {};
+    var cites = inter.unitId ? inter.unitId === unit.unitId : (apply.beats || []).some(function (b) { return mapClaimIds(plan, b.knowledgeRefs).indexOf(unit.explanationClaimId) !== -1; });
+    if (!cites) return [];
+    var out = [];
+    var texts = [];
+    (apply.beats || []).forEach(function (b) { if (beatPupilText(b)) texts.push({ where: "beat " + b.id, text: beatPupilText(b) }); });
+    if (inter.instruction) texts.push({ where: "instruction", text: inter.instruction });
+    if (inter.newCase && inter.newCase.text) texts.push({ where: "new example", text: inter.newCase.text });
+    (Array.isArray(inter.choices) ? inter.choices : []).forEach(function (c, i) {
+      texts.push({ where: "choice " + (i + 1), text: clean(c.text, 160) });
+      texts.push({ where: "choice " + (i + 1) + " feedback", text: clean(c.feedback, 300), correct: c.correct === true });
+    });
+    texts.forEach(function (row) {
+      var check = meaningCheck(row.text, unit);
+      if (check.vague.length || check.overstated.length || (row.correct && !check.ok)) out.push(meaningRow("apply", unit, row.where, check));
+    });
+    return out;
   }
 
   // Year-band vocabulary. A long or many-syllable word in Year 1 to 4 pupil copy must be a
@@ -9192,6 +9234,7 @@
     researchUnits: researchUnits,
     resultClause: resultClause,
     meaningCheck: meaningCheck,
+    applyMeaningIssues: applyMeaningIssues,
     meaningIssues: meaningIssues,
     hardWords: hardWords,
     vocabularyIssues: vocabularyIssues,
