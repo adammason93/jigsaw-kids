@@ -13,7 +13,10 @@
    DIR/sources/research-record.json, DIR/sources/knowledge-pack.json.
    When the boot returns a complete lesson, the same run finishes it (finish.js): 4 images,
    checks 1-4, DIR/lesson/lesson.html and lesson.json. --no-finish skips that; --images N.
-   --reuse-research a.json,b.json replays earlier runs' search results (no paid search). */
+   --reuse-research a.json,b.json replays earlier runs' search results (no paid search).
+   --reuse-pack DIR continues from DIR's saved pack stage (teacher intent, research record, raw
+   packs, entailment verdicts). The saved pack is re-checked in code first and refused (exit 3,
+   no call) if it fails; everything after the pack runs live. Labelled "pack replayed from <run>". */
 
 var fs = require("fs");
 var path = require("path");
@@ -59,6 +62,23 @@ if (reuseFiles.length) {
   });
   researchSource += "\n;(function () { var R = globalThis.WondiiSourceResearch; var saved = " + JSON.stringify(replay) + "; R.openaiWebSearchProvider = function () { return { id: \"openai-web-search-replay\", paid: false, search: function () { return Promise.resolve({ calls: 0, candidates: saved.slice() }); } }; }; })();\n";
 }
+// --reuse-pack DIR (research mode): continue from DIR's saved pack stage; see pack-replay.js.
+// The saved pack is re-checked in code before any call and refused if it fails the gate.
+var PackReplay = require("./pack-replay.js");
+var packReplay = null;
+var packTransport = null;
+var packPreflight = null;
+if (arg("reuse-pack", "")) {
+  if (reuseFiles.length) { console.error("--reuse-pack replays its own research record; do not combine it with --reuse-research. No call was made."); process.exit(2); }
+  packReplay = PackReplay.loadPackReplay(arg("reuse-pack", ""));
+  var preflightBrain = require(path.join(root, "js/lesson-brain.js"));
+  packPreflight = PackReplay.validateSavedPack(preflightBrain, packReplay, { lessonText: "Teach Year 3 about dinosaurs", yearGroup: "Year 3", subject: "Science", topic: "Dinosaurs", requestedMinutes: 15 });
+  fs.writeFileSync(path.join(outDir, "sources/pack-replay-preflight.json"), JSON.stringify({ label: packReplay.label, from: packReplay.dir, preflight: packPreflight, wordingRecovered: packReplay.wordingRecovered }, null, 2));
+  if (!packPreflight.ok) { console.error(packReplay.label + " refused: " + packPreflight.reason + ". No call was made."); process.exit(3); }
+  console.log(packReplay.label + ": saved pack " + packPreflight.packId + " re-checked in code, " + packPreflight.distinctReady + " of " + packPreflight.requiredPairs + " pairs ready");
+  researchSource += PackReplay.researchOverride(packReplay);
+  packTransport = PackReplay.createReplayTransport(packReplay);
+}
 var boot = fs.readFileSync(path.join(root, "js/learn-generate-boot.js"), "utf8");
 var marker = "const brain = globalThis.WondiiLessonBrain;";
 if (boot.indexOf(marker) === -1) { console.error("boot marker missing"); process.exit(1); }
@@ -77,6 +97,9 @@ boot = boot.replace(marker, marker + "\n" + [
   "brain.resolveLessonContent = function (first, ctx, opts) { try { var raw = typeof first === 'string' ? JSON.parse(first) : first; var slots = raw && (raw.slots || raw); globalThis.__sgTrace.contentRaw = { apply: slots && slots.apply ? JSON.parse(JSON.stringify(slots.apply)) : null, check: slots && slots.check ? JSON.parse(JSON.stringify(slots.check)) : null, teach: slots && slots.teach ? JSON.parse(JSON.stringify(slots.teach)) : null, recap: slots && slots.recap ? JSON.parse(JSON.stringify(slots.recap)) : null, investigate: slots && slots.investigate ? JSON.parse(JSON.stringify(slots.investigate)) : null, keys: raw ? Object.keys(raw).slice(0, 20) : [] }; } catch (e) { globalThis.__sgTrace.contentRaw = { error: String(e && e.message || e).slice(0, 120) }; } var o = Object.assign({}, opts || {}); if (opts && opts.repair) o.repair = function (a) { return Promise.resolve(opts.repair(a)).then(function (r) { try { globalThis.__sgTrace.repairRaw = JSON.parse(JSON.stringify(typeof r === 'string' ? JSON.parse(r) : r)); } catch (e) { globalThis.__sgTrace.repairRaw = { error: String(e && e.message || e).slice(0, 120) }; } return r; }); }; return __sgResolve(first, ctx, o); };",
   // Patch 7: the content raw keeps teach, recap and investigate as well, and the slot repair's raw
   // reply is kept (observe only), so a rule failure shows whether the model or the code dropped something.
+  // Patch 8: keep each raw entailment reply (with its wording lists) so a later pack replay needs no recovery. Observe only.
+  "const __sgParseEntail = brain.parseSourceEntailment.bind(brain);",
+  "brain.parseSourceEntailment = function (raw) { try { globalThis.__sgTrace.rawEntailments = globalThis.__sgTrace.rawEntailments || []; globalThis.__sgTrace.rawEntailments.push(JSON.parse(JSON.stringify(raw))); } catch (e) {} return __sgParseEntail(raw); };",
   "const __sgNormPlan = brain.normalisePlan.bind(brain);",
   "brain.normalisePlan = function (raw, ctx) { var r = __sgNormPlan(raw, ctx); try { globalThis.__sgTrace.plans.push({ raw: JSON.parse(JSON.stringify(raw)), learningMap: r && r.plan && r.plan.learningMap ? JSON.parse(JSON.stringify(r.plan.learningMap)) : null, ok: !!(r && r.ok), issues: (r && r.issues) || [], depth: r && r.depth || null, mapRejected: r && (r.mapRejected || (r.plan && r.plan.mapRejected)) || [] }); } catch (e) {} return r; };"
 ].join("\n"));
@@ -112,6 +135,11 @@ global.fetch = function (url, init) {
   if (href.indexOf("https://wondii.co.uk/js/source-research.js") === 0) return Promise.resolve(textResponse(researchSource));
   if (href.indexOf("/auth/v1/user") !== -1) return Promise.resolve(textResponse(JSON.stringify({ id: "teacher-live" })));
   if (href.indexOf("/rest/v1/organisation_members") !== -1) return Promise.resolve(textResponse(JSON.stringify([{ role: "teacher", status: "active" }])));
+  if (href.indexOf("https://api.openai.com/") === 0 && packTransport) {
+    var routed = packTransport.route(init && init.body ? JSON.parse(init.body) : null);
+    if (routed.replay) { outbound.push({ kind: "pack-replay", url: href.replace(/\?.*$/, "") }); return Promise.resolve(textResponse(JSON.stringify({ choices: [{ message: { content: JSON.stringify(routed.replay) } }] }))); }
+    if (routed.refuse) { outbound.push({ kind: "refused", url: href.replace(/\?.*$/, ""), reason: routed.refuse }); return Promise.reject(new Error(routed.refuse)); }
+  }
   if (href.indexOf("https://api.openai.com/") === 0) { outbound.push({ kind: "openai", url: href.replace(/\?.*$/, "") }); return guarded(url, init); }
   if (/^https:\/\//.test(href) && allowedHost(href)) { outbound.push({ kind: "source", url: href.slice(0, 300) }); return realFetch(url, init); }
   outbound.push({ kind: "refused", url: href.slice(0, 300) });
@@ -121,7 +149,7 @@ global.fetch = function (url, init) {
 var logs = [];
 var originalLog = console.log;
 console.log = function (line) {
-  try { var parsed = JSON.parse(line); if (parsed && parsed.event === "learn-generate") { logs.push(parsed); originalLog("stage " + parsed.stage); return; } } catch (e) {}
+  try { var parsed = JSON.parse(line); if (parsed && parsed.event === "learn-generate") { logs.push(parsed); if (packTransport) packTransport.observe(parsed); originalLog("stage " + parsed.stage); return; } } catch (e) {}
   originalLog(guard.redact(line));
 };
 global.Deno = { env: { get: function (name) {
@@ -144,7 +172,7 @@ var started = Date.now();
 }).then(function (response) { return response.json(); }).then(function (body) {
   var trace = global.__sgTrace || {};
   fs.writeFileSync(path.join(outDir, "lesson/generate-response.json"), JSON.stringify(body, null, 2));
-  fs.writeFileSync(path.join(outDir, "lesson/generate-trace.json"), JSON.stringify({ attempt: attempt, request: request, researchMode: researchMode, model: "gpt-4o-mini", knowledgeModel: researchMode ? "gpt-6-luna (experimental, research mode only)" : "gpt-4o-mini", ok: !!body.ok, stage: body.stage || "", issues: body.issues || [], elapsedMs: Date.now() - started, stages: logs.map(function (row) { return row.stage; }), logs: logs, intent: trace.intent || null, plans: trace.plans || [], contentRaw: trace.contentRaw || null, repairRaw: trace.repairRaw || null, outbound: outbound, spend: guard.state() }, null, 2));
+  fs.writeFileSync(path.join(outDir, "lesson/generate-trace.json"), JSON.stringify({ attempt: attempt, request: request, researchMode: researchMode, model: "gpt-4o-mini", knowledgeModel: researchMode ? "gpt-6-luna (experimental, research mode only)" : "gpt-4o-mini", ok: !!body.ok, stage: body.stage || "", issues: body.issues || [], elapsedMs: Date.now() - started, stages: logs.map(function (row) { return row.stage; }), logs: logs, intent: trace.intent || null, plans: trace.plans || [], contentRaw: trace.contentRaw || null, repairRaw: trace.repairRaw || null, rawEntailments: trace.rawEntailments || [], packReplay: packTransport ? Object.assign(packTransport.summary(), { preflight: packPreflight }) : null, outbound: outbound, spend: guard.state() }, null, 2));
   if (trace.research) fs.writeFileSync(path.join(outDir, "sources/research-record.json"), JSON.stringify(trace.research, null, 2));
   // The pack the boot used is the one named in the KNOWLEDGE_PACK log (the repair may be kept or not).
   var used = logs.filter(function (row) { return row.stage === "KNOWLEDGE_PACK"; })[0];
@@ -156,6 +184,7 @@ var started = Date.now();
   if (!body.ok || !body.adventure || process.argv.indexOf("--no-finish") !== -1) return null;
   console.log("finishing: images, checks 1-4, lesson.html");
   trace.request = request;
+  if (packTransport) trace.packReplay = packTransport.summary();
   return Finish.runFinish({ adventure: body.adventure, logs: logs, trace: trace, outDir: outDir, apiKey: key, fetch: global.fetch, imageCount: Number(arg("images", "4")) }).then(function (out) {
     var c = out.lesson.checks;
     console.log(JSON.stringify({ html: out.html, images: out.lesson.images.map(function (i) { return i.id + ":" + i.status; }), checks: { support: c.support.problems, sentences: c.sentences ? c.sentences.problems : null, rules: c.rules ? c.rules.problems : null, age: c.age.problems, questions: c.questions.problems, images: c.images.problems }, spend: guard.state() }, null, 1));

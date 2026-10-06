@@ -626,6 +626,11 @@ function runFinish(opts) {
     checks: {},
     adventure: adventure
   };
+  // Patch 8: a lesson continued from a saved pack (--reuse-pack) says so.
+  if (opts.trace && opts.trace.packReplay) {
+    lesson.label += "; " + opts.trace.packReplay.label + " (re-checked in code)";
+    lesson.packReplay = opts.trace.packReplay;
+  }
   if (ctx) {
     lesson.apply = applyOf(adventure);
     lesson.lineage = lineageOf(adventure, ctx);
