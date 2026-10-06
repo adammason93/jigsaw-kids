@@ -1027,6 +1027,138 @@
     ].filter(Boolean).join("\n");
   }
 
+  // ---- Teaching visuals for source-grounded lessons (patch 6) ---------------------------
+  // Opt-in planner (production planVisualAssets is unchanged). One teaching picture per
+  // gate-ready unit, chosen by a reusable rule from the unit's own source wording:
+  //   comparison: the explanation compares (than, compared with, unlike) -> side by side;
+  //   cutaway: the feature is inside the body (skull, hole, bone, muscle, joint, ...) -> a
+  //            cutaway or skull view where that part is visible;
+  //   close-up: otherwise -> a close view of the feature.
+  // Each picture shows one animal type (plus the compared animal for a comparison), no people,
+  // no text. The hook is an adventure picture framed as fiction; the apply picture shows the
+  // new example. Every asset carries a frame label that the player shows on screen.
+  var INTERNAL_PART = /\b(skull|skulls|hole|holes|opening|openings|bone|bones|muscle|muscles|joint|joints|jaw|jaws|socket|sockets|brain|heart|lung|lungs|stomach|gizzard|inside|internal|hip|hips|spine|vertebra|vertebrae|ribs?)\b/i;
+  var COMPARES = /\b(than|compared (?:with|to)|unlike|whereas|instead of)\b/i;
+  var FRAME_LABELS = {
+    story: "Story picture: an imagined adventure scene",
+    teaching: "Teaching picture: an artist's reconstruction",
+    example: "Example picture: an imagined example to think about"
+  };
+
+  function teachingView(unit) {
+    var explanation = [unit && unit.explanationQuote, unit && unit.explanation].join(" ");
+    if (COMPARES.test(explanation)) return "comparison";
+    if (INTERNAL_PART.test(String(unit && unit.feature || ""))) return "cutaway";
+    return "close-up";
+  }
+
+  function comparedWith(text) {
+    var m = /\b(?:than|compared (?:with|to)|unlike)\s+([^.;]+)/i.exec(String(text || ""));
+    return m ? m[1].replace(/\s+/g, " ").trim().slice(0, 160) : "";
+  }
+
+  function planTeachingVisuals(adventure, units, options) {
+    options = options || {};
+    var activities = (adventure && adventure.activities) || [];
+    var staged = stagedActivities(activities);
+    if (!staged || !(units || []).length) return [];
+    var hook = stageAsset("hook", staged.hook, adventure);
+    hook.framing = "story";
+    hook.frameLabel = FRAME_LABELS.story;
+    var list = [hook];
+    units.forEach(function (unit) {
+      var view = teachingView(unit);
+      list.push({
+        id: "teach-" + unit.unitId,
+        slotId: "teach",
+        unitId: unit.unitId,
+        type: "teaching_visual",
+        view: view,
+        framing: "teaching",
+        frameLabel: FRAME_LABELS.teaching,
+        usedByScenes: [],
+        beatIds: (unit.beatIds || []).slice(),
+        generationRequired: true,
+        brief: {
+          setting: "a plain, softly lit background with nothing else in it",
+          action: unit.feature,
+          educationalFocus: unit.explanation || "",
+          mood: "clear and calm",
+          importantObjects: [unit.feature]
+        },
+        feature: unit.feature,
+        featureQuote: unit.featureQuote || "",
+        explanation: unit.explanation || "",
+        explanationQuote: unit.explanationQuote || "",
+        compared: view === "comparison" ? comparedWith(unit.explanationQuote || unit.explanation) : "",
+        shot: { shotType: view, cameraDistance: view === "close-up" || view === "cutaway" ? "close" : "medium", cameraAngle: "side view, the feature fully visible", location: "plain background", uiSafeArea: "LOWER_LEFT" },
+        uiSafeArea: "LOWER_LEFT",
+        status: "planned"
+      });
+    });
+    var applyStep = staged.apply && staged.apply.scene && staged.apply.scene.interaction;
+    if (applyStep && applyStep.type === "choose" && applyStep.newCase && applyStep.newCase.text) {
+      var sourced = applyStep.newCase.kind === "sourced";
+      list.push({
+        id: "apply",
+        slotId: "apply",
+        unitId: applyStep.unitId || "",
+        type: "story_scene",
+        view: "example",
+        framing: sourced ? "teaching" : "example",
+        frameLabel: sourced ? FRAME_LABELS.teaching : FRAME_LABELS.example,
+        usedByScenes: [staged.apply.title || "apply"],
+        generationRequired: true,
+        brief: { setting: "a plain, softly lit background", action: applyStep.newCase.text, educationalFocus: "", mood: "clear and calm", importantObjects: [] },
+        newCase: applyStep.newCase.text,
+        choices: (applyStep.choices || []).map(function (c) { return c.text; }),
+        shot: { shotType: "example", cameraDistance: "medium", cameraAngle: "side view, every option equally visible", location: "plain background", uiSafeArea: "LEFT" },
+        uiSafeArea: "LEFT",
+        status: "planned"
+      });
+    }
+    return list.slice(0, options.max || 6);
+  }
+
+  function deepTimeGroupLine(adventure) {
+    if (!periodGuard(adventure)) return "";
+    var topic = String((adventure && adventure.topic) || "the lesson's animals").toLowerCase();
+    return "Show only " + topic + " as the lesson animal. Do not show flying reptiles (pterosaurs), sea reptiles (plesiosaurs, ichthyosaurs, mosasaurs), mammals, or birds presented as " + topic + ". Every animal shown lived in the same time period; do not mix animals from different periods.";
+  }
+
+  function buildTeachingVisualPrompt(adventure, asset) {
+    var year = yearOf(adventure);
+    if (!asset || asset.framing === "story") {
+      return [buildAdventurePrompt(adventure, asset, charactersForAdventure(adventure)), "STORY PICTURE: this is an imagined adventure scene for the story, not a scientific reconstruction. " + deepTimeGroupLine(adventure)].filter(Boolean).join("\n");
+    }
+    var common = [
+      "Clear, accurate natural-history illustration for a " + (year || "primary") + " science lesson. Soft, even light, gentle colours, a plain background. Not a photograph of a real place.",
+      NO_TEXT,
+      SAFETY,
+      "No people, no children, no explorers, no characters, no hands, no human figures.",
+      deepTimeGroupLine(adventure),
+      "Do not paint arrows, labels, or writing. A later layer adds those."
+    ];
+    if (asset.slotId === "apply") {
+      return common.concat([
+        "This picture shows an example for the class to reason about: " + asset.newCase,
+        "Show every option in the example equally clearly, side by side, at the same size and in the same pose, so the picture does not give away which option is the answer.",
+        "Leave " + (asset.uiSafeArea || "LEFT") + " visually quiet for a panel."
+      ]).filter(Boolean).join("\n");
+    }
+    var view = asset.view;
+    var line = view === "comparison"
+      ? "Side-by-side comparison on one plain background. Left: one animal of a single type that has this feature: " + asset.feature + ". Right: " + (asset.compared || "the animal the source compares it with") + ". Same scale, same side-on pose, whole body visible, so the difference in the feature is obvious."
+      : view === "cutaway"
+        ? "Cutaway or skull view of one animal of a single type so this internal feature is clearly visible: " + asset.feature + ". Show the part in its real position and proportion, large in the frame, with the surrounding body faded or cut away."
+        : "Close-up of one animal of a single type, with this feature large and clearly visible in the centre: " + asset.feature + ".";
+    return common.concat([
+      "Teaching picture (artist's reconstruction). " + line,
+      "The source says: \"" + (asset.featureQuote || asset.feature) + "\" and \"" + (asset.explanationQuote || asset.explanation) + "\". Draw only what these sentences say; do not add other features.",
+      "Leave " + (asset.uiSafeArea || "LOWER_LEFT") + " visually quiet for a panel."
+    ]).filter(Boolean).join("\n");
+  }
+
   function stampActivities(activities, assets) {
     if (stagedActivities(activities)) {
       (activities || []).forEach(function (activity) {
@@ -1240,6 +1372,10 @@
     buildAdventurePrompt: buildAdventurePrompt,
     periodGuard: periodGuard,
     livingPastScene: livingPastScene,
+    planTeachingVisuals: planTeachingVisuals,
+    buildTeachingVisualPrompt: buildTeachingVisualPrompt,
+    teachingView: teachingView,
+    FRAME_LABELS: FRAME_LABELS,
     stampActivities: stampActivities,
     scheduleVisualAssets: scheduleVisualAssets,
     attachResult: attachResult,

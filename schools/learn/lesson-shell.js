@@ -236,9 +236,15 @@
     return mechanics.render(slide || {}, ctx);
   }
 
-  function worldFor(slide) {
+  function worldFor(slide, play) {
     var visuals = globalThis.WondiiVisuals;
     if (!visuals || !visuals.forSlide) return null;
+    // Patch 6: a beat may carry its own picture (one teaching picture per unit).
+    var beats = slide && Array.isArray(slide.beats) ? slide.beats : [];
+    if (play && beats.length) {
+      var beat = beats[Math.max(0, Math.min(Number(play.beat) || 0, beats.length - 1))];
+      if (beat && beat.visualAssetId) slide = Object.assign({}, slide, { visualAssetId: beat.visualAssetId });
+    }
     return visuals.forSlide(slide);
   }
 
@@ -250,7 +256,7 @@
     if (safe) cls += " lesson-safe-" + String(safe).toLowerCase().replace(/[^a-z0-9]+/g, "-");
     var layer = (world && world.layer) || "";
     var backdrop = "";
-    if (world && world.url) backdrop = "<div class=\"lesson-world" + (world.fx || "") + "\"><img class=\"lesson-world-plate\" alt=\"\" src=\"" + escape(world.url) + "\" /></div>";
+    if (world && world.url) backdrop = "<div class=\"lesson-world" + (world.fx || "") + "\"><img class=\"lesson-world-plate\" alt=\"\" src=\"" + escape(world.url) + "\" />" + (world.tag ? "<p class=\"lesson-world-tag\">" + escape(world.tag) + "</p>" : "") + "</div>";
     else if (world && world.fallback) backdrop = "<div class=\"lesson-world lesson-world--fallback" + (world.fx || "") + "\"></div>";
     return "<div class=\"lesson" + cls + "\">" + backdrop + layer + topHtml(model, slides || [], index || 0, statusText) +
       "<main class=\"lesson-stage\" id=\"lessonStage\">" + inner + "</main>" +
@@ -446,7 +452,7 @@
       if (ui.end) {
         inner += overlay("End this lesson?", "<p class=\"lesson-copy\">Everything completed so far will be saved.</p>", "<button type=\"button\" class=\"lesson-go\" id=\"lessonKeep\">Keep playing</button><button type=\"button\" class=\"lesson-quiet\" id=\"lessonEndNow\">End lesson</button>");
       }
-      var world = worldFor(slide) || null;
+      var world = worldFor(slide, ui.play) || null;
       if (world && adventureNow(model)) {
         var showEnter = slide && slide.worldEffect && slide.worldEffect.trigger !== "on-success" && !ui.play.boomed && !ui.play.slipped;
         if (showEnter) ui.play.boomed = true;
@@ -893,6 +899,7 @@
     waitingOn: waitingOn,
     completeSpot: completeSpot,
     choosePlay: choosePlay,
+    worldFor: worldFor,
     primaryLabel: primaryLabel,
     advancePlay: advancePlay,
     screenFor: screenFor,
