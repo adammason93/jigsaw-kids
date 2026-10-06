@@ -38,6 +38,7 @@ function journeyFor(adventure, options) {
   draft.vocabulary = (adventure.vocabulary || []).slice();
   draft.lessonPlan = adventure.lessonPlan || null;
   draft.storyPlan = adventure.storyPlan || null;
+  if (adventure.storyScenes && adventure.storyScenes.length) draft.storyScenes = clone(adventure.storyScenes);
   draft.visualAssets = (adventure.visualAssets || []).map(function (asset) {
     var copy = clone(asset);
     if (copy.status === "ready" && opts.imageBase) copy.publicUrl = opts.imageBase + copy.id + ".jpg";

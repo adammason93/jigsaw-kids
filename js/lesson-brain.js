@@ -9738,6 +9738,8 @@
     statesSoCould: statesSoCould,
     knowledgePackLog: knowledgePackLog,
     quoteInPassage: quoteInPassage,
+    quoteKey: quoteKey,
+    wordsNotInSource: wordsNotInSource,
     sourceEntailmentBrief: sourceEntailmentBrief,
     parseSourceEntailment: parseSourceEntailment,
     applySourceEntailment: applySourceEntailment,
