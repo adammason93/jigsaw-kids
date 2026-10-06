@@ -67,4 +67,34 @@ var unit = Brain.applyTaskUnit(tctx);
 var task = Brain.parseApplyTask({ beats: [{ id: "apply:0", text: "Compare two made-up reptiles and decide which one stands on straight back legs." }], newCase: { text: "Imagine two made-up reptiles: one stands on straight back legs, one has sprawling legs.", kind: "transfer" }, instruction: "Choose the reptile that would use less energy to move?", choices: [{ text: "The reptile with straight back legs", correct: true, feedback: "Yes. Straight back legs let an animal use less energy to move." }, { text: "The reptile with sprawling legs", correct: false, feedback: "Not this one. Sprawling legs, not straight back legs, take more energy to move." }], successText: "The class picks the reptile whose straight back legs let it use less energy to move." }, unit);
 assert.ok(!Brain.applyTaskIssues(task, unit, tctx).some(function (t) { return /unchanged/.test(t); }));
 assert.ok(Brain.applyTaskIssues(task, unit, Object.assign({}, tctx, { applyTaskPrevious: copy(task) })).some(function (t) { return /The Try it repair returned the same task unchanged/.test(t); }));
+// 6. Live run 20 (12:39 BST): currentQuestions omitted teachingConnection, so every repaired
+// question came back without it (incomplete contract); and the brief said "Do not rewrite any
+// other stage" while the recap was also listed, so the recap came back missing. Now the
+// current questions carry their contract fields, and every listed slot must be returned.
+var twoSlots = Brain.slotRepairBrief(ctxFor(true), ["check", "recap"], acc.issues, acc.previous);
+var twoSpec = JSON.parse(twoSlots.user);
+var cq = twoSpec.slotsToRewrite.filter(function (s) { return s.slotType === "CHECK"; })[0].currentQuestions;
+cq.forEach(function (q, i) {
+  assert.strictEqual(q.teachingConnection, check.config.questions[i].teachingConnection || undefined);
+  assert.strictEqual(q.successEvidence, check.config.questions[i].successEvidence || undefined);
+});
+assert.ok(cq.some(function (q) { return q.teachingConnection; }), "fixture has a teachingConnection to carry");
+assert.ok(/Return every listed slot: check, recap\./.test(twoSpec.instruction), twoSpec.instruction);
+assert.ok(/Do not rewrite any stage that is not listed\./.test(twoSpec.instruction) && !/Do not rewrite any other stage\./.test(twoSpec.instruction));
+assert.ok(/keeps every field in output, including successEvidence and teachingConnection/.test(twoSpec.instruction));
+// A check-only research repair keeps the original wording; the default brief is unchanged.
+assert.ok(/Do not rewrite any other stage\./.test(spec.instruction) && !/Return every listed slot/.test(spec.instruction));
+var plainTwo = JSON.parse(Brain.slotRepairBrief(ctxFor(false), ["check", "recap"], plainAcc.issues || [], plainAcc.previous).user);
+assert.ok(/Do not rewrite any other stage\./.test(plainTwo.instruction) && !/Return every listed slot/.test(plainTwo.instruction), "default brief unchanged");
+// The marker's reason for a partial-evidence verdict reaches the rewrite of that question only.
+var pctx = ctxFor(true);
+pctx.checkSemantics = [{ coverage: "partial", reason: "The answer names the feature but not how it helped the animal survive.", demonstratedEvidence: "x" }, { coverage: "sufficient", reason: "ok", demonstratedEvidence: "x" }, { coverage: "sufficient", reason: "ok", demonstratedEvidence: "x" }];
+var pacc = Brain.accept(copy(raw), pctx);
+assert.strictEqual(pacc.issues.questionWhy[0], "The answer names the feature but not how it helped the animal survive.");
+assert.ok(!pacc.issues.questionWhy[1] && !pacc.issues.questionWhy[2]);
+var pq = JSON.parse(Brain.slotRepairBrief(pctx, ["check"], pacc.issues, pacc.previous).user).slotsToRewrite[0].currentQuestions;
+assert.strictEqual(pq[0].markerReason, "The answer names the feature but not how it helped the animal survive.");
+assert.ok(!pq[1].markerReason && !pq[2].markerReason);
+var dctx = ctxFor(false); dctx.checkSemantics = pctx.checkSemantics;
+assert.strictEqual(Brain.accept(copy(raw), dctx).issues.questionWhy, undefined, "default accept unchanged");
 console.log("research repair targeting tests passed");

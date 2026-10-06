@@ -4477,7 +4477,13 @@
         var targeted = repairTargets(activity, spec.failure, issues && issues.questionFailures);
         spec.currentQuestions = targeted.questions.map(function (row, i) {
           var id = spec.output && spec.output.questions && spec.output.questions[i] ? spec.output.questions[i].id : row.id;
-          return { id: id, prompt: row.prompt, choices: row.choices, correct: row.correct, explain: row.explain, failing: row.failing };
+          // Every field the question contract needs, so a copied or rewritten question keeps them.
+          var raw = checkQuestionsOf(activity)[i] || {};
+          var shown = { id: id, prompt: row.prompt, choices: row.choices, correct: row.correct, explain: row.explain };
+          ["successEvidence", "teachingConnection"].forEach(function (key) { if (raw[key]) shown[key] = raw[key]; });
+          shown.failing = row.failing;
+          if (row.failing.length && issues && issues.questionWhy && issues.questionWhy[i]) shown.markerReason = issues.questionWhy[i];
+          return shown;
         });
         spec.slotFailures = targeted.slotFailures;
       }
@@ -4520,10 +4526,11 @@
     var checkSpec = null;
     specs.forEach(function (spec) { if (spec.slotType === "CHECK") checkSpec = spec; });
     if (checkSpec) {
-      instruction += " The CHECK slot must stay a quiz. Rewrite only the listed CHECK questions. Do not rewrite any other stage. Year: " + (checkSpec.year || "") + ". Subject: " + (checkSpec.subject || "") + ". Learning goal: " + (checkSpec.learningGoal || "the requested learning") + ". Required evidence: " + (checkSpec.requiredEvidence || "the required evidence") + ". The evidence failure is: " + ((checkSpec.failure || []).join(" ") || "the correct answer is not sufficient evidence") + ". Each replacement question must make a correct answer sufficient evidence of the relationship it tests. Do not merely ask for one component when that question's relationship needs the connection. If the required evidence names more than one necessary part, the correct answer must include every part. Use words this year group can read. Do not make a question harder than the relationship it tests.";
+      instruction += " The CHECK slot must stay a quiz. Rewrite only the listed CHECK questions. " + (researchMode(ctx) && specs.length > 1 ? "Do not rewrite any stage that is not listed." : "Do not rewrite any other stage.") + " Year: " + (checkSpec.year || "") + ". Subject: " + (checkSpec.subject || "") + ". Learning goal: " + (checkSpec.learningGoal || "the requested learning") + ". Required evidence: " + (checkSpec.requiredEvidence || "the required evidence") + ". The evidence failure is: " + ((checkSpec.failure || []).join(" ") || "the correct answer is not sufficient evidence") + ". Each replacement question must make a correct answer sufficient evidence of the relationship it tests. Do not merely ask for one component when that question's relationship needs the connection. If the required evidence names more than one necessary part, the correct answer must include every part. Use words this year group can read. Do not make a question harder than the relationship it tests.";
       if (checkSpec.output && checkSpec.output.questions) instruction += " Return questions for exactly these ids, in this order: " + checkSpec.output.questions.map(function (item) { return item.id; }).join(", ") + ". Do not add or remove a question. Rewrite only a question whose relationship failed. Copy a question that already passed.";
       if (checkSpec.retrieveBeat) instruction += " The quiz is the retrieve beat " + checkSpec.retrieveBeat.id + ". Do not return cue or text for that beat.";
-      if (checkSpec.currentQuestions) instruction += " currentQuestions shows every question as it is now and the checks it failed (failing). Copy a question whose failing list is empty exactly as it is. Rewrite a question that has failing items so it fixes every one of them; the new version must differ from the old one. slotFailures, if any, apply to the whole quiz. Each question keeps its own wrong choices: never give two questions the same choices.";
+      if (checkSpec.currentQuestions) instruction += " currentQuestions shows every question as it is now and the checks it failed (failing). Copy a question whose failing list is empty exactly as it is. Rewrite a question that has failing items so it fixes every one of them; the new version must differ from the old one. Every returned question keeps every field in output, including successEvidence and teachingConnection. markerReason, where given, is why the marker found the correct answer is not enough evidence; the new correct answer must supply what it says is missing. slotFailures, if any, apply to the whole quiz. Each question keeps its own wrong choices: never give two questions the same choices.";
+      if (researchMode(ctx) && specs.length > 1) instruction += " Return every listed slot: " + specs.map(function (spec) { return String(spec.slotType || "").toLowerCase(); }).join(", ") + ". A listed slot you leave out keeps its failure and the lesson fails.";
     }
     if (specs.some(function (spec) { return spec.slotType !== "APPLY"; })) {
       var otherFailures = [];
@@ -8969,6 +8976,8 @@
     // Patch 9, research mode only: which check question each per-question issue belongs to, so the
     // slot repair can rewrite only the questions that failed (see slotRepairBrief).
     var questionFailures = {};
+    // ...and, for an evidence verdict, the marker's own reason (what the correct answer lacks).
+    var questionWhy = {};
     var pupilDiagnostics = [];
     var issues = educationalIssues(activities, issueCtx, owners);
     if (ctx.lessonSkeleton && ctx.lessonSkeleton.some(function (slot) { return slot.beats && slot.beats.length; })) {
@@ -9045,6 +9054,7 @@
                 issues.push(issue);
                 ownIssue(owners, activity.slotId, issue);
                 if (researchMode(ctx)) (questionFailures[index] = questionFailures[index] || []).push(issue);
+                if (researchMode(ctx) && /required evidence/.test(issue) && oneCtx.checkSemantic && oneCtx.checkSemantic.reason) questionWhy[index] = clean(oneCtx.checkSemantic.reason, 240);
               }
             });
           });
@@ -9069,7 +9079,7 @@
       var structure = ctx.lessonSkeleton ? skeletonDrift(activities, ctx.lessonSkeleton) : [];
       var reported = structure.concat(issues);
       reported.slotIssues = slotIssuesFrom(reported, activities, owners);
-      if (ctx.lessonSkeleton && researchMode(ctx)) reported.questionFailures = questionFailures;
+      if (ctx.lessonSkeleton && researchMode(ctx)) { reported.questionFailures = questionFailures; reported.questionWhy = questionWhy; }
       return { ok: false, structuralOk: !structure.length, slotIds: slotIdsFrom(reported, activities), slotIssues: reported.slotIssues, issues: reported, previous: parsed, applyAlignment: applyReport, checkAlignment: checkReport, qualityWarnings: qualityWarnings, pupilBeatDiagnostics: pupilDiagnostics };
     }
     var objectiveSource = parsed.objectives || parsed.learningObjectives || parsed.learningObjective || parsed.objective || ctx.learningObjectives || [];
