@@ -8703,7 +8703,8 @@
         "Use only the reason in reasonQuote. The class has just been taught it (taughtSentences).",
         "newCase.text is one new example the teaching did not answer: a made-up case that starts with Imagine, about new or made-up animals, never about an animal in animalNamesAlreadyTaught. Set newCase.kind to transfer.",
         "Describe a made-up animal in plain words (for example: a new animal whose nostrils sit high on its snout). Never invent a name for it, in any field: a made-up name is a hard word for the class and fails the check.",
-        "instruction is one short question of at most 140 characters that ends with a question mark and asks the class to choose.",
+        "instruction is one short question of at most 140 characters that ends with a question mark and starts with Choose (for example: Choose the animal that could ... ?). Never start it with Which, What or Why: that only asks for recall.",
+        "newCase and beats describe only the new animals' features, never what a feature lets or helps an animal do: the class works the result out from the taught reason.",
         "choices has two or three options; exactly one has correct true. Every option's feedback is one or two sentences that name the feature and say what reasonQuote says it did. The correct option's feedback keeps keepThisResult in the source's words, including keyWords and every comparisonWord.",
         "Never use a vaguer word for the result (better, easier, well, efficiently, good) and never add always, never, completely or fully. Never say an animal adapted, evolved, needed or got a feature, or had it in order to or so that it could do something.",
         "Use everyday words for " + (year || "this year group") + ". successText is one sentence saying what picking the correct choice shows.",
@@ -8761,9 +8762,37 @@
     rows = rows.concat(applyMeaningIssues([activity], ctx, unit));
     rows = rows.concat(vocabularyIssues([activity], ctx));
     rows = rows.concat(teleologyIssues([activity]));
+    rows = rows.concat(applyTaskShapeIssues(task, unit));
     var out = [];
     rows.forEach(function (r) { if (out.indexOf(r.text) === -1) out.push(r.text); });
     return out;
+  }
+
+  // Patch 8 (research mode only; the Try it call runs only with research).
+  // 1. The frozen apply-alignment check (recall-only, pupil selection, bare task) runs on the
+  //    task's instruction here, so the Try it repair can fix it. The content slot repair cannot:
+  //    the task overrides the content's apply fields. Live runs 17 and 18 asked "Which feature
+  //    helps ...?", which applyAlignment fails as recall-only after every repair.
+  // 2. The new example must not state the result itself: a set-up sentence that links to one of
+  //    the result's words ("..., allowing it to breathe ...", run 18) gives the answer away.
+  function applyTaskShapeIssues(task, unit) {
+    var rows = [];
+    var instruction = clean(task && task.instruction, 180);
+    var fix = " Start the instruction with Choose and ask which new animal or option fits (for example: Choose the animal that could ...).";
+    if (instruction && recallOnly(instruction)) rows.push({ text: "The apply slot asks for recall instead of using the knowledge." + fix });
+    else if (instruction && selectionOnly(instruction)) rows.push({ text: "The apply slot only picks a pupil instead of using the knowledge." + fix });
+    else if (instruction && bareTask(instruction)) rows.push({ text: "The apply slot gives a bare interaction instead of using the knowledge." + fix });
+    var featureWords = ruleContent([unit && unit.feature, unit && unit.featureQuote].join(" "));
+    var result = ruleContent(unit && unit.resultClause || "", featureWords);
+    var setup = [task && task.newCase && task.newCase.text].concat(((task && task.beats) || []).map(function (b) { return b && b.text; })).filter(Boolean).join(" ");
+    var giveaway = "";
+    ruleSentences(setup).forEach(function (sentence) {
+      if (giveaway || !CLAIM_LINK.test(sentence)) return;
+      var words = ruleContent(sentence);
+      if (result.some(function (r) { return words.some(function (w) { return ruleWordMatch(w, r); }); })) giveaway = sentence;
+    });
+    if (giveaway) rows.push({ text: "The Try it new example already gives the result (\"" + clean(giveaway, 120) + "\"), so the class does not need the taught reason. Describe only the new animals' features and let the class choose which one fits." });
+    return rows;
   }
 
   // Patch 7: every stage shows one picture, so pupil text must not talk about several
@@ -9451,6 +9480,7 @@
     meaningCheck: meaningCheck,
     applyMeaningIssues: applyMeaningIssues,
     pictureCountIssues: pictureCountIssues,
+    applyTaskShapeIssues: applyTaskShapeIssues,
     sameRelationship: sameRelationship,
     packNames: packNames,
     applyTaskUnit: applyTaskUnit,
