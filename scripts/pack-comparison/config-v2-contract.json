@@ -1,0 +1,31 @@
+{
+  "contract": "v2-harness",
+  "approvalStatus": "PENDING_FOUNDER_APPROVAL",
+  "approvalNote": "Paid calls under the new contract are NOT approved. The founder's original limit (40 calls / $2.50) has 4 calls left. Set approvalStatus to APPROVED and maxCalls / capUsd to the approved figures only after written founder approval.",
+  "frozenCommit": "0d53e3dffe528eba3189fabdb11a8e54f3835de4",
+  "frozenBranch": "cursor/pack-strand-readiness-b819",
+  "arms": {
+    "A": "gpt-4o-mini-2024-07-18",
+    "B": "gpt-4.1-2025-04-14"
+  },
+  "intentModel": "gpt-4o-mini-2024-07-18",
+  "listedPricesUsdPer1M": {
+    "gpt-4o-mini-2024-07-18": { "input": 0.15, "output": 0.60 },
+    "gpt-4.1-2025-04-14": { "input": 2.00, "output": 8.00 }
+  },
+  "priceSources": {
+    "gpt-4o-mini-2024-07-18": "https://developers.openai.com/api/docs/models/gpt-4o-mini",
+    "gpt-4.1-2025-04-14": "https://developers.openai.com/api/docs/models/gpt-4.1"
+  },
+  "guardPriceMultiplier": 2,
+  "capUsd": 0,
+  "maxCalls": 0,
+  "maxTokens": 4000,
+  "timeoutMs": 60000,
+  "temperature": 0,
+  "repeats": 2,
+  "runOrderSeed": 20261008,
+  "blindSeed": 20261009,
+  "promptCharsPerToken": 3,
+  "promptOverheadTokens": 20
+}

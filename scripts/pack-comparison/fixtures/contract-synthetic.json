@@ -1,0 +1,1499 @@
+{
+  "_label": "SYNTHETIC FIXTURES. Hand-written for the offline tests of the harness-only v2 contract code. NOT model output. Claim texts are ILLUSTRATIVE and NOT verified facts; they exist only to exercise structure, ids, phrases, sources and place flags.",
+  "valid_two_roots": {
+    "status": "usable",
+    "statusReason": "",
+    "falsePremise": null,
+    "unitsRequired": 2,
+    "fewerUnitsReason": "",
+    "vocabulary": [
+      {
+        "term": "root",
+        "gloss": "the part of a plant under the ground"
+      }
+    ],
+    "misconceptions": [],
+    "openQuestions": [],
+    "claims": [
+      {
+        "claimId": "c1",
+        "text": "Leaves are flat and wide.",
+        "kind": "fact",
+        "depth": "concrete",
+        "ageFit": {
+          "from": 1,
+          "to": 6
+        },
+        "confidence": "medium",
+        "provenance": "model",
+        "factuallyVerified": false,
+        "localScope": "none",
+        "places": [],
+        "needsSource": false,
+        "sourceRef": null,
+        "contested": false,
+        "uncertainty": "",
+        "teacherRequested": false,
+        "importance": "core"
+      },
+      {
+        "claimId": "c2",
+        "text": "Flat, wide leaves catch more sunlight, so the plant can make more food.",
+        "kind": "fact",
+        "depth": "mechanism",
+        "ageFit": {
+          "from": 2,
+          "to": 6
+        },
+        "confidence": "medium",
+        "provenance": "model",
+        "factuallyVerified": false,
+        "localScope": "none",
+        "places": [],
+        "needsSource": false,
+        "sourceRef": null,
+        "contested": false,
+        "uncertainty": "",
+        "teacherRequested": false,
+        "importance": "core"
+      },
+      {
+        "claimId": "c3",
+        "text": "Roots spread out under the soil.",
+        "kind": "fact",
+        "depth": "concrete",
+        "ageFit": {
+          "from": 1,
+          "to": 6
+        },
+        "confidence": "medium",
+        "provenance": "model",
+        "factuallyVerified": false,
+        "localScope": "none",
+        "places": [],
+        "needsSource": false,
+        "sourceRef": null,
+        "contested": false,
+        "uncertainty": "",
+        "teacherRequested": false,
+        "importance": "core"
+      },
+      {
+        "claimId": "c4",
+        "text": "Spreading roots take in water from the soil, so the plant does not dry out.",
+        "kind": "fact",
+        "depth": "mechanism",
+        "ageFit": {
+          "from": 2,
+          "to": 6
+        },
+        "confidence": "medium",
+        "provenance": "model",
+        "factuallyVerified": false,
+        "localScope": "none",
+        "places": [],
+        "needsSource": false,
+        "sourceRef": null,
+        "contested": false,
+        "uncertainty": "",
+        "teacherRequested": false,
+        "importance": "core"
+      },
+      {
+        "claimId": "c5",
+        "text": "A sunflower is a plant with large leaves.",
+        "kind": "fact",
+        "depth": "concrete",
+        "ageFit": {
+          "from": 1,
+          "to": 6
+        },
+        "confidence": "medium",
+        "provenance": "model",
+        "factuallyVerified": false,
+        "localScope": "none",
+        "places": [],
+        "needsSource": false,
+        "sourceRef": null,
+        "contested": false,
+        "uncertainty": "",
+        "teacherRequested": false,
+        "importance": "core"
+      }
+    ],
+    "units": [
+      {
+        "unitId": "u1",
+        "relationType": "function",
+        "element": {
+          "claimId": "c1",
+          "phrase": "flat and wide"
+        },
+        "explanation": {
+          "claimId": "c2",
+          "stepPhrase": "catch more sunlight, so",
+          "outcomePhrase": "the plant can make more food"
+        },
+        "goalLink": "serves the learning goal",
+        "exampleClaimIds": [
+          "c5"
+        ],
+        "misconceptionIds": []
+      },
+      {
+        "unitId": "u2",
+        "relationType": "function",
+        "element": {
+          "claimId": "c3",
+          "phrase": "Roots spread out"
+        },
+        "explanation": {
+          "claimId": "c4",
+          "stepPhrase": "take in water from the soil, so",
+          "outcomePhrase": "the plant does not dry out"
+        },
+        "goalLink": "serves the learning goal",
+        "exampleClaimIds": [],
+        "misconceptionIds": []
+      }
+    ]
+  },
+  "fused_element_explanation": {
+    "status": "usable",
+    "statusReason": "",
+    "falsePremise": null,
+    "unitsRequired": 2,
+    "fewerUnitsReason": "synthetic",
+    "vocabulary": [
+      {
+        "term": "root",
+        "gloss": "the part of a plant under the ground"
+      }
+    ],
+    "misconceptions": [],
+    "openQuestions": [],
+    "claims": [
+      {
+        "claimId": "c1",
+        "text": "Flat, wide leaves catch more sunlight, so the plant can make more food.",
+        "kind": "fact",
+        "depth": "concrete",
+        "ageFit": {
+          "from": 1,
+          "to": 6
+        },
+        "confidence": "medium",
+        "provenance": "model",
+        "factuallyVerified": false,
+        "localScope": "none",
+        "places": [],
+        "needsSource": false,
+        "sourceRef": null,
+        "contested": false,
+        "uncertainty": "",
+        "teacherRequested": false,
+        "importance": "core"
+      }
+    ],
+    "units": [
+      {
+        "unitId": "u1",
+        "relationType": "function",
+        "element": {
+          "claimId": "c1",
+          "phrase": "Flat, wide leaves"
+        },
+        "explanation": null,
+        "goalLink": "serves the learning goal",
+        "exampleClaimIds": [],
+        "misconceptionIds": []
+      }
+    ]
+  },
+  "unresolved_id": {
+    "status": "usable",
+    "statusReason": "",
+    "falsePremise": null,
+    "unitsRequired": 2,
+    "fewerUnitsReason": "",
+    "vocabulary": [
+      {
+        "term": "root",
+        "gloss": "the part of a plant under the ground"
+      }
+    ],
+    "misconceptions": [],
+    "openQuestions": [],
+    "claims": [
+      {
+        "claimId": "c1",
+        "text": "Leaves are flat and wide.",
+        "kind": "fact",
+        "depth": "concrete",
+        "ageFit": {
+          "from": 1,
+          "to": 6
+        },
+        "confidence": "medium",
+        "provenance": "model",
+        "factuallyVerified": false,
+        "localScope": "none",
+        "places": [],
+        "needsSource": false,
+        "sourceRef": null,
+        "contested": false,
+        "uncertainty": "",
+        "teacherRequested": false,
+        "importance": "core"
+      },
+      {
+        "claimId": "c2",
+        "text": "Flat, wide leaves catch more sunlight, so the plant can make more food.",
+        "kind": "fact",
+        "depth": "mechanism",
+        "ageFit": {
+          "from": 2,
+          "to": 6
+        },
+        "confidence": "medium",
+        "provenance": "model",
+        "factuallyVerified": false,
+        "localScope": "none",
+        "places": [],
+        "needsSource": false,
+        "sourceRef": null,
+        "contested": false,
+        "uncertainty": "",
+        "teacherRequested": false,
+        "importance": "core"
+      },
+      {
+        "claimId": "c3",
+        "text": "Roots spread out under the soil.",
+        "kind": "fact",
+        "depth": "concrete",
+        "ageFit": {
+          "from": 1,
+          "to": 6
+        },
+        "confidence": "medium",
+        "provenance": "model",
+        "factuallyVerified": false,
+        "localScope": "none",
+        "places": [],
+        "needsSource": false,
+        "sourceRef": null,
+        "contested": false,
+        "uncertainty": "",
+        "teacherRequested": false,
+        "importance": "core"
+      },
+      {
+        "claimId": "c4",
+        "text": "Spreading roots take in water from the soil, so the plant does not dry out.",
+        "kind": "fact",
+        "depth": "mechanism",
+        "ageFit": {
+          "from": 2,
+          "to": 6
+        },
+        "confidence": "medium",
+        "provenance": "model",
+        "factuallyVerified": false,
+        "localScope": "none",
+        "places": [],
+        "needsSource": false,
+        "sourceRef": null,
+        "contested": false,
+        "uncertainty": "",
+        "teacherRequested": false,
+        "importance": "core"
+      },
+      {
+        "claimId": "c5",
+        "text": "A sunflower is a plant with large leaves.",
+        "kind": "fact",
+        "depth": "concrete",
+        "ageFit": {
+          "from": 1,
+          "to": 6
+        },
+        "confidence": "medium",
+        "provenance": "model",
+        "factuallyVerified": false,
+        "localScope": "none",
+        "places": [],
+        "needsSource": false,
+        "sourceRef": null,
+        "contested": false,
+        "uncertainty": "",
+        "teacherRequested": false,
+        "importance": "core"
+      }
+    ],
+    "units": [
+      {
+        "unitId": "u1",
+        "relationType": "function",
+        "element": {
+          "claimId": "c1",
+          "phrase": "flat and wide"
+        },
+        "explanation": {
+          "claimId": "c99",
+          "stepPhrase": "catch more sunlight, so",
+          "outcomePhrase": "the plant can make more food"
+        },
+        "goalLink": "serves the learning goal",
+        "exampleClaimIds": [],
+        "misconceptionIds": []
+      },
+      {
+        "unitId": "u2",
+        "relationType": "function",
+        "element": {
+          "claimId": "c3",
+          "phrase": "Roots spread out"
+        },
+        "explanation": {
+          "claimId": "c4",
+          "stepPhrase": "take in water from the soil, so",
+          "outcomePhrase": "the plant does not dry out"
+        },
+        "goalLink": "serves the learning goal",
+        "exampleClaimIds": [],
+        "misconceptionIds": []
+      }
+    ]
+  },
+  "element_equals_explanation": {
+    "status": "usable",
+    "statusReason": "",
+    "falsePremise": null,
+    "unitsRequired": 2,
+    "fewerUnitsReason": "synthetic",
+    "vocabulary": [
+      {
+        "term": "root",
+        "gloss": "the part of a plant under the ground"
+      }
+    ],
+    "misconceptions": [],
+    "openQuestions": [],
+    "claims": [
+      {
+        "claimId": "c1",
+        "text": "Leaves are flat and wide.",
+        "kind": "fact",
+        "depth": "concrete",
+        "ageFit": {
+          "from": 1,
+          "to": 6
+        },
+        "confidence": "medium",
+        "provenance": "model",
+        "factuallyVerified": false,
+        "localScope": "none",
+        "places": [],
+        "needsSource": false,
+        "sourceRef": null,
+        "contested": false,
+        "uncertainty": "",
+        "teacherRequested": false,
+        "importance": "core"
+      },
+      {
+        "claimId": "c2",
+        "text": "Flat, wide leaves catch more sunlight, so the plant can make more food.",
+        "kind": "fact",
+        "depth": "mechanism",
+        "ageFit": {
+          "from": 2,
+          "to": 6
+        },
+        "confidence": "medium",
+        "provenance": "model",
+        "factuallyVerified": false,
+        "localScope": "none",
+        "places": [],
+        "needsSource": false,
+        "sourceRef": null,
+        "contested": false,
+        "uncertainty": "",
+        "teacherRequested": false,
+        "importance": "core"
+      },
+      {
+        "claimId": "c3",
+        "text": "Roots spread out under the soil.",
+        "kind": "fact",
+        "depth": "concrete",
+        "ageFit": {
+          "from": 1,
+          "to": 6
+        },
+        "confidence": "medium",
+        "provenance": "model",
+        "factuallyVerified": false,
+        "localScope": "none",
+        "places": [],
+        "needsSource": false,
+        "sourceRef": null,
+        "contested": false,
+        "uncertainty": "",
+        "teacherRequested": false,
+        "importance": "core"
+      },
+      {
+        "claimId": "c4",
+        "text": "Spreading roots take in water from the soil, so the plant does not dry out.",
+        "kind": "fact",
+        "depth": "mechanism",
+        "ageFit": {
+          "from": 2,
+          "to": 6
+        },
+        "confidence": "medium",
+        "provenance": "model",
+        "factuallyVerified": false,
+        "localScope": "none",
+        "places": [],
+        "needsSource": false,
+        "sourceRef": null,
+        "contested": false,
+        "uncertainty": "",
+        "teacherRequested": false,
+        "importance": "core"
+      },
+      {
+        "claimId": "c5",
+        "text": "A sunflower is a plant with large leaves.",
+        "kind": "fact",
+        "depth": "concrete",
+        "ageFit": {
+          "from": 1,
+          "to": 6
+        },
+        "confidence": "medium",
+        "provenance": "model",
+        "factuallyVerified": false,
+        "localScope": "none",
+        "places": [],
+        "needsSource": false,
+        "sourceRef": null,
+        "contested": false,
+        "uncertainty": "",
+        "teacherRequested": false,
+        "importance": "core"
+      }
+    ],
+    "units": [
+      {
+        "unitId": "u1",
+        "relationType": "function",
+        "element": {
+          "claimId": "c2",
+          "phrase": "Flat, wide leaves"
+        },
+        "explanation": {
+          "claimId": "c2",
+          "stepPhrase": "catch more sunlight, so",
+          "outcomePhrase": "the plant can make more food"
+        },
+        "goalLink": "serves the learning goal",
+        "exampleClaimIds": [],
+        "misconceptionIds": []
+      }
+    ]
+  },
+  "chain_of_three_one_root": {
+    "status": "usable",
+    "statusReason": "",
+    "falsePremise": null,
+    "unitsRequired": 3,
+    "fewerUnitsReason": "synthetic: one chain only",
+    "vocabulary": [
+      {
+        "term": "root",
+        "gloss": "the part of a plant under the ground"
+      }
+    ],
+    "misconceptions": [],
+    "openQuestions": [],
+    "claims": [
+      {
+        "claimId": "k1",
+        "text": "Heavy rain falls on a steep hillside.",
+        "kind": "fact",
+        "depth": "concrete",
+        "ageFit": {
+          "from": 1,
+          "to": 6
+        },
+        "confidence": "medium",
+        "provenance": "model",
+        "factuallyVerified": false,
+        "localScope": "none",
+        "places": [],
+        "needsSource": false,
+        "sourceRef": null,
+        "contested": false,
+        "uncertainty": "",
+        "teacherRequested": false,
+        "importance": "core"
+      },
+      {
+        "claimId": "k2",
+        "text": "Rainwater soaks into the soil and fills the gaps between grains.",
+        "kind": "fact",
+        "depth": "mechanism",
+        "ageFit": {
+          "from": 1,
+          "to": 6
+        },
+        "confidence": "medium",
+        "provenance": "model",
+        "factuallyVerified": false,
+        "localScope": "none",
+        "places": [],
+        "needsSource": false,
+        "sourceRef": null,
+        "contested": false,
+        "uncertainty": "",
+        "teacherRequested": false,
+        "importance": "core"
+      },
+      {
+        "claimId": "k3",
+        "text": "Soil full of water is heavier and its grains grip each other less.",
+        "kind": "fact",
+        "depth": "mechanism",
+        "ageFit": {
+          "from": 1,
+          "to": 6
+        },
+        "confidence": "medium",
+        "provenance": "model",
+        "factuallyVerified": false,
+        "localScope": "none",
+        "places": [],
+        "needsSource": false,
+        "sourceRef": null,
+        "contested": false,
+        "uncertainty": "",
+        "teacherRequested": false,
+        "importance": "core"
+      },
+      {
+        "claimId": "k4",
+        "text": "When the grains stop gripping, the heavy soil can slide down the slope.",
+        "kind": "fact",
+        "depth": "mechanism",
+        "ageFit": {
+          "from": 1,
+          "to": 6
+        },
+        "confidence": "medium",
+        "provenance": "model",
+        "factuallyVerified": false,
+        "localScope": "none",
+        "places": [],
+        "needsSource": false,
+        "sourceRef": null,
+        "contested": false,
+        "uncertainty": "",
+        "teacherRequested": false,
+        "importance": "core"
+      }
+    ],
+    "units": [
+      {
+        "unitId": "u1",
+        "relationType": "process_step",
+        "element": {
+          "claimId": "k1",
+          "phrase": "Heavy rain falls"
+        },
+        "explanation": {
+          "claimId": "k2",
+          "stepPhrase": "soaks into the soil and fills the gaps",
+          "outcomePhrase": "fills the gaps between grains"
+        },
+        "goalLink": "serves the learning goal",
+        "exampleClaimIds": [],
+        "misconceptionIds": []
+      },
+      {
+        "unitId": "u2",
+        "relationType": "process_step",
+        "element": {
+          "claimId": "k2",
+          "phrase": "fills the gaps between grains"
+        },
+        "explanation": {
+          "claimId": "k3",
+          "stepPhrase": "heavier and its grains grip each other less",
+          "outcomePhrase": "grip each other less"
+        },
+        "goalLink": "serves the learning goal",
+        "exampleClaimIds": [],
+        "misconceptionIds": []
+      },
+      {
+        "unitId": "u3",
+        "relationType": "process_step",
+        "element": {
+          "claimId": "k3",
+          "phrase": "grip each other less"
+        },
+        "explanation": {
+          "claimId": "k4",
+          "stepPhrase": "When the grains stop gripping",
+          "outcomePhrase": "slide down the slope"
+        },
+        "goalLink": "serves the learning goal",
+        "exampleClaimIds": [],
+        "misconceptionIds": []
+      }
+    ]
+  },
+  "example_only_unit": {
+    "status": "usable",
+    "statusReason": "",
+    "falsePremise": null,
+    "unitsRequired": 1,
+    "fewerUnitsReason": "synthetic",
+    "vocabulary": [
+      {
+        "term": "root",
+        "gloss": "the part of a plant under the ground"
+      }
+    ],
+    "misconceptions": [],
+    "openQuestions": [],
+    "claims": [
+      {
+        "claimId": "c1",
+        "text": "Leaves are flat and wide.",
+        "kind": "fact",
+        "depth": "concrete",
+        "ageFit": {
+          "from": 1,
+          "to": 6
+        },
+        "confidence": "medium",
+        "provenance": "model",
+        "factuallyVerified": false,
+        "localScope": "none",
+        "places": [],
+        "needsSource": false,
+        "sourceRef": null,
+        "contested": false,
+        "uncertainty": "",
+        "teacherRequested": false,
+        "importance": "core"
+      },
+      {
+        "claimId": "c2",
+        "text": "Flat, wide leaves catch more sunlight, so the plant can make more food.",
+        "kind": "fact",
+        "depth": "mechanism",
+        "ageFit": {
+          "from": 2,
+          "to": 6
+        },
+        "confidence": "medium",
+        "provenance": "model",
+        "factuallyVerified": false,
+        "localScope": "none",
+        "places": [],
+        "needsSource": false,
+        "sourceRef": null,
+        "contested": false,
+        "uncertainty": "",
+        "teacherRequested": false,
+        "importance": "core"
+      },
+      {
+        "claimId": "c3",
+        "text": "Roots spread out under the soil.",
+        "kind": "fact",
+        "depth": "concrete",
+        "ageFit": {
+          "from": 1,
+          "to": 6
+        },
+        "confidence": "medium",
+        "provenance": "model",
+        "factuallyVerified": false,
+        "localScope": "none",
+        "places": [],
+        "needsSource": false,
+        "sourceRef": null,
+        "contested": false,
+        "uncertainty": "",
+        "teacherRequested": false,
+        "importance": "core"
+      },
+      {
+        "claimId": "c4",
+        "text": "Spreading roots take in water from the soil, so the plant does not dry out.",
+        "kind": "fact",
+        "depth": "mechanism",
+        "ageFit": {
+          "from": 2,
+          "to": 6
+        },
+        "confidence": "medium",
+        "provenance": "model",
+        "factuallyVerified": false,
+        "localScope": "none",
+        "places": [],
+        "needsSource": false,
+        "sourceRef": null,
+        "contested": false,
+        "uncertainty": "",
+        "teacherRequested": false,
+        "importance": "core"
+      },
+      {
+        "claimId": "c5",
+        "text": "A sunflower is a plant with large leaves.",
+        "kind": "fact",
+        "depth": "concrete",
+        "ageFit": {
+          "from": 1,
+          "to": 6
+        },
+        "confidence": "medium",
+        "provenance": "model",
+        "factuallyVerified": false,
+        "localScope": "none",
+        "places": [],
+        "needsSource": false,
+        "sourceRef": null,
+        "contested": false,
+        "uncertainty": "",
+        "teacherRequested": false,
+        "importance": "core"
+      }
+    ],
+    "units": [
+      {
+        "unitId": "u1",
+        "relationType": "function",
+        "element": {
+          "claimId": "c1",
+          "phrase": "flat and wide"
+        },
+        "explanation": null,
+        "goalLink": "serves the learning goal",
+        "exampleClaimIds": [
+          "c5"
+        ],
+        "misconceptionIds": []
+      }
+    ]
+  },
+  "source_ref_nonexistent": {
+    "status": "usable",
+    "statusReason": "",
+    "falsePremise": null,
+    "unitsRequired": 1,
+    "fewerUnitsReason": "synthetic",
+    "vocabulary": [
+      {
+        "term": "root",
+        "gloss": "the part of a plant under the ground"
+      }
+    ],
+    "misconceptions": [],
+    "openQuestions": [],
+    "claims": [
+      {
+        "claimId": "c1",
+        "text": "At Ridge Hill, a layer of soft clay under the rock caused the 1901 slip.",
+        "kind": "fact",
+        "depth": "concrete",
+        "ageFit": {
+          "from": 1,
+          "to": 6
+        },
+        "confidence": "medium",
+        "provenance": "model",
+        "factuallyVerified": false,
+        "localScope": "place_bound",
+        "places": [
+          "Ridge Hill"
+        ],
+        "needsSource": true,
+        "sourceRef": {
+          "sourceId": "tm1",
+          "locator": "p.2",
+          "quote": "soft clay under the rock caused the slip"
+        },
+        "contested": false,
+        "uncertainty": "",
+        "teacherRequested": false,
+        "importance": "core"
+      },
+      {
+        "claimId": "c2",
+        "text": "Ridge Hill is a hill.",
+        "kind": "fact",
+        "depth": "concrete",
+        "ageFit": {
+          "from": 1,
+          "to": 6
+        },
+        "confidence": "medium",
+        "provenance": "model",
+        "factuallyVerified": false,
+        "localScope": "named_place",
+        "places": [
+          "Ridge Hill"
+        ],
+        "needsSource": false,
+        "sourceRef": null,
+        "contested": false,
+        "uncertainty": "",
+        "teacherRequested": false,
+        "importance": "core"
+      }
+    ],
+    "units": []
+  },
+  "t8_like_place_bound": {
+    "status": "usable",
+    "statusReason": "",
+    "falsePremise": null,
+    "unitsRequired": 3,
+    "fewerUnitsReason": "synthetic",
+    "claims": [
+      {
+        "claimId": "p1",
+        "text": "Mam Tor is a hill in the Peak District.",
+        "kind": "fact",
+        "depth": "concrete",
+        "ageFit": {
+          "from": 1,
+          "to": 6
+        },
+        "confidence": "medium",
+        "provenance": "model",
+        "factuallyVerified": false,
+        "localScope": "named_place",
+        "places": [
+          "Mam Tor",
+          "Peak District"
+        ],
+        "needsSource": false,
+        "sourceRef": null,
+        "contested": false,
+        "uncertainty": "",
+        "teacherRequested": false,
+        "importance": "core"
+      },
+      {
+        "claimId": "p2",
+        "text": "At Mam Tor, soft shale under harder sandstone made the hillside slip.",
+        "kind": "fact",
+        "depth": "concrete",
+        "ageFit": {
+          "from": 1,
+          "to": 6
+        },
+        "confidence": "high",
+        "provenance": "model",
+        "factuallyVerified": false,
+        "localScope": "place_bound",
+        "places": [
+          "Mam Tor"
+        ],
+        "needsSource": true,
+        "sourceRef": {
+          "sourceId": "geo-survey",
+          "locator": "section 3",
+          "quote": "soft shale under harder sandstone"
+        },
+        "contested": false,
+        "uncertainty": "",
+        "teacherRequested": false,
+        "importance": "core"
+      },
+      {
+        "claimId": "p3",
+        "text": "Soft rock layers can be weakened by water.",
+        "kind": "fact",
+        "depth": "concrete",
+        "ageFit": {
+          "from": 1,
+          "to": 6
+        },
+        "confidence": "medium",
+        "provenance": "model",
+        "factuallyVerified": false,
+        "localScope": "none",
+        "places": [],
+        "needsSource": false,
+        "sourceRef": null,
+        "contested": false,
+        "uncertainty": "",
+        "teacherRequested": false,
+        "importance": "core"
+      },
+      {
+        "claimId": "p4",
+        "text": "When water weakens a soft layer under a harder one, the harder rock above can slide.",
+        "kind": "fact",
+        "depth": "mechanism",
+        "ageFit": {
+          "from": 1,
+          "to": 6
+        },
+        "confidence": "medium",
+        "provenance": "model",
+        "factuallyVerified": false,
+        "localScope": "none",
+        "places": [],
+        "needsSource": false,
+        "sourceRef": null,
+        "contested": false,
+        "uncertainty": "",
+        "teacherRequested": false,
+        "importance": "core"
+      }
+    ],
+    "units": [
+      {
+        "unitId": "u1",
+        "relationType": "cause_consequence",
+        "element": {
+          "claimId": "p2",
+          "phrase": "soft shale under harder sandstone"
+        },
+        "explanation": {
+          "claimId": "p4",
+          "stepPhrase": "When water weakens a soft layer",
+          "outcomePhrase": "the harder rock above can slide"
+        },
+        "goalLink": "serves the learning goal",
+        "exampleClaimIds": [],
+        "misconceptionIds": []
+      },
+      {
+        "unitId": "u2",
+        "relationType": "cause_consequence",
+        "element": {
+          "claimId": "p3",
+          "phrase": "Soft rock layers"
+        },
+        "explanation": {
+          "claimId": "p4",
+          "stepPhrase": "When water weakens a soft layer",
+          "outcomePhrase": "the harder rock above can slide"
+        },
+        "goalLink": "serves the learning goal",
+        "exampleClaimIds": [],
+        "misconceptionIds": []
+      }
+    ],
+    "vocabulary": [],
+    "misconceptions": [],
+    "openQuestions": []
+  },
+  "t8_like_model_blocked": {
+    "status": "blocked",
+    "statusReason": "NEEDS_SOURCE: no supplied material for the geology of this named place.",
+    "falsePremise": null,
+    "unitsRequired": 3,
+    "fewerUnitsReason": "",
+    "claims": [
+      {
+        "claimId": "p1",
+        "text": "Mam Tor is a hill in the Peak District.",
+        "kind": "fact",
+        "depth": "concrete",
+        "ageFit": {
+          "from": 1,
+          "to": 6
+        },
+        "confidence": "medium",
+        "provenance": "model",
+        "factuallyVerified": false,
+        "localScope": "named_place",
+        "places": [
+          "Mam Tor",
+          "Peak District"
+        ],
+        "needsSource": false,
+        "sourceRef": null,
+        "contested": false,
+        "uncertainty": "",
+        "teacherRequested": false,
+        "importance": "core"
+      },
+      {
+        "claimId": "p3",
+        "text": "Soft rock layers can be weakened by water.",
+        "kind": "fact",
+        "depth": "concrete",
+        "ageFit": {
+          "from": 1,
+          "to": 6
+        },
+        "confidence": "medium",
+        "provenance": "model",
+        "factuallyVerified": false,
+        "localScope": "none",
+        "places": [],
+        "needsSource": false,
+        "sourceRef": null,
+        "contested": false,
+        "uncertainty": "",
+        "teacherRequested": false,
+        "importance": "core"
+      },
+      {
+        "claimId": "p4",
+        "text": "When water weakens a soft layer under a harder one, the harder rock above can slide.",
+        "kind": "fact",
+        "depth": "mechanism",
+        "ageFit": {
+          "from": 1,
+          "to": 6
+        },
+        "confidence": "medium",
+        "provenance": "model",
+        "factuallyVerified": false,
+        "localScope": "none",
+        "places": [],
+        "needsSource": false,
+        "sourceRef": null,
+        "contested": false,
+        "uncertainty": "",
+        "teacherRequested": false,
+        "importance": "core"
+      }
+    ],
+    "units": [
+      {
+        "unitId": "u1",
+        "relationType": "cause_consequence",
+        "element": {
+          "claimId": "p3",
+          "phrase": "Soft rock layers"
+        },
+        "explanation": {
+          "claimId": "p4",
+          "stepPhrase": "When water weakens a soft layer",
+          "outcomePhrase": "the harder rock above can slide"
+        },
+        "goalLink": "serves the learning goal",
+        "exampleClaimIds": [],
+        "misconceptionIds": []
+      }
+    ],
+    "vocabulary": [],
+    "misconceptions": [],
+    "openQuestions": []
+  },
+  "t8_like_place_understated": {
+    "status": "usable",
+    "statusReason": "",
+    "falsePremise": null,
+    "unitsRequired": 3,
+    "fewerUnitsReason": "synthetic",
+    "claims": [
+      {
+        "claimId": "p2",
+        "text": "Mam Tor's soft shale under harder sandstone made the hillside slip.",
+        "kind": "fact",
+        "depth": "concrete",
+        "ageFit": {
+          "from": 1,
+          "to": 6
+        },
+        "confidence": "high",
+        "provenance": "model",
+        "factuallyVerified": false,
+        "localScope": "none",
+        "places": [],
+        "needsSource": false,
+        "sourceRef": null,
+        "contested": false,
+        "uncertainty": "",
+        "teacherRequested": false,
+        "importance": "core"
+      },
+      {
+        "claimId": "p3",
+        "text": "Soft rock layers can be weakened by water.",
+        "kind": "fact",
+        "depth": "concrete",
+        "ageFit": {
+          "from": 1,
+          "to": 6
+        },
+        "confidence": "medium",
+        "provenance": "model",
+        "factuallyVerified": false,
+        "localScope": "none",
+        "places": [],
+        "needsSource": false,
+        "sourceRef": null,
+        "contested": false,
+        "uncertainty": "",
+        "teacherRequested": false,
+        "importance": "core"
+      },
+      {
+        "claimId": "p4",
+        "text": "When water weakens a soft layer under a harder one, the harder rock above can slide.",
+        "kind": "fact",
+        "depth": "mechanism",
+        "ageFit": {
+          "from": 1,
+          "to": 6
+        },
+        "confidence": "medium",
+        "provenance": "model",
+        "factuallyVerified": false,
+        "localScope": "none",
+        "places": [],
+        "needsSource": false,
+        "sourceRef": null,
+        "contested": false,
+        "uncertainty": "",
+        "teacherRequested": false,
+        "importance": "core"
+      }
+    ],
+    "units": [
+      {
+        "unitId": "u1",
+        "relationType": "cause_consequence",
+        "element": {
+          "claimId": "p3",
+          "phrase": "Soft rock layers"
+        },
+        "explanation": {
+          "claimId": "p4",
+          "stepPhrase": "When water weakens a soft layer",
+          "outcomePhrase": "the harder rock above can slide"
+        },
+        "goalLink": "serves the learning goal",
+        "exampleClaimIds": [],
+        "misconceptionIds": []
+      }
+    ],
+    "vocabulary": [],
+    "misconceptions": [],
+    "openQuestions": []
+  },
+  "orphan_mechanism_claim": {
+    "status": "usable",
+    "statusReason": "",
+    "falsePremise": null,
+    "unitsRequired": 2,
+    "fewerUnitsReason": "synthetic: only one unit could be stated",
+    "vocabulary": [
+      {
+        "term": "root",
+        "gloss": "the part of a plant under the ground"
+      }
+    ],
+    "misconceptions": [],
+    "openQuestions": [],
+    "claims": [
+      {
+        "claimId": "c1",
+        "text": "Leaves are flat and wide.",
+        "kind": "fact",
+        "depth": "concrete",
+        "ageFit": {
+          "from": 1,
+          "to": 6
+        },
+        "confidence": "medium",
+        "provenance": "model",
+        "factuallyVerified": false,
+        "localScope": "none",
+        "places": [],
+        "needsSource": false,
+        "sourceRef": null,
+        "contested": false,
+        "uncertainty": "",
+        "teacherRequested": false,
+        "importance": "core"
+      },
+      {
+        "claimId": "c2",
+        "text": "Flat, wide leaves catch more sunlight, so the plant can make more food.",
+        "kind": "fact",
+        "depth": "mechanism",
+        "ageFit": {
+          "from": 2,
+          "to": 6
+        },
+        "confidence": "medium",
+        "provenance": "model",
+        "factuallyVerified": false,
+        "localScope": "none",
+        "places": [],
+        "needsSource": false,
+        "sourceRef": null,
+        "contested": false,
+        "uncertainty": "",
+        "teacherRequested": false,
+        "importance": "core"
+      },
+      {
+        "claimId": "c3",
+        "text": "Roots spread out under the soil.",
+        "kind": "fact",
+        "depth": "concrete",
+        "ageFit": {
+          "from": 1,
+          "to": 6
+        },
+        "confidence": "medium",
+        "provenance": "model",
+        "factuallyVerified": false,
+        "localScope": "none",
+        "places": [],
+        "needsSource": false,
+        "sourceRef": null,
+        "contested": false,
+        "uncertainty": "",
+        "teacherRequested": false,
+        "importance": "core"
+      },
+      {
+        "claimId": "c4",
+        "text": "Spreading roots take in water from the soil, so the plant does not dry out.",
+        "kind": "fact",
+        "depth": "mechanism",
+        "ageFit": {
+          "from": 2,
+          "to": 6
+        },
+        "confidence": "medium",
+        "provenance": "model",
+        "factuallyVerified": false,
+        "localScope": "none",
+        "places": [],
+        "needsSource": false,
+        "sourceRef": null,
+        "contested": false,
+        "uncertainty": "",
+        "teacherRequested": false,
+        "importance": "core"
+      },
+      {
+        "claimId": "c5",
+        "text": "A sunflower is a plant with large leaves.",
+        "kind": "fact",
+        "depth": "concrete",
+        "ageFit": {
+          "from": 1,
+          "to": 6
+        },
+        "confidence": "medium",
+        "provenance": "model",
+        "factuallyVerified": false,
+        "localScope": "none",
+        "places": [],
+        "needsSource": false,
+        "sourceRef": null,
+        "contested": false,
+        "uncertainty": "",
+        "teacherRequested": false,
+        "importance": "core"
+      }
+    ],
+    "units": [
+      {
+        "unitId": "u1",
+        "relationType": "function",
+        "element": {
+          "claimId": "c1",
+          "phrase": "flat and wide"
+        },
+        "explanation": {
+          "claimId": "c2",
+          "stepPhrase": "catch more sunlight, so",
+          "outcomePhrase": "the plant can make more food"
+        },
+        "goalLink": "serves the learning goal",
+        "exampleClaimIds": [],
+        "misconceptionIds": []
+      }
+    ]
+  },
+  "landslide_generic": {
+    "status": "usable",
+    "statusReason": "",
+    "falsePremise": null,
+    "unitsRequired": 3,
+    "fewerUnitsReason": "synthetic",
+    "claims": [
+      {
+        "claimId": "k1",
+        "text": "Heavy rain falls on a steep hillside.",
+        "kind": "fact",
+        "depth": "concrete",
+        "ageFit": {
+          "from": 1,
+          "to": 6
+        },
+        "confidence": "medium",
+        "provenance": "model",
+        "factuallyVerified": false,
+        "localScope": "none",
+        "places": [],
+        "needsSource": false,
+        "sourceRef": null,
+        "contested": false,
+        "uncertainty": "",
+        "teacherRequested": false,
+        "importance": "core"
+      },
+      {
+        "claimId": "k2",
+        "text": "Rainwater soaks into the soil and fills the gaps between grains.",
+        "kind": "fact",
+        "depth": "mechanism",
+        "ageFit": {
+          "from": 1,
+          "to": 6
+        },
+        "confidence": "medium",
+        "provenance": "model",
+        "factuallyVerified": false,
+        "localScope": "none",
+        "places": [],
+        "needsSource": false,
+        "sourceRef": null,
+        "contested": false,
+        "uncertainty": "",
+        "teacherRequested": false,
+        "importance": "core"
+      }
+    ],
+    "units": [
+      {
+        "unitId": "u1",
+        "relationType": "process_step",
+        "element": {
+          "claimId": "k1",
+          "phrase": "Heavy rain falls"
+        },
+        "explanation": {
+          "claimId": "k2",
+          "stepPhrase": "soaks into the soil and fills the gaps",
+          "outcomePhrase": "fills the gaps between grains"
+        },
+        "goalLink": "serves the learning goal",
+        "exampleClaimIds": [],
+        "misconceptionIds": []
+      }
+    ],
+    "vocabulary": [],
+    "misconceptions": [],
+    "openQuestions": []
+  },
+  "t8_like_at_place_prefix": {
+    "status": "usable",
+    "statusReason": "",
+    "falsePremise": null,
+    "unitsRequired": 3,
+    "fewerUnitsReason": "synthetic",
+    "claims": [
+      {
+        "claimId": "p2",
+        "text": "At Mam Tor, soft shale under harder sandstone made the hillside slip.",
+        "kind": "fact",
+        "depth": "concrete",
+        "ageFit": {
+          "from": 1,
+          "to": 6
+        },
+        "confidence": "high",
+        "provenance": "model",
+        "factuallyVerified": false,
+        "localScope": "none",
+        "places": [],
+        "needsSource": false,
+        "sourceRef": null,
+        "contested": false,
+        "uncertainty": "",
+        "teacherRequested": false,
+        "importance": "core"
+      },
+      {
+        "claimId": "p3",
+        "text": "Soft rock layers can be weakened by water.",
+        "kind": "fact",
+        "depth": "concrete",
+        "ageFit": {
+          "from": 1,
+          "to": 6
+        },
+        "confidence": "medium",
+        "provenance": "model",
+        "factuallyVerified": false,
+        "localScope": "none",
+        "places": [],
+        "needsSource": false,
+        "sourceRef": null,
+        "contested": false,
+        "uncertainty": "",
+        "teacherRequested": false,
+        "importance": "core"
+      },
+      {
+        "claimId": "p4",
+        "text": "When water weakens a soft layer under a harder one, the harder rock above can slide.",
+        "kind": "fact",
+        "depth": "mechanism",
+        "ageFit": {
+          "from": 1,
+          "to": 6
+        },
+        "confidence": "medium",
+        "provenance": "model",
+        "factuallyVerified": false,
+        "localScope": "none",
+        "places": [],
+        "needsSource": false,
+        "sourceRef": null,
+        "contested": false,
+        "uncertainty": "",
+        "teacherRequested": false,
+        "importance": "core"
+      }
+    ],
+    "units": [
+      {
+        "unitId": "u1",
+        "relationType": "cause_consequence",
+        "element": {
+          "claimId": "p3",
+          "phrase": "Soft rock layers"
+        },
+        "explanation": {
+          "claimId": "p4",
+          "stepPhrase": "When water weakens a soft layer",
+          "outcomePhrase": "the harder rock above can slide"
+        },
+        "goalLink": "serves the learning goal",
+        "exampleClaimIds": [],
+        "misconceptionIds": []
+      }
+    ],
+    "vocabulary": [],
+    "misconceptions": [],
+    "openQuestions": []
+  }
+}

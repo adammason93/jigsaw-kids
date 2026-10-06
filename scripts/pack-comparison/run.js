@@ -4,12 +4,20 @@
 
    node scripts/pack-comparison/run.js --out DIR --preflight-only
    node scripts/pack-comparison/run.js --out DIR --live
+   Options: --config FILE --inputs FILE --intents FILE --tests T3,T4,T6,T8
 
    - Teacher intent: saved raw intents (frozen-intents.json) are normalised and
      applied with the frozen code; the rest are generated once with the intent
      model and shared by both arms.
-   - Pack prompt: brain.knowledgePackBrief(ctx) from js/lesson-brain.js,
-     unchanged. Only the model name differs between arms.
+   - Pack prompt, chosen by config.contract:
+       "production-0d53e3d" (default; the OLD-CONTRACT BASELINE):
+         brain.knowledgePackBrief(ctx) from js/lesson-brain.js, unchanged;
+       "v2-harness": the harness-only new-contract prompt (contract-prompt.js),
+         with unitsRequired = the frozen count and suppliedMaterials from the
+         test (none in the frozen set).
+     Only the model name differs between arms.
+   - A config with approvalStatus other than "APPROVED" refuses any paid run
+     (preflight only).
    - Every paid call passes the budget guard first (call limit and spend cap,
      using the worst case of the next call). Retries are for transport errors
      only, from a fixed retry budget = maxCalls - planned calls.
@@ -21,7 +29,20 @@ var path = require("path");
 var childProcess = require("child_process");
 var lib = require("./lib");
 
-var HARNESS_FILES = ["lib.js", "run.js", "analyse.js", "blind-export.js", "offline.test.js", "config.json", "inputs.json", "frozen-intents.json", "preflight-tokens.py", "README.md"];
+var contractPrompt = require("./contract-prompt");
+
+var HARNESS_FILES = ["lib.js", "run.js", "analyse.js", "blind-export.js", "offline.test.js", "config.json", "inputs.json", "frozen-intents.json", "preflight-tokens.py", "README.md",
+  "gate-context.js", "contract-prompt.js", "contract-validate.js", "contract-graph.js", "contract-adapter.js", "contract-evaluate.js", "contract.test.js",
+  "config-v2-contract.json", "inputs-v2-contract.json", "frozen-intents-v2.json", "fixtures/contract-synthetic.json"];
+
+function contractOf(config) { return config.contract || "production-0d53e3d"; }
+
+// The pack prompt for one test. The old contract is the production brief, unchanged.
+function packBriefFor(brain, config, ctx, test) {
+  if (contractOf(config) === "v2-harness") return contractPrompt.buildContractBrief(ctx, { unitsRequired: test.frozenCount, suppliedMaterials: test.suppliedMaterials || [] });
+  if (contractOf(config) !== "production-0d53e3d") throw new Error("Unknown contract " + config.contract);
+  return brain.knowledgePackBrief(ctx);
+}
 // Upper bound on the characters a normalised teacher intent can add to the
 // pack prompt (goal 240 + evidence 280 + focus 4x80 + prior/exclusions 8x120 +
 // preferences 4x40 + JSON keys). Used only for the preflight worst case of
@@ -41,14 +62,15 @@ function manifest(config) {
   return {
     gitHead: gitHead(),
     frozenCommit: config.frozenCommit,
+    contract: contractOf(config),
     lessonBrainSha256: lib.fileSha256(path.join(lib.REPO_ROOT, "js/lesson-brain.js")),
     harnessFiles: files,
     node: process.version
   };
 }
 
-function resolveTests(inputs, frozenIntents) {
-  return inputs.tests.map(function (test) {
+function resolveTests(inputs, frozenIntents, only) {
+  return inputs.tests.filter(function (test) { return !only || only.indexOf(test.id) !== -1; }).map(function (test) {
     var t = lib.clone(test);
     if (t.intent === "saved") {
       var saved = frozenIntents[t.id];
@@ -83,7 +105,7 @@ function preflight(brain, config, tests, guard, retryBudget) {
     } else {
       brain.applyTeacherIntent(ctx, brain.normaliseTeacherIntent(test.savedIntent.raw, ctx));
     }
-    var packMessages = lib.briefMessages(brain.knowledgePackBrief(ctx));
+    var packMessages = lib.briefMessages(packBriefFor(brain, config, ctx, test));
     if (test.intent === "generate") packMessages[1] = { role: "user", content: packMessages[1].content + new Array(INTENT_CHAR_MARGIN + 1).join(" ") };
     prompts.push({ test: test.id, kind: "pack", messages: packMessages, marginChars: test.intent === "generate" ? INTENT_CHAR_MARGIN : 0 });
     Object.keys(config.arms).forEach(function (arm) {
@@ -115,7 +137,10 @@ async function runComparison(opts) {
   var config = opts.config;
   var outDir = opts.outDir;
   var brain = opts.brain || lib.loadBrain();
-  var tests = resolveTests(opts.inputs, opts.frozenIntents);
+  var tests = resolveTests(opts.inputs, opts.frozenIntents, opts.onlyTests);
+  if (!opts.preflightOnly && config.approvalStatus !== undefined && config.approvalStatus !== "APPROVED") {
+    throw new Error("Config approvalStatus is " + config.approvalStatus + ": paid calls are not approved. Use --preflight-only.");
+  }
   var log = opts.log || function () {};
   fs.mkdirSync(path.join(outDir, "calls"), { recursive: true });
   fs.mkdirSync(path.join(outDir, "runs"), { recursive: true });
@@ -125,7 +150,10 @@ async function runComparison(opts) {
   var plannedIntent = tests.filter(function (t) { return t.intent === "generate"; }).length;
   var plannedPack = tests.length * Object.keys(config.arms).length * config.repeats;
   var retryBudget = config.maxCalls - plannedIntent - plannedPack;
-  if (retryBudget < 0) throw new Error("Planned calls exceed maxCalls");
+  if (retryBudget < 0) {
+    if (!opts.preflightOnly) throw new Error("Planned calls exceed maxCalls");
+    retryBudget = 0;
+  }
 
   var man = manifest(config);
   man.startedAt = new Date().toISOString();
@@ -217,12 +245,14 @@ async function runComparison(opts) {
     // Same as the production boot: a failed intent is applied as { ok: false }.
     var normalised = rawIntent ? brain.normaliseTeacherIntent(rawIntent, ctx) : { ok: false, reason: "error" };
     brain.applyTeacherIntent(ctx, normalised);
-    var packBrief = brain.knowledgePackBrief(ctx);
+    var packBrief = packBriefFor(brain, config, ctx, test);
     frozen.tests[test.id] = {
       id: test.id,
       group: test.group,
       frozenCount: test.frozenCount,
-      runtimeStrandPairsRequired: JSON.parse(packBrief.user).strandPairsRequired,
+      packContract: contractOf(config),
+      suppliedMaterials: test.suppliedMaterials || [],
+      runtimeStrandPairsRequired: JSON.parse(brain.knowledgePackBrief(ctx).user).strandPairsRequired,
       teachingScope: brain.teachingScope(ctx),
       contextInput: test.context,
       contextAfterIntent: ctx,
@@ -275,7 +305,7 @@ async function runComparison(opts) {
   return end;
 }
 
-module.exports = { runComparison: runComparison, preflight: preflight, resolveTests: resolveTests, HARNESS_FILES: HARNESS_FILES };
+module.exports = { runComparison: runComparison, preflight: preflight, resolveTests: resolveTests, packBriefFor: packBriefFor, HARNESS_FILES: HARNESS_FILES };
 
 if (require.main === module) {
   (async function () {
@@ -286,9 +316,11 @@ if (require.main === module) {
     var live = args.indexOf("--live") !== -1;
     var preflightOnly = args.indexOf("--preflight-only") !== -1;
     if (fs.existsSync(path.join(outDir, "ledger.jsonl"))) { console.error("Output folder already has a ledger. Use a new folder; earlier artifacts are not overwritten."); process.exit(2); }
-    var config = lib.loadJson(path.join(__dirname, "config.json"));
-    var inputs = lib.loadJson(path.join(__dirname, "inputs.json"));
-    var frozenIntents = lib.loadJson(path.join(__dirname, "frozen-intents.json"));
+    function opt(name, fallback) { var j = args.indexOf(name); return j !== -1 && args[j + 1] ? args[j + 1] : fallback; }
+    var config = lib.loadJson(path.resolve(__dirname, opt("--config", "config.json")));
+    var inputs = lib.loadJson(path.resolve(__dirname, opt("--inputs", "inputs.json")));
+    var frozenIntents = lib.loadJson(path.resolve(__dirname, opt("--intents", "frozen-intents.json")));
+    var onlyTests = opt("--tests", "") ? opt("--tests", "").split(",") : null;
     var client = null;
     if (live) {
       var key = String(process.env.OPENAI_API_KEY || "").trim();
@@ -297,7 +329,7 @@ if (require.main === module) {
     } else if (!preflightOnly) {
       console.error("Refusing to run without --live or --preflight-only."); process.exit(2);
     }
-    var result = await runComparison({ outDir: outDir, config: config, inputs: inputs, frozenIntents: frozenIntents, client: client, preflightOnly: preflightOnly, log: function (line) { console.log(line); } });
+    var result = await runComparison({ outDir: outDir, config: config, inputs: inputs, frozenIntents: frozenIntents, client: client, preflightOnly: preflightOnly, onlyTests: onlyTests, log: function (line) { console.log(line); } });
     console.log(JSON.stringify(result.worst ? { worstCaseGuardUsd: result.worst.totalGuardWorstUsd, withinCap: result.worst.withinCap } : result, null, 2));
   })().catch(function (e) { console.error(e && e.stack || e); process.exit(1); });
 }

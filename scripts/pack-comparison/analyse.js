@@ -13,11 +13,23 @@
      derived feature -> mechanism graph; rubric-based roots need the blind
      scores and are not computed here);
    - latency, tokens and cost from the ledger.
-   It never scores teaching quality. */
+   It never scores teaching quality.
+
+   Gate input assembly: the frozen gate receives the run's frozen context with
+   a sentence boundary added to each joined free-text field (gate-context.js),
+   which removes the "Landslides Students" place-name false positive without
+   touching js/. --raw-gate-context reproduces the original assembly.
+   --analysis-dir NAME writes to a different sub-folder (default "analysis").
+
+   v2-contract runs (frozenTest.packContract === "v2-harness") are evaluated
+   with contract-evaluate.js: contract format validator, source checks, root /
+   depth counter, and the compatibility adapter into the unchanged gate. */
 
 var fs = require("fs");
 var path = require("path");
 var lib = require("./lib");
+var gateContext = require("./gate-context");
+var contractEval = require("./contract-evaluate");
 
 var STATUSES = { usable: 1, qualified: 1, blocked: 1 };
 var SOURCE_PROVENANCE = { teacher_material: 1, retrieved: 1, curated: 1, curriculum_planning: 1 };
@@ -91,8 +103,38 @@ function inventedSourceFlags(raw) {
   return flags;
 }
 
-function analyseRun(run, frozenTest, brain) {
+function gateCtxFor(frozenTest, opts) {
+  if (opts && opts.rawGateContext) return { ctx: lib.clone(frozenTest.contextAfterIntent), changed: [], assembly: "raw" };
+  var g = gateContext.boundarySafeGateContext(frozenTest.contextAfterIntent);
+  return { ctx: g.ctx, changed: g.changed, assembly: "boundary-safe" };
+}
+
+function analyseContractRun(run, frozenTest, brain, rec, gc) {
+  rec.contract = "v2-harness";
+  if (!run.parsedPack) {
+    rec.format = { formatValid: false, packFormatValid: false, problems: ["no parsable JSON object"] };
+    rec.gate = { verdict: run.executed ? "NO_PACK" : "NOT_RUN" };
+    rec.contractVerdict = { verdict: "NO_PACK" };
+    if (run.group === "refusal") rec.refusal = { correct: false, reason: rec.gate.verdict };
+    return rec;
+  }
+  var ev = contractEval.evaluateContractPack(run.parsedPack, { brain: brain, gateCtx: gc.ctx, frozenCount: frozenTest.frozenCount, suppliedMaterials: frozenTest.suppliedMaterials || [], group: run.group, inventedSourceFlags: inventedSourceFlags }).result;
+  rec.format = Object.assign({ formatValid: ev.format.packFormatValid, problems: ev.format.packErrors.concat(ev.format.claimErrors.map(function (c) { return c.claimId + ": " + c.errors.join("/"); })) }, ev.format);
+  rec.sources = ev.sources;
+  rec.holds = ev.holds;
+  rec.contractGraph = ev.graph;
+  rec.contractVerdict = ev.contractVerdict;
+  rec.adapter = ev.adapter;
+  rec.gate = ev.gate;
+  rec.graph = { structural: { roots: ev.graph.roots, longestPathEdges: ev.graph.longestPassingPath }, gateReady: { roots: null } };
+  if (ev.refusal) rec.refusal = ev.refusal;
+  return rec;
+}
+
+function analyseRun(run, frozenTest, brain, opts) {
   var rec = { runId: run.runId, arm: run.arm, model: run.model, test: run.test, group: run.group, rep: run.rep, executed: !!run.executed, ok: !!run.ok };
+  var gc = frozenTest ? gateCtxFor(frozenTest, opts) : null;
+  rec.gateContext = gc ? { assembly: gc.assembly, changedFields: gc.changed.map(function (c) { return c.field; }) } : null;
   rec.format = formatCheck(run.parsedPack || null);
   rec.format.formatValid = rec.format.jsonValid && rec.format.statusAllowed && rec.format.claimsNonEmpty && rec.format.claimsHaveText && rec.format.mechanismsWellFormed && rec.format.noFactuallyVerifiedTrue;
   rec.frozenCount = frozenTest ? frozenTest.frozenCount : null;
@@ -103,12 +145,13 @@ function analyseRun(run, frozenTest, brain) {
   rec.promptTokens = run.final && run.final.usage ? run.final.usage.prompt_tokens : null;
   rec.completionTokens = run.final && run.final.usage ? run.final.usage.completion_tokens : null;
   rec.finishReason = run.final ? run.final.finishReason : "";
+  if (frozenTest && frozenTest.packContract === "v2-harness") return analyseContractRun(run, frozenTest, brain, rec, gc);
   if (!run.parsedPack || !frozenTest) {
     rec.gate = { verdict: run.executed ? "NO_PACK" : "NOT_RUN" };
     if (run.group === "refusal") rec.refusal = { correct: false, reason: rec.gate.verdict };
     return rec;
   }
-  var ctx = lib.clone(frozenTest.contextAfterIntent);
+  var ctx = gc.ctx;
   var pack = brain.normaliseKnowledgePack(lib.clone(run.parsedPack), ctx);
   var selection = brain.selectPackForLesson(pack, ctx);
   var readiness = brain.assessPackReadiness(pack, selection, ctx);
@@ -204,6 +247,14 @@ function summarise(records, ledger, config) {
       truncated: count(mine, function (r) { return r.finishReason === "length"; }),
       retries: mine.reduce(function (s, r) { return s + Math.max(0, r.attempts - 1); }, 0)
     };
+    if (teach.some(function (r) { return r.contract === "v2-harness"; })) {
+      arms[arm].contractStructurallyComplete = count(teach, function (r) { return r.contractVerdict && r.contractVerdict.verdict === "STRUCTURALLY_COMPLETE"; });
+      arms[arm].contractStrandsTotal = teach.reduce(function (s, r) { return s + ((r.contractVerdict && r.contractVerdict.strands) || 0); }, 0);
+      arms[arm].contractDepthCreditsTotal = teach.reduce(function (s, r) { return s + ((r.contractVerdict && r.contractVerdict.depthCredits) || 0); }, 0);
+      arms[arm].unitsValid = mine.reduce(function (s, r) { return s + (r.format.unitsValid || 0); }, 0);
+      arms[arm].unitsTotal = mine.reduce(function (s, r) { return s + (r.format.unitsTotal || 0); }, 0);
+      arms[arm].unresolvedSources = mine.reduce(function (s, r) { return s + ((r.sources && r.sources.unresolved) || 0); }, 0);
+    }
   });
   var intentRows = ledger.filter(function (l) { return l.kind === "intent"; });
   return {
@@ -230,6 +281,13 @@ function markdown(summary, records) {
   row("No pack / not run (teachable)", function (x) { return x.gateNoPack; });
   row("Gate ready pairs vs frozen required (sum)", function (x) { return x.readyPairsTotal + " / " + x.requiredPairsTotal; });
   row("T8 refusal correct", function (x) { return x.refusalCorrect + "/" + x.refusalRuns; });
+  if (a[ids[0]] && a[ids[0]].contractStrandsTotal !== undefined) {
+    row("v2: format-valid units / all units", function (x) { return x.unitsValid + " / " + x.unitsTotal; });
+    row("v2: structurally complete (strands >= frozen), teachable", function (x) { return x.contractStructurallyComplete + "/" + x.teachableRuns; });
+    row("v2: distinct strand roots (sum, teachable)", function (x) { return x.contractStrandsTotal + " / " + x.requiredPairsTotal; });
+    row("v2: depth credits (sum, teachable)", function (x) { return x.contractDepthCreditsTotal; });
+    row("v2: UNRESOLVED_SOURCE references", function (x) { return x.unresolvedSources; });
+  }
   row("Latency median / max (s)", function (x) { return (x.latencyMedianMs / 1000).toFixed(1) + " / " + (x.latencyMaxMs / 1000).toFixed(1); });
   row("Pack cost (listed prices, USD)", function (x) { return "$" + x.packCostListedUsd.toFixed(4); });
   row("Tokens in / out", function (x) { return x.promptTokens + " / " + x.completionTokens; });
@@ -241,35 +299,48 @@ function markdown(summary, records) {
     var g = r.graph || { structural: {}, gateReady: {} };
     lines.push("| " + r.runId + " | " + (r.format.formatValid ? "yes" : "no: " + r.format.problems.join("; ")) + " | " + r.gate.verdict + (r.refusal ? (r.refusal.correct ? " (refusal correct)" : " (refusal NOT correct)") : "") + " | " + (r.gate.readyVsFrozen || "-") + " | " + (g.structural.roots != null ? g.structural.roots : "-") + " | " + (g.structural.longestPathEdges != null ? g.structural.longestPathEdges : "-") + " | " + (g.gateReady.roots != null ? g.gateReady.roots : "-") + " | " + (r.latencyMs != null ? (r.latencyMs / 1000).toFixed(1) : "-") + " | " + (r.completionTokens != null ? r.completionTokens : "-") + " |");
   });
+  var v2 = records.filter(function (r) { return r.contract === "v2-harness"; });
+  if (v2.length) {
+    lines.push("", "## v2 contract per run (deterministic structure only)", "", "| Run | Pack format valid | Units valid | Contract verdict | Strand roots / frozen | Depth credits | Longest path | Unresolved sources | Adapter mechanisms | Engine linked same element |", "|---|---|---|---|---|---|---|---|---|---|");
+    v2.slice().sort(function (x, y) { return x.runId < y.runId ? -1 : 1; }).forEach(function (r) {
+      var cv = r.contractVerdict || {};
+      var link = r.gate && r.gate.linkage ? r.gate.linkage.filter(function (l) { return l.engineLinked === "same element claim"; }).length + "/" + r.gate.linkage.length : "-";
+      lines.push("| " + r.runId + " | " + (r.format.packFormatValid ? "yes" : "no") + " | " + (r.format.unitsValid != null ? r.format.unitsValid + "/" + r.format.unitsTotal : "-") + " | " + (cv.verdict || "-") + (cv.reason ? " (" + cv.reason + ")" : "") + " | " + (cv.strands != null ? cv.strands + "/" + cv.frozenCount : "-") + " | " + (cv.depthCredits != null ? cv.depthCredits : "-") + " | " + (cv.longestPassingPath != null ? cv.longestPassingPath : "-") + " | " + (r.sources ? r.sources.unresolved : "-") + " | " + (r.adapter ? r.adapter.mechanisms.length : "-") + " | " + link + " |");
+    });
+  }
   return lines.join("\n") + "\n";
 }
 
-function analyse(outDir, brain) {
+function analyse(outDir, brain, opts) {
+  opts = opts || {};
   brain = brain || lib.loadBrain();
+  var analysisDir = path.join(outDir, opts.analysisDir || "analysis");
   var config = lib.loadJson(path.join(outDir, "manifest.json")).config;
   var frozen = lib.loadJson(path.join(outDir, "frozen-inputs.json"));
   var ledgerFile = path.join(outDir, "ledger.jsonl");
   var ledger = fs.existsSync(ledgerFile) ? fs.readFileSync(ledgerFile, "utf8").split("\n").filter(Boolean).map(JSON.parse) : [];
   var runs = fs.readdirSync(path.join(outDir, "runs")).filter(function (f) { return /\.json$/.test(f); }).map(function (f) { return lib.loadJson(path.join(outDir, "runs", f)); });
-  var records = runs.map(function (run) { return analyseRun(run, frozen.tests[run.test], brain); });
+  var records = runs.map(function (run) { return analyseRun(run, frozen.tests[run.test], brain, opts); });
   var summary = summarise(records, ledger, config);
-  lib.writeJson(path.join(outDir, "analysis", "runs.json"), records);
-  lib.writeJson(path.join(outDir, "analysis", "summary.json"), summary);
-  fs.writeFileSync(path.join(outDir, "analysis", "SUMMARY.md"), markdown(summary, records));
+  summary.gateContextAssembly = opts.rawGateContext ? "raw" : "boundary-safe";
+  lib.writeJson(path.join(analysisDir, "runs.json"), records);
+  lib.writeJson(path.join(analysisDir, "summary.json"), summary);
+  fs.writeFileSync(path.join(analysisDir, "SUMMARY.md"), markdown(summary, records) + "\nGate input assembly: " + summary.gateContextAssembly + " (see gate-context.js).\n");
   var csv = ["runId,arm,test,rep,formatValid,gateVerdict,distinctReady,frozenCount,runtimeRequired,refusalCorrect,latencyMs,completionTokens,listedUsd"];
   records.forEach(function (r) {
     csv.push([r.runId, r.arm, r.test, r.rep, r.format.formatValid, r.gate.verdict, r.gate.distinctReady == null ? "" : r.gate.distinctReady, r.frozenCount, r.runtimeRequired, r.refusal ? r.refusal.correct : "", r.latencyMs == null ? "" : r.latencyMs, r.completionTokens == null ? "" : r.completionTokens, r.listedUsd.toFixed(6)].join(","));
   });
-  fs.writeFileSync(path.join(outDir, "analysis", "gate-per-run.csv"), csv.join("\n") + "\n");
+  fs.writeFileSync(path.join(analysisDir, "gate-per-run.csv"), csv.join("\n") + "\n");
   return { records: records, summary: summary };
 }
 
-module.exports = { analyse: analyse, analyseRun: analyseRun, formatCheck: formatCheck, graphStats: graphStats, inventedSourceFlags: inventedSourceFlags };
+module.exports = { analyse: analyse, analyseRun: analyseRun, gateCtxFor: gateCtxFor, formatCheck: formatCheck, graphStats: graphStats, inventedSourceFlags: inventedSourceFlags };
 
 if (require.main === module) {
   var args = process.argv.slice(2);
   var i = args.indexOf("--out");
   if (i === -1) { console.error("--out DIR is required"); process.exit(2); }
-  var res = analyse(path.resolve(args[i + 1]));
+  var d = args.indexOf("--analysis-dir");
+  var res = analyse(path.resolve(args[i + 1]), null, { analysisDir: d !== -1 ? args[d + 1] : "analysis", rawGateContext: args.indexOf("--raw-gate-context") !== -1 });
   console.log(JSON.stringify(res.summary, null, 2));
 }

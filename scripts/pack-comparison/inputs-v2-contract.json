@@ -1,0 +1,61 @@
+{
+  "note": "New-contract (v2, harness-only prompt) comparison inputs. Same 8 frozen requests and frozen unit counts as the OLD-CONTRACT BASELINE (PROTOCOL §3). All 8 teacher intents are reused verbatim from frozen-intents-v2.json (0 intent calls). No material is supplied in this test set, so any sourceRef is UNRESOLVED_SOURCE.",
+  "tests": [
+    {
+      "id": "T1",
+      "group": "teachable",
+      "frozenCount": 2,
+      "intent": "saved",
+      "suppliedMaterials": []
+    },
+    {
+      "id": "T2",
+      "group": "teachable",
+      "frozenCount": 2,
+      "intent": "saved",
+      "suppliedMaterials": []
+    },
+    {
+      "id": "T3",
+      "group": "teachable",
+      "frozenCount": 2,
+      "intent": "saved",
+      "suppliedMaterials": []
+    },
+    {
+      "id": "T4",
+      "group": "teachable",
+      "frozenCount": 3,
+      "intent": "saved",
+      "suppliedMaterials": []
+    },
+    {
+      "id": "T5",
+      "group": "teachable",
+      "frozenCount": 3,
+      "intent": "saved",
+      "suppliedMaterials": []
+    },
+    {
+      "id": "T6",
+      "group": "teachable",
+      "frozenCount": 3,
+      "intent": "saved",
+      "suppliedMaterials": []
+    },
+    {
+      "id": "T7",
+      "group": "teachable",
+      "frozenCount": 3,
+      "intent": "saved",
+      "suppliedMaterials": []
+    },
+    {
+      "id": "T8",
+      "group": "refusal",
+      "frozenCount": 3,
+      "intent": "saved",
+      "suppliedMaterials": []
+    }
+  ]
+}
