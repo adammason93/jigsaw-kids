@@ -370,8 +370,209 @@
     return pointWords.every(function (word) { return wordCovered(word, claimWords); });
   }
 
+  // Source-grounded packs (Oct 2026). Research mode is on only when ctx.researchEvidence
+  // carries passages that were fetched from allowlisted pages. Search snippets are never
+  // passages. A claim is admitted only when its quote is found, verbatim after whitespace,
+  // case, and typographic-quote normalisation, in a passage it cites. The automated
+  // entailment check runs after that. Neither step is human verification, and model
+  // confidence is never read as support. factuallyVerified stays false.
+  var SOURCE_SUPPORT_LABEL = "quote-verified + automated entailment check";
+  var SOURCE_QUOTE_MIN_WORDS = 5;
+
+  function quoteKey(value) {
+    var text = String(value == null ? "" : value);
+    if (text.normalize) text = text.normalize("NFKC");
+    return text
+      .replace(/[\u2018\u2019\u201a\u201b\u2032`]/g, "'")
+      .replace(/[\u201c\u201d\u201e\u201f\u2033]/g, "\"")
+      .replace(/[\u2010\u2011\u2012\u2013\u2014\u2015\u2212]/g, "-")
+      .replace(/[\u00a0\u2000-\u200b\u202f\u205f\u3000]/g, " ")
+      .replace(/\s+/g, " ")
+      .trim()
+      .toLowerCase();
+  }
+
+  function trimQuote(value) {
+    return quoteKey(value).replace(/^["'\s]+|["'\s]+$/g, "").replace(/^[.,;:]+|[,;:]+$/g, "").trim();
+  }
+
+  // Verbatim containment after normalisation. Ellipses are refused: one contiguous extract.
+  function quoteInPassage(quote, passageText) {
+    var needle = trimQuote(quote);
+    if (!needle) return { ok: false, reason: "QUOTE_MISSING" };
+    if (/\.\.\.|\u2026/.test(String(quote || ""))) return { ok: false, reason: "QUOTE_NOT_CONTIGUOUS" };
+    if (needle.split(/\s+/).filter(Boolean).length < SOURCE_QUOTE_MIN_WORDS) return { ok: false, reason: "QUOTE_TOO_SHORT" };
+    var hay = quoteKey(passageText);
+    if (hay.indexOf(needle) !== -1) return { ok: true, reason: "" };
+    var bare = needle.replace(/[.!?]+$/, "");
+    if (bare && bare.split(/\s+/).length >= SOURCE_QUOTE_MIN_WORDS && hay.indexOf(bare) !== -1) return { ok: true, reason: "" };
+    return { ok: false, reason: "QUOTE_NOT_FOUND" };
+  }
+
+  function researchPassages(ctx) {
+    var evidence = ctx && ctx.researchEvidence;
+    var list = evidence && Array.isArray(evidence.passages) ? evidence.passages : null;
+    if (!list || !list.length) return null;
+    var byId = {};
+    list.forEach(function (item) {
+      if (item && item.id && item.text) byId[String(item.id)] = item;
+    });
+    return Object.keys(byId).length ? byId : null;
+  }
+
+  function sourceRefsOf(item) {
+    var raw = item && (item.sourceRef != null ? item.sourceRef : (item.sourceRefs != null ? item.sourceRefs : item.passageIds));
+    var list = Array.isArray(raw) ? raw : (raw == null || raw === "" ? [] : String(raw).split(/[\s,;]+/));
+    var out = [];
+    list.forEach(function (ref) {
+      var id = clean(ref && typeof ref === "object" ? (ref.id || ref.passageId) : ref, 40);
+      if (id && out.indexOf(id) === -1) out.push(id);
+    });
+    return out.slice(0, 4);
+  }
+
+  // Resolves the cited passage ids and checks the quote. A claim with no resolvable
+  // passage, or a quote that is not in a cited passage, is not admitted.
+  function sourceCheck(item, passages) {
+    var refs = sourceRefsOf(item);
+    var quote = clean(item && (item.quote || item.sourceQuote || item.supportingQuote), 400);
+    if (!refs.length) return { ok: false, reason: "UNRESOLVED_SOURCE", refs: [], quote: quote };
+    var found = refs.filter(function (id) { return !!passages[id]; });
+    if (!found.length) return { ok: false, reason: "UNRESOLVED_SOURCE", refs: refs, quote: quote };
+    var verdict = { ok: false, reason: "QUOTE_MISSING" };
+    var matched = "";
+    found.forEach(function (id) {
+      if (verdict.ok) return;
+      var check = quoteInPassage(quote, passages[id].text);
+      if (check.ok) { verdict = check; matched = id; }
+      else if (verdict.reason === "QUOTE_MISSING" || check.reason === "QUOTE_NOT_FOUND") verdict = check;
+    });
+    if (!verdict.ok) return { ok: false, reason: verdict.reason, refs: found, quote: quote };
+    var ordered = [matched].concat(found.filter(function (id) { return id !== matched; }));
+    return {
+      ok: true,
+      refs: ordered,
+      quote: quote,
+      urls: ordered.map(function (id) { return clean(passages[id].url, 300); }),
+      titles: ordered.map(function (id) { return clean(passages[id].title, 160); })
+    };
+  }
+
+  function researchPassagesForBrief(ctx) {
+    var evidence = (ctx && ctx.researchEvidence) || {};
+    var all = Array.isArray(evidence.passages) ? evidence.passages : [];
+    var chosen = Array.isArray(evidence.selectedPassageIds) && evidence.selectedPassageIds.length ? evidence.selectedPassageIds : null;
+    var list = chosen ? all.filter(function (item) { return chosen.indexOf(item.id) !== -1; }) : all;
+    return list.slice(0, 40).map(function (item) {
+      return { id: clean(item.id, 40), title: clean(item.title, 160), section: clean(item.section, 120), url: clean(item.url, 300), text: clean(item.text, 1600) };
+    });
+  }
+
+  function researchPackBrief(ctx) {
+    return {
+      system: [
+        "You select and adapt subject knowledge for one primary lesson from retrieved source passages. Return one JSON object and nothing else.",
+        "Do not write a lesson, stages, activities, beats, questions, interactions, narrative, or pupil wording.",
+        "sources in the request are passages fetched from trusted pages. They are the only factual source in this step. Do not use your own knowledge to add a fact, name, date, number, cause, or feature that the passages do not state. A claim that no passage supports must be left out.",
+        "Every claim, mechanism, and vocabulary item carries sourceRef, an array of one or two passage ids from sources, and quote, one contiguous extract of 6 to 40 words copied character for character from one cited passage that supports the claim. Do not join extracts, do not use an ellipsis, and do not change words inside the quote. Code checks the quote against the passage. A claim whose quote is not found in a cited passage is dropped.",
+        "The claim text may use simpler words for the year group, but it must keep the meaning of the quote and must not add anything the quote does not say. Keep a hedge such as may, probably, or scientists think when the source hedges.",
+        "Write a knowledge pack with more claims than one lesson will teach. A later step selects a subset for the year, the goal, and the duration. Each claim is one sentence a teacher could check against its quote. Tag depth as concrete, mechanism, or system.",
+        "teacherIntent.learningGoal is the objective. Aim the pack at that objective while staying inside the teacher's topic. strandPairsRequired is how many distinct feature-and-explanation pairs this lesson needs. A pair is two separate claims. The feature claim is concrete and names one feature, part, or piece of evidence in at least six words. The mechanism claim says how or why that same feature works or what it shows, and it states the link in words such as because, so that, so it could, which lets, which means, or allowed. A sentence that only names the feature, or only says it helped, is not the explanation. Both claims of a pair cite passages that support them. The mechanism's own quote must state the how or why, for example what the feature was used for, what it did, or why it worked. A quote that only names or lists the feature does not support a mechanism, even when the feature claim uses the same quote. Do not add a purpose, cause, or result that the quote does not state. If no passage states how or why a feature works, leave that pair out.",
+        "mechanisms repeats each mechanism claim with the same text, sourceRef, and quote, plus feature: a short phrase of two to four words copied from its feature claim. The words of that feature phrase must appear in the feature claim and the mechanism claim, and in no other claim, so the pair is unambiguous. Each pair must be a different teaching idea about a different feature. Supply strandPairsRequired pairs when the passages support them. If the passages support fewer, supply fewer. Never invent a feature or a function to reach the number.",
+        "ageFit is { from, to } using years 1 to 6. Concrete claims can start at Year 1. A simple mechanism may start at Year 2. A harder mechanism starts at Year 3 or 4. A system claim starts at Year 5 or 6. Leave out passage content that is not suitable for the requested year, such as graphic injury or frightening detail.",
+        "provenance is retrieved for every claim. factuallyVerified must be false: a quote shows where a claim came from, and it is not human verification. confidence is high, medium, or low, and it is not evidence. teacherRequested is true only when the teacher asked for that specific claim.",
+        "Do not state a counted list of main types, kinds, or groups unless a cited passage states that list. contested is true when the passages say scientists disagree or are unsure; put that in uncertainty.",
+        "If the request assumes something false, set falsePremise to a short statement of that assumption and admit a correction, with correctsPremise true, only when a passage supports it. status is usable when the claims are ordinary, qualified when a claim is contested or support is thin, and blocked when the passages cannot support a lesson on the topic.",
+        "vocabulary is words worth knowing, each with a short gloss supported by its quote. misconceptions are optional mistakes children make, each with corrects naming the claim that corrects it. A misconception is not a fact to teach.",
+        "JSON shape: { status, falsePremise, blockReason, niche, claims: [{ text, kind, depth, confidence, provenance, sourceRef: [], quote, teacherRequested, factuallyVerified, contested, uncertainty, ageFit: { from, to }, correctsPremise, importance, accepted }], mechanisms: [{ text, feature, sourceRef: [], quote }], concepts: [], vocabulary: [{ term, gloss, sourceRef: [], quote }], misconceptions: [{ text, corrects }], openQuestions: [] }."
+      ].join(" "),
+      user: JSON.stringify({
+        request: clean(ctx.lessonText || ctx.teacherInstructions || "", 4000),
+        yearGroup: clean(ctx.yearGroup, 20),
+        subject: clean(ctx.subject, 40),
+        topic: clean(ctx.topic, 120),
+        requestedMinutes: ctx.requestedMinutes || null,
+        teacherIntent: (ctx.lessonBrief && ctx.lessonBrief.teacherIntent) || null,
+        strandPairsRequired: strandsRequiredFor(ctx),
+        sources: researchPassagesForBrief(ctx),
+        curriculumContext: "England primary. The curriculum note is planning guidance only. It is not a factual source in this step."
+      })
+    };
+  }
+
+  // One automated entailment pass over quote-verified claims. It labels support; it does
+  // not verify. A claim without a supported verdict is held out of the lesson.
+  function sourceEntailmentBrief(pack, ctx) {
+    var passages = researchPassages(ctx) || {};
+    var items = ((pack && pack.claims) || []).filter(function (claim) {
+      return claim && claim.provenance === "retrieved" && claim.quoteVerified;
+    }).slice(0, 24).map(function (claim) {
+      var first = passages[(claim.sourceRef || [])[0]] || {};
+      return { claimId: claim.claimId, claim: claim.text, quote: claim.sourceQuote, passage: clean(first.text, 1600) };
+    });
+    return {
+      system: [
+        "You check whether a source extract supports a sentence written for a primary lesson. Return one JSON object and nothing else.",
+        "For each item, read quote and its passage. verdict is supported only when the quote, read in its passage, states everything the claim says. Simpler wording for children is fine when the meaning is the same. verdict is partial when part of the claim is supported and part is added. verdict is unsupported when the claim adds a fact, number, name, cause, purpose, or generalisation the quote does not state, drops a hedge the source keeps, or contradicts it. When the claim links two things with which, so, because, helped, allowed, or to, the quote must state that link. Two facts that the quote only lists side by side do not support a link between them.",
+        "Do not use your own knowledge to fill a gap. Do not judge whether the claim is true in the world, only whether this quote supports it.",
+        "JSON shape: { \"results\": [{ \"claimId\": \"\", \"verdict\": \"supported\" or \"partial\" or \"unsupported\", \"missing\": \"\" }] }."
+      ].join(" "),
+      user: JSON.stringify({ items: items })
+    };
+  }
+
+  function parseSourceEntailment(raw) {
+    var body = raw && typeof raw === "object" ? raw : null;
+    var rows = body && Array.isArray(body.results) ? body.results : null;
+    if (!rows) return { ok: false, results: {} };
+    var out = {};
+    rows.forEach(function (row) {
+      if (!row || typeof row !== "object") return;
+      var id = clean(row.claimId, 40);
+      var verdict = clean(row.verdict, 20).toLowerCase();
+      if (!id || (verdict !== "supported" && verdict !== "partial" && verdict !== "unsupported")) return;
+      out[id] = { verdict: verdict, missing: clean(row.missing, 200) };
+    });
+    return { ok: true, results: out };
+  }
+
+  function applySourceEntailment(pack, parsed) {
+    if (!pack || pack.sourceMode !== "retrieved") return pack;
+    var results = (parsed && parsed.ok && parsed.results) || {};
+    var counts = { supported: 0, partial: 0, unsupported: 0, unchecked: 0 };
+    (pack.claims || []).forEach(function (claim) {
+      if (claim.provenance !== "retrieved") return;
+      var row = results[claim.claimId];
+      var verdict = row ? row.verdict : "unchecked";
+      claim.entailment = verdict;
+      claim.entailmentNote = row ? row.missing : "no entailment verdict was returned";
+      counts[verdict] += 1;
+      if (verdict === "supported") {
+        claim.sourceSupport = SOURCE_SUPPORT_LABEL;
+        claim.sourceHold = false;
+        claim.provenanceNote = "retrieved; quote found verbatim in cited passage; automated entailment check: supported; not human-verified";
+      } else {
+        claim.sourceSupport = "quote-verified; automated entailment check: " + verdict;
+        claim.sourceHold = true;
+        claim.provenanceNote = "retrieved; quote found verbatim; automated entailment check: " + verdict + "; held out of the lesson";
+      }
+      claim.factuallyVerified = false;
+    });
+    pack.sourceAudit = pack.sourceAudit || {};
+    pack.sourceAudit.entailment = counts;
+    pack.sourceAudit.entailmentRan = !!(parsed && parsed.ok);
+    if (!(pack.claims || []).some(function (claim) { return claim.provenance === "retrieved" && !claim.sourceHold; }) && pack.status !== "blocked") {
+      pack.status = "blocked";
+      pack.needsSource = true;
+      pack.localAdmission = "needs_source";
+      pack.statusReason = "NEEDS_SOURCE: no retrieved claim passed the quote check and the automated entailment check.";
+    }
+    return pack;
+  }
+
   function knowledgePackBrief(ctx) {
     ctx = ctx || {};
+    if (researchPassages(ctx)) return researchPackBrief(ctx);
     return {
       system: [
         "You ground subject knowledge for one primary lesson. Return one JSON object and nothing else.",
@@ -657,6 +858,9 @@
     var seen = {};
     var overrides = 0;
     var claims = [];
+    var passages = researchPassages(ctx);
+    var sourceRejected = [];
+    var sourceChecked = 0;
     claimCandidates(body).forEach(function (item) {
       var text = clean(item.text, 180);
       if (!text || text.length < 8) return;
@@ -671,10 +875,23 @@
       }
       if (seen[key]) return;
       seen[key] = 1;
+      var sourced = null;
+      if (passages) {
+        sourceChecked += 1;
+        sourced = sourceCheck(item, passages);
+        if (!sourced.ok) {
+          var refusal = { text: text, reason: sourced.reason, sourceRef: sourced.refs, quote: clean(sourced.quote, 300) };
+          rejected.push(refusal);
+          sourceRejected.push(refusal);
+          return;
+        }
+      }
       var kind = clean(item.kind, 20).toLowerCase();
       if (!PACK_KIND[kind]) kind = "fact";
       var depth = packDepth(item, text, kind);
-      var origin = packProvenance(item.provenance || item.origin, text, ctx);
+      var origin = sourced
+        ? { provenance: "retrieved", provenanceNote: "retrieved; quote found verbatim in cited passage; automated entailment check pending; not human-verified" }
+        : packProvenance(item.provenance || item.origin, text, ctx);
       var verifiedFlag = item.factuallyVerified === true || String(item.factuallyVerified).toLowerCase() === "true" || item.verified === true;
       if (verifiedFlag) overrides += 1;
       var importance = clean(item.importance, 20).toLowerCase();
@@ -699,6 +916,17 @@
         importance: importance,
         classificationHold: unsupportedClassification(text, origin.provenance, teacherRequested, ctx)
       });
+      if (sourced) {
+        var entry = claims[claims.length - 1];
+        entry.sourceRef = sourced.refs.slice();
+        entry.sourceQuote = clean(sourced.quote, 400);
+        entry.sourceUrls = sourced.urls.slice();
+        entry.sourceTitles = sourced.titles.slice();
+        entry.quoteVerified = true;
+        entry.entailment = "pending";
+        entry.sourceSupport = "quote-verified; automated entailment check pending";
+        entry.sourceHold = true;
+      }
     });
     var used = {};
     claims.forEach(function (claim) {
@@ -725,9 +953,18 @@
       return text && text.split(/\s+/).length <= 6 && text.indexOf(".") === -1;
     }).slice(0, 8);
     var vocabulary = (Array.isArray(body.vocabulary) ? body.vocabulary : []).map(function (item) {
-      if (typeof item === "string") return { term: clean(item, 40), gloss: "" };
-      return { term: clean(item && (item.term || item.word), 40), gloss: clean(item && (item.gloss || item.definition), 120) };
-    }).filter(function (item) { return item.term; }).slice(0, 8);
+      if (typeof item === "string") return passages ? null : { term: clean(item, 40), gloss: "" };
+      var word = { term: clean(item && (item.term || item.word), 40), gloss: clean(item && (item.gloss || item.definition), 120) };
+      if (!passages) return word;
+      var check = sourceCheck(item, passages);
+      if (!check.ok) {
+        sourceRejected.push({ text: "vocabulary: " + word.term, reason: check.reason, sourceRef: check.refs, quote: clean(check.quote, 300) });
+        return null;
+      }
+      word.sourceRef = check.refs.slice();
+      word.sourceQuote = clean(check.quote, 400);
+      return word;
+    }).filter(function (item) { return item && item.term; }).slice(0, 8);
     var misconceptions = (Array.isArray(body.misconceptions) ? body.misconceptions : []).map(function (item, index) {
       var text = clean(typeof item === "string" ? item : (item && (item.text || item.mistake)) || "", 160);
       if (!text) return null;
@@ -737,6 +974,7 @@
         if (claimId) return;
         if (hint && (claim.claimId === hint || claimOverlap(hint, claim.text) >= 0.6)) claimId = claim.claimId;
       });
+      if (passages && !claimId) return null;
       return { id: "m" + (index + 1), text: text, correctsClaimId: claimId };
     }).filter(Boolean).slice(0, 6);
     var seenPlaces = [];
@@ -758,13 +996,16 @@
       } else if (claim.supplied) {
         claim.support = "supplied";
         claim.localHold = false;
+      } else if (claim.provenance === "retrieved" && claim.quoteVerified) {
+        claim.support = "retrieved";
+        claim.localHold = false;
       } else {
         claim.support = "unsupported";
         claim.localHold = true;
       }
     });
     var covering = claims.some(function (claim) {
-      return claim.supplied && claim.placeBound && placesOverlap(claim.placeNames, requestLocal.places);
+      return (claim.supplied || (claim.provenance === "retrieved" && claim.quoteVerified)) && claim.placeBound && placesOverlap(claim.placeNames, requestLocal.places);
     });
     var needsSource = !!(requestLocal.needs && !covering);
     var localHolds = claims.filter(function (claim) { return claim.localHold; });
@@ -800,8 +1041,25 @@
       status = "qualified";
       statusReason = qualifiers.join("; ") || clean(body.blockReason, 200) || "the pack can be selected only with the recorded limits";
     }
+    if (passages && !claims.length) {
+      status = "blocked";
+      localAdmission = "needs_source";
+      statusReason = "NEEDS_SOURCE: no claim had a quote found in a cited retrieved passage. Model confidence and search snippets are not support.";
+    }
     var idSource = claims.map(function (claim) { return claim.claimId; }).join(".");
-    return {
+    var sourceFields = passages ? {
+      sourceMode: "retrieved",
+      sourceAudit: {
+        label: SOURCE_SUPPORT_LABEL,
+        checked: sourceChecked,
+        admitted: claims.length,
+        rejected: sourceRejected.slice(0, 40),
+        rejectedByReason: sourceRejected.reduce(function (acc, row) { acc[row.reason] = (acc[row.reason] || 0) + 1; return acc; }, {}),
+        entailmentRan: false,
+        humanVerified: false
+      }
+    } : null;
+    var packOut = {
       id: "kp_" + stableClaimId(idSource || clean(body.topic || (ctx && ctx.topic) || "empty", 80)).slice(1),
       version: 1,
       phase: 1,
@@ -814,7 +1072,9 @@
       localAdmission: localAdmission,
       needsSource: status === "blocked" && localAdmission === "needs_source",
       falsePremise: falsePremise,
-      provenanceSummary: "Phase 1: no claim is factually verified. Supplied teacher material, support for a claim, and verification are separate. Model-originated claims are unverified. Teacher material is not treated as truth. Retrieved, curated, and curriculum origins are not available in this phase.",
+      provenanceSummary: passages
+        ? "Retrieved mode: every admitted claim cites a fetched passage and carries a quote that code found verbatim in that passage after whitespace, case, and typographic-quote normalisation. An automated entailment check then labels support; a claim without a supported verdict is held out of the lesson. Support label: " + SOURCE_SUPPORT_LABEL + ". No claim is human-verified and factuallyVerified stays false. Model confidence and search snippets are not support."
+        : "Phase 1: no claim is factually verified. Supplied teacher material, support for a claim, and verification are separate. Model-originated claims are unverified. Teacher material is not treated as truth. Retrieved, curated, and curriculum origins are not available in this phase.",
       verificationOverrides: overrides,
       claims: claims,
       mechanisms: mechanisms,
@@ -825,6 +1085,11 @@
       rejectedClaims: rejected.slice(0, 8),
       strippedFields: stripped
     };
+    if (sourceFields) {
+      packOut.sourceMode = sourceFields.sourceMode;
+      packOut.sourceAudit = sourceFields.sourceAudit;
+    }
+    return packOut;
   }
 
   function selectPackForLesson(pack, ctx) {
@@ -854,6 +1119,10 @@
       }
       if (claim.classificationHold) {
         held.push({ claimId: claim.claimId, depth: claim.depth, reason: "unsupported classification" });
+        return;
+      }
+      if (pack.sourceMode === "retrieved" && (claim.sourceHold || claim.entailment !== "supported")) {
+        held.push({ claimId: claim.claimId, depth: claim.depth, reason: "source support not confirmed (" + (claim.entailment || "unchecked") + ")" });
         return;
       }
       var fit = claim.ageFit || { from: 1, to: 6 };
@@ -929,8 +1198,10 @@
       statusReason: pack.statusReason,
       falsePremise: pack.falsePremise || "",
       provenanceSummary: pack.provenanceSummary,
-      claims: (pack.claims || []).map(function (claim) {
-        return {
+      claims: (pack.claims || []).filter(function (claim) {
+        return !(pack.sourceMode === "retrieved" && claim.sourceHold);
+      }).map(function (claim) {
+        var row = {
           claimId: claim.claimId,
           text: claim.text,
           kind: claim.kind,
@@ -950,13 +1221,18 @@
           placeBound: !!claim.placeBound,
           localHold: !!claim.localHold
         };
+        if (claim.sourceRef) {
+          row.sourceRef = claim.sourceRef.slice();
+          row.sourceSupport = claim.sourceSupport || "";
+        }
+        return row;
       }),
       mechanisms: pack.mechanisms || [],
       concepts: pack.concepts || [],
       vocabulary: pack.vocabulary || [],
       misconceptions: pack.misconceptions || [],
       rejectedClaims: pack.rejectedClaims || [],
-      doNotTeach: (pack.claims || []).filter(function (claim) { return claim.localHold || claim.classificationHold; }).map(function (claim) { return claim.text; }).concat((pack.rejectedClaims || []).map(function (item) { return item.text; })).concat(pack.falsePremise ? [pack.falsePremise] : []).slice(0, 12)
+      doNotTeach: (pack.claims || []).filter(function (claim) { return claim.localHold || claim.classificationHold || (pack.sourceMode === "retrieved" && claim.sourceHold); }).map(function (claim) { return claim.text; }).concat((pack.rejectedClaims || []).map(function (item) { return item.text; })).concat(pack.falsePremise ? [pack.falsePremise] : []).slice(0, 12)
     };
   }
 
@@ -981,7 +1257,7 @@
       verificationOverrides: pack.verificationOverrides || 0,
       claimCount: (pack.claims || []).length,
       claims: (pack.claims || []).slice(0, 18).map(function (claim) {
-        return {
+        var row = {
           claimId: claim.claimId,
           text: clean(claim.text, 180),
           kind: claim.kind,
@@ -1002,6 +1278,15 @@
           localHold: !!claim.localHold,
           classificationHold: !!claim.classificationHold
         };
+        return claim.sourceRef ? Object.assign(row, {
+          sourceRef: claim.sourceRef.slice(),
+          sourceQuote: clean(claim.sourceQuote, 300),
+          sourceUrls: (claim.sourceUrls || []).slice(0, 2),
+          quoteVerified: !!claim.quoteVerified,
+          entailment: claim.entailment || "",
+          sourceSupport: claim.sourceSupport || "",
+          sourceHold: !!claim.sourceHold
+        }) : row;
       }),
       mechanisms: (pack.mechanisms || []).slice(0, 12).map(function (item) {
         return { claimId: item.claimId, text: clean(item.text, 160), feature: clean(item.feature, 80), featureClaimId: item.featureClaimId || "" };
@@ -1012,6 +1297,17 @@
       openQuestions: (pack.openQuestions || []).slice(0, 4),
       rejectedClaims: (pack.rejectedClaims || []).slice(0, 8),
       strippedFields: pack.strippedFields || [],
+      sourceMode: pack.sourceMode || "",
+      sourceAudit: pack.sourceAudit ? {
+        label: pack.sourceAudit.label,
+        checked: pack.sourceAudit.checked,
+        admitted: pack.sourceAudit.admitted,
+        rejectedByReason: pack.sourceAudit.rejectedByReason,
+        rejected: (pack.sourceAudit.rejected || []).slice(0, 12),
+        entailment: pack.sourceAudit.entailment || null,
+        entailmentRan: !!pack.sourceAudit.entailmentRan,
+        humanVerified: false
+      } : null,
       selection: {
         status: selection.status || "",
         reason: clean(selection.reason, 240),
@@ -1067,6 +1363,7 @@
           knowledge: clean(item.knowledge, 160),
           claimIds: (item.claimIds || []).slice(0, 4),
           provenance: (item.claimIds || []).map(function (id) { return byClaim[id] ? byClaim[id].provenance : ""; }).slice(0, 4),
+          sourceRef: (item.claimIds || []).map(function (id) { return byClaim[id] && byClaim[id].sourceRef ? byClaim[id].sourceRef.slice() : []; }).slice(0, 4),
           factuallyVerified: false
         };
       }),
@@ -1194,7 +1491,7 @@
     var copy = {};
     var key;
     for (key in ctx) {
-      if (key === "organisationId" || key === "classId" || key === "knowledgePack" || key === "knowledgeSelection") continue;
+      if (key === "organisationId" || key === "classId" || key === "knowledgePack" || key === "knowledgeSelection" || key === "researchEvidence") continue;
       copy[key] = ctx[key];
     }
     if (copy.lessonPlan) copy.lessonPlan = publishPlan(copy.lessonPlan);
@@ -4381,7 +4678,7 @@
       ids.forEach(function (id) { allow[id] = 1; });
       return claims.filter(function (claim) { return allow[claim.claimId]; });
     }
-    return claims.filter(function (claim) { return !claim.contested; });
+    return claims.filter(function (claim) { return !claim.contested && !(pack.sourceMode === "retrieved" && claim.sourceHold); });
   }
 
   function repeatsRejected(text, pack) {
@@ -7755,6 +8052,11 @@
     selectPackForLesson: selectPackForLesson,
     assessPackReadiness: assessPackReadiness,
     knowledgePackLog: knowledgePackLog,
+    quoteInPassage: quoteInPassage,
+    sourceEntailmentBrief: sourceEntailmentBrief,
+    parseSourceEntailment: parseSourceEntailment,
+    applySourceEntailment: applySourceEntailment,
+    SOURCE_SUPPORT_LABEL: SOURCE_SUPPORT_LABEL,
     knowledgeTrace: knowledgeTrace,
     conceptCoverageIssues: conceptCoverageIssues,
     resolveLessonContent: resolveLessonContent,

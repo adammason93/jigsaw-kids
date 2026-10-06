@@ -316,11 +316,70 @@ globalThis.handleGenerate = async (req) => {
       brain.applyTeacherIntent(ctx, { ok: false, reason: intentError && intentError.category || "error" });
     }
     logMeta({ stage: "TEACHER_INTENT", attemptId, model, intentMs, teacherIntent: intentMeta(ctx) });
+    // Source research is opt-in through LESSON_RESEARCH (for example "wikipedia" or
+    // "wikipedia,openai"). When it is off, the module is not loaded and nothing changes.
+    const researchMode = (Deno.env.get("LESSON_RESEARCH") ?? "").trim().toLowerCase();
+    if (researchMode && researchMode !== "off") {
+      phase = "RESEARCH";
+      const researchStarted = Date.now();
+      let research = null;
+      let researchError = "";
+      try {
+        const researchSource = await fetch("https://wondii.co.uk/js/source-research.js?v=1").then((res) => {
+          if (!res.ok) throw new Error("research_script");
+          return res.text();
+        });
+        (0, eval)(researchSource);
+        const finder = globalThis.WondiiSourceResearch;
+        const providers = [];
+        if (researchMode.indexOf("wikipedia") !== -1) providers.push(finder.wikipediaProvider());
+        if (researchMode.indexOf("openai") !== -1) providers.push(finder.openaiWebSearchProvider({ apiKey, model: (Deno.env.get("LESSON_RESEARCH_SEARCH_MODEL") ?? "").trim() || undefined }));
+        if (!providers.length) providers.push(finder.wikipediaProvider());
+        const intent = ctx.lessonBrief && ctx.lessonBrief.teacherIntent || {};
+        research = await finder.researchTopic({
+          lessonText: lesson,
+          topic: ctx.topic || (intent.focusConcepts || [])[0] || lesson,
+          yearGroup: ctx.yearGroup || intent.yearGroup || "",
+          learningGoal: intent.learningGoal || "",
+          requiredEvidence: intent.requiredEvidence || "",
+          focusConcepts: intent.focusConcepts || []
+        }, { fetch, providers, maxSources: 8 });
+      } catch (error) {
+        researchError = String(error && error.message || error).slice(0, 120);
+      }
+      const researchMeta = {
+        researchMs: Date.now() - researchStarted,
+        queries: research && research.queries || [],
+        providers: (research && research.providers || []).map((row) => ({ id: row.id, paid: row.paid, calls: row.calls || 0, found: row.found || 0, error: row.error || "" })),
+        sources: (research && research.sources || []).map((row) => ({ sourceId: row.sourceId, url: row.url, title: String(row.title || "").slice(0, 120), passages: row.passageCount })),
+        refused: (research && research.refused || []).slice(0, 12),
+        passages: research && research.passages ? research.passages.length : 0,
+        selectedPassages: research && research.selectedPassageIds ? research.selectedPassageIds.length : 0,
+        error: researchError || (research && research.error) || ""
+      };
+      logMeta({ stage: "RESEARCH", attemptId, model, ...researchMeta });
+      if (!research || !research.passages || !research.passages.length || !(research.selectedPassageIds || []).length) {
+        logMeta({ stage: "KNOWLEDGE_BLOCKED", category: "invalid", attemptId, model, reason: "NEEDS_SOURCE: research found no usable passage on the allowlist." });
+        return json({ ok: false, category: "invalid", stage: "KNOWLEDGE_BLOCKED", issues: ["NEEDS_SOURCE: research found no usable passage on the allowlist."], meta: { teacherIntent: intentMeta(ctx), research: researchMeta } });
+      }
+      ctx.researchEvidence = research;
+    }
     phase = "KNOWLEDGE_GROUNDING";
     const packStarted = Date.now();
-    const rawPack = await callModel(brain.knowledgePackBrief(ctx), apiKey, model, 14e3, 0);
+    const rawPack = await callModel(brain.knowledgePackBrief(ctx), apiKey, model, ctx.researchEvidence ? 9e4 : 14e3, 0);
     const packMs = Date.now() - packStarted;
     const pack = brain.normaliseKnowledgePack(rawPack, ctx);
+    if (pack.sourceMode === "retrieved" && pack.status !== "blocked") {
+      const entailStarted = Date.now();
+      let entailment = { ok: false, results: {} };
+      try {
+        entailment = brain.parseSourceEntailment(await callModel(brain.sourceEntailmentBrief(pack, ctx), apiKey, model, 6e4, 0));
+      } catch (_entailError) {
+        entailment = { ok: false, results: {} };
+      }
+      brain.applySourceEntailment(pack, entailment);
+      logMeta({ stage: "SOURCE_ENTAILMENT", attemptId, model, entailMs: Date.now() - entailStarted, ran: !!entailment.ok, counts: pack.sourceAudit && pack.sourceAudit.entailment || null, label: brain.SOURCE_SUPPORT_LABEL });
+    }
     const selection = brain.selectPackForLesson(pack, ctx);
     const readiness = brain.assessPackReadiness(pack, selection, ctx);
     const packReadiness = {
