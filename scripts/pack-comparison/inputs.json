@@ -1,0 +1,17 @@
+{
+  "note": "Frozen comparison inputs. T3, T4, T6, T8 reuse the saved context and saved raw teacher intent from frozen-intents.json (verified compatible with the frozen code: normaliseTeacherIntent ok, strandsRequiredFor unchanged). T1, T2, T5, T7 generate one intent with the intent model, shared by both arms.",
+  "tests": [
+    { "id": "T1", "group": "teachable", "frozenCount": 2, "intent": "generate",
+      "context": { "yearGroup": "Year 1", "subject": "Science", "topic": "Parts of a plant", "requestedMinutes": 15, "lessonText": "Year 1 science. Teach children about the parts of a plant." } },
+    { "id": "T2", "group": "teachable", "frozenCount": 2, "intent": "generate",
+      "context": { "yearGroup": "Year 2", "subject": "Maths", "topic": "Adding and subtracting in any order", "requestedMinutes": 15, "lessonText": "Year 2 maths. Show children why adding numbers in any order gives the same answer, but subtracting does not." } },
+    { "id": "T3", "group": "teachable", "frozenCount": 2, "intent": "saved" },
+    { "id": "T4", "group": "teachable", "frozenCount": 3, "intent": "saved" },
+    { "id": "T5", "group": "teachable", "frozenCount": 3, "intent": "generate",
+      "context": { "yearGroup": "Year 4", "subject": "English", "topic": "Fronted adverbials", "requestedMinutes": 15, "lessonText": "Year 4 English. Teach how fronted adverbials help a reader." } },
+    { "id": "T6", "group": "teachable", "frozenCount": 3, "intent": "saved" },
+    { "id": "T7", "group": "teachable", "frozenCount": 3, "intent": "generate",
+      "context": { "yearGroup": "Year 6", "subject": "Geography", "topic": "Landslides", "requestedMinutes": 15, "lessonText": "Year 6 geography. How do landslides happen?" } },
+    { "id": "T8", "group": "refusal", "frozenCount": 3, "intent": "saved" }
+  ]
+}
