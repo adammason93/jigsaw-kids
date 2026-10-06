@@ -85,7 +85,11 @@ console.log = function (line) { try { var p = JSON.parse(line); if (p && p.event
     assert.strictEqual(lesson.checks.questions.problems, 0, JSON.stringify(lesson.checks.questions.rows));
     assert.strictEqual(lesson.checks.images.problems, 0);
     assert.ok(lesson.checks.age.rows.length > 5);
-    assert.strictEqual(lesson.objective, goal);
+    // Patch 6: in research mode the boot replaces the objective with the measurable, unit-tied one
+    // (adventure.objectiveRule); finish shows that one. Without the rule it shows the plan's objective.
+    assert.ok(lesson.adventure.objectiveRule, "research-mode objective rule ran");
+    assert.ok(/^Pupils can explain what each of these features did, using the reason the source gives: jagged edges; long neck; bony plates\./.test(lesson.objective), lesson.objective);
+    assert.notStrictEqual(goal, lesson.objective);
     // Render: self-contained HTML with relative images and the full JSON.
     var html = fs.readFileSync(out.html, "utf8");
     assert.ok(/Provisional\. Not classroom-ready\. Not human-reviewed\./.test(html));

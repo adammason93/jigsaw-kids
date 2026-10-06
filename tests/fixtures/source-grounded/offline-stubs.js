@@ -112,7 +112,7 @@ function openai(href, body) {
   if (system.indexOf("You state only what a correct answer") === 0) return chat({ demonstratedEvidence: "The pupil can explain how a body part helped a dinosaur.", reason: "The correct choice states that." });
   if (system.indexOf("You compare two statements of learning evidence.") === 0) return chat({ coverage: "sufficient", reason: "The answer shows the required idea." });
   if (system.indexOf("You review pupil-facing text") === 0) { calls.push({ kind: "age" }); return chat({ items: JSON.parse(user).items.map(function (i) { return { id: i.id, verdict: "ok", reason: "fine" }; }), overall: "ok", summary: "fine" }); }
-  if (system.indexOf("You check multiple-choice questions") === 0) { calls.push({ kind: "questions" }); return chat({ questions: JSON.parse(user).questions.map(function (q) { return { id: q.id, defensible: "yes", supported: "yes", supportingQuote: "q", distractors: q.choices.filter(function (c) { return c !== q.markedCorrect; }).map(function (c) { return { choice: c, clearlyWrong: "yes", reason: "r" }; }), problem: "" }; }) }); }
+  if (system.indexOf("You check multiple-choice questions") === 0) { calls.push({ kind: "questions", body: body }); return chat({ questions: JSON.parse(user).questions.map(function (q) { return { id: q.id, defensible: "yes", supported: "yes", supportingQuote: "q", distractors: q.choices.filter(function (c) { return c !== q.markedCorrect; }).map(function (c) { return { choice: c, clearlyWrong: "yes", reason: "r" }; }), problem: "" }; }) }); }
   if (system.indexOf("You check one picture") === 0) { calls.push({ kind: "vision", body: body }); return chat({ matchesBeat: "yes", whatIsShown: "a fossil skeleton", humansWithLivingDinosaurs: false, anatomyProblems: [], textInImage: false, childSafety: "ok", notes: "" }); }
   // Content step.
   var safe = JSON.parse(user);
@@ -122,6 +122,17 @@ function openai(href, body) {
   (safe.lessonSkeleton || []).forEach(function (slot) {
     var beats = (slot.beats || []).map(function (beat) { return speak(beat, items); });
     if (slot.id === "apply") slots.apply = { beats: beats, instruction: beats[0].text, target: "scene", successCondition: "The pupil has used the taught idea in the task.", teachingConnection: "The task follows the idea the class just learned." };
+    // Patch 6: a research-mode brief (sourceWording present) asks for a choose task on a new example.
+    // Test fixture built from the brief's own source wording, not lesson content.
+    if (slot.id === "apply" && Array.isArray(safe.sourceWording) && safe.sourceWording.length) {
+      var w = safe.sourceWording[0];
+      slots.apply.instruction = beats[0].text + " Choose the animal that fits.";
+      slots.apply.choices = [
+        { text: "The animal with " + w.feature, correct: true, feedback: "The source says " + w.feature + " meant they could " + w.keepThisResult + "." },
+        { text: "The animal without " + w.feature, correct: false, feedback: "Without that feature the animal has nothing the source links to this result." }
+      ];
+      slots.apply.newCase = { text: "Imagine two new animals side by side: one has " + w.feature + " and one does not.", kind: "transfer", sourceRef: [], quote: "" };
+    }
     else if (slot.id === "check") {
       var retrieves = (slot.beats || []).filter(function (beat) { return beat.move === "retrieve"; });
       var qs = (retrieves.length ? retrieves : [slot.beats[0]]).map(function (beat, index) {

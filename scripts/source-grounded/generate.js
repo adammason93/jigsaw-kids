@@ -125,9 +125,10 @@ var started = Date.now();
   console.log(JSON.stringify({ ok: !!body.ok, stage: body.stage || "", issues: (body.issues || []).slice(0, 6), elapsedMs: Date.now() - started, spend: guard.state() }, null, 1));
   if (!body.ok || !body.adventure || process.argv.indexOf("--no-finish") !== -1) return null;
   console.log("finishing: images, checks 1-4, lesson.html");
+  trace.request = request;
   return Finish.runFinish({ adventure: body.adventure, logs: logs, trace: trace, outDir: outDir, apiKey: key, fetch: global.fetch, imageCount: Number(arg("images", "4")) }).then(function (out) {
     var c = out.lesson.checks;
-    console.log(JSON.stringify({ html: out.html, images: out.lesson.images.map(function (i) { return i.id + ":" + i.status; }), checks: { support: c.support.problems, age: c.age.problems, questions: c.questions.problems, images: c.images.problems }, spend: guard.state() }, null, 1));
+    console.log(JSON.stringify({ html: out.html, images: out.lesson.images.map(function (i) { return i.id + ":" + i.status; }), checks: { support: c.support.problems, sentences: c.sentences ? c.sentences.problems : null, rules: c.rules ? c.rules.problems : null, age: c.age.problems, questions: c.questions.problems, images: c.images.problems }, spend: guard.state() }, null, 1));
   });
 }).catch(function (error) {
   console.log = originalLog;

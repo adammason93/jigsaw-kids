@@ -96,7 +96,8 @@ function createGuard(options) {
     if (href.indexOf("/v1/responses") !== -1) {
       var p = textPrice(body.model);
       if (!p) return { error: "no verified price for model " + body.model };
-      var tools = body.max_tool_calls || 3;
+      // A live call with max_tool_calls 1 billed 2 searches (run 9, 6 Oct 2026), so allow one more.
+      var tools = (body.max_tool_calls || 3) + 1;
       var block = /^(?:gpt-5|gpt-6|o\d)/.test(body.model) ? PRICES.webSearchContentTokensReasoning : PRICES.webSearchContentTokens;
       var inT = Math.ceil(String(body.input || "").length / 3) + tools * block;
       var outT = body.max_output_tokens || PRICES.textOutputWorst;
