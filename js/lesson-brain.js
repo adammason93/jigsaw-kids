@@ -4953,9 +4953,14 @@
     });
   }
 
-  function sameRelationship(left, right, goal) {
-    var a = relationSignature(left, goal);
-    var b = relationSignature(right, goal);
+  function sameRelationship(left, right, goal, names) {
+    // Patch 7, research mode only (names given): an animal's name is the subject, not part of
+    // the relationship. Live run 15 dropped "Spinosaurus's webbed feet allowed the dinosaur to
+    // swim" as a restatement of "Spinosaurus's nostrils further up let it breathe ..." because
+    // the only long word they shared was the name.
+    function named(word) { return names && names[word]; }
+    var a = relationSignature(left, goal).filter(function (word) { return !named(word); });
+    var b = relationSignature(right, goal).filter(function (word) { return !named(word); });
     if (!a.length || !b.length) return false;
     function long(list) { return list.filter(function (word) { return word.length >= 8; }); }
     var aLong = long(a);
@@ -5812,11 +5817,23 @@
     return false;
   }
 
-  function mapRestates(kept, row, goal) {
+  function mapRestates(kept, row, goal, names) {
     if (sameSentence(kept.text, row.text)) return true;
     if (mapKind(kept.text, kept.role, kept.deps.length) !== "relationship" || mapKind(row.text, row.role, row.deps.length) !== "relationship") return false;
     if (mapReaches(kept, row) || mapReaches(row, kept)) return false;
-    return sameRelationship(kept.text, row.text, goal);
+    return sameRelationship(kept.text, row.text, goal, names);
+  }
+
+  // Names the research pack's claims use mid-sentence (capitalised, not a sentence start).
+  function packNames(ctx) {
+    var names = {};
+    ((ctx && ctx.knowledgePack && ctx.knowledgePack.claims) || []).forEach(function (claim) {
+      String(claim && claim.text || "").split(/\s+/).forEach(function (raw, index) {
+        var word = raw.replace(/[^A-Za-z'-]/g, "").replace(/'s$/i, "");
+        if (index > 0 && /^[A-Z][a-z]{3,}$/.test(word)) names[word.toLowerCase()] = 1;
+      });
+    });
+    return names;
   }
 
   function mapOrder(rows) {
@@ -6135,6 +6152,7 @@
     var rejected = [];
     var unique = [];
     var packOn = !!(ctx.knowledgePack && ctx.knowledgePack.status !== "blocked" && (ctx.knowledgePack.claims || []).length);
+    var mapNames = researchMode(ctx) ? packNames(ctx) : null;
     proposal.rows.forEach(function (row) {
       if (packOn) {
         var bound = bindRowToPack(row, ctx);
@@ -6144,7 +6162,7 @@
         }
         row.claimIds = bound.claimIds;
       }
-      var twin = unique.filter(function (kept) { return mapRestates(kept, row, goal); })[0];
+      var twin = unique.filter(function (kept) { return mapRestates(kept, row, goal, mapNames); })[0];
       if (twin) {
         row.merged = twin;
         rejected.push({ knowledge: row.text, reason: "restates " + twin.key });
@@ -9431,6 +9449,8 @@
     meaningCheck: meaningCheck,
     applyMeaningIssues: applyMeaningIssues,
     pictureCountIssues: pictureCountIssues,
+    sameRelationship: sameRelationship,
+    packNames: packNames,
     applyTaskUnit: applyTaskUnit,
     applyTaskBrief: applyTaskBrief,
     parseApplyTask: parseApplyTask,
