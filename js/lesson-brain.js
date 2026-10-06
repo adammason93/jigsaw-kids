@@ -3190,7 +3190,21 @@
       };
     }).filter(function (item) { return item.prompt || item.correct; });
     var interaction = raw.scene && raw.scene.interaction && typeof raw.scene.interaction === "object" ? raw.scene.interaction : {};
-    return {
+    // Patch 6: a research apply slot may return structured choices and a new example. The keys
+    // are added only when present, so other slots and the default path are unchanged.
+    var structured = (Array.isArray(raw.applyChoices) && raw.applyChoices.length ? raw.applyChoices : (Array.isArray(raw.choices) && raw.choices.length ? raw.choices : (Array.isArray(interaction.choices) ? interaction.choices : []))).filter(function (choice) { return choice && typeof choice === "object" && !Array.isArray(choice); });
+    var rawCase = raw.newCase && typeof raw.newCase === "object" ? raw.newCase : (interaction.newCase && typeof interaction.newCase === "object" ? interaction.newCase : null);
+    var extra = {};
+    if (structured.length) extra.applyChoices = structured.slice(0, 4).map(function (choice) {
+      return { text: clean(choice.text, 160), correct: choice.correct === true, feedback: clean(choice.feedback, 300) };
+    });
+    if (rawCase) extra.newCase = {
+      text: clean(rawCase.text, 300),
+      kind: rawCase.kind === "sourced" ? "sourced" : (rawCase.kind === "transfer" ? "transfer" : clean(rawCase.kind, 20)),
+      sourceRef: (Array.isArray(rawCase.sourceRef) ? rawCase.sourceRef : (rawCase.sourceRef ? [rawCase.sourceRef] : [])).map(function (id) { return clean(id, 24); }).filter(Boolean).slice(0, 2),
+      quote: clean(rawCase.quote, 400)
+    };
+    return Object.assign(extra, {
       title: clean(raw.title || config.title, 80),
       lines: lines.map(function (line) { return textOf(line, 280); }).filter(Boolean).slice(0, 4),
       instruction: clean(raw.applyInstruction || config.instruction || raw.instruction || interaction.instruction || config.prompt || question.prompt, 180),
@@ -3214,7 +3228,7 @@
           text: clean(beat.text || pupil.text, 280)
         };
       }).filter(function (beat) { return beat.id; })
-    };
+    });
   }
 
   var FAMILY_TARGET = {
@@ -3865,6 +3879,25 @@
           successCondition: content.successCondition || ""
         };
       }
+      // Patch 6, research mode: the apply task is a choice on a new example with feedback per
+      // choice. The unit comes from the apply beat's knowledge refs (ID lineage), not the model.
+      if (slot.id === "apply" && researchMode(ctx) && content.applyChoices && content.applyChoices.length) {
+        var applyClaims = mapClaimIds(plan, beats.reduce(function (all, beat) { return all.concat(beat.knowledgeRefs || []); }, []));
+        var applyUnit = "";
+        researchUnits(ctx).forEach(function (unit) {
+          if (!applyUnit && applyClaims.indexOf(unit.explanationClaimId) !== -1) applyUnit = unit.unitId;
+        });
+        interaction = {
+          type: "choose",
+          target: "choices",
+          instruction: content.instruction || "",
+          successCondition: "correct-choice",
+          choices: content.applyChoices,
+          newCase: content.newCase || null,
+          unitId: applyUnit,
+          intent: slot.interactionIntent || ""
+        };
+      }
       var checked = beats.length && slot.id === "check" ? (refText || content.knowledgeChecked) : content.knowledgeChecked;
       var provided = content.questions && content.questions.length
         ? content.questions
@@ -4066,6 +4099,19 @@
     return "The pupil-facing text must include every concept: " + ((((brief.concepts || []).filter(Boolean).length ? brief.concepts : words(brief.topic || (safe && safe.topic) || "").filter(function (word) { return !FUNCTION[word]; })).join(", ")) || "the topic") + ".";
   }
 
+  // Patch 6: content rules for research lessons. Prompt guidance only; the same rules are
+  // checked in code by researchRuleIssues, and the slot repair receives the exact failures.
+  function researchContentRules(year) {
+    return [
+      "Research lesson rules. sourceWording lists each taught unit with the source's own sentence (sourceSays) and its result (keepThisResult).",
+      "The teach explain beat and the recap beat for a unit keep that result in the source's words, including keyWords and any comparison word such as less or more. Do not swap it for a vaguer word such as efficiently, better, easier, or well.",
+      "Use everyday words for " + (year || "this year group") + ". Avoid long technical words; if one is needed, explain it in the same sentence (for example: perpendicular, which means at a right angle).",
+      "Say what a feature did or how it worked. Do not say an animal had, grew, or developed a feature in order to do something, and do not ask why an animal had a feature.",
+      "Each check question's correct answer uses the words of a teach sentence. Each wrong choice must be false according to evidencePassages; do not use a feature the sources say also helped with the same job.",
+      "apply is a choice on a new example. newCase.text describes one new example the teach slot did not answer: either a case stated in evidencePassages (kind sourced, with sourceRef and an exact quote copied from that passage) or a made-up case that starts with Imagine and can be solved with one taught reason (kind transfer, sourceRef empty, quote empty). instruction asks the class to choose. choices has two or three options with exactly one correct; each feedback is one or two sentences that say why that option is right or wrong using the taught reason, and the correct feedback uses that unit's keyWords. successCondition says the class picks the choice that the taught reason supports."
+    ].join(" ");
+  }
+
   function contentBrief(ctx, plan, story) {
     var safe = forModel(ctx || {});
     var sourcePlan = plan || (ctx && ctx.lessonPlan) || null;
@@ -4103,6 +4149,17 @@
         if (slot.id !== "apply") return;
         shape.push("The apply slot is one response. Return its planned beats, including " + slot.beats.map(function (beat) { return beat.id; }).join(", ") + ", with cue and text, together with instruction, target, successCondition, and teachingConnection. The beat pupil copy and the task fields are both required. Do not omit the planned beat because the task instruction is present. Do not return knowledgeUsed. The beat prepares the pupil for the task and is not the task. The instruction is the action.");
       });
+    }
+    if (researchMode(ctx)) {
+      var wordingUnits = researchUnits(ctx);
+      safe.sourceWording = wordingUnits.map(function (unit) {
+        return { unitId: unit.unitId, feature: unit.feature, sourceSays: unit.explanationQuote, keepThisResult: unit.resultClause, keyWords: unit.keyTerms, sourceRefs: unit.sourceRefs };
+      });
+      var unitRefs = [];
+      wordingUnits.forEach(function (unit) { (unit.sourceRefs || []).forEach(function (id) { if (unitRefs.indexOf(id) === -1) unitRefs.push(id); }); });
+      var evidence = (researchPassagesForBrief(ctx) || []).slice().sort(function (a, b) { return (unitRefs.indexOf(a.id) === -1 ? 1 : 0) - (unitRefs.indexOf(b.id) === -1 ? 1 : 0); });
+      safe.evidencePassages = evidence.slice(0, 10).map(function (p) { return { id: p.id, url: p.url, text: clean(p.text, 700) }; });
+      shape.push(researchContentRules((ctx && ctx.yearGroup) || ""));
     }
     shape.push("Each slot already has minutes, minimumParticipation, and contentDepth. A slot without beats meets that participation with short spoken lines. A slot with beats meets it only through the planned beat texts. Do not add a lines array beside beats. Do not pad a slot into a long paragraph.");
     var system = shape.concat([
@@ -4182,8 +4239,13 @@
         fields.successCondition = { type: "string" };
         fields.teachingConnection = { type: "string" };
       }
+      if (slot.id === "apply" && researchMode(ctx)) {
+        fields.choices = { type: "array", minItems: 2, maxItems: 3, items: { type: "object", additionalProperties: false, properties: { text: { type: "string" }, correct: { type: "boolean" }, feedback: { type: "string" } }, required: ["text", "correct", "feedback"] } };
+        fields.newCase = { type: "object", additionalProperties: false, properties: { text: { type: "string" }, kind: { type: "string", enum: ["sourced", "transfer"] }, sourceRef: { type: "array", items: { type: "string" } }, quote: { type: "string" } }, required: ["text", "kind", "sourceRef", "quote"] };
+      }
       var slotSchema = { type: "object", additionalProperties: false, properties: fields };
       if (planned && slot.id === "apply") slotSchema.required = ["beats", "instruction", "target", "successCondition", "teachingConnection"];
+      if (slot.id === "apply" && researchMode(ctx)) slotSchema.required = (slotSchema.required || Object.keys(fields)).concat(["choices", "newCase"]).filter(function (key, i, all) { return all.indexOf(key) === i; });
       schema.properties.slots.properties[slot.id] = slotSchema;
     });
     return { system: system, user: JSON.stringify(safe), schema: schema };
@@ -4301,6 +4363,11 @@
         else delete spec.rejectedBeats;
       }
       if (slot.id === "apply" && slot.applicationTarget) spec.applicationTarget = slot.applicationTarget;
+      if (slot.id === "apply" && researchMode(ctx)) {
+        spec.output.choices = [{ text: "", correct: false, feedback: "" }];
+        spec.output.newCase = { text: "", kind: "transfer", sourceRef: [], quote: "" };
+        spec.researchRules = researchContentRules((ctx && ctx.yearGroup) || "");
+      } else if (researchMode(ctx)) spec.researchRules = researchContentRules((ctx && ctx.yearGroup) || "");
       if (slot.id === "apply" && activity && spec.failure.some(function (item) { return /apply slot does not use the taught knowledge/.test(item); })) {
         var verdict = applyAlignment(activity, slot.requiredKnowledge || []);
         if (verdict.status === "fail" && APPLY_REPAIR_FIX[verdict.reason]) spec.applyFailure = APPLY_REPAIR_FIX[verdict.reason];
@@ -5572,7 +5639,27 @@
         questions: asked.map(function (q) { return q.id; }), ok: !problems.length, problems: problems
       };
     });
-    return { skipped: false, requiredPairs: readiness.requiredPairs, units: rows, issues: issues, label: "ID lineage; automated; not human review" };
+    var out = { skipped: false, requiredPairs: readiness.requiredPairs, units: rows, issues: issues, label: "ID lineage; automated; not human review" };
+    // Patch 6, research mode: lineage extends to APPLY. The apply beat cites a gate-ready unit,
+    // and a choose task carries that same unit id.
+    if (researchMode(ctx)) {
+      var applyActivity = ((adventure && adventure.activities) || []).filter(function (a) { return a && a.slotId === "apply"; })[0] || null;
+      var applyUnitIds = [];
+      ((applyActivity && applyActivity.beats) || []).forEach(function (beat) { (beat.unitIds || []).forEach(function (id) { if (applyUnitIds.indexOf(id) === -1) applyUnitIds.push(id); }); });
+      var readyIds = units.map(function (u) { return u.unitId; });
+      applyUnitIds = applyUnitIds.filter(function (id) { return readyIds.indexOf(id) !== -1; });
+      var step = applyActivity && applyActivity.scene && applyActivity.scene.interaction;
+      var applyProblems = [];
+      if (!applyActivity) applyProblems.push("the lesson has no APPLY stage");
+      else if (!applyUnitIds.length) applyProblems.push("no APPLY beat cites a gate-ready unit");
+      if (step && step.type === "choose") {
+        if (!step.unitId) applyProblems.push("the choose task carries no unit id");
+        else if (applyUnitIds.indexOf(step.unitId) === -1) applyProblems.push("the choose task's unit " + step.unitId + " is not the unit its beat cites (" + (applyUnitIds.join(", ") || "none") + ")");
+      }
+      if (applyProblems.length) issues.push("LINEAGE: apply: " + applyProblems.join("; ") + ".");
+      out.apply = { unitIds: applyUnitIds, interactionUnitId: (step && step.unitId) || "", interactionType: (step && step.type) || "", ok: !applyProblems.length, problems: applyProblems };
+    }
+    return out;
   }
 
   // A validated pack pair is the strand edge. A model hub does not replace it.
@@ -7129,7 +7216,7 @@
     if (!raw || typeof raw !== "object" || !WORLD_INTERACTIONS[raw.type]) return null;
     var instruction = clean(raw.instruction, 120);
     if (instruction.length < 4) return null;
-    return {
+    var kept = {
       type: raw.type,
       target: clean(raw.target, 40) || "world",
       instruction: instruction,
@@ -7137,6 +7224,20 @@
       responseEffect: cleanEffect(raw.responseEffect),
       teachingReveal: clean(raw.teachingReveal, 220)
     };
+    // Patch 6: a choose step keeps its choices (text, correct, feedback), its new example and
+    // its unit id. Other steps are unchanged.
+    if (raw.type === "choose" && Array.isArray(raw.choices)) {
+      var choices = raw.choices.filter(function (c) { return c && typeof c === "object" && clean(c.text, 160); }).slice(0, 4).map(function (c) {
+        return { text: clean(c.text, 160), correct: c.correct === true, feedback: clean(c.feedback, 300) };
+      });
+      if (choices.length) {
+        kept.choices = choices;
+        if (raw.newCase && typeof raw.newCase === "object") kept.newCase = { text: clean(raw.newCase.text, 300), kind: clean(raw.newCase.kind, 20), sourceRef: (raw.newCase.sourceRef || []).slice(0, 2), quote: clean(raw.newCase.quote, 400) };
+        if (raw.unitId) kept.unitId = clean(raw.unitId, 24);
+        if (raw.intent) kept.intent = clean(raw.intent, 24);
+      }
+    }
+    return kept;
   }
 
   function effectForText(text) {
@@ -7866,6 +7967,439 @@
     return warning;
   }
 
+  // ---- Research-mode teaching rules (patch 6) -------------------------------------------
+  // These run only when the lesson was built from fetched research (ctx.researchEvidence), so
+  // the default path is unchanged. Each rule is a reusable code check: it reads the gate-ready
+  // units, their verbatim source quotes and the pupil copy, and returns issues that the single
+  // slot repair must fix. None of them writes pupil-facing lesson content.
+  function researchMode(ctx) {
+    var record = ctx && ctx.researchEvidence;
+    return !!(record && Array.isArray(record.passages) && record.passages.length);
+  }
+
+  function ruleSentences(text) {
+    return (String(text || "").match(/[^.!?]+[.!?]*/g) || []).map(function (s) { return s.trim(); }).filter(Boolean);
+  }
+
+  function ruleStem(word) {
+    var w = String(word || "").toLowerCase();
+    if (w.length > 5 && /ies$/.test(w)) return w.slice(0, -3) + "y";
+    if (w.length > 5 && /ing$/.test(w)) return w.slice(0, -3);
+    if (w.length > 4 && /ed$/.test(w)) return w.slice(0, -2);
+    if (w.length > 4 && /ly$/.test(w)) return w.slice(0, -2);
+    if (w.length > 4 && /es$/.test(w) && !/(ses|ces|ges|zes|ves)$/.test(w)) return w.slice(0, -2);
+    if (w.length > 3 && /s$/.test(w) && !/ss$/.test(w)) return w.slice(0, -1);
+    return w;
+  }
+
+  function ruleWordMatch(left, right) {
+    var a = ruleStem(left);
+    var b = ruleStem(right);
+    if (!a || !b) return false;
+    if (a === b) return true;
+    var shorter = a.length <= b.length ? a : b;
+    var longer = a.length <= b.length ? b : a;
+    return shorter.length >= 4 && longer.indexOf(shorter) === 0;
+  }
+
+  function ruleTokens(text) {
+    return clean(text, 2000).toLowerCase().replace(/[\u2018\u2019]/g, "'").split(/[^a-z0-9']+/).map(function (w) { return w.replace(/^'+|'+$/g, "").replace(/'s$/, ""); }).filter(Boolean);
+  }
+
+  var RULE_SKIP = { use: 1, uses: 1, used: 1, using: 1, able: 1, get: 1, got: 1, gets: 1, make: 1, made: 1, makes: 1, much: 1, without: 1, also: 1, really: 1, then: 1, there: 1, here: 1, its: 1, each: 1, some: 1, such: 1, other: 1, others: 1, than: 1, been: 1, being: 1, into: 1, onto: 1, over: 1, under: 1, only: 1, would: 1, could: 1, should: 1, might: 1, will: 1, what: 1, which: 1, who: 1, whose: 1, did: 1, does: 1, done: 1 };
+  var DIRECTION_WORDS = /\b(less|more|fewer|faster|slower|further|higher|lower|wider|narrower|stronger|weaker|bigger|smaller|longer|shorter|easier|harder|heavier|lighter|warmer|cooler)\b/gi;
+  var VAGUE_SUBSTITUTES = /\b(efficient|efficiently|efficiency|better|easier|easily|well|effective|effectively|properly|successfully|good|helpful)\b/gi;
+
+  function ruleContent(text, skip) {
+    var out = [];
+    ruleTokens(text).forEach(function (w) {
+      if (w.length < 3 || STOP[w] || FUNCTION[w] || JOB_FILLER[w] || RULE_SKIP[w]) return;
+      if (DIRECTION_WORDS.test(w)) { DIRECTION_WORDS.lastIndex = 0; return; }
+      DIRECTION_WORDS.lastIndex = 0;
+      if ((skip || []).some(function (s) { return ruleWordMatch(s, w); })) return;
+      if (!out.some(function (o) { return ruleWordMatch(o, w); })) out.push(w);
+    });
+    return out;
+  }
+
+  function directionsOf(text) {
+    var found = [];
+    String(text || "").toLowerCase().replace(DIRECTION_WORDS, function (m) { if (found.indexOf(m) === -1) found.push(m); return m; });
+    return found;
+  }
+
+  // The result clause of a source explanation: what the feature let the animal or thing do,
+  // in the source's own words. "This allowed them to use less energy to move than ..." gives
+  // "use less energy to move".
+  var RESULT_LINK = /\b(?:as a result|which means|that means|this means|because of this|so that|allowed|allows|allowing|allow|enabled|enables|enabling|enable|let|lets|letting|helped|helps|helping|meant|means|so)\b,?\s*(?:(?:them|it|him|her|us|you|they|it's|these\s+\w+|this\s+\w+|the\s+\w+)\s+)?(?:(?:were|was|are|is|could|can)\s+(?:able\s+)?)?(?:to\s+)?/i;
+  function resultClause(quote) {
+    var text = clean(quote, 600);
+    var match = RESULT_LINK.exec(text);
+    if (!match) return "";
+    var rest = text.slice(match.index + match[0].length);
+    var cut = rest.search(/\b(?:than|that|which|who|whose|like|because|while|whereas|although|unlike)\b|[,;:.!?]/i);
+    var clause = (cut === -1 ? rest : rest.slice(0, cut)).trim();
+    if (clause.split(/\s+/).length < 2) clause = rest.split(/[;:.!?]/)[0].trim();
+    return clause;
+  }
+
+  function researchUnits(ctx) {
+    if (!researchMode(ctx)) return [];
+    var readiness = assessPackReadiness(ctx.knowledgePack, ctx.knowledgeSelection, ctx);
+    var units = readyUnits(readiness);
+    var claims = {};
+    ((ctx.knowledgePack && ctx.knowledgePack.claims) || []).forEach(function (claim) { if (claim && claim.claimId) claims[claim.claimId] = claim; });
+    var passages = researchPassages(ctx) || {};
+    return units.map(function (unit) {
+      var explain = claims[unit.explanationClaimId] || {};
+      var feature = claims[unit.elementClaimId] || {};
+      var refs = [];
+      (explain.sourceRef || []).concat(feature.sourceRef || []).forEach(function (id) { if (passages[id] && refs.indexOf(id) === -1) refs.push(id); });
+      var quote = clean(explain.sourceQuote || explain.quote || "", 600);
+      var clause = resultClause(quote) || resultClause(explain.text || unit.explanation);
+      return Object.assign({}, unit, {
+        explanationQuote: quote,
+        featureQuote: clean(feature.sourceQuote || feature.quote || "", 600),
+        resultClause: clause,
+        keyTerms: ruleContent(clause, ruleContent(unit.feature)),
+        directions: directionsOf(clause),
+        sourceRefs: refs,
+        passageText: refs.map(function (id) { return passages[id].text; }).join(" ")
+      });
+    });
+  }
+
+  function mapClaimIds(plan, refs) {
+    var ids = [];
+    ((plan && plan.learningMap) || []).forEach(function (item) {
+      if (item && (refs || []).indexOf(item.id) !== -1) (item.claimIds || []).forEach(function (id) { if (ids.indexOf(id) === -1) ids.push(id); });
+    });
+    return ids;
+  }
+
+  function beatPupilText(beat) {
+    return clean((beat && ((beat.pupil && beat.pupil.text) || beat.text)) || "", 400);
+  }
+
+  // Meaning preservation: a sentence that teaches or recaps a unit's explanation keeps the
+  // source's result in the source's words. Swapping "use less energy to move" for "move more
+  // efficiently" fails: the key words are gone, the direction word changed, and a vaguer word
+  // took their place.
+  function meaningCheck(sentence, unit) {
+    var text = clean(sentence, 400);
+    var words = ruleTokens(text);
+    var key = unit.keyTerms || [];
+    var kept = key.filter(function (term) { return words.some(function (w) { return ruleWordMatch(w, term); }); });
+    var missing = key.filter(function (term) { return kept.indexOf(term) === -1; });
+    var need = key.length <= 2 ? key.length : Math.ceil(key.length * 0.6);
+    var lostDirection = (unit.directions || []).filter(function (d) { return words.indexOf(d) === -1; });
+    var sourceWords = ruleTokens(unit.explanationQuote + " " + unit.passageText);
+    var vague = [];
+    String(text).toLowerCase().replace(VAGUE_SUBSTITUTES, function (m) { if (sourceWords.indexOf(m) === -1 && vague.indexOf(m) === -1) vague.push(m); return m; });
+    var ok = kept.length >= need && !lostDirection.length;
+    return { ok: ok, kept: kept, missing: missing, lostDirection: lostDirection, vague: vague };
+  }
+
+  function meaningIssues(activities, ctx, units) {
+    var issues = [];
+    var plan = (ctx && ctx.lessonPlan) || {};
+    units.forEach(function (unit) {
+      if (!unit.resultClause || !(unit.keyTerms || []).length) return;
+      ["teach", "recap"].forEach(function (slotId) {
+        var activity = (activities || []).filter(function (a) { return a.slotId === slotId; })[0];
+        if (!activity) return;
+        var rows = (activity.beats || []).filter(function (beat) {
+          return mapClaimIds(plan, beat.knowledgeRefs).indexOf(unit.explanationClaimId) !== -1 && beatPupilText(beat);
+        });
+        if (!rows.length) return;
+        var results = rows.map(function (beat) { return { beat: beat, check: meaningCheck(beatPupilText(beat), unit) }; });
+        // The teach slot needs one sentence that keeps the meaning; no recap sentence may lose it.
+        var failing = slotId === "teach"
+          ? (results.some(function (r) { return r.check.ok; }) ? [] : results.slice(0, 1))
+          : results.filter(function (r) { return !r.check.ok && (r.check.vague.length || r.check.lostDirection.length); });
+        failing.forEach(function (r) {
+          var bits = [];
+          if (r.check.missing.length) bits.push("it drops the source words " + r.check.missing.map(function (w) { return "\"" + w + "\""; }).join(", "));
+          if (r.check.lostDirection.length) bits.push("it loses \"" + r.check.lostDirection.join("\", \"") + "\"");
+          if (r.check.vague.length) bits.push("it uses the vaguer \"" + r.check.vague.join("\", \"") + "\" instead");
+          issues.push({ slotId: slotId, text: "The " + slotId + " slot changes what the source says about " + clean(unit.feature, 60) + " (" + unit.unitId + ", beat " + r.beat.id + "): the source says \"" + clean(unit.resultClause, 120) + "\", but " + bits.join("; ") + ". Keep the source's meaning and its key words." });
+        });
+      });
+    });
+    return issues;
+  }
+
+  // Year-band vocabulary. A long or many-syllable word in Year 1 to 4 pupil copy must be a
+  // year-band curriculum word or be explained in the same sentence.
+  var BAND_WORDS = { environment: 1, environments: 1, adaptation: 1, adaptations: 1, temperature: 1, electricity: 1, evaporation: 1, condensation: 1, vertebrate: 1, vertebrates: 1, invertebrate: 1, invertebrates: 1, skeletons: 1, nutrition: 1, everything: 1, something: 1, sometimes: 1, information: 1, underground: 1, understand: 1, themselves: 1, investigate: 1, investigation: 1, comparison: 1, classification: 1, characteristics: 1, photosynthesis: 1, transparent: 1, magnetic: 1, different: 1, difference: 1, differences: 1, important: 1, discovered: 1, scientists: 1, everywhere: 1, grandparents: 1, carnivores: 1, herbivores: 1, omnivores: 1 };
+  function syllables(word) {
+    var w = String(word || "").toLowerCase().replace(/[^a-z]/g, "");
+    if (!w) return 0;
+    w = w.replace(/(?:[^laeiouy]es|ed|[^laeiouy]e)$/, "").replace(/^y/, "");
+    var groups = w.match(/[aeiouy]{1,2}/g);
+    return groups ? groups.length : 1;
+  }
+  function glossedIn(sentence, word) {
+    var s = String(sentence || "");
+    var at = s.toLowerCase().indexOf(word.toLowerCase());
+    if (at === -1) return false;
+    var after = s.slice(at + word.length, at + word.length + 80);
+    var before = s.slice(Math.max(0, at - 60), at);
+    if (/^\s*(?:\(|,\s*(?:which|that)\s+(?:means|is)|,\s*(?:a|an|the)\s+\w+|\s*[-\u2013\u2014]\s*|\s+(?:means|is a|is an|is the|are a|are the|which means|that means|or\b))/i.test(after)) return true;
+    if (/(?:called|named|known as|means|word)\s+["\u201c]?$/i.test(before)) return true;
+    return false;
+  }
+  function hardWords(text, year) {
+    var digit = Number(yearDigit(year));
+    if (!digit || digit > 4) return [];
+    var limit = digit <= 2 ? 9 : 11;
+    var syl = digit <= 2 ? 4 : 5;
+    var out = [];
+    ruleSentences(text).forEach(function (sentence) {
+      (sentence.match(/[A-Za-z][A-Za-z'-]*/g) || []).forEach(function (raw) {
+        var word = raw.replace(/'s$/i, "");
+        var lower = word.toLowerCase();
+        if (BAND_WORDS[lower] || /-/.test(word)) return;
+        var long = word.length >= limit || syllables(word) >= syl;
+        if (!long) return;
+        if (glossedIn(sentence, word)) return;
+        if (out.indexOf(word) === -1) out.push(word);
+      });
+    });
+    return out;
+  }
+
+  function pupilTextsOf(activity) {
+    var rows = [];
+    (activity.beats || []).forEach(function (beat) { var t = beatPupilText(beat); if (t) rows.push(t); if (beat.pupil && beat.pupil.cue) rows.push(clean(beat.pupil.cue, 200)); });
+    var config = activity.config || {};
+    if (!(activity.beats || []).length) (config.lines || []).forEach(function (line) { rows.push(clean(line, 280)); });
+    (config.questions || []).forEach(function (q) {
+      rows.push(clean(q.prompt, 240), clean(q.explain, 240));
+      (q.choices || []).forEach(function (c) { rows.push(clean(typeof c === "string" ? c : (c && c.text), 120)); });
+    });
+    if (activity.slotId === "apply") {
+      rows.push(clean(activity.applyInstruction, 240));
+      var inter = activity.scene && activity.scene.interaction;
+      if (inter && Array.isArray(inter.choices)) inter.choices.forEach(function (c) { rows.push(clean(c.text, 160), clean(c.feedback, 240)); });
+      if (inter && inter.newCase) rows.push(clean(inter.newCase.text, 300));
+    }
+    return rows.filter(Boolean);
+  }
+
+  function vocabularyIssues(activities, ctx) {
+    var year = (ctx && ctx.yearGroup) || "";
+    var issues = [];
+    (activities || []).forEach(function (activity) {
+      var found = [];
+      pupilTextsOf(activity).forEach(function (text) { hardWords(text, year).forEach(function (w) { if (found.indexOf(w) === -1) found.push(w); }); });
+      if (found.length) issues.push({ slotId: activity.slotId, text: "The " + activity.slotId + " slot uses words above " + (year || "this year group") + " reading level: " + found.slice(0, 6).map(function (w) { return "\"" + w + "\""; }).join(", ") + ". Use an everyday word, or explain the word in the same sentence." });
+    });
+    return issues;
+  }
+
+  // Teleology: features did a job; animals did not grow them in order to do it.
+  var TELEOLOGY = [
+    /\bwhy\s+(?:did|do|does|would)\b[^?.!]{0,80}\b(?:have|has|had|develop|developed|grow|grew|evolve|evolved|get|got|need|needed)\b/i,
+    /\b(?:developed|evolved|grew|got|gained)\b[^.?!]{0,60}\b(?:in order to|so that|so they could|so it could|to help them|to be able to)\b/i,
+    /\b(?:had|have|has)\b[^.?!]{0,60}\b(?:in order to|so that they could|so that it could)\b/i
+  ];
+  function teleological(text) {
+    return TELEOLOGY.some(function (re) { return re.test(String(text || "")); });
+  }
+
+  function teleologyIssues(activities) {
+    var issues = [];
+    (activities || []).forEach(function (activity) {
+      var bad = pupilTextsOf(activity).filter(teleological);
+      var config = activity.config || {};
+      (config.questions || []).forEach(function (q, index) {
+        if (/^\s*why\b/i.test(q.prompt || "") && (q.choices || []).some(function (c) { return /^\s*to\s+[a-z]+/i.test(typeof c === "string" ? c : (c && c.text) || ""); })) {
+          bad.push("Question " + (index + 1) + " answers a why question with a purpose (\"To ...\")");
+        }
+      });
+      if (bad.length) issues.push({ slotId: activity.slotId, text: "The " + activity.slotId + " slot uses goal-directed wording (\"" + clean(bad[0], 90) + "\"). Say what the feature did or how it worked, for example ask what it let the animal do, not why the animal had it." });
+    });
+    return issues;
+  }
+
+  function choiceText(choice) {
+    return clean(typeof choice === "string" ? choice : (choice && choice.text) || "", 160);
+  }
+
+  // Question checks: the correct answer must be traceable to a taught sentence, and a wrong
+  // choice must not be true or partly true according to the sources.
+  function questionIssues(activities, ctx, units) {
+    var issues = [];
+    var check = (activities || []).filter(function (a) { return a.slotId === "check"; })[0];
+    var teach = (activities || []).filter(function (a) { return a.slotId === "teach"; })[0];
+    if (!check || !teach) return issues;
+    var taught = (teach.beats || []).map(beatPupilText).join(" ");
+    var taughtWords = ruleTokens(taught);
+    var passages = researchPassages(ctx) || {};
+    var sentences = [];
+    Object.keys(passages).forEach(function (id) {
+      if (!passageIsEvidence(passages[id])) return;
+      ruleSentences(passages[id].text).forEach(function (s) { sentences.push({ id: id, text: s, words: ruleTokens(s) }); });
+    });
+    var topicWords = ruleContent((ctx && ctx.topic) || "");
+    (checkQuestionsOf(check) || []).forEach(function (q, index) {
+      var label = "Question " + (index + 1);
+      var answer = clean(q.correct, 160);
+      var answerWords = ruleContent(answer, topicWords);
+      var missing = answerWords.filter(function (w) { return !taughtWords.some(function (t) { return ruleWordMatch(t, w); }); });
+      var need = answerWords.length <= 2 ? answerWords.length : Math.ceil(answerWords.length * 0.6);
+      if (answerWords.length && answerWords.length - missing.length < need) {
+        issues.push({ slotId: "check", text: "The check slot " + label + " has a correct answer (\"" + answer + "\") whose words were not taught: " + missing.map(function (w) { return "\"" + w + "\""; }).join(", ") + ". The answer must match a sentence the teach slot says, in its words." });
+      }
+      var jobWords = ruleContent([q.prompt, answer].join(" "), topicWords.concat(["feature", "features", "part", "body", "animal", "animals", "help", "helped", "better", "most", "best", "true", "correct"]));
+      (q.choices || []).forEach(function (choice) {
+        var text = choiceText(choice);
+        if (!text || text.toLowerCase() === answer.toLowerCase()) return;
+        var bits = ruleContent(text, topicWords).concat(directionsOf(text));
+        if (!bits.length || bits.length > 4) return;
+        var hit = sentences.filter(function (s) {
+          var all = bits.every(function (b) { return s.words.some(function (w) { return ruleWordMatch(w, b); }); });
+          if (!all) return false;
+          return jobWords.some(function (j) { return bits.every(function (b) { return !ruleWordMatch(b, j); }) && s.words.some(function (w) { return ruleWordMatch(w, j); }); });
+        })[0];
+        if (hit) issues.push({ slotId: "check", text: "The check slot " + label + " has a wrong choice (\"" + text + "\") that the sources support as at least partly true (" + hit.id + ": \"" + clean(hit.text, 140) + "\"). Use a wrong choice the sources do not support." });
+      });
+    });
+    return issues;
+  }
+
+  // APPLY: a meaningful choice on a new example, with feedback that depends on the answer and
+  // an observable success condition (the right choice is picked). No silent tap-to-reveal.
+  var HYPOTHETICAL = /\b(imagine|suppose|pretend|picture|what if|if a|if an|if the|if you|made-up|invented|new animal|another animal|a model)\b/i;
+  function applyChoiceIssues(activity, ctx, units) {
+    var issues = [];
+    var inter = activity && activity.scene && activity.scene.interaction;
+    function add(text) { issues.push({ slotId: "apply", text: "The apply slot " + text }); }
+    if (!inter || inter.type !== "choose" || !Array.isArray(inter.choices)) {
+      add("needs a choose task: instruction, a new example (newCase), and two or three choices, each with feedback that says why it is right or wrong.");
+      return issues;
+    }
+    var choices = inter.choices;
+    if (choices.length < 2 || choices.length > 3) add("needs two or three choices.");
+    var right = choices.filter(function (c) { return c.correct === true; });
+    if (right.length !== 1) add("needs exactly one correct choice.");
+    var seen = {};
+    choices.forEach(function (c) {
+      var key = clean(c.text, 160).toLowerCase();
+      if (!key) add("has an empty choice.");
+      else if (seen[key]) add("repeats a choice.");
+      seen[key] = 1;
+      if (clean(c.feedback, 300).split(/\s+/).filter(Boolean).length < 6) add("needs feedback of at least six words for the choice \"" + clean(c.text, 60) + "\" saying why it is right or wrong.");
+    });
+    if (right.length === 1 && choices.length >= 2) {
+      var wrongFeedback = choices.filter(function (c) { return c.correct !== true; }).map(function (c) { return clean(c.feedback, 300).toLowerCase(); });
+      if (wrongFeedback.some(function (f) { return f === clean(right[0].feedback, 300).toLowerCase(); })) add("gives the same feedback to a right and a wrong choice.");
+    }
+    var unit = null;
+    units.forEach(function (u) { if (u.unitId === inter.unitId) unit = u; });
+    if (!unit) add("is not linked to a taught unit (the apply beat must cite a gate-ready unit's explanation).");
+    if (unit && right.length === 1) {
+      var why = clean(right[0].feedback, 300) + " " + clean(right[0].text, 160);
+      var terms = (unit.keyTerms || []).concat(ruleContent(unit.feature));
+      var hits = terms.filter(function (t) { return ruleTokens(why).some(function (w) { return ruleWordMatch(w, t); }); });
+      var resultHits = (unit.keyTerms || []).filter(function (t) { return ruleTokens(right[0].feedback).some(function (w) { return ruleWordMatch(w, t); }); });
+      if (hits.length < Math.min(2, terms.length) || resultHits.length < Math.min(1, (unit.keyTerms || []).length)) add("correct-choice feedback must use the taught explanation for " + clean(unit.feature, 60) + " (" + clean(unit.resultClause, 80) + ").");
+    }
+    var newCase = inter.newCase || {};
+    var caseText = clean(newCase.text, 300);
+    if (caseText.split(/\s+/).filter(Boolean).length < 6) add("needs a new example (newCase.text) of at least six words.");
+    else {
+      var teach = ((ctx && ctx.__activities) || []).filter(function (a) { return a.slotId === "teach"; })[0];
+      var taughtLines = ((teach && teach.beats) || []).map(beatPupilText);
+      var caseWords = ruleContent(caseText);
+      var copied = taughtLines.some(function (line) {
+        var lw = ruleContent(line);
+        var overlap = caseWords.filter(function (w) { return lw.some(function (l) { return ruleWordMatch(l, w); }); }).length;
+        return caseWords.length && overlap / caseWords.length >= 0.8;
+      });
+      if (copied) add("new example repeats a taught sentence. Use a new case the teaching did not already answer.");
+      if (newCase.kind === "sourced") {
+        var passages = researchPassages(ctx) || {};
+        var ref = (newCase.sourceRef || [])[0] || newCase.sourceRef;
+        var passage = passages[ref];
+        if (!passage || !passageIsEvidence(passage) || !quoteInPassage(newCase.quote || "", passage.text).ok) add("new example is marked sourced, but its quote is not found in an evidence passage. Copy the quote exactly, or make it a hypothetical transfer.");
+      } else if (newCase.kind === "transfer") {
+        if (!HYPOTHETICAL.test(caseText)) add("new example is a reasoning transfer, so it must be framed as made up (for example start with Imagine).");
+      } else add("new example must be kind sourced (with a verified quote) or transfer (a made-up case using the taught reason).");
+    }
+    var instruction = clean(activity.applyInstruction || inter.instruction, 240);
+    if (!/\b(choose|which|pick|decide|select)\b/i.test(instruction)) add("instruction must ask the class to choose.");
+    return issues;
+  }
+
+  // Timing: research lessons total exactly the requested minutes. Extra minutes come off the
+  // framing stages first (recap, resolution, investigate, hook), then check, apply, teach.
+  function normaliseMinutes(activities, target) {
+    var total = function () { return activities.reduce(function (sum, a) { return sum + (Number(a.minutes) || 0); }, 0); };
+    target = Number(target) || 0;
+    if (!target || !activities.length || target < activities.length) return activities;
+    var takeOrder = ["recap", "resolution", "investigate", "hook", "check", "apply", "teach"];
+    var giveOrder = ["teach", "apply", "check", "investigate", "hook", "resolution", "recap"];
+    function floorOf(a) {
+      if (a.slotId === "check" && a.config && Array.isArray(a.config.questions)) return Math.max(1, Math.ceil(a.config.questions.length / 2));
+      return 1;
+    }
+    function bySlot(id) { return activities.filter(function (a) { return a.slotId === id; })[0]; }
+    activities.forEach(function (a) { a.minutes = Math.max(1, Math.round(Number(a.minutes) || 1)); });
+    var guard = 0;
+    while (total() > target && guard++ < 200) {
+      var moved = false;
+      takeOrder.concat(activities.map(function (a) { return a.slotId; })).some(function (id) {
+        var a = bySlot(id);
+        if (a && a.minutes > floorOf(a)) { a.minutes -= 1; moved = true; return true; }
+        return false;
+      });
+      if (!moved) break;
+    }
+    guard = 0;
+    while (total() < target && guard++ < 200) {
+      var a = null;
+      giveOrder.some(function (id) { a = bySlot(id); return !!a; });
+      (a || activities[0]).minutes += 1;
+    }
+    return activities;
+  }
+
+  // Objective: measurable and tied to the units. A plan objective such as "Pupils will
+  // understand how ..." names no observable outcome, so it is rebuilt from the unit features.
+  function objectiveIssues(objective, units) {
+    var text = clean(objective, 300);
+    var problems = [];
+    if (!/\b(explain|describe|identify|name|compare|choose|predict|sort|label|say|use|give)\b/i.test(text) || /\b(understand|know about|learn about|appreciate|be aware)\b/i.test(text)) problems.push("not measurable");
+    units.forEach(function (unit) {
+      var feature = ruleContent(unit.feature);
+      if (feature.length && !feature.some(function (w) { return ruleTokens(text).some(function (t) { return ruleWordMatch(t, w); }); })) problems.push("does not name " + unit.feature);
+    });
+    return problems;
+  }
+  function unitObjectives(units) {
+    var features = units.map(function (u) { return clean(u.feature, 60); }).filter(Boolean);
+    if (!features.length) return [];
+    return [
+      "Pupils can explain what each of these features did, using the reason the source gives: " + features.join("; ") + ".",
+      "Pupils can use one of these reasons to choose the right answer for a new example."
+    ];
+  }
+
+  function researchRuleIssues(activities, ctx) {
+    if (!researchMode(ctx)) return [];
+    var units = researchUnits(ctx);
+    var rows = [];
+    rows = rows.concat(meaningIssues(activities, ctx, units));
+    rows = rows.concat(vocabularyIssues(activities, ctx));
+    rows = rows.concat(teleologyIssues(activities));
+    rows = rows.concat(questionIssues(activities, ctx, units));
+    var apply = (activities || []).filter(function (a) { return a.slotId === "apply"; })[0];
+    if (apply) rows = rows.concat(applyChoiceIssues(apply, Object.assign({}, ctx, { __activities: activities }), units));
+    return rows;
+  }
+
   function accept(raw, ctx) {
     ctx = ctx || {};
     var parsed = raw;
@@ -7883,6 +8417,7 @@
     });
     var activities = incoming.map(function (item) { return activityFrom(item, allowed); }).filter(Boolean);
     activities = fitDuration(activities, durationBand(ctx.requestedMinutes || 15));
+    if (ctx.lessonSkeleton && researchMode(ctx)) activities = normaliseMinutes(activities, ctx.requestedMinutes || 15);
     var storyPlan = ctx.storyPlan || parsed.storyPlan || null;
     if (storyPlan && storyPlan.enabled !== false) {
       activities = ensureScenes(activities, storyPlan);
@@ -7998,6 +8533,16 @@
         }
       });
     }
+    if (ctx.lessonSkeleton && researchMode(ctx)) {
+      researchRuleIssues(activities, issueCtx).forEach(function (row) {
+        if (ctx.semanticWarningsAllowed) {
+          qualityWarnings.push({ slotId: row.slotId, slotType: row.slotId, outcome: "research-rule", issue: row.text, reason: row.text, repairAttempted: true, postRepair: true });
+        } else {
+          issues.push(row.text);
+          ownIssue(owners, row.slotId, row.text);
+        }
+      });
+    }
     if (dropped) issues.push("An activity uses a game Wondii cannot play.");
     if (ctx.yearGroup && parsed.yearGroup && yearDigit(parsed.yearGroup) && yearDigit(parsed.yearGroup) !== yearDigit(ctx.yearGroup)) {
       issues.push("The plan changed the year group.");
@@ -8016,6 +8561,15 @@
     var plannedObjective = clean((ctx.lessonPlan && ctx.lessonPlan.learningObjective) || "", 240);
     if (!objectives.length && plannedObjective) objectives = [plannedObjective];
     if (!objectives.length) return { ok: false, issues: ["The lesson needs a learning objective."], previous: parsed, applyAlignment: applyReport };
+    var objectiveRule = null;
+    if (ctx.lessonSkeleton && researchMode(ctx)) {
+      var ruleUnits = researchUnits(ctx);
+      var objectiveProblems = objectiveIssues(objectives[0], ruleUnits);
+      if (objectiveProblems.length && ruleUnits.length) {
+        objectiveRule = { replaced: objectives.slice(), reasons: objectiveProblems, rule: "measurable objective naming every gate-ready unit" };
+        objectives = unitObjectives(ruleUnits);
+      } else objectiveRule = { replaced: [], reasons: [], rule: "measurable objective naming every gate-ready unit" };
+    }
     var title = withoutRequest(clean(parsed.title, 80), request, requestReplacement(request, ctx.topic || ""));
     var rawRequest = request;
     if (rawRequest.length >= 12 && title.toLowerCase().indexOf(rawRequest) !== -1) {
@@ -8041,6 +8595,7 @@
       estimateMinutes: sum
     };
     if (qualityWarnings.length) adventure.qualityWarnings = qualityWarnings.slice();
+    if (objectiveRule) adventure.objectiveRule = objectiveRule;
     return {
       ok: true,
       adventure: adventure,
@@ -8477,6 +9032,25 @@
     assessPackReadiness: assessPackReadiness,
     statesEnabledJob: statesEnabledJob,
     unitLineage: unitLineage,
+    researchMode: researchMode,
+    researchUnits: researchUnits,
+    resultClause: resultClause,
+    meaningCheck: meaningCheck,
+    meaningIssues: meaningIssues,
+    hardWords: hardWords,
+    vocabularyIssues: vocabularyIssues,
+    teleological: teleological,
+    teleologyIssues: teleologyIssues,
+    questionIssues: questionIssues,
+    applyChoiceIssues: applyChoiceIssues,
+    normaliseMinutes: normaliseMinutes,
+    objectiveIssues: objectiveIssues,
+    unitObjectives: unitObjectives,
+    researchRuleIssues: researchRuleIssues,
+    researchContentRules: researchContentRules,
+    passageIsEvidence: passageIsEvidence,
+    cleanInteraction: cleanInteraction,
+    slotContent: slotContent,
     readyUnits: readyUnits,
     statesUnitJob: statesUnitJob,
     lineageAnswers: lineageAnswers,
