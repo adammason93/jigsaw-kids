@@ -221,7 +221,7 @@ function imagePromptFor(adventure, asset) {
   return Visuals.buildAdventurePrompt(adventure, asset, Visuals.charactersForAdventure(adventure));
 }
 
-function generateImages(fetchFn, key, adventure, outDir, count) {
+function generateImages(fetchFn, key, adventure, outDir, count, reuse) {
   var dir = path.join(outDir, "lesson", "images");
   fs.mkdirSync(dir, { recursive: true });
   var assets = chooseAssets(adventure, count || 4);
@@ -230,6 +230,12 @@ function generateImages(fetchFn, key, adventure, outDir, count) {
   return assets.reduce(function (chain, asset) {
     return chain.then(function () {
       var prompt = imagePromptFor(adventure, asset);
+      var file = asset.id + ".jpg";
+      // Resume: an image this run already generated (same asset, same prompt builder) is reused, not paid for again.
+      if (reuse && fs.existsSync(path.join(dir, file))) {
+        results.push({ id: asset.id, type: asset.type, slotId: asset.slotId || asset.id, status: "ready", fallback: false, publicUrl: "images/" + file, file: path.join(dir, file), usedByScenes: asset.usedByScenes || [], uiSafeArea: asset.uiSafeArea || "", brief: asset.brief || null, model: IMAGE_MODEL, dimensions: IMAGE_SIZE, quality: IMAGE_QUALITY, prompt: prompt, usage: null, reused: true });
+        return null;
+      }
       return fetchFn("https://api.openai.com/v1/images/generations", {
         method: "POST",
         headers: { Authorization: "Bearer " + key, "Content-Type": "application/json" },
@@ -331,6 +337,16 @@ function renderHtml(lesson) {
     });
     parts.push("</section>");
   });
+  if (lesson.lineage && lesson.lineage.units && lesson.lineage.units.length) {
+    parts.push("<h2>ID lineage: pack unit → plan → beats → questions</h2><p>Followed by id in code (" + esc(lesson.lineage.label || "automated") + "). Each unit is a gate-ready feature-and-explanation pair.</p><table><tr><th>Unit</th><th>Feature claim</th><th>Explanation claim</th><th>Plan points</th><th>Strand</th><th>Teaching beats (states the job)</th><th>All beats</th><th>Questions</th><th>Result</th></tr>");
+    lesson.lineage.units.forEach(function (u) {
+      parts.push("<tr><td>" + esc(u.unitId) + " " + esc(u.feature) + "</td><td>" + esc(u.elementClaimId) + "</td><td>" + esc(u.explanationClaimId) + "</td><td>" + esc((u.planPoints || []).join(", ")) + "</td><td>" + esc(u.strand) + "</td><td>" + esc((u.explainBeats || []).join(", ")) + "</td><td>" + esc((u.beats || []).join(", ")) + "</td><td>" + esc((u.questions || []).join(", ")) + "</td><td class=\"" + (u.ok ? "ok" : "flag") + "\">" + esc(u.ok ? "ok" : (u.problems || []).join("; ")) + "</td></tr>");
+    });
+    parts.push("</table>");
+  }
+  if (lesson.warnings && lesson.warnings.length) {
+    parts.push("<h2>Remaining warnings</h2><ul>" + lesson.warnings.map(function (w) { return "<li class=\"flag\">" + esc(w) + "</li>"; }).join("") + "</ul>");
+  }
   parts.push("<h2>Check summary (all provisional)</h2><ul>");
   ["support", "age", "questions", "images"].forEach(function (k) { var c = checks[k]; if (c) parts.push("<li>" + esc(k) + ": " + esc(c.problems) + " item(s) flagged of " + esc((c.rows || []).length) + " — " + esc(c.method || "") + "</li>"); });
   parts.push("</ul><script type=\"application/json\" id=\"lesson-json\">" + JSON.stringify(lesson).replace(/</g, "\\u003c") + "</script></body></html>");
@@ -356,7 +372,7 @@ function runFinish(opts) {
   };
   fs.mkdirSync(path.join(outDir, "lesson"), { recursive: true });
   lesson.checks.support = checkSupport(adventure, pack, opts.trace);
-  return generateImages(fetchFn, key, adventure, outDir, opts.imageCount || 4).then(function (images) {
+  return generateImages(fetchFn, key, adventure, outDir, opts.imageCount || 4, !!opts.reuseImages).then(function (images) {
     lesson.images = images;
     adventure.visualAssets = images.filter(function (i) { return i.status === "ready"; }).map(function (i) {
       return { id: i.id, type: i.type, status: "ready", fallback: false, publicUrl: i.publicUrl, usedByScenes: i.usedByScenes, uiSafeArea: i.uiSafeArea, brief: i.brief, model: i.model, dimensions: i.dimensions };
