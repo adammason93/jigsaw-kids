@@ -55,6 +55,16 @@ console.log = function (line) { try { var p = JSON.parse(line); if (p && p.event
   var lineageLog = logs.filter(function (l) { return l.stage === "UNIT_LINEAGE"; })[0];
   assert.ok(lineageLog && lineageLog.ok, JSON.stringify(lineageLog));
   assert.strictEqual(body.adventure.unitLineage.units.filter(function (u) { return u.ok; }).length, 3);
+  // Patch 7: the Try it stage came from its own logged call (raw, parsed, issues) and the check
+  // questions were audited.
+  var taskLog = logs.filter(function (l) { return l.stage === "APPLY_TASK"; });
+  assert.strictEqual(taskLog.length, 1);
+  assert.ok(taskLog[0].raw && taskLog[0].parsed && Array.isArray(taskLog[0].issues) && taskLog[0].issues.length === 0, JSON.stringify(taskLog[0]).slice(0, 600));
+  var applyStep = body.adventure.activities.filter(function (a) { return a.slotId === "apply"; })[0].scene.interaction;
+  assert.strictEqual(applyStep.type, "choose");
+  assert.strictEqual(applyStep.instruction, taskLog[0].parsed.instruction);
+  assert.deepStrictEqual(applyStep.claimIds, taskLog[0].parsed.claimIds);
+  assert.ok(logs.filter(function (l) { return l.stage === "QUESTION_AUDIT"; }).length >= 1);
   return Finish.runFinish({ adventure: body.adventure, logs: logs, trace: {}, outDir: dir, apiKey: "test-key", fetch: global.fetch, imageCount: 4 }).then(function (out) {
     var lesson = out.lesson;
     // Same run: images, checks, render.

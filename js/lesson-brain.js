@@ -3870,6 +3870,17 @@
     var activities = (skeleton || []).map(function (slot) {
       var content = map[slot.id] || {};
       var beats = slot.beats && slot.beats.length ? keepBeatPlan(slot.beats, content.beats) : [];
+      // Patch 7, research mode: the Try it stage comes from its own checked call (ctx.applyTask),
+      // so its beat text and its choose task are the task's, whatever the content call returned.
+      var task = slot.id === "apply" && researchMode(ctx) && ctx.applyTask && Array.isArray(ctx.applyTask.choices) ? ctx.applyTask : null;
+      if (task) content = Object.assign({}, content, { instruction: task.instruction, successCondition: task.successText, applyChoices: task.choices, newCase: task.newCase });
+      if (task && beats.length) {
+        beats = beats.map(function (beat, index) {
+          var own = (task.beats || []).filter(function (b) { return b && b.id === beat.id; })[0] || (task.beats || [])[index];
+          if (!own || !own.text) return beat;
+          return Object.assign({}, beat, { pupil: Object.assign({}, beat.pupil || {}, { text: own.text }) });
+        });
+      }
       var spoken = beats.length
         ? beats.map(function (beat) { return beat.pupil && beat.pupil.text; }).filter(Boolean)
         : (content.lines || []).slice();
@@ -3888,7 +3899,20 @@
       }
       // Patch 6, research mode: the apply task is a choice on a new example with feedback per
       // choice. The unit comes from the apply beat's knowledge refs (ID lineage), not the model.
-      if (slot.id === "apply" && researchMode(ctx) && content.applyChoices && content.applyChoices.length) {
+      if (task) {
+        interaction = {
+          type: "choose",
+          target: "choices",
+          instruction: task.instruction,
+          successCondition: "correct-choice",
+          successText: task.successText,
+          choices: task.choices,
+          newCase: task.newCase,
+          unitId: task.unitId,
+          claimIds: task.claimIds,
+          intent: slot.interactionIntent || ""
+        };
+      } else if (slot.id === "apply" && researchMode(ctx) && content.applyChoices && content.applyChoices.length) {
         var applyClaims = mapClaimIds(plan, beats.reduce(function (all, beat) { return all.concat(beat.knowledgeRefs || []); }, []));
         var applyUnit = "";
         var applyIds = [];
@@ -8608,6 +8632,113 @@
     ];
   }
 
+  // ---- Patch 7: the Try it task gets its own call (research mode only) ----
+  // One unit (the one the plan's apply beats cite), its reason quote, one choose task on a new
+  // example, checked in code by the same research rules, with one repair. Live run 14's content
+  // call omitted the choices (json_object mode does not enforce the schema).
+  function applyTaskUnit(ctx) {
+    var units = researchUnits(ctx);
+    if (!units.length) return null;
+    var slot = ((ctx && ctx.lessonSkeleton) || []).filter(function (s) { return s && s.id === "apply"; })[0];
+    if (!slot) return null;
+    var refs = (slot.beats || []).reduce(function (all, beat) { return all.concat(beat.knowledgeRefs || []); }, []);
+    var claims = mapClaimIds((ctx && ctx.lessonPlan) || {}, refs);
+    return units.filter(function (u) { return claims.indexOf(u.explanationClaimId) !== -1; })[0] || null;
+  }
+
+  function taughtSentences(raw) {
+    try {
+      var map = readSlotMap(typeof raw === "string" ? JSON.parse(raw) : raw);
+      return ((map.teach && map.teach.beats) || []).map(function (b) { return clean(b && (b.text || (b.pupil && b.pupil.text)), 280); }).filter(Boolean);
+    } catch (e) { return []; }
+  }
+
+  function applyTaskBrief(ctx, unit, opts) {
+    opts = opts || {};
+    var slot = ((ctx && ctx.lessonSkeleton) || []).filter(function (s) { return s && s.id === "apply"; })[0] || { beats: [] };
+    var year = (ctx && (ctx.yearGroup || ctx.yearAssumption)) || "";
+    var payload = {
+      yearGroup: year,
+      feature: clean(unit.feature, 120),
+      featureSays: clean(unit.featureQuote, 400),
+      reasonQuote: clean(unit.explanationQuote || unit.explanation, 500),
+      keepThisResult: clean(unit.resultClause, 160),
+      keyWords: unit.keyTerms || [],
+      comparisonWords: unit.directions || [],
+      taughtSentences: textList(opts.taught, 280, 12),
+      animalNamesAlreadyTaught: unitAnimalNames(unit),
+      applyBeats: (slot.beats || []).map(function (b) { return { id: b.id, move: b.move }; }),
+      fixThese: textList(opts.issues, 300, 12),
+      previous: opts.previous || null
+    };
+    return {
+      system: [
+        "You write the Try it task for one primary science lesson. Return one JSON object and nothing else.",
+        "Use only the reason in reasonQuote. The class has just been taught it (taughtSentences).",
+        "newCase.text is one new example the teaching did not answer: a made-up case that starts with Imagine, about new or made-up animals, never about an animal in animalNamesAlreadyTaught. Set newCase.kind to transfer.",
+        "instruction is one short question of at most 140 characters that ends with a question mark and asks the class to choose.",
+        "choices has two or three options; exactly one has correct true. Every option's feedback is one or two sentences that name the feature and say what reasonQuote says it did. The correct option's feedback keeps keepThisResult in the source's words, including keyWords and every comparisonWord.",
+        "Never use a vaguer word for the result (better, easier, well, efficiently, good) and never add always, never, completely or fully. Never say an animal adapted, evolved, needed or got a feature, or had it in order to or so that it could do something.",
+        "Use everyday words for " + (year || "this year group") + ". successText is one sentence saying what picking the correct choice shows.",
+        "beats gives one or two short sentences for each applyBeats id that set up the new example in new words: name the feature and ask the class to compare or decide (for example: Compare the two animals and decide ...); do not start with What, Why or Which, and never repeat or closely reword a taught sentence.",
+        "If fixThese is not empty, previous failed those checks: fix every one.",
+        "JSON shape: { \"beats\": [{ \"id\": \"\", \"text\": \"\" }], \"newCase\": { \"text\": \"\", \"kind\": \"transfer\" }, \"instruction\": \"\", \"choices\": [{ \"text\": \"\", \"correct\": true, \"feedback\": \"\" }], \"successText\": \"\" }."
+      ].join(" "),
+      user: JSON.stringify(payload)
+    };
+  }
+
+  // Parsed without clipping the instruction, so a long or cut instruction fails the check
+  // instead of being shortened silently.
+  function parseApplyTask(payload, unit) {
+    var p = payload;
+    if (typeof p === "string") { try { p = JSON.parse(p); } catch (e) { p = null; } }
+    p = p && typeof p === "object" ? p : {};
+    var nc = p.newCase && typeof p.newCase === "object" ? p.newCase : {};
+    return {
+      unitId: unit ? unit.unitId : "",
+      claimIds: unit ? [unit.elementClaimId, unit.explanationClaimId] : [],
+      beats: (Array.isArray(p.beats) ? p.beats : []).filter(function (b) { return b && typeof b === "object"; }).slice(0, 4).map(function (b) { return { id: clean(b.id, 24), text: clean(b.text, 280) }; }),
+      newCase: { text: clean(nc.text, 300), kind: nc.kind === "sourced" ? "sourced" : (nc.kind === "transfer" ? "transfer" : clean(nc.kind, 20)), sourceRef: [], quote: "" },
+      instruction: String(p.instruction == null ? "" : p.instruction).replace(/\s+/g, " ").trim().slice(0, 400),
+      choices: (Array.isArray(p.choices) ? p.choices : []).filter(function (c) { return c && typeof c === "object"; }).slice(0, 4).map(function (c) { return { text: clean(c.text, 160), correct: c.correct === true, feedback: clean(c.feedback, 300) }; }),
+      successCondition: "correct-choice",
+      successText: clean(p.successText, 240)
+    };
+  }
+
+  function applyTaskIssues(task, unit, ctx) {
+    if (!unit) return ["The Try it task has no taught unit to use."];
+    task = task || {};
+    var activity = { slotId: "apply", beats: (task.beats || []).map(function (b) { return { id: b.id, pupil: { text: b.text } }; }),
+      scene: { interaction: { type: "choose", target: "choices", instruction: task.instruction, successCondition: task.successCondition, successText: task.successText, choices: task.choices, newCase: task.newCase, unitId: task.unitId, claimIds: task.claimIds } } };
+    var taught = (ctx && ctx.applyTaskTaught) || [];
+    var teach = { slotId: "teach", beats: taught.map(function (t, i) { return { id: "teach:" + i, pupil: { text: t } }; }) };
+    var rows = [];
+    if (!activity.beats.length || activity.beats.some(function (b) { return !b.pupil.text; })) rows.push({ text: "The apply slot needs set-up text for each apply beat." });
+    // The frozen beat contract still applies to the task's set-up text (the beat must use the
+    // taught knowledge and ask for an action), so it is checked here and fixed in the repair.
+    var applySlot = ((ctx && ctx.lessonSkeleton) || []).filter(function (s) { return s && s.id === "apply"; })[0] || { beats: [] };
+    var items = beatKnowledge((ctx && ctx.lessonPlan) || {}, (ctx && (ctx.yearGroup || ctx.yearAssumption)) || "");
+    (applySlot.beats || []).forEach(function (beat, index) {
+      var own = activity.beats.filter(function (b) { return b.id === beat.id; })[0] || activity.beats[index];
+      var reason = own && own.pupil.text ? beatSubstanceReason(beat, own.pupil.text, items) : "";
+      if (reason) rows.push({ text: substanceIssue(beat, reason) + " Name the feature and ask the class to compare or decide (for example: Compare the two animals and decide ...)." });
+    });
+    activity.beats.forEach(function (b) {
+      var bw = ruleContent(b.pupil.text);
+      var copied = taught.some(function (line) { var lw = ruleContent(line); var overlap = bw.filter(function (w) { return lw.some(function (l) { return ruleWordMatch(l, w); }); }).length; return bw.length && overlap / bw.length >= 0.8; });
+      if (copied) rows.push({ text: "The apply slot beat " + b.id + " repeats a taught sentence. Set up the new example in new words." });
+    });
+    rows = rows.concat(applyChoiceIssues(activity, Object.assign({}, ctx, { __activities: [teach, activity] }), [unit]));
+    rows = rows.concat(applyMeaningIssues([activity], ctx, unit));
+    rows = rows.concat(vocabularyIssues([activity], ctx));
+    rows = rows.concat(teleologyIssues([activity]));
+    var out = [];
+    rows.forEach(function (r) { if (out.indexOf(r.text) === -1) out.push(r.text); });
+    return out;
+  }
+
   function researchRuleIssues(activities, ctx) {
     if (!researchMode(ctx)) return [];
     var units = researchUnits(ctx);
@@ -9278,6 +9409,11 @@
     resultClause: resultClause,
     meaningCheck: meaningCheck,
     applyMeaningIssues: applyMeaningIssues,
+    applyTaskUnit: applyTaskUnit,
+    applyTaskBrief: applyTaskBrief,
+    parseApplyTask: parseApplyTask,
+    applyTaskIssues: applyTaskIssues,
+    taughtSentences: taughtSentences,
     unitAnimalNames: unitAnimalNames,
     meaningIssues: meaningIssues,
     hardWords: hardWords,

@@ -571,6 +571,37 @@ globalThis.handleGenerate = async (req) => {
     const first = await callModel(brain.contentBrief(framed, planned.plan, storyPlan), apiKey, model, 28e3);
     const contentMs = Date.now() - contentStarted;
     logMeta({ stage: "CONTENT_VALIDATE", attemptId, repair: false, model, contentMs, contentBeats: brain.boundedBeatLog(first) });
+    // Patch 7, research mode only: the Try it task gets its own call from one unit's reason
+    // quote, is checked in code by the research rules, and gets one repair. Its raw reply,
+    // parsed task and issues are logged (APPLY_TASK) so a failure shows whether the model or
+    // the code dropped something. Without research nothing here runs.
+    if (ctx.researchEvidence && typeof brain.applyTaskBrief === "function") {
+      const taskUnit = brain.applyTaskUnit(framed);
+      if (taskUnit) {
+        const taught = brain.taughtSentences(first);
+        let task = null;
+        let taskIssues = [];
+        for (let pass = 1; pass <= 2; pass++) {
+          const taskStarted = Date.now();
+          let taskRaw = null;
+          let taskError = "";
+          try {
+            taskRaw = await callModel(brain.applyTaskBrief(framed, taskUnit, { taught, issues: taskIssues, previous: task }), apiKey, model, 28e3);
+          } catch (error) {
+            taskError = error && error.category || "error";
+          }
+          task = brain.parseApplyTask(taskRaw, taskUnit);
+          taskIssues = taskError ? ["The Try it call failed (" + taskError + ")."] : brain.applyTaskIssues(task, taskUnit, Object.assign({}, framed, { applyTaskTaught: taught }));
+          logMeta({ stage: "APPLY_TASK", attemptId, model, pass, taskMs: Date.now() - taskStarted, unitId: taskUnit.unitId, raw: taskRaw == null ? null : JSON.stringify(taskRaw).slice(0, 6000), parsed: task, issues: taskIssues.slice(0, 12) });
+          if (!taskIssues.length) break;
+        }
+        if (taskIssues.length) {
+          logMeta({ stage: "APPLY_TASK_FAILED", category: "invalid", attemptId, model, issues: taskIssues.slice(0, 8) });
+          return json({ ok: false, category: "invalid", stage: "APPLY_TASK_FAILED", issues: taskIssues.slice(0, 8), meta: { teacherIntent: intentMeta(ctx) } });
+        }
+        framed.applyTask = task;
+      }
+    }
     let repairUser = null;
     let repairRaw = null;
     // Patch 7, research mode only: the check questions are audited (partly-true wrong choices,

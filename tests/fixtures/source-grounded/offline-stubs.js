@@ -114,6 +114,19 @@ function openai(href, body) {
   if (system.indexOf("You state only what a correct answer") === 0) return chat({ demonstratedEvidence: "The pupil can explain how a body part helped a dinosaur.", reason: "The correct choice states that." });
   if (system.indexOf("You compare two statements of learning evidence.") === 0) return chat({ coverage: "sufficient", reason: "The answer shows the required idea." });
   if (system.indexOf("You review pupil-facing text") === 0) { calls.push({ kind: "age" }); return chat({ items: JSON.parse(user).items.map(function (i) { return { id: i.id, verdict: "ok", reason: "fine" }; }), overall: "ok", summary: "fine" }); }
+  // Patch 7: the dedicated Try it call. Test fixture built from the brief's own unit fields.
+  if (system.indexOf("You write the Try it task") === 0) {
+    var t = JSON.parse(user);
+    calls.push({ kind: "apply-task" });
+    return chat({ beats: (t.applyBeats || []).map(function (b) { return { id: b.id, text: "Compare two made-up animals and decide which one has " + t.feature + "." }; }),
+      newCase: { text: "Imagine two made-up animals side by side: one has " + t.feature + " and one does not.", kind: "transfer" },
+      instruction: "Which animal fits what we learned? Choose one.",
+      choices: [
+        { text: "The animal with " + t.feature, correct: true, feedback: "Yes. The source says " + t.feature + " meant they could " + t.keepThisResult + "." },
+        { text: "The animal without " + t.feature, correct: false, feedback: "Without " + t.feature + ", nothing in the source says it could " + t.keepThisResult + "." }
+      ],
+      successText: "The class picks the animal whose feature matches the taught reason." });
+  }
   if (system.indexOf("You audit the check questions") === 0) { calls.push({ kind: "question-audit" }); return chat({ questions: JSON.parse(user).questions.map(function (q) { return { prompt: q.prompt, teleological: "no", teleologyReason: "", circular: "no", circularReason: "", distractors: q.choices.filter(function (c) { return c !== q.correct; }).map(function (c) { return { choice: c, trueInGeneral: "no", reason: "r" }; }) }; }) }); }
   if (system.indexOf("You check multiple-choice questions") === 0) { calls.push({ kind: "questions", body: body }); return chat({ questions: JSON.parse(user).questions.map(function (q) { return { id: q.id, defensible: "yes", supported: "yes", supportingQuote: "q", distractors: q.choices.filter(function (c) { return c !== q.markedCorrect; }).map(function (c) { return { choice: c, clearlyWrong: "yes", reason: "r" }; }), problem: "" }; }) }); }
   if (system.indexOf("You check one picture") === 0) { calls.push({ kind: "vision", body: body }); return chat({ matchesBeat: "yes", whatIsShown: "a fossil skeleton", humansWithLivingDinosaurs: false, anatomyProblems: [], textInImage: false, childSafety: "ok", notes: "" }); }
