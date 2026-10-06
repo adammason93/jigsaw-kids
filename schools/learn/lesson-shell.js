@@ -764,6 +764,8 @@
     var next = {
       index: play.index,
       step: play.step || 0,
+      // Keep the beat: tapping a look-closer spot must not send the story back to its first line.
+      beat: Number(play.beat) || 0,
       stuck: !!play.stuck,
       slipped: !!play.slipped,
       revealed: true,
