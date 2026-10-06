@@ -420,6 +420,9 @@ globalThis.handleGenerate = async (req) => {
       distinctReady: readiness.distinctReady,
       factuallyVerified: false,
       readyPairs: (readiness.readyPairs || []).map((pair) => ({
+        unitId: pair.unitId || "",
+        elementClaimId: pair.elementClaimId || pair.featureClaimId,
+        explanationClaimId: pair.explanationClaimId || pair.mechanismClaimId,
         mechanismClaimId: pair.mechanismClaimId,
         featureClaimId: pair.featureClaimId,
         feature: pair.feature,
@@ -671,7 +674,14 @@ globalThis.handleGenerate = async (req) => {
     const intentRecord = intentMeta(ctx);
     const diagnostic = slotDiagnostic(trace, checkAlignment, applyAlignment, intentRecord);
     const qualityWarnings = stampedWarnings(resolved.qualityWarnings);
+    // ID lineage: every gate-ready unit is planned, taught and assessed, followed by id.
+    const lineage = resolved.ok && resolved.adventure && typeof brain.unitLineage === "function" ? brain.unitLineage(resolved.adventure, ctx) : { skipped: true, units: [], issues: [] };
+    if (!lineage.skipped) logMeta({ stage: "UNIT_LINEAGE", attemptId, model, ok: !lineage.issues.length, units: lineage.units, issues: lineage.issues.slice(0, 8) });
+    if (!lineage.skipped && lineage.issues.length) {
+      return json({ ok: false, category: "invalid", stage: "LINEAGE_VALIDATION_FAILED", issues: lineage.issues.slice(0, 8), meta: { lineage, teacherIntent: intentMeta(ctx) } });
+    }
     if (resolved.ok && resolved.adventure) {
+      if (!lineage.skipped) resolved.adventure.unitLineage = lineage;
       const timing = { durationMs: Date.now() - started, planMs, storyMs, contentMs, repairMs, repairUsed: !!resolved.repairUsed, repairKind: resolved.repairUsed ? "slot" : "none", structuralOk: true, planRepaired, storyFallback, storyFirstPass, storyRepaired, repairedSlots, applyRepair, durationRepair, applyAlignment, checkAlignment, teacherIntent: intentRecord, qualityWarnings, slotDiagnostic: diagnostic, diagnosis: trace, learningMap };
       logMeta({ stage: "COMPLETE", category: "ok", ms: timing.durationMs, repair: !!resolved.repairUsed, repairKind: timing.repairKind, structuralOk: true, planRepaired, model, attemptId, planMs, contentMs, repairMs, applyRepair, durationRepair, semanticOutcome: applyAlignment.semanticOutcome || "", qualityWarnings, slotDiagnostic: diagnostic });
       return json({ ok: true, adventure: resolved.adventure, stage: "COMPLETE", meta: timing });

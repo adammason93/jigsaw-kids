@@ -5190,28 +5190,6 @@
     return pageNamesTopic(featureClaim, ctx);
   }
 
-  // The same correction where the plan stage decides whether a learning point answers an
-  // adaptation goal ("how dinosaurs adapted ..."). That check reads the goal's subject word, so a
-  // pack pair about "ornithischians" from the "Dinosaur" page was dropped as not connected to the
-  // goal in live run 8. A point bound to a ready-style pack pair counts when the subject is the
-  // teacher's topic and the pair passes pageTopicCounts. The verb rule is unchanged.
-  function pageTopicAnswers(row, goal, ctx) {
-    if (!row || !(row.claimIds || []).length || !adaptationAsk(goal)) return false;
-    if (!statesFunction(row.text) && !statesRelation(row.text)) return false;
-    var head = contributionHead(goal);
-    var topic = contentWords((ctx && ctx.topic) || "");
-    if (!head || !topic.some(function (word) { return sameStem(word, head); })) return false;
-    var pack = ctx && ctx.knowledgePack;
-    if (!pack) return false;
-    var byId = {};
-    (pack.claims || []).forEach(function (claim) { byId[claim.claimId] = claim; });
-    return (pack.mechanisms || []).some(function (item) {
-      if (!item || !item.featureClaimId || row.claimIds.indexOf(item.claimId) === -1) return false;
-      var featureClaim = byId[item.featureClaimId];
-      return !!featureClaim && pageTopicCounts(featureClaim, row.text, item.feature, ctx);
-    });
-  }
-
   function pairRelevant(featureClaim, explanation, feature, ctx) {
     ctx = ctx || {};
     var goal = goalWords(ctx);
@@ -5339,6 +5317,12 @@
     });
     var readyPairs = [];
     examined.forEach(function (pair) { if (pair.ready) readyPairs.push(pair); });
+    // ID lineage: each gate-ready pair is a teaching unit the plan, beats and questions cite by id.
+    readyPairs.forEach(function (pair, index) {
+      pair.unitId = "u" + (index + 1);
+      pair.elementClaimId = pair.featureClaimId;
+      pair.explanationClaimId = pair.mechanismClaimId;
+    });
     var missing = [];
     if (ideas.length < required) {
       missing.push("Missing substance: " + (required - ideas.length) + " more distinct pair" + (required - ideas.length === 1 ? "" : "s") + ". Each pair needs a concrete feature or concept, a separate explanation of how or why that feature works, an explicit relationship between those two selected claims, and relevance to the learning goal.");
@@ -5440,6 +5424,141 @@
       issue: issue,
       factuallyVerified: false
     };
+  }
+
+  // ---- ID lineage (source-grounded lesson PR, patch 5) ----
+  // A gate-ready pack pair is a teaching unit: unitId, elementClaimId (the feature claim) and
+  // explanationClaimId (the claim that says what the feature does). The learning map, the
+  // teaching beats and the questions carry those ids, and validation follows the ids. Goal
+  // relevance was decided once, at the pack gate; it is not re-derived downstream from words.
+  // Substance still applies everywhere: a point or beat that cites a unit must itself state the
+  // feature's job in specific words ("helped them survive" or "let dinosaurs." does not).
+  var JOB_FILLER = { allow: 1, allows: 1, allowed: 1, allowing: 1, let: 1, lets: 1, letting: 1, enable: 1, enables: 1, enabled: 1, enabling: 1, help: 1, helps: 1, helped: 1, helping: 1, because: 1, could: 1, can: 1, make: 1, makes: 1, made: 1, making: 1, cause: 1, causes: 1, caused: 1, which: 1, when: 1, meant: 1, were: 1, was: 1, had: 1, have: 1, has: 1, their: 1, them: 1, they: 1, this: 1, these: 1, those: 1, that: 1, with: 1, from: 1, into: 1, than: 1, more: 1, very: 1, also: 1, other: 1, feature: 1, features: 1, adaptation: 1, adaptations: 1, body: 1, part: 1, parts: 1, important: 1, useful: 1, special: 1, way: 1, ways: 1, some: 1, many: 1, all: 1, the: 1, and: 1 };
+
+  function readyUnits(readiness) {
+    if (!readiness || readiness.skipped) return [];
+    return (readiness.readyPairs || []).filter(function (pair) { return pair && pair.unitId; }).map(function (pair) {
+      return { unitId: pair.unitId, elementClaimId: pair.elementClaimId || pair.featureClaimId, explanationClaimId: pair.explanationClaimId || pair.mechanismClaimId, feature: pair.feature || "", explanation: pair.explanation || "" };
+    });
+  }
+
+  // Specific words for what the feature does: not the feature's own words, not the topic, not
+  // the linking verb, and not a vague job (survive, live, adapt, environment).
+  function jobWords(text, feature, ctx) {
+    var skip = contentWords([feature, (ctx && ctx.topic) || ""].join(" "));
+    return contentWords(text).filter(function (word) {
+      if (word.length < 3 || JOB_FILLER[word] || VAGUE_JOB[word] || /^adapt/.test(word) || /^surviv/.test(word)) return false;
+      return !skip.some(function (other) { return sameStem(word, other); });
+    });
+  }
+
+  function statesUnitJob(text, unit, ctx) {
+    if (!statesMechanism(text)) return false;
+    return jobWords(text, unit && unit.feature, ctx).length >= 2;
+  }
+
+  function unitIdsForClaims(claimIds, units) {
+    var out = [];
+    (claimIds || []).forEach(function (id) {
+      units.forEach(function (unit) {
+        if ((unit.elementClaimId === id || unit.explanationClaimId === id) && out.indexOf(unit.unitId) === -1) out.push(unit.unitId);
+      });
+    });
+    return out;
+  }
+
+  // Plan stage: a point answers the learning goal when it cites a gate-ready unit's explanation
+  // claim and states that unit's job. A point citing no ready unit answers nothing; it stays only
+  // when the map links it to a point that does (the existing reachability rule).
+  function lineageAnswers(row, units, ctx) {
+    var ids = (row && row.claimIds) || [];
+    return units.some(function (unit) {
+      return ids.indexOf(unit.explanationClaimId) !== -1 && statesUnitJob(row.text, unit, ctx);
+    });
+  }
+
+  // Teaching and assessment: stamp the unit and claim ids each plan point, strand, beat and
+  // question carries (from knowledgeRefs -> learning map point -> claimIds), then check that every
+  // gate-ready unit is planned in a developed strand, taught by an explain beat that states its
+  // job, and assessed by at least one question. Returns { skipped, units, issues }.
+  function unitLineage(adventure, ctx) {
+    var readiness = assessPackReadiness(ctx && ctx.knowledgePack, ctx && ctx.knowledgeSelection, ctx);
+    var units = readyUnits(readiness);
+    if (!units.length) return { skipped: true, units: [], issues: [] };
+    var plan = (adventure && adventure.lessonPlan) || {};
+    var map = plan.learningMap || [];
+    var point = {};
+    map.forEach(function (item) {
+      item.unitIds = unitIdsForClaims(item.claimIds, units);
+      point[item.id] = item;
+    });
+    var strands = (plan.teachingPlan && plan.teachingPlan.strands) || [];
+    strands.forEach(function (strand) {
+      var ids = [];
+      (strand.knowledgeRefs || []).forEach(function (ref) { ((point[ref] && point[ref].unitIds) || []).forEach(function (id) { if (ids.indexOf(id) === -1) ids.push(id); }); });
+      strand.unitIds = ids;
+    });
+    function idsFor(refs) {
+      var unitIds = [];
+      var claimIds = [];
+      (refs || []).forEach(function (ref) {
+        var item = point[ref];
+        if (!item) return;
+        (item.unitIds || []).forEach(function (id) { if (unitIds.indexOf(id) === -1) unitIds.push(id); });
+        (item.claimIds || []).forEach(function (id) { if (claimIds.indexOf(id) === -1) claimIds.push(id); });
+      });
+      return { unitIds: unitIds, claimIds: claimIds };
+    }
+    var beatsById = {};
+    var questions = [];
+    ((adventure && adventure.activities) || []).forEach(function (activity) {
+      (activity.beats || []).forEach(function (beat) {
+        var ids = idsFor(beat.knowledgeRefs);
+        beat.unitIds = ids.unitIds;
+        beat.claimIds = ids.claimIds;
+        beatsById[beat.id] = { beat: beat, slotId: activity.slotId || "" };
+      });
+      var config = activity.config || {};
+      (Array.isArray(config.questions) ? config.questions : []).forEach(function (question) {
+        var from = beatsById[question.id];
+        var refs = from ? (from.beat.knowledgeRefs || []).slice() : [];
+        var ids = idsFor(refs);
+        question.knowledgeRefs = refs;
+        question.unitIds = ids.unitIds;
+        question.claimIds = ids.claimIds;
+        questions.push(question);
+      });
+    });
+    var issues = [];
+    var rows = units.map(function (unit) {
+      var planned = map.filter(function (item) { return (item.unitIds || []).indexOf(unit.unitId) !== -1; });
+      var explainPoint = planned.filter(function (item) { return (item.claimIds || []).indexOf(unit.explanationClaimId) !== -1; })[0] || null;
+      var elementPoint = planned.filter(function (item) { return (item.claimIds || []).indexOf(unit.elementClaimId) !== -1; })[0] || null;
+      var strand = strands.filter(function (s) { return (s.unitIds || []).indexOf(unit.unitId) !== -1 && s.developed !== false; })[0] || null;
+      var beats = Object.keys(beatsById).map(function (id) { return beatsById[id]; }).filter(function (row) { return (row.beat.unitIds || []).indexOf(unit.unitId) !== -1; });
+      var explainBeats = beats.filter(function (row) {
+        // The teaching itself: a teach-stage beat (or an explain move) that cites the unit's
+        // explanation point and states the job. A recap or apply prompt does not stand in for it.
+        var teaching = row.slotId === "teach" || row.beat.move === "explain";
+        return teaching && explainPoint && (row.beat.knowledgeRefs || []).indexOf(explainPoint.id) !== -1 && statesUnitJob(row.beat.pupil && row.beat.pupil.text, unit, ctx);
+      });
+      var asked = questions.filter(function (q) { return (q.unitIds || []).indexOf(unit.unitId) !== -1; });
+      var problems = [];
+      if (!explainPoint) problems.push("no learning-map point carries its explanation claim " + unit.explanationClaimId);
+      else if (!statesUnitJob(explainPoint.knowledge, unit, ctx)) problems.push("its learning-map point does not state what the feature does");
+      if (!elementPoint) problems.push("no learning-map point carries its feature claim " + unit.elementClaimId);
+      if (!strand) problems.push("no developed teaching strand carries it");
+      if (!explainBeats.length) problems.push("no teaching beat cites its explanation and states what the feature does");
+      if (!asked.length) problems.push("no question assesses it");
+      if (problems.length) issues.push("LINEAGE: unit " + unit.unitId + " (" + clean(unit.feature, 60) + "): " + problems.join("; ") + ".");
+      return {
+        unitId: unit.unitId, feature: unit.feature, elementClaimId: unit.elementClaimId, explanationClaimId: unit.explanationClaimId,
+        planPoints: planned.map(function (item) { return item.id; }), strand: strand ? strand.id : "",
+        beats: beats.map(function (row) { return row.beat.id; }), explainBeats: explainBeats.map(function (row) { return row.beat.id; }),
+        questions: asked.map(function (q) { return q.id; }), ok: !problems.length, problems: problems
+      };
+    });
+    return { skipped: false, requiredPairs: readiness.requiredPairs, units: rows, issues: issues, label: "ID lineage; automated; not human review" };
   }
 
   // A validated pack pair is the strand edge. A model hub does not replace it.
@@ -5896,9 +6015,12 @@
       row.deps = deps;
     });
     var readiness = realiseFeatureLinks(unique, ctx);
+    var units = readyUnits(readiness);
     unique.forEach(function (row) {
       row.kind = mapKind(row.text, row.role, row.deps.length);
-      row.answers = seeking && (answersContribution(row.text, goal, row) || pageTopicAnswers(row, goal, ctx));
+      row.unitIds = unitIdsForClaims(row.claimIds, units);
+      // With gate-ready units, relevance follows the ids (lineageAnswers); otherwise the words.
+      row.answers = seeking && (units.length ? lineageAnswers(row, units, ctx) : answersContribution(row.text, goal, row));
     });
     var connected = unique;
     if (seeking && unique.some(function (row) { return row.answers; })) {
@@ -5984,6 +6106,7 @@
         importance: row.importance,
         dependsOn: row.deps.filter(function (dep) { return chosen.indexOf(dep) !== -1; }).map(function (dep) { return idOf[dep.key + "#" + dep.index]; }),
         claimIds: (row.claimIds || []).slice(),
+        unitIds: (row.unitIds || []).slice(),
         answers: !!row.answers
       };
     });
@@ -8339,6 +8462,10 @@
     selectPackForLesson: selectPackForLesson,
     assessPackReadiness: assessPackReadiness,
     statesEnabledJob: statesEnabledJob,
+    unitLineage: unitLineage,
+    readyUnits: readyUnits,
+    statesUnitJob: statesUnitJob,
+    lineageAnswers: lineageAnswers,
     statesSoCould: statesSoCould,
     knowledgePackLog: knowledgePackLog,
     quoteInPassage: quoteInPassage,

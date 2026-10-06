@@ -129,7 +129,8 @@ console.log("relevance page-topic tests passed");
 // 6. Plan stage (live run 8): after the gate passed 3/3, plan validation dropped the
 //    ornithischian jaw-joint pair as "not connected to the learning goal", because that check
 //    reads the goal's subject word ("dinosaurs") and the pair says "ornithischians". The same
-//    page-topic rule now applies there. Passages are run 8's real Simple Wikipedia and NHM text.
+//    page-topic rule applied there in patch 4; patch 5 replaces it with ID lineage (the plan
+//    follows the gate-ready unit ids). Passages are run 8's real Simple Wikipedia and NHM text.
 var run8 = require("./fixtures/source-grounded/run8-passages.json");
 function planCtx(list) {
   var k = ctx(list);
@@ -179,8 +180,14 @@ assert.strictEqual(droppedAsUnconnected(withPage, JAW), false, JSON.stringify(wi
 assert.strictEqual(droppedAsUnconnected(withPage, "The upper skull of ornithischians was more solid, and the joint connecting the lower jaw was more flexible."), false);
 // An unconnected fact on a topic page is still dropped: the page alone answers nothing.
 assert.strictEqual(droppedAsUnconnected(withPage, "Dinosaurs laid eggs in nests."), true, JSON.stringify(withPage.rejected));
-// Without page context naming the topic, the jaw-joint pair is dropped as before.
-var noPage = mapFor(planCtx(run8.map(function (p) { return Object.assign({}, p, { title: "", text: p.id === "S1-P01" ? "Archosaurs are a group of reptiles." : p.text }); })));
-assert.strictEqual(droppedAsUnconnected(noPage, JAW), true, JSON.stringify(noPage.rejected));
+// Patch 5 (ID lineage): the plan stage no longer reads page context or words for relevance. It
+// follows the gate: this jaw-joint pair is gate-ready by its own words even without page titles,
+// so the plan keeps it by its unit id; the eggs fact (no ready unit) is still dropped.
+var noPageCtx = planCtx(run8.map(function (p) { return Object.assign({}, p, { title: "", text: p.id === "S1-P01" ? "Archosaurs are a group of reptiles." : p.text }); }));
+var noPage = mapFor(noPageCtx);
+var noPageReady = Brain.assessPackReadiness(noPageCtx.knowledgePack, noPageCtx.knowledgeSelection, noPageCtx).readyPairs.map(function (p) { return p.feature; });
+assert.ok(noPageReady.indexOf("flexible lower jaw joint") !== -1, JSON.stringify(noPageReady));
+assert.strictEqual(droppedAsUnconnected(noPage, JAW), false, JSON.stringify(noPage.rejected));
+assert.strictEqual(droppedAsUnconnected(noPage, "Dinosaurs laid eggs in nests."), true, JSON.stringify(noPage.rejected));
 
 console.log("relevance page-topic tests passed (plan stage)");

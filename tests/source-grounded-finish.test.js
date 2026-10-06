@@ -50,6 +50,11 @@ console.log = function (line) { try { var p = JSON.parse(line); if (p && p.event
   var used = logs.filter(function (l) { return l.stage === "KNOWLEDGE_PACK"; })[0];
   assert.strictEqual(used.packReadiness.status, "ready");
   assert.strictEqual(used.packReadiness.distinctReady, 3);
+  // Patch 5: ID lineage ran in the boot and every gate-ready unit is planned, taught and assessed.
+  assert.deepStrictEqual(used.packReadiness.readyPairs.map(function (p) { return p.unitId; }), ["u1", "u2", "u3"]);
+  var lineageLog = logs.filter(function (l) { return l.stage === "UNIT_LINEAGE"; })[0];
+  assert.ok(lineageLog && lineageLog.ok, JSON.stringify(lineageLog));
+  assert.strictEqual(body.adventure.unitLineage.units.filter(function (u) { return u.ok; }).length, 3);
   return Finish.runFinish({ adventure: body.adventure, logs: logs, trace: {}, outDir: dir, apiKey: "test-key", fetch: global.fetch, imageCount: 4 }).then(function (out) {
     var lesson = out.lesson;
     // Same run: images, checks, render.
