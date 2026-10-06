@@ -278,7 +278,13 @@ function generateImages(fetchFn, key, adventure, outDir, count, reuse, plan) {
       var file = asset.id + ".jpg";
       // Resume: an image this run already generated (same asset, same prompt builder) is reused, not paid for again.
       if (reuse && fs.existsSync(path.join(dir, file))) {
-        results.push(Object.assign({ id: asset.id, type: asset.type, slotId: asset.slotId || asset.id, status: "ready", fallback: false, publicUrl: "images/" + file, file: path.join(dir, file), usedByScenes: asset.usedByScenes || [], uiSafeArea: asset.uiSafeArea || "", brief: asset.brief || null, model: IMAGE_MODEL, dimensions: IMAGE_SIZE, quality: IMAGE_QUALITY, prompt: prompt, usage: null, reused: true }, extra(asset)));
+        // Patch 9: a reused image records the prompt it was made with (its .prompt.txt), and
+        // says when today's prompt builder would now write a different prompt.
+        var sidecar = path.join(dir, asset.id + ".prompt.txt");
+        var made = fs.existsSync(sidecar) ? fs.readFileSync(sidecar, "utf8") : null;
+        var row = Object.assign({ id: asset.id, type: asset.type, slotId: asset.slotId || asset.id, status: "ready", fallback: false, publicUrl: "images/" + file, file: path.join(dir, file), usedByScenes: asset.usedByScenes || [], uiSafeArea: asset.uiSafeArea || "", brief: asset.brief || null, model: IMAGE_MODEL, dimensions: IMAGE_SIZE, quality: IMAGE_QUALITY, prompt: made != null ? made : prompt, usage: null, reused: true }, extra(asset));
+        if (made != null && made !== prompt) { row.promptChanged = true; row.promptNow = prompt; }
+        results.push(row);
         return null;
       }
       return fetchFn("https://api.openai.com/v1/images/generations", {
@@ -291,6 +297,7 @@ function generateImages(fetchFn, key, adventure, outDir, count, reuse, plan) {
           if (!res.ok || !b64) throw new Error("image failed: HTTP " + res.status + " " + clean(body && body.error && body.error.message, 160));
           var file = asset.id + ".jpg";
           fs.writeFileSync(path.join(dir, file), Buffer.from(b64, "base64"));
+          fs.writeFileSync(path.join(dir, asset.id + ".prompt.txt"), prompt);
           results.push(Object.assign({ id: asset.id, type: asset.type, slotId: asset.slotId || asset.id, status: "ready", fallback: false, publicUrl: "images/" + file, file: path.join(dir, file), usedByScenes: asset.usedByScenes || [], uiSafeArea: asset.uiSafeArea || "", brief: asset.brief || null, model: IMAGE_MODEL, dimensions: IMAGE_SIZE, quality: IMAGE_QUALITY, prompt: prompt, usage: body.usage || null }, extra(asset)));
         });
       }).catch(function (error) {
@@ -683,4 +690,4 @@ function runFinish(opts) {
   });
 }
 
-module.exports = { runFinish: runFinish, lastQuestionAudit: lastQuestionAudit, renderHtml: renderHtml, checkSupport: checkSupport, checkSentenceSupport: checkSentenceSupport, checkResearchRules: checkResearchRules, ruleContext: ruleContext, finalPackRow: finalPackRow, visualUnits: visualUnits, unitBeatIds: unitBeatIds, teachingPlan: teachingPlan, stampTeachingVisuals: stampTeachingVisuals, teachingVisionRow: teachingVisionRow, applyOf: applyOf, questionsOf: questionsOf, pupilTextItems: pupilTextItems, teachingPairs: teachingPairs, usedPack: usedPack, chooseAssets: chooseAssets, imagePromptFor: imagePromptFor, IMAGE_MODEL: IMAGE_MODEL, IMAGE_SIZE: IMAGE_SIZE, IMAGE_QUALITY: IMAGE_QUALITY };
+module.exports = { runFinish: runFinish, lastQuestionAudit: lastQuestionAudit, generateImages: generateImages, renderHtml: renderHtml, checkSupport: checkSupport, checkSentenceSupport: checkSentenceSupport, checkResearchRules: checkResearchRules, ruleContext: ruleContext, finalPackRow: finalPackRow, visualUnits: visualUnits, unitBeatIds: unitBeatIds, teachingPlan: teachingPlan, stampTeachingVisuals: stampTeachingVisuals, teachingVisionRow: teachingVisionRow, applyOf: applyOf, questionsOf: questionsOf, pupilTextItems: pupilTextItems, teachingPairs: teachingPairs, usedPack: usedPack, chooseAssets: chooseAssets, imagePromptFor: imagePromptFor, IMAGE_MODEL: IMAGE_MODEL, IMAGE_SIZE: IMAGE_SIZE, IMAGE_QUALITY: IMAGE_QUALITY };
