@@ -503,6 +503,7 @@
         "Do not write a lesson, stages, activities, beats, questions, interactions, narrative, or pupil wording.",
         "sources in the request are passages fetched from trusted pages. They are the only factual source in this step. Do not use your own knowledge to add a fact, name, date, number, cause, or feature that the passages do not state. A claim that no passage supports must be left out.",
         "Every claim, mechanism, and vocabulary item carries sourceRef, an array of one or two passage ids from sources, and quote, one contiguous extract of 6 to 40 words copied character for character from one cited passage that supports the claim. Do not join extracts, do not use an ellipsis, and do not change words inside the quote. Code checks the quote against the passage. A claim whose quote is not found in a cited passage is dropped.",
+        "A mechanism whose only result is that the animal survived, lived somewhere, or did well is not an explanation; state what the feature did, as a passage says it.",
         "The claim text may use simpler words for the year group, but it must keep the meaning of the quote and must not add anything the quote does not say. Keep a hedge such as may, probably, or scientists think when the source hedges.",
         "Write a knowledge pack with more claims than one lesson will teach. A later step selects a subset for the year, the goal, and the duration. Each claim is one sentence a teacher could check against its quote. Tag depth as concrete, mechanism, or system.",
         "teacherIntent.learningGoal is the objective. Aim the pack at that objective while staying inside the teacher's topic. strandPairsRequired is how many distinct feature-and-explanation pairs this lesson needs. A pair is two separate claims. The feature claim is concrete and names one feature, part, or piece of evidence in at least six words. The mechanism claim says how or why that same feature works or what it shows, and it states the link in words such as because, so that, so it could, which lets, which means, or allowed. A sentence that only names the feature, or only says it helped, is not the explanation. Both claims of a pair cite passages that support them. The mechanism's own quote must state the how or why, for example what the feature was used for, what it did, or why it worked. A quote that only names or lists the feature does not support a mechanism, even when the feature claim uses the same quote. Do not add a purpose, cause, or result that the quote does not state. If no passage states how or why a feature works, leave that pair out. Write the mechanism with the working part and what it does, the way a passage states it, for example \"long legs let them take longer strides, so they could run faster\", but only when a passage says so. \"X helped them Y\" on its own does not say how: write what the feature did, using the passage's own link words such as allowed, let, so, because, or used to. A claim that links two facts needs a quote that states that link; two facts a passage only lists side by side are not a link.",
@@ -730,6 +731,7 @@
       var fix = irrelevant
         ? "Code could not link this pair to the learning goal: no word of the feature claim or explanation matches a goal word (" + goalList.slice(0, 16).join(", ") + "). If the passage supports it, keep the pair and rewrite this explanation item so it uses one of those words, for example adding the topic word to the name of a group the passage places in the topic, or saying what the feature did in the goal's terms. Keep the same quote. Add only wording the passage supports; never add a fact." + (otherGaps ? " " + MECHANISM_FIX : "")
         : MECHANISM_FIX;
+      if (gaps.some(function (gap) { return /only says the feature helped the animal survive/.test(gap); })) fix += " Helped it survive or live somewhere is not what a feature did: state the action the passage gives (for example let it breathe, reach, or move), or replace this pair with another feature whose passage states what it did.";
       rows.push({
         item: pair.explanation || "",
         problem: irrelevant && !otherGaps ? "PAIR_NOT_LINKED_TO_GOAL" : "PAIR_NOT_READY",
@@ -4108,7 +4110,9 @@
       "Use everyday words for " + (year || "this year group") + ". Avoid long technical words; if one is needed, explain it in the same sentence (for example: perpendicular, which means at a right angle).",
       "Say what a feature did or how it worked. Do not say an animal had, grew, or developed a feature in order to do something, and do not ask why an animal had a feature.",
       "Each check question's correct answer uses the words of a teach sentence. Each wrong choice must be false according to evidencePassages; do not use a feature the sources say also helped with the same job.",
-      "apply is a choice on a new example. newCase.text describes one new example the teach slot did not answer: either a case stated in evidencePassages (kind sourced, with sourceRef and an exact quote copied from that passage) or a made-up case that starts with Imagine and can be solved with one taught reason (kind transfer, sourceRef empty, quote empty). instruction asks the class to choose. choices has two or three options with exactly one correct; each feedback is one or two sentences that say why that option is right or wrong using the taught reason, and the correct feedback uses that unit's keyWords. successCondition says the class picks the choice that the taught reason supports."
+      "apply is a choice on a new example. newCase.text describes one new example the teach slot did not answer: either a case stated in evidencePassages (kind sourced, with sourceRef and an exact quote copied from that passage) or a made-up case that starts with Imagine and can be solved with one taught reason (kind transfer, sourceRef empty, quote empty). instruction asks the class to choose. choices has two or three options with exactly one correct; each feedback is one or two sentences that say why that option is right or wrong using the taught reason, and the correct feedback uses that unit's keyWords. successCondition says the class picks the choice that the taught reason supports.",
+      "The apply beats set up the new example in new words. Never repeat or closely reword a teach sentence or a sourceSays sentence in an apply beat (copying a knowledge sentence fails validation); the taught reason belongs in the correct choice's feedback.",
+      "An animal's name that sourceWording uses (for example the name of the animal a unit is about) may be used as it is; it is the subject, not a hard word."
     ].join(" ");
   }
 
@@ -5355,6 +5359,8 @@
           ? "the feature claim resolves, but the explanation does not state how or why"
           : "the explanation does not state how or why");
       }
+      // Research mode: "helped it survive" is not a how-or-why explanation (patch 6).
+      if (researchMode(ctx) && genericResultOnly(item.text)) gaps.push("the explanation only says the feature helped the animal survive or live somewhere; it does not say what the feature did");
       if (!gaps.some(function (gap) { return gap.indexOf("not relevant") !== -1; }) && featureClaim && selectedIds[featureClaim.claimId] && !pairRelevant(featureClaim, item.text, feature, ctx)) gaps.push("the pair is not relevant to the learning goal");
       var ready = !gaps.length;
       if (!ready && !feature && headIds[item.claimId] && !statesMechanism(item.text)) return;
@@ -8043,6 +8049,16 @@
     return clause;
   }
 
+  // An explanation whose only stated result is a general benefit (survive, live, thrive, do
+  // well) does not say what the feature did. Live run 13 (6 Oct 2026) admitted "The sail ...
+  // helped the animal survive in its river home" as an explanation. Research mode only.
+  var GENERIC_RESULT = /^(?:[A-Za-z'’]+\s+){0,2}(?:survive[sd]?|surviving|survival|live[sd]?|living|thrive[sd]?|thriving|succeed(?:ed)?|do(?:es)? (?:well|better)|did (?:well|better)|be (?:more )?successful|stay(?:ed)? alive|stay(?:ed)? safe)\b/i;
+  function genericResultOnly(text) {
+    var clause = resultClause(text);
+    if (!clause) return false;
+    return GENERIC_RESULT.test(clause.replace(/^(?:to|it|them|the animal|the dinosaur)\s+/i, ""));
+  }
+
   function researchUnits(ctx) {
     if (!researchMode(ctx)) return [];
     var readiness = assessPackReadiness(ctx.knowledgePack, ctx.knowledgeSelection, ctx);
@@ -8149,7 +8165,7 @@
     if (/(?:called|named|known as|means|word)\s+["\u201c]?$/i.test(before)) return true;
     return false;
   }
-  function hardWords(text, year) {
+  function hardWords(text, year, names) {
     var digit = Number(yearDigit(year));
     if (!digit || digit > 4) return [];
     var limit = digit <= 2 ? 9 : 11;
@@ -8160,6 +8176,7 @@
         var word = raw.replace(/'s$/i, "");
         var lower = word.toLowerCase();
         if (BAND_WORDS[lower] || /-/.test(word)) return;
+        if (names && names[lower]) return;
         var long = word.length >= limit || syllables(word) >= syl;
         if (!long) return;
         if (glossedIn(sentence, word)) return;
@@ -8187,12 +8204,31 @@
     return rows.filter(Boolean);
   }
 
+  // A proper name a ready unit teaches (capitalised inside its feature or explanation claim,
+  // for example the animal the unit is about) is the subject, not reading-level vocabulary.
+  // Live run 13 (6 Oct 2026) flagged "Brachiosaurus" and "Spinosaurus" in units about them.
+  function unitNames(ctx) {
+    var names = {};
+    researchUnits(ctx).forEach(function (unit) {
+      [unit.feature, unit.explanation].forEach(function (text) {
+        String(text || "").split(/\s+/).forEach(function (raw, index) {
+          var word = raw.replace(/[^A-Za-z'-]/g, "").replace(/'s$/i, "");
+          // A capitalised word that is not just the sentence's first word, or a first word the
+          // other claim also capitalises mid-sentence, is a name.
+          if (/^[A-Z][a-z]{3,}$/.test(word) && (index > 0 || new RegExp("\\S\\s+" + word + "\\b").test(String(unit.feature) + " " + String(unit.explanation)))) names[word.toLowerCase()] = 1;
+        });
+      });
+    });
+    return names;
+  }
+
   function vocabularyIssues(activities, ctx) {
     var year = (ctx && ctx.yearGroup) || "";
     var issues = [];
+    var names = researchMode(ctx) ? unitNames(ctx) : null;
     (activities || []).forEach(function (activity) {
       var found = [];
-      pupilTextsOf(activity).forEach(function (text) { hardWords(text, year).forEach(function (w) { if (found.indexOf(w) === -1) found.push(w); }); });
+      pupilTextsOf(activity).forEach(function (text) { hardWords(text, year, names).forEach(function (w) { if (found.indexOf(w) === -1) found.push(w); }); });
       if (found.length) issues.push({ slotId: activity.slotId, text: "The " + activity.slotId + " slot uses words above " + (year || "this year group") + " reading level: " + found.slice(0, 6).map(function (w) { return "\"" + w + "\""; }).join(", ") + ". Use an everyday word, or explain the word in the same sentence." });
     });
     return issues;
@@ -9033,6 +9069,7 @@
     statesEnabledJob: statesEnabledJob,
     unitLineage: unitLineage,
     researchMode: researchMode,
+    genericResultOnly: genericResultOnly,
     researchUnits: researchUnits,
     resultClause: resultClause,
     meaningCheck: meaningCheck,
