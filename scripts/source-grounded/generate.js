@@ -12,7 +12,8 @@
    Writes DIR/lesson/generate-response.json, DIR/lesson/generate-trace.json,
    DIR/sources/research-record.json, DIR/sources/knowledge-pack.json.
    When the boot returns a complete lesson, the same run finishes it (finish.js): 4 images,
-   checks 1-4, DIR/lesson/lesson.html and lesson.json. --no-finish skips that; --images N. */
+   checks 1-4, DIR/lesson/lesson.html and lesson.json. --no-finish skips that; --images N.
+   --reuse-research a.json,b.json replays earlier runs' search results (no paid search). */
 
 var fs = require("fs");
 var path = require("path");
@@ -35,6 +36,29 @@ if (!key) { console.error("OPENAI_API_KEY is not set. No call was made."); proce
 var root = path.join(__dirname, "../..");
 var brainSource = fs.readFileSync(path.join(root, "js/lesson-brain.js"), "utf8");
 var researchSource = fs.readFileSync(path.join(root, "js/source-research.js"), "utf8");
+// --reuse-research a.json,b.json: replay the pages earlier paid web searches found (their
+// research-record.json "discovered" rows from openai-web-search), instead of paying for new
+// searches. Harness only: every page is still fetched live and goes through the same tiers,
+// diversity, passage ranking and gates. The record names the provider "openai-web-search-replay".
+var reuseFiles = String(arg("reuse-research", "")).split(",").filter(Boolean);
+if (reuseFiles.length) {
+  var replay = [];
+  var seenReplay = {};
+  var lists = reuseFiles.map(function (file) {
+    var record = JSON.parse(fs.readFileSync(path.resolve(file), "utf8"));
+    return (record.discovered || []).filter(function (row) { return row.provider === "openai-web-search"; });
+  });
+  var longestReplay = Math.max.apply(null, lists.map(function (l) { return l.length; }).concat([0]));
+  for (var ri = 0; ri < longestReplay; ri++) lists.forEach(function (list) {
+    var row = list[ri];
+    if (!row) return;
+    var k = String(row.url).replace(/#.*$/, "").replace(/\/$/, "").toLowerCase();
+    if (seenReplay[k]) return;
+    seenReplay[k] = 1;
+    replay.push({ url: row.url, title: row.title || "", description: row.description || "", provider: "openai-web-search-replay", query: row.query || "", via: "replay" });
+  });
+  researchSource += "\n;(function () { var R = globalThis.WondiiSourceResearch; var saved = " + JSON.stringify(replay) + "; R.openaiWebSearchProvider = function () { return { id: \"openai-web-search-replay\", paid: false, search: function () { return Promise.resolve({ calls: 0, candidates: saved.slice() }); } }; }; })();\n";
+}
 var boot = fs.readFileSync(path.join(root, "js/learn-generate-boot.js"), "utf8");
 var marker = "const brain = globalThis.WondiiLessonBrain;";
 if (boot.indexOf(marker) === -1) { console.error("boot marker missing"); process.exit(1); }
