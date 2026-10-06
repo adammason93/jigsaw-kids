@@ -79,7 +79,7 @@ console.log = function (line) { try { var p = JSON.parse(line); if (p && p.event
     assert.strictEqual(lesson.checks.support.problems, 0, JSON.stringify(lesson.checks.support.rows.filter(function (r) { return !r.ok; }).slice(0, 3)));
     // Pairs carry quotes and URLs.
     assert.strictEqual(lesson.pairs.length, 3);
-    lesson.pairs.forEach(function (p) { assert.ok(p.featureClaim.quote && p.explanation.quote && /^https:\/\/simple\.wikipedia\.org/.test(p.explanation.url)); });
+    lesson.pairs.forEach(function (p) { assert.ok(p.featureClaim.quote && p.explanation.quote && /^https:\/\/www\.nhm\.ac\.uk\//.test(p.explanation.url)); });
     assert.ok(lesson.questions.length >= 1);
     lesson.questions.forEach(function (q) { assert.ok(q.choices.indexOf(q.correct) !== -1); });
     assert.strictEqual(lesson.checks.questions.problems, 0, JSON.stringify(lesson.checks.questions.rows));

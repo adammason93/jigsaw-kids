@@ -15,7 +15,9 @@ var ctx = {
   yearGroup: "Year 3", subject: "Science", topic: "Dinosaurs", requestedMinutes: 15, lessonText: "Teach Year 3 about dinosaurs",
   lessonBrief: { intent: "explain", learningGoal: "Pupils will understand how dinosaurs adapted to their environments.", teacherIntent: { ok: true, learningGoal: "Pupils will understand how dinosaurs adapted to their environments.", focusConcepts: ["adaptation"] } },
   researchEvidence: { passages: [
-    { id: "S1-P02", url: "https://simple.wikipedia.org/wiki/Dinosaur", title: "Dinosaur (Simple English Wikipedia)", text: simpleP02 },
+    // Patch 6: this real Simple Wikipedia text is relabelled to an evidence-tier test host so the
+    // link rules below are exercised; Wikipedia itself is discovery only (tests/source-tier.test.js).
+    { id: "S1-P02", url: "https://www.example-museum.ac.uk/test-relabel/S1-P02", title: "Dinosaur (test relabel of Simple English Wikipedia text)", text: simpleP02 },
     { id: "S3-P01", url: "https://www.nhm.ac.uk/discover/what-are-dinosaurs.html", title: "What are dinosaurs?", text: nhmP01 }
   ], selectedPassageIds: ["S1-P02", "S3-P01"] }
 };

@@ -67,9 +67,10 @@ assert.strictEqual(two.distinctReady, 2);
 assert.strictEqual(two.status, "incomplete");
 
 // 3. The same sauropod sentence on a page whose title and lead do not name the topic gets no boost.
+//    (Patch 6: the off-topic page is an evidence-tier host, since Wikipedia is discovery only.)
 var giraffe = passages.filter(function (p) { return p.id !== "S8-P10"; }).concat([
-  { id: "S20-P01", url: "https://simple.wikipedia.org/wiki/Long_neck", title: "Long neck (Simple English Wikipedia)", text: "A long neck is found in several groups of animals, living and extinct." },
-  { id: "S20-P02", url: "https://simple.wikipedia.org/wiki/Long_neck", title: "Long neck (Simple English Wikipedia)", text: passages.filter(function (p) { return p.id === "S8-P10"; })[0].text }
+  { id: "S20-P01", url: "https://www.nhm.ac.uk/discover/long-necks-in-animals.html", title: "Long necks in animals | Natural History Museum", text: "A long neck is found in several groups of animals, living and extinct." },
+  { id: "S20-P02", url: "https://www.nhm.ac.uk/discover/long-necks-in-animals.html", title: "Long necks in animals | Natural History Museum", text: passages.filter(function (p) { return p.id === "S8-P10"; })[0].text }
 ]);
 var offPage = gate(LEGS.concat([Object.assign({}, NECK[0], { sourceRef: ["S20-P02"] }), Object.assign({}, NECK[1], { sourceRef: ["S20-P02"] })], FEET), [M.legs, M.neck, M.feet], giraffe);
 assert.strictEqual(offPage.retrieved, 6, "quotes still verify on the other page");
@@ -175,6 +176,15 @@ function droppedAsUnconnected(map, text) {
   return (map.rejected || []).some(function (x) { return x.knowledge === text && x.reason === "not connected to the learning goal"; });
 }
 var JAW = "The flexible lower jaw joint helped ornithischians grind vegetable food.";
+// Patch 6 (source tiers), negative: with run 8's real URLs the jaw-joint pair cites Simple
+// English Wikipedia (S1-P15), which is discovery only, so the gate never makes it ready.
+var realCtx = planCtx(run8);
+var realReady = Brain.assessPackReadiness(realCtx.knowledgePack, realCtx.knowledgeSelection, realCtx).readyPairs.map(function (p) { return p.feature; });
+assert.strictEqual(realReady.indexOf("flexible lower jaw joint"), -1, JSON.stringify(realReady));
+assert.ok(realCtx.knowledgePack.sourceAudit.rejected.some(function (r) { return /lower jaw/.test(r.text) && r.reason === "SOURCE_NOT_EVIDENCE"; }));
+// The plan-stage rule below is about ID lineage, not source tiers. To isolate it, the same
+// passage text is placed on an evidence-tier host (a test-only relabel; never used in a lesson).
+run8 = run8.map(function (p) { return /wikipedia\.org/.test(p.url) ? Object.assign({}, p, { url: "https://www.example-museum.ac.uk/test-relabel/" + p.id }) : p; });
 var withPage = mapFor(planCtx(run8));
 assert.strictEqual(droppedAsUnconnected(withPage, JAW), false, JSON.stringify(withPage.rejected));
 assert.strictEqual(droppedAsUnconnected(withPage, "The upper skull of ornithischians was more solid, and the joint connecting the lower jaw was more flexible."), false);

@@ -16,17 +16,31 @@
   // One config list. A host matches a rule when it equals the domain or is a subdomain of it.
   // pathPrefix narrows a rule to one section of a site. suffix rules admit public-sector
   // and academic education pages. Everything else is refused before any fetch.
+  // Source tiers (Oct 2026): tier "evidence" is an authoritative source (museum, university,
+  // scientific organisation, government body, established educational publisher) whose text
+  // may support pupil-facing facts. tier "discovery" (Wikipedia, Simple English Wikipedia) may
+  // only help find pages: its text is never evidence, and the authoritative pages it cites are
+  // followed instead.
   var SOURCE_ALLOWLIST = [
-    { id: "nhm", domain: "nhm.ac.uk", label: "Natural History Museum" },
-    { id: "bitesize", domain: "bbc.co.uk", pathPrefix: "/bitesize", label: "BBC Bitesize" },
-    { id: "oak", domain: "thenational.academy", label: "Oak National Academy" },
-    { id: "britannica", domain: "britannica.com", label: "Britannica" },
-    { id: "natgeo-kids", domain: "kids.nationalgeographic.com", label: "National Geographic Kids" },
-    { id: "simple-wikipedia", domain: "simple.wikipedia.org", label: "Simple English Wikipedia" },
-    { id: "wikipedia", domain: "en.wikipedia.org", label: "Wikipedia" },
-    { id: "gov-uk", suffix: ".gov.uk", label: "UK public sector" },
-    { id: "ac-uk", suffix: ".ac.uk", label: "UK academic or museum" }
+    { id: "nhm", domain: "nhm.ac.uk", label: "Natural History Museum", kind: "museum", tier: "evidence" },
+    { id: "amnh", domain: "amnh.org", label: "American Museum of Natural History", kind: "museum", tier: "evidence" },
+    { id: "smithsonian", domain: "si.edu", label: "Smithsonian Institution", kind: "museum", tier: "evidence" },
+    { id: "field-museum", domain: "fieldmuseum.org", label: "Field Museum", kind: "museum", tier: "evidence" },
+    { id: "australian-museum", domain: "australian.museum", label: "Australian Museum", kind: "museum", tier: "evidence" },
+    { id: "ucmp", domain: "ucmp.berkeley.edu", label: "University of California Museum of Paleontology", kind: "university", tier: "evidence" },
+    { id: "royal-society", domain: "royalsociety.org", label: "The Royal Society", kind: "scientific", tier: "evidence" },
+    { id: "geolsoc", domain: "geolsoc.org.uk", label: "Geological Society", kind: "scientific", tier: "evidence" },
+    { id: "bitesize", domain: "bbc.co.uk", pathPrefix: "/bitesize", label: "BBC Bitesize", kind: "publisher", tier: "evidence" },
+    { id: "oak", domain: "thenational.academy", label: "Oak National Academy", kind: "publisher", tier: "evidence" },
+    { id: "britannica", domain: "britannica.com", label: "Britannica", kind: "publisher", tier: "evidence" },
+    { id: "natgeo-kids", domain: "kids.nationalgeographic.com", label: "National Geographic Kids", kind: "publisher", tier: "evidence" },
+    { id: "simple-wikipedia", domain: "simple.wikipedia.org", label: "Simple English Wikipedia", kind: "wiki", tier: "discovery" },
+    { id: "wikipedia", domain: "en.wikipedia.org", label: "Wikipedia", kind: "wiki", tier: "discovery" },
+    { id: "gov-uk", suffix: ".gov.uk", label: "UK public sector", kind: "government", tier: "evidence" },
+    { id: "ac-uk", suffix: ".ac.uk", label: "UK academic or museum", kind: "university", tier: "evidence" }
   ];
+  // Any wiki host is discovery-only, even when a custom allowlist forgets to say so.
+  var DISCOVERY_ONLY_HOST = /(?:^|\.)(?:wikipedia|wikimedia|wikibooks|wikiversity|wiktionary|fandom)\.(?:org|com)$/i;
   var WIKI_SKIP_NAMESPACE = /^(?:Special|Talk|User|User_talk|Wikipedia|File|Image|Template|Help|Category|Portal|Draft|Module|MediaWiki):/i;
   var NOT_EXPLANATORY_TITLE = /\((?:film|movie|disambiguation|band|album|song|video game|tv series|novel|comics?|franchise)\)|^list of\b|^lists of\b/i;
   var NOT_EXPLANATORY_DESCRIPTION = /\b(?:film|movie|television|tv series|documentary series|miniseries|novel|book series|video game|franchise|album|song|band|comic|fictional|theme park|amusement|musical|play by)\b/i;
@@ -63,9 +77,22 @@
         var title = decodeURIComponent(path.replace(/^\/wiki\//, ""));
         if (path.indexOf("/wiki/") !== 0 || WIKI_SKIP_NAMESPACE.test(title)) return { ok: false, reason: "not a wikipedia article" };
       }
-      return { ok: true, rule: rule.id, label: rule.label };
+      var tier = DISCOVERY_ONLY_HOST.test(host) ? "discovery" : (rule.tier || "evidence");
+      return { ok: true, rule: rule.id, label: rule.label, kind: rule.kind || "", tier: tier };
     }
     return { ok: false, reason: "host not on the allowlist" };
+  }
+
+  // The source-tier rule. evidence: text may support a pupil-facing fact. discovery: the page
+  // may be read to find authoritative pages, never quoted as evidence. refused: not allowlisted.
+  function sourceTier(url, list) {
+    var allowed = isAllowedUrl(url, list);
+    if (!allowed.ok) return { tier: "refused", reason: allowed.reason, rule: "", kind: "" };
+    return { tier: allowed.tier, rule: allowed.rule, kind: allowed.kind, label: allowed.label, reason: "" };
+  }
+
+  function isEvidenceUrl(url, list) {
+    return sourceTier(url, list).tier === "evidence";
   }
 
   function allowedDomains(list) {
@@ -210,7 +237,7 @@
     var retrievedAt = now();
     if (/wikipedia\.org$/.test(host)) {
       var title = wikiTitleFromUrl(candidate.url);
-      var api = "https://" + host + "/w/api.php?action=query&prop=extracts&explaintext=1&exsectionformat=wiki&redirects=1&format=json&formatversion=2&titles=" + encodeURIComponent(title);
+      var api = "https://" + host + "/w/api.php?action=query&prop=extracts%7Cextlinks&ellimit=max&explaintext=1&exsectionformat=wiki&redirects=1&format=json&formatversion=2&titles=" + encodeURIComponent(title);
       return fetchFn(api, Object.assign({ headers: { "User-Agent": USER_AGENT, Accept: "application/json" } }, withTimeout(20000))).then(function (res) {
         if (!res.ok) return { ok: false, url: candidate.url, reason: "HTTP " + res.status };
         return res.json().then(function (body) {
@@ -219,7 +246,16 @@
           var canonical = "https://" + host + "/wiki/" + encodeURIComponent(String(page.title).replace(/ /g, "_"));
           var meta = { sourceId: sourceId, url: canonical, title: clean(page.title, 160) + " (" + (host.indexOf("simple.") === 0 ? "Simple English Wikipedia" : "Wikipedia") + ")", retrievedAt: retrievedAt };
           var passages = passagesFromBlocks(wikiBlocks(page.extract), meta);
-          return { ok: passages.length > 0, url: canonical, requestedUrl: candidate.url, title: meta.title, rule: allowed.rule, fetchMethod: "wikipedia-action-api-full-article-extract", fetchUrl: api, retrievedAt: retrievedAt, bytes: page.extract.length, passages: passages, reason: passages.length ? "" : "no passages" };
+          // Discovery only: the article's own cited links on evidence-tier hosts are kept so the
+          // underlying authoritative pages can be fetched; the article text is never evidence.
+          var cited = [];
+          (page.extlinks || []).forEach(function (link) {
+            var href = String((link && (link.url || link["*"])) || "");
+            if (/^\/\//.test(href)) href = "https:" + href;
+            if (href && isEvidenceUrl(href, ports.allowlist) && cited.indexOf(href) === -1) cited.push(href);
+          });
+          passages.forEach(function (passage) { passage.tier = allowed.tier; });
+          return { ok: passages.length > 0, url: canonical, requestedUrl: candidate.url, title: meta.title, rule: allowed.rule, tier: allowed.tier, kind: allowed.kind, citedEvidenceLinks: cited.slice(0, 40), fetchMethod: "wikipedia-action-api-full-article-extract", fetchUrl: api, retrievedAt: retrievedAt, bytes: page.extract.length, passages: passages, reason: passages.length ? "" : "no passages" };
         });
       }).catch(function (error) { return { ok: false, url: candidate.url, reason: "fetch failed: " + (error && error.message || error) }; });
     }
@@ -234,7 +270,8 @@
         if (html.length > MAX_PAGE_BYTES) html = html.slice(0, MAX_PAGE_BYTES);
         var meta = { sourceId: sourceId, url: finalUrl, title: titleFromHtml(html) || clean(candidate.title, 160) || finalUrl, retrievedAt: retrievedAt };
         var passages = passagesFromBlocks(htmlBlocks(html), meta);
-        return { ok: passages.length > 0, url: finalUrl, requestedUrl: candidate.url, title: meta.title, rule: after.rule, fetchMethod: "https-get-html-extract", fetchUrl: finalUrl, retrievedAt: retrievedAt, bytes: html.length, passages: passages, reason: passages.length ? "" : "no readable passages" };
+        passages.forEach(function (passage) { passage.tier = after.tier; });
+        return { ok: passages.length > 0, url: finalUrl, requestedUrl: candidate.url, title: meta.title, rule: after.rule, tier: after.tier, kind: after.kind, fetchMethod: "https-get-html-extract", fetchUrl: finalUrl, retrievedAt: retrievedAt, bytes: html.length, passages: passages, reason: passages.length ? "" : "no readable passages" };
       });
     }).catch(function (error) { return { ok: false, url: candidate.url, reason: "fetch failed: " + (error && error.message || error) }; });
   }
@@ -469,7 +506,8 @@
       refused: [],
       passages: [],
       selectedPassageIds: [],
-      evidencePolicy: "Search results and snippets only locate pages. Evidence is text fetched from the page itself."
+      evidencePolicy: "Search results and snippets only locate pages. Evidence is text fetched from the page itself, and only from evidence-tier sources (museums, universities, scientific organisations, government bodies, established educational publishers). Wikipedia and Simple English Wikipedia are discovery only.",
+      discoverySources: []
     };
     if (!year || year < 1 || year > 6) {
       record.error = "yearGroup must be 1 to 6";
@@ -514,25 +552,54 @@
         var words = keywords(where.replace(/[\/_.-]+/g, " ") + " " + (item.title || "")).map(stem);
         return topicStems.filter(function (word) { return words.indexOf(word) !== -1; }).length;
       }
-      queue = queue.map(function (item, index) { return { item: item, index: index, hits: topicHits(item) }; })
-        .sort(function (a, b) { return (b.hits > 0) - (a.hits > 0) || a.index - b.index; })
+      // Authoritative kinds (museum, university, scientific body, government) are preferred
+      // over educational publishers; discovery-tier pages never take an evidence slot.
+      var KIND_RANK = { museum: 0, university: 0, scientific: 0, government: 0, publisher: 1 };
+      function kindRank(item) { var t = sourceTier(item.url, ports.allowlist); return KIND_RANK[t.kind] == null ? 2 : KIND_RANK[t.kind]; }
+      queue = queue.map(function (item, index) { return { item: item, index: index, hits: topicHits(item), rank: kindRank(item) }; })
+        .sort(function (a, b) { return (b.hits > 0) - (a.hits > 0) || a.rank - b.rank || a.index - b.index; })
         .map(function (row) { return row.item; });
-      var picked = queue.slice(0, maxSources + 4);
+      var evidenceQueue = queue.filter(function (item) { return isEvidenceUrl(item.url, ports.allowlist); });
+      var discoveryQueue = queue.filter(function (item) { return !isEvidenceUrl(item.url, ports.allowlist); }).slice(0, ports.maxDiscovery || 3);
+      var picked = evidenceQueue.slice(0, maxSources + 4);
       var n = 0;
-      return Promise.all(picked.map(function (candidate) {
-        n += 1;
-        return fetchSource(candidate, "S" + n, ports);
-      }));
+      var discovery = discoveryQueue.map(function (candidate, index) { return fetchSource(candidate, "D" + (index + 1), ports); });
+      var evidence = picked.map(function (candidate) { n += 1; return fetchSource(candidate, "S" + n, ports); });
+      return Promise.all([Promise.all(evidence), Promise.all(discovery)]).then(function (both) {
+        var found = both[0];
+        var fetched = {};
+        picked.forEach(function (c) { fetched[String(c.url).replace(/#.*$/, "").replace(/\/$/, "").toLowerCase()] = 1; });
+        record.discoverySources = [];
+        var follow = [];
+        both[1].forEach(function (result) {
+          record.discoverySources.push({ url: result.url, title: result.title || "", tier: "discovery", ok: !!result.ok, reason: result.reason || "", passagesNotEvidence: (result.passages || []).length, citedEvidenceLinks: (result.citedEvidenceLinks || []).length, note: "Discovery only: this page's text is never evidence; its cited authoritative pages are followed." });
+          (result.citedEvidenceLinks || []).forEach(function (href) {
+            var key = String(href).replace(/#.*$/, "").replace(/\/$/, "").toLowerCase();
+            if (fetched[key]) return;
+            fetched[key] = 1;
+            follow.push({ url: href, title: "", provider: "wikipedia-reference", via: result.url, hits: topicHits({ url: href, title: "" }) });
+          });
+        });
+        follow = follow.filter(function (item) { return item.hits > 0; }).slice(0, ports.maxFollowed || 4);
+        follow.forEach(function (item) { record.discovered.push({ url: item.url, title: "", description: "", provider: item.provider, query: "", via: item.via, snippetIgnored: true }); });
+        return Promise.all(follow.map(function (candidate) { n += 1; return fetchSource(candidate, "S" + n, ports); })).then(function (more) {
+          return found.concat(more);
+        });
+      });
     }).then(function (results) {
       var kept = 0;
       (results || []).forEach(function (result) {
+        if (result.ok && result.tier && result.tier !== "evidence") {
+          record.refused.push({ url: result.url, reason: "not an evidence-tier source (discovery only)" });
+          return;
+        }
         if (!result.ok || kept >= maxSources) {
           record.refused.push({ url: result.url, reason: result.ok ? "source cap reached" : result.reason });
           return;
         }
         kept += 1;
         var sourceId = result.passages[0].sourceId;
-        record.sources.push({ sourceId: sourceId, url: result.url, requestedUrl: result.requestedUrl, title: result.title, domain: hostOf(result.url), rule: result.rule, fetchMethod: result.fetchMethod, fetchUrl: result.fetchUrl, retrievedAt: result.retrievedAt, bytes: result.bytes, passageCount: result.passages.length });
+        record.sources.push({ sourceId: sourceId, url: result.url, requestedUrl: result.requestedUrl, title: result.title, domain: hostOf(result.url), rule: result.rule, tier: result.tier || "evidence", kind: result.kind || "", fetchMethod: result.fetchMethod, fetchUrl: result.fetchUrl, retrievedAt: result.retrievedAt, bytes: result.bytes, passageCount: result.passages.length });
         result.passages.forEach(function (passage) { record.passages.push(passage); });
       });
       record.selectedPassageIds = rankPassages(record.passages, request, ports.ranking).map(function (row) { return row.id; });
@@ -544,6 +611,8 @@
   return {
     SOURCE_ALLOWLIST: SOURCE_ALLOWLIST,
     isAllowedUrl: isAllowedUrl,
+    sourceTier: sourceTier,
+    isEvidenceUrl: isEvidenceUrl,
     allowedDomains: allowedDomains,
     htmlBlocks: htmlBlocks,
     wikiBlocks: wikiBlocks,

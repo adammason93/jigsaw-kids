@@ -409,6 +409,16 @@
     return { ok: false, reason: "QUOTE_NOT_FOUND" };
   }
 
+  // Source tiers (patch 6): only evidence-tier passages (museums, universities, scientific
+  // organisations, government bodies, established educational publishers) may support a
+  // pupil-facing fact. Wikipedia and Simple English Wikipedia are discovery only.
+  var DISCOVERY_ONLY_URL = /^https?:\/\/(?:[a-z0-9-]+\.)*(?:wikipedia|wikimedia|wikibooks|wikiversity|wiktionary|fandom)\.(?:org|com)(?:[\/?#]|$)/i;
+  function passageIsEvidence(item) {
+    if (!item) return false;
+    if (item.tier && item.tier !== "evidence") return false;
+    return !DISCOVERY_ONLY_URL.test(String(item.url || ""));
+  }
+
   function researchPassages(ctx) {
     var evidence = ctx && ctx.researchEvidence;
     var list = evidence && Array.isArray(evidence.passages) ? evidence.passages : null;
@@ -437,8 +447,10 @@
     var refs = sourceRefsOf(item);
     var quote = clean(item && (item.quote || item.sourceQuote || item.supportingQuote), 400);
     if (!refs.length) return { ok: false, reason: "UNRESOLVED_SOURCE", refs: [], quote: quote };
-    var found = refs.filter(function (id) { return !!passages[id]; });
-    if (!found.length) return { ok: false, reason: "UNRESOLVED_SOURCE", refs: refs, quote: quote };
+    var resolved = refs.filter(function (id) { return !!passages[id]; });
+    if (!resolved.length) return { ok: false, reason: "UNRESOLVED_SOURCE", refs: refs, quote: quote };
+    var found = resolved.filter(function (id) { return passageIsEvidence(passages[id]); });
+    if (!found.length) return { ok: false, reason: "SOURCE_NOT_EVIDENCE", refs: resolved, quote: quote };
     var verdict = { ok: false, reason: "QUOTE_MISSING" };
     var matched = "";
     found.forEach(function (id) {
@@ -463,7 +475,7 @@
     var evidence = (ctx && ctx.researchEvidence) || {};
     var all = Array.isArray(evidence.passages) ? evidence.passages : [];
     var chosen = Array.isArray(evidence.selectedPassageIds) && evidence.selectedPassageIds.length ? evidence.selectedPassageIds : null;
-    var list = chosen ? all.filter(function (item) { return chosen.indexOf(item.id) !== -1; }) : all;
+    var list = (chosen ? all.filter(function (item) { return chosen.indexOf(item.id) !== -1; }) : all).filter(passageIsEvidence);
     return list.slice(0, 40).map(function (item) {
       return { id: clean(item.id, 40), title: clean(item.title, 160), section: clean(item.section, 120), url: clean(item.url, 300), text: clean(item.text, 1600) };
     });
@@ -685,6 +697,8 @@
             ? "The quote was reworded. The closest sentence in the cited passage is: \"" + near + "\". Copy a quote character for character, or drop the item if that sentence does not support it."
             : "No cited passage contains this quote. Copy a quote character for character from a passage that supports the item, or drop the item.";
         }
+      } else if (row.reason === "SOURCE_NOT_EVIDENCE") {
+        item.fix = "The cited passage is from a discovery-only source (for example Wikipedia). It cannot support a pupil-facing fact. Cite a passage from a museum, university, scientific organisation, government body or educational publisher that states it, or drop the item.";
       } else if (row.reason === "QUOTE_NOT_CONTIGUOUS") {
         item.fix = "Use one contiguous extract with no ellipsis.";
       } else if (row.reason === "QUOTE_TOO_SHORT") {

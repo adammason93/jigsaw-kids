@@ -11,8 +11,9 @@ var Brain = require("../js/lesson-brain.js");
 var ask = "Teach Year 3 about dinosaurs";
 var goal = "Pupils will explain how the teeth, necks and armour of dinosaurs helped them survive.";
 
+// Synthetic passages. Patch 6: all on evidence-tier hosts (Wikipedia is discovery only).
 var passages = [
-  { id: "S1-P01", sourceId: "S1", url: "https://simple.wikipedia.org/wiki/Dinosaur", title: "Dinosaur (Simple English Wikipedia)", section: "Teeth", retrievedAt: "2026-10-06T10:00:00.000Z",
+  { id: "S1-P01", sourceId: "S1", url: "https://www.nhm.ac.uk/discover/dino-teeth.html", title: "Dinosaur teeth | Natural History Museum", section: "Teeth", retrievedAt: "2026-10-06T10:00:00.000Z",
     text: "Meat-eating dinosaurs such as Tyrannosaurus had sharp, curved teeth with jagged edges. The jagged edges worked like a saw, so the teeth could slice through meat." },
   { id: "S2-P01", sourceId: "S2", url: "https://www.nhm.ac.uk/discover/plant-eaters.html", title: "Plant-eating dinosaurs | Natural History Museum", section: "", retrievedAt: "2026-10-06T10:00:01.000Z",
     text: "Many sauropods had long necks. A long neck let a sauropod reach leaves high in the trees that other animals could not reach, so it could feed without moving its huge body very much." },

@@ -33,6 +33,18 @@ var article = [
   "Ankylosaurus had thick bony plates covering its back. These bony plates acted like armour, which means predators found it very hard to bite through to the animal's body."
 ].join("\n");
 
+// Source tiers (patch 6): Wikipedia is discovery only, so the stubbed article cites a museum
+// page and the research step follows it. The museum page carries the same text as HTML.
+var NHM_FOLLOW_URL = "https://www.nhm.ac.uk/discover/dinosaur-features.html";
+function articleHtml(text) {
+  return "<html><head><title>Dinosaur features | Natural History Museum</title></head><body><main>" + String(text).split("\n").map(function (line) {
+    var h = /^==\s*(.+?)\s*==$/.exec(line.trim());
+    if (h) return "<h2>" + h[1] + "</h2>";
+    return line.trim() ? "<p>" + line + "</p>" : "";
+  }).join("") + "</main></body></html>";
+}
+
+
 var goal = "Pupils will explain how the teeth, necks and armour of dinosaurs helped them survive.";
 var state = { research: "wikipedia", wikiHits: true, stages: [], logs: [], systems: [], fetched: [] };
 
@@ -69,8 +81,9 @@ global.fetch = function (url, init) {
     return Promise.resolve(jsonResponse({ query: { search: state.wikiHits ? [{ title: "Dinosaur", snippet: "SNIPPET" }] : [] } }, 200));
   }
   if (href.indexOf("en.wikipedia.org/w/api.php") !== -1 && href.indexOf("list=search") !== -1) return Promise.resolve(jsonResponse({ query: { search: [] } }, 200));
+  if (href.indexOf(NHM_FOLLOW_URL) === 0) return Promise.resolve(jsonResponse(articleHtml(article), 200, { url: href, type: "text/html; charset=utf-8" }));
   if (href.indexOf("simple.wikipedia.org/w/api.php") !== -1 && href.indexOf("prop=extracts") !== -1) {
-    return Promise.resolve(jsonResponse({ query: { pages: [{ title: "Dinosaur", extract: article }] } }, 200));
+    return Promise.resolve(jsonResponse({ query: { pages: [{ title: "Dinosaur", extract: article, extlinks: [{ url: NHM_FOLLOW_URL }] }] } }, 200));
   }
   if (href.indexOf("api.openai.com/v1/chat/completions") !== -1) {
     var body = JSON.parse(init.body);

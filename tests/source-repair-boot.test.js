@@ -12,8 +12,9 @@ var localBoot = fs.readFileSync(path.join(__dirname, "../js/learn-generate-boot.
 var localBrain = fs.readFileSync(path.join(__dirname, "../js/lesson-brain.js"), "utf8");
 var localResearch = fs.readFileSync(path.join(__dirname, "../js/source-research.js"), "utf8");
 
-function jsonResponse(body, status) {
-  return { ok: status >= 200 && status < 300, status: status, headers: { get: function () { return "application/json"; } },
+function jsonResponse(body, status, extra) {
+  extra = extra || {};
+  return { ok: status >= 200 && status < 300, status: status, url: extra.url, headers: { get: function () { return extra.type || "application/json"; } },
     json: function () { return Promise.resolve(body); }, text: function () { return Promise.resolve(typeof body === "string" ? body : JSON.stringify(body)); } };
 }
 function chat(obj) { return Promise.resolve(jsonResponse({ choices: [{ message: { content: JSON.stringify(obj) } }] }, 200)); }
@@ -27,6 +28,18 @@ var article = [
   "", "== Feathers ==",
   "Most of the smaller dinosaurs had feathers, and were probably warm-blooded."
 ].join("\n");
+
+// Source tiers (patch 6): Wikipedia is discovery only, so the stubbed article cites a museum
+// page and the research step follows it. The museum page carries the same text as HTML.
+var NHM_FOLLOW_URL = "https://www.nhm.ac.uk/discover/dinosaur-features.html";
+function articleHtml(text) {
+  return "<html><head><title>Dinosaur features | Natural History Museum</title></head><body><main>" + String(text).split("\n").map(function (line) {
+    var h = /^==\s*(.+?)\s*==$/.exec(line.trim());
+    if (h) return "<h2>" + h[1] + "</h2>";
+    return line.trim() ? "<p>" + line + "</p>" : "";
+  }).join("") + "</main></body></html>";
+}
+
 var goal = "Pupils will understand how the teeth, necks and armour of dinosaurs helped them survive.";
 
 var state = { research: "wikipedia", repairGood: true, firstOnePair: false, stages: [], logs: [], calls: [] };
@@ -84,7 +97,8 @@ global.fetch = function (url, init) {
   if (href.indexOf("/rest/v1/organisation_members") !== -1) return Promise.resolve(jsonResponse([{ role: "teacher", status: "active" }], 200));
   if (href.indexOf("simple.wikipedia.org/w/api.php") !== -1 && href.indexOf("list=search") !== -1) return Promise.resolve(jsonResponse({ query: { search: [{ title: "Dinosaur" }], pages: [{ title: "Dinosaur", description: "group of reptiles" }] } }, 200));
   if (href.indexOf("en.wikipedia.org/w/api.php") !== -1) return Promise.resolve(jsonResponse({ query: { search: [] } }, 200));
-  if (href.indexOf("simple.wikipedia.org/w/api.php") !== -1 && href.indexOf("prop=extracts") !== -1) return Promise.resolve(jsonResponse({ query: { pages: [{ title: "Dinosaur", extract: article }] } }, 200));
+  if (href.indexOf(NHM_FOLLOW_URL) === 0) return Promise.resolve(jsonResponse(articleHtml(article), 200, { url: href, type: "text/html; charset=utf-8" }));
+  if (href.indexOf("simple.wikipedia.org/w/api.php") !== -1 && href.indexOf("prop=extracts") !== -1) return Promise.resolve(jsonResponse({ query: { pages: [{ title: "Dinosaur", extract: article, extlinks: [{ url: NHM_FOLLOW_URL }] }] } }, 200));
   if (href.indexOf("api.openai.com/v1/chat/completions") !== -1) {
     var body = JSON.parse(init.body);
     var system = body.messages[0].content;

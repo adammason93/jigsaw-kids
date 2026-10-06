@@ -183,14 +183,18 @@ R.researchTopic(request, { fetch: stubFetch, providers: [offTopicFirst], maxSour
 });
 
 R.researchTopic(request, { fetch: stubFetch, providers: [fakeProvider], now: function () { return "2026-10-06T10:00:00.000Z"; } }).then(function (record) {
-  assert.deepStrictEqual(record.sources.map(function (s) { return s.url; }).sort(), ["https://simple.wikipedia.org/wiki/Dinosaur", "https://www.nhm.ac.uk/discover/dino-teeth.html"]);
+  // Source tiers (patch 6): Simple English Wikipedia is discovery only. It is read, but it is not
+  // an evidence source and none of its text becomes a passage.
+  assert.deepStrictEqual(record.sources.map(function (s) { return s.url; }).sort(), ["https://www.nhm.ac.uk/discover/dino-teeth.html"]);
+  assert.deepStrictEqual(record.discoverySources.map(function (s) { return s.url; }), ["https://simple.wikipedia.org/wiki/Dinosaur"]);
+  assert.ok(record.passages.every(function (p) { return p.tier === "evidence" && !/wikipedia/.test(p.url); }));
   var reasons = record.refused.map(function (r) { return r.url + " :: " + r.reason; }).join("\n");
   assert.ok(/dinofacts.*not on the source allowlist|dinofacts.*allowlist/.test(reasons), reasons);
   assert.ok(/moved.*redirected off the allowlist/.test(reasons), reasons);
   assert.ok(/movie.*not an explanatory article/.test(reasons), reasons);
   // Regression (live run 1): media pages found by Wikipedia search are refused by their description.
   assert.ok(/Walking_with_Dinosaurs.*television documentary series/.test(reasons), reasons);
-  assert.ok(record.passages.length >= 2);
+  assert.ok(record.passages.length >= 1);
   record.passages.forEach(function (p) {
     assert.ok(/^S\d+-P\d\d$/.test(p.id));
     assert.strictEqual(p.text.indexOf("SNIPPET"), -1);
