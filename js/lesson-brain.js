@@ -4347,6 +4347,57 @@
     });
   }
 
+  // Patch 9, research mode only: per-question repair targets. A question's failures are the
+  // per-question issues accept() recorded for it plus any issue that names it ("Question 2").
+  // Issues that name no question and belong to no question are slot-wide.
+  function repairTargets(activity, failure, questionFailures) {
+    var map = questionFailures || {};
+    var owned = [];
+    var questions = checkQuestionsOf(activity).map(function (q, i) {
+      var label = new RegExp("\\bQuestion " + (i + 1) + "\\b");
+      var failing = [];
+      var own = [q.prompt, q.correct, q.explain].concat((q.choices || []).map(function (c) { return typeof c === "string" ? c : (c && c.text) || ""; })).join(" \n ").toLowerCase();
+      // A slot-level issue that quotes this question's words ("effectively", "Why did ...") is its own.
+      function quotes(f) { return (String(f).match(/"([^"]{3,})"/g) || []).some(function (m) { return own.indexOf(m.slice(1, -1).toLowerCase()) !== -1; }); }
+      (map[i] || []).concat((failure || []).filter(function (f) { return label.test(f) || (!/\bQuestion \d+\b/.test(f) && quotes(f)); })).forEach(function (f) {
+        if (failing.indexOf(f) === -1) failing.push(f);
+        if (owned.indexOf(f) === -1) owned.push(f);
+      });
+      return { id: q.id, prompt: q.prompt, choices: q.choices, correct: q.correct, explain: q.explain, failing: failing };
+    });
+    var slotFailures = (failure || []).filter(function (f) { return owned.indexOf(f) === -1 && !/\bQuestion \d+\b/.test(f); });
+    return { questions: questions, slotFailures: slotFailures };
+  }
+
+  // Patch 9, research mode only, after the slot repair: a check question that failed nothing (and
+  // no slot-wide check failure) keeps its first version, so a repair cannot break a passing
+  // question; and a repaired slot that came back unchanged is rejected.
+  function targetRepair(previous, merged, accepted) {
+    var before = readSlotMap(previous);
+    var after = merged && merged.slots ? merged.slots : {};
+    var notes = [];
+    var activity = ((previous && previous.activities) || []).filter(function (a) { return a && a.slotId === "check"; })[0] || null;
+    var failure = (accepted && accepted.slotIssues && accepted.slotIssues.check) || [];
+    var kept = [];
+    if (before.check && after.check && Array.isArray(before.check.questions) && Array.isArray(after.check.questions) && (accepted.slotIds || []).indexOf("check") !== -1) {
+      var targets = repairTargets(activity || { config: { questions: before.check.questions } }, failure, accepted.issues && accepted.issues.questionFailures);
+      if (!targets.slotFailures.length) {
+        targets.questions.forEach(function (row, i) {
+          if (!row.failing.length && before.check.questions[i] && after.check.questions[i]) {
+            after.check.questions[i] = JSON.parse(JSON.stringify(before.check.questions[i]));
+            kept.push(i + 1);
+          }
+        });
+      }
+    }
+    (accepted.slotIds || []).forEach(function (id) {
+      if (before[id] && after[id] && JSON.stringify(before[id]) === JSON.stringify(after[id]) && ((accepted.slotIssues || {})[id] || []).length) {
+        notes.push("The repair returned the " + id + " slot unchanged. A repair must change what failed.");
+      }
+    });
+    return { merged: merged, kept: kept, unchanged: notes };
+  }
+
   function slotRepairBrief(ctx, slotIds, issues, previous) {
     var skeleton = (ctx && ctx.lessonSkeleton) || [];
     var wanted = slotIds && slotIds.length ? slotIds : [];
@@ -4422,6 +4473,14 @@
           return { id: beat.id, move: beat.move, knowledgeRefs: beat.knowledgeRefs || [] };
         })[0] || null;
       }
+      if (slot.id === "check" && researchMode(ctx) && activity) {
+        var targeted = repairTargets(activity, spec.failure, issues && issues.questionFailures);
+        spec.currentQuestions = targeted.questions.map(function (row, i) {
+          var id = spec.output && spec.output.questions && spec.output.questions[i] ? spec.output.questions[i].id : row.id;
+          return { id: id, prompt: row.prompt, choices: row.choices, correct: row.correct, explain: row.explain, failing: row.failing };
+        });
+        spec.slotFailures = targeted.slotFailures;
+      }
       if (slot.id === "check") {
         var intent = ctx && ctx.lessonBrief && ctx.lessonBrief.teacherIntent;
         specs[specs.length - 1].learningGoal = learningGoalOf(ctx);
@@ -4464,6 +4523,7 @@
       instruction += " The CHECK slot must stay a quiz. Rewrite only the listed CHECK questions. Do not rewrite any other stage. Year: " + (checkSpec.year || "") + ". Subject: " + (checkSpec.subject || "") + ". Learning goal: " + (checkSpec.learningGoal || "the requested learning") + ". Required evidence: " + (checkSpec.requiredEvidence || "the required evidence") + ". The evidence failure is: " + ((checkSpec.failure || []).join(" ") || "the correct answer is not sufficient evidence") + ". Each replacement question must make a correct answer sufficient evidence of the relationship it tests. Do not merely ask for one component when that question's relationship needs the connection. If the required evidence names more than one necessary part, the correct answer must include every part. Use words this year group can read. Do not make a question harder than the relationship it tests.";
       if (checkSpec.output && checkSpec.output.questions) instruction += " Return questions for exactly these ids, in this order: " + checkSpec.output.questions.map(function (item) { return item.id; }).join(", ") + ". Do not add or remove a question. Rewrite only a question whose relationship failed. Copy a question that already passed.";
       if (checkSpec.retrieveBeat) instruction += " The quiz is the retrieve beat " + checkSpec.retrieveBeat.id + ". Do not return cue or text for that beat.";
+      if (checkSpec.currentQuestions) instruction += " currentQuestions shows every question as it is now and the checks it failed (failing). Copy a question whose failing list is empty exactly as it is. Rewrite a question that has failing items so it fixes every one of them; the new version must differ from the old one. slotFailures, if any, apply to the whole quiz. Each question keeps its own wrong choices: never give two questions the same choices.";
     }
     if (specs.some(function (spec) { return spec.slotType !== "APPLY"; })) {
       var otherFailures = [];
@@ -8764,9 +8824,17 @@
     rows = rows.concat(vocabularyIssues([activity], ctx));
     rows = rows.concat(teleologyIssues([activity]));
     rows = rows.concat(applyTaskShapeIssues(task, unit));
+    // Patch 9: a Try it repair that returns the task it was asked to fix is rejected.
+    var before = ctx && ctx.applyTaskPrevious;
+    if (before && JSON.stringify(taskCore(before)) === JSON.stringify(taskCore(task))) rows.push({ text: "The Try it repair returned the same task unchanged. A repair must change what failed." });
     var out = [];
     rows.forEach(function (r) { if (out.indexOf(r.text) === -1) out.push(r.text); });
     return out;
+  }
+
+  function taskCore(task) {
+    task = task || {};
+    return { beats: (task.beats || []).map(function (b) { return b && b.text; }), newCase: task.newCase && task.newCase.text, instruction: task.instruction, choices: (task.choices || []).map(function (c) { return [c.text, c.correct, c.feedback]; }), successText: task.successText };
   }
 
   // Patch 8 (research mode only; the Try it call runs only with research).
@@ -8875,6 +8943,9 @@
     }
     var owners = {};
     var qualityWarnings = [];
+    // Patch 9, research mode only: which check question each per-question issue belongs to, so the
+    // slot repair can rewrite only the questions that failed (see slotRepairBrief).
+    var questionFailures = {};
     var pupilDiagnostics = [];
     var issues = educationalIssues(activities, issueCtx, owners);
     if (ctx.lessonSkeleton && ctx.lessonSkeleton.some(function (slot) { return slot.beats && slot.beats.length; })) {
@@ -8950,6 +9021,7 @@
               else {
                 issues.push(issue);
                 ownIssue(owners, activity.slotId, issue);
+                if (researchMode(ctx)) (questionFailures[index] = questionFailures[index] || []).push(issue);
               }
             });
           });
@@ -8974,6 +9046,7 @@
       var structure = ctx.lessonSkeleton ? skeletonDrift(activities, ctx.lessonSkeleton) : [];
       var reported = structure.concat(issues);
       reported.slotIssues = slotIssuesFrom(reported, activities, owners);
+      if (ctx.lessonSkeleton && researchMode(ctx)) reported.questionFailures = questionFailures;
       return { ok: false, structuralOk: !structure.length, slotIds: slotIdsFrom(reported, activities), slotIssues: reported.slotIssues, issues: reported, previous: parsed, applyAlignment: applyReport, checkAlignment: checkReport, qualityWarnings: qualityWarnings, pupilBeatDiagnostics: pupilDiagnostics };
     }
     var objectiveSource = parsed.objectives || parsed.learningObjectives || parsed.learningObjective || parsed.objective || ctx.learningObjectives || [];
@@ -9211,10 +9284,12 @@
         repairedSlots = (accepted.slotIds || []).slice();
         return Promise.resolve(ports.repair(accepted)).then(function (second) {
           var merged = mergeSlotContent(accepted.previous, second);
+          var targeting = auditing ? targetRepair(accepted.previous, merged, accepted) : null;
           heldApply = null;
           warnAfterRepair = true;
           return audited(merged).then(function () {
           var repaired = accept(merged, policyCtx());
+          if (targeting && targeting.unchanged.length) repaired = Object.assign({}, repaired, { ok: false, issues: (repaired.issues || []).concat(targeting.unchanged) });
           return judged(merged, repaired).then(function (secondJudge) {
             if (secondJudge && secondJudge.result) repaired = secondJudge.result;
             if (repaired.ok) return pack(repaired, true);
@@ -9481,6 +9556,8 @@
     meaningCheck: meaningCheck,
     applyMeaningIssues: applyMeaningIssues,
     pictureCountIssues: pictureCountIssues,
+    repairTargets: repairTargets,
+    targetRepair: targetRepair,
     applyTaskShapeIssues: applyTaskShapeIssues,
     sameRelationship: sameRelationship,
     packNames: packNames,

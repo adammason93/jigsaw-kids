@@ -594,8 +594,9 @@ globalThis.handleGenerate = async (req) => {
           } catch (error) {
             taskError = error && error.category || "error";
           }
+          const previousTask = task;
           task = brain.parseApplyTask(taskRaw, taskUnit);
-          taskIssues = taskError ? ["The Try it call failed (" + taskError + ")."] : brain.applyTaskIssues(task, taskUnit, Object.assign({}, framed, { applyTaskTaught: taught }));
+          taskIssues = taskError ? ["The Try it call failed (" + taskError + ")."] : brain.applyTaskIssues(task, taskUnit, Object.assign({}, framed, { applyTaskTaught: taught, applyTaskPrevious: previousTask }));
           logMeta({ stage: "APPLY_TASK", attemptId, model, pass, taskMs: Date.now() - taskStarted, unitId: taskUnit.unitId, raw: taskRaw == null ? null : JSON.stringify(taskRaw).slice(0, 6000), parsed: task, issues: taskIssues.slice(0, 12) });
           if (!taskIssues.length) break;
         }
