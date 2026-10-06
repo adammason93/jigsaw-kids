@@ -8991,6 +8991,30 @@
     return rows;
   }
 
+  // Patch 9, research mode only: the frozen lineage rule (a teach beat that cites a unit's
+  // explanation must state the feature's job in specific words) also runs before the slot
+  // repair, pinned to the teach beat, so the repair can fix it. Live run 23 passed every other
+  // check and then failed lineage after the repair on "These webbed feet allowed the dinosaur to
+  // swim." (one job word). The rule itself is unchanged and still runs after the repair.
+  function teachLineageIssues(activities, ctx) {
+    if (!ctx || !ctx.lessonPlan || !ctx.knowledgePack || typeof unitLineage !== "function") return [];
+    var lin;
+    try { lin = unitLineage({ lessonPlan: JSON.parse(JSON.stringify(ctx.lessonPlan)), activities: JSON.parse(JSON.stringify(activities || [])) }, ctx); } catch (e) { return []; }
+    if (!lin || lin.skipped) return [];
+    var units = readyUnits(assessPackReadiness(ctx.knowledgePack, ctx.knowledgeSelection, ctx));
+    var teach = (activities || []).filter(function (a) { return a && a.slotId === "teach"; })[0] || null;
+    var rows = [];
+    (lin.units || []).forEach(function (row) {
+      if ((row.problems || []).indexOf("no teaching beat cites its explanation and states what the feature does") === -1) return;
+      var unit = units.filter(function (u) { return u.unitId === row.unitId; })[0] || {};
+      var points = ((ctx.lessonPlan && ctx.lessonPlan.learningMap) || []).filter(function (p) { return p && (p.claimIds || []).indexOf(row.explanationClaimId) !== -1; }).map(function (p) { return p.id; });
+      var beats = ((teach && teach.beats) || []).filter(function (b) { return b && (b.knowledgeRefs || []).some(function (r) { return points.indexOf(r) !== -1; }); });
+      var where = beats.length ? "beat " + beats[beats.length - 1].id + " (\"" + clean(beats[beats.length - 1].pupil && beats[beats.length - 1].pupil.text, 120) + "\")" : "the beat for this explanation";
+      rows.push({ slotId: "teach", text: "The teach slot " + where + " cites the explanation for " + clean(unit.feature || row.feature, 60) + " but does not say what the feature does in enough specific words (the feature's own words, the topic word and a word like it, these or its do not count). Say it as one full sentence with the animal's name and what the feature does, as the explanation does: \"" + clean(unit.explanation, 160) + "\"" });
+    });
+    return rows;
+  }
+
   function researchRuleIssues(activities, ctx) {
     if (!researchMode(ctx)) return [];
     var units = researchUnits(ctx);
@@ -9000,6 +9024,7 @@
     rows = rows.concat(teleologyIssues(activities));
     rows = rows.concat(pictureCountIssues(activities));
     rows = rows.concat(questionIssues(activities, ctx, units));
+    rows = rows.concat(teachLineageIssues(activities, ctx));
     var apply = (activities || []).filter(function (a) { return a.slotId === "apply"; })[0];
     if (apply) rows = rows.concat(applyChoiceIssues(apply, Object.assign({}, ctx, { __activities: activities }), units));
     return rows;
@@ -9666,6 +9691,7 @@
     assessPackReadiness: assessPackReadiness,
     statesEnabledJob: statesEnabledJob,
     unitLineage: unitLineage,
+    teachLineageIssues: teachLineageIssues,
     researchMode: researchMode,
     genericResultOnly: genericResultOnly,
     researchUnits: researchUnits,
