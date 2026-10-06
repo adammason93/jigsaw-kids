@@ -504,8 +504,10 @@
 }
 .lesson.has-world .lesson-choice.is-right,
 .lesson.has-fallback .lesson-choice.is-right { color: #fff; background: rgba(20, 27, 77, .9); border-color: #ffc53d; }
+/* The feedback card keeps its light background over a picture, so its text stays dark (white on
+   cream was unreadable on the live class screen). */
 .lesson.has-world .lesson-feedback,
-.lesson.has-fallback .lesson-feedback { color: #fff; }
+.lesson.has-fallback .lesson-feedback { color: #141b4d; }
 .lesson-clues { margin: 0; font-weight: 800; }
 .lesson-clues strong { margin-left: 8px; }
 .lesson-recap { margin: 8px 0 0; padding-left: 1.2rem; line-height: 1.4; }
