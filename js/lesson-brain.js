@@ -4666,6 +4666,40 @@
     return false;
   }
 
+  // Verb parity for the learning-map reason check (source-grounded lesson PR, its own commit).
+  // statesRelation accepts "allowed" but not "allows", "let", "lets" or "enables", so "Straight
+  // back legs allowed them to use less energy" passed and "Straight back legs let them use less
+  // energy" did not, for the same sourced mechanism. These verbs now count when they state a job:
+  // an object and at least one specific word for what the feature did. Vague jobs (survive, live,
+  // do well, adapt) and a bare object ("let sauropods.") still fail. The help family is unchanged:
+  // the existing contract treats "helps sharks stay afloat" as an outcome, not a reason.
+  var ENABLE_VERB = /\b(?:allows?|allowing|lets?|letting|enables?|enabled|enabling)\b\s+([^.;!?]*)/i;
+  var ENABLE_PRONOUN = /^(?:them|it|they|him|her|us|you)\b/i;
+  var VAGUE_JOB = { survive: 1, survives: 1, surviving: 1, survival: 1, live: 1, lives: 1, living: 1, lived: 1, adapt: 1, adapts: 1, adapted: 1, adapting: 1, thrive: 1, thrived: 1, succeed: 1, successful: 1, success: 1, well: 1, better: 1, good: 1, things: 1, habitat: 1, habitats: 1, environment: 1, environments: 1 };
+
+  function statesEnabledJob(text) {
+    var found = String(text || "").match(ENABLE_VERB);
+    if (!found) return false;
+    var rest = found[1].replace(/^\s+/, "");
+    var specific = contentWords(rest).filter(function (word) { return !VAGUE_JOB[word]; });
+    return specific.length >= (ENABLE_PRONOUN.test(rest) ? 1 : 2);
+  }
+
+  // "so the jaws could open wide" states the job the same way "so that the jaws could open
+  // wide" does, and the readiness gate already reads it as a mechanism (statesMechanism). Live
+  // run 8 lost a ready NHM pair at the plan stage for this phrasing alone. Same specificity rule.
+  var SO_COULD = /\bso\b\s+([^.;!?]{0,60}?)\b(?:can|could)\b\s+([^.;!?]*)/i;
+
+  function statesSoCould(text) {
+    var found = String(text || "").match(SO_COULD);
+    if (!found) return false;
+    return contentWords(found[2]).filter(function (word) { return !VAGUE_JOB[word]; }).length >= 1;
+  }
+
+  function statesReasonOrJob(text) {
+    return statesRelation(text) || statesEnabledJob(text) || statesSoCould(text);
+  }
+
   function statesFunction(text) {
     var value = String(text || "");
     return /\b(helps|helped|helping|help|reduces|reduced|reducing|reduce|allows|allowed|allowing|allow|enables|enabled|enabling|enable|causes|caused|causing|cause|affects|affected|affecting|affect|lets|let|makes|made|making|make|changes|changed|changing|change|aids|aided|aiding|aid)\b\s+[a-z0-9]/i.test(value);
@@ -4765,7 +4799,7 @@
   }
 
   function answersContribution(text, goal, row) {
-    if (!statesFunction(text) && !statesRelation(text)) return false;
+    if (!statesFunction(text) && !statesRelation(text) && !statesSoCould(text)) return false;
     if (adaptationAsk(goal)) {
       var head = contributionHead(goal);
       if (head) {
@@ -6104,10 +6138,10 @@
     if (shallow) issues.push("The learning map needs more connected learning points.");
     if (thinStrands && scope.scope === "broad" && !seekingDepth && depth.strandsRequired >= 2) issues.push("The learning map needs two or more developed strands for this broad topic.");
     else if (thinStrands) issues.push("The learning map needs developed strands that explain how or why, not only a name.");
-    if (seeksContribution(relationCtx, objective) && !answered && !rawEntries.some(function (item) { return statesRelation(item.text); })) {
+    if (seeksContribution(relationCtx, objective) && !answered && !rawEntries.some(function (item) { return statesReasonOrJob(item.text); })) {
       issues.push("The key knowledge states the outcome, not the reason.");
     }
-    if (planNeedsRelation(relationCtx, objective) && !rawEntries.some(function (item) { return statesRelation(item.text); })) {
+    if (planNeedsRelation(relationCtx, objective) && !rawEntries.some(function (item) { return statesReasonOrJob(item.text); })) {
       issues.push("The key knowledge states the outcome, not the reason.");
     }
     if (planNeedsProcess(relationCtx, objective) && !rawEntries.some(function (item) { return statesRelation(item.text); })) {
@@ -8304,6 +8338,8 @@
     normaliseKnowledgePack: normaliseKnowledgePack,
     selectPackForLesson: selectPackForLesson,
     assessPackReadiness: assessPackReadiness,
+    statesEnabledJob: statesEnabledJob,
+    statesSoCould: statesSoCould,
     knowledgePackLog: knowledgePackLog,
     quoteInPassage: quoteInPassage,
     sourceEntailmentBrief: sourceEntailmentBrief,
