@@ -972,12 +972,25 @@
     return "The explorers are present-day people. Dinosaurs died out millions of years before any people lived, so never show a person beside a living dinosaur. When people are in the scene, show dinosaurs only as fossils, skeletons, or museum models. A scene of living dinosaurs has no people in it. Give every animal the body features the lesson teaches, in correct proportions.";
   }
 
+  // A deep-time place that is the living past (not a fossil dig, museum or model) cannot hold the
+  // present-day explorers. Live run 9 sent "Place: a prehistoric landscape filled with dinosaurs"
+  // together with three character sheets, and all four pictures put children beside living
+  // dinosaurs despite the guard sentence. For such a place the characters are left out entirely.
+  var PAST_AS_EVIDENCE = /\b(?:fossil\w*|skeletons?|museum\w*|models?|replicas?|casts?|dig|digs|excavat\w*|bones?|footprints?|trackways?|exhibits?|gallery|galleries)\b/i;
+  function livingPastScene(adventure, place) {
+    if (!periodGuard(adventure)) return false;
+    var text = String(place || "");
+    return DEEP_TIME.test(text) && !PAST_AS_EVIDENCE.test(text);
+  }
+  var NO_PEOPLE_LINE = "This picture shows living dinosaurs in their own time, millions of years before people, so there are no people in it: no children, no explorers, no characters, no human figures. Show the animals and the body features the lesson teaches clearly.";
+
   function buildAdventurePrompt(adventure, asset, characters) {
     var shot = shotFor(asset) || {};
     var brief = (asset && asset.brief) || {};
     var story = (adventure && adventure.storyPlan) || {};
     var year = yearOf(adventure);
     var place = brief.setting || (story.continuity && story.continuity.setting) || story.setting || (adventure && adventure.topic) || "the adventure";
+    var noPeople = livingPastScene(adventure, place);
     var topic = String((adventure && (adventure.topic || adventure.subject)) || "").toLowerCase();
     var guard = /volcano|magma|erupt/.test(topic) ? "" : "Draw this lesson's own place. Do not add a volcano, a harbour science station, or another lesson's landmark.";
     return [
@@ -990,8 +1003,8 @@
       periodGuard(adventure),
       "Place: " + place + ".",
       continuityLine(story),
-      avatarDirection(adventure),
-      (adventure && adventure.avatarRefs && adventure.avatarRefs.length) ? "" : describeCharacters(characters || []),
+      noPeople ? NO_PEOPLE_LINE : avatarDirection(adventure),
+      noPeople || (adventure && adventure.avatarRefs && adventure.avatarRefs.length) ? "" : describeCharacters(characters || []),
       "Camera for this moment only: " + (shot.shotType || "a clear scene") + ", " + (shot.cameraDistance || "medium") + " distance. Change pose, expression, and staging.",
       asset && asset.id === "opening" ? "Arrival photograph. A wide view of the whole place. The characters are small in the landscape. This is not a close-up." : "",
       asset && asset.id === "discovery" ? "Teaching photograph. Move much closer than the arrival. A cutaway or a clear model of the idea fills the frame. Use a different angle. The characters stay small at the edge, looking at the idea." : "",
@@ -1226,6 +1239,7 @@
     charactersForAdventure: charactersForAdventure,
     buildAdventurePrompt: buildAdventurePrompt,
     periodGuard: periodGuard,
+    livingPastScene: livingPastScene,
     stampActivities: stampActivities,
     scheduleVisualAssets: scheduleVisualAssets,
     attachResult: attachResult,
