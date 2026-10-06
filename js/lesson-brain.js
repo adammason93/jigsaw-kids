@@ -501,6 +501,7 @@
     Heavy: 1, Steep: 1, High: 1, Low: 1, Large: 1, Small: 1,
     Act: 1, Church: 1, King: 1, Queen: 1, Pope: 1, Sir: 1, Saint: 1, Lord: 1
   };
+  var PLACE_LEAD = { At: 1, In: 1, On: 1, Near: 1, Around: 1, Above: 1, Below: 1, Beside: 1, From: 1, Of: 1, About: 1, And: 1, But: 1, So: 1, Because: 1, After: 1, Before: 1, During: 1, While: 1, Do: 1, Does: 1, Did: 1, Are: 1, Is: 1, Was: 1, Were: 1 };
   var LOCAL_GEO = /\b(?:geolog\w*|stratum|strata|shale|limestone|sandstone|chalk|granite|slate|bedrock|sediment\w*|minerals?|escarpments?|clay|rock\s+layers?|layers?\s+of\s+\w+)\b/i;
   var LOCAL_EVENT = /\b(?:landslips?|landslides?|rockfalls?|subsidence|erupt(?:ed|ion|s)?|earthquakes?|flood(?:ed|s|ing)?|collapsed|collapse|slippage)\b/i;
   var LOCAL_CAUSE = /\b(?:caused|causes|causing|because|due to|so that|formed|forming|formation|saturat\w*|erod\w*|slipped|slips)\b/i;
@@ -528,12 +529,22 @@
   function properPlaces(text) {
     var value = String(text || "");
     var found = [];
-    function add(name) {
+    function add(name, fromRun) {
       var label = clean(name, 60).replace(/['’]s$/, "");
       if (!label || label.length < 3) return;
       var parts = label.split(/\s+/);
-      if (parts.length === 1 && PLACE_STOP[parts[0]]) return;
+      // A leading preposition or stop word is not part of a place name ("At Mam Tor").
+      while (parts.length > 1 && (PLACE_STOP[parts[0]] || PLACE_LEAD[parts[0]])) parts.shift();
+      label = parts.join(" ");
+      if (label.length < 3) return;
+      if (parts.length === 1 && (PLACE_STOP[parts[0]] || PLACE_LEAD[parts[0]])) return;
       if (parts.every(function (part) { return PLACE_STOP[part]; })) return;
+      // A run of capitalised words whose every other word also appears in lower case
+      // in the same text is title case ("Geography How Do Landslides Happen"), not a
+      // proper noun. Applies to runs and to "in X" matches; possessives and "The X" are unchanged.
+      if (fromRun && parts.every(function (part) {
+        return PLACE_STOP[part] || new RegExp("(^|[^A-Za-z'’])" + part.toLowerCase() + "([^A-Za-z'’]|$)").test(value);
+      })) return;
       found.push(label);
     }
     var multi = /\b([A-Z][A-Za-z'’]+(?:\s+[A-Z][A-Za-z'’]+){1,3})\b/g;
@@ -541,8 +552,8 @@
     var poss = /\b([A-Z][A-Za-z'’]+(?:\s+[A-Z][A-Za-z'’]+){0,2})['’]s\b/g;
     var theName = /\bThe\s+([A-Z][A-Za-z'’]+)\b/g;
     var match;
-    while ((match = multi.exec(value))) add(match[1]);
-    while ((match = prep.exec(value))) add(match[1]);
+    while ((match = multi.exec(value))) add(match[1], true);
+    while ((match = prep.exec(value))) add(match[1], true);
     while ((match = poss.exec(value))) add(match[1]);
     while ((match = theName.exec(value))) add(match[1]);
     return collapsePlaces(found);
@@ -575,7 +586,12 @@
 
   function requestNeedsPlaceBound(request, extraPlaces) {
     var text = String(request || "");
-    var places = collapsePlaces(properPlaces(text).concat(extraPlaces || []));
+    var lower = text.toLowerCase();
+    // Pack place names only join the request's places when the request mentions them,
+    // so a longer pack name ("At Mam Tor") cannot collapse a request place away.
+    var places = collapsePlaces(properPlaces(text).concat((extraPlaces || []).filter(function (place) {
+      return lower.indexOf(String(place).toLowerCase()) !== -1;
+    })));
     var mentioned = places.filter(function (place) {
       return text.toLowerCase().indexOf(place.toLowerCase()) !== -1;
     });
@@ -598,9 +614,14 @@
     ctx = ctx || {};
     var brief = ctx.lessonBrief || {};
     var intent = brief.teacherIntent || {};
+    // Each field ends a sentence, so a capitalised run cannot cross from one field into
+    // the next ("Landslides" + "Students should ..." is not the place "Landslides Students").
     return clean([
       ctx.lessonText, ctx.teacherInstructions, ctx.topic, brief.rawRequest, brief.learningGoal, intent.learningGoal
-    ].join(" "), 4000);
+    ].map(function (part) {
+      var text = clean(part, 4000);
+      return !text || /[.!?…]["'’”)\]]*$/.test(text) ? text : text + ".";
+    }).filter(Boolean).join(" "), 4000);
   }
 
   function classificationCount(text) {
