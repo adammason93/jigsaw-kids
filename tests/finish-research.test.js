@@ -126,8 +126,8 @@ var request = { lessonText: "Teach Year 3 about dinosaurs", yearGroup: "Year 3",
     assert.strictEqual(listed.causalLink.result, "fail", "a quote with no link words does not state the link");
 
     // Negative and positive vision rows.
-    var good = Finish.teachingVisionRow({ id: "teach-u1", framing: "teaching", slotId: "teach", view: "comparison", feature: "legs" }, "", { featureVisible: "yes", matchesBeat: "yes", humansWithLivingDinosaurs: false, nonGroupAnimalShownAsGroup: false, mixedPeriods: false, anatomyProblems: [], textInImage: false, childSafety: "ok" });
-    assert.strictEqual(good.ok, true);
+    var good = Finish.teachingVisionRow({ id: "teach-u1", framing: "teaching", slotId: "teach", view: "comparison", feature: "legs" }, "", { featureVisible: "yes", matchesBeat: "yes", humansWithLivingDinosaurs: false, nonGroupAnimalShownAsGroup: false, mixedPeriods: false, anatomyProblems: [], textInImage: false, childSafety: "ok", animalKinds: 2, featureBox: { left: 60, top: 10, width: 35, height: 40 } });
+    assert.strictEqual(good.ok, true, good.flags.join("; "));
     var bad = Finish.teachingVisionRow({ id: "teach-u1", framing: "teaching", slotId: "teach" }, "", { featureVisible: "partly", mixedPeriods: true, nonGroupAnimalShownAsGroup: true, humansWithLivingDinosaurs: true, childSafety: "ok" });
     assert.deepStrictEqual(bad.flags.slice(0, 4), ["feature visible: partly", "person beside a living dinosaur", "non-group animal shown as the lesson group", "animals from different periods together"]);
     var story = Finish.teachingVisionRow({ id: "hook", framing: "story", slotId: "hook" }, "", { featureVisible: "n/a", childSafety: "ok" });

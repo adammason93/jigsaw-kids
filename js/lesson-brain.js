@@ -4150,7 +4150,8 @@
       "Each wrong choice must be plainly false about the animal: not another true fact, not a vaguer version of the right reason (moved more easily for used less energy), and not a body part that also helps with the same job. A question must not give its own answer: the correct answer adds the taught fact instead of repeating the question's words. Never ask how or why an animal adapted, evolved, needed or got a feature; ask what the feature did or let the animal do.",
       "apply is a choice on a new example. newCase.text describes one new example the teach slot did not answer: either a case stated in evidencePassages (kind sourced, with sourceRef and an exact quote copied from that passage) or a made-up case that starts with Imagine and can be solved with one taught reason (kind transfer, sourceRef empty, quote empty). instruction asks the class to choose. choices has two or three options with exactly one correct; each feedback is one or two sentences that say why that option is right or wrong using the taught reason, and the correct feedback uses that unit's keyWords. successCondition says the class picks the choice that the taught reason supports.",
       "The apply beats set up the new example in new words. Never repeat or closely reword a teach sentence or a sourceSays sentence in an apply beat (copying a knowledge sentence fails validation); the taught reason belongs in the correct choice's feedback.",
-      "An animal's name that sourceWording uses (for example the name of the animal a unit is about) may be used as it is; it is the subject, not a hard word."
+      "An animal's name that sourceWording uses (for example the name of the animal a unit is about) may be used as it is; it is the subject, not a hard word.",
+      "Each stage shows one picture: say this picture or the picture, never these images, the pictures or these photos."
     ].join(" ");
   }
 
@@ -8745,6 +8746,19 @@
     return out;
   }
 
+  // Patch 7: every stage shows one picture, so pupil text must not talk about several
+  // ("Look at these images" sat over one picture in run 14).
+  var MANY_PICTURES = /\b(?:these|those|all (?:the|these|those)|the|some|both|two|three)\s+(?:images|pictures|photos|photographs|drawings|illustrations|scenes)\b/i;
+  function pictureCountIssues(activities) {
+    var rows = [];
+    (activities || []).forEach(function (activity) {
+      var hit = "";
+      pupilTextsOf(activity).forEach(function (text) { var m = MANY_PICTURES.exec(String(text || "")); if (!hit && m) hit = m[0]; });
+      if (hit) rows.push({ slotId: activity.slotId, text: "The " + activity.slotId + " slot talks about several pictures (\"" + hit + "\"), but each stage shows one picture. Say \"this picture\" or \"the picture\"." });
+    });
+    return rows;
+  }
+
   function researchRuleIssues(activities, ctx) {
     if (!researchMode(ctx)) return [];
     var units = researchUnits(ctx);
@@ -8752,6 +8766,7 @@
     rows = rows.concat(meaningIssues(activities, ctx, units));
     rows = rows.concat(vocabularyIssues(activities, ctx));
     rows = rows.concat(teleologyIssues(activities));
+    rows = rows.concat(pictureCountIssues(activities));
     rows = rows.concat(questionIssues(activities, ctx, units));
     var apply = (activities || []).filter(function (a) { return a.slotId === "apply"; })[0];
     if (apply) rows = rows.concat(applyChoiceIssues(apply, Object.assign({}, ctx, { __activities: activities }), units));
@@ -9415,6 +9430,7 @@
     resultClause: resultClause,
     meaningCheck: meaningCheck,
     applyMeaningIssues: applyMeaningIssues,
+    pictureCountIssues: pictureCountIssues,
     applyTaskUnit: applyTaskUnit,
     applyTaskBrief: applyTaskBrief,
     parseApplyTask: parseApplyTask,

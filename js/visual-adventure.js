@@ -1045,16 +1045,104 @@
     example: "Example picture: an imagined example to think about"
   };
 
+  // Patch 7: a comparison with another part of the same animal ("forelegs longer than its hind
+  // legs") is one animal, not two side by side; and every teaching picture shows one whole,
+  // identifiable animal (a close-up of a snout or an arm is not identifiable).
   function teachingView(unit) {
     var explanation = [unit && unit.explanationQuote, unit && unit.explanation].join(" ");
-    if (COMPARES.test(explanation)) return "comparison";
+    var compared = comparedWith(unit && (unit.explanationQuote || unit.explanation)) || comparedWith(unit && unit.featureQuote);
+    if (COMPARES.test(explanation) && compared && !SAME_BODY.test(compared)) return "comparison";
     if (INTERNAL_PART.test(String(unit && unit.feature || ""))) return "cutaway";
-    return "close-up";
+    return "whole-animal";
   }
+  var SAME_BODY = /^(?:its|their|his|her|the animal's|the dinosaur's|the other)\b/i;
 
   function comparedWith(text) {
     var m = /\b(?:than|compared (?:with|to)|unlike)\s+([^.;]+)/i.exec(String(text || ""));
     return m ? m[1].replace(/\s+/g, " ").trim().slice(0, 160) : "";
+  }
+
+  // ---- Patch 7 image rules (teaching visuals only; reusable, no animal list) ----
+  // Geological periods come from the source passages and pack text, never from a list of animals.
+  var PERIODS = ["Cambrian", "Ordovician", "Silurian", "Devonian", "Carboniferous", "Permian", "Triassic", "Jurassic", "Cretaceous", "Palaeogene", "Paleogene", "Neogene", "Quaternary", "Pleistocene", "Ice Age"];
+  var PERIOD_RE = new RegExp("\\b(" + PERIODS.join("|") + ")\\b", "gi");
+  function periodsIn(text) {
+    var found = [];
+    String(text || "").replace(PERIOD_RE, function (m) {
+      var name = m.toLowerCase() === "paleogene" ? "Palaeogene" : PERIODS.filter(function (p) { return p.toLowerCase() === m.toLowerCase(); })[0];
+      if (found.indexOf(name) === -1) found.push(name);
+      return m;
+    });
+    return found;
+  }
+  function sentencesOf(text) { return String(text || "").split(/(?<=[.!?])\s+(?=[A-Z"'(\u201c])/).map(function (s) { return s.trim(); }).filter(Boolean); }
+  // The animal a unit is about: a capitalised name its own claims use mid-sentence, else "".
+  function unitSubject(unit) {
+    var name = "";
+    [unit && unit.explanation, unit && unit.feature, unit && unit.featureQuote, unit && unit.explanationQuote].forEach(function (text) {
+      if (name) return;
+      String(text || "").split(/\s+/).forEach(function (raw, index) {
+        var word = raw.replace(/[^A-Za-z'-]/g, "").replace(/'s$/i, "");
+        if (!name && index > 0 && /^[A-Z][a-z]{3,}$/.test(word) && PERIODS.indexOf(word) === -1) name = word;
+      });
+    });
+    return name;
+  }
+  // The period a unit's animal lived in, read from its passage sentences that name it (or from the
+  // whole passage when the animal has no name), plus any extra pack text. Unknown when the source
+  // gives none or more than one.
+  function unitPeriod(unit) {
+    var name = unitSubject(unit);
+    var text = [unit && unit.passageText, unit && unit.periodText].join(" ");
+    var scope = name ? sentencesOf(text).filter(function (s) { return s.indexOf(name) !== -1 || /^(?:It|Its|The animal|This dinosaur)\b/.test(s); }).join(" ") : text;
+    var periods = periodsIn(scope);
+    if (!periods.length && name) periods = periodsIn(text);
+    return { subject: name, period: periods.length === 1 ? periods[0] : "", periods: periods };
+  }
+  // A story picture may show several animals only when the sources place them all in one
+  // period. Otherwise it shows one animal and the limitation is recorded.
+  function storyScenePlan(units) {
+    var rows = (units || []).map(function (u) { return Object.assign({ unitId: u.unitId }, unitPeriod(u)); });
+    var named = rows.filter(function (r) { return r.subject; });
+    var periods = [];
+    rows.forEach(function (r) { if (r.period && periods.indexOf(r.period) === -1) periods.push(r.period); });
+    var allKnown = rows.length && rows.every(function (r) { return r.subject && r.period; });
+    if (allKnown && periods.length === 1) {
+      return { mode: "group", period: periods[0], animals: rows.map(function (r) { return r.subject; }), rows: rows, limitation: "" };
+    }
+    var pick = named.filter(function (r) { return r.period; })[0] || named[0] || rows[0] || null;
+    var why = periods.length > 1
+      ? "the taught animals lived in different periods (" + rows.filter(function (r) { return r.period; }).map(function (r) { return r.subject + ": " + r.period; }).join("; ") + ")"
+      : "the sources do not say when every taught animal lived" + (rows.filter(function (r) { return !r.period; }).length ? " (" + rows.filter(function (r) { return !r.period; }).map(function (r) { return r.subject || ("the " + r.unitId + " animal"); }).join(", ") + ")" : "");
+    return { mode: "single", animal: pick ? pick.subject : "", period: pick ? pick.period : "", unitId: pick ? pick.unitId : "", rows: rows,
+      limitation: "The story picture shows one animal" + (pick && pick.subject ? " (" + pick.subject + ")" : "") + " because " + why + "." };
+  }
+  function aName(name) { return (/^[AEIOU]/i.test(String(name || "")) ? "an " : "a ") + name; }
+  function storySceneLine(scene) {
+    if (!scene) return "";
+    if (scene.mode === "group") return "Show only these animals, which the sources place in the " + scene.period + " period: " + scene.animals.join(", ") + ". No other animals.";
+    return "Show exactly one animal" + (scene.animal ? ": " + aName(scene.animal) + (scene.period ? " (" + scene.period + " period)" : "") : "") + ". No other animals of any kind, not even in the background. This overrides any mention of several animals above.";
+  }
+  // The player's text panel covers the lower left of the screen (about x 5-56%, y 55-80%).
+  var PANEL_RECT = { left: 0, top: 50, right: 58, bottom: 88 };
+  var COMPOSITION_LINE = "Composition: a text panel will cover the lower left of the picture (the left 58%, from halfway down to near the bottom). Put the whole animal, its taught feature and every compared body part either in the top half of the picture or in the right 42%; keep the lower-left area plain, empty background.";
+  // A feature box (percent of the image) is clear when it does not overlap the panel rectangle.
+  function featureBoxClear(box, rect) {
+    rect = rect || PANEL_RECT;
+    if (!box || typeof box !== "object") return false;
+    var l = Number(box.left), t = Number(box.top), w = Number(box.width), h = Number(box.height);
+    if (![l, t, w, h].every(function (n) { return isFinite(n); }) || w <= 0 || h <= 0) return false;
+    var r = l + w, b = t + h;
+    return r <= rect.left || l >= rect.right || b <= rect.top || t >= rect.bottom;
+  }
+  // Source sentences that help identify the animal (they name it), excluding the taught quotes.
+  function identifyingSentences(unit, max) {
+    var name = unitSubject(unit);
+    if (!name) return [];
+    var skip = [unit.featureQuote, unit.explanationQuote].map(function (q) { return String(q || "").slice(0, 40); });
+    return sentencesOf(unit.passageText).filter(function (s) {
+      return s.indexOf(name) !== -1 && s.length <= 260 && !skip.some(function (q) { return q && s.indexOf(q) !== -1; });
+    }).slice(0, max || 2);
   }
 
   function planTeachingVisuals(adventure, units, options) {
@@ -1065,9 +1153,15 @@
     var hook = stageAsset("hook", staged.hook, adventure);
     hook.framing = "story";
     hook.frameLabel = FRAME_LABELS.story;
+    // Patch 7: the story picture's animals follow the sources' periods (one animal if mixed or unknown).
+    if (periodGuard(adventure)) {
+      hook.storyScene = storyScenePlan(units);
+      if (hook.storyScene.limitation) hook.limitation = hook.storyScene.limitation;
+    }
     var list = [hook];
     units.forEach(function (unit) {
       var view = teachingView(unit);
+      var who = unitPeriod(unit);
       list.push({
         id: "teach-" + unit.unitId,
         slotId: "teach",
@@ -1090,8 +1184,11 @@
         featureQuote: unit.featureQuote || "",
         explanation: unit.explanation || "",
         explanationQuote: unit.explanationQuote || "",
-        compared: view === "comparison" ? comparedWith(unit.explanationQuote || unit.explanation) : "",
-        shot: { shotType: view, cameraDistance: view === "close-up" || view === "cutaway" ? "close" : "medium", cameraAngle: "side view, the feature fully visible", location: "plain background", uiSafeArea: "LOWER_LEFT" },
+        compared: view === "comparison" ? (comparedWith(unit.explanationQuote || unit.explanation) || comparedWith(unit.featureQuote)) : "",
+        subject: who.subject,
+        period: who.period,
+        identify: identifyingSentences(unit, 2),
+        shot: { shotType: view, cameraDistance: view === "cutaway" ? "close" : "medium", cameraAngle: "side view, the feature fully visible", location: "plain background", uiSafeArea: "LOWER_LEFT" },
         uiSafeArea: "LOWER_LEFT",
         status: "planned"
       });
@@ -1129,7 +1226,7 @@
   function buildTeachingVisualPrompt(adventure, asset) {
     var year = yearOf(adventure);
     if (!asset || asset.framing === "story") {
-      return [buildAdventurePrompt(adventure, asset, charactersForAdventure(adventure)), "STORY PICTURE: this is an imagined adventure scene for the story, not a scientific reconstruction. " + deepTimeGroupLine(adventure)].filter(Boolean).join("\n");
+      return [buildAdventurePrompt(adventure, asset, charactersForAdventure(adventure)), "STORY PICTURE: this is an imagined adventure scene for the story, not a scientific reconstruction. " + deepTimeGroupLine(adventure), storySceneLine(asset && asset.storyScene)].filter(Boolean).join("\n");
     }
     var common = [
       "Clear, accurate natural-history illustration for a " + (year || "primary") + " science lesson. Soft, even light, gentle colours, a plain background. Not a photograph of a real place.",
@@ -1147,15 +1244,18 @@
       ]).filter(Boolean).join("\n");
     }
     var view = asset.view;
+    var who = asset.subject ? "one " + asset.subject : "one animal of a single type";
     var line = view === "comparison"
-      ? "Side-by-side comparison on one plain background. Left: one animal of a single type that has this feature: " + asset.feature + ". Right: " + (asset.compared || "the animal the source compares it with") + ". Same scale, same side-on pose, whole body visible, so the difference in the feature is obvious."
+      ? "Side-by-side comparison on one plain background. Left: " + who + " that has this feature: " + asset.feature + ". Right: " + (asset.compared || "the animal the source compares it with") + ". Same scale, same side-on pose, whole bodies visible and small enough to fit the composition below, so the difference in the feature is obvious."
       : view === "cutaway"
-        ? "Cutaway or skull view of one animal of a single type so this internal feature is clearly visible: " + asset.feature + ". Show the part in its real position and proportion, large in the frame, with the surrounding body faded or cut away."
-        : "Close-up of one animal of a single type, with this feature large and clearly visible in the centre: " + asset.feature + ".";
+        ? "Cutaway or skull view of " + who + " so this internal feature is clearly visible: " + asset.feature + ". Show the part in its real position and proportion, with the surrounding body faded or cut away."
+        : "The whole of " + who + ", side-on, with this feature clearly visible: " + asset.feature + ". Only this one animal is in the picture.";
     return common.concat([
       "Teaching picture (artist's reconstruction). " + line,
-      "The source says: \"" + (asset.featureQuote || asset.feature) + "\" and \"" + (asset.explanationQuote || asset.explanation) + "\". Draw only what these sentences say; do not add other features.",
-      "Leave " + (asset.uiSafeArea || "LOWER_LEFT") + " visually quiet for a panel."
+      asset.subject ? "The animal must be recognisable as " + aName(asset.subject) + (asset.period ? " (" + asset.period + " period)" : "") + "." : "",
+      (asset.identify || []).length ? "The source describes it: \"" + asset.identify.join(" ") + "\" Use only what these sentences say to make it recognisable." : "",
+      "The source says: \"" + (asset.featureQuote || asset.feature) + "\" and \"" + (asset.explanationQuote || asset.explanation) + "\". Draw only what these sentences say about the feature; do not add features the source does not describe.",
+      COMPOSITION_LINE
     ]).filter(Boolean).join("\n");
   }
 
@@ -1375,6 +1475,15 @@
     planTeachingVisuals: planTeachingVisuals,
     buildTeachingVisualPrompt: buildTeachingVisualPrompt,
     teachingView: teachingView,
+    periodsIn: periodsIn,
+    unitSubject: unitSubject,
+    unitPeriod: unitPeriod,
+    storyScenePlan: storyScenePlan,
+    storySceneLine: storySceneLine,
+    featureBoxClear: featureBoxClear,
+    identifyingSentences: identifyingSentences,
+    PANEL_RECT: PANEL_RECT,
+    COMPOSITION_LINE: COMPOSITION_LINE,
     FRAME_LABELS: FRAME_LABELS,
     stampActivities: stampActivities,
     scheduleVisualAssets: scheduleVisualAssets,

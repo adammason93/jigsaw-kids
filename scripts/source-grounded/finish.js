@@ -267,7 +267,7 @@ function generateImages(fetchFn, key, adventure, outDir, count, reuse, plan) {
   function extra(asset) {
     // Patch 6: teaching-visual fields (absent for the production planner's assets).
     var out = {};
-    ["frameLabel", "framing", "view", "unitId", "feature", "beatIds", "newCase", "choices", "compared"].forEach(function (k) { if (asset[k] != null && asset[k] !== "") out[k] = asset[k]; });
+    ["frameLabel", "framing", "view", "unitId", "feature", "beatIds", "newCase", "choices", "compared", "subject", "period", "storyScene", "limitation"].forEach(function (k) { if (asset[k] != null && asset[k] !== "") out[k] = asset[k]; });
     return out;
   }
   var results = [];
@@ -309,9 +309,11 @@ function teachingVisionMessages(adventure, asset, teaching, data) {
     ? "This is the example picture for a choice task. The example: " + clean(asset.newCase, 300) + " Choices: " + (asset.choices || []).join(" / ") + "."
     : asset.framing === "story"
       ? "This is a story picture for the opening of the lesson. What the class hears: " + teaching
-      : "This is a teaching picture (" + asset.view + ") that must clearly show this feature: " + clean(asset.feature, 160) + ". What the class hears: " + teaching;
+      : "This is a teaching picture (" + asset.view + ") that must clearly show this feature: " + clean(asset.feature, 160) + (asset.subject ? ". The animal should be a " + clean(asset.subject, 60) : "") + (asset.view === "comparison" && asset.compared ? ". It is compared with: " + clean(asset.compared, 120) : "") + ". What the class hears: " + teaching;
+  // Patch 7: identity, number of animal kinds and where the taught feature sits (for the panel check).
+  var extra = " Also return: \"animalKinds\": the number of different kinds of animal shown (a number), \"identifiableAs\": \"what kind of animal the main animal looks like\", \"isExpectedAnimal\": \"yes\" or \"partly\" or \"no\" or \"n/a\" (n/a when no animal is named), \"featureBox\": { \"left\": 0, \"top\": 0, \"width\": 0, \"height\": 0 } (the smallest box, in percent of the picture width and height from the top-left corner, that holds the taught feature and every compared body part; for a story or example picture, the box that holds all the animals) or null if not visible.";
   return [
-    { role: "system", content: "You check one picture made for a primary science lesson about " + topic + ". Return one JSON object. Judge only what you can see. JSON shape: { \"whatIsShown\": \"one sentence\", \"featureVisible\": \"yes\" or \"partly\" or \"no\" or \"n/a\" (is the named feature clearly visible and recognisable; n/a for a story picture), \"matchesBeat\": \"yes\" or \"partly\" or \"no\", \"humansWithLivingDinosaurs\": true or false (any person beside a living, non-fossil dinosaur), \"nonGroupAnimalShownAsGroup\": true or false (a flying reptile, sea reptile, mammal, or other animal that is not one of the " + topic + " shown as if it were one), \"mixedPeriods\": true or false (animals that clearly lived at very different times shown together), \"answerGivenAway\": true or false (only for an example picture: the picture itself shows which choice is right), \"anatomyProblems\": [\"wrong or impossible body features\"], \"textInImage\": true or false, \"childSafety\": \"ok\" or \"concern\", \"cannotShow\": \"what this picture cannot show about the taught idea (for example a result such as energy or force)\" }." },
+    { role: "system", content: "You check one picture made for a primary science lesson about " + topic + ". Return one JSON object. Judge only what you can see. JSON shape: { \"whatIsShown\": \"one sentence\", \"featureVisible\": \"yes\" or \"partly\" or \"no\" or \"n/a\" (is the named feature clearly visible and recognisable; n/a for a story picture), \"matchesBeat\": \"yes\" or \"partly\" or \"no\", \"humansWithLivingDinosaurs\": true or false (any person beside a living, non-fossil dinosaur), \"nonGroupAnimalShownAsGroup\": true or false (a flying reptile, sea reptile, mammal, or other animal that is not one of the " + topic + " shown as if it were one), \"mixedPeriods\": true or false (animals that clearly lived at very different times shown together), \"answerGivenAway\": true or false (only for an example picture: the picture itself shows which choice is right), \"anatomyProblems\": [\"wrong or impossible body features\"], \"textInImage\": true or false, \"childSafety\": \"ok\" or \"concern\", \"cannotShow\": \"what this picture cannot show about the taught idea (for example a result such as energy or force)\" }." + extra },
     { role: "user", content: [
       { type: "text", text: "Year group: " + clean(adventure.yearGroup, 20) + ". " + ask },
       { type: "image_url", image_url: { url: "data:image/jpeg;base64," + data, detail: "low" } }
@@ -330,7 +332,21 @@ function teachingVisionRow(asset, teaching, m) {
   if ((m.anatomyProblems || []).length) flags.push("anatomy: " + m.anatomyProblems.join("; "));
   if (m.textInImage === true) flags.push("text drawn in the image");
   if (m.childSafety && m.childSafety !== "ok") flags.push("child safety: " + m.childSafety);
-  return { id: asset.id, image: asset.publicUrl, frameLabel: asset.frameLabel || "", view: asset.view || "", feature: asset.feature || "", beat: teaching, whatIsShown: clean(m.whatIsShown, 300), featureVisible: m.featureVisible || "unchecked", matchesBeat: m.matchesBeat || "unchecked", humansWithLivingDinosaurs: m.humansWithLivingDinosaurs === true, nonGroupAnimalShownAsGroup: m.nonGroupAnimalShownAsGroup === true, mixedPeriods: m.mixedPeriods === true, answerGivenAway: m.answerGivenAway === true, anatomyProblems: (m.anatomyProblems || []).map(function (x) { return clean(x, 160); }), textInImage: m.textInImage === true, childSafety: m.childSafety || "unchecked", cannotShow: clean(m.cannotShow, 300), flags: flags, ok: !flags.length };
+  // Patch 7 image rules (code over the vision answers).
+  var kinds = Number(m.animalKinds);
+  var teachingPic = asset.framing === "teaching" && asset.slotId !== "apply";
+  if (teachingPic) {
+    var allowedKinds = asset.view === "comparison" ? 2 : 1;
+    if (!isFinite(kinds)) flags.push("animal kinds: unchecked");
+    else if (kinds > allowedKinds) flags.push("shows " + kinds + " kinds of animal (one identifiable animal" + (allowedKinds === 2 ? " plus the compared animal" : "") + " expected)");
+    if (asset.subject && m.isExpectedAnimal !== "yes") flags.push("not recognisable as " + asset.subject + " (" + (m.isExpectedAnimal || "unchecked") + (m.identifiableAs ? ": looks like " + clean(m.identifiableAs, 80) : "") + ")");
+    if (!Visuals.featureBoxClear(m.featureBox)) flags.push(m.featureBox ? "taught feature sits under the text panel (box " + ["left", "top", "width", "height"].map(function (k) { return Math.round(Number(m.featureBox[k])); }).join("/") + ")" : "taught feature position: unchecked");
+  }
+  if (asset.framing === "story" && asset.storyScene && asset.storyScene.mode === "single") {
+    if (!isFinite(kinds)) flags.push("animal kinds: unchecked");
+    else if (kinds > 1) flags.push("story picture shows " + kinds + " kinds of animal (a single-animal scene was required: " + clean(asset.storyScene.limitation, 160) + ")");
+  }
+  return { id: asset.id, animalKinds: isFinite(kinds) ? kinds : null, identifiableAs: clean(m.identifiableAs, 120), isExpectedAnimal: m.isExpectedAnimal || "unchecked", featureBox: m.featureBox || null, limitation: asset.limitation || "", image: asset.publicUrl, frameLabel: asset.frameLabel || "", view: asset.view || "", feature: asset.feature || "", beat: teaching, whatIsShown: clean(m.whatIsShown, 300), featureVisible: m.featureVisible || "unchecked", matchesBeat: m.matchesBeat || "unchecked", humansWithLivingDinosaurs: m.humansWithLivingDinosaurs === true, nonGroupAnimalShownAsGroup: m.nonGroupAnimalShownAsGroup === true, mixedPeriods: m.mixedPeriods === true, answerGivenAway: m.answerGivenAway === true, anatomyProblems: (m.anatomyProblems || []).map(function (x) { return clean(x, 160); }), textInImage: m.textInImage === true, childSafety: m.childSafety || "unchecked", cannotShow: clean(m.cannotShow, 300), flags: flags, ok: !flags.length };
 }
 
 // ---- Check 4: each image against its beat (cheap vision) ----
@@ -356,7 +372,7 @@ function checkImages(fetchFn, key, adventure, assets) {
     return chain.then(function () {
       var data = fs.readFileSync(asset.file).toString("base64");
       var teaching = beatTextFor(adventure, asset);
-      if (asset.framing) return chatJson(fetchFn, key, teachingVisionMessages(adventure, asset, teaching, data), 500).then(function (m) {
+      if (asset.framing) return chatJson(fetchFn, key, teachingVisionMessages(adventure, asset, teaching, data), 700).then(function (m) {
         rows.push(teachingVisionRow(asset, teaching, m));
       }).catch(function (error) {
         rows.push({ id: asset.id, image: asset.publicUrl, ok: false, flags: ["vision check failed: " + clean(error && error.message, 120)] });
@@ -625,6 +641,8 @@ function runFinish(opts) {
   var plan = ctx && units.length && opts.teachingVisuals !== false ? teachingPlan(adventure, units, opts.imageCount || 5) : null;
   return generateImages(fetchFn, key, adventure, outDir, opts.imageCount || 4, !!opts.reuseImages, plan).then(function (images) {
     lesson.images = images;
+    // Patch 7: image-rule limitations (for example a single-animal story picture) are recorded.
+    lesson.imageLimitations = images.filter(function (i) { return i.limitation; }).map(function (i) { return { id: i.id, limitation: i.limitation }; });
     adventure.visualAssets = images.filter(function (i) { return i.status === "ready"; }).map(function (i) {
       var asset = { id: i.id, type: i.type, status: "ready", fallback: false, publicUrl: i.publicUrl, usedByScenes: i.usedByScenes, uiSafeArea: i.uiSafeArea, brief: i.brief, model: i.model, dimensions: i.dimensions };
       if (i.frameLabel) asset.frameLabel = i.frameLabel;

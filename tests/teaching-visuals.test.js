@@ -28,7 +28,8 @@ var units = [
 // The view rule.
 assert.strictEqual(Visuals.teachingView(units[0]), "comparison", "\"than\" in the explanation -> comparison");
 assert.strictEqual(Visuals.teachingView(units[1]), "cutaway", "a part inside the body (skull, hole) -> cutaway");
-assert.strictEqual(Visuals.teachingView(units[2]), "close-up", "an outside feature with no comparison -> close-up");
+// Patch 7: a close-up is not identifiable; an outside feature now gets the whole animal.
+assert.strictEqual(Visuals.teachingView(units[2]), "whole-animal", "an outside feature with no comparison -> the whole, identifiable animal");
 
 var plan = Visuals.planTeachingVisuals(adventure, units);
 assert.deepStrictEqual(plan.map(function (a) { return a.id; }), ["hook", "teach-u1", "teach-u2", "teach-u3", "apply"]);
@@ -47,7 +48,7 @@ assert.ok(/Do not draw any words/.test(p1));
 assert.ok(/pterosaurs/.test(p1) && /do not mix animals from different periods/.test(p1), "deep-time guard in teaching prompts");
 assert.ok(/single type/.test(p1));
 assert.ok(/Cutaway or skull view/.test(Visuals.buildTeachingVisualPrompt(adventure, plan[2])));
-assert.ok(/Close-up/.test(Visuals.buildTeachingVisualPrompt(adventure, plan[3])));
+assert.ok(/The whole of one animal of a single type, side-on/.test(Visuals.buildTeachingVisualPrompt(adventure, plan[3])));
 // The example picture must not give the answer away.
 assert.ok(/does not give away which option is the answer/.test(Visuals.buildTeachingVisualPrompt(adventure, plan[4])));
 // The hook is a story picture and keeps the production no-people-beside-living-animals guard.

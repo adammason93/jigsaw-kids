@@ -141,6 +141,7 @@ a.apply.choices = [
 ];
 a.apply.newCase = { text: "Imagine two new reptiles: one has legs straight under its body and one has legs sprawled out to the side.", kind: "transfer", sourceRef: [], quote: "" };
 a.resolution.beats[0].pupil.text = "Now we know what these dinosaur features let them do!";
+a.investigate.beats[0].pupil.text = "Look closely at the picture of the dinosaur. What do you see that might help it?";
 // Patch 7: research accept needs the question audit; a clean audit (test values) for the fixed questions.
 function cleanAudit(questions) {
   return { ok: true, questions: questions.map(function (q) {
