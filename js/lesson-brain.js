@@ -703,14 +703,25 @@
         fix: (claim.entailmentNote ? claim.entailmentNote + " " : "") + "Rewrite the claim so it says only what the quote states, or cite a quote that states the link, or drop it."
       });
     });
+    var MECHANISM_FIX = "A mechanism must state how or why the feature works, in words such as because, so it could, which lets, allowed, or let, as the passage states it. A verb such as helped with no stated job (\"features helped dinosaurs\") does not state a mechanism. The feature phrase must appear in exactly one concrete feature claim.";
+    var goalList = [];
+    goalWords(ctx).forEach(function (word) { if (goalList.indexOf(word) === -1) goalList.push(word); });
     ((readiness && readiness.pairs) || []).forEach(function (pair) {
       if (pair.ready) return;
+      var gaps = pair.gaps || [];
+      var irrelevant = gaps.some(function (gap) { return /not relevant to the learning goal/.test(gap); });
+      var otherGaps = gaps.some(function (gap) { return !/not relevant to the learning goal/.test(gap); });
+      // A pair held only for relevance has a working mechanism. The relevance check is a word
+      // match against the goal, so say which words it reads instead of the mechanism advice.
+      var fix = irrelevant
+        ? "Code could not link this pair to the learning goal: no word of the feature claim or explanation matches a goal word (" + goalList.slice(0, 16).join(", ") + "). If the passage supports it, keep the pair and rewrite this explanation item so it uses one of those words, for example adding the topic word to the name of a group the passage places in the topic, or saying what the feature did in the goal's terms. Keep the same quote. Add only wording the passage supports; never add a fact." + (otherGaps ? " " + MECHANISM_FIX : "")
+        : MECHANISM_FIX;
       rows.push({
         item: pair.explanation || "",
-        problem: "PAIR_NOT_READY",
+        problem: irrelevant && !otherGaps ? "PAIR_NOT_LINKED_TO_GOAL" : "PAIR_NOT_READY",
         feature: pair.feature || "",
-        gaps: (pair.gaps || []).slice(0, 4),
-        fix: "A mechanism must state how or why the feature works, in words such as because, so it could, which lets, allowed, or let, as the passage states it. A verb such as helped with no stated job (\"features helped dinosaurs\") does not state a mechanism. The feature phrase must appear in exactly one concrete feature claim."
+        gaps: gaps.slice(0, 4),
+        fix: fix
       });
     });
     return rows.slice(0, 40);
@@ -5082,7 +5093,9 @@
     return clean(claim.text).split(/\s+/).filter(Boolean).length >= 4;
   }
 
-  function pairRelevant(featureClaim, explanation, feature, ctx) {
+  // The words pairRelevant reads as the learning goal. Shared with the source repair so
+  // its feedback names the same words the gate checks.
+  function goalWords(ctx) {
     ctx = ctx || {};
     var brief = ctx.lessonBrief || {};
     var intent = brief.teacherIntent || {};
@@ -5091,7 +5104,12 @@
       intent.learningGoal, brief.learningGoal, intent.requiredEvidence, brief.requiredEvidence,
       focus.join(" "), ctx.topic, ctx.lessonText, ctx.teacherInstructions, brief.rawRequest
     ].join(" ");
-    var goal = contentWords(corpus);
+    return contentWords(corpus);
+  }
+
+  function pairRelevant(featureClaim, explanation, feature, ctx) {
+    ctx = ctx || {};
+    var goal = goalWords(ctx);
     var mine = contentWords([featureClaim && featureClaim.text, explanation, feature].join(" "));
     if (!mine.length || !goal.length) return false;
     function shares(list) {
