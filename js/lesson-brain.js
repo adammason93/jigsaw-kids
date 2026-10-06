@@ -541,14 +541,15 @@
       var first = passages[(claim.sourceRef || [])[0]] || {};
       var item = { claimId: claim.claimId, claim: claim.text, quote: claim.sourceQuote, passage: clean(first.text, 1600) };
       if ((claim.wordsNotInSource || []).length) item.wordsNotInSource = claim.wordsNotInSource.slice();
+      if (claimStatesLink(claim.text)) item.needsLinkQuote = true;
       return item;
     });
     return {
       system: [
         "You check whether a source extract supports a sentence written for a primary lesson. Return one JSON object and nothing else.",
-        "For each item, read quote and its passage. verdict is supported only when the quote, read in its passage, states everything the claim says. Simpler wording for children is fine when the meaning is the same. verdict is partial when part of the claim is supported and part is added. verdict is unsupported when the claim adds a fact, number, name, cause, purpose, or generalisation the quote does not state, drops a hedge the source keeps, or contradicts it. When the claim links two things with which, so, because, helped, allowed, or to, the quote must state that link. Two facts that the quote only lists side by side do not support a link between them.",
+        "For each item, read quote and its passage. verdict is supported only when the quote, read in its passage, states everything the claim says. Simpler wording for children is fine when the meaning is the same. verdict is partial when part of the claim is supported and part is added. verdict is unsupported when the claim adds a fact, number, name, cause, purpose, or generalisation the quote does not state, drops a hedge the source keeps, or contradicts it. When the claim links two things with which, so, because, helped, allowed, let, or to, the quote must state that link. Two facts that the quote only lists side by side do not support a link between them.",
         "Do not use your own knowledge to fill a gap. Do not judge whether the claim is true in the world, only whether this quote supports it.",
-        "linkQuote: when the claim states a purpose, cause, result, or how-or-why link and you judge it supported, copy the exact words from quote (at least five, no ellipsis) that state that link. Code checks them. Otherwise linkQuote is an empty string.",
+        "linkQuote: when the claim states a purpose, cause, result, or how-or-why link and you judge it supported, copy the exact words from quote (at least five, no ellipsis) that state that link. Code checks them. An item with needsLinkQuote true and verdict supported must have a linkQuote. Otherwise linkQuote is an empty string.",
         "wordsNotInSource lists claim words that appear in neither the quote nor its passage. Put each one either in wording, when it is only simpler wording for words in the quote, or in addedFacts, when the claim uses it to state something the quote does not say (for example a place, a part, a habit, a speed, or a purpose). A claim with any addedFacts is not supported. A word you do not place counts as added.",
         "JSON shape: { \"results\": [{ \"claimId\": \"\", \"verdict\": \"supported\" or \"partial\" or \"unsupported\", \"missing\": \"\", \"linkQuote\": \"\", \"wording\": [], \"addedFacts\": [] }] }."
       ].join(" "),
@@ -593,11 +594,14 @@
   // that link itself. Two facts that a passage only lists side by side (for example
   // "had feathers, and were probably warm-blooded") do not support "feathers helped
   // them stay warm". This runs in code after the model verdict and can only hold a claim.
-  var CLAIM_LINK = /\b(?:because|so that|so (?:it|they|that|the|its|their)\b|which (?:may have |might have |probably )?(?:help(?:ed|s)?|let|lets|allowed|allows|meant|means|made|makes|kept|keeps|gave|gives|enabled|enables)|help(?:ed|s)?|help (?:it|them)|allow(?:s|ed|ing)?|enabl(?:e|es|ed|ing)|lets? (?:it|them|the|a)|in order to|to help|for (?:protection|defen[cs]e|safety)|used (?:for|to)|as a result|caus(?:e|es|ed|ing)|therefore|thanks to|meaning|made it possible)\b/i;
+  var CLAIM_LINK = /\b(?:because|so that|so (?:it|they|that|the|its|their)\b|which (?:may have |might have |probably )?(?:help(?:ed|s)?|let|lets|allowed|allows|meant|means|made|makes|kept|keeps|gave|gives|enabled|enables)|help(?:ed|s)?|help (?:it|them)|allow(?:s|ed|ing)?|enabl(?:e|es|ed|ing)|lets?|letting|in order to|to help|for (?:protection|defen[cs]e|safety)|used (?:for|to)|as a result|caus(?:e|es|ed|ing)|therefore|thanks to|meaning|made it possible)\b/i;
   var QUOTE_LINK = /\b(?:because|so that|so (?:it|they|that|the|its|their)\b|which (?:may have |might have |probably )?(?:help(?:ed|s)?|let|lets|allowed|allows|meant|means|made|makes|kept|keeps|gave|gives|enabled|enables)|help(?:ed|s)?|help(?:ing)? (?:it|them|to)|allow(?:s|ed|ing)?|enabl(?:e|es|ed|ing)|lets? (?:it|them|the|a)|in order to|to help|for (?:protection|defen[cs]e|safety|eating|fighting|display)|used (?:for|to|as)|as a result|caus(?:e|es|ed|ing)|therefore|thus|hence|thanks to|meaning|made it possible|reasons?|why|this (?:allowed|meant|made|let|help(?:ed)?|gave|would|means|makes|lets)|would (?:make|have|help|allow)|gave (?:it|them)|to (?:protect|defend|reach|catch|eat|grind|crush|slice|tear|cut|support|keep|stay|run|move|attract|show|scare|fight|hunt|find|breathe|cool|warm|walk|swim|fly|bite|chew|hold|carry|balance|signal|communicate))\b/i;
 
   // The link words a linkQuote must contain: QUOTE_LINK without its bare "to + verb" branch.
   var LINK_WORDS = new RegExp(QUOTE_LINK.source.replace(/\|to \(\?:protect[^)]*\)\)\\b$/, ")\\b"), "i");
+  // Patch 7: any "let/lets/letting" in a claim is a link ("let Spinosaurus breathe", "let
+  // dinosaurs use less energy" escaped the old "let it/them/the/a" pattern, so run 14 kept
+  // those claims with an empty linkQuote). CLAIM_LINK is used only by the research entailment.
   function claimStatesLink(text) { return CLAIM_LINK.test(String(text || "")); }
   function quoteStatesLink(text) { return QUOTE_LINK.test(String(text || "")); }
 
@@ -8082,6 +8086,8 @@
     var match = RESULT_LINK.exec(text);
     if (!match) return "";
     var rest = text.slice(match.index + match[0].length);
+    // Patch 7: a named object ("let Spinosaurus breathe ...") is not part of the result.
+    rest = rest.replace(/^[A-Z][a-z]{2,}\s+(?=[a-z])/, "").replace(/^(?:to\s+)/, "");
     var cut = rest.search(/\b(?:than|that|which|who|whose|like|because|while|whereas|although|unlike)\b|[,;:.!?]/i);
     var clause = (cut === -1 ? rest : rest.slice(0, cut)).trim();
     if (clause.split(/\s+/).length < 2) clause = rest.split(/[;:.!?]/)[0].trim();

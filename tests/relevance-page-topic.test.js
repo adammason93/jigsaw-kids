@@ -102,7 +102,10 @@ var craft = offGoal([
   c("Tie-on feet let children decorate them to wear.", "mechanism", "KS10-P14", "Make and decorate tie-on dinosaur feet to wear (DT)")
 ], { text: "Tie-on feet let children decorate them to wear.", feature: "tie-on feet", link: "Make and decorate tie-on dinosaur feet to wear" });
 assert.strictEqual(craft.ready, false);
-assert.deepStrictEqual(craft.gaps, [NOT_RELEVANT]);
+// Patch 7: "let children ..." is now a link claim and its quote states no link, so the
+// entailment also holds the explanation; the relevance gap is still reported.
+assert.ok(craft.gaps.indexOf(NOT_RELEVANT) !== -1, craft.gaps.join("; "));
+assert.ok(craft.gaps.every(function (g) { return g === NOT_RELEVANT || /not selected admitted knowledge/.test(g); }), craft.gaps.join("; "));
 // A plain definition states no job.
 var definition = offGoal([
   c("Sauropods were a group of reptiles with long necks.", "feature", "S1-P01", "Dinosaurs are a group of Archosaur reptiles of the clade Dinosauria."),

@@ -382,7 +382,11 @@ globalThis.handleGenerate = async (req) => {
         entailment = { ok: false, results: {} };
       }
       brain.applySourceEntailment(candidate, entailment);
-      logMeta({ stage: "SOURCE_ENTAILMENT", attemptId, model: knowledgeModel, pass, entailMs: Date.now() - entailStarted, ran: !!entailment.ok, counts: candidate.sourceAudit && candidate.sourceAudit.entailment || null, label: brain.SOURCE_SUPPORT_LABEL });
+      // Patch 7 trace: the model's own per-claim verdicts and link quotes, next to the code's
+      // final verdicts, so a held or kept claim shows whether the model or the code decided it.
+      const modelRows = Object.keys(entailment.results || {}).slice(0, 30).map((id) => { const r = entailment.results[id] || {}; return { claimId: id, verdict: r.verdict || "", linkQuote: String(r.linkQuote || "").slice(0, 240), missing: String(r.missing || "").slice(0, 160) }; });
+      const codeRows = (candidate.claims || []).filter((c) => c && c.provenance === "retrieved").slice(0, 30).map((c) => ({ claimId: c.claimId, final: c.entailment || "", note: String(c.entailmentNote || "").slice(0, 200), linkQuote: String(c.linkQuote || "").slice(0, 240) }));
+      logMeta({ stage: "SOURCE_ENTAILMENT", attemptId, model: knowledgeModel, pass, entailMs: Date.now() - entailStarted, ran: !!entailment.ok, counts: candidate.sourceAudit && candidate.sourceAudit.entailment || null, label: brain.SOURCE_SUPPORT_LABEL, modelRows, codeRows });
     };
     await entail(pack, "first");
     let selection = brain.selectPackForLesson(pack, ctx);
