@@ -4600,6 +4600,27 @@
     return required;
   }
 
+  // Patch 9, research mode only. Code counts strands from dependsOn: a feature that depends on a
+  // background point is counted inside that point's strand. Live run 19's map hung both
+  // Spinosaurus features under "Spinosaurus was well adapted for aquatic life", so 3 pairs made
+  // 2 strands, and the generic repair line got the same map back unchanged.
+  function strandRepairLine(previous) {
+    var map = (previous && Array.isArray(previous.learningMap)) ? previous.learningMap : [];
+    var byId = {};
+    map.forEach(function (p) { if (p && p.id) byId[p.id] = p; });
+    function links(p) {
+      return [].concat(p.dependsOn || [], p.explains || []).map(function (d) { return String(d || "").trim(); }).filter(function (d) { return d && byId[d] && !/^(feature|concept)$/.test(String(byId[d].role || "")); });
+    }
+    var hung = map.filter(function (p) { return p && /^(feature|concept)$/.test(String(p.role || "")) && links(p).length; });
+    if (!hung.length) return " Return a changed learningMap; the same map fails again.";
+    var parents = [];
+    hung.forEach(function (p) { links(p).forEach(function (d) { if (parents.indexOf(d) === -1) parents.push(d); }); });
+    // The background points behind them (and the background points those depend on).
+    for (var i = 0; i < parents.length; i++) links(byId[parents[i]]).forEach(function (d) { if (parents.indexOf(d) === -1) parents.push(d); });
+    var ids = hung.map(function (p) { return p.id; }).join(", ");
+    return " Code counts strands from the links between points: " + ids + " " + (hung.length > 1 ? "are features linked" : "is a feature linked") + " to background " + parents.map(function (d) { return d + " (\"" + clean(byId[d].knowledge, 80) + "\")"; }).join(", ") + ", so " + (hung.length > 1 ? "they are" : "it is") + " counted inside one strand. Leave out " + parents.join(", ") + " (background, not a feature or its explanation) and give " + ids + " an empty dependsOn and an empty explains, so each feature heads its own strand with its explanation. Return a changed learningMap; the same map fails again.";
+  }
+
   function planRepairBrief(ctx, issues, previous) {
     var brief = planBrief(ctx);
     var intent = (ctx && ctx.lessonBrief && ctx.lessonBrief.teacherIntent) || {};
@@ -4620,6 +4641,8 @@
     ].filter(Boolean).join(" ");
     if (/developed strands/.test(found)) {
       instruction += " Correct incorrectly labelled foundations. A feature or adaptation is not a foundation. Point each function or mechanism at its own feature. Preserve the underlying knowledge and the dependencies that are still true. Do not invent a foundation simply to satisfy formatting.";
+      // Patch 9, research mode only: say exactly which links merge the strands, and ask for a changed map.
+      if (researchMode(ctx)) instruction += strandRepairLine(previous);
     }
     if (ctx && ctx.knowledgePack && ctx.knowledgePack.status !== "blocked") {
       instruction += " Every learningMap point must include claimIds copied from knowledgePack.claims. The sentence may shorten that claim. It must not add a subject fact the claim does not state. Do not teach falsePremise, doNotTeach, rejectedClaims, or a claim held as an unsupported local detail. Do not invent a feature or a relationship the knowledge pack does not admit. Where the pack has a feature claim and an explanation of that feature, keep both and point the explanation at that feature.";
@@ -9556,6 +9579,7 @@
     meaningCheck: meaningCheck,
     applyMeaningIssues: applyMeaningIssues,
     pictureCountIssues: pictureCountIssues,
+    strandRepairLine: strandRepairLine,
     repairTargets: repairTargets,
     targetRepair: targetRepair,
     applyTaskShapeIssues: applyTaskShapeIssues,
