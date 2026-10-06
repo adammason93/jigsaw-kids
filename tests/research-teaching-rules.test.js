@@ -163,6 +163,10 @@ assert.strictEqual(step.choices.length, 2);
 assert.strictEqual(step.choices.filter(function (c) { return c.correct; }).length, 1);
 assert.ok(/less energy to move/.test(step.choices[0].feedback));
 assert.strictEqual(step.newCase.kind, "transfer");
+// Patch 7: the choose step keeps "correct-choice" (no longer overwritten with a clipped sentence) and carries the unit's claim ids.
+assert.strictEqual(step.successCondition, "correct-choice");
+assert.ok(step.successText && step.successText.split(" ").length >= 5);
+assert.strictEqual(step.claimIds.length, 2);
 // Lineage runs on the accepted lesson and now covers APPLY.
 var lineage = Brain.unitLineage(copy(adv), ctxFor(true));
 assert.strictEqual(lineage.apply.ok, true, JSON.stringify(lineage.apply));

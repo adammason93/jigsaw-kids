@@ -3451,7 +3451,12 @@
       activity.successCondition = "The pupil has used this idea: " + clean(matched, 90);
     }
     if (!activity.teachingConnection) activity.teachingConnection = "The task uses this teaching: " + clean(matched, 90);
-    if (activity.scene && activity.scene.interaction) activity.scene.interaction.successCondition = clean(activity.successCondition, 40);
+    var step = activity.scene && activity.scene.interaction;
+    // Patch 7: a research choose step keeps its machine success condition ("correct-choice");
+    // the sentence goes to successText (it was clipped to 40 characters over "correct-choice").
+    if (step && step.type === "choose" && Array.isArray(step.choices) && step.choices.length) {
+      if (!step.successText) step.successText = clean(activity.successCondition, 240);
+    } else if (step) step.successCondition = clean(activity.successCondition, 40);
   }
 
   function applySemanticInput(activity, slot, ctx) {
@@ -3886,17 +3891,20 @@
       if (slot.id === "apply" && researchMode(ctx) && content.applyChoices && content.applyChoices.length) {
         var applyClaims = mapClaimIds(plan, beats.reduce(function (all, beat) { return all.concat(beat.knowledgeRefs || []); }, []));
         var applyUnit = "";
+        var applyIds = [];
         researchUnits(ctx).forEach(function (unit) {
-          if (!applyUnit && applyClaims.indexOf(unit.explanationClaimId) !== -1) applyUnit = unit.unitId;
+          if (!applyUnit && applyClaims.indexOf(unit.explanationClaimId) !== -1) { applyUnit = unit.unitId; applyIds = [unit.elementClaimId, unit.explanationClaimId]; }
         });
         interaction = {
           type: "choose",
           target: "choices",
           instruction: content.instruction || "",
           successCondition: "correct-choice",
+          successText: content.successCondition || "",
           choices: content.applyChoices,
           newCase: content.newCase || null,
           unitId: applyUnit,
+          claimIds: applyIds,
           intent: slot.interactionIntent || ""
         };
       }
@@ -7222,7 +7230,10 @@
 
   function cleanInteraction(raw) {
     if (!raw || typeof raw !== "object" || !WORLD_INTERACTIONS[raw.type]) return null;
-    var instruction = clean(raw.instruction, 120);
+    // Patch 7: a research choose step (it has choices) keeps its whole instruction; clipping at
+    // 120 cut run 14's mid-word. Other steps keep 120.
+    var chooser = raw.type === "choose" && Array.isArray(raw.choices) && raw.choices.length;
+    var instruction = clean(raw.instruction, chooser ? 240 : 120);
     if (instruction.length < 4) return null;
     var kept = {
       type: raw.type,
@@ -7243,6 +7254,8 @@
         if (raw.newCase && typeof raw.newCase === "object") kept.newCase = { text: clean(raw.newCase.text, 300), kind: clean(raw.newCase.kind, 20), sourceRef: (raw.newCase.sourceRef || []).slice(0, 2), quote: clean(raw.newCase.quote, 400) };
         if (raw.unitId) kept.unitId = clean(raw.unitId, 24);
         if (raw.intent) kept.intent = clean(raw.intent, 24);
+        if (Array.isArray(raw.claimIds)) kept.claimIds = raw.claimIds.map(function (id) { return clean(id, 24); }).filter(Boolean).slice(0, 4);
+        if (raw.successText) kept.successText = clean(raw.successText, 240);
       }
     }
     return kept;
@@ -8508,7 +8521,37 @@
     }
     var instruction = clean(activity.applyInstruction || inter.instruction, 240);
     if (!/\b(choose|which|pick|decide|select)\b/i.test(instruction)) add("instruction must ask the class to choose.");
+    // Patch 7 APPLY contract (blocking). The instruction the player shows is complete and short.
+    var shown = String(inter.instruction || "").trim();
+    if (!shown || shown.length > 160 || !/[.?!]["\u201d']?$/.test(shown)) add("instruction must be one complete sentence of at most 160 characters ending with a full stop or question mark (run 14's was cut off mid-word).");
+    if (unit) {
+      // Every option's feedback names the taught claim (its feature or its result words).
+      var claimTerms = (unit.keyTerms || []).concat(ruleContent(unit.feature));
+      choices.forEach(function (c) {
+        var fw = ruleTokens(c.feedback);
+        if (claimTerms.length && !claimTerms.some(function (t) { return fw.some(function (w) { return ruleWordMatch(w, t); }); })) add("feedback for the choice \"" + clean(c.text, 60) + "\" must name the taught idea (" + clean(unit.feature, 60) + ": " + clean(unit.resultClause, 80) + ").");
+      });
+      // It carries the unit's claim ids and a success condition.
+      var ids = Array.isArray(inter.claimIds) ? inter.claimIds : [];
+      if (ids.indexOf(unit.elementClaimId) === -1 || ids.indexOf(unit.explanationClaimId) === -1) add("task must carry the taught unit's claim ids (" + unit.elementClaimId + ", " + unit.explanationClaimId + ").");
+      // A new example, not the taught case: it must not be about the animal the unit names.
+      var named = unitAnimalNames(unit).filter(function (name) { return new RegExp("\\b" + name + "\\b", "i").test(caseText); });
+      if (named.length) add("new example is about " + named.join(", ") + ", the animal already taught. Use a new animal or a made-up case.");
+    }
+    if (inter.successCondition !== "correct-choice" || clean(inter.successText, 240).split(/\s+/).filter(Boolean).length < 5) add("needs a success condition: the class succeeds when it picks the correct choice, and successText says in a sentence what that shows.");
     return issues;
+  }
+
+  // The animal names a unit's own claims use (capitalised words that are not a sentence start).
+  function unitAnimalNames(unit) {
+    var names = [];
+    [unit.feature, unit.explanation].forEach(function (text) {
+      String(text || "").split(/\s+/).forEach(function (raw, index) {
+        var word = raw.replace(/[^A-Za-z'-]/g, "").replace(/'s$/i, "");
+        if (index > 0 && /^[A-Z][a-z]{3,}$/.test(word) && names.indexOf(word) === -1) names.push(word);
+      });
+    });
+    return names;
   }
 
   // Timing: research lessons total exactly the requested minutes. Extra minutes come off the
@@ -9235,6 +9278,7 @@
     resultClause: resultClause,
     meaningCheck: meaningCheck,
     applyMeaningIssues: applyMeaningIssues,
+    unitAnimalNames: unitAnimalNames,
     meaningIssues: meaningIssues,
     hardWords: hardWords,
     vocabularyIssues: vocabularyIssues,

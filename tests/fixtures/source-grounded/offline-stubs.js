@@ -133,7 +133,7 @@ function openai(href, body) {
       slots.apply.instruction = beats[0].text + " Choose the animal that fits.";
       slots.apply.choices = [
         { text: "The animal with " + w.feature, correct: true, feedback: "The source says " + w.feature + " meant they could " + w.keepThisResult + "." },
-        { text: "The animal without " + w.feature, correct: false, feedback: "Without that feature the animal has nothing the source links to this result." }
+        { text: "The animal without " + w.feature, correct: false, feedback: "Without " + w.feature + ", nothing in the source says it could " + w.keepThisResult + "." }
       ];
       slots.apply.newCase = { text: "Imagine two new animals side by side: one has " + w.feature + " and one does not.", kind: "transfer", sourceRef: [], quote: "" };
     }
