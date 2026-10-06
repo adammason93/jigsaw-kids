@@ -1152,6 +1152,7 @@
         return { slotId: id, id: (byStage[id].activity && byStage[id].activity.id) || "" };
       });
       slide.visualAssetId = scene.visual.assetId || slide.visualAssetId || "";
+      if (scene.storySceneId) { slide.progressGroup = scene.storySceneId; slide.progressLabel = scene.progressLabel || scene.label; }
       return slide;
     });
   }

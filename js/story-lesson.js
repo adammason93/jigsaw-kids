@@ -766,7 +766,7 @@
           id: "story-" + s.id + "-" + (index + 1), label: s.title + (parts.length > 1 ? " (" + (index + 1) + " of " + parts.length + ")" : ""),
           purpose: "explore", stageIds: uniq(part.map(function (b) { return b.stageId; })), beatIds: beatIds,
           knowledgeRefs: uniq([].concat.apply([], part.map(function (b) { return b.claimIds; }))), usesRefs: [],
-          visual: { baseShot: part[0].stageId, assetId: sceneImage || teachImage }, interactions: own, storySceneId: s.id
+          visual: { baseShot: part[0].stageId, assetId: sceneImage || teachImage }, interactions: own, storySceneId: s.id, progressLabel: s.title
         });
       });
     });
@@ -777,8 +777,8 @@
       return { id: "check:" + i, prompt: q.prompt, choices: q.choices.slice(), correct: q.correct, explain: q.explain, kind: "multiple", knowledgeRefs: q.claimIds.slice(), claimIds: q.claimIds.slice(), unitIds: q.ideaId ? [q.ideaId] : [] };
     });
     var climaxImage = has["scene-climax"] ? "scene-climax" : (assets.filter(function (a) { return a.type === "scene" && a.status === "ready"; }).slice(-1)[0] || {}).id || "";
-    scenesOut.push({ id: "story-quiz", label: "The final challenge", purpose: "challenge", stageIds: ["check"], beatIds: questions.map(function (q) { return q.id; }), knowledgeRefs: uniq([].concat.apply([], questions.map(function (q) { return q.claimIds; }))), usesRefs: [], visual: { baseShot: "check", assetId: climaxImage }, storySceneId: "quiz" });
-    scenesOut.push({ id: "story-finish", label: "Mystery solved", purpose: "finish", stageIds: ["resolution", "recap"], beatIds: stages.resolution.concat(stages.recap).map(function (b) { return b.id; }), knowledgeRefs: [], usesRefs: [], visual: { baseShot: "resolution", assetId: resolutionImage || climaxImage }, storySceneId: "finish" });
+    scenesOut.push({ id: "story-quiz", label: "The final challenge", purpose: "challenge", stageIds: ["check"], beatIds: questions.map(function (q) { return q.id; }), knowledgeRefs: uniq([].concat.apply([], questions.map(function (q) { return q.claimIds; }))), usesRefs: [], visual: { baseShot: "check", assetId: climaxImage }, storySceneId: "quiz", progressLabel: "The final challenge" });
+    scenesOut.push({ id: "story-finish", label: "Mystery solved", purpose: "finish", stageIds: ["resolution", "recap"], beatIds: stages.resolution.concat(stages.recap).map(function (b) { return b.id; }), knowledgeRefs: [], usesRefs: [], visual: { baseShot: "resolution", assetId: resolutionImage || climaxImage }, storySceneId: "finish", progressLabel: "Mystery solved" });
     var quizMinutes = Math.max(3, Math.round(story.quiz.length * 0.75));
     var est = estimateMinutes(story);
     var minutes = { hook: 2, investigate: 1, teach: Math.max(4, est - 2 - 1 - 4 - quizMinutes - 2), apply: 4, check: quizMinutes, resolution: 1, recap: 1 };

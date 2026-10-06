@@ -135,6 +135,21 @@
   }
 
   function progressHtml(slides, index, adventure) {
+    // Story-led lessons split a long story scene over several slides; those slides share a
+    // progressGroup and show as one step, so the header stays short. Other lessons are unchanged.
+    if ((slides || []).some(function (slide) { return slide && slide.progressGroup; })) {
+      var groups = [];
+      slides.forEach(function (slide, i) {
+        var key = (slide && slide.progressGroup) || ("slide-" + i);
+        var last = groups[groups.length - 1];
+        if (last && last.key === key) last.end = i;
+        else groups.push({ key: key, start: i, end: i, name: (slide && (slide.progressLabel || missionStep(slide))) || "Step" });
+      });
+      return "<ol class=\"lesson-progress lesson-progress--grouped\">" + groups.map(function (g) {
+        var state = g.end < index ? "is-done" : (index >= g.start && index <= g.end) ? "is-now" : "";
+        return "<li class=\"" + state + "\"><span>" + escape(g.name) + "</span></li>";
+      }).join("") + "</ol>";
+    }
     return "<ol class=\"lesson-progress\">" + (slides || []).map(function (slide, i) {
       var name = adventure || (slide && slide.sceneId) ? missionStep(slide) : ((slide && slide.kicker) || activityName(slideMechanic(slide)));
       var state = i < index ? "is-done" : i === index ? "is-now" : "";
@@ -155,7 +170,8 @@
       var mission = (model.storyPlan && (model.storyPlan.missionLabel || model.storyPlan.mission)) || model.title || "The mission";
       heading = escape(mission);
     }
-    return "<header class=\"lesson-top\"><div class=\"lesson-brand\"><p class=\"lesson-mark\">Wondii</p>" + org + "</div>" +
+    var grouped = (slides || []).some(function (slide) { return slide && slide.progressGroup; });
+    return "<header class=\"lesson-top" + (grouped ? " lesson-top--story" : "") + "\"><div class=\"lesson-brand\"><p class=\"lesson-mark\">Wondii</p>" + org + "</div>" +
       "<div class=\"lesson-top-main\">" + (adventureNow(model) ? "<p class=\"lesson-kicker\">Mission</p>" : "") + "<h1>" + heading + "</h1>" +
       progressHtml(slides, index, adventureNow(model)) + "</div>" +
       "<div class=\"lesson-top-side\"><p class=\"lesson-round\">" + (slides.length ? ("Round " + (index + 1) + " of " + slides.length) : "") + "</p>" +

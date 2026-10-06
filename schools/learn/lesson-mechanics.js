@@ -163,6 +163,14 @@
     return picked + " does not make this happen. Look again at what is moving, then try once more.";
   }
 
+  function storyAgain(quiz, choiceId) {
+    var picked = "";
+    ((quiz && quiz.choices) || []).forEach(function (choice) {
+      if (choice && choice.id === choiceId) picked = String(choice.text || "").trim();
+    });
+    return (picked ? "\u201c" + picked + "\u201d is not what the story showed. " : "") + "Think back to the clue in the story, then try again.";
+  }
+
   function spokenTo(name, text) {
     var line = String(text || "").trim();
     var who = String(name || "").trim();
@@ -379,6 +387,9 @@
     if (immersed && /^quiz$/i.test(kicker)) kicker = "Make your prediction";
     if (immersed) kicker = "Make your prediction";
     var sceneQuiz = !!(ctx.slide && ctx.slide.sceneId);
+    // Story-led lessons: a wrong answer names the choice and sends pupils back to the story, without
+    // the generic "what is moving" scaffold (which fits only some lessons).
+    var storyQuiz = !!(ctx.slide && ctx.slide.progressGroup);
     if (sceneQuiz) kicker = ctx.slide.sceneLabel || "Challenge";
     if (immersed && (named || (ctx.slide && ctx.slide.speaker))) {
       var pupilName = named ? selected.displayName : ctx.slide.speaker;
@@ -419,7 +430,7 @@
           feedback: immersed ? {
             kind: outcome.correct ? "yes" : "again",
             text: outcome.correct ? "That matches what we can see." : "Look again.",
-            extra: outcome.correct ? (quiz.explain || "Carry on with what the class can see.") : againScaffold(quiz, choiceId)
+            extra: outcome.correct ? (quiz.explain || "Carry on with what the class can see.") : (storyQuiz ? storyAgain(quiz, choiceId) : againScaffold(quiz, choiceId))
           } : {
             kind: outcome.correct ? "yes" : "again",
             text: outcome.correct ? "Brilliant!" : "Nearly!",

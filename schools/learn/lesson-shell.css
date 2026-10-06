@@ -552,3 +552,10 @@
 .lesson.has-fallback .lesson-choose .lesson-react--yes { color: #8ff0c0; }
 .lesson.has-world .lesson-choice.is-again,
 .lesson.has-fallback .lesson-choice.is-again { opacity: .62; border-color: #ffc98a; }
+
+/* Story-led lessons (slides with a progressGroup): one short header row so the story panel and
+   choices are never covered. Other lessons are unchanged. */
+.lesson-top--story h1 { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 50vw; font-size: 1.15rem; }
+.lesson-progress--grouped { flex-wrap: nowrap; overflow-x: auto; max-width: 50vw; scrollbar-width: none; }
+.lesson-progress--grouped::-webkit-scrollbar { display: none; }
+.lesson-progress--grouped li { white-space: nowrap; flex: 0 0 auto; }
