@@ -91,6 +91,17 @@ function buildSite(options) {
   var journey = journeyFor(lesson.adventure, { id: options.id || "sg-y3-dinosaurs", imageBase: "/sg/images/" });
   fs.writeFileSync(path.join(siteDir, "sg", "journey.json"), JSON.stringify(journey, null, 1));
   fs.writeFileSync(path.join(siteDir, "sg", "index.html"), seedHtml(journey));
+  // Pupil device for the local preview: the real join.js page with a local stand-in for the
+  // Supabase join RPCs (see join-local.js for exactly how it differs from production).
+  fs.copyFileSync(path.join(__dirname, "join-local.js"), path.join(siteDir, "sg", "join-local.js"));
+  var joinPage = fs.readFileSync(path.join(REPO, "schools", "learn", "join.html"), "utf8")
+    .replace(/href="(?!https?:)(\.\.\/\.\.\/)?([^"]+)"/g, function (all, up, rest) { return "href=\"" + (up ? "/" : "/schools/learn/") + rest + "\""; })
+    .replace(/<script src="\.\.\/\.\.\/js\/score-config\.js"><\/script>/, "<script src=\"/js/score-config.js\"></script>")
+    .replace(/<script src="https:\/\/cdn[^"]*"><\/script>\s*/, "")
+    .replace(/<script src="join-cloud\.js[^"]*"><\/script>/, "<script src=\"/sg/join-local.js\"></script>")
+    .replace(/<script src="join\.js([^"]*)"><\/script>/, "<script src=\"/schools/learn/join.js$1\"></script>")
+    .replace("<main id=\"joinRoot\"></main>", "<p style=\"margin:8px;font:600 13px sans-serif;color:#7a4b00\">Local preview pupil device (provisional): join served from this browser, not the live service.</p><main id=\"joinRoot\"></main>");
+  fs.writeFileSync(path.join(siteDir, "sg", "join.html"), joinPage);
   return { journey: journey, seed: "/sg/index.html" };
 }
 
