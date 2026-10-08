@@ -88,13 +88,18 @@
   function portrait(id) {
     var row = global.WondiiCrew && global.WondiiCrew.get && global.WondiiCrew.get(id);
     var wrap = el("span", { className: "family-portrait" });
+    wrap.appendChild(bust((row && row.placeholder) || {}));
     var src = row && row.assets && row.assets.idle;
     if (src) {
       var img = el("img", { src: src, alt: "" });
-      img.addEventListener("error", function () { img.hidden = true; });
+      img.hidden = true;
+      img.addEventListener("load", function () {
+        if (img.naturalWidth > 0) img.hidden = false;
+      });
+      img.addEventListener("error", function () { img.remove(); });
+      if (img.complete && img.naturalWidth > 0) img.hidden = false;
       wrap.appendChild(img);
     }
-    wrap.appendChild(bust((row && row.placeholder) || {}));
     return wrap;
   }
 
@@ -265,7 +270,10 @@
       choice.appendChild(el("span", null, item.name));
       avatars.appendChild(choice);
     });
-    form.appendChild(field("Avatar", avatars));
+    var avatarField = el("div", { className: "family-field" });
+    avatarField.appendChild(el("span", null, "Avatar"));
+    avatarField.appendChild(avatars);
+    form.appendChild(avatarField);
 
     var age = el("select", { name: "ageBand", required: "true" });
     AGE_BANDS.forEach(function (item) {
@@ -357,40 +365,59 @@
     host.appendChild(box);
   }
 
+  function libraryTile(href, tone, kicker, title) {
+    var link = el("a", { className: "family-tile family-tile--" + tone, href: href });
+    link.appendChild(el("span", { className: "family-tile__kicker" }, kicker));
+    link.appendChild(el("span", { className: "family-tile__title" }, title));
+    return link;
+  }
+
   function paint() {
     var host = document.getElementById("familyDash");
     if (!host) return;
     bind();
     host.replaceChildren();
     if (schoolOn()) {
-      host.appendChild(el("h1", { className: "family-title" }, "Your family"));
-      host.appendChild(el("p", { className: "family-lead" }, "Family profiles stay in your personal workspace."));
-      host.appendChild(el("button", { type: "button", className: "family-btn", "data-family": "personal" }, "Switch to Personal"));
+      var school = el("header", { className: "family-hero" });
+      school.appendChild(el("p", { className: "family-kicker" }, "Family"));
+      school.appendChild(el("h1", { className: "family-title" }, "Your family"));
+      school.appendChild(el("p", { className: "family-lead" }, "Family profiles stay in your personal workspace."));
+      school.appendChild(el("button", { type: "button", className: "family-btn", "data-family": "personal" }, "Switch to Personal"));
+      host.appendChild(school);
       return;
     }
     if (!signedIn()) {
-      host.appendChild(el("h1", { className: "family-title" }, "Your family"));
-      host.appendChild(el("p", { className: "family-lead" }, "Log in to create your family."));
+      var gate = el("header", { className: "family-hero" });
+      gate.appendChild(el("p", { className: "family-kicker" }, "Family"));
+      gate.appendChild(el("h1", { className: "family-title" }, "Your family"));
+      gate.appendChild(el("p", { className: "family-lead" }, "Log in to create your family."));
+      host.appendChild(gate);
       return;
     }
     if (!loaded) {
-      host.appendChild(el("h1", { className: "family-title" }, "Your family"));
-      host.appendChild(el("p", { className: "family-lead", role: "status" }, "Opening your family…"));
+      var waiting = el("header", { className: "family-hero" });
+      waiting.appendChild(el("p", { className: "family-kicker" }, "Family"));
+      waiting.appendChild(el("h1", { className: "family-title" }, "Your family"));
+      waiting.appendChild(el("p", { className: "family-lead", role: "status" }, "Opening your family…"));
+      host.appendChild(waiting);
       return;
     }
-    host.appendChild(el("a", { className: "family-back", href: "#home" }, "Back to My Wondii"));
-    host.appendChild(el("h1", { className: "family-title", id: "familyTitle" }, snapshot.family ? snapshot.family.displayName + "’s family" : "Your family"));
+    var hero = el("header", { className: "family-hero" });
+    hero.appendChild(el("a", { className: "family-back", href: "#home" }, "Back to My Wondii"));
+    hero.appendChild(el("p", { className: "family-kicker" }, "Family"));
+    hero.appendChild(el("h1", { className: "family-title", id: "familyTitle" }, snapshot.family ? snapshot.family.displayName + "’s family" : "Your family"));
     var email = accountEmail();
-    if (email) host.appendChild(el("p", { className: "family-account" }, "Signed in as " + email));
-    host.appendChild(el("p", { className: "family-lead" }, snapshot.family
+    if (email) hero.appendChild(el("p", { className: "family-account" }, "Signed in as " + email));
+    hero.appendChild(el("p", { className: "family-lead" }, snapshot.family
       ? "Add a child, choose an avatar and an age band, and decide their daily allowances."
       : "You are the adult for this family. Your existing books and characters are not moved."));
     if (message) {
-      host.appendChild(el("p", { className: "family-status", role: "status" }, message));
+      hero.appendChild(el("p", { className: "family-status", role: "status" }, message));
       if (/could not open your family/.test(message)) {
-        host.appendChild(el("button", { type: "button", className: "family-btn", "data-family": "retry" }, "Try again"));
+        hero.appendChild(el("button", { type: "button", className: "family-btn", "data-family": "retry" }, "Try again"));
       }
     }
+    host.appendChild(hero);
 
     if (!snapshot.family) {
       var start = el("form", { className: "family-form", id: "familyStart" });
@@ -406,16 +433,21 @@
     var removed = snapshot.children.filter(function (child) { return child.status === "pending_deletion"; });
     var grid = el("div", { className: "family-grid" });
     living.forEach(function (child) { grid.appendChild(card(child)); });
-    var add = el("button", { type: "button", className: "family-add", "data-family": "add" }, "Add a child");
+    var add = el("button", { type: "button", className: "family-add", "data-family": "add" });
+    add.appendChild(el("span", { className: "family-add__plus", "aria-hidden": "true" }, "+"));
+    add.appendChild(el("span", { className: "family-add__label" }, "Add a child"));
+    add.appendChild(el("span", { className: "family-add__hint" }, "Choose an avatar and a daily allowance"));
     grid.appendChild(add);
     host.appendChild(grid);
 
     var library = el("section", { className: "family-panel" });
+    library.appendChild(el("p", { className: "family-kicker" }, "Your library"));
     library.appendChild(el("h2", null, "Recent family activity"));
     library.appendChild(el("p", null, "Books and characters created for a child will gather here. Nothing is tracked beyond those creations."));
-    library.appendChild(el("a", { href: "#stories" }, "Your stories"));
-    library.appendChild(document.createTextNode(" · "));
-    library.appendChild(el("a", { href: "#characters" }, "Your characters"));
+    var links = el("div", { className: "family-links" });
+    links.appendChild(libraryTile("#stories", "book", "Grown-up shelf", "Your stories"));
+    links.appendChild(libraryTile("#characters", "character", "Grown-up cast", "Your characters"));
+    library.appendChild(links);
     host.appendChild(library);
 
     if (removed.length) {
@@ -446,9 +478,11 @@
     var panel = el("section", { className: "family-form" });
     panel.appendChild(el("h2", { className: "family-form__title", id: "familyDeviceTitle" }, child ? "Add a device for " + child.nickname : "Add a device"));
     if (pairingOffer && pairingOffer.code) {
-      panel.appendChild(el("p", { className: "family-code", id: "familyPairCode" }, pairingOffer.code));
+      var ticket = el("div", { className: "family-ticket" });
+      ticket.appendChild(el("p", { className: "family-code", id: "familyPairCode" }, pairingOffer.code));
       var qr = pairingQr(pairingLink());
-      if (qr) panel.appendChild(qr);
+      if (qr) ticket.appendChild(qr);
+      panel.appendChild(ticket);
       var when = new Date(pairingOffer.expiresAt);
       var clock = !isNaN(when.getTime())
         ? when.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })
@@ -493,11 +527,13 @@
     } else if (activityData.error) {
       panel.appendChild(el("p", { className: "family-status", role: "status" }, activityData.error));
     } else {
-      panel.appendChild(el("p", null, activityData.booksRemaining + " books left today"));
-      panel.appendChild(el("p", null, activityData.charactersRemaining + " characters left today"));
+      var remaining = el("ul", { className: "family-card__stats" });
+      remaining.appendChild(el("li", null, activityData.booksRemaining + " books left today"));
+      remaining.appendChild(el("li", null, activityData.charactersRemaining + " characters left today"));
+      panel.appendChild(remaining);
       var books = activityData.books || [];
       panel.appendChild(el("h3", null, "Books"));
-      if (!books.length) panel.appendChild(el("p", null, "No books yet."));
+      if (!books.length) panel.appendChild(el("p", { className: "family-empty" }, "No books yet."));
       books.forEach(function (book) {
         if (!book || !book.id) return;
         var row = el("p", null, "");
@@ -507,7 +543,7 @@
       });
       var characters = activityData.characters || [];
       panel.appendChild(el("h3", null, "Characters"));
-      panel.appendChild(el("p", null, characters.length ? characters.map(function (item) { return item.name; }).join(", ") : "No characters yet."));
+      panel.appendChild(el("p", { className: characters.length ? "" : "family-empty" }, characters.length ? characters.map(function (item) { return item.name; }).join(", ") : "No characters yet."));
       var shares = activityData.shares || [];
       if (shares.length) {
         var shared = el("ul", { className: "family-devices" });
@@ -633,7 +669,26 @@
     URL.revokeObjectURL(url);
   }
 
+  function closeSheets() {
+    var open = !!(editing || deviceChild || activityChild);
+    editing = null;
+    deviceChild = null;
+    pairingOffer = null;
+    deviceRows = [];
+    deviceMessage = "";
+    activityChild = null;
+    activityData = null;
+    adultBooks = [];
+    adultCharacters = [];
+    if (open) paint();
+    return open;
+  }
+
   function onClick(event) {
+    if (event.target && event.target.classList && event.target.classList.contains("family-sheet")) {
+      closeSheets();
+      return;
+    }
     var button = event.target.closest("[data-family]");
     if (!button) return;
     var action = button.getAttribute("data-family");
@@ -934,6 +989,10 @@
         boot();
       });
     }
+    document.addEventListener("keydown", function (event) {
+      if (event.key !== "Escape" || !closeSheets()) return;
+      event.preventDefault();
+    });
     document.addEventListener("wondii-org", function () {
       showNav(signedIn());
       paintInvite();

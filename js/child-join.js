@@ -81,13 +81,13 @@
   }
 
   /* Same drawn portrait the family page uses when a crew picture is missing. */
-  function portrait(crew) {
+  function portrait(crew, extra) {
     var look = (crew && crew.placeholder) || {};
     var skin = look.skin || "#e0ac69";
     var hair = look.hair || "#3b2414";
     var top = look.top || "#7d5caf";
     var style = look.hairStyle || "short";
-    var wrap = node("span", "family-portrait family-child__avatar");
+    var wrap = node("span", extra ? "family-portrait " + extra : "family-portrait family-child__avatar");
     var picture = svg("svg", { viewBox: "0 0 80 80", "aria-hidden": "true" });
     picture.appendChild(svg("rect", { width: "80", height: "80", fill: "#f6f1fb" }));
     picture.appendChild(svg("rect", { x: "16", y: "56", width: "48", height: "30", rx: "16", fill: top }));
@@ -111,8 +111,13 @@
     if (src) {
       var img = document.createElement("img");
       img.alt = "";
+      img.hidden = true;
+      img.addEventListener("load", function () {
+        if (img.naturalWidth > 0) img.hidden = false;
+      });
+      img.addEventListener("error", function () { img.remove(); });
       img.src = src;
-      img.addEventListener("error", function () { img.hidden = true; });
+      if (img.complete && img.naturalWidth > 0) img.hidden = false;
       wrap.appendChild(img);
     }
     return wrap;
@@ -137,6 +142,10 @@
     img.alt = label || "";
     img.hidden = true;
     img.setAttribute("data-art", relative);
+    img.addEventListener("load", function () {
+      if (img.naturalWidth > 0) img.hidden = false;
+    });
+    img.addEventListener("error", function () { img.hidden = true; });
     return img;
   }
 
@@ -151,76 +160,35 @@
     });
   }
 
-  function listOrEmpty(host, rows, emptyText, label) {
-    if (!Array.isArray(rows) || !rows.length) {
-      host.appendChild(node("p", null, emptyText));
-      return;
+  function emptyState(text, href, label) {
+    var box = node("div", "family-empty");
+    box.appendChild(node("p", null, text));
+    if (href && label) {
+      var link = node("a", "family-btn", label);
+      link.href = href;
+      box.appendChild(link);
     }
-    var list = node("ul", "family-child__list");
-    rows.forEach(function (row) {
-      list.appendChild(node("li", null, row[label] || "Untitled"));
-    });
-    host.appendChild(list);
+    return box;
   }
 
-  function paintHome(data) {
-    var host = document.getElementById("childJoin");
-    if (!host) return;
-    var crew = global.WondiiCrew && global.WondiiCrew.get && global.WondiiCrew.get(data.avatarId);
-    host.replaceChildren();
-    host.classList.add("family-child__home");
-    var hello = node("section", "family-child__welcome");
-    hello.appendChild(portrait(crew));
-    hello.appendChild(node("p", "family-child__hello", "Hello " + (data.nickname || "there")));
-    hello.appendChild(node("p", "family-child__crew", crew ? crew.name + " is here with you" : "Your Wondii friend is here"));
-    host.appendChild(hello);
-
-    var make = node("section", "family-child__panel");
-    make.appendChild(node("h2", null, "Make something"));
-    var bookLink = node("a", "family-btn", "Create a book");
-    bookLink.href = "games/storybook.html";
-    make.appendChild(bookLink);
-    var characterLink = node("a", "family-btn", "Create a character");
-    characterLink.href = "child-character.html";
-    make.appendChild(characterLink);
-    host.appendChild(make);
-
-    var games = node("section", "family-child__panel");
-    games.appendChild(node("h2", null, "Play games"));
-    if (data.canPlayGames) {
-      [
-        ["games/star-catcher.html", "Star Catcher"],
-        ["games/memory.html", "Memory Match"],
-        ["games/jigsaw.html", "Jigsaw"]
-      ].forEach(function (item) {
-        var link = node("a", "family-btn", item[1]);
-        link.href = item[0];
-        games.appendChild(link);
-      });
-    } else {
-      games.appendChild(node("p", null, "Games are turned off today."));
-    }
-    host.appendChild(games);
-
-    var mine = node("section", "family-child__panel");
-    mine.appendChild(node("p", "family-child__kicker", "My creations"));
-    mine.appendChild(node("h2", null, "My books"));
-    if (data.continueId) {
-      var cont = node("a", "family-btn", "Continue reading");
-      cont.href = "games/storybook.html?book=" + encodeURIComponent(data.continueId);
-      mine.appendChild(cont);
-    }
-    if (!Array.isArray(data.books) || !data.books.length) {
-      mine.appendChild(node("p", null, "Your books will appear here."));
-    } else {
-      var bookList = node("ul", "family-child__list");
-      data.books.forEach(function (book) {
-        var item = node("li", "family-child__row");
-        item.appendChild(artImage("books/" + book.id + "/cover.jpg", book.title || "Book"));
-        var open = node("a", null, book.title || "Untitled");
-        open.href = "games/storybook.html?book=" + encodeURIComponent(book.id || "");
-        item.appendChild(open);
-        var heart = node("button", "family-btn", book.favourite ? "Loved" : "Favourite");
+  function bookGrid(rows, hrefFor, artFor, withHeart) {
+    var list = node("ul", "family-books");
+    rows.forEach(function (book) {
+      var title = book.title || "Untitled";
+      var item = node("li", "family-book");
+      var open = node("a", "family-book__open", "");
+      open.href = hrefFor(book);
+      var cover = node("span", "family-book__cover");
+      cover.style.setProperty("--hue", String((title.charCodeAt(0) * 47) % 360));
+      cover.appendChild(artImage(artFor(book), title));
+      var mark = node("span", "family-book__mark", title.trim().charAt(0).toUpperCase() || "W");
+      mark.setAttribute("aria-hidden", "true");
+      cover.appendChild(mark);
+      open.appendChild(cover);
+      open.appendChild(node("span", "family-book__title", title));
+      item.appendChild(open);
+      if (withHeart) {
+        var heart = node("button", "family-heart" + (book.favourite ? " is-on" : ""), book.favourite ? "Loved" : "Favourite");
         heart.type = "button";
         heart.addEventListener("click", function () {
           if (!global.ChildLibrary) return;
@@ -230,74 +198,192 @@
           });
         });
         item.appendChild(heart);
-        bookList.appendChild(item);
-      });
-      mine.appendChild(bookList);
+      }
+      list.appendChild(item);
+    });
+    return list;
+  }
+
+  function personGrid(rows, hrefFor, artFor) {
+    var list = node("ul", "family-people");
+    rows.forEach(function (character) {
+      var name = character.name || character.title || "Character";
+      var item = node("li", "family-person");
+      var open = hrefFor ? node("a", "family-person__open", "") : node("div", "family-person__open", "");
+      if (hrefFor) open.href = hrefFor(character);
+      var face = node("span", "family-person__face");
+      face.style.setProperty("--hue", String((name.charCodeAt(0) * 47) % 360));
+      face.appendChild(artImage(artFor(character), name));
+      var initial = node("span", "family-person__mark", name.trim().charAt(0).toUpperCase() || "W");
+      initial.setAttribute("aria-hidden", "true");
+      face.appendChild(initial);
+      open.appendChild(face);
+      open.appendChild(node("span", "family-person__name", name));
+      item.appendChild(open);
+      list.appendChild(item);
+    });
+    return list;
+  }
+
+  function actionTile(href, tone, kicker, title) {
+    var link = node("a", "family-tile family-tile--" + tone, "");
+    link.href = href;
+    link.appendChild(node("span", "family-tile__kicker", kicker));
+    link.appendChild(node("span", "family-tile__title", title));
+    return link;
+  }
+
+  function paintHome(data) {
+    var host = document.getElementById("childJoin");
+    if (!host) return;
+    var crew = global.WondiiCrew && global.WondiiCrew.get && global.WondiiCrew.get(data.avatarId);
+    var booksLeft = data.booksRemaining != null ? data.booksRemaining : data.booksPerDay;
+    var charactersLeft = data.charactersRemaining != null ? data.charactersRemaining : data.charactersPerDay;
+    host.replaceChildren();
+    host.classList.remove("family-join");
+    host.classList.add("family-child__home");
+
+    var brand = node("a", "family-brand", "");
+    brand.href = "child.html";
+    var mark = document.createElement("img");
+    mark.src = "games/images/brand/wondi-wordmark.svg";
+    mark.alt = "Wondii";
+    brand.appendChild(mark);
+    host.appendChild(brand);
+
+    var nav = node("nav", "family-child__nav");
+    nav.setAttribute("aria-label", "Your Wondii");
+    [
+      ["child.html", "Home", true],
+      ["#my-books", "Books", false],
+      ["child-character.html", "Characters", false],
+      ["#play", "Games", false]
+    ].forEach(function (item) {
+      var link = node("a", item[2] ? "is-current" : "", item[1]);
+      link.href = item[0];
+      if (item[2]) link.setAttribute("aria-current", "page");
+      nav.appendChild(link);
+    });
+    host.appendChild(nav);
+
+    var hello = node("section", "family-child__hero");
+    hello.appendChild(portrait(crew));
+    var helloCopy = node("div", "family-child__hero-copy");
+    helloCopy.appendChild(node("p", "family-kicker", "My Wondii"));
+    helloCopy.appendChild(node("h1", "family-child__hello", "Hello " + (data.nickname || "there")));
+    helloCopy.appendChild(node("p", "family-child__crew", crew ? crew.name + " is here with you" : "Your Wondii friend is here"));
+    var today = node("ul", "family-child__today");
+    today.appendChild(node("li", null, String(booksLeft) + " books left today"));
+    today.appendChild(node("li", null, String(charactersLeft) + " characters left today"));
+    helloCopy.appendChild(today);
+    hello.appendChild(helloCopy);
+    host.appendChild(hello);
+
+    var make = node("section", "family-child__actions");
+    make.appendChild(actionTile("games/storybook.html", "book", "A new story", "Create a book"));
+    make.appendChild(actionTile("child-character.html", "character", "Someone new", "Create a character"));
+    host.appendChild(make);
+
+    var mine = node("section", "family-child__panel");
+    mine.id = "my-books";
+    mine.appendChild(node("p", "family-kicker", "My creations"));
+    mine.appendChild(node("h2", null, "My books"));
+    if (data.continueId) {
+      var current = (data.books || []).filter(function (book) { return book && book.id === data.continueId; })[0];
+      var cont = node("a", "family-continue", "");
+      cont.href = "games/storybook.html?book=" + encodeURIComponent(data.continueId);
+      cont.appendChild(node("span", "family-kicker", "Continue reading"));
+      cont.appendChild(node("span", "family-continue__title", current && current.title ? current.title : "Your book"));
+      mine.appendChild(cont);
+    }
+    if (!Array.isArray(data.books) || !data.books.length) {
+      mine.appendChild(emptyState("Your books will appear here.", "games/storybook.html", "Create a book"));
+    } else {
+      mine.appendChild(bookGrid(data.books, function (book) {
+        return "games/storybook.html?book=" + encodeURIComponent(book.id || "");
+      }, function (book) {
+        return "books/" + book.id + "/cover.jpg";
+      }, true));
     }
     var favourites = (data.books || []).filter(function (book) { return book && book.favourite; });
     mine.appendChild(node("h2", null, "Favourites"));
-    listOrEmpty(mine, favourites, "Tap a book’s heart when you love it.", "title");
+    mine.appendChild(favourites.length
+      ? bookGrid(favourites, function (book) {
+        return "games/storybook.html?book=" + encodeURIComponent(book.id || "");
+      }, function (book) {
+        return "books/" + book.id + "/cover.jpg";
+      }, false)
+      : emptyState("Tap Favourite on a book when you love it.", "", ""));
     mine.appendChild(node("h2", null, "My characters"));
-    if (!Array.isArray(data.characters) || !data.characters.length) {
-      mine.appendChild(node("p", null, "Your characters will appear here."));
-    } else {
-      var characterList = node("ul", "family-child__list");
-      data.characters.forEach(function (character) {
-        var item = node("li", "family-child__row");
-        item.appendChild(artImage("characters/" + character.id + ".png", character.name || "Character"));
-        item.appendChild(node("span", null, character.name || "Character"));
-        characterList.appendChild(item);
-      });
-      mine.appendChild(characterList);
-    }
+    mine.appendChild((!Array.isArray(data.characters) || !data.characters.length)
+      ? emptyState("Your characters will appear here.", "child-character.html", "Create a character")
+      : personGrid(data.characters, null, function (character) {
+        return "characters/" + character.id + ".png";
+      }));
     host.appendChild(mine);
 
-    var shared = node("section", "family-child__panel");
-    shared.appendChild(node("p", "family-child__kicker", "Shared with me"));
+    var shared = node("section", "family-child__panel family-child__panel--shared");
+    shared.appendChild(node("p", "family-kicker", "Shared with me"));
     shared.appendChild(node("h2", null, "Family bookshelf"));
-    if (!Array.isArray(data.sharedBooks) || !data.sharedBooks.length) {
-      shared.appendChild(node("p", null, "Books a grown-up shares will appear here."));
-    } else {
-      var sharedBooks = node("ul", "family-child__list");
-      data.sharedBooks.forEach(function (book) {
-        var item = node("li", "family-child__row");
-        item.appendChild(artImage("shared/" + book.id + "/cover.jpg", book.title || "Book"));
-        var open = node("a", null, book.title || "Untitled");
-        open.href = "games/storybook.html?shared=" + encodeURIComponent(book.id || "");
-        item.appendChild(open);
-        sharedBooks.appendChild(item);
-      });
-      shared.appendChild(sharedBooks);
-    }
-    if (!Array.isArray(data.sharedCharacters) || !data.sharedCharacters.length) {
-      shared.appendChild(node("p", null, "Characters a grown-up shares will appear here."));
-    } else {
-      var sharedCharacters = node("ul", "family-child__list");
-      data.sharedCharacters.forEach(function (character) {
-        var item = node("li", "family-child__row");
-        item.appendChild(artImage("shared/" + character.id + "/character.png", character.title || "Character"));
-        var open = node("a", null, character.title || "Character");
-        open.href = "games/storybook.html?sharedChar=" + encodeURIComponent(character.id || "");
-        item.appendChild(open);
-        sharedCharacters.appendChild(item);
-      });
-      shared.appendChild(sharedCharacters);
-    }
+    shared.appendChild((!Array.isArray(data.sharedBooks) || !data.sharedBooks.length)
+      ? emptyState("Books a grown-up shares will appear here.", "", "")
+      : bookGrid(data.sharedBooks, function (book) {
+        return "games/storybook.html?shared=" + encodeURIComponent(book.id || "");
+      }, function (book) {
+        return "shared/" + book.id + "/cover.jpg";
+      }, false));
+    shared.appendChild(node("h2", null, "Shared characters"));
+    shared.appendChild((!Array.isArray(data.sharedCharacters) || !data.sharedCharacters.length)
+      ? emptyState("Characters a grown-up shares will appear here.", "", "")
+      : personGrid(data.sharedCharacters, function (character) {
+        return "games/storybook.html?sharedChar=" + encodeURIComponent(character.id || "");
+      }, function (character) {
+        return "shared/" + character.id + "/character.png";
+      }));
     host.appendChild(shared);
     fillArt(host);
 
-    var today = node("section", "family-child__panel");
-    today.appendChild(node("h2", null, "Today"));
-    var booksLeft = data.booksRemaining != null ? data.booksRemaining : data.booksPerDay;
-    var charactersLeft = data.charactersRemaining != null ? data.charactersRemaining : data.charactersPerDay;
-    today.appendChild(node("p", null, String(booksLeft) + " books left today"));
-    today.appendChild(node("p", null, String(charactersLeft) + " characters left today"));
-    host.appendChild(today);
-    var status = node("p", null, "");
+    var games = node("section", "family-child__panel");
+    games.id = "play";
+    games.appendChild(node("h2", null, "Play games"));
+    if (data.canPlayGames) {
+      var row = node("div", "family-play");
+      [
+        ["games/star-catcher.html", "Star Catcher"],
+        ["games/memory.html", "Memory Match"],
+        ["games/jigsaw.html", "Jigsaw"]
+      ].forEach(function (item) {
+        var link = node("a", "family-play__link", item[1]);
+        link.href = item[0];
+        row.appendChild(link);
+      });
+      games.appendChild(row);
+    } else {
+      games.appendChild(node("p", null, "Games are turned off today."));
+    }
+    host.appendChild(games);
+
+    var status = node("p", "family-status", "");
     status.id = "childPairStatus";
     status.setAttribute("role", "status");
     host.appendChild(status);
     statusNode = status;
+  }
+
+  function paintJoin() {
+    var form = document.getElementById("childPair");
+    var host = document.getElementById("childJoin");
+    if (!form || !host || document.getElementById("childJoinCrew")) return;
+    if (!global.WondiiCrew || !global.WondiiCrew.list) return;
+    var row = node("ul", "family-join__crew");
+    row.id = "childJoinCrew";
+    row.setAttribute("aria-label", "Wondii Crew");
+    global.WondiiCrew.list().forEach(function (member) {
+      var item = node("li", null, "");
+      item.appendChild(portrait(member, "family-join__face"));
+      row.appendChild(item);
+    });
+    host.insertBefore(row, form);
   }
 
   function saveCharacter(name, done) {
@@ -382,7 +468,10 @@
     });
   }
 
-  if (form) form.addEventListener("submit", redeem);
+  if (form) {
+    form.addEventListener("submit", redeem);
+    paintJoin();
+  }
   if (new URLSearchParams(global.location.search).get("pair")) redeem();
   else if (global.WondiiSession && global.WondiiSession.subscribe) {
     global.WondiiSession.subscribe(function (snap) {

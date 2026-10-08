@@ -28,3 +28,9 @@ verify_jwt = true
 
 [functions.learn-visuals]
 verify_jwt = true
+
+[functions.child-pair]
+# A device has no user session yet. It posts the public anon key plus one pairing code.
+# The function redeems that code with the service role. Do not deploy until the
+# child-home, library, and artwork migrations are applied, and not before approval.
+verify_jwt = false

@@ -112,15 +112,19 @@
     hover.alt = "";
     hover.src = row.assets ? row.assets.hover : (row.artwork || "");
     var stand = figure(row.placeholder ? row : { placeholder: { skin: "#e0ac69", hair: "#3b2414", hairStyle: "short", top: "#7d5caf", bottom: "#2c3338" }, gesture: "wave" });
-    function hideMissing(img) {
+    function revealWhenReady(img) {
+      img.hidden = true;
+      function show() { if (img.naturalWidth > 0) img.hidden = false; }
+      img.addEventListener("load", show);
       img.addEventListener("error", function () { img.hidden = true; });
+      if (img.complete) show();
     }
-    hideMissing(idle);
-    hideMissing(hover);
     if (kind === "workspace" && row.artwork) {
       idle.src = row.artwork;
       hover.src = row.artwork;
     }
+    revealWhenReady(idle);
+    revealWhenReady(hover);
     box.appendChild(idle);
     box.appendChild(hover);
     box.appendChild(stand);

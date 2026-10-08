@@ -8,13 +8,21 @@
   function say(text) {
     if (!host) return;
     host.replaceChildren();
+    var card = document.createElement("section");
+    card.className = "family-empty";
+    var title = document.createElement("h1");
+    title.className = "family-title";
+    title.textContent = "My characters";
     var note = document.createElement("p");
     note.textContent = text;
     var link = document.createElement("a");
+    link.className = "family-btn";
     link.href = "child.html";
     link.textContent = "Join your Wondii";
-    host.appendChild(note);
-    host.appendChild(link);
+    card.appendChild(title);
+    card.appendChild(note);
+    card.appendChild(link);
+    host.appendChild(card);
   }
 
   function open() {
