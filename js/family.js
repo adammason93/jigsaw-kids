@@ -30,6 +30,10 @@
   var bound = false;
   var starting = false;
   var loaded = false;
+  var deviceChild = null;
+  var pairingOffer = null;
+  var deviceRows = [];
+  var deviceMessage = "";
 
   function avatar(id) {
     for (var i = 0; i < AVATARS.length; i++) if (AVATARS[i].id === id) return AVATARS[i];
@@ -129,6 +133,8 @@
     if (/pending_deletion/.test(code)) return "Restore this profile before editing it.";
     if (/not_restorable|not_found/.test(code)) return "That profile can no longer be restored.";
     if (/sign_in_required/.test(code)) return "Log in again to manage your family.";
+    if (/profile_unavailable/.test(code)) return "Allow this profile again before pairing a device.";
+    if (/could not find the function|PGRST202|schema cache/i.test(code)) return "Device pairing is not available yet.";
     if (/no_family/.test(code)) return "Create your family first.";
     if (/unavailable/.test(code)) return "Wondii could not open your family just now. Try again in a moment.";
     return "That didn’t save. Check your connection and try again.";
@@ -175,6 +181,9 @@
       snapshot = { family: null, children: [] };
       loaded = false;
       message = "";
+      deviceChild = null;
+      pairingOffer = null;
+      deviceRows = [];
       paint();
       if (done) done();
       return;
@@ -302,6 +311,9 @@
     item.appendChild(copy);
     var actions = el("div", { className: "family-card__actions" });
     actions.appendChild(el("button", { type: "button", className: "family-btn", "data-family": "edit", "data-id": child.id }, "Manage profile"));
+    if (child.status === "active") {
+      actions.appendChild(el("button", { type: "button", className: "family-btn family-btn--ghost", "data-family": "device", "data-id": child.id }, "Add device"));
+    }
     if (child.status === "suspended") {
       actions.appendChild(el("button", { type: "button", className: "family-btn family-btn--ghost", "data-family": "resume", "data-id": child.id }, "Allow access"));
     } else {
@@ -415,7 +427,58 @@
       host.appendChild(sheet);
       var focus = form.querySelector("input[name='nickname']");
       if (focus) focus.focus();
+    } else if (deviceChild) {
+      host.appendChild(deviceSheet(deviceChild));
     }
+  }
+
+  function deviceSheet(id) {
+    var child = childById(id);
+    var sheet = el("div", { className: "family-sheet", role: "dialog", "aria-modal": "true", "aria-labelledby": "familyDeviceTitle" });
+    var panel = el("section", { className: "family-form" });
+    panel.appendChild(el("h2", { className: "family-form__title", id: "familyDeviceTitle" }, child ? "Add a device for " + child.nickname : "Add a device"));
+    if (pairingOffer && pairingOffer.code) {
+      panel.appendChild(el("p", { className: "family-code", id: "familyPairCode" }, pairingOffer.code));
+      var when = new Date(pairingOffer.expiresAt);
+      var clock = !isNaN(when.getTime())
+        ? when.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })
+        : "10 minutes";
+      panel.appendChild(el("p", { className: "family-note" }, "Open this on the child’s device. It works once and expires at " + clock + ". Opening it on this device uses it up."));
+      panel.appendChild(el("button", { type: "button", className: "family-btn", "data-family": "copy-pair" }, "Copy pairing link"));
+    } else if (!deviceMessage) {
+      panel.appendChild(el("p", { className: "family-note", role: "status" }, "Preparing a pairing code…"));
+    }
+    if (deviceMessage) {
+      panel.appendChild(el("p", { className: "family-status", role: "status" }, deviceMessage));
+    }
+    if (deviceRows.length) {
+      var list = el("ul", { className: "family-devices" });
+      deviceRows.forEach(function (row) {
+        var item = el("li", null, row.revokedAt ? "Device stopped" : "Device connected");
+        if (!row.revokedAt) {
+          item.appendChild(el("button", { type: "button", className: "family-btn family-btn--quiet", "data-family": "revoke", "data-id": row.id }, "Stop device"));
+        }
+        list.appendChild(item);
+      });
+      panel.appendChild(list);
+    }
+    panel.appendChild(el("button", { type: "button", className: "family-btn family-btn--ghost", "data-family": "close-device" }, "Close"));
+    sheet.appendChild(panel);
+    return sheet;
+  }
+
+  function pairingLink() {
+    if (!pairingOffer || !pairingOffer.code) return "";
+    return new URL("child.html?pair=" + encodeURIComponent(pairingOffer.code), global.location.href).href;
+  }
+
+  function loadDevices(id) {
+    call("list_child_devices", { p_child: id }, function (err, data) {
+      if (deviceChild !== id) return;
+      deviceRows = Array.isArray(data) ? data : [];
+      if (err) deviceMessage = failText(err);
+      paint();
+    });
   }
 
   function childById(id) {
@@ -487,6 +550,58 @@
     if (action === "close") {
       editing = null;
       paint();
+      return;
+    }
+    if (action === "close-device") {
+      deviceChild = null;
+      pairingOffer = null;
+      deviceRows = [];
+      deviceMessage = "";
+      paint();
+      return;
+    }
+    if (action === "device") {
+      editing = null;
+      deviceChild = id;
+      pairingOffer = null;
+      deviceRows = [];
+      deviceMessage = "";
+      paint();
+      call("create_child_pairing", { p_child: id }, function (err, data) {
+        if (deviceChild !== id) return;
+        if (err || !data || !data.code) {
+          deviceMessage = failText(err || new Error("unavailable"));
+          paint();
+          return;
+        }
+        pairingOffer = { code: data.code, expiresAt: data.expiresAt };
+        loadDevices(id);
+      });
+      return;
+    }
+    if (action === "copy-pair") {
+      var link = pairingLink();
+      if (!link || !global.navigator || !global.navigator.clipboard) {
+        deviceMessage = "The pairing code is on the screen.";
+        paint();
+        return;
+      }
+      global.navigator.clipboard.writeText(link).then(function () {
+        deviceMessage = "Pairing link copied. Open it on the child’s device.";
+        paint();
+      }).catch(function () {
+        deviceMessage = "The pairing code is on the screen.";
+        paint();
+      });
+      return;
+    }
+    if (action === "revoke") {
+      if (!global.confirm("Stop this device? It loses access straight away.")) return;
+      call("revoke_child_device", { p_device: id }, function (err) {
+        deviceMessage = err ? failText(err) : "That device has been stopped.";
+        if (deviceChild) loadDevices(deviceChild);
+        else paint();
+      });
       return;
     }
     if (action === "edit") {

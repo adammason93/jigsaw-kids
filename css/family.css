@@ -238,6 +238,30 @@
   outline-offset: 2px;
 }
 
+.family-code {
+  margin: 0.8rem 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 2rem;
+  letter-spacing: 0.18em;
+  font-weight: 800;
+  color: #141b4d;
+}
+
+.family-devices {
+  margin: 0.8rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.family-devices li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-top: 0.45rem;
+  font-weight: 800;
+}
+
 .family-check {
   display: flex;
   align-items: center;

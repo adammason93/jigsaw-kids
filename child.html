@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="referrer" content="no-referrer" />
+  <meta name="robots" content="noindex" />
+  <title>Join your Wondii</title>
+  <link rel="stylesheet" href="css/family.css?v=4" />
+</head>
+<body class="family-child">
+  <main class="family-child__card" id="childJoin">
+    <h1>Join your Wondii</h1>
+    <p>Ask a grown-up for a pairing code. It works once, and only for a few minutes.</p>
+    <form id="childPair">
+      <label>Pairing code <input name="code" autocomplete="one-time-code" maxlength="8" required /></label>
+      <button type="submit">Join</button>
+    </form>
+    <p id="childPairStatus" role="status"></p>
+  </main>
+  <script src="js/score-config.js"></script>
+  <script src="js/wondii-session.js"></script>
+  <script src="js/child-join.js?v=1" defer></script>
+</body>
+</html>
