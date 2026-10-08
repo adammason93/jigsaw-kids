@@ -68,6 +68,7 @@
 
   function closeGate() {
     root.classList.remove("gate-on");
+    root.classList.add("org-pending");
     if (wantsSignup() && window.history && window.history.replaceState) {
       window.history.replaceState(null, "", "portal.html");
     }

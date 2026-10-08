@@ -60,8 +60,10 @@
   }
 
   function teacherRoute() {
+    if (window.WondiiPortalShell) return window.WondiiPortalShell.routeFromHash(window.location.hash);
     var h = (window.location.hash || "").replace("#", "");
-    if (h === "home" || h === "classes" || h === "create" || h === "library" || h === "results") return h;
+    var route = h.split("/")[0];
+    if (route === "home" || route === "characters" || route === "classes" || route === "create" || route === "library" || route === "results") return route;
     if (!h) return "home";
     return "";
   }
@@ -194,6 +196,67 @@
     return "<div class=\"w-empty\"><p class=\"w-empty__title\">No classes yet</p><p>Create your first class to bring your Wondii classroom to life.</p></div>";
   }
 
+  var savedCast = [];
+  var savedCastStarted = false;
+
+  function libraryEntries() {
+    var api = window.WondiiCharacterLibrary;
+    var bible = window.WondiiCharacterBible;
+    if (!api || !bible || !api.availableCharacters) return [];
+    var view = window.WondiiOrg && window.WondiiOrg.get ? window.WondiiOrg.get() : null;
+    var space = window.WondiiAccount && view ? window.WondiiAccount.workspaceFrom({
+      userId: view.userId,
+      organisation: view.organisation,
+      role: view.role,
+      organisationName: view.organisationName
+    }) : null;
+    return api.availableCharacters({
+      bible: bible,
+      saved: savedCast,
+      ownerId: space && space.ownerId,
+      ownerType: space && space.ownerType
+    });
+  }
+
+  function loadSavedCast() {
+    var store = window.CharacterStore;
+    if (savedCastStarted || !store || !store.loadCharacters) return;
+    savedCastStarted = true;
+    store.loadCharacters(function (err, list) {
+      if (err || !Array.isArray(list)) return;
+      savedCast = list.map(function (row) {
+        return {
+          id: row.id,
+          name: row.name,
+          type: row.type,
+          createdAt: row.createdAt,
+          artwork: row.artwork || "",
+          ownerId: row.ownerId || ""
+        };
+      });
+      var view = window.WondiiOrg && window.WondiiOrg.get ? window.WondiiOrg.get() : null;
+      if (view && view.organisation && teacherRoute() === "home") paint(view);
+    });
+  }
+
+  function characterHome() {
+    var picked = window.WondiiPortalShell ? window.WondiiPortalShell.homeCast(libraryEntries()) : libraryEntries();
+    var faces = picked.map(function (entry) {
+      var frame = entry.artworkFrame ? " data-frame=\"" + escape(entry.artworkFrame) + "\"" : "";
+      var face = entry.artwork
+        ? "<img class=\"cast-home__art\" src=\"" + escape(entry.artwork) + "\" alt=\"\"" + frame + " />"
+        : "<span class=\"cast-home__initial\" aria-hidden=\"true\">" + escape(entry.name.slice(0, 1)) + "</span>";
+      return "<a class=\"cast-home__card\" href=\"#characters/" + encodeURIComponent(entry.id) + "\">" +
+        "<span class=\"cast-home__face\">" + face + "</span>" +
+        "<span class=\"cast-home__name\">" + escape(entry.name) + "</span></a>";
+    }).join("");
+    var empty = faces ? "" : "<p class=\"w-note\">Your saved characters will show here.</p>";
+    return "<section class=\"t-section\" id=\"homeCharacters\"><div class=\"w-toolbar\"><h2 class=\"w-h2\">Your characters</h2>" +
+      "<a class=\"w-btn w-btn--quiet\" href=\"#characters\">View all characters</a></div>" +
+      (faces ? "<div class=\"cast-home\">" + faces + "</div>" : empty) +
+      "<p class=\"t-actions\"><a class=\"w-btn w-btn--secondary\" href=\"#characters\">Add a character</a></p></section>";
+  }
+
   function createLinks(classId) {
     var adventure = "schools/learn/create.html" + (classId ? "?class=" + encodeURIComponent(classId) : "");
     var game = "schools/learn/create.html?quick=1" + (classId ? "&class=" + encodeURIComponent(classId) : "");
@@ -201,7 +264,8 @@
     return [
       [adventure, "Learning Adventure", "Turn today's lesson into an adventure."],
       [game, "Quick Game", "Quiz, spin, or a word search with this class."],
-      [story, "Create Story", "Start a story on this account."]
+      [story, "Create Story", "Start a story on this account."],
+      ["#characters", "Characters", "Create and save characters for this school."]
     ];
   }
 
@@ -257,6 +321,7 @@
     return "<header class=\"t-section\"><p class=\"w-kicker\">Wondii Schools</p><h1 class=\"w-title\">" + greeting() + "</h1>" +
       "<p class=\"w-lead\">What would you like to create?</p></header>" +
       createCards(oneClassId(book)) +
+      characterHome() +
       insight +
       "<section class=\"t-section\"><div class=\"w-toolbar\"><h2 class=\"w-h2\">My classes</h2><a class=\"w-btn w-btn--quiet\" href=\"#classes\">All classes</a></div>" +
       (classes ? "<div class=\"t-grid\">" + classes + "</div>" : emptyClasses() + "<p><a class=\"w-btn w-btn--primary\" href=\"#classes\">Add a class</a></p>") +
@@ -322,18 +387,39 @@
   }
 
   function paint(view) {
-    var org = view && view.organisation;
+    if (!view || view.status === "loading") return;
+    var org = view.organisation;
     var home = host.closest(".p-view");
-    if (home) home.classList.toggle("is-teacher", !!org);
+    if (home) home.classList.remove("is-teacher");
     host.hidden = !org;
     markTeacherNav();
-    if (!org) return;
+    if (!org) {
+      host.innerHTML = "";
+      return;
+    }
+    loadSavedCast();
     var book = loadClasses();
     var lessons = lessonsNow();
     var sessions = sessionsNow().slice().sort(function (a, b) {
       return Date.parse(b.createdAt || "") - Date.parse(a.createdAt || "");
     });
     var route = teacherRoute();
+    var dash = document.getElementById("wondiiHome");
+    if (route === "characters" || route === "home") {
+      host.innerHTML = "";
+      host.hidden = true;
+      if (dash) dash.hidden = false;
+      if (route === "home" && window.WondiiPortalHome) window.WondiiPortalHome.paint(view);
+      return;
+    }
+    if (route !== "classes" && route !== "create" && route !== "library" && route !== "results") {
+      host.innerHTML = "";
+      host.hidden = true;
+      return;
+    }
+    if (dash) dash.hidden = true;
+    if (home) home.classList.add("is-teacher");
+    host.hidden = false;
     var html = route === "classes" ? classesView(view, book) :
       route === "create" ? createView(view, book) :
       route === "library" ? libraryView(view, lessons) :
