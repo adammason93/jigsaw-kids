@@ -10,5 +10,18 @@ workers-site/
 .github/
 .vscode/
 .claude/
+.cursor/
 ai-dev/
+android/
+# Database, notes, tests, and local generators are not website assets
 supabase/
+docs/
+tests/
+scripts/
+# Worker config is read locally by Wrangler and must not be downloadable
+wrangler.jsonc
+# Secrets and local environment. A clean checkout does not contain these.
+.env
+.env.*
+.dev.vars
+.dev.vars.*
