@@ -588,14 +588,35 @@
     });
   }
 
+  var watching = false;
+
+  function watchAccount() {
+    if (watching) return;
+    watching = true;
+    document.addEventListener("wondii-org", function () {
+      if (host) loadSaved();
+    });
+  }
+
   function loadSaved() {
+    watchAccount();
     var store = window.CharacterStore;
+    var view = window.WondiiOrg && window.WondiiOrg.get && window.WondiiOrg.get();
+    if (!view || (view.status !== "ready" && view.status !== "error")) {
+      saved = [];
+      status = "loading";
+      loadError = "";
+      render();
+      return;
+    }
     var mine = ++token;
     var space = workspace();
     if (!space || !space.ownerId || !store || !store.loadCharacters) {
       saved = [];
       status = "ready";
-      if (space && space.kind === "signed-out" && account()) loadError = account().authNotice(space).text;
+      loadError = space && space.kind === "signed-out" && account()
+        ? account().authNotice(space).text
+        : (view.status === "error" ? "Could not open characters. Try again." : "");
       render();
       return;
     }

@@ -109,6 +109,9 @@ async function main() {
   var follow = org.slice(org.indexOf("function followSession"), org.indexOf("function schoolIntentFor"));
   var initBranch = follow.slice(follow.indexOf('auth.status === "initialising"'), follow.indexOf('auth.status === "error"'));
   assert.ok(initBranch.indexOf('seen = ""') >= 0, "a retry must not ignore the same signed-in user");
+  var characters = fs.readFileSync(path.join(root, "schools/learn/character-portal.js"), "utf8");
+  assert.ok(characters.indexOf('view.status !== "ready"') >= 0);
+  assert.ok(characters.indexOf("wondii-org") >= 0);
 
   console.log("wondii-session tests ok");
 }
