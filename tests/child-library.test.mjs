@@ -77,11 +77,11 @@ assert.equal(library.includes("characters_room"), false);
 const childDownload = cloud.slice(cloud.indexOf('account_kind === "child"'), cloud.indexOf('account_kind === "child"') + 500);
 assert.match(childDownload, /ChildLibrary\.downloadShelf/);
 assert.equal(childDownload.includes(".upload("), false);
-assert.match(cloud, /ChildLibrary\.refund/);
+assert.match(cloud, /ChildLibrary\.uploadShelf/);
 
 const childSave = characters.slice(characters.indexOf("function saveCharacter("), characters.indexOf("function saveCharacter(") + 1200);
 assert.match(childSave, /ChildLibrary\.reserve\("character"\)/);
-assert.match(childSave, /ChildLibrary\.refund/);
+assert.match(childSave, /ChildLibrary\.storeCharacterArt/);
 assert.equal(childSave.includes("characters_room"), false);
 
 assert.match(story, /ChildLibrary\.reserve\("book"\)/);

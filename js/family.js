@@ -497,7 +497,14 @@
       panel.appendChild(el("p", null, activityData.charactersRemaining + " characters left today"));
       var books = activityData.books || [];
       panel.appendChild(el("h3", null, "Books"));
-      panel.appendChild(el("p", null, books.length ? books.map(function (book) { return book.title; }).join(", ") : "No books yet."));
+      if (!books.length) panel.appendChild(el("p", null, "No books yet."));
+      books.forEach(function (book) {
+        if (!book || !book.id) return;
+        var row = el("p", null, "");
+        var open = el("a", { href: "games/storybook.html?child=" + encodeURIComponent(id) + "&book=" + encodeURIComponent(book.id) }, book.title || "Open book");
+        row.appendChild(open);
+        panel.appendChild(row);
+      });
       var characters = activityData.characters || [];
       panel.appendChild(el("h3", null, "Characters"));
       panel.appendChild(el("p", null, characters.length ? characters.map(function (item) { return item.name; }).join(", ") : "No characters yet."));
@@ -685,22 +692,50 @@
     }
     if (action === "share-character") {
       var characterUid = accountUserId();
-      call("share_library_item", {
-        p_child: id,
-        p_kind: "character",
-        p_bucket: "characters_room",
-        p_path: characterUid + "/characters/index.json",
-        p_source: button.getAttribute("data-source") || "",
-        p_title: button.getAttribute("data-title") || "",
-        p_preview: { title: button.getAttribute("data-title") || "" }
-      }, function (err) {
-        if (err) {
-          activityData = { error: failText(err) };
+      var characterSource = button.getAttribute("data-source") || "";
+      var characterTitle = button.getAttribute("data-title") || "";
+      if (!global.CharacterStore || !global.CharacterStore.getCharacterSignedUrl || !global.ChildLibrary) {
+        activityData = { error: "That character picture is not available." };
+        paint();
+        return;
+      }
+      global.CharacterStore.getCharacterSignedUrl(characterSource, function (urlErr, url) {
+        if (urlErr || !url) {
+          activityData = { error: "That character picture is not available." };
           paint();
           return;
         }
-        call("parent_child_activity", { p_child: id }, function (loadErr, data) {
-          activityData = loadErr ? { error: failText(loadErr) } : data;
+        fetch(url).then(function (res) { return res.blob(); }).then(function (blob) {
+          call("share_library_item", {
+            p_child: id,
+            p_kind: "character",
+            p_bucket: "characters_room",
+            p_path: characterUid + "/characters/index.json",
+            p_source: characterSource,
+            p_title: characterTitle,
+            p_preview: { title: characterTitle }
+          }, function (err, data) {
+            if (err || !data || !data.id) {
+              activityData = { error: failText(err) };
+              paint();
+              return;
+            }
+            global.ChildLibrary.storeSharedPackage(id, data.id, null, blob, function (storeErr) {
+              if (storeErr) {
+                call("unshare_library_item", { p_share: data.id }, function () {
+                  activityData = { error: "That character was not shared." };
+                  paint();
+                });
+                return;
+              }
+              call("parent_child_activity", { p_child: id }, function (loadErr, fresh) {
+                activityData = loadErr ? { error: failText(loadErr) } : fresh;
+                paint();
+              });
+            });
+          });
+        }).catch(function () {
+          activityData = { error: "That character picture is not available." };
           paint();
         });
       });
@@ -717,6 +752,10 @@
           return { text: String(page && page.text || "").slice(0, 500) };
         });
       });
+      var sharedBook = null;
+      adultBooks.forEach(function (book) {
+        if (book && book.id === source) sharedBook = book;
+      });
       call("share_library_item", {
         p_child: id,
         p_kind: "book",
@@ -725,24 +764,37 @@
         p_source: source,
         p_title: title,
         p_preview: preview
-      }, function (err) {
-        deviceMessage = "";
-        if (err) activityData = { error: failText(err) };
-        else call("parent_child_activity", { p_child: id }, function (loadErr, data) {
-          activityData = loadErr ? { error: failText(loadErr) } : data;
+      }, function (err, data) {
+        if (err || !data || !data.id || !global.ChildLibrary || !sharedBook) {
+          activityData = { error: err ? failText(err) : "That book was not shared." };
           paint();
+          return;
+        }
+        global.ChildLibrary.storeSharedPackage(id, data.id, sharedBook, null, function (storeErr) {
+          if (storeErr) {
+            call("unshare_library_item", { p_share: data.id }, function () {
+              activityData = { error: "That book’s pictures were not shared." };
+              paint();
+            });
+            return;
+          }
+          call("parent_child_activity", { p_child: id }, function (loadErr, fresh) {
+            activityData = loadErr ? { error: failText(loadErr) } : fresh;
+            paint();
+          });
         });
-        paint();
       });
       return;
     }
     if (action === "unshare") {
+      var shareChild = activityChild;
       call("unshare_library_item", { p_share: id }, function (err) {
         if (err) {
           activityData = { error: failText(err) };
           paint();
           return;
         }
+        if (shareChild && global.ChildLibrary) global.ChildLibrary.removeShareFiles(shareChild, id, function () {});
         if (activityChild) {
           call("parent_child_activity", { p_child: activityChild }, function (loadErr, data) {
             activityData = loadErr ? { error: failText(loadErr) } : data;

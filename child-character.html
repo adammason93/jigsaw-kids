@@ -5,26 +5,25 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="referrer" content="no-referrer" />
   <meta name="robots" content="noindex" />
-  <title>Join your Wondii</title>
+  <title>My characters</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/wondii-system.css?v=2" />
+  <link rel="stylesheet" href="css/character-crew.css?v=2" />
   <link rel="stylesheet" href="css/family.css?v=7" />
 </head>
 <body class="family-child">
-  <main class="family-child__card" id="childJoin">
-    <h1>Join your Wondii</h1>
-    <p>Ask a grown-up for a pairing code. It works once, and only for a few minutes.</p>
-    <form id="childPair">
-      <label>Pairing code <input name="code" autocomplete="one-time-code" maxlength="8" required /></label>
-      <button type="submit">Join</button>
-    </form>
-    <p id="childPairStatus" role="status"></p>
+  <main class="family-child__card">
+    <p><a href="child.html">Back to my Wondii</a></p>
+    <div id="characterPage"></div>
   </main>
   <script src="js/score-config.js"></script>
   <script src="js/wondii-session.js"></script>
   <script src="js/wondii-crew.js"></script>
   <script src="js/child-library.js?v=2" defer></script>
-  <script src="js/child-join.js?v=4" defer></script>
+  <script src="js/character-store.js?v=5" defer></script>
+  <script src="schools/learn/character-portal.js?v=6" defer></script>
+  <script src="js/child-character.js?v=1" defer></script>
 </body>
 </html>

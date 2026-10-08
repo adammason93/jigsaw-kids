@@ -4707,6 +4707,62 @@
       });
   }
 
+  function showStoredBook(item) {
+    if (!item || !item.pages || !item.pages.length) return false;
+    story = {
+      title: item.title,
+      author: item.author || "",
+      bookColor: item.bookColor || null,
+      readerFont: item.readerFont || null,
+      readerArtLayout: item.readerArtLayout === "facing" ? "facing" : "duplex",
+      storyTextMode: storyTextModeFromShelfItem(item, item.readerArtLayout === "facing" ? "facing" : "duplex"),
+      storyLength: storyLengthFromShelfItem(item),
+      sceneImageUrl: item.sceneUrlFallback || item.sceneDataUrl || null,
+      pages: item.pages.map(function (p) {
+        var page = { text: p.text, imageUrl: p.imageUrlFallback || p.imageDataUrl || null };
+        if (p.textSafeZones) page.textSafeZones = p.textSafeZones;
+        if (p.impactWords) page.impactWords = p.impactWords;
+        if (p.textBlocks) page.textBlocks = p.textBlocks;
+        return page;
+      }),
+    };
+    spreadIndex = 0;
+    showBook();
+    return true;
+  }
+
+  function openPrivateFromUrl() {
+    var params;
+    try { params = new URLSearchParams(window.location.search || ""); } catch (e) { return; }
+    var shared = String(params.get("shared") || "").trim();
+    var sharedChar = String(params.get("sharedChar") || "").trim();
+    var child = String(params.get("child") || "").trim();
+    var book = String(params.get("book") || "").trim();
+    if (sharedChar && window.ChildLibrary.isChildSession && window.ChildLibrary.isChildSession()) {
+      window.ChildLibrary.localArtUrl("shared/" + sharedChar + "/character.png", function (err, url) {
+        if (err || !url || typeof savedCharUrlToDataUrl !== "function") return;
+        savedCharUrlToDataUrl(url).then(function (dataUrl) {
+          if (!dataUrl) return;
+          heroPhotoItems.push({ dataUrl: dataUrl, who: "hero", charId: sharedChar });
+          if (typeof renderHeroPhotoThumbs === "function") renderHeroPhotoThumbs();
+          if (typeof openJourney === "function") openJourney();
+        }).catch(function () {});
+      });
+    }
+    if (!window.ChildLibrary) return;
+    if (shared && window.ChildLibrary.isChildSession && window.ChildLibrary.isChildSession()) {
+      window.ChildLibrary.loadSharedBook(shared, function (err, item) {
+        if (!err) showStoredBook(item);
+      });
+      return;
+    }
+    if (child && book && !(window.ChildLibrary.isChildSession && window.ChildLibrary.isChildSession())) {
+      window.ChildLibrary.loadOwnedBook(child, book, function (err, item) {
+        if (!err) showStoredBook(item);
+      });
+    }
+  }
+
   /** `?book=<shelf id>` (homepage shelf) — open that book in the reader once the library has loaded. */
   function openBookFromUrl() {
     var id = "";
@@ -4715,7 +4771,7 @@
     } catch (eP) {
       return;
     }
-    if (!id) return;
+    if (!id || new URLSearchParams(window.location.search || "").get("child")) return;
     try {
       var u = new URL(window.location.href);
       u.searchParams.delete("book");
@@ -6373,14 +6429,16 @@
             })
           : undefined,
       };
+      var childBearer = "";
       function postStorybook(asyncFlag) {
         var body = Object.assign({}, requestBody);
         if (asyncFlag) body.storybook_async = true;
+        var bearer = childBearer || key;
         return fetch(url, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: "Bearer " + key,
+            Authorization: "Bearer " + bearer,
             apikey: key,
           },
           body: JSON.stringify(body),
@@ -6446,7 +6504,21 @@
         }
         if (gate && gate.key) {
           childBookKey = gate.key;
+          requestBody.creationKey = gate.key;
           try { sessionStorage.setItem("wondii-child-book-key", gate.key); } catch (e) {}
+          try {
+            var childAuth = window.WondiiSession && window.WondiiSession.get && window.WondiiSession.get();
+            childBearer = childAuth && childAuth.session && childAuth.session.access_token || "";
+          } catch (e2) { childBearer = ""; }
+          if (!childBearer) {
+            releaseChildBook();
+            setError("Sign in again to make a book.");
+            sbGenerateInFlight = false;
+            btnGen.disabled = false;
+            btnGen.removeAttribute("aria-busy");
+            setBusy(false);
+            return null;
+          }
         }
         return runStorybookOnce(useAsync);
       }).then(function (out) {
@@ -6652,6 +6724,7 @@
 
   preselectCharacterFromUrl();
   openBookFromUrl();
+  openPrivateFromUrl();
   try {
     if (sessionStorage.getItem("wondii-org-starter")) openJourney();
   } catch (eOrgSeed) {}

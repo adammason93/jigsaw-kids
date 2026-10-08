@@ -291,6 +291,30 @@
   margin-top: 0.6rem;
 }
 
+.family-child__kicker {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #7d5caf;
+}
+
+.family-child__row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0.45rem 0;
+}
+
+.family-child__cover {
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+  border-radius: 16px;
+  background: #f6f1fb;
+}
+
 .family-child__character input {
   min-height: 44px;
   border-radius: 12px;
