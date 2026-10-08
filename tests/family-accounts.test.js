@@ -34,6 +34,12 @@ assert.ok(family.indexOf("request_child_deletion") >= 0);
 assert.ok(family.indexOf("restore_child_profile") >= 0);
 assert.ok(family.indexOf("export_child_profile") >= 0);
 assert.ok(family.indexOf("30 days") >= 0);
+assert.ok(family.indexOf("Back to My Wondii") >= 0);
+assert.ok(family.indexOf("Signed in as ") >= 0);
+assert.ok(family.indexOf("Opening your family") >= 0);
+assert.strictEqual(family.indexOf("Books created: 0"), -1);
+assert.strictEqual(family.indexOf("Open library"), -1);
+assert.ok(family.indexOf("schoolOn()") >= 0);
 
 assert.ok(portal.indexOf('id="gateParentName"') >= 0);
 assert.ok(portal.indexOf('data-view="family"') >= 0);

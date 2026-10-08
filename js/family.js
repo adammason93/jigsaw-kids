@@ -29,6 +29,7 @@
   var editing = null;
   var bound = false;
   var starting = false;
+  var loaded = false;
 
   function avatar(id) {
     for (var i = 0; i < AVATARS.length; i++) if (AVATARS[i].id === id) return AVATARS[i];
@@ -129,10 +130,12 @@
     if (/not_restorable|not_found/.test(code)) return "That profile can no longer be restored.";
     if (/sign_in_required/.test(code)) return "Log in again to manage your family.";
     if (/no_family/.test(code)) return "Create your family first.";
+    if (/unavailable/.test(code)) return "Wondii could not open your family just now. Try again in a moment.";
     return "That didn’t save. Check your connection and try again.";
   }
 
   function applySnapshot(data) {
+    loaded = true;
     snapshot = {
       family: data && data.family ? data.family : null,
       children: data && Array.isArray(data.children) ? data.children : []
@@ -161,14 +164,27 @@
     });
   }
 
+  function accountEmail() {
+    var auth = global.WondiiSession && global.WondiiSession.get && global.WondiiSession.get();
+    var email = auth && auth.session && auth.session.user && auth.session.user.email;
+    return email ? String(email) : "";
+  }
+
   function refresh(done) {
     if (!signedIn()) {
       snapshot = { family: null, children: [] };
+      loaded = false;
+      message = "";
+      paint();
       if (done) done();
       return;
     }
-    call("family_snapshot", {}, function () {
-      if (done) done();
+    if (!loaded) paint();
+    call("family_snapshot", {}, function (err) {
+      loaded = true;
+      if (err) message = failText(err);
+      paint();
+      if (done) done(err || null);
     });
   }
 
@@ -275,13 +291,16 @@
     copy.appendChild(el("p", null, ageLabel(child.ageBand)));
     if (child.status === "suspended") copy.appendChild(el("p", { className: "family-card__flag" }, "Access paused"));
     var stats = el("ul", { className: "family-card__stats" });
-    ["Books created: 0", "Characters created: 0", child.booksPerDay + " books a day", child.charactersPerDay + " characters a day"].forEach(function (line) {
+    [
+      child.booksPerDay + " books a day",
+      child.charactersPerDay + " characters a day",
+      child.canPlayGames ? "Games on" : "Games off"
+    ].forEach(function (line) {
       stats.appendChild(el("li", null, line));
     });
     copy.appendChild(stats);
     item.appendChild(copy);
     var actions = el("div", { className: "family-card__actions" });
-    actions.appendChild(el("button", { type: "button", className: "family-btn family-btn--ghost", "data-family": "library", "data-id": child.id }, "Open library"));
     actions.appendChild(el("button", { type: "button", className: "family-btn", "data-family": "edit", "data-id": child.id }, "Manage profile"));
     if (child.status === "suspended") {
       actions.appendChild(el("button", { type: "button", className: "family-btn family-btn--ghost", "data-family": "resume", "data-id": child.id }, "Allow access"));
@@ -336,11 +355,24 @@
       host.appendChild(el("p", { className: "family-lead" }, "Log in to create your family."));
       return;
     }
-    host.appendChild(el("h1", { className: "family-title" }, snapshot.family ? snapshot.family.displayName + "’s family" : "Your family"));
+    if (!loaded) {
+      host.appendChild(el("h1", { className: "family-title" }, "Your family"));
+      host.appendChild(el("p", { className: "family-lead", role: "status" }, "Opening your family…"));
+      return;
+    }
+    host.appendChild(el("a", { className: "family-back", href: "#home" }, "Back to My Wondii"));
+    host.appendChild(el("h1", { className: "family-title", id: "familyTitle" }, snapshot.family ? snapshot.family.displayName + "’s family" : "Your family"));
+    var email = accountEmail();
+    if (email) host.appendChild(el("p", { className: "family-account" }, "Signed in as " + email));
     host.appendChild(el("p", { className: "family-lead" }, snapshot.family
       ? "Add a child, choose an avatar and an age band, and decide their daily allowances."
       : "You are the adult for this family. Your existing books and characters are not moved."));
-    if (message) host.appendChild(el("p", { className: "family-status", role: "status" }, message));
+    if (message) {
+      host.appendChild(el("p", { className: "family-status", role: "status" }, message));
+      if (/could not open your family/.test(message)) {
+        host.appendChild(el("button", { type: "button", className: "family-btn", "data-family": "retry" }, "Try again"));
+      }
+    }
 
     if (!snapshot.family) {
       var start = el("form", { className: "family-form", id: "familyStart" });
@@ -462,9 +494,10 @@
       paint();
       return;
     }
-    if (action === "library") {
-      message = "A child’s own library arrives with child sign-in. Your stories and characters are still under Stories and Characters.";
-      paint();
+    if (action === "retry") {
+      message = "";
+      loaded = false;
+      refresh();
       return;
     }
     if (action === "pause" || action === "resume") {
