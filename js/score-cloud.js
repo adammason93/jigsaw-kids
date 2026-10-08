@@ -1408,7 +1408,17 @@
     K.openSettings = function () {
       orig.apply(K, arguments);
       var d = global.document.getElementById("kidsSettingsDialog");
-      if (!d || d.querySelector("[data-score-sync]")) {
+      if (!d) return;
+      if (global.WondiiSession) {
+        var lead = d.querySelector(".kids-settings__lead");
+        if (lead) {
+          lead.textContent = "Sound, contrast and motion stay on this device. Stories, characters and scores stay with this Wondii account.";
+        }
+        var synced = d.querySelector("[data-score-sync]");
+        if (synced) synced.remove();
+        return;
+      }
+      if (d.querySelector("[data-score-sync]")) {
         return;
       }
       if (!isConfigured()) {

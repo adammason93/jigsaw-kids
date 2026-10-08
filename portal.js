@@ -507,7 +507,15 @@
 
   var current = null;
 
+  function closeAccountMenu() {
+    var menu = document.getElementById("pAccountMenu");
+    var btn = document.getElementById("pAccountBtn");
+    if (menu) menu.hidden = true;
+    if (btn) btn.setAttribute("aria-expanded", "false");
+  }
+
   function show(view, opts) {
+    closeAccountMenu();
     if (VIEWS.indexOf(view) < 0) view = "home";
     current = view;
     document.querySelectorAll(".p-view").forEach(function (s) {
@@ -561,9 +569,187 @@
 
   document.querySelectorAll("[data-settings]").forEach(function (b) {
     b.addEventListener("click", function () {
+      closeAccountMenu();
       if (typeof KidsCore !== "undefined" && KidsCore.openSettings) KidsCore.openSettings();
     });
   });
+
+  (function initAccountMenu() {
+    var account = document.querySelector(".p-account");
+    var homeBtn = document.getElementById("pAccountHome");
+    var btn = document.getElementById("pAccountBtn");
+    var menu = document.getElementById("pAccountMenu");
+    var nameEl = document.getElementById("pAccountName");
+    var labelEl = document.getElementById("pAccountLabel");
+    var switchBox = document.getElementById("pAccountSwitch");
+    var switchHost = document.getElementById("pAccountWorkspaces");
+    if (!account || !btn || !menu) return;
+
+    function menuItems() {
+      return Array.prototype.filter.call(menu.querySelectorAll('[role="menuitem"], [role="menuitemradio"]'), function (el) {
+        return !el.closest("[hidden]");
+      });
+    }
+
+    function accountLabel() {
+      var view = window.WondiiOrg && WondiiOrg.get && WondiiOrg.get();
+      if (view && view.displayName) return view.displayName;
+      var auth = window.WondiiSession && WondiiSession.get && WondiiSession.get();
+      var email = auth && auth.session && auth.session.user && auth.session.user.email;
+      if (email && email.indexOf("@") > 0) {
+        var local = email.split("@")[0].replace(/[._+\-].*$/, "");
+        if (/^[A-Za-z]{2,24}$/.test(local)) return local.charAt(0).toUpperCase() + local.slice(1);
+      }
+      return "My Wondii";
+    }
+
+    function paintAccount() {
+      var label = accountLabel();
+      if (nameEl) nameEl.textContent = label;
+      if (labelEl) labelEl.textContent = label;
+      if (homeBtn) homeBtn.setAttribute("aria-label", label + ", dashboard");
+      var auth = window.WondiiSession && WondiiSession.get && WondiiSession.get();
+      var logout = menu.querySelector('[data-account="logout"]');
+      if (logout) logout.hidden = !(auth && auth.status === "authenticated");
+      var view = window.WondiiOrg && WondiiOrg.get && WondiiOrg.get();
+      var list = (view && view.workspaces) || [];
+      if (!switchBox || !switchHost) return;
+      if (list.length < 2) {
+        switchBox.hidden = true;
+        switchHost.replaceChildren();
+        return;
+      }
+      var currentId = view.organisationId || "family";
+      switchBox.hidden = false;
+      switchHost.replaceChildren();
+      list.forEach(function (item) {
+        var choice = document.createElement("button");
+        choice.type = "button";
+        choice.className = "p-account__choice";
+        choice.setAttribute("role", "menuitemradio");
+        choice.setAttribute("data-account", "workspace");
+        choice.setAttribute("data-workspace", item.id);
+        choice.setAttribute("aria-checked", item.id === currentId ? "true" : "false");
+        choice.textContent = item.name || "School";
+        switchHost.appendChild(choice);
+      });
+    }
+
+    function openAccountMenu() {
+      paintAccount();
+      menu.hidden = false;
+      btn.setAttribute("aria-expanded", "true");
+      var items = menuItems();
+      if (items[0]) items[0].focus();
+    }
+
+    function go(view) {
+      closeAccountMenu();
+      if ((location.hash || "#home") !== "#" + view) location.hash = view;
+      else show(view);
+    }
+
+    function logOut() {
+      closeAccountMenu();
+      var dialog = document.getElementById("kidsSettingsDialog");
+      if (dialog) {
+        dialog.classList.remove("is-open");
+        dialog.setAttribute("aria-hidden", "true");
+      }
+      document.documentElement.classList.add("gate-on");
+      function finished() {
+        if ((location.hash || "#home") !== "#home") location.hash = "home";
+        else show("home");
+      }
+      if (window.KidsScoreCloud && KidsScoreCloud.signOut) KidsScoreCloud.signOut(finished);
+      else finished();
+    }
+
+    if (homeBtn) {
+      homeBtn.addEventListener("click", function () {
+        go("home");
+      });
+    }
+
+    btn.addEventListener("click", function () {
+      if (menu.hidden) openAccountMenu();
+      else {
+        closeAccountMenu();
+        btn.focus();
+      }
+    });
+
+    menu.addEventListener("click", function (e) {
+      var item = e.target.closest("[data-account]");
+      if (!item || !menu.contains(item)) return;
+      var action = item.getAttribute("data-account");
+      if (action === "home" || action === "characters" || action === "stories") {
+        e.preventDefault();
+        go(action);
+        return;
+      }
+      if (action === "workspace") {
+        closeAccountMenu();
+        if (window.WondiiOrg && WondiiOrg.chooseWorkspace) WondiiOrg.chooseWorkspace(item.getAttribute("data-workspace"));
+        return;
+      }
+      if (action === "settings") {
+        closeAccountMenu();
+        if (typeof KidsCore !== "undefined" && KidsCore.openSettings) KidsCore.openSettings();
+        return;
+      }
+      if (action === "logout") logOut();
+    });
+
+    account.addEventListener("keydown", function (e) {
+      if (menu.hidden) {
+        if (e.key === "ArrowDown" && e.target === btn) {
+          e.preventDefault();
+          openAccountMenu();
+        }
+        return;
+      }
+      var items = menuItems();
+      var index = items.indexOf(document.activeElement);
+      if (e.key === "Escape") {
+        e.preventDefault();
+        closeAccountMenu();
+        btn.focus();
+        return;
+      }
+      if (e.key === "ArrowDown" || e.key === "ArrowUp" || e.key === "Home" || e.key === "End") {
+        e.preventDefault();
+        if (!items.length) return;
+        var next = index;
+        if (e.key === "ArrowDown") next = (index + 1) % items.length;
+        if (e.key === "ArrowUp") next = (index - 1 + items.length) % items.length;
+        if (e.key === "Home") next = 0;
+        if (e.key === "End") next = items.length - 1;
+        items[next].focus();
+        return;
+      }
+      if (e.key === " " && e.target.tagName === "A") {
+        e.preventDefault();
+        e.target.click();
+      }
+    });
+
+    account.addEventListener("focusout", function (e) {
+      if (menu.hidden) return;
+      if (e.relatedTarget && account.contains(e.relatedTarget)) return;
+      closeAccountMenu();
+    });
+
+    document.addEventListener("click", function (e) {
+      if (menu.hidden) return;
+      if (e.target.closest(".p-account")) return;
+      closeAccountMenu();
+    });
+
+    document.addEventListener("wondii-org", paintAccount);
+    if (window.WondiiSession && WondiiSession.subscribe) WondiiSession.subscribe(paintAccount);
+    paintAccount();
+  })();
 
   /* Search */
   var searchBtn = $("pSearchBtn");

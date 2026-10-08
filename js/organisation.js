@@ -67,7 +67,10 @@
       customNavigation: state.navigation,
       canManage: role === "owner" || role === "school_admin",
       userId: state.userId || "",
-      displayName: state.displayName || ""
+      displayName: state.displayName || "",
+      workspaces: (state.workspaces || []).map(function (item) {
+        return { id: item.id, name: item.name || "School" };
+      })
     };
   }
 
@@ -195,9 +198,6 @@
     else if (art && view.organisation) art.src = "games/images/schools/portal-hello.jpg";
     else if (art && homeCopy && homeCopy.art) art.src = homeCopy.art;
     if (helloBlock) helloBlock.classList.toggle("p-hello--school", !!view.organisation && !view.heroImageUrl);
-    document.querySelectorAll(".p-who").forEach(function (chip) {
-      chip.hidden = !!view.organisation;
-    });
     var row = document.getElementById("orgCreateRow");
     if (row) row.hidden = !view.organisation;
     document.querySelectorAll("[data-org-open]").forEach(function (manage) {
@@ -1206,10 +1206,19 @@
     });
   }
 
+  function chooseWorkspace(id) {
+    if (!state.userId || !id) return;
+    var current = state.organisation ? state.organisation.id : "family";
+    if (id === current) return;
+    rememberWorkspace(state.userId, id);
+    load();
+  }
+
   global.WondiiOrg = {
     get: snapshot,
     subscribe: function (fn) { listeners.push(fn); },
     refresh: function () { return load(null, true); },
+    chooseWorkspace: chooseWorkspace,
     contrastText: contrastText
   };
 
