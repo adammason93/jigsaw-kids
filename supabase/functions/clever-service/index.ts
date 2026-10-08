@@ -16,6 +16,7 @@ import {
   ttsLengthAllowed,
   verifiedSpeechAddress,
 } from "./job-access.mjs";
+import { claimDecision } from "./generation-allowance.mjs";
 
 
 const corsHeaders: Record<string, string> = {
@@ -5667,9 +5668,9 @@ async function executeStorybookPipeline(
 async function runStorybookGenerationJob(
   jobId: string,
   bodySnapshot: StorybookRequestBody,
-): Promise<void> {
+): Promise<boolean> {
   const client = serviceRoleSupabase();
-  if (!client) return;
+  if (!client) return false;
   await patchStorybookJob(client, jobId, {
     status: "running",
     progress: 4,
@@ -5685,7 +5686,7 @@ async function runStorybookGenerationJob(
       result_payload: { error: "server_missing_openai" },
       updated_at: new Date().toISOString(),
     });
-    return;
+    return false;
   }
   try {
     const reportProgress = async (pct: number, label: string) => {
@@ -5722,6 +5723,7 @@ async function runStorybookGenerationJob(
         : {}),
       updated_at: new Date().toISOString(),
     });
+    return res.ok;
   } catch (e) {
     const detail = e instanceof Error ? e.message : String(e);
     await patchStorybookJob(client, jobId, {
@@ -5731,6 +5733,7 @@ async function runStorybookGenerationJob(
       updated_at: new Date().toISOString(),
     });
     console.error("[clever-service] storybook job exception", jobId, e);
+    return false;
   }
 }
 
@@ -6029,6 +6032,48 @@ async function fetchCheckedHttps(
   throw new Error("proxy_redirect");
 }
 
+async function claimChildGeneration(
+  req: Request,
+  body: Record<string, unknown>,
+  kind: "book" | "character",
+): Promise<{ proceed: boolean; response?: Response; childId?: string; key?: string }> {
+  const token = (req.headers.get("Authorization") || "").replace(/^Bearer\s+/i, "").trim();
+  const url = storybookJobSupabaseUrl();
+  const anon = Deno.env.get("SUPABASE_ANON_KEY")?.trim();
+  if (!url || !anon || !token) return { proceed: true };
+  const userClient = createClient(url, anon, {
+    global: { headers: { Authorization: `Bearer ${token}` } },
+    auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+  });
+  let accountKind = "";
+  try {
+    const userRes = await userClient.auth.getUser(token);
+    accountKind = String(userRes.data.user?.app_metadata?.account_kind || "");
+  } catch (_error) {
+    accountKind = "";
+  }
+  if (accountKind !== "child") return { proceed: true };
+  const claimed = await userClient.rpc("claim_child_generation", {
+    p_kind: kind,
+    p_key: String(body.creationKey || ""),
+  });
+  const decision = claimDecision(accountKind, claimed.data);
+  if (!decision.proceed) {
+    return {
+      proceed: false,
+      response: jsonResponse({ error: "allowance", reason: decision.reason }, 403),
+    };
+  }
+  return { proceed: true, childId: decision.childId, key: decision.key };
+}
+
+async function refundChildGeneration(childId?: string, key?: string): Promise<void> {
+  if (!childId || !key) return;
+  const db = serviceRoleSupabase();
+  if (!db) return;
+  await db.rpc("service_refund_child_generation", { p_child: childId, p_key: key });
+}
+
 Deno.serve(async (req) => {
   console.info("[clever-service]", req.method);
 
@@ -6153,11 +6198,15 @@ Deno.serve(async (req) => {
     ? String((body as { action: string }).action)
     : "";
   if (action === "generate_character") {
-    return await handleGenerateCharacter(apiKey, body as unknown as {
+    const gate = await claimChildGeneration(req, body as Record<string, unknown>, "character");
+    if (!gate.proceed && gate.response) return gate.response;
+    const generated = await handleGenerateCharacter(apiKey, body as unknown as {
       characterName?: string;
       characterType?: string;
       referencePhoto?: string;
     });
+    if (!generated.ok) await refundChildGeneration(gate.childId, gate.key);
+    return generated;
   }
 
   if (wantsStorybookAsync(body)) {
@@ -6174,6 +6223,8 @@ Deno.serve(async (req) => {
         501,
       );
     }
+    const bookGate = await claimChildGeneration(req, body as Record<string, unknown>, "book");
+    if (!bookGate.proceed && bookGate.response) return bookGate.response;
     const jobId = crypto.randomUUID();
     const payload = stripStorybookAsyncFields(body);
     const accessKey = generateAccessKey();
@@ -6184,12 +6235,15 @@ Deno.serve(async (req) => {
       await hashAccessKey(accessKey),
     );
     if (insErr) {
+      await refundChildGeneration(bookGate.childId, bookGate.key);
       return jsonResponse(
         { error: "storybook_job_insert_failed", detail: insErr.slice(0, 220) },
         500,
       );
     }
-    EdgeRuntime.waitUntil(runStorybookGenerationJob(jobId, payload));
+    EdgeRuntime.waitUntil(runStorybookGenerationJob(jobId, payload).then(async (ok) => {
+      if (!ok) await refundChildGeneration(bookGate.childId, bookGate.key);
+    }));
     return jsonResponse(
       {
         storybook_job_id: jobId,
@@ -6200,7 +6254,11 @@ Deno.serve(async (req) => {
     );
   }
 
-  return await executeStorybookPipeline(apiKey, body);
+  const bookGate = await claimChildGeneration(req, body as Record<string, unknown>, "book");
+  if (!bookGate.proceed && bookGate.response) return bookGate.response;
+  const syncBook = await executeStorybookPipeline(apiKey, body);
+  if (!syncBook.ok) await refundChildGeneration(bookGate.childId, bookGate.key);
+  return syncBook;
 
 });
    

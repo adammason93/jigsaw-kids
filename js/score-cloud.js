@@ -838,8 +838,6 @@
           global.ChildLibrary.uploadShelf(rawJsonString, reserveKey, function (err) {
             if (!err) {
               try { sessionStorage.removeItem("wondii-child-book-key"); } catch (e2) {}
-            } else if (reserveKey) {
-              global.ChildLibrary.refund(reserveKey);
             }
             cb(err);
           });
