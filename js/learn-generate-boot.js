@@ -51,15 +51,14 @@ async function callModel(brief, apiKey, model, timeoutMs, temperature) {
       method: "POST",
       signal: control.signal,
       headers: { Authorization: "Bearer " + apiKey, "Content-Type": "application/json" },
-      body: JSON.stringify({
+      body: JSON.stringify(Object.assign({
         model,
-        temperature: typeof temperature === "number" ? temperature : 0.4,
         response_format: { type: "json_object" },
         messages: [
           { role: "system", content: brief.system },
           { role: "user", content: brief.user }
         ]
-      })
+      }, /^(?:gpt-5|gpt-6|o\d)/.test(String(model)) ? { reasoning_effort: "low", max_completion_tokens: 16e3 } : { temperature: typeof temperature === "number" ? temperature : 0.4 }))
     });
     if (!response.ok) {
       const failed = new Error("provider");
@@ -316,19 +315,118 @@ globalThis.handleGenerate = async (req) => {
       brain.applyTeacherIntent(ctx, { ok: false, reason: intentError && intentError.category || "error" });
     }
     logMeta({ stage: "TEACHER_INTENT", attemptId, model, intentMs, teacherIntent: intentMeta(ctx) });
+    // Source research is opt-in through LESSON_RESEARCH (for example "wikipedia" or
+    // "wikipedia,openai"). When it is off, the module is not loaded and nothing changes.
+    const researchMode = (Deno.env.get("LESSON_RESEARCH") ?? "").trim().toLowerCase();
+    if (researchMode && researchMode !== "off") {
+      phase = "RESEARCH";
+      const researchStarted = Date.now();
+      let research = null;
+      let researchError = "";
+      try {
+        const researchSource = await fetch("https://wondii.co.uk/js/source-research.js?v=1").then((res) => {
+          if (!res.ok) throw new Error("research_script");
+          return res.text();
+        });
+        (0, eval)(researchSource);
+        const finder = globalThis.WondiiSourceResearch;
+        const providers = [];
+        if (researchMode.indexOf("wikipedia") !== -1) providers.push(finder.wikipediaProvider());
+        if (researchMode.indexOf("openai") !== -1) providers.push(finder.openaiWebSearchProvider({ apiKey, model: (Deno.env.get("LESSON_RESEARCH_SEARCH_MODEL") ?? "").trim() || undefined }));
+        if (!providers.length) providers.push(finder.wikipediaProvider());
+        const intent = ctx.lessonBrief && ctx.lessonBrief.teacherIntent || {};
+        research = await finder.researchTopic({
+          lessonText: lesson,
+          topic: ctx.topic || (intent.focusConcepts || [])[0] || lesson,
+          yearGroup: ctx.yearGroup || intent.yearGroup || "",
+          learningGoal: intent.learningGoal || "",
+          requiredEvidence: intent.requiredEvidence || "",
+          focusConcepts: intent.focusConcepts || []
+        }, { fetch, providers, maxSources: 12 });
+      } catch (error) {
+        researchError = String(error && error.message || error).slice(0, 120);
+      }
+      const researchMeta = {
+        researchMs: Date.now() - researchStarted,
+        queries: research && research.queries || [],
+        providers: (research && research.providers || []).map((row) => ({ id: row.id, paid: row.paid, calls: row.calls || 0, found: row.found || 0, error: row.error || "" })),
+        sources: (research && research.sources || []).map((row) => ({ sourceId: row.sourceId, url: row.url, title: String(row.title || "").slice(0, 120), passages: row.passageCount })),
+        refused: (research && research.refused || []).slice(0, 12),
+        passages: research && research.passages ? research.passages.length : 0,
+        selectedPassages: research && research.selectedPassageIds ? research.selectedPassageIds.length : 0,
+        error: researchError || (research && research.error) || ""
+      };
+      logMeta({ stage: "RESEARCH", attemptId, model, ...researchMeta });
+      if (!research || !research.passages || !research.passages.length || !(research.selectedPassageIds || []).length) {
+        logMeta({ stage: "KNOWLEDGE_BLOCKED", category: "invalid", attemptId, model, reason: "NEEDS_SOURCE: research found no usable passage on the allowlist." });
+        return json({ ok: false, category: "invalid", stage: "KNOWLEDGE_BLOCKED", issues: ["NEEDS_SOURCE: research found no usable passage on the allowlist."], meta: { teacherIntent: intentMeta(ctx), research: researchMeta } });
+      }
+      ctx.researchEvidence = research;
+    }
     phase = "KNOWLEDGE_GROUNDING";
+    // EXPERIMENTAL, research mode only: the knowledge, entailment and source-repair calls use
+    // LESSON_RESEARCH_MODEL (default gpt-6-luna). This is not a production model switch; with
+    // LESSON_RESEARCH unset every call keeps LESSON_MODEL.
+    const knowledgeModel = ctx.researchEvidence ? ((Deno.env.get("LESSON_RESEARCH_MODEL") ?? "").trim() || "gpt-6-luna") : model;
     const packStarted = Date.now();
-    const rawPack = await callModel(brain.knowledgePackBrief(ctx), apiKey, model, 14e3, 0);
-    const packMs = Date.now() - packStarted;
-    const pack = brain.normaliseKnowledgePack(rawPack, ctx);
-    const selection = brain.selectPackForLesson(pack, ctx);
-    const readiness = brain.assessPackReadiness(pack, selection, ctx);
+    const rawPack = await callModel(brain.knowledgePackBrief(ctx), apiKey, knowledgeModel, ctx.researchEvidence ? 9e4 : 14e3, 0);
+    let packMs = Date.now() - packStarted;
+    let pack = brain.normaliseKnowledgePack(rawPack, ctx);
+    const entail = async (candidate, pass) => {
+      if (candidate.sourceMode !== "retrieved" || candidate.status === "blocked") return;
+      const entailStarted = Date.now();
+      let entailment = { ok: false, results: {} };
+      try {
+        entailment = brain.parseSourceEntailment(await callModel(brain.sourceEntailmentBrief(candidate, ctx), apiKey, knowledgeModel, 6e4, 0));
+      } catch (_entailError) {
+        entailment = { ok: false, results: {} };
+      }
+      brain.applySourceEntailment(candidate, entailment);
+      // Patch 7 trace: the model's own per-claim verdicts and link quotes, next to the code's
+      // final verdicts, so a held or kept claim shows whether the model or the code decided it.
+      const modelRows = Object.keys(entailment.results || {}).slice(0, 30).map((id) => { const r = entailment.results[id] || {}; return { claimId: id, verdict: r.verdict || "", linkQuote: String(r.linkQuote || "").slice(0, 240), missing: String(r.missing || "").slice(0, 160) }; });
+      const codeRows = (candidate.claims || []).filter((c) => c && c.provenance === "retrieved").slice(0, 30).map((c) => ({ claimId: c.claimId, final: c.entailment || "", note: String(c.entailmentNote || "").slice(0, 200), linkQuote: String(c.linkQuote || "").slice(0, 240) }));
+      logMeta({ stage: "SOURCE_ENTAILMENT", attemptId, model: knowledgeModel, pass, entailMs: Date.now() - entailStarted, ran: !!entailment.ok, counts: candidate.sourceAudit && candidate.sourceAudit.entailment || null, label: brain.SOURCE_SUPPORT_LABEL, modelRows, codeRows });
+    };
+    await entail(pack, "first");
+    let selection = brain.selectPackForLesson(pack, ctx);
+    let readiness = brain.assessPackReadiness(pack, selection, ctx);
+    // One source repair, research mode only: the exact rejections go back to the knowledge
+    // step once. The repaired pack passes the same quote check, entailment and readiness gate.
+    const repairable = pack.sourceMode === "retrieved" && !pack.falsePremise && (pack.status !== "blocked" || pack.needsSource);
+    if (repairable && (readiness.status !== "ready" || pack.status === "blocked")) {
+      const feedback = brain.sourceRepairFeedback(pack, selection, readiness, ctx);
+      logMeta({ stage: "PACK_SOURCE_REPAIR", attemptId, model: knowledgeModel, firstPass: { status: pack.status, readyPairs: readiness.distinctReady, requiredPairs: readiness.requiredPairs }, feedback: feedback.map((row) => ({ problem: row.problem, item: String(row.item || "").slice(0, 120) })) });
+      try {
+        const repairStarted = Date.now();
+        const rawRepair = await callModel(brain.sourceRepairBrief(pack, selection, readiness, ctx), apiKey, knowledgeModel, 9e4, 0);
+        const repaired = brain.normaliseKnowledgePack(rawRepair, ctx);
+        await entail(repaired, "repair");
+        const repairedSelection = brain.selectPackForLesson(repaired, ctx);
+        const repairedReadiness = brain.assessPackReadiness(repaired, repairedSelection, ctx);
+        // Both packs passed the same quote check, entailment and gate. A repair that loses
+        // ready pairs is not used; the first pack (and its verdict) stands.
+        const keptFirst = repairedReadiness.distinctReady < readiness.distinctReady && pack.status !== "blocked";
+        if (!keptFirst) {
+          pack = repaired;
+          selection = repairedSelection;
+          readiness = repairedReadiness;
+        }
+        packMs += Date.now() - repairStarted;
+        logMeta({ stage: "PACK_SOURCE_REPAIR_RESULT", attemptId, model: knowledgeModel, status: repaired.status, readyPairs: repairedReadiness.distinctReady, requiredPairs: repairedReadiness.requiredPairs, keptFirst });
+      } catch (_repairError) {
+        logMeta({ stage: "PACK_SOURCE_REPAIR_RESULT", attemptId, model: knowledgeModel, failed: true });
+      }
+    }
     const packReadiness = {
       status: readiness.status,
       requiredPairs: readiness.requiredPairs,
       distinctReady: readiness.distinctReady,
       factuallyVerified: false,
       readyPairs: (readiness.readyPairs || []).map((pair) => ({
+        unitId: pair.unitId || "",
+        elementClaimId: pair.elementClaimId || pair.featureClaimId,
+        explanationClaimId: pair.explanationClaimId || pair.mechanismClaimId,
         mechanismClaimId: pair.mechanismClaimId,
         featureClaimId: pair.featureClaimId,
         feature: pair.feature,
@@ -336,7 +434,7 @@ globalThis.handleGenerate = async (req) => {
       })),
       missing: (readiness.missing || []).slice(0, 8)
     };
-    logMeta({ stage: "KNOWLEDGE_PACK", attemptId, model, packMs, packReadiness, ...brain.knowledgePackLog(pack, selection) });
+    logMeta({ stage: "KNOWLEDGE_PACK", attemptId, model: knowledgeModel, packMs, packReadiness, ...brain.knowledgePackLog(pack, selection) });
     if (pack.status === "blocked" || selection.status === "blocked") {
       logMeta({
         stage: "KNOWLEDGE_BLOCKED",
@@ -477,9 +575,58 @@ globalThis.handleGenerate = async (req) => {
     const first = await callModel(brain.contentBrief(framed, planned.plan, storyPlan), apiKey, model, 28e3);
     const contentMs = Date.now() - contentStarted;
     logMeta({ stage: "CONTENT_VALIDATE", attemptId, repair: false, model, contentMs, contentBeats: brain.boundedBeatLog(first) });
+    // Patch 7, research mode only: the Try it task gets its own call from one unit's reason
+    // quote, is checked in code by the research rules, and gets one repair. Its raw reply,
+    // parsed task and issues are logged (APPLY_TASK) so a failure shows whether the model or
+    // the code dropped something. Without research nothing here runs.
+    if (ctx.researchEvidence && typeof brain.applyTaskBrief === "function") {
+      const taskUnit = brain.applyTaskUnit(framed);
+      if (taskUnit) {
+        const taught = brain.taughtSentences(first);
+        let task = null;
+        let taskIssues = [];
+        for (let pass = 1; pass <= 2; pass++) {
+          const taskStarted = Date.now();
+          let taskRaw = null;
+          let taskError = "";
+          try {
+            taskRaw = await callModel(brain.applyTaskBrief(framed, taskUnit, { taught, issues: taskIssues, previous: task }), apiKey, model, 28e3);
+          } catch (error) {
+            taskError = error && error.category || "error";
+          }
+          const previousTask = task;
+          task = brain.parseApplyTask(taskRaw, taskUnit);
+          taskIssues = taskError ? ["The Try it call failed (" + taskError + ")."] : brain.applyTaskIssues(task, taskUnit, Object.assign({}, framed, { applyTaskTaught: taught, applyTaskPrevious: previousTask }));
+          logMeta({ stage: "APPLY_TASK", attemptId, model, pass, taskMs: Date.now() - taskStarted, unitId: taskUnit.unitId, raw: taskRaw == null ? null : JSON.stringify(taskRaw).slice(0, 6000), parsed: task, issues: taskIssues.slice(0, 12) });
+          if (!taskIssues.length) break;
+        }
+        if (taskIssues.length) {
+          logMeta({ stage: "APPLY_TASK_FAILED", category: "invalid", attemptId, model, issues: taskIssues.slice(0, 8) });
+          return json({ ok: false, category: "invalid", stage: "APPLY_TASK_FAILED", issues: taskIssues.slice(0, 8), meta: { teacherIntent: intentMeta(ctx) } });
+        }
+        framed.applyTask = task;
+      }
+    }
     let repairUser = null;
     let repairRaw = null;
-    const resolved = await brain.resolveLessonContent(first, framed, {
+    // Patch 7, research mode only: the check questions are audited (partly-true wrong choices,
+    // circular stems, goal-directed wording) by the research model before each accept; the
+    // verdicts block. Without research no port is passed, so nothing changes.
+    const auditPort = ctx.researchEvidence && typeof brain.questionAuditBrief === "function" ? {
+      questionAudit: async (input) => {
+        const auditStarted = Date.now();
+        try {
+          const payload = await callModel(brain.questionAuditBrief(input), apiKey, knowledgeModel, 6e4, 0);
+          const parsed = brain.parseQuestionAudit(payload);
+          logMeta({ stage: "QUESTION_AUDIT", attemptId, model: knowledgeModel, auditMs: Date.now() - auditStarted, ok: parsed.ok, questions: (input && input.questions || []).map((q) => String(q.prompt || "").slice(0, 160)), verdicts: parsed.questions });
+          return parsed;
+        } catch (error) {
+          logMeta({ stage: "QUESTION_AUDIT", attemptId, model: knowledgeModel, auditMs: Date.now() - auditStarted, ok: false, error: error && error.category || "error" });
+          return { ok: false, questions: [] };
+        }
+      }
+    } : {};
+    const resolved = await brain.resolveLessonContent(first, framed, Object.assign({
       judge: async (input) => {
         const judgeStarted = Date.now();
         try {
@@ -522,7 +669,7 @@ globalThis.handleGenerate = async (req) => {
         logMeta({ stage: "CONTENT_REPAIR", attemptId, repair: true, model, repairBeats: brain.boundedBeatLog(repairRaw) });
         return repairRaw;
       }
-    });
+    }, auditPort));
     const applyAlignment = resolved.applyAlignment || {};
     logMeta({
       stage: "APPLY_ALIGNMENT",
@@ -580,7 +727,14 @@ globalThis.handleGenerate = async (req) => {
     const intentRecord = intentMeta(ctx);
     const diagnostic = slotDiagnostic(trace, checkAlignment, applyAlignment, intentRecord);
     const qualityWarnings = stampedWarnings(resolved.qualityWarnings);
+    // ID lineage: every gate-ready unit is planned, taught and assessed, followed by id.
+    const lineage = resolved.ok && resolved.adventure && typeof brain.unitLineage === "function" ? brain.unitLineage(resolved.adventure, ctx) : { skipped: true, units: [], issues: [] };
+    if (!lineage.skipped) logMeta({ stage: "UNIT_LINEAGE", attemptId, model, ok: !lineage.issues.length, units: lineage.units, issues: lineage.issues.slice(0, 8) });
+    if (!lineage.skipped && lineage.issues.length) {
+      return json({ ok: false, category: "invalid", stage: "LINEAGE_VALIDATION_FAILED", issues: lineage.issues.slice(0, 8), meta: { lineage, teacherIntent: intentMeta(ctx) } });
+    }
     if (resolved.ok && resolved.adventure) {
+      if (!lineage.skipped) resolved.adventure.unitLineage = lineage;
       const timing = { durationMs: Date.now() - started, planMs, storyMs, contentMs, repairMs, repairUsed: !!resolved.repairUsed, repairKind: resolved.repairUsed ? "slot" : "none", structuralOk: true, planRepaired, storyFallback, storyFirstPass, storyRepaired, repairedSlots, applyRepair, durationRepair, applyAlignment, checkAlignment, teacherIntent: intentRecord, qualityWarnings, slotDiagnostic: diagnostic, diagnosis: trace, learningMap };
       logMeta({ stage: "COMPLETE", category: "ok", ms: timing.durationMs, repair: !!resolved.repairUsed, repairKind: timing.repairKind, structuralOk: true, planRepaired, model, attemptId, planMs, contentMs, repairMs, applyRepair, durationRepair, semanticOutcome: applyAlignment.semanticOutcome || "", qualityWarnings, slotDiagnostic: diagnostic });
       return json({ ok: true, adventure: resolved.adventure, stage: "COMPLETE", meta: timing });

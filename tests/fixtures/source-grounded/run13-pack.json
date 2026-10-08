@@ -1,0 +1,447 @@
+{
+ "note": "Run 13 (6 Oct 2026, live, research mode): the cited passages, the normalised pack and selection, and the teacher intent. Test fixture; not lesson content.",
+ "request": {
+  "lessonText": "Teach Year 3 about dinosaurs",
+  "yearGroup": "Year 3",
+  "subject": "Science",
+  "topic": "Dinosaurs",
+  "requestedMinutes": 15
+ },
+ "intent": {
+  "ok": true,
+  "yearGroup": "Year 3",
+  "subject": "Science",
+  "subjectConfidence": "explicit",
+  "learningGoal": "Pupils will understand how dinosaurs adapted to their environments.",
+  "requiredEvidence": "Pupils can explain how a specific dinosaur's features helped it survive in its habitat.",
+  "focusConcepts": [
+   "adaptation",
+   "habitat",
+   "survival",
+   "features"
+  ],
+  "priorKnowledge": [],
+  "exclusions": [],
+  "preferences": [],
+  "durationMinutes": 15
+ },
+ "research": {
+  "passages": [
+   {
+    "id": "S4-P01",
+    "sourceId": "S4",
+    "url": "https://www.nhm.ac.uk/discover/what-are-dinosaurs.html",
+    "title": "What are dinosaurs? | Natural History Museum",
+    "section": "What are dinosaurs?",
+    "text": "Our brief introduction to dinosaurs reveals a key feature that gave them an advantage over other prehistoric reptiles. Dinosaurs are a group of reptiles that dominated the land for over 140 million years (more than 160 million years in some parts of the world). They evolved diverse shapes and sizes, from the fearsome giant Spinosaurus to the chicken-sized Microraptor , and were able to survive in a variety of ecosystems. One of the reasons for dinosaurs' success is that they had straight back legs, perpendicular to their bodies. This allowed them to use less energy to move than other reptiles that had a sprawling stance like today's lizards and crocodiles. With their legs positioned under their bodies rather than sticking out to the side, dinosaurs' weight was also better supported.",
+    "retrievedAt": "2026-10-06T09:49:40.279Z",
+    "tier": "evidence"
+   },
+   {
+    "id": "S9-P02",
+    "sourceId": "S9",
+    "url": "https://kids.nationalgeographic.com/animals/prehistoric/facts/spinosaurus",
+    "title": "Spinosaurus",
+    "section": "Making waves",
+    "text": "Named for its seven-foot-long spines, Spinosaurus lived about a hundred million years ago during the Cretaceous period. It inhabited what is now North Africa’s Sahara region, which at the time featured a large river system. Spinosaurus was well adapted for aquatic life. Its nostrils were further up on its snout than the nostrils of other dinosaurs. This would’ve allowed the animal to breathe even with most of its snout submerged. Its crocodile-like teeth were ideal for catching fish. Researchers believe the reptile’s dense bones—which resemble those of modern-day aquatic creatures such as the manatee —acted as a weight to help it easily dive into the water while hunting for fish. And its paddle-like webbed feet would’ve allowed the animal to swim. Even the dinosaur's sail—which likely stuck out of the water while Spinosaurus was swimming—helped the animal survive in its river home.",
+    "retrievedAt": "2026-10-06T09:49:40.285Z",
+    "tier": "evidence"
+   },
+   {
+    "id": "S12-P02",
+    "sourceId": "S12",
+    "url": "https://kids.nationalgeographic.com/animals/prehistoric/facts/brachiosaurus",
+    "title": "Brachiosaurus",
+    "section": "Huge herbivore",
+    "text": "Roaming Earth between 156 and 145 million years ago during the Jurassic period, Brachiosaurus grew over 80 feet long and weighed more than 28 tons—that’s about as heavy as four African elephants . Why so big? Experts think that Brachiosaurus couldn’t run, so its size might’ve made fierce predators like Allosaurus think that the dino was too big to take down. Another theory suggests that because the plants were difficult to digest, Brachiosaurus and other giant herbivores needed extra-large digestive tracts to process and absorb the nutrients from their food. This dino’s name comes from the Greek words meaning “arm lizard” because its forelegs were longer than its hind legs—another adaption to help it reach high into the trees. It’s part of the sauropod family: huge plant-eaters with long necks, long tails, and a four-legged stance. Apatosaurus is also a member of this group.",
+    "retrievedAt": "2026-10-06T09:49:40.288Z",
+    "tier": "evidence"
+   }
+  ],
+  "selectedPassageIds": [
+   "S4-P01",
+   "S12-P02",
+   "S9-P02"
+  ],
+  "discoverySources": [
+   {
+    "url": "https://simple.wikipedia.org/wiki/Dinosaur",
+    "title": "Dinosaur (Simple English Wikipedia)",
+    "tier": "discovery",
+    "ok": true,
+    "reason": "",
+    "passagesNotEvidence": 25,
+    "citedEvidenceLinks": 0,
+    "note": "Discovery only: this page's text is never evidence; its cited authoritative pages are followed."
+   },
+   {
+    "url": "https://en.wikipedia.org/wiki/Dinosaur",
+    "title": "Dinosaur (Wikipedia)",
+    "tier": "discovery",
+    "ok": true,
+    "reason": "",
+    "passagesNotEvidence": 86,
+    "citedEvidenceLinks": 7,
+    "note": "Discovery only: this page's text is never evidence; its cited authoritative pages are followed."
+   },
+   {
+    "url": "https://simple.wikipedia.org/wiki/Dinosaur_Provincial_Park",
+    "title": "Dinosaur Provincial Park (Simple English Wikipedia)",
+    "tier": "discovery",
+    "ok": true,
+    "reason": "",
+    "passagesNotEvidence": 7,
+    "citedEvidenceLinks": 0,
+    "note": "Discovery only: this page's text is never evidence; its cited authoritative pages are followed."
+   }
+  ]
+ },
+ "pack": {
+  "id": "kp_f5ddsn",
+  "version": 1,
+  "phase": 1,
+  "topic": "Dinosaurs",
+  "subject": "Science",
+  "status": "usable",
+  "statusReason": "Enough claims to select from. Every claim is still unverified.",
+  "modelStatus": "usable",
+  "modelNiche": false,
+  "localAdmission": "clear",
+  "needsSource": false,
+  "falsePremise": "",
+  "provenanceSummary": "Retrieved mode: every admitted claim cites a fetched passage and carries a quote that code found verbatim in that passage after whitespace, case, and typographic-quote normalisation. An automated entailment check then labels support; a claim without a supported verdict is held out of the lesson. Support label: quote-verified + automated entailment check. No claim is human-verified and factuallyVerified stays false. Model confidence and search snippets are not support.",
+  "verificationOverrides": 0,
+  "claims": [
+   {
+    "claimId": "czlmmyl",
+    "text": "Dinosaurs had straight back legs positioned perpendicular to their bodies.",
+    "kind": "fact",
+    "depth": "concrete",
+    "confidence": "high",
+    "provenance": "retrieved",
+    "provenanceNote": "retrieved; quote found verbatim in cited passage; automated entailment check: supported; not human-verified",
+    "teacherRequested": false,
+    "factuallyVerified": false,
+    "contested": false,
+    "uncertainty": "",
+    "ageFit": {
+     "from": 1,
+     "to": 6
+    },
+    "correctsPremise": false,
+    "importance": "core",
+    "classificationHold": false,
+    "sourceRef": [
+     "S4-P01"
+    ],
+    "sourceQuote": "they had straight back legs, perpendicular to their bodies.",
+    "sourceUrls": [
+     "https://www.nhm.ac.uk/discover/what-are-dinosaurs.html"
+    ],
+    "sourceTitles": [
+     "What are dinosaurs? | Natural History Museum"
+    ],
+    "quoteVerified": true,
+    "wordsNotInSource": [],
+    "entailment": "supported",
+    "sourceSupport": "quote-verified + automated entailment check",
+    "sourceHold": false,
+    "placeBound": false,
+    "placeNames": [],
+    "supplied": false,
+    "support": "generic",
+    "localHold": false,
+    "entailmentNote": ""
+   },
+   {
+    "claimId": "c1nj4uc5",
+    "text": "Straight back legs let dinosaurs use less energy to move than reptiles with a sprawling stance.",
+    "kind": "mechanism",
+    "depth": "mechanism",
+    "confidence": "high",
+    "provenance": "retrieved",
+    "provenanceNote": "retrieved; quote found verbatim in cited passage; automated entailment check: supported; not human-verified",
+    "teacherRequested": false,
+    "factuallyVerified": false,
+    "contested": false,
+    "uncertainty": "",
+    "ageFit": {
+     "from": 2,
+     "to": 6
+    },
+    "correctsPremise": false,
+    "importance": "core",
+    "classificationHold": false,
+    "sourceRef": [
+     "S4-P01"
+    ],
+    "sourceQuote": "This allowed them to use less energy to move than other reptiles that had a sprawling stance like today's lizards and crocodiles.",
+    "sourceUrls": [
+     "https://www.nhm.ac.uk/discover/what-are-dinosaurs.html"
+    ],
+    "sourceTitles": [
+     "What are dinosaurs? | Natural History Museum"
+    ],
+    "quoteVerified": true,
+    "wordsNotInSource": [],
+    "entailment": "supported",
+    "sourceSupport": "quote-verified + automated entailment check",
+    "sourceHold": false,
+    "placeBound": false,
+    "placeNames": [],
+    "supplied": false,
+    "support": "generic",
+    "localHold": false,
+    "entailmentNote": ""
+   },
+   {
+    "claimId": "cjsvb2q",
+    "text": "Brachiosaurus had forelegs longer than its hind legs.",
+    "kind": "fact",
+    "depth": "concrete",
+    "confidence": "high",
+    "provenance": "retrieved",
+    "provenanceNote": "retrieved; quote found verbatim in cited passage; automated entailment check: supported; not human-verified",
+    "teacherRequested": false,
+    "factuallyVerified": false,
+    "contested": false,
+    "uncertainty": "",
+    "ageFit": {
+     "from": 1,
+     "to": 6
+    },
+    "correctsPremise": false,
+    "importance": "core",
+    "classificationHold": false,
+    "sourceRef": [
+     "S12-P02"
+    ],
+    "sourceQuote": "because its forelegs were longer than its hind legs",
+    "sourceUrls": [
+     "https://kids.nationalgeographic.com/animals/prehistoric/facts/brachiosaurus"
+    ],
+    "sourceTitles": [
+     "Brachiosaurus"
+    ],
+    "quoteVerified": true,
+    "wordsNotInSource": [],
+    "entailment": "supported",
+    "sourceSupport": "quote-verified + automated entailment check",
+    "sourceHold": false,
+    "placeBound": false,
+    "placeNames": [],
+    "supplied": false,
+    "support": "generic",
+    "localHold": false,
+    "entailmentNote": ""
+   },
+   {
+    "claimId": "c1e76zyf",
+    "text": "Longer forelegs helped Brachiosaurus reach high into the trees.",
+    "kind": "mechanism",
+    "depth": "mechanism",
+    "confidence": "high",
+    "provenance": "retrieved",
+    "provenanceNote": "retrieved; quote found verbatim in cited passage; automated entailment check: supported; not human-verified",
+    "teacherRequested": false,
+    "factuallyVerified": false,
+    "contested": false,
+    "uncertainty": "",
+    "ageFit": {
+     "from": 2,
+     "to": 6
+    },
+    "correctsPremise": false,
+    "importance": "core",
+    "classificationHold": false,
+    "sourceRef": [
+     "S12-P02"
+    ],
+    "sourceQuote": "because its forelegs were longer than its hind legs—another adaption to help it reach high into the trees.",
+    "sourceUrls": [
+     "https://kids.nationalgeographic.com/animals/prehistoric/facts/brachiosaurus"
+    ],
+    "sourceTitles": [
+     "Brachiosaurus"
+    ],
+    "quoteVerified": true,
+    "wordsNotInSource": [],
+    "entailment": "supported",
+    "sourceSupport": "quote-verified + automated entailment check",
+    "sourceHold": false,
+    "placeBound": false,
+    "placeNames": [],
+    "supplied": false,
+    "support": "generic",
+    "localHold": false,
+    "linkQuote": "forelegs were longer than its hind legs—another adaption to help it reach high into the trees",
+    "entailmentNote": ""
+   },
+   {
+    "claimId": "c12pcw01",
+    "text": "The dinosaur's sail likely stuck out of the water while Spinosaurus was swimming.",
+    "kind": "fact",
+    "depth": "concrete",
+    "confidence": "high",
+    "provenance": "retrieved",
+    "provenanceNote": "retrieved; quote found verbatim in cited passage; automated entailment check: supported; not human-verified",
+    "teacherRequested": false,
+    "factuallyVerified": false,
+    "contested": false,
+    "uncertainty": "The passage says the sail likely stuck out of the water.",
+    "ageFit": {
+     "from": 1,
+     "to": 6
+    },
+    "correctsPremise": false,
+    "importance": "core",
+    "classificationHold": false,
+    "sourceRef": [
+     "S9-P02"
+    ],
+    "sourceQuote": "Even the dinosaur's sail—which likely stuck out of the water while Spinosaurus was swimming—helped the animal survive in its river home.",
+    "sourceUrls": [
+     "https://kids.nationalgeographic.com/animals/prehistoric/facts/spinosaurus"
+    ],
+    "sourceTitles": [
+     "Spinosaurus"
+    ],
+    "quoteVerified": true,
+    "wordsNotInSource": [],
+    "entailment": "supported",
+    "sourceSupport": "quote-verified + automated entailment check",
+    "sourceHold": false,
+    "placeBound": false,
+    "placeNames": [],
+    "supplied": false,
+    "support": "generic",
+    "localHold": false,
+    "entailmentNote": ""
+   },
+   {
+    "claimId": "c1t8skbl",
+    "text": "The dinosaur's sail likely stuck out of the water while Spinosaurus was swimming and helped the animal survive in its river home.",
+    "kind": "mechanism",
+    "depth": "mechanism",
+    "confidence": "high",
+    "provenance": "retrieved",
+    "provenanceNote": "retrieved; quote found verbatim in cited passage; automated entailment check: supported; not human-verified",
+    "teacherRequested": false,
+    "factuallyVerified": false,
+    "contested": false,
+    "uncertainty": "The passage says the sail likely stuck out of the water.",
+    "ageFit": {
+     "from": 3,
+     "to": 6
+    },
+    "correctsPremise": false,
+    "importance": "core",
+    "classificationHold": false,
+    "sourceRef": [
+     "S9-P02"
+    ],
+    "sourceQuote": "Even the dinosaur's sail—which likely stuck out of the water while Spinosaurus was swimming—helped the animal survive in its river home.",
+    "sourceUrls": [
+     "https://kids.nationalgeographic.com/animals/prehistoric/facts/spinosaurus"
+    ],
+    "sourceTitles": [
+     "Spinosaurus"
+    ],
+    "quoteVerified": true,
+    "wordsNotInSource": [],
+    "entailment": "supported",
+    "sourceSupport": "quote-verified + automated entailment check",
+    "sourceHold": false,
+    "placeBound": false,
+    "placeNames": [],
+    "supplied": false,
+    "support": "generic",
+    "localHold": false,
+    "linkQuote": "Even the dinosaur's sail—which likely stuck out of the water while Spinosaurus was swimming—helped the animal survive in its river home",
+    "entailmentNote": ""
+   }
+  ],
+  "mechanisms": [
+   {
+    "claimId": "c1nj4uc5",
+    "text": "Straight back legs let dinosaurs use less energy to move than reptiles with a sprawling stance.",
+    "feature": "straight back legs",
+    "featureClaimId": "czlmmyl"
+   },
+   {
+    "claimId": "c1e76zyf",
+    "text": "Longer forelegs helped Brachiosaurus reach high into the trees.",
+    "feature": "Longer forelegs",
+    "featureClaimId": "cjsvb2q"
+   },
+   {
+    "claimId": "c1t8skbl",
+    "text": "The dinosaur's sail likely stuck out of the water while Spinosaurus was swimming and helped the animal survive in its river home.",
+    "feature": "dinosaur's sail",
+    "featureClaimId": "c12pcw01"
+   }
+  ],
+  "concepts": [],
+  "vocabulary": [
+   {
+    "term": "adaptation",
+    "gloss": "A feature that can help an animal, such as the forelegs that helped Brachiosaurus reach high into trees.",
+    "sourceRef": [
+     "S12-P02"
+    ],
+    "sourceQuote": "This dino’s name comes from the Greek words meaning “arm lizard” because its forelegs were longer than its hind legs—another adaption to help it reach high into the trees."
+   },
+   {
+    "term": "habitat",
+    "gloss": "The place or environment where an animal lives.",
+    "sourceRef": [
+     "S9-P02"
+    ],
+    "sourceQuote": "Even the dinosaur's sail—which likely stuck out of the water while Spinosaurus was swimming—helped the animal survive in its river home."
+   },
+   {
+    "term": "perpendicular",
+    "gloss": "At a right angle to something.",
+    "sourceRef": [
+     "S4-P01"
+    ],
+    "sourceQuote": "One of the reasons for dinosaurs' success is that they had straight back legs, perpendicular to their bodies."
+   }
+  ],
+  "misconceptions": [],
+  "openQuestions": [],
+  "rejectedClaims": [],
+  "strippedFields": [],
+  "sourceMode": "retrieved",
+  "sourceAudit": {
+   "label": "quote-verified + automated entailment check",
+   "checked": 6,
+   "admitted": 6,
+   "rejected": [],
+   "rejectedByReason": {},
+   "entailmentRan": true,
+   "humanVerified": false,
+   "entailment": {
+    "supported": 6,
+    "partial": 0,
+    "unsupported": 0,
+    "unchecked": 0
+   }
+  }
+ },
+ "selection": {
+  "status": "ready",
+  "reason": "Year 3 selects concrete claims and mechanisms. System claims stay in the pack.",
+  "depthMode": "mechanism",
+  "year": 3,
+  "claimIds": [
+   "c12pcw01",
+   "cjsvb2q",
+   "czlmmyl",
+   "c1e76zyf",
+   "c1nj4uc5",
+   "c1t8skbl"
+  ],
+  "heldBack": []
+ }
+}

@@ -123,12 +123,33 @@ var run2 = readyOf({
     { text: teethHelped, feature: "different types of teeth" }
   ]
 });
+// Tense parity (source-grounded lesson PR): "helped" now reads like "helps", "allowed", and
+// "made". Before, this pair failed only because the verb was past tense: the same sentence
+// with "help" was already ready. The pack still needs two pairs, so run 2 stays incomplete.
 assert.strictEqual(run2.readiness.status, "incomplete");
-assert.strictEqual(run2.readiness.distinctReady, 0);
+assert.strictEqual(run2.readiness.distinctReady, 1);
 assert.ok(run2.pack.mechanisms.some(function (item) { return item.featureClaimId && /helped them eat/.test(item.text); }));
 assert.ok(run2.readiness.pairs.some(function (pair) {
-  return /helped them eat/.test(pair.explanation) && pair.featureClaimId && !pair.ready && pair.gaps.join(" ").indexOf("does not state how or why") !== -1;
-}), "run 2 teeth id resolves and the helped explanation is still not ready");
+  return /helped them eat/.test(pair.explanation) && pair.featureClaimId && pair.ready;
+}), "run 2 teeth pair: feature claim resolves and the past-tense explanation states a function");
+var run2Present = readyOf({
+  status: "usable",
+  claims: [
+    { text: "Dinosaurs lived during the Mesozoic Era and are now extinct.", depth: "concrete", confidence: "high", provenance: "model", ageFit: { from: 1, to: 6 } },
+    { text: "Some dinosaurs were herbivores and some were carnivores.", depth: "concrete", confidence: "high", provenance: "model", ageFit: { from: 1, to: 6 } },
+    { text: "Dinosaurs had many different body shapes.", depth: "concrete", confidence: "high", provenance: "model", ageFit: { from: 1, to: 6 } },
+    { text: sharpMeat, depth: "concrete", confidence: "high", provenance: "model", ageFit: { from: 1, to: 6 } },
+    { text: strongLegs, depth: "mechanism", kind: "mechanism", confidence: "medium", provenance: "model", ageFit: { from: 3, to: 6 } },
+    { text: longNecks, depth: "mechanism", kind: "mechanism", confidence: "medium", provenance: "model", ageFit: { from: 3, to: 6 } },
+    { text: teethHelped.replace("helped", "help"), depth: "mechanism", kind: "mechanism", confidence: "medium", provenance: "model", ageFit: { from: 3, to: 6 } }
+  ],
+  mechanisms: [
+    { text: strongLegs, feature: "strong legs" },
+    { text: longNecks, feature: "long necks" },
+    { text: teethHelped.replace("helped", "help"), feature: "different types of teeth" }
+  ]
+});
+assert.strictEqual(run2Present.readiness.distinctReady, run2.readiness.distinctReady, "past and present tense give the same readiness");
 assert.ok(run2.readiness.pairs.some(function (pair) {
   return /long necks/.test(pair.explanation) && !pair.featureClaimId && !pair.ready;
 }));
@@ -309,13 +330,15 @@ var helpedPlan = Brain.normalisePlan({
   lessonArc: [{ purpose: "teach" }, { purpose: "check" }]
 }, ctxFor({ depthRequired: true }));
 assert.strictEqual(helpPlan.depth.developedStrands, 1, "help still counts as a mechanism");
-assert.strictEqual(helpedPlan.depth.developedStrands, 0, "helped is unchanged and does not count");
+// Tense parity correction: PR #21 left "helped" out on purpose ("helped was not added").
+// Live source-grounded runs then rejected source-supported past-tense explanations of extinct
+// animals for tense alone, so "helped" now counts exactly as "help" does. Minima are unchanged.
+assert.strictEqual(helpedPlan.depth.developedStrands, helpPlan.depth.developedStrands, "helped counts the same as help");
 assert.strictEqual(helpPlan.depth.requiredStrands, 2);
 assert.strictEqual(helpPlan.depth.requiredDepth, 6);
 
 var source = fs.readFileSync(path.join(__dirname, "../js/lesson-brain.js"), "utf8");
-assert.ok(source.indexOf("|helped|") === -1);
-assert.ok(/helps\|helping\|help\|/.test(source));
+assert.ok(/helps\|helped\|helping\|help\|/.test(source), "tense parity: helped sits beside helps and help");
 var brief = Brain.knowledgePackBrief(ctxFor());
 assert.ok(brief.system.indexOf("strandPairsRequired") !== -1);
 assert.ok(brief.system.indexOf("Do not invent a feature or a function") !== -1);

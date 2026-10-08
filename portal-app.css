@@ -877,7 +877,7 @@ body.page-portal {
     bottom: 0;
     z-index: 50;
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(6, 1fr);
     padding: 0.4rem 0.4rem calc(0.4rem + env(safe-area-inset-bottom));
     background: rgba(255, 255, 255, 0.96);
     backdrop-filter: blur(10px);

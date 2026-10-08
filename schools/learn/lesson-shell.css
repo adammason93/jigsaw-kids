@@ -504,8 +504,10 @@
 }
 .lesson.has-world .lesson-choice.is-right,
 .lesson.has-fallback .lesson-choice.is-right { color: #fff; background: rgba(20, 27, 77, .9); border-color: #ffc53d; }
+/* The feedback card keeps its light background over a picture, so its text stays dark (white on
+   cream was unreadable on the live class screen). */
 .lesson.has-world .lesson-feedback,
-.lesson.has-fallback .lesson-feedback { color: #fff; }
+.lesson.has-fallback .lesson-feedback { color: #141b4d; }
 .lesson-clues { margin: 0; font-weight: 800; }
 .lesson-clues strong { margin-left: 8px; }
 .lesson-recap { margin: 8px 0 0; padding-left: 1.2rem; line-height: 1.4; }
@@ -533,3 +535,27 @@
   .lesson-safe-lower-right .lesson-play { width: min(68ch, 92vw); margin: 0 4% 6%; }
   .lesson-compare { grid-template-columns: 1fr; }
 }
+
+/* Patch 6: frame label on a world picture (story picture vs teaching picture). */
+.lesson-world-tag {
+  position: absolute; top: 112px; right: 18px; z-index: 3; margin: 0;
+  padding: 6px 12px; border-radius: 999px; background: rgba(20, 27, 77, .82); color: #fff;
+  font: 600 0.95rem/1.2 Nunito, system-ui, sans-serif; max-width: 46vw; pointer-events: none;
+}
+.lesson-choose .lesson-case { font-weight: 700; }
+.lesson-choose .lesson-choices { margin-top: 10px; }
+/* Over a picture the choose panel is dark navy: per-choice feedback and a tried wrong choice
+   need light colours to stay readable. */
+.lesson.has-world .lesson-choose .lesson-react--again,
+.lesson.has-fallback .lesson-choose .lesson-react--again { color: #ffc98a; }
+.lesson.has-world .lesson-choose .lesson-react--yes,
+.lesson.has-fallback .lesson-choose .lesson-react--yes { color: #8ff0c0; }
+.lesson.has-world .lesson-choice.is-again,
+.lesson.has-fallback .lesson-choice.is-again { opacity: .62; border-color: #ffc98a; }
+
+/* Story-led lessons (slides with a progressGroup): one short header row so the story panel and
+   choices are never covered. Other lessons are unchanged. */
+.lesson-top--story h1 { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 50vw; font-size: 1.15rem; }
+.lesson-progress--grouped { flex-wrap: nowrap; overflow-x: auto; max-width: 50vw; scrollbar-width: none; }
+.lesson-progress--grouped::-webkit-scrollbar { display: none; }
+.lesson-progress--grouped li { white-space: nowrap; flex: 0 0 auto; }

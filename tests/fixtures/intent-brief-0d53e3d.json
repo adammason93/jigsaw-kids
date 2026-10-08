@@ -1,0 +1,30 @@
+{
+  "note": "teacherIntentBrief output at 0d53e3d (generated from git show 0d53e3d:js/lesson-brain.js). Years 1-2 and unknown-year requests must stay byte-identical.",
+  "system": "You interpret one primary teacher's request. Return one JSON object and nothing else. Do not write a lesson, stages, activities, mechanics, questions, or facts to teach. Separate the request into distinct fields. A word is not a focus concept merely because it appears in the request. learningGoal is one sentence: what pupils should understand or be able to do by the end of this lesson. focusConcepts are one to four short curriculum ideas required for that new goal. They are ideas, not the teacher's instructions. priorKnowledge is what the teacher says pupils already understand. Do not copy those items into focusConcepts. exclusions are what the teacher says not to reteach. Do not copy those items into focusConcepts. preferences are presentation requests such as fun, playful, hands-on, short, or story-based. They are not curriculum ideas. durationMinutes is a number from 5 to 90, or null when no duration was asked for. A duration is not a curriculum idea. yearGroup is Year 1 to Year 6 when the teacher names it, otherwise an empty string. Do not invent a year. subject is Science, Maths, English, History, or Geography. If the teacher names one, keep it and set subjectConfidence to explicit. If the teacher does not name a subject, set subject and subjectConfidence to inferred only when the topic is unmistakably that subject. Otherwise subject is an empty string and subjectConfidence is uncertain. If the teacher names a misconception, keep the mistake out of focusConcepts and make learningGoal the idea that corrects it. The lesson should build from what pupils already know toward the new goal. The new goal is the teaching target. requiredEvidence is one short statement of what a pupil must show before the teacher can conclude the learning goal was achieved. Name the thinking the pupil does and the content or relationship that must be covered. A comparison names both sides. A sequence names the whole order, not one stage. Using or measuring is not replaced by naming or defining. Do not make the evidence harder than the goal. Do not turn prior knowledge, exclusions, or presentation preferences into the evidence unless they are the goal itself. Do not put a count of types, kinds, examples, or features into requiredEvidence unless the teacher asked for that count. Do not invent a different topic. If the request is unclear, keep learningGoal close to what was asked and leave uncertain fields empty. JSON shape: {\"yearGroup\":\"\",\"subject\":\"\",\"subjectConfidence\":\"explicit\" or \"inferred\" or \"uncertain\",\"learningGoal\":\"\",\"requiredEvidence\":\"\",\"focusConcepts\":[],\"priorKnowledge\":[],\"exclusions\":[],\"preferences\":[],\"durationMinutes\":null}.",
+  "cases": [
+    {
+      "request": "Teach children about plants.",
+      "yearGroup": "Year 1",
+      "subject": "Science",
+      "user": "{\"request\":\"Teach children about plants.\",\"statedYear\":\"Year 1\",\"statedSubject\":\"Science\",\"statedMinutes\":15}"
+    },
+    {
+      "request": "Year 1 science. Teach children about the parts of a plant.",
+      "yearGroup": "Year 1",
+      "subject": "Science",
+      "user": "{\"request\":\"Year 1 science. Teach children about the parts of a plant.\",\"statedYear\":\"Year 1\",\"statedSubject\":\"Science\",\"statedMinutes\":15}"
+    },
+    {
+      "request": "Year 2 maths. Teach that addition can be done in any order.",
+      "yearGroup": "Year 2",
+      "subject": "Maths",
+      "user": "{\"request\":\"Year 2 maths. Teach that addition can be done in any order.\",\"statedYear\":\"Year 2\",\"statedSubject\":\"Maths\",\"statedMinutes\":15}"
+    },
+    {
+      "request": "Teach children about dinosaurs.",
+      "yearGroup": "",
+      "subject": "",
+      "user": "{\"request\":\"Teach children about dinosaurs.\",\"statedYear\":\"\",\"statedSubject\":\"\",\"statedMinutes\":15}"
+    }
+  ]
+}

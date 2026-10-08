@@ -1,0 +1,193 @@
+{
+ "version": 1,
+ "startedAt": "2026-10-06T10:57:01.790Z",
+ "request": {
+  "lessonText": "Teach Year 3 about dinosaurs",
+  "topic": "Dinosaurs",
+  "yearGroup": "Year 3",
+  "learningGoal": "Pupils will understand how dinosaurs adapted to their environments.",
+  "focusConcepts": [
+   "adaptation",
+   "habitat",
+   "survival",
+   "features"
+  ]
+ },
+ "allowlist": [
+  "nhm.ac.uk",
+  "amnh.org",
+  "si.edu",
+  "fieldmuseum.org",
+  "australian.museum",
+  "ucmp.berkeley.edu",
+  "royalsociety.org",
+  "geolsoc.org.uk",
+  "bbc.co.uk/bitesize",
+  "thenational.academy",
+  "britannica.com",
+  "kids.nationalgeographic.com",
+  "simple.wikipedia.org",
+  "en.wikipedia.org",
+  "*.gov.uk",
+  "*.ac.uk"
+ ],
+ "queries": [
+  "Dinosaurs",
+  "Dinosaurs adaptation",
+  "Dinosaurs habitat"
+ ],
+ "providers": [
+  {
+   "id": "openai-web-search-replay",
+   "paid": false,
+   "calls": 0,
+   "searchCalls": 0,
+   "found": 80,
+   "error": "",
+   "usage": null
+  },
+  {
+   "id": "wikipedia-action-api",
+   "paid": false,
+   "calls": 6,
+   "searchCalls": 0,
+   "found": 12,
+   "error": "",
+   "usage": null
+  }
+ ],
+ "discovered": [],
+ "sources": [
+  {
+   "sourceId": "S9",
+   "url": "https://kids.nationalgeographic.com/animals/prehistoric/facts/spinosaurus",
+   "requestedUrl": "https://kids.nationalgeographic.com/animals/prehistoric/facts/spinosaurus",
+   "title": "Spinosaurus",
+   "domain": "kids.nationalgeographic.com",
+   "rule": "natgeo-kids",
+   "tier": "evidence",
+   "kind": "publisher",
+   "fetchMethod": "https-get-html-extract",
+   "fetchUrl": "https://kids.nationalgeographic.com/animals/prehistoric/facts/spinosaurus",
+   "retrievedAt": "2026-10-06T10:57:03.748Z",
+   "bytes": 103806,
+   "passageCount": 3
+  },
+  {
+   "sourceId": "S12",
+   "url": "https://kids.nationalgeographic.com/animals/prehistoric/facts/brachiosaurus",
+   "requestedUrl": "https://kids.nationalgeographic.com/animals/prehistoric/facts/brachiosaurus",
+   "title": "Brachiosaurus",
+   "domain": "kids.nationalgeographic.com",
+   "rule": "natgeo-kids",
+   "tier": "evidence",
+   "kind": "publisher",
+   "fetchMethod": "https-get-html-extract",
+   "fetchUrl": "https://kids.nationalgeographic.com/animals/prehistoric/facts/brachiosaurus",
+   "retrievedAt": "2026-10-06T10:57:03.752Z",
+   "bytes": 113820,
+   "passageCount": 3
+  }
+ ],
+ "refused": [],
+ "passages": [
+  {
+   "id": "S9-P01",
+   "sourceId": "S9",
+   "url": "https://kids.nationalgeographic.com/animals/prehistoric/facts/spinosaurus",
+   "title": "Spinosaurus",
+   "section": "",
+   "text": "In a murky river that cuts through North Africa, a 50-foot-long hunter swims after a fish the size of a car. It sports six-inch-long teeth and a sail on its back with spines the size of surfboards. The hungry stalker closes in on the fish, gobbling up the meal. Then it glides away in search of more snacks. The creature isn\u2019t some sort of enormous shark or a vicious crocodile . It\u2019s a dinosaur called Spinosaurus, and it\u2019s the only known dino that\u2019s thought to have dwelled in water.",
+   "retrievedAt": "2026-10-06T10:57:03.748Z",
+   "tier": "evidence"
+  },
+  {
+   "id": "S9-P02",
+   "sourceId": "S9",
+   "url": "https://kids.nationalgeographic.com/animals/prehistoric/facts/spinosaurus",
+   "title": "Spinosaurus",
+   "section": "Making waves",
+   "text": "Named for its seven-foot-long spines, Spinosaurus lived about a hundred million years ago during the Cretaceous period. It inhabited what is now North Africa\u2019s Sahara region, which at the time featured a large river system. Spinosaurus was well adapted for aquatic life. Its nostrils were further up on its snout than the nostrils of other dinosaurs. This would\u2019ve allowed the animal to breathe even with most of its snout submerged. Its crocodile-like teeth were ideal for catching fish. Researchers believe the reptile\u2019s dense bones\u2014which resemble those of modern-day aquatic creatures such as the manatee \u2014acted as a weight to help it easily dive into the water while hunting for fish. And its paddle-like webbed feet would\u2019ve allowed the animal to swim. Even the dinosaur's sail\u2014which likely stuck out of the water while Spinosaurus was swimming\u2014helped the animal survive in its river home.",
+   "retrievedAt": "2026-10-06T10:57:03.748Z",
+   "tier": "evidence"
+  },
+  {
+   "id": "S9-P03",
+   "sourceId": "S9",
+   "url": "https://kids.nationalgeographic.com/animals/prehistoric/facts/spinosaurus",
+   "title": "Spinosaurus",
+   "section": "Set sail",
+   "text": "Scientists believe that Spinosaurus may have used its sail as a warning signal to intruders. The sight of the sail jutting out of the water would tell others to back off\u2014unless they wanted a fight. You wouldn\u2019t want to mess with this splashy creature!",
+   "retrievedAt": "2026-10-06T10:57:03.748Z",
+   "tier": "evidence"
+  },
+  {
+   "id": "S12-P01",
+   "sourceId": "S12",
+   "url": "https://kids.nationalgeographic.com/animals/prehistoric/facts/brachiosaurus",
+   "title": "Brachiosaurus",
+   "section": "",
+   "text": "A dinosaur the size of a four-story building slowly approaches a coniferous tree in what\u2019s now North America . Stretching up its long neck, the creature rips off pine needles and leaves that few other dinos can reach. This huge plant-eater is Brachiosaurus , and it\u2019s one of the biggest animals that\u2019s ever walked the planet.",
+   "retrievedAt": "2026-10-06T10:57:03.752Z",
+   "tier": "evidence"
+  },
+  {
+   "id": "S12-P02",
+   "sourceId": "S12",
+   "url": "https://kids.nationalgeographic.com/animals/prehistoric/facts/brachiosaurus",
+   "title": "Brachiosaurus",
+   "section": "Huge herbivore",
+   "text": "Roaming Earth between 156 and 145 million years ago during the Jurassic period, Brachiosaurus grew over 80 feet long and weighed more than 28 tons\u2014that\u2019s about as heavy as four African elephants . Why so big? Experts think that Brachiosaurus couldn\u2019t run, so its size might\u2019ve made fierce predators like Allosaurus think that the dino was too big to take down. Another theory suggests that because the plants were difficult to digest, Brachiosaurus and other giant herbivores needed extra-large digestive tracts to process and absorb the nutrients from their food. This dino\u2019s name comes from the Greek words meaning \u201carm lizard\u201d because its forelegs were longer than its hind legs\u2014another adaption to help it reach high into the trees. It\u2019s part of the sauropod family: huge plant-eaters with long necks, long tails, and a four-legged stance. Apatosaurus is also a member of this group.",
+   "retrievedAt": "2026-10-06T10:57:03.752Z",
+   "tier": "evidence"
+  },
+  {
+   "id": "S12-P03",
+   "sourceId": "S12",
+   "url": "https://kids.nationalgeographic.com/animals/prehistoric/facts/brachiosaurus",
+   "title": "Brachiosaurus",
+   "section": "Mistaken habitat",
+   "text": "Scientists once thought that Brachiosaurus lived in water. They figured that such a large animal would be too heavy to support itself on land, plus its nostril holes were on top of its skull, sort of like a snorkel. But experts now know that the pressure of the water would\u2019ve made it impossible for Brachiosaurus to breathe in air. Plus, the nostril holes don't tell us everything about noses: If aliens examined a human skull without ever seeing a face, they might not know that our noses stick out!",
+   "retrievedAt": "2026-10-06T10:57:03.752Z",
+   "tier": "evidence"
+  }
+ ],
+ "selectedPassageIds": [
+  "S9-P02",
+  "S12-P02"
+ ],
+ "evidencePolicy": "Search results and snippets only locate pages. Evidence is text fetched from the page itself, and only from evidence-tier sources (museums, universities, scientific organisations, government bodies, established educational publishers). Wikipedia and Simple English Wikipedia are discovery only.",
+ "discoverySources": [
+  {
+   "url": "https://simple.wikipedia.org/wiki/Dinosaur",
+   "title": "Dinosaur (Simple English Wikipedia)",
+   "tier": "discovery",
+   "ok": true,
+   "reason": "",
+   "passagesNotEvidence": 25,
+   "citedEvidenceLinks": 0,
+   "note": "Discovery only: this page's text is never evidence; its cited authoritative pages are followed."
+  },
+  {
+   "url": "https://en.wikipedia.org/wiki/Dinosaur",
+   "title": "Dinosaur (Wikipedia)",
+   "tier": "discovery",
+   "ok": true,
+   "reason": "",
+   "passagesNotEvidence": 86,
+   "citedEvidenceLinks": 7,
+   "note": "Discovery only: this page's text is never evidence; its cited authoritative pages are followed."
+  },
+  {
+   "url": "https://simple.wikipedia.org/wiki/Dinosaur_Provincial_Park",
+   "title": "Dinosaur Provincial Park (Simple English Wikipedia)",
+   "tier": "discovery",
+   "ok": true,
+   "reason": "",
+   "passagesNotEvidence": 7,
+   "citedEvidenceLinks": 0,
+   "note": "Discovery only: this page's text is never evidence; its cited authoritative pages are followed."
+  }
+ ],
+ "finishedAt": "2026-10-06T10:57:04.611Z"
+}

@@ -230,7 +230,7 @@ var sw = fs.readFileSync(path.join(__dirname, "../sw.js"), "utf8");
 assert.strictEqual(createHtml.indexOf("flow.js"), -1);
 assert.strictEqual(createHtml.indexOf("create.js"), -1);
 assert.ok(createHtml.indexOf("creator.js?v=20") !== -1);
-assert.ok(createHtml.indexOf("creator-core.js?v=23") !== -1);
+assert.ok(createHtml.indexOf("creator-core.js?v=24") !== -1);
 assert.ok(creatorJs.indexOf("var WORLD_BUDGET_MS = 90000;") !== -1);
 assert.ok(creatorJs.indexOf("failure: \"world_budget\"") !== -1);
 assert.ok(creatorJs.indexOf("What are we learning today?") !== -1);
@@ -238,7 +238,7 @@ assert.ok(creatorJs.indexOf("Tell Wondii what you would like your class to learn
 assert.strictEqual(creatorJs.indexOf("Groups or devices"), -1);
 assert.strictEqual(creatorJs.indexOf("Quick create"), -1);
 assert.ok(worker.indexOf("learnDocument") !== -1);
-assert.ok(sw.indexOf("jigsaw-kids-v437") !== -1);
+assert.ok(sw.indexOf("jigsaw-kids-v443") !== -1);
 var friendlyAt = creatorJs.indexOf("Wondii couldn't finish this adventure.");
 assert.ok(friendlyAt !== -1);
 assert.strictEqual(creatorJs.slice(friendlyAt, friendlyAt + 420).indexOf("generation.issues"), -1);

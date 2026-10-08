@@ -135,6 +135,21 @@
   }
 
   function progressHtml(slides, index, adventure) {
+    // Story-led lessons split a long story scene over several slides; those slides share a
+    // progressGroup and show as one step, so the header stays short. Other lessons are unchanged.
+    if ((slides || []).some(function (slide) { return slide && slide.progressGroup; })) {
+      var groups = [];
+      slides.forEach(function (slide, i) {
+        var key = (slide && slide.progressGroup) || ("slide-" + i);
+        var last = groups[groups.length - 1];
+        if (last && last.key === key) last.end = i;
+        else groups.push({ key: key, start: i, end: i, name: (slide && (slide.progressLabel || missionStep(slide))) || "Step" });
+      });
+      return "<ol class=\"lesson-progress lesson-progress--grouped\">" + groups.map(function (g) {
+        var state = g.end < index ? "is-done" : (index >= g.start && index <= g.end) ? "is-now" : "";
+        return "<li class=\"" + state + "\"><span>" + escape(g.name) + "</span></li>";
+      }).join("") + "</ol>";
+    }
     return "<ol class=\"lesson-progress\">" + (slides || []).map(function (slide, i) {
       var name = adventure || (slide && slide.sceneId) ? missionStep(slide) : ((slide && slide.kicker) || activityName(slideMechanic(slide)));
       var state = i < index ? "is-done" : i === index ? "is-now" : "";
@@ -155,7 +170,8 @@
       var mission = (model.storyPlan && (model.storyPlan.missionLabel || model.storyPlan.mission)) || model.title || "The mission";
       heading = escape(mission);
     }
-    return "<header class=\"lesson-top\"><div class=\"lesson-brand\"><p class=\"lesson-mark\">Wondii</p>" + org + "</div>" +
+    var grouped = (slides || []).some(function (slide) { return slide && slide.progressGroup; });
+    return "<header class=\"lesson-top" + (grouped ? " lesson-top--story" : "") + "\"><div class=\"lesson-brand\"><p class=\"lesson-mark\">Wondii</p>" + org + "</div>" +
       "<div class=\"lesson-top-main\">" + (adventureNow(model) ? "<p class=\"lesson-kicker\">Mission</p>" : "") + "<h1>" + heading + "</h1>" +
       progressHtml(slides, index, adventureNow(model)) + "</div>" +
       "<div class=\"lesson-top-side\"><p class=\"lesson-round\">" + (slides.length ? ("Round " + (index + 1) + " of " + slides.length) : "") + "</p>" +
@@ -236,9 +252,15 @@
     return mechanics.render(slide || {}, ctx);
   }
 
-  function worldFor(slide) {
+  function worldFor(slide, play) {
     var visuals = globalThis.WondiiVisuals;
     if (!visuals || !visuals.forSlide) return null;
+    // Patch 6: a beat may carry its own picture (one teaching picture per unit).
+    var beats = slide && Array.isArray(slide.beats) ? slide.beats : [];
+    if (play && beats.length) {
+      var beat = beats[Math.max(0, Math.min(Number(play.beat) || 0, beats.length - 1))];
+      if (beat && beat.visualAssetId) slide = Object.assign({}, slide, { visualAssetId: beat.visualAssetId });
+    }
     return visuals.forSlide(slide);
   }
 
@@ -250,7 +272,7 @@
     if (safe) cls += " lesson-safe-" + String(safe).toLowerCase().replace(/[^a-z0-9]+/g, "-");
     var layer = (world && world.layer) || "";
     var backdrop = "";
-    if (world && world.url) backdrop = "<div class=\"lesson-world" + (world.fx || "") + "\"><img class=\"lesson-world-plate\" alt=\"\" src=\"" + escape(world.url) + "\" /></div>";
+    if (world && world.url) backdrop = "<div class=\"lesson-world" + (world.fx || "") + "\"><img class=\"lesson-world-plate\" alt=\"\" src=\"" + escape(world.url) + "\" />" + (world.tag ? "<p class=\"lesson-world-tag\">" + escape(world.tag) + "</p>" : "") + "</div>";
     else if (world && world.fallback) backdrop = "<div class=\"lesson-world lesson-world--fallback" + (world.fx || "") + "\"></div>";
     return "<div class=\"lesson" + cls + "\">" + backdrop + layer + topHtml(model, slides || [], index || 0, statusText) +
       "<main class=\"lesson-stage\" id=\"lessonStage\">" + inner + "</main>" +
@@ -446,7 +468,7 @@
       if (ui.end) {
         inner += overlay("End this lesson?", "<p class=\"lesson-copy\">Everything completed so far will be saved.</p>", "<button type=\"button\" class=\"lesson-go\" id=\"lessonKeep\">Keep playing</button><button type=\"button\" class=\"lesson-quiet\" id=\"lessonEndNow\">End lesson</button>");
       }
-      var world = worldFor(slide) || null;
+      var world = worldFor(slide, ui.play) || null;
       if (world && adventureNow(model)) {
         var showEnter = slide && slide.worldEffect && slide.worldEffect.trigger !== "on-success" && !ui.play.boomed && !ui.play.slipped;
         if (showEnter) ui.play.boomed = true;
@@ -664,6 +686,13 @@
           if (current.responseEffect) playCue(current.responseEffect.type);
           ui.play = completeSpot(ui.play, steps);
           render(rootEl, model);
+        } else if (kind === "choose") {
+          var pick = Number(btn.getAttribute("data-option"));
+          var picked = (current.choices || [])[pick];
+          if (!picked) return;
+          ui.play = choosePlay(ui.play, steps, pick, picked.correct === true);
+          if (picked.correct === true && current.responseEffect) playCue(current.responseEffect.type);
+          render(rootEl, model);
         } else if (kind === "push") {
           if (!ui.play.stuck) {
             ui.play.stuck = true;
@@ -728,13 +757,31 @@
     if (step.beatIndex != null && (Number(play.beat) || 0) < Number(step.beatIndex)) return false;
     if ((step.type === "move" || step.type === "drag") && !play.slipped && !play.revealed) return true;
     if ((step.type === "hotspot" || step.type === "tap-to-reveal" || step.type === "inspect") && !play.revealed) return true;
+    if (step.type === "choose" && Array.isArray(step.choices) && step.choices.length && !play.revealed) return true;
     return false;
+  }
+
+  // Patch 6: record a choice on a choose step. A wrong choice shows its own feedback and stays
+  // on the step; the correct choice solves it (revealed), which lets Next appear.
+  function choosePlay(play, steps, pick, correct) {
+    var tried = ((play && play.tried) || []).slice();
+    if (tried.indexOf(pick) === -1) tried.push(pick);
+    var next = Object.assign({}, play || {}, { chosen: pick, tried: tried, revealed: !!correct });
+    if (correct && (next.step || 0) < (steps || []).length - 1) {
+      next.step = (next.step || 0) + 1;
+      next.revealed = false;
+      next.chosen = null;
+      next.tried = [];
+    }
+    return next;
   }
 
   function completeSpot(play, steps) {
     var next = {
       index: play.index,
       step: play.step || 0,
+      // Keep the beat: tapping a look-closer spot must not send the story back to its first line.
+      beat: Number(play.beat) || 0,
       stuck: !!play.stuck,
       slipped: !!play.slipped,
       revealed: true,
@@ -869,6 +916,8 @@
     render: render,
     waitingOn: waitingOn,
     completeSpot: completeSpot,
+    choosePlay: choosePlay,
+    worldFor: worldFor,
     primaryLabel: primaryLabel,
     advancePlay: advancePlay,
     screenFor: screenFor,
