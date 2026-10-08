@@ -17,6 +17,41 @@ create index child_pairing_tickets_child_idx
 
 revoke all on private.child_pairing_tickets from public, anon, authenticated;
 
+create table private.pairing_attempt_buckets (
+  bucket text primary key,
+  attempts integer not null,
+  window_start timestamptz not null
+);
+
+revoke all on private.pairing_attempt_buckets from public, anon, authenticated;
+
+create or replace function private.bump_pairing_bucket(p_bucket text, p_window interval)
+returns integer
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  total integer;
+begin
+  insert into private.pairing_attempt_buckets as buckets (bucket, attempts, window_start)
+  values (p_bucket, 1, now())
+  on conflict (bucket) do update
+  set attempts = case
+        when buckets.window_start <= now() - p_window then 1
+        else buckets.attempts + 1
+      end,
+      window_start = case
+        when buckets.window_start <= now() - p_window then now()
+        else buckets.window_start
+      end
+  returning attempts into total;
+  return total;
+end;
+$$;
+
+revoke all on function private.bump_pairing_bucket(text, interval) from public, anon, authenticated;
+
 create or replace function public.create_child_pairing(p_child uuid)
 returns jsonb
 language plpgsql
@@ -48,6 +83,14 @@ begin
   end if;
   if profile.status <> 'active' then
     raise exception 'profile_unavailable' using errcode = '42501';
+  end if;
+  if (
+    select count(*)
+    from private.child_pairing_tickets
+    where created_by = auth.uid()
+      and created_at > now() - interval '1 hour'
+  ) >= 10 then
+    raise exception 'pairing_limited' using errcode = '42501';
   end if;
 
   update private.child_pairing_tickets
@@ -181,7 +224,30 @@ begin
 end;
 $$;
 
+create or replace function public.pairing_attempt_allowed(p_bucket text)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  ip_attempts integer;
+  global_attempts integer;
+begin
+  if coalesce(p_bucket, '') !~ '^[0-9a-f]{32}$' then
+    return jsonb_build_object('allowed', false, 'reason', 'limited');
+  end if;
+  ip_attempts := private.bump_pairing_bucket(p_bucket, interval '10 minutes');
+  global_attempts := private.bump_pairing_bucket('global', interval '10 minutes');
+  if ip_attempts > 20 or global_attempts > 300 then
+    return jsonb_build_object('allowed', false, 'reason', 'limited');
+  end if;
+  return jsonb_build_object('allowed', true);
+end;
+$$;
+
 revoke all on function public.create_child_pairing(uuid) from public, anon, authenticated;
+revoke all on function public.pairing_attempt_allowed(text) from public, anon, authenticated;
 revoke all on function public.consume_child_pairing(text) from public, anon, authenticated;
 revoke all on function public.register_child_device(uuid, uuid) from public, anon, authenticated;
 revoke all on function public.list_child_devices(uuid) from public, anon, authenticated;
@@ -190,6 +256,7 @@ grant execute on function public.create_child_pairing(uuid) to authenticated;
 grant execute on function public.list_child_devices(uuid) to authenticated;
 grant execute on function public.consume_child_pairing(text) to service_role;
 grant execute on function public.register_child_device(uuid, uuid) to service_role;
+grant execute on function public.pairing_attempt_allowed(text) to service_role;
 
 comment on function public.create_child_pairing(uuid) is
   'Parent-only. Returns a single-use code once. Previous unused codes for that child are marked used.';

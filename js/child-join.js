@@ -97,7 +97,9 @@
       if (!result.ok || data.allowed !== true || !data.access_token || !data.refresh_token) {
         say(data.reason === "profile_unavailable"
           ? "This profile is paused. Ask a grown-up to allow it again."
-          : "That code has expired or was already used.");
+          : data.reason === "limited"
+            ? "Too many tries. Wait a little while and ask for a new code."
+            : "That code has expired or was already used.");
         return;
       }
       enter(data);

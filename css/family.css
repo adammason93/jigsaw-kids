@@ -238,6 +238,18 @@
   outline-offset: 2px;
 }
 
+.family-qr {
+  display: grid;
+  justify-content: center;
+  margin: 0.4rem 0 0.2rem;
+}
+
+.family-qr svg {
+  width: min(240px, 70vw);
+  height: auto;
+  background: #fff;
+}
+
 .family-code {
   margin: 0.8rem 0;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;

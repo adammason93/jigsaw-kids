@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import qrcode from "../js/qrcode.js";
 import {
   childDeviceEmail,
   deviceAccessDecision,
@@ -24,6 +25,12 @@ assert.equal(sql.includes("grant execute on function public.consume_child_pairin
 assert.equal(sql.includes("grant execute on function public.register_child_device(uuid, uuid) to authenticated"), false);
 assert.equal(sql.includes("create policy"), false);
 assert.match(sql, /revoke all on private\.child_pairing_tickets from public, anon, authenticated/);
+assert.match(sql, /pairing_limited/);
+assert.match(sql, /pairing_attempt_allowed/);
+assert.match(sql, /ip_attempts > 20/);
+assert.match(sql, /global_attempts > 300/);
+assert.match(sql, /grant execute on function public\.pairing_attempt_allowed\(text\) to service_role/);
+assert.equal(sql.includes("grant execute on function public.pairing_attempt_allowed(text) to authenticated"), false);
 
 assert.equal(pairingCodeIsShape("AB23EFGH"), true);
 assert.equal(pairingCodeIsShape("AB23EFG0"), false);
@@ -72,6 +79,10 @@ assert.equal(deviceAccessDecision({
 assert.equal(childDeviceEmail("5bfabc6d-a1a0-4904-b6f0-16ad9eb90888"), "device-5bfabc6d-a1a0-4904-b6f0-16ad9eb90888@users.child.invalid");
 assert.equal(childDeviceEmail("not-a-device"), "");
 
+assert.match(fn, /pairing_attempt_allowed/);
+const attemptAt = fn.indexOf("pairing_attempt_allowed");
+const consumeAt = fn.indexOf("consume_child_pairing");
+assert.ok(attemptAt >= 0 && consumeAt > attemptAt);
 assert.match(fn, /consume_child_pairing/);
 assert.match(fn, /register_child_device/);
 assert.match(fn, /account_kind: "child"/);
@@ -84,7 +95,26 @@ assert.equal(join.includes("service_role"), false);
 assert.equal(join.includes("SUPABASE_SERVICE_ROLE_KEY"), false);
 assert.match(family, /create_child_pairing/);
 assert.match(family, /Add device/);
+assert.match(family, /qrcode\(0, "M"\)/);
+assert.match(family, /code\.addData\(url\)/);
+assert.match(family, /title: "Pairing code"/);
 assert.equal(family.includes("service_role"), false);
+function modules(value) {
+  const drawn = qrcode(0, "M");
+  drawn.addData(value);
+  drawn.make();
+  let bits = "";
+  for (let row = 0; row < drawn.getModuleCount(); row += 1) {
+    for (let col = 0; col < drawn.getModuleCount(); col += 1) bits += drawn.isDark(row, col) ? "1" : "0";
+  }
+  const svg = drawn.createSvgTag({ cellSize: 4, margin: 8, scalable: true, title: "Pairing code" });
+  assert.equal(svg.includes("<svg"), true);
+  assert.equal(svg.includes("nickname"), false);
+  return bits;
+}
+const first = modules("https://www.wondii.co.uk/child.html?pair=AB23EFGH");
+const second = modules("https://www.wondii.co.uk/child.html?pair=AB23EFGK");
+assert.notEqual(first, second);
 assert.match(fs.readFileSync(path.join(root, "child.html"), "utf8"), /no-referrer/);
 
 console.log("child-pairing tests ok");

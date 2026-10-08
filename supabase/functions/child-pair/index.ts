@@ -23,6 +23,14 @@ function json(req: Request, body: unknown, status: number): Response {
   return new Response(JSON.stringify(body), { status, headers });
 }
 
+async function pairingBucket(req: Request): Promise<string> {
+  const forwarded = req.headers.get("x-forwarded-for") || "";
+  const hops = forwarded.split(",").map((part) => part.trim()).filter(Boolean);
+  const raw = (req.headers.get("cf-connecting-ip") || hops[hops.length - 1] || "unknown").trim();
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode("pair|" + raw));
+  return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("").slice(0, 32);
+}
+
 function randomPassword(): string {
   const bytes = new Uint8Array(32);
   crypto.getRandomValues(bytes);
@@ -60,6 +68,10 @@ Deno.serve(async (req) => {
   const admin = createClient(url, serviceKey, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
+  const gate = await admin.rpc("pairing_attempt_allowed", { p_bucket: await pairingBucket(req) });
+  if (gate.error || !gate.data || gate.data.allowed !== true) {
+    return json(req, { allowed: false, reason: "limited" }, 429);
+  }
   const consumed = await admin.rpc("consume_child_pairing", { p_code: code });
   const decision = consumed.data;
   if (consumed.error || !decision || decision.allowed !== true || !decision.childId) {

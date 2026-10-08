@@ -134,6 +134,7 @@
     if (/not_restorable|not_found/.test(code)) return "That profile can no longer be restored.";
     if (/sign_in_required/.test(code)) return "Log in again to manage your family.";
     if (/profile_unavailable/.test(code)) return "Allow this profile again before pairing a device.";
+    if (/pairing_limited/.test(code)) return "You can create another pairing code in a little while.";
     if (/could not find the function|PGRST202|schema cache/i.test(code)) return "Device pairing is not available yet.";
     if (/no_family/.test(code)) return "Create your family first.";
     if (/unavailable/.test(code)) return "Wondii could not open your family just now. Try again in a moment.";
@@ -439,6 +440,8 @@
     panel.appendChild(el("h2", { className: "family-form__title", id: "familyDeviceTitle" }, child ? "Add a device for " + child.nickname : "Add a device"));
     if (pairingOffer && pairingOffer.code) {
       panel.appendChild(el("p", { className: "family-code", id: "familyPairCode" }, pairingOffer.code));
+      var qr = pairingQr(pairingLink());
+      if (qr) panel.appendChild(qr);
       var when = new Date(pairingOffer.expiresAt);
       var clock = !isNaN(when.getTime())
         ? when.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })
@@ -465,6 +468,22 @@
     panel.appendChild(el("button", { type: "button", className: "family-btn family-btn--ghost", "data-family": "close-device" }, "Close"));
     sheet.appendChild(panel);
     return sheet;
+  }
+
+  function pairingQr(url) {
+    if (!url || typeof global.qrcode !== "function") return null;
+    var code = global.qrcode(0, "M");
+    code.addData(url);
+    code.make();
+    var holder = el("div", { className: "family-qr" });
+    holder.innerHTML = code.createSvgTag({
+      cellSize: 4,
+      margin: 8,
+      scalable: true,
+      title: "Pairing code",
+      alt: "Scan this on the child’s device"
+    });
+    return holder;
   }
 
   function pairingLink() {
