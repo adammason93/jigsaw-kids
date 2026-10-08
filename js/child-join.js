@@ -58,13 +58,73 @@
             say("This device cannot open Wondii. Ask a grown-up for a new code.");
             return;
           }
-          say("This device is paired. Your Wondii space is not open yet.");
           if (form) form.hidden = true;
+          loadHome(sb);
         });
       }).catch(function () {
         say("Wondii could not open just now. Try the code once more.");
       });
     });
+  }
+
+  function node(tag, className, text) {
+    var el = document.createElement(tag);
+    if (className) el.className = className;
+    if (text) el.textContent = text;
+    return el;
+  }
+
+  function loadHome(sb) {
+    sb.rpc("child_home").then(function (res) {
+      var data = res && res.data;
+      if (!res || res.error || !data || data.allowed !== true) {
+        say("This device is paired. Your Wondii space is not open yet.");
+        return;
+      }
+      paintHome(data);
+    }).catch(function () {
+      say("This device is paired. Your Wondii space is not open yet.");
+    });
+  }
+
+  function paintHome(data) {
+    var host = document.getElementById("childJoin");
+    if (!host) return;
+    var crew = global.WondiiCrew && global.WondiiCrew.get && global.WondiiCrew.get(data.avatarId);
+    host.replaceChildren();
+    host.classList.add("family-child__home");
+    host.appendChild(node("p", "family-child__hello", "Hello " + (data.nickname || "there")));
+    host.appendChild(node("p", "family-child__crew", crew ? crew.name : "Your Wondii friend"));
+    var games = node("section", "family-child__panel");
+    games.appendChild(node("h2", null, "Play"));
+    if (data.canPlayGames) {
+      [
+        ["games/star-catcher.html", "Star Catcher"],
+        ["games/memory.html", "Memory Match"],
+        ["games/jigsaw.html", "Jigsaw"]
+      ].forEach(function (item) {
+        var link = node("a", "family-btn", item[1]);
+        link.href = item[0];
+        games.appendChild(link);
+      });
+    } else {
+      games.appendChild(node("p", null, "Games are turned off today."));
+    }
+    host.appendChild(games);
+    var mine = node("section", "family-child__panel");
+    mine.appendChild(node("h2", null, "My Wondii"));
+    if (!Array.isArray(data.books) || !data.books.length) mine.appendChild(node("p", null, "Your books will appear here."));
+    if (!Array.isArray(data.characters) || !data.characters.length) mine.appendChild(node("p", null, "Your characters will appear here."));
+    host.appendChild(mine);
+    var shared = node("section", "family-child__panel");
+    shared.appendChild(node("h2", null, "From your family"));
+    shared.appendChild(node("p", null, "Books and characters a grown-up shares will appear here."));
+    host.appendChild(shared);
+    var today = node("section", "family-child__panel");
+    today.appendChild(node("h2", null, "Today"));
+    today.appendChild(node("p", null, String(data.booksPerDay) + " books a day"));
+    today.appendChild(node("p", null, String(data.charactersPerDay) + " characters a day"));
+    host.appendChild(today);
   }
 
   function redeem(event) {
@@ -108,6 +168,26 @@
     });
   }
 
+  var opened = false;
+
+  function openSpace() {
+    if (opened) return;
+    sessionClient(function (sb) {
+      if (!sb) return;
+      checkAccess(sb, function (allowed) {
+        if (!allowed || opened) return;
+        opened = true;
+        if (form) form.hidden = true;
+        loadHome(sb);
+      });
+    });
+  }
+
   if (form) form.addEventListener("submit", redeem);
   if (new URLSearchParams(global.location.search).get("pair")) redeem();
+  else if (global.WondiiSession && global.WondiiSession.subscribe) {
+    global.WondiiSession.subscribe(function (snap) {
+      if (snap && snap.status === "authenticated") openSpace();
+    });
+  }
 })(window);

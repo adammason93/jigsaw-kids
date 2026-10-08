@@ -116,5 +116,13 @@ const first = modules("https://www.wondii.co.uk/child.html?pair=AB23EFGH");
 const second = modules("https://www.wondii.co.uk/child.html?pair=AB23EFGK");
 assert.notEqual(first, second);
 assert.match(fs.readFileSync(path.join(root, "child.html"), "utf8"), /no-referrer/);
+const homeSql = fs.readFileSync(path.join(root, "supabase/migrations/20261008220000_child_home.sql"), "utf8");
+assert.match(homeSql, /child_content_access\(\)/);
+assert.match(homeSql, /'books', '\[\]'::jsonb/);
+assert.match(homeSql, /grant execute on function public\.child_home\(\) to authenticated/);
+assert.equal(homeSql.includes("grant execute on function public.child_home() to anon"), false);
+assert.match(join, /child_home/);
+assert.match(join, /games\/star-catcher\.html/);
+assert.equal(join.includes("Create a Book"), false);
 
 console.log("child-pairing tests ok");

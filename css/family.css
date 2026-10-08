@@ -238,6 +238,39 @@
   outline-offset: 2px;
 }
 
+.family-child {
+  margin: 0;
+  min-height: 100vh;
+  background: #f6f1fb;
+  color: #141b4d;
+  font-family: Nunito, sans-serif;
+}
+
+.family-child__card,
+.family-child__home {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 1.2rem;
+}
+
+.family-child__hello {
+  margin: 0;
+  font-family: Fredoka, Nunito, sans-serif;
+  font-size: clamp(2rem, 6vw, 3rem);
+}
+
+.family-child__panel {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: #fff;
+  border-radius: 22px;
+}
+
+.family-child__panel .family-btn {
+  display: inline-flex;
+  margin: 0.35rem 0.35rem 0 0;
+}
+
 .family-qr {
   display: grid;
   justify-content: center;
