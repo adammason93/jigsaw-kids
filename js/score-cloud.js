@@ -516,6 +516,14 @@
           cb(new Error("no_session"), null);
           return;
         }
+        if (sess.user.app_metadata && sess.user.app_metadata.account_kind === "child") {
+          if (!global.ChildLibrary) {
+            cb(new Error("child_library_unavailable"), null);
+            return;
+          }
+          global.ChildLibrary.downloadShelf(cb);
+          return;
+        }
         var path = storybookObjectPath(sess.user.id);
         console.log("[score-cloud] Downloading shelf path:", path);
 
@@ -818,6 +826,23 @@
             message: "Not signed in — open ⚙️ and use family password, then shelve again.",
           });
           cb(new Error("no_session"));
+          return;
+        }
+        if (sess.user.app_metadata && sess.user.app_metadata.account_kind === "child") {
+          if (!global.ChildLibrary) {
+            cb(new Error("child_library_unavailable"));
+            return;
+          }
+          var reserveKey = "";
+          try { reserveKey = sessionStorage.getItem("wondii-child-book-key") || ""; } catch (e) { reserveKey = ""; }
+          global.ChildLibrary.uploadShelf(rawJsonString, reserveKey, function (err) {
+            if (!err) {
+              try { sessionStorage.removeItem("wondii-child-book-key"); } catch (e2) {}
+            } else if (reserveKey) {
+              global.ChildLibrary.refund(reserveKey);
+            }
+            cb(err);
+          });
           return;
         }
         var path = storybookObjectPath(sess.user.id);

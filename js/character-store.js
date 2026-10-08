@@ -221,8 +221,22 @@
     });
   }
 
+  function childSession() {
+    var auth = global.WondiiSession && global.WondiiSession.get && global.WondiiSession.get();
+    var user = auth && auth.session && auth.session.user;
+    return !!(user && user.app_metadata && user.app_metadata.account_kind === "child");
+  }
+
   /** Load the user's character index (metadata array). cb(err, array). */
   function loadCharacters(cb) {
+    if (childSession()) {
+      if (!global.ChildLibrary) {
+        cb(fail("child_library_unavailable", "This character library is not open yet."), null);
+        return;
+      }
+      global.ChildLibrary.loadCharacters(cb);
+      return;
+    }
     withSession(function (err, sb, sess) {
       if (err) {
         cb(err, null);
@@ -387,6 +401,33 @@
 
   /** Upload the picture, then write the workspace index. cb(err, record). */
   function saveCharacter(record, pngBlob, cb) {
+    if (childSession()) {
+      if (!global.ChildLibrary) {
+        cb(fail("child_library_unavailable", "This character library is not open yet."));
+        return;
+      }
+      global.ChildLibrary.reserve("character").then(function (gate) {
+        if (!gate || gate.allowed !== true) {
+          cb(fail("allowance", "Today’s character creations are used up."));
+          return;
+        }
+        try { sessionStorage.setItem("wondii-child-character-key", gate.key); } catch (e2) {}
+        global.ChildLibrary.loadCharacters(function (loadErr, list) {
+          var next = Array.isArray(list) ? list.slice() : [];
+          next.push({ id: record.id || gate.key, name: record.name || "Character" });
+          global.ChildLibrary.saveCharacters(next, gate.key, function (saveErr) {
+            if (saveErr) {
+              global.ChildLibrary.refund(gate.key);
+              cb(fail("allowance", "That character was not saved."));
+              return;
+            }
+            try { sessionStorage.removeItem("wondii-child-character-key"); } catch (e3) {}
+            cb(null, record);
+          });
+        });
+      });
+      return;
+    }
     if (saveLock) {
       cb(fail("busy", "Save is already running."));
       return;

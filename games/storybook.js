@@ -6427,9 +6427,32 @@
           return out;
         });
       }
-      runStorybookOnce(useAsync)
-        .then(function (out) {
+      var childBookKey = "";
+      function releaseChildBook() {
+        if (childBookKey && window.ChildLibrary) window.ChildLibrary.refund(childBookKey);
+        childBookKey = "";
+      }
+      var storyStart = (window.ChildLibrary && ChildLibrary.isChildSession && ChildLibrary.isChildSession())
+        ? ChildLibrary.reserve("book")
+        : Promise.resolve({ allowed: true, reason: "adult" });
+      storyStart.then(function (gate) {
+        if (gate && gate.reason !== "adult" && gate.allowed !== true) {
+          setError("Today’s books are used up. You can make another one tomorrow.");
+          sbGenerateInFlight = false;
+          btnGen.disabled = false;
+          btnGen.removeAttribute("aria-busy");
+          setBusy(false);
+          return null;
+        }
+        if (gate && gate.key) {
+          childBookKey = gate.key;
+          try { sessionStorage.setItem("wondii-child-book-key", gate.key); } catch (e) {}
+        }
+        return runStorybookOnce(useAsync);
+      }).then(function (out) {
+          if (!out) return;
           if (!out.ok) {
+            releaseChildBook();
             var b =
               out.body && typeof out.body === "object" ? out.body : {};
             /** Supabase WORKER_LIMIT or Gateway Timeout — story + six images often exceeds Edge budget */
@@ -6539,6 +6562,8 @@
           showBook();
         })
         .catch(function (err) {
+          releaseChildBook();
+          if (err && err.code === "allowance") return;
           console.error("[storybook] Make my book", err);
           var u = functionUrl();
           var tech =

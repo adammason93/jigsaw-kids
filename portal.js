@@ -610,6 +610,11 @@
       if (labelEl) labelEl.textContent = label;
       if (homeBtn) homeBtn.setAttribute("aria-label", label + ", dashboard");
       var auth = window.WondiiSession && WondiiSession.get && WondiiSession.get();
+      var childUser = auth && auth.session && auth.session.user;
+      if (childUser && childUser.app_metadata && childUser.app_metadata.account_kind === "child") {
+        location.replace("child.html");
+        return;
+      }
       var logout = menu.querySelector('[data-account="logout"]');
       if (logout) logout.hidden = !(auth && auth.status === "authenticated");
       var view = window.WondiiOrg && WondiiOrg.get && WondiiOrg.get();
