@@ -46,6 +46,10 @@
     journey.templateId = params.get("template");
     journey.creationMode = "quick";
     journey.uiStep = "quick";
+  } else if (params.get("idea") && (!journey.uiStep || journey.uiStep === "idea")) {
+    journey.source = journey.source || { type: "paste", filename: "", text: "" };
+    journey.source.text = String(params.get("idea")).slice(0, 600);
+    journey.uiStep = "idea";
   } else if (params.get("demo") === "1" && !journey.source.text) {
     journey.source.text = Learn.SAMPLE;
     journey.source.type = "paste";

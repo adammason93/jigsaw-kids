@@ -1,0 +1,164 @@
+/* Wondii Crew and workspace characters. Full-body cards inside the portal. */
+
+.crew-page { max-width: 72rem; margin: 0 auto; padding: 0.5rem 0 3rem; }
+.crew-hero { margin: 0.4rem 0 1.4rem; }
+.crew-hero h1 { margin: 0.15rem 0; font-family: Fredoka, Nunito, sans-serif; font-size: clamp(2rem, 4vw, 2.8rem); color: var(--w-text-primary, #141b4d); }
+.crew-hero p { max-width: 36rem; margin: 0.35rem 0 0.9rem; color: var(--w-text-muted, #5c6284); font-size: 1.05rem; }
+.crew-section { margin: 2rem 0; }
+.crew-section h2 { margin: 0 0 0.35rem; font-family: Fredoka, Nunito, sans-serif; color: #141b4d; }
+.crew-section .crew-lead { margin: 0 0 1rem; color: #5c6284; }
+
+.crew-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+}
+@media (max-width: 1100px) {
+  .crew-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 800px) {
+  .crew-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 520px) {
+  .crew-grid { grid-template-columns: minmax(0, 1fr); }
+}
+
+.crew-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 28rem;
+  padding: 0.7rem 0.7rem 0.9rem;
+  border: 2px solid transparent;
+  border-radius: 28px;
+  background: #fff;
+  box-shadow: 0 10px 28px rgba(20, 27, 77, 0.08);
+  text-align: center;
+  transition: transform 280ms ease, box-shadow 280ms ease, border-color 280ms ease, background 280ms ease;
+}
+.crew-card:hover,
+.crew-card:focus-within,
+.crew-card.is-selected {
+  transform: translateY(-4px);
+  border-color: #c4b5e8;
+  background: #fbfaff;
+  box-shadow: 0 16px 36px rgba(90, 70, 160, 0.16);
+}
+.crew-card.is-selected { box-shadow: 0 0 0 3px rgba(125, 92, 175, 0.28), 0 16px 36px rgba(90, 70, 160, 0.16); }
+.crew-card__stage {
+  position: relative;
+  flex: 1 1 68%;
+  min-height: 18rem;
+  display: grid;
+  place-items: end center;
+  overflow: hidden;
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at 50% 78%, rgba(255, 255, 255, 0.95), rgba(243, 238, 254, 0.2) 58%, transparent 72%);
+}
+.crew-card__art {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center bottom;
+  transition: opacity 280ms ease;
+}
+.crew-card__art--hover { opacity: 0; }
+.crew-card[data-pose="hover"] .crew-card__art--idle { opacity: 0; }
+.crew-card[data-pose="hover"] .crew-card__art--hover { opacity: 1; }
+.crew-card__spark {
+  position: absolute;
+  top: 12%;
+  right: 16%;
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 999px;
+  background: #f6c445;
+  opacity: 0;
+  transform: scale(0.6);
+  transition: opacity 280ms ease, transform 280ms ease;
+}
+.crew-card[data-pose="hover"] .crew-card__spark { opacity: 1; transform: scale(1); }
+.crew-card h3 { margin: 0.35rem 0 0.2rem; font-family: Fredoka, Nunito, sans-serif; font-size: 1.35rem; color: #141b4d; }
+.crew-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin: 0.15rem auto;
+  padding: 0.15rem 0.65rem;
+  border-radius: 999px;
+  background: #f3eefe;
+  color: #5b3f91;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+.crew-card p { margin: 0.35rem 0 0.6rem; color: #5c6284; font-size: 0.92rem; }
+.crew-card__use { margin-top: auto; }
+.crew-card__tools { display: flex; justify-content: center; gap: 0.4rem; margin-top: 0.35rem; }
+.crew-check {
+  position: absolute;
+  top: 0.7rem;
+  right: 0.7rem;
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: 999px;
+  background: #7d5caf;
+  color: #fff;
+  display: none;
+  place-items: center;
+  font-size: 0.9rem;
+}
+.crew-card.is-selected .crew-check { display: grid; }
+
+.crew-figure {
+  width: min(100%, 15rem);
+  height: 17.5rem;
+  margin-bottom: 0.15rem;
+  overflow: visible;
+}
+.crew-figure__arm {
+  transform-box: fill-box;
+  transform-origin: center top;
+  transition: transform 280ms ease;
+}
+.crew-card[data-pose="hover"] .crew-figure[data-gesture="wave"] .crew-figure__arm--right,
+.crew-card[data-pose="hover"] .crew-figure[data-gesture="wave-soft"] .crew-figure__arm--right { transform: rotate(-58deg); }
+.crew-card[data-pose="hover"] .crew-figure[data-gesture="wave-both"] .crew-figure__arm--left,
+.crew-card[data-pose="hover"] .crew-figure[data-gesture="wave-both"] .crew-figure__arm--right { transform: rotate(-62deg); }
+.crew-card[data-pose="hover"] .crew-figure[data-gesture="wave-both"] .crew-figure__arm--left { transform: rotate(62deg); }
+.crew-card[data-pose="hover"] .crew-figure[data-gesture="pump"] .crew-figure__arm--right { transform: rotate(-130deg); }
+.crew-card[data-pose="hover"] .crew-figure[data-gesture="bounce"] { transform: translateY(-0.45rem); transition: transform 280ms ease; }
+.crew-card[data-pose="hover"] .crew-figure[data-gesture="bounce"] .crew-figure__arm--right { transform: rotate(-50deg); }
+.crew-card[data-pose="hover"] .crew-figure[data-gesture="idea"] .crew-figure__arm--right { transform: rotate(-150deg); }
+.crew-card[data-pose="hover"] .crew-figure[data-gesture="thumb"] .crew-figure__arm--right { transform: rotate(-110deg); }
+.crew-card[data-pose="hover"] .crew-figure[data-gesture="scout"] .crew-figure__arm--right { transform: rotate(-100deg); }
+.crew-card[data-pose="hover"] .crew-figure[data-gesture="heart"] .crew-figure__arm--left,
+.crew-card[data-pose="hover"] .crew-figure[data-gesture="heart"] .crew-figure__arm--right { transform: rotate(-28deg); }
+.crew-card[data-pose="hover"] .crew-figure[data-gesture="heart"] .crew-figure__arm--left { transform: rotate(28deg); }
+
+.crew-empty {
+  padding: 1.6rem 1.2rem;
+  border-radius: 28px;
+  background: linear-gradient(180deg, #fff 0%, #f8f4ff 100%);
+  box-shadow: 0 10px 28px rgba(20, 27, 77, 0.08);
+}
+.crew-empty h3 { margin: 0 0 0.3rem; font-family: Fredoka, Nunito, sans-serif; color: #141b4d; }
+.crew-note { color: #9a3412; }
+
+@media (prefers-reduced-motion: reduce) {
+  .crew-card,
+  .crew-card__art,
+  .crew-figure__arm,
+  .crew-card__spark,
+  .crew-figure[data-gesture="bounce"] {
+    transition: opacity 280ms ease;
+    transform: none;
+  }
+  .crew-card:hover,
+  .crew-card:focus-within,
+  .crew-card.is-selected { transform: none; }
+  .crew-card[data-pose="hover"] .crew-figure[data-gesture="bounce"] { transform: none; }
+}

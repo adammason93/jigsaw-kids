@@ -1,8 +1,9 @@
 /**
  * Character library storage — private Supabase bucket `characters_room`.
- *   {uid}/characters/index.json   — metadata array
- *   {uid}/characters/{id}.png     — generated 3D-clay cartoon PNG
- * Mirrors patterns in js/score-cloud.js (uses the same Supabase client + session refresh).
+ * Family:  {user id}/characters/…
+ * School:  school/{organisation id}/characters/…
+ * The active workspace comes from WondiiAccount. A school session never
+ * reads or writes the family folder.
  */
 (function (global) {
   "use strict";
@@ -14,6 +15,8 @@
   var client = null;
   var loadingLib = false;
   var loadWaiters = [];
+  var bound = null;
+  var saveLock = false;
 
   function cfg() {
     return global.SCORE_SYNC || {};
@@ -105,11 +108,49 @@
     });
   }
 
-  function indexPath(uid) {
-    return uid + "/characters/index.json";
+  function fail(code, message) {
+    var err = new Error(message || code);
+    err.code = code;
+    return err;
   }
-  function imagePath(uid, id) {
-    return uid + "/characters/" + id + ".png";
+
+  function bindWorkspace(workspace) {
+    bound = workspace && workspace.ownerId ? workspace : null;
+  }
+
+  function accountApi() {
+    return global.WondiiAccount || null;
+  }
+
+  function prefixFor(workspace) {
+    var api = accountApi();
+    if (api) return api.storagePrefix(workspace);
+    if (!workspace || !workspace.ownerId) return "";
+    if (workspace.ownerType === "school") return "school/" + workspace.ownerId;
+    if (workspace.ownerType === "family") return workspace.ownerId;
+    return "";
+  }
+
+  function workspaceFor(sess) {
+    if (bound && bound.ownerId) return bound;
+    if (sess && sess.user && sess.user.id) {
+      return {
+        kind: "family",
+        ownerType: "family",
+        ownerId: sess.user.id,
+        userId: sess.user.id,
+        role: "owner",
+        label: "Family"
+      };
+    }
+    return null;
+  }
+
+  function indexPath(workspace) {
+    return prefixFor(workspace) + "/characters/index.json";
+  }
+  function imagePath(workspace, id) {
+    return prefixFor(workspace) + "/characters/" + id + ".png";
   }
 
   function notFoundMessage(msg) {
@@ -152,7 +193,19 @@
       }
       withFreshSession(sb, function (sess) {
         if (!sess || !sess.user) {
-          cb(new Error("no_session"), null, null);
+          var school = bound && bound.kind === "school";
+          cb(fail(school ? "school-signed-out" : "no_session", school
+            ? "Your school session has ended. Log in again to open this school's characters."
+            : "Log in to Wondii to see this account's characters."), null, null);
+          return;
+        }
+        var workspace = workspaceFor(sess);
+        if (!workspace || !prefixFor(workspace)) {
+          cb(fail("no_workspace", "This page does not know which account the character belongs to."), null, null);
+          return;
+        }
+        if (workspace.ownerType === "family" && workspace.ownerId !== sess.user.id) {
+          cb(fail("workspace-mismatch", "This character does not belong to the signed-in account."), null, null);
           return;
         }
         cb(null, sb, sess);
@@ -167,7 +220,7 @@
         cb(err, null);
         return;
       }
-      var path = indexPath(sess.user.id);
+      var path = indexPath(workspaceFor(sess));
       sb.storage
         .from(BUCKET)
         .download(path, { cache: "no-store" })
@@ -190,7 +243,10 @@
               }
               try {
                 var parsed = JSON.parse(t);
-                cb(null, Array.isArray(parsed) ? parsed : []);
+                var rows = Array.isArray(parsed) ? parsed : [];
+                var api = accountApi();
+                var workspace = workspaceFor(sess);
+                cb(null, api ? api.visibleRecords(rows, workspace) : rows);
               } catch (e) {
                 cb(e, null);
               }
@@ -212,7 +268,7 @@
         cb(err);
         return;
       }
-      var path = indexPath(sess.user.id);
+      var path = indexPath(workspaceFor(sess));
       var blob = new global.Blob([JSON.stringify(arr || [])], {
         type: "application/json",
       });
@@ -235,7 +291,7 @@
         cb(err);
         return;
       }
-      var path = imagePath(sess.user.id, id);
+      var path = imagePath(workspaceFor(sess), id);
       sb.storage
         .from(BUCKET)
         .upload(path, pngBlob, { upsert: true, contentType: "image/png" })
@@ -255,7 +311,7 @@
         cb(err, null);
         return;
       }
-      var path = imagePath(sess.user.id, id);
+      var path = imagePath(workspaceFor(sess), id);
       sb.storage
         .from(BUCKET)
         .createSignedUrl(path, 3600)
@@ -279,7 +335,7 @@
         cb(err);
         return;
       }
-      var path = imagePath(sess.user.id, id);
+      var path = imagePath(workspaceFor(sess), id);
       sb.storage
         .from(BUCKET)
         .remove([path])
@@ -311,10 +367,74 @@
     return "char_" + Date.now().toString(36) + "_" + rand;
   }
 
+  function storageError(error) {
+    if (!error) return null;
+    if (error instanceof Error && error.code) return error;
+    var message = error.message || String(error);
+    return fail("save_failed", message);
+  }
+
+  /** Upload the picture, then write the workspace index. cb(err, record). */
+  function saveCharacter(record, pngBlob, cb) {
+    if (saveLock) {
+      cb(fail("busy", "Save is already running."));
+      return;
+    }
+    if (!pngBlob) {
+      cb(fail("invalid", "Generate the character before saving."));
+      return;
+    }
+    var api = accountApi();
+    var workspace = bound;
+    if (!api || !workspace || !workspace.ownerId) {
+      cb(fail("no_workspace", "This page does not know which account the character belongs to."));
+      return;
+    }
+    var draft = api.stampRecord(Object.assign({}, record, {
+      id: record && record.id ? record.id : newCharacterId(),
+      createdAt: (record && record.createdAt) || new Date().toISOString()
+    }), workspace);
+    if (!draft.name) {
+      cb(fail("invalid", "Type a name before saving."));
+      return;
+    }
+    saveLock = true;
+    uploadCharacterPng(draft.id, pngBlob, function (uploadErr) {
+      if (uploadErr) {
+        saveLock = false;
+        cb(storageError(uploadErr));
+        return;
+      }
+      loadCharacters(function (loadErr, list) {
+        if (loadErr) {
+          saveLock = false;
+          cb(storageError(loadErr));
+          return;
+        }
+        var saved = api.applySave(list || [], draft, workspace);
+        if (!saved.ok) {
+          saveLock = false;
+          cb(fail(saved.code, "The character could not be saved."));
+          return;
+        }
+        saveCharactersIndex(saved.index, function (indexErr) {
+          saveLock = false;
+          if (indexErr) {
+            cb(storageError(indexErr));
+            return;
+          }
+          cb(null, saved.record);
+        });
+      });
+    });
+  }
+
   global.CharacterStore = {
     isConfigured: isConfigured,
+    bindWorkspace: bindWorkspace,
     loadCharacters: loadCharacters,
     saveCharactersIndex: saveCharactersIndex,
+    saveCharacter: saveCharacter,
     uploadCharacterPng: uploadCharacterPng,
     getCharacterSignedUrl: getCharacterSignedUrl,
     deleteCharacterImage: deleteCharacterImage,

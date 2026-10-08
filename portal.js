@@ -4,13 +4,13 @@
 
   var FAV_KEY = "portalFavourites";
   var STORY_URL = "games/storybook.html";
-  var VIEWS = ["home", "stories", "games", "puzzles", "learning", "favourites", "search"];
+  var VIEWS = ["home", "stories", "games", "puzzles", "learning", "favourites", "search", "characters"];
 
   var GAMES = window.WondiiGamePlatform ? window.WondiiGamePlatform.portalCards() : [
     { id: "jigsaw", title: "Picture Jigsaw", desc: "Put the pieces together to complete fun pictures.", href: "games/jigsaw.html", img: "games/images/portal/jigsaw.jpg", cats: ["puzzles"] },
     { id: "colouring", title: "Colouring Book", desc: "Choose a picture and bring it to life with colours.", href: "games/colouring.html", img: "games/images/portal/colouring.png", cats: ["creative"] },
     { id: "storybook", title: "Your Story", desc: "Create your own story with your name and characters.", href: "games/storybook.html?create=1", img: "games/images/portal/storybook-nook.jpg", cats: ["stories", "creative"] },
-    { id: "characters", title: "My Characters", desc: "Turn a photo into a cuddly clay cartoon buddy.", href: "characters.html", emoji: "🎭", cats: ["stories", "creative"] },
+    { id: "characters", title: "My Characters", desc: "Turn a photo into a cuddly clay cartoon buddy.", href: "#characters", emoji: "🎭", cats: ["stories", "creative"] },
     { id: "prompt-game", title: "Make a 3D Game", desc: "Describe a game and watch it come to life.", href: "games/prompt-game.html", img: "games/images/portal/prompt-game.svg", cats: ["creative"] },
     { id: "star-catcher", title: "Star Catcher", desc: "Catch the stars and beat your score!", href: "games/star-catcher.html", img: "games/images/portal/star-catcher.svg", cats: ["arcade"] },
     { id: "math-race", title: "Number Path", desc: "Race along the path by solving sums.", href: "games/math-race.html", img: "games/images/math-race-park-wide.png", cats: ["racing", "puzzles"] },
@@ -274,6 +274,12 @@
     t.className = "p-card__title";
     t.textContent = String(b.title || "My Story");
     body.appendChild(t);
+    if (b.featuring) {
+      var who = document.createElement("span");
+      who.className = "p-card__desc";
+      who.textContent = String(b.featuring);
+      body.appendChild(who);
+    }
     if (withPill) body.insertAdjacentHTML("beforeend", pill("story"));
     else {
       var n = document.createElement("span");
@@ -449,6 +455,7 @@
     out.push(puzzleCard(PUZZLES[d % PUZZLES.length], true));
     out.push(learnCard(LEARN[d % LEARN.length], true));
     var el = $("pRecommended");
+    if (!el) return;
     el.textContent = "";
     out.forEach(function (x) {
       if (typeof x === "string") el.insertAdjacentHTML("beforeend", x);
@@ -513,12 +520,21 @@
       else a.removeAttribute("aria-current");
     });
     if (view === "favourites") renderFavourites();
-    if (view === "home") renderRecommended();
+    if (view === "home") {
+      renderRecommended();
+      if (window.WondiiPortalHome) window.WondiiPortalHome.paint();
+    }
+    if (view === "characters") mountCharacters();
     if (!(opts && opts.keepScroll)) window.scrollTo(0, 0);
   }
 
+  function mountCharacters() {
+    var node = document.getElementById("characterPage");
+    if (node && window.WondiiCharacterPortal) window.WondiiCharacterPortal.mount(node);
+  }
+
   function viewFromHash() {
-    var h = (window.location.hash || "").replace("#", "");
+    var h = (window.location.hash || "").replace("#", "").split("/")[0];
     return VIEWS.indexOf(h) >= 0 && h !== "search" ? h : "home";
   }
 

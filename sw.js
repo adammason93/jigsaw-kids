@@ -1,10 +1,26 @@
 /* Minimal offline shell — network-first, cache as fallback for same-origin */
-const CACHE = "jigsaw-kids-v434";
+const CACHE = "jigsaw-kids-v443";
 const SHELL = [
   "./index.html",
   "./portal.html",
   "./portal.js",
   "./portal-app.css",
+  "./characters.html",
+  "./js/account-context.js",
+  "./js/organisation.js",
+  "./js/character-bible.js",
+  "./js/wondii-crew.js",
+  "./js/character-library.js",
+  "./js/portal-shell.js",
+  "./js/portal-home-model.js",
+  "./js/portal-home.js",
+  "./schools/learn/home.js",
+  "./schools/learn/character-portal.js",
+  "./schools/learn/teacher-shell.css",
+  "./schools/org-portal.css",
+  "./css/character-library.css",
+  "./css/character-crew.css",
+  "./css/portal-home.css",
   "./portal-gate.js",
   "./portal-gate.css",
   "./welcome.css",
@@ -191,7 +207,7 @@ self.addEventListener("activate", function (e) {
       return self.clients.matchAll({ type: "window" });
     }).then(function (clients) {
       clients.forEach(function (client) {
-        if (/\/schools\/learn\/(create|present|class|join)(\.html)?\/?(\?|#|$)/.test(client.url)) {
+        if (/\/portal(\.html)?\/?(\?|#|$)/.test(client.url) || /\/schools\/learn\/(create|present|class|join)(\.html)?\/?(\?|#|$)/.test(client.url)) {
           client.navigate(client.url);
         }
       });
@@ -204,7 +220,8 @@ self.addEventListener("fetch", function (e) {
     return;
   }
   var learnPage = e.request.mode === "navigate" && /\/schools\/learn\/(create|present|class|join)(\.html)?\/?(?:\?|#|$)/.test(e.request.url);
-  var request = learnPage ? new Request(e.request, { cache: "reload" }) : e.request;
+  var portalPage = e.request.mode === "navigate" && /\/portal(\.html)?\/?(?:\?|#|$)/.test(e.request.url);
+  var request = (learnPage || portalPage) ? new Request(e.request, { cache: "reload" }) : e.request;
   e.respondWith(
     fetch(request)
       .then(function (r) {

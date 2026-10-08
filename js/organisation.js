@@ -16,10 +16,13 @@
     navigation: [],
     members: [],
     invites: [],
-    notice: ""
+    notice: "",
+    userId: ""
   };
   var client = null;
   var listeners = [];
+  var bootGeneration = 0;
+  var authFromEvent = false;
 
   function cfg() {
     return global.SCORE_SYNC || {};
@@ -63,8 +66,19 @@
         : null,
       storyStarters: state.starters,
       customNavigation: state.navigation,
-      canManage: role === "owner" || role === "school_admin"
+      canManage: role === "owner" || role === "school_admin",
+      userId: state.userId || "",
+      displayName: state.displayName || ""
     };
+  }
+
+  function friendlyName(user) {
+    var meta = (user && user.user_metadata) || {};
+    var named = String(meta.full_name || meta.name || "").trim();
+    if (named) return named.split(/\s+/)[0].slice(0, 24);
+    var local = String((user && user.email) || "").split("@")[0].replace(/[._+].*$/, "");
+    if (/^[A-Za-z]{2,16}$/.test(local)) return local.charAt(0).toUpperCase() + local.slice(1).toLowerCase();
+    return "";
   }
 
   function hexByte(hex, i) {
@@ -201,6 +215,7 @@
     }
     paintNav(view);
     paintStarters(view);
+    bindCharacterWorkspace();
     var side = document.querySelector(".p-side");
     if (side) {
       if (view.sidebarImageUrl) side.style.setProperty("--org-side-image", 'url("' + view.sidebarImageUrl.replace(/"/g, "") + '")');
@@ -255,8 +270,33 @@
     if (ideas && view.organisation) ideas.textContent = "Ideas for " + (view.shortName || view.organisationName);
   }
 
+  function bindCharacterWorkspace() {
+    var Account = global.WondiiAccount;
+    var Store = global.CharacterStore;
+    if (!Account || !Store || !Store.bindWorkspace) return;
+    Store.bindWorkspace(Account.workspaceFrom({
+      userId: state.userId,
+      organisation: state.organisation,
+      role: state.membership ? state.membership.role : "",
+      organisationName: state.organisation ? state.organisation.name : ""
+    }));
+  }
+
   function finishBoot() {
     document.documentElement.classList.remove("org-pending");
+  }
+
+  function holdBoot() {
+    state.status = "loading";
+    if (global.document && global.document.documentElement) {
+      global.document.documentElement.classList.add("org-pending");
+    }
+  }
+
+  function revealResolved() {
+    state.status = "ready";
+    paint();
+    finishBoot();
   }
 
   function withClient(done) {
@@ -273,17 +313,25 @@
       client = global.supabase.createClient(c.supabaseUrl, c.supabaseAnonKey, {
         auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, storage: global.localStorage }
       });
-      client.auth.onAuthStateChange(function (event) {
+      client.auth.onAuthStateChange(function (event, session) {
+        if (event === "TOKEN_REFRESHED" || event === "USER_UPDATED" || event === "PASSWORD_RECOVERY") return;
         if (event === "SIGNED_OUT") {
+          authFromEvent = true;
+          bootGeneration += 1;
+          state.userId = "";
+          state.displayName = "";
           clearOrg();
-          finishBoot();
-          paint();
+          revealResolved();
           var box = document.getElementById("orgOnboard");
           var panel = document.getElementById("orgSettings");
           if (box) box.hidden = true;
           if (panel) panel.hidden = true;
+          return;
         }
-        if (event === "SIGNED_IN") load();
+        if (event === "INITIAL_SESSION" || event === "SIGNED_IN") {
+          authFromEvent = true;
+          resolveAccount(session || null);
+        }
       });
       done(client);
     }
@@ -304,88 +352,141 @@
     state.navigation = [];
     state.members = [];
     state.invites = [];
-    state.status = "ready";
   }
 
-  function load(done) {
-    return new Promise(function (resolve) {
-      function finish() {
-        finishBoot();
-        paint();
-        if (done) done();
-        resolve(snapshot());
+  function resolveAccount(session, done, resolve) {
+    var generation = ++bootGeneration;
+    function complete(email) {
+      if (generation !== bootGeneration) {
+        if (resolve) resolve(snapshot());
+        return;
       }
+      revealResolved();
+      if (email) maybeOnboard(email);
+      if (done) done();
+      if (resolve) resolve(snapshot());
+    }
+    if (!session) {
+      state.userId = "";
+      state.displayName = "";
+      clearOrg();
+      complete("");
+      return;
+    }
+    state.userId = session.user && session.user.id ? session.user.id : "";
+    state.displayName = friendlyName(session.user);
+    holdBoot();
+    clearOrg();
+    state.status = "loading";
+    var email = session.user.email || "";
+    withClient(function (sb) {
+      if (!sb || generation !== bootGeneration) {
+        complete("");
+        return;
+      }
+      var pending = "";
+      try { pending = sessionStorage.getItem(INVITE_KEY) || ""; } catch (e) {}
+      var accept = pending
+        ? sb.rpc("accept_organisation_invite", { p_token: pending }).then(function (accepted) {
+            try { sessionStorage.removeItem(INVITE_KEY); } catch (e2) {}
+            if (accepted && accepted.error) {
+              state.notice = /email_mismatch/i.test(accepted.error.message || "")
+                ? "That invitation is for a different email address."
+                : "That invitation could not be used.";
+            } else {
+              state.notice = "";
+            }
+          })
+        : Promise.resolve();
+      accept.then(function () {
+        if (generation !== bootGeneration) return null;
+        return sb.from("organisation_members").select("id, role, status, organisation_id, email, joined_at").eq("user_id", session.user.id).eq("status", "active");
+      }).then(function (mem) {
+        if (generation !== bootGeneration) return null;
+        if (!mem) return null;
+        var rows = (mem && mem.data) || [];
+        rows.sort(function (a, b) {
+          return String(b.joined_at || "").localeCompare(String(a.joined_at || ""));
+        });
+        if (mem.error) throw mem.error;
+        var row = rows[0];
+        if (!row) {
+          clearOrg();
+          state.status = "loading";
+          complete(email);
+          return null;
+        }
+        state.membership = row;
+        return Promise.all([
+          sb.from("organisations").select("id, name, short_name, slug, logo_url, primary_colour, secondary_colour, website_url, hero_image_url, sidebar_image_url, portal_title, portal_subtitle, is_active").eq("id", row.organisation_id).maybeSingle(),
+          sb.from("organisation_story_starters").select("id, title, description, icon, prompt_seed, sort_order, is_active").eq("organisation_id", row.organisation_id).order("sort_order"),
+          sb.from("organisation_navigation").select("id, label, icon, href, sort_order, is_active").eq("organisation_id", row.organisation_id).order("sort_order")
+        ]).then(function (parts) {
+          if (generation !== bootGeneration) return;
+          if (!parts || (parts[0] && parts[0].error) || (parts[1] && parts[1].error) || (parts[2] && parts[2].error)) {
+            throw (parts && (parts[0].error || parts[1].error || parts[2].error)) || new Error("school");
+          }
+          var org = parts[0].data || null;
+          if (!org || org.is_active === false) {
+            clearOrg();
+            state.status = "loading";
+            complete("");
+            return;
+          }
+          state.organisation = org;
+          var canManage = row.role === "owner" || row.role === "school_admin";
+          state.starters = ((parts[1] && parts[1].data) || []).filter(function (item) {
+            return canManage || item.is_active;
+          });
+          state.navigation = ((parts[2] && parts[2].data) || []).filter(function (item) {
+            return canManage || item.is_active;
+          });
+          complete("");
+        });
+      }).catch(function () {
+        if (generation !== bootGeneration) return;
+        clearOrg();
+        state.status = "loading";
+        holdBoot();
+        var boot = document.getElementById("orgBoot");
+        if (boot) boot.textContent = "Couldn’t open your Wondii just now. Check your connection and refresh.";
+        if (resolve) resolve(snapshot());
+      });
+    });
+  }
+
+  function load(done, force) {
+    holdBoot();
+    return new Promise(function (resolve) {
       withClient(function (sb) {
         if (!sb) {
+          bootGeneration += 1;
           clearOrg();
-          finish();
+          revealResolved();
+          if (done) done();
+          resolve(snapshot());
+          return;
+        }
+        if (!force && authFromEvent) {
+          if (done) done();
+          resolve(snapshot());
           return;
         }
         sb.auth.getSession().then(function (res) {
           var session = res && res.data && res.data.session;
-          if (!session) {
-            clearOrg();
-            finish();
+          if (!session && !force) {
+            setTimeout(function () {
+              if (authFromEvent || state.status === "ready") return;
+              sb.auth.getSession().then(function (again) {
+                if (authFromEvent || state.status === "ready") return;
+                resolveAccount((again && again.data && again.data.session) || null);
+              });
+            }, 1500);
+            if (done) done();
+            resolve(snapshot());
             return;
           }
-          document.documentElement.classList.add("org-pending");
-          var email = session.user.email || "";
-          var pending = "";
-          try { pending = sessionStorage.getItem(INVITE_KEY) || ""; } catch (e) {}
-          var accept = pending
-            ? sb.rpc("accept_organisation_invite", { p_token: pending }).then(function (accepted) {
-                try { sessionStorage.removeItem(INVITE_KEY); } catch (e2) {}
-                if (accepted && accepted.error) {
-                  state.notice = /email_mismatch/i.test(accepted.error.message || "")
-                    ? "That invitation is for a different email address."
-                    : "That invitation could not be used.";
-                } else {
-                  state.notice = "";
-                }
-              })
-            : Promise.resolve();
-          accept.then(function () {
-            return sb.from("organisation_members").select("id, role, status, organisation_id, email, joined_at").eq("user_id", session.user.id).eq("status", "active");
-          }).then(function (mem) {
-            var rows = (mem && mem.data) || [];
-            rows.sort(function (a, b) {
-              return String(b.joined_at || "").localeCompare(String(a.joined_at || ""));
-            });
-            var row = rows[0];
-            if (!row) {
-              clearOrg();
-              finish();
-              maybeOnboard(email);
-              return;
-            }
-            state.membership = row;
-            return Promise.all([
-              sb.from("organisations").select("id, name, short_name, slug, logo_url, primary_colour, secondary_colour, website_url, hero_image_url, sidebar_image_url, portal_title, portal_subtitle, is_active").eq("id", row.organisation_id).maybeSingle(),
-              sb.from("organisation_story_starters").select("id, title, description, icon, prompt_seed, sort_order, is_active").eq("organisation_id", row.organisation_id).order("sort_order"),
-              sb.from("organisation_navigation").select("id, label, icon, href, sort_order, is_active").eq("organisation_id", row.organisation_id).order("sort_order")
-            ]).then(function (parts) {
-              var org = parts[0].data || null;
-              if (!org || org.is_active === false) {
-                clearOrg();
-                finish();
-                return;
-              }
-              state.organisation = org;
-              var canManage = row.role === "owner" || row.role === "school_admin";
-              state.starters = ((parts[1] && parts[1].data) || []).filter(function (item) {
-                return canManage || item.is_active;
-              });
-              state.navigation = ((parts[2] && parts[2].data) || []).filter(function (item) {
-                return canManage || item.is_active;
-              });
-              state.status = "ready";
-              finish();
-            });
-          }).catch(function () {
-            clearOrg();
-            finish();
-            maybeOnboard(email);
-          });
+          resolveAccount(session || null, done, resolve);
         });
       });
     });
@@ -1005,7 +1106,7 @@
   global.WondiiOrg = {
     get: snapshot,
     subscribe: function (fn) { listeners.push(fn); },
-    refresh: load,
+    refresh: function () { return load(null, true); },
     contrastText: contrastText
   };
 

@@ -3,7 +3,6 @@
 .teacher-nav,
 .teacher-tabs { display: none; }
 
-body.org-on .p-side__family,
 body.org-on #orgNav,
 body.org-on #pSearchBtn { display: none; }
 
@@ -17,6 +16,11 @@ body.org-on .teacher-nav:not([hidden]) {
   display: flex;
   flex-direction: column;
   gap: 0.15rem;
+}
+
+body.org-on a[data-teacher]:focus-visible {
+  outline: 3px solid var(--w-focus, #141b4d);
+  outline-offset: 2px;
 }
 
 .teacher-nav a,
@@ -113,7 +117,8 @@ body.org-on .teacher-nav:not([hidden]) {
 
 @media (max-width: 900px) {
   body.org-on .org-lockup span { white-space: normal; }
-  body.org-on .p-tabs:not(.teacher-tabs) { display: none; }
+  body.org-on .p-main { padding-bottom: calc(8.5rem + env(safe-area-inset-bottom)); }
+  body.org-on .p-tabs:not(.teacher-tabs) { display: grid; }
   body.org-on .teacher-tabs:not([hidden]) {
     position: fixed;
     left: 0;
@@ -121,7 +126,7 @@ body.org-on .teacher-nav:not([hidden]) {
     bottom: 0;
     z-index: 50;
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     padding: 0.4rem 0.4rem calc(0.4rem + env(safe-area-inset-bottom));
     background: rgba(255, 255, 255, 0.96);
     box-shadow: 0 -6px 20px rgba(20, 27, 77, 0.08);
@@ -135,7 +140,10 @@ body.org-on .teacher-nav:not([hidden]) {
     color: var(--w-text-muted, #5c6284);
     font-weight: 800;
     font-size: 0.78rem;
+    line-height: 1.15;
+    text-align: center;
     text-decoration: none;
+    white-space: normal;
   }
   .t-grid { grid-template-columns: 1fr; }
 }
