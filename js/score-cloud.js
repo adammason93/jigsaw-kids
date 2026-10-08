@@ -1761,23 +1761,26 @@
         });
       });
     },
-    signUp: function (email, password, cb) {
+    signUp: function (email, password, cb, extra) {
       var loginEmail = String(email || "").trim();
       if (!loginEmail) {
         cb(new Error("not_configured"));
         return;
       }
+      var displayName = extra && extra.displayName ? String(extra.displayName).trim() : "";
       ensureClient(function (sb) {
         if (!sb) {
           cb(new Error("sync_unavailable"));
           return;
         }
         var redirect = "https://www.wondii.co.uk/portal.html";
+        var options = { emailRedirectTo: redirect };
+        if (displayName) options.data = { full_name: displayName };
         sb.auth
           .signUp({
             email: loginEmail,
             password: String(password || ""),
-            options: { emailRedirectTo: redirect },
+            options: options,
           })
           .then(function (r) {
             if (r && r.error) {

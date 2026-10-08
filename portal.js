@@ -4,7 +4,7 @@
 
   var FAV_KEY = "portalFavourites";
   var STORY_URL = "games/storybook.html";
-  var VIEWS = ["home", "stories", "games", "puzzles", "learning", "favourites", "search", "characters"];
+  var VIEWS = ["home", "family", "stories", "games", "puzzles", "learning", "favourites", "search", "characters"];
 
   var GAMES = window.WondiiGamePlatform ? window.WondiiGamePlatform.portalCards() : [
     { id: "jigsaw", title: "Picture Jigsaw", desc: "Put the pieces together to complete fun pictures.", href: "games/jigsaw.html", img: "games/images/portal/jigsaw.jpg", cats: ["puzzles"] },
@@ -532,6 +532,7 @@
       renderRecommended();
       if (window.WondiiPortalHome) window.WondiiPortalHome.paint();
     }
+    if (view === "family" && window.WondiiFamily) window.WondiiFamily.paint();
     if (view === "characters") mountCharacters();
     if (!(opts && opts.keepScroll)) window.scrollTo(0, 0);
   }
@@ -683,7 +684,7 @@
       var item = e.target.closest("[data-account]");
       if (!item || !menu.contains(item)) return;
       var action = item.getAttribute("data-account");
-      if (action === "home" || action === "characters" || action === "stories") {
+      if (action === "home" || action === "family" || action === "characters" || action === "stories") {
         e.preventDefault();
         go(action);
         return;

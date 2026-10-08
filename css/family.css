@@ -1,0 +1,243 @@
+.family-invite,
+.family-panel,
+.family-card,
+.family-form,
+.family-add {
+  background: #fff;
+  border-radius: 22px;
+  color: #141b4d;
+}
+
+.family-invite {
+  margin: 0 0 1.2rem;
+  padding: 1.1rem 1.2rem;
+}
+
+.family-invite h2,
+.family-title,
+.family-form__title,
+.family-card h3,
+.family-panel h2 {
+  margin: 0;
+  font-family: Fredoka, Nunito, sans-serif;
+  color: #141b4d;
+}
+
+.family-title {
+  font-size: clamp(1.8rem, 3vw, 2.4rem);
+}
+
+.family-lead,
+.family-note,
+.family-card p,
+.family-panel p,
+.family-invite p {
+  color: #5c6284;
+}
+
+.family-status {
+  margin: 0.6rem 0 0;
+  font-weight: 800;
+  color: #5b3f91;
+}
+
+.family-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+  gap: 1rem;
+  margin-top: 1.2rem;
+}
+
+.family-card,
+.family-add,
+.family-panel,
+.family-form {
+  padding: 1rem;
+}
+
+.family-portrait {
+  display: grid;
+  width: 96px;
+  height: 96px;
+  overflow: hidden;
+  border-radius: 28px;
+  background: #f6f1fb;
+}
+
+.family-portrait > * {
+  grid-area: 1 / 1;
+  width: 100%;
+  height: 100%;
+}
+
+.family-portrait img {
+  object-fit: cover;
+  position: relative;
+  z-index: 1;
+}
+
+.family-card__stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: 0.6rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.family-card__stats li,
+.family-card__flag {
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  background: #f6f1fb;
+  color: #5b3f91;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.family-card__actions,
+.family-form__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-top: 0.8rem;
+}
+
+.family-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0.45rem 0.9rem;
+  border: 0;
+  border-radius: 999px;
+  background: #141b4d;
+  color: #fff;
+  font: inherit;
+  font-weight: 800;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.family-btn--ghost {
+  background: #f6f1fb;
+  color: #141b4d;
+}
+
+.family-btn--quiet {
+  background: transparent;
+  color: #9b2c4a;
+}
+
+.family-btn:focus-visible,
+.family-field input:focus-visible,
+.family-field select:focus-visible {
+  outline: 3px solid #c4b5e8;
+  outline-offset: 2px;
+}
+
+.family-add {
+  min-height: 12rem;
+  border: 2px dashed #d9d0ea;
+  background: transparent;
+  color: #5b3f91;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.family-panel {
+  margin-top: 1rem;
+}
+
+.family-panel a {
+  color: #5b3f91;
+  font-weight: 800;
+}
+
+.family-sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(20, 27, 77, 0.35);
+  overflow: auto;
+}
+
+.family-form {
+  width: min(40rem, 100%);
+  max-height: calc(100vh - 2rem);
+  overflow: auto;
+}
+
+.family-field {
+  display: grid;
+  gap: 0.35rem;
+  margin-top: 0.8rem;
+  font-weight: 800;
+}
+
+.family-field input[type="text"],
+.family-field input[type="number"],
+.family-field select,
+.family-form input[name="displayName"] {
+  width: 100%;
+  min-height: 44px;
+  padding: 0.45rem 0.7rem;
+  border: 1px solid #e4dcf2;
+  border-radius: 12px;
+  font: inherit;
+  color: #141b4d;
+}
+
+.family-avatars {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(4.6rem, 1fr));
+  gap: 0.45rem;
+}
+
+.family-avatar {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 0.2rem;
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #5c6284;
+}
+
+.family-avatar input {
+  position: absolute;
+  opacity: 0;
+}
+
+.family-avatar .family-portrait {
+  width: 64px;
+  height: 64px;
+  border-radius: 18px;
+}
+
+.family-avatar input:checked + .family-portrait,
+.family-avatar input:focus-visible + .family-portrait {
+  outline: 3px solid #7d5caf;
+  outline-offset: 2px;
+}
+
+.family-check {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.8rem;
+  font-weight: 800;
+}
+
+.p-side__link[hidden],
+.p-account__menu a[hidden] {
+  display: none;
+}
+
+@media (max-width: 720px) {
+  .family-grid { grid-template-columns: 1fr; }
+}
