@@ -13,7 +13,16 @@
 
   Expired child profiles are deleted by private.purge_expired_child_profiles.
   A family visit runs it, and pg_cron runs it nightly when that extension
-  is installed. Pause never sets the deletion clock.
+  is installed. If pg_cron is absent, public.purge_expired_child_profiles
+  can be called by the service role from a scheduled function. Parents,
+  children, and anonymous callers cannot execute it. Pause never sets
+  the deletion clock.
+
+  Speech stays on the existing ?ttsText= audio address. A repeat of the
+  same reading is served from cache and does not call the speech provider.
+  public.tts_quota_take counts a new reading once, in a single upsert, for
+  one verified Cloudflare address. A database error does not call the
+  provider. Parents, children, and anonymous callers cannot execute it.
 
   child-library-v1 export shape:
     library.books and library.characters are arrays.
@@ -418,6 +427,106 @@ $$;
 
 revoke all on function private.purge_expired_child_profiles() from public, anon, authenticated;
 revoke all on function private.purge_due_children() from public, anon, authenticated;
+
+-- Service-role entry for a scheduled Edge Function if pg_cron is not installed.
+-- Parents, children, and anonymous callers cannot execute it.
+create or replace function public.purge_expired_child_profiles()
+returns integer
+language sql
+security definer
+set search_path = public
+as $$
+  select private.purge_expired_child_profiles();
+$$;
+
+revoke all on function public.purge_expired_child_profiles() from public, anon, authenticated;
+grant execute on function public.purge_expired_child_profiles() to service_role;
+
+-- Hourly speech allowance. The audio URL is unchanged.
+-- 80-character taps are word reads. Longer texts are page reads.
+-- One upsert so overlapping requests cannot pass the same check twice.
+create table private.tts_quota (
+  bucket text primary key,
+  chars integer not null,
+  short_count integer not null,
+  long_count integer not null,
+  updated_at timestamptz not null default now()
+);
+
+create table private.tts_audio (
+  content_hash text primary key,
+  audio_base64 text not null,
+  created_at timestamptz not null default now()
+);
+
+create or replace function public.tts_quota_take(p_bucket text, p_chars integer, p_short boolean)
+returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  allowed boolean;
+begin
+  if p_bucket is null or length(p_bucket) < 32 or p_chars is null or p_chars < 1 or p_chars > 4000 then
+    return false;
+  end if;
+  delete from private.tts_quota where updated_at < now() - interval '2 hours';
+  delete from private.tts_audio where created_at < now() - interval '1 day';
+  with upsert as (
+    insert into private.tts_quota as quota (bucket, chars, short_count, long_count)
+    values (
+      p_bucket,
+      p_chars,
+      case when p_short then 1 else 0 end,
+      case when p_short then 0 else 1 end
+    )
+    on conflict (bucket) do update
+      set chars = quota.chars + excluded.chars,
+          short_count = quota.short_count + excluded.short_count,
+          long_count = quota.long_count + excluded.long_count,
+          updated_at = now()
+      where quota.chars + excluded.chars <= 400000
+        and quota.short_count + excluded.short_count <= 4000
+        and quota.long_count + excluded.long_count <= 500
+    returning bucket
+  )
+  select exists (select 1 from upsert) into allowed;
+  return allowed;
+end;
+$$;
+
+create or replace function public.tts_audio_read(p_hash text)
+returns text
+language sql
+security definer
+set search_path = public
+as $$
+  select audio_base64 from private.tts_audio where content_hash = p_hash;
+$$;
+
+create or replace function public.tts_audio_write(p_hash text, p_audio text)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if p_hash is null or length(p_hash) < 32 or p_audio is null or length(p_audio) < 8 or length(p_audio) > 3000000 then
+    return;
+  end if;
+  insert into private.tts_audio (content_hash, audio_base64)
+  values (p_hash, p_audio)
+  on conflict (content_hash) do nothing;
+end;
+$$;
+
+revoke all on function public.tts_quota_take(text, integer, boolean) from public, anon, authenticated;
+grant execute on function public.tts_quota_take(text, integer, boolean) to service_role;
+revoke all on function public.tts_audio_read(text) from public, anon, authenticated;
+grant execute on function public.tts_audio_read(text) to service_role;
+revoke all on function public.tts_audio_write(text, text) from public, anon, authenticated;
+grant execute on function public.tts_audio_write(text, text) to service_role;
 
 do $$
 begin

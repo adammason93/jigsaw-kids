@@ -424,6 +424,7 @@
 
   function readWordOutLoud(word, element) {
     stopStepGuideAudio();
+    hideSpeechNote();
     if (currentAudio) {
       stopReading();
     }
@@ -474,6 +475,7 @@
       if (element) {
         element.classList.remove("sb-word-reading");
       }
+      showSpeechNote();
       stopReading();
     };
   }
@@ -485,6 +487,18 @@
       currentAudio = null;
     }
     setReadToMeState("idle");
+  }
+
+  function showSpeechNote() {
+    var note = document.getElementById("sbReadNote");
+    if (!note) return;
+    note.hidden = false;
+    note.textContent = "Wondii needs a short rest before reading again. Try once more in a little while.";
+  }
+
+  function hideSpeechNote() {
+    var note = document.getElementById("sbReadNote");
+    if (note) note.hidden = true;
   }
 
   function setReadToMeState(state) {
@@ -523,6 +537,7 @@
       if (!fUrl) return;
       
       setReadToMeState("wait");
+      hideSpeechNote();
       
       var audioUrl = cleverServiceTtsUrl(readText);
       if (!audioUrl) {
@@ -546,7 +561,10 @@
       }
       
       currentAudio.onended = stopReading;
-      currentAudio.onerror = stopReading;
+      currentAudio.onerror = function () {
+        showSpeechNote();
+        stopReading();
+      };
     });
   }
   var spreadArtImg = document.getElementById("sbSpreadArtImg");
@@ -4988,13 +5006,18 @@
 
   /** GET clever-service MP3: `?ttsText=` and optional `&ttsVoice=` (manual or inferred). */
   function cleverServiceTtsUrl(plainText) {
-    var base = functionUrl();
-    if (!base || plainText == null || plainText === "") return "";
+    if (plainText == null || plainText === "") return "";
     var q = "?ttsText=" + encodeURIComponent(String(plainText));
     var v = inferStorybookTtsVoiceId();
     if (v) {
       q += "&ttsVoice=" + encodeURIComponent(v);
     }
+    var host = window.location && window.location.hostname ? window.location.hostname : "";
+    if (/(^|\.)wondii\.co\.uk$/i.test(host) && window.location.origin) {
+      return window.location.origin + "/api/speech" + q;
+    }
+    var base = functionUrl();
+    if (!base) return "";
     return base + q;
   }
 

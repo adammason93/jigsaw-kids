@@ -101,7 +101,7 @@ async function main() {
   assert.ok(gate.indexOf('auth.status === "initialising"') >= 0);
   assert.strictEqual(gate.indexOf("if (!session && !err"), -1);
   assert.ok(storybook.indexOf("wondii-session.js") < storybook.indexOf("score-cloud.js"));
-  assert.ok(fs.readFileSync(path.join(root, "sw.js"), "utf8").indexOf("jigsaw-kids-v447") >= 0);
+  assert.ok(fs.readFileSync(path.join(root, "sw.js"), "utf8").indexOf("jigsaw-kids-v448") >= 0);
   assert.ok(portal.indexOf('id="pAccountMenu"') >= 0);
   assert.ok(portal.indexOf("My Wondii — Dashboard") >= 0);
   assert.ok(portal.indexOf('data-account="logout"') >= 0);

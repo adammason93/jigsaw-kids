@@ -8,10 +8,17 @@ import {
   generateAccessKey,
   hashAccessKey,
   imageProxyAllowed,
+  addressesArePublic,
+  proxyRedirectAllowed,
+  isPrivateAddress,
   LEGACY_WINDOW_MS,
   presentedJobKey,
   ttsLengthAllowed,
-  TTS_MAX_CHARS
+  ttsQuotaDecision,
+  TTS_MAX_CHARS,
+  TTS_HOUR_CHARS,
+  TTS_HOUR_LONG,
+  TTS_HOUR_SHORT
 } from "../supabase/functions/clever-service/job-access.mjs";
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -68,10 +75,47 @@ assert.strictEqual(imageProxyAllowed("https://169.254.169.254/latest"), false);
 assert.strictEqual(imageProxyAllowed("https://127.0.0.1/secret"), false);
 assert.strictEqual(imageProxyAllowed("https://example.com/file.png"), false);
 assert.strictEqual(imageProxyAllowed("file:///etc/passwd"), false);
+assert.strictEqual(imageProxyAllowed("https://2130706433/latest"), false);
+assert.strictEqual(imageProxyAllowed("https://0x7f000001/latest"), false);
+assert.strictEqual(imageProxyAllowed("https://0177.0.0.1/latest"), false);
+assert.strictEqual(imageProxyAllowed("https://[::1]/latest"), false);
+assert.strictEqual(imageProxyAllowed("https://[::ffff:169.254.169.254]/latest"), false);
+assert.strictEqual(imageProxyAllowed("https://10.0.0.5/latest"), false);
+assert.strictEqual(imageProxyAllowed("https://192.168.1.1/latest"), false);
+assert.strictEqual(imageProxyAllowed("https://user:pass@images.oaiusercontent.com/file.png"), false);
+assert.strictEqual(imageProxyAllowed("https://images.oaiusercontent.com.evil.com/file.png"), false);
+assert.strictEqual(imageProxyAllowed("https://not-fal-cdn.evil.com/file.png"), false);
+assert.strictEqual(imageProxyAllowed("https://images.oaiusercontent.com/fi\nle.png"), false);
+assert.strictEqual(imageProxyAllowed("https://images.oaiusercontent.com/file.png%00.png"), false);
+assert.strictEqual(imageProxyAllowed("https://images.oaiusercontent.com\\@evil.com/file.png"), false);
+assert.strictEqual(proxyRedirectAllowed(
+  "https://images.oaiusercontent.com/file.png",
+  "https://169.254.169.254/latest/meta-data"
+), false);
+assert.strictEqual(proxyRedirectAllowed(
+  "https://images.oaiusercontent.com/file.png",
+  "https://cdn.fal.media/other.png"
+), true);
+assert.strictEqual(addressesArePublic(["8.8.8.8"]), true);
+assert.strictEqual(addressesArePublic(["8.8.8.8", "127.0.0.1"]), false);
+assert.strictEqual(addressesArePublic(["169.254.169.254"]), false);
+assert.strictEqual(addressesArePublic(["10.1.2.3"]), false);
+assert.strictEqual(addressesArePublic(["192.168.0.2"]), false);
+assert.strictEqual(addressesArePublic(["172.16.5.5"]), false);
+assert.strictEqual(addressesArePublic(["100.64.0.1"]), false);
+assert.strictEqual(addressesArePublic(["::1"]), false);
+assert.strictEqual(addressesArePublic(["fd00::1"]), false);
+assert.strictEqual(addressesArePublic([]), false);
+assert.strictEqual(isPrivateAddress("::ffff:127.0.0.1"), true);
 
 assert.strictEqual(ttsLengthAllowed("Once upon a time."), true);
 assert.strictEqual(ttsLengthAllowed(""), false);
 assert.strictEqual(ttsLengthAllowed("a".repeat(TTS_MAX_CHARS + 1)), false);
+assert.strictEqual(ttsQuotaDecision({ chars: 0, shortCount: 0, longCount: 0 }, 12).allow, true);
+assert.strictEqual(ttsQuotaDecision({ chars: 0, shortCount: 0, longCount: TTS_HOUR_LONG }, 120).allow, false);
+assert.strictEqual(ttsQuotaDecision({ chars: 0, shortCount: TTS_HOUR_SHORT, longCount: 0 }, 4).allow, false);
+assert.strictEqual(ttsQuotaDecision({ chars: TTS_HOUR_CHARS - 10, shortCount: 0, longCount: 0 }, 12).allow, false);
+assert.strictEqual(ttsQuotaDecision({ chars: 0, shortCount: 0, longCount: 0 }, TTS_MAX_CHARS).allow, true);
 
 assert.deepStrictEqual(
   childContentDecision({ account_kind: "child" }, null),
@@ -98,9 +142,13 @@ assert.strictEqual(poll.indexOf("storybook_job_key="), -1);
 assert.ok(story.indexOf("b.storybook_job_key") >= 0);
 const service = fs.readFileSync(path.join(root, "supabase/functions/clever-service/index.ts"), "utf8");
 assert.ok(service.indexOf("access_key_hash") >= 0);
-assert.ok(service.indexOf("presentedJobKey") >= 0);
-assert.ok(service.indexOf("imageProxyAllowed") >= 0);
+assert.ok(service.indexOf("readJob") >= 0);
+assert.ok(service.indexOf("assessProxyUrl") >= 0);
+assert.ok(service.indexOf('redirect: "manual"') >= 0);
+assert.ok(service.indexOf("hostResolvesPublic") >= 0);
 assert.ok(service.indexOf("ttsLengthAllowed") >= 0);
+assert.ok(service.indexOf("tts_quota_take") >= 0);
+assert.ok(service.indexOf("tts_busy") >= 0);
 assert.ok(service.indexOf("x-wondii-job-key") >= 0);
 
 console.log("job-access tests ok");
