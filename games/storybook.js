@@ -5065,14 +5065,16 @@
    * @param {(info: { progress: number | null, label: string }) => void} [onProgress]
    * @returns {Promise<{ ok: boolean, status: number, body: Record<string, unknown> }>}
    */
-  function pollStorybookJob(baseUrl, key, jobId, deadlineTs, onProgress) {
+  function pollStorybookJob(baseUrl, key, jobId, deadlineTs, onProgress, accessKey) {
     var pollMs = 2500;
+    var headers = {
+      Authorization: "Bearer " + key,
+      apikey: key,
+    };
+    if (accessKey) headers["X-Wondii-Job-Key"] = String(accessKey);
     return fetch(storybookJobPollUrl(baseUrl, jobId), {
       method: "GET",
-      headers: {
-        Authorization: "Bearer " + key,
-        apikey: key,
-      },
+      headers: headers,
     })
       .then(function (r) {
         return envelopeFromResponse(r);
@@ -5135,7 +5137,8 @@
                 key,
                 jobId,
                 deadlineTs,
-                onProgress
+                onProgress,
+                accessKey
               ).then(resolve);
             }, pollMs);
           });
@@ -6394,7 +6397,8 @@
                 setStorybookBuildProgressUi(pr, info.label || "Working…", {
                   skipDefaultMsg: true,
                 });
-              }
+              },
+              b.storybook_job_key
             );
           }
           return out;

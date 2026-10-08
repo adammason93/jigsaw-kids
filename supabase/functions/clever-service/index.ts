@@ -2,12 +2,21 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
 import { createClient } from "npm:@supabase/supabase-js@2";
 import type { SupabaseClient } from "npm:@supabase/supabase-js@2";
+import {
+  authorizeJobRead,
+  generateAccessKey,
+  hashAccessKey,
+  imageProxyAllowed,
+  JOB_KEY_HEADER,
+  presentedJobKey,
+  ttsLengthAllowed,
+} from "./job-access.mjs";
 
 
 const corsHeaders: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+    "authorization, x-client-info, apikey, content-type, x-wondii-job-key",
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
 };
 
@@ -3945,6 +3954,7 @@ async function insertPendingStorybookJob(
   client: SupabaseClient,
   id: string,
   payload: StorybookRequestBody,
+  accessKeyHash: string,
 ): Promise<string | null> {
   const { error } = await client.from("storybook_generation_jobs").insert({
     id,
@@ -3952,6 +3962,7 @@ async function insertPendingStorybookJob(
     progress: 0,
     progress_label: "Queued…",
     request_payload: payload,
+    access_key_hash: accessKeyHash,
     updated_at: new Date().toISOString(),
   });
   return error ? error.message : null;
@@ -5905,14 +5916,21 @@ Deno.serve(async (req) => {
       const { data, error } = await client
         .from("storybook_generation_jobs")
         .select(
-          "status,http_status,result_payload,updated_at,progress,progress_label",
+          "status,http_status,result_payload,updated_at,progress,progress_label,access_key_hash,created_at,owner_user_id",
         )
         .eq("id", storybookJobId)
         .maybeSingle();
       if (error) {
         console.warn("[storybook_job] select", error.message);
+        return jsonResponse(
+          { error: "storybook_job_not_found", id: storybookJobId },
+          404,
+        );
       }
-      if (!data) {
+      const presented = presentedJobKey(req.headers.get(JOB_KEY_HEADER));
+      const presentedHash = presented ? await hashAccessKey(presented) : "";
+      const decision = authorizeJobRead(data, presentedHash, Date.now());
+      if (!decision.allow || !data) {
         return jsonResponse(
           { error: "storybook_job_not_found", id: storybookJobId },
           404,
@@ -5936,6 +5954,9 @@ Deno.serve(async (req) => {
     // 1. Text-to-Speech (TTS) Proxy
     const ttsText = searchParams.get("ttsText");
     if (ttsText) {
+      if (!ttsLengthAllowed(ttsText)) {
+        return jsonResponse({ error: "tts_too_long" }, 400);
+      }
       const apiKey = Deno.env.get("OPENAI_API_KEY");
       if (!apiKey) return jsonResponse({ error: "server_missing_openai" }, 500);
       const ttsModel = resolveOpenAiTtsModel();
@@ -5986,7 +6007,10 @@ Deno.serve(async (req) => {
       // Decode the URL if it was encoded twice, or just use it as is
       const decodedUrl = decodeURIComponent(urlStr);
       const finalUrl = decodedUrl.startsWith("http") ? decodedUrl : urlStr;
-      
+      if (!imageProxyAllowed(finalUrl)) {
+        return jsonResponse({ error: "proxy_host_not_allowed" }, 400);
+      }
+
       const res = await fetch(finalUrl);
       if (!res.ok) {
         console.error("[proxy error] upstream returned", res.status, res.statusText, "for URL:", finalUrl);
@@ -6080,7 +6104,13 @@ Deno.serve(async (req) => {
     }
     const jobId = crypto.randomUUID();
     const payload = stripStorybookAsyncFields(body);
-    const insErr = await insertPendingStorybookJob(db, jobId, payload);
+    const accessKey = generateAccessKey();
+    const insErr = await insertPendingStorybookJob(
+      db,
+      jobId,
+      payload,
+      await hashAccessKey(accessKey),
+    );
     if (insErr) {
       return jsonResponse(
         { error: "storybook_job_insert_failed", detail: insErr.slice(0, 220) },
@@ -6091,6 +6121,7 @@ Deno.serve(async (req) => {
     return jsonResponse(
       {
         storybook_job_id: jobId,
+        storybook_job_key: accessKey,
         status: "pending",
       },
       202,
