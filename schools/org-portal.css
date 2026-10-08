@@ -23,6 +23,46 @@
 
 html.org-pending .org-boot {
   display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 0.75rem;
+  text-align: center;
+  padding: 1.5rem;
+}
+
+.org-boot__retry {
+  justify-self: center;
+  border: 0;
+  border-radius: 999px;
+  padding: 0.55rem 1rem;
+  background: #141b4d;
+  color: #fff;
+  font: inherit;
+  cursor: pointer;
+}
+
+.p-side__workspace[hidden],
+body.org-on .org-lockup[hidden] {
+  display: none;
+}
+
+.p-side__workspace {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0 0.85rem 0.85rem;
+  color: #141b4d;
+  font-family: Nunito, sans-serif;
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.p-side__workspace select {
+  width: 100%;
+  font: inherit;
+  padding: 0.45rem 0.55rem;
+  border-radius: 0.7rem;
+  border: 1px solid rgba(20, 27, 77, 0.16);
+  background: #fff;
 }
 
 html.org-pending .p-app {
@@ -124,8 +164,6 @@ body.org-on .org-lockup {
   font-weight: 800;
 }
 
-.org-starters[hidden],
-.org-lockup[hidden],
 .org-create {
   display: flex;
   flex-wrap: wrap;
@@ -134,7 +172,9 @@ body.org-on .org-lockup {
   margin-top: 0.9rem;
 }
 
-.org-create[hidden] {
+.org-create[hidden],
+.org-lockup[hidden],
+.org-starters[hidden] {
   display: none !important;
 }
 

@@ -6,7 +6,6 @@
   var NAVY = "#141b4d";
   var INTENT_KEY = "wondii-account-intent";
   var INVITE_KEY = "wondii-org-invite";
-  var LIB = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js";
   var homeCopy = null;
   var state = {
     status: "loading",
@@ -17,12 +16,12 @@
     members: [],
     invites: [],
     notice: "",
-    userId: ""
+    userId: "",
+    workspaces: []
   };
   var client = null;
   var listeners = [];
   var bootGeneration = 0;
-  var authFromEvent = false;
 
   function cfg() {
     return global.SCORE_SYNC || {};
@@ -177,7 +176,7 @@
         logo.removeAttribute("src");
       }
     }
-    if (name && view.organisation) name.textContent = view.organisationName;
+    if (name) name.textContent = view.organisation ? view.organisationName : "";
     var hello = document.getElementById("helloTitle");
     var sub = document.getElementById("helloSub");
     var art = document.querySelector(".p-hello__art");
@@ -214,6 +213,7 @@
       banner.textContent = state.notice || "";
     }
     paintNav(view);
+    paintWorkspace(view);
     paintStarters(view);
     bindCharacterWorkspace();
     var side = document.querySelector(".p-side");
@@ -222,6 +222,41 @@
       else side.style.removeProperty("--org-side-image");
     }
     emit();
+  }
+
+  function paintWorkspace(view) {
+    var host = document.getElementById("orgWorkspace");
+    var nav = document.querySelector(".p-side__nav");
+    if (!host && nav) {
+      host = document.createElement("label");
+      host.id = "orgWorkspace";
+      host.className = "p-side__workspace";
+      nav.parentNode.insertBefore(host, nav);
+    }
+    if (!host) return;
+    var list = state.workspaces || [];
+    if (list.length < 2) {
+      host.hidden = true;
+      host.replaceChildren();
+      return;
+    }
+    host.hidden = false;
+    host.replaceChildren();
+    host.appendChild(document.createTextNode("Workspace"));
+    var select = document.createElement("select");
+    select.setAttribute("aria-label", "Workspace");
+    list.forEach(function (item) {
+      var option = document.createElement("option");
+      option.value = item.id;
+      option.textContent = item.name || "School";
+      if (item.id === (view.organisationId || "family")) option.selected = true;
+      select.appendChild(option);
+    });
+    select.addEventListener("change", function () {
+      rememberWorkspace(state.userId, select.value);
+      load();
+    });
+    host.appendChild(select);
   }
 
   function paintNav(view) {
@@ -274,6 +309,10 @@
     var Account = global.WondiiAccount;
     var Store = global.CharacterStore;
     if (!Account || !Store || !Store.bindWorkspace) return;
+    if (state.status !== "ready") {
+      Store.bindWorkspace(null);
+      return;
+    }
     Store.bindWorkspace(Account.workspaceFrom({
       userId: state.userId,
       organisation: state.organisation,
@@ -300,58 +339,40 @@
   }
 
   function withClient(done) {
-    if (client) {
-      done(client);
+    var Session = global.WondiiSession;
+    if (!Session) {
+      done(null);
       return;
     }
-    function make() {
-      var c = cfg();
-      if (!global.supabase || !c.supabaseUrl || !c.supabaseAnonKey) {
-        done(null);
-        return;
-      }
-      client = global.supabase.createClient(c.supabaseUrl, c.supabaseAnonKey, {
-        auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, storage: global.localStorage }
-      });
-      client.auth.onAuthStateChange(function (event, session) {
-        if (event === "TOKEN_REFRESHED" || event === "USER_UPDATED" || event === "PASSWORD_RECOVERY") return;
-        if (event === "SIGNED_OUT") {
-          authFromEvent = true;
-          bootGeneration += 1;
-          state.userId = "";
-          state.displayName = "";
-          clearOrg();
-          revealResolved();
-          var box = document.getElementById("orgOnboard");
-          var panel = document.getElementById("orgSettings");
-          if (box) box.hidden = true;
-          if (panel) panel.hidden = true;
-          return;
-        }
-        if (event === "INITIAL_SESSION" || event === "SIGNED_IN") {
-          authFromEvent = true;
-          resolveAccount(session || null);
-        }
-      });
-      done(client);
-    }
-    if (global.supabase && global.supabase.createClient) make();
-    else {
-      var s = document.createElement("script");
-      s.src = LIB;
-      s.onload = make;
-      s.onerror = function () { done(null); };
-      document.head.appendChild(s);
-    }
+    Session.client(function (sb) {
+      client = sb;
+      done(sb);
+    });
   }
 
   function clearOrg() {
     state.organisation = null;
     state.membership = null;
+    state.workspaces = [];
     state.starters = [];
     state.navigation = [];
     state.members = [];
     state.invites = [];
+  }
+
+  function workspaceKey(userId) {
+    return "wondii-workspace:" + userId;
+  }
+
+  function savedWorkspace(userId) {
+    try {
+      var value = localStorage.getItem(workspaceKey(userId));
+      return value === null ? null : value;
+    } catch (e) { return null; }
+  }
+
+  function rememberWorkspace(userId, orgId) {
+    try { localStorage.setItem(workspaceKey(userId), orgId || ""); } catch (e) {}
   }
 
   function resolveAccount(session, done, resolve) {
@@ -373,15 +394,18 @@
       complete("");
       return;
     }
-    state.userId = session.user && session.user.id ? session.user.id : "";
+    var nextUser = session.user && session.user.id ? session.user.id : "";
+    if (state.userId && state.userId !== nextUser) clearOrg();
+    state.userId = nextUser;
     state.displayName = friendlyName(session.user);
     holdBoot();
-    clearOrg();
     state.status = "loading";
     var email = session.user.email || "";
     withClient(function (sb) {
-      if (!sb || generation !== bootGeneration) {
-        complete("");
+      if (generation !== bootGeneration) return;
+      if (!sb) {
+        showAccountError();
+        if (resolve) resolve(snapshot());
         return;
       }
       var pending = "";
@@ -416,7 +440,34 @@
           complete(email);
           return null;
         }
-        state.membership = row;
+        var chosenId = savedWorkspace(state.userId);
+        state.workspaces = [{ id: "family", role: "owner", name: "Personal" }].concat(rows.map(function (item) {
+          return { id: item.organisation_id, role: item.role, name: "" };
+        }));
+        if (chosenId === "family") {
+          state.organisation = null;
+          state.membership = null;
+          state.starters = [];
+          state.navigation = [];
+          var familyIds = rows.map(function (item) { return item.organisation_id; });
+          sb.from("organisations").select("id, name, is_active").in("id", familyIds).then(function (named) {
+            if (generation !== bootGeneration) return;
+            ((named && named.data) || []).forEach(function (item) {
+              if (item.is_active === false) return;
+              state.workspaces.forEach(function (workspace) {
+                if (workspace.id === item.id) workspace.name = item.name;
+              });
+            });
+            complete(email);
+          }).catch(function () {
+            if (generation !== bootGeneration) return;
+            complete(email);
+          });
+          return null;
+        }
+        var chosen = rows.filter(function (item) { return item.organisation_id === chosenId; })[0] || row;
+        state.membership = chosen;
+        row = chosen;
         return Promise.all([
           sb.from("organisations").select("id, name, short_name, slug, logo_url, primary_colour, secondary_colour, website_url, hero_image_url, sidebar_image_url, portal_title, portal_subtitle, is_active").eq("id", row.organisation_id).maybeSingle(),
           sb.from("organisation_story_starters").select("id, title, description, icon, prompt_seed, sort_order, is_active").eq("organisation_id", row.organisation_id).order("sort_order"),
@@ -428,12 +479,15 @@
           }
           var org = parts[0].data || null;
           if (!org || org.is_active === false) {
-            clearOrg();
-            state.status = "loading";
-            complete("");
+            showAccountError();
+            if (resolve) resolve(snapshot());
             return;
           }
           state.organisation = org;
+          state.workspaces.forEach(function (item) {
+            if (item.id === org.id) item.name = org.name;
+          });
+          rememberWorkspace(state.userId, org.id);
           var canManage = row.role === "owner" || row.role === "school_admin";
           state.starters = ((parts[1] && parts[1].data) || []).filter(function (item) {
             return canManage || item.is_active;
@@ -443,52 +497,101 @@
           });
           complete("");
         });
-      }).catch(function () {
+      }).catch(function (err) {
         if (generation !== bootGeneration) return;
-        clearOrg();
-        state.status = "loading";
-        holdBoot();
-        var boot = document.getElementById("orgBoot");
-        if (boot) boot.textContent = "Couldn’t open your Wondii just now. Check your connection and refresh.";
+        var message = String((err && err.message) || "");
+        var status = String((err && err.status) || "");
+        var code = String((err && err.code) || "");
+        if (status === "401" || code === "PGRST301" || /jwt|invalid claim|unauthorized/i.test(message)) {
+          if (client && client.auth && client.auth.signOut) client.auth.signOut();
+          return;
+        }
+        showAccountError();
         if (resolve) resolve(snapshot());
       });
     });
   }
 
-  function load(done, force) {
-    holdBoot();
+  function showAccountError() {
+    state.status = "error";
+    state.notice = "Couldn’t open your Wondii just now. Check your connection and try again.";
+    emit();
+    if (global.document && global.document.documentElement) {
+      global.document.documentElement.classList.add("org-pending");
+    }
+    var boot = document.getElementById("orgBoot");
+    if (!boot) return;
+    boot.replaceChildren();
+    boot.appendChild(document.createTextNode(state.notice + " "));
+    var retry = document.createElement("button");
+    retry.type = "button";
+    retry.className = "org-boot__retry";
+    retry.textContent = "Try again";
+    retry.addEventListener("click", function () {
+      if (global.WondiiSession) global.WondiiSession.retry();
+    });
+    boot.appendChild(retry);
+  }
+
+  function load(done) {
+    var auth = global.WondiiSession && global.WondiiSession.get();
+    if (!auth || auth.status === "initialising") {
+      holdBoot();
+      if (done) done();
+      return Promise.resolve(snapshot());
+    }
+    if (auth.status === "error") {
+      showAccountError();
+      if (done) done();
+      return Promise.resolve(snapshot());
+    }
+    if (auth.status !== "authenticated" || !auth.session) {
+      bootGeneration += 1;
+      state.userId = "";
+      state.displayName = "";
+      clearOrg();
+      revealResolved();
+      if (done) done();
+      return Promise.resolve(snapshot());
+    }
     return new Promise(function (resolve) {
-      withClient(function (sb) {
-        if (!sb) {
-          bootGeneration += 1;
-          clearOrg();
-          revealResolved();
-          if (done) done();
-          resolve(snapshot());
-          return;
-        }
-        if (!force && authFromEvent) {
-          if (done) done();
-          resolve(snapshot());
-          return;
-        }
-        sb.auth.getSession().then(function (res) {
-          var session = res && res.data && res.data.session;
-          if (!session && !force) {
-            setTimeout(function () {
-              if (authFromEvent || state.status === "ready") return;
-              sb.auth.getSession().then(function (again) {
-                if (authFromEvent || state.status === "ready") return;
-                resolveAccount((again && again.data && again.data.session) || null);
-              });
-            }, 1500);
-            if (done) done();
-            resolve(snapshot());
-            return;
-          }
-          resolveAccount(session || null, done, resolve);
-        });
-      });
+      resolveAccount(auth.session, done, resolve);
+    });
+  }
+
+  function followSession() {
+    var Session = global.WondiiSession;
+    if (!Session) {
+      showAccountError();
+      return;
+    }
+    var seen = "";
+    Session.subscribe(function (auth) {
+      if (auth.status === "initialising") {
+        seen = "";
+        holdBoot();
+        return;
+      }
+      var mark = auth.status + ":" + (auth.userId || "");
+      if (mark === seen) return;
+      seen = mark;
+      if (auth.status === "error") {
+        showAccountError();
+        return;
+      }
+      if (auth.status !== "authenticated" || !auth.session) {
+        bootGeneration += 1;
+        state.userId = "";
+        state.displayName = "";
+        clearOrg();
+        revealResolved();
+        var box = document.getElementById("orgOnboard");
+        var panel = document.getElementById("orgSettings");
+        if (box) box.hidden = true;
+        if (panel) panel.hidden = true;
+        return;
+      }
+      resolveAccount(auth.session);
     });
   }
 
@@ -1111,5 +1214,5 @@
   };
 
   bind();
-  load();
+  followSession();
 })(window);

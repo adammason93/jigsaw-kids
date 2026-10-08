@@ -130,7 +130,7 @@ assert.ok(reveal.indexOf('state.status = "ready"') !== -1);
 assert.ok(reveal.indexOf('state.status = "ready"') < reveal.indexOf("paint()"));
 assert.ok(reveal.indexOf("paint()") < reveal.indexOf("finishBoot()"));
 assert.ok(org.indexOf("generation !== bootGeneration") >= 0);
-var signedOut = org.indexOf('event === "SIGNED_OUT"');
+var signedOut = org.indexOf('auth.status !== "authenticated"');
 var signedOutBody = org.slice(signedOut, signedOut + 280);
 assert.ok(signedOutBody.indexOf("bootGeneration += 1") !== -1);
 assert.ok(signedOutBody.indexOf("clearOrg()") < signedOutBody.indexOf("revealResolved()"));

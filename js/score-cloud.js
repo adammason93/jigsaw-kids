@@ -186,6 +186,13 @@
   }
 
   function ensureClient(done) {
+    if (global.WondiiSession) {
+      global.WondiiSession.client(function (sb) {
+        client = sb;
+        done(sb);
+      });
+      return;
+    }
     if (!isConfigured()) {
       done(null);
       return;
@@ -470,25 +477,18 @@
     return uid + "/storybook/shelf.json";
   }
 
-  /**
-   * Refresh JWT before Storage calls — expired access_token breaks private bucket reads/writes.
-   */
+  /* Read the session the shared client already restored.
+     A second refreshSession() rotates the login and can sign the account out. */
   function withFreshSession(sb, cb) {
     sb.auth.getSession().then(function (res) {
-      var sess = res.data && res.data.session;
-      if (!sess || !sess.user) {
+      if (res && res.error) {
         cb(null);
         return;
       }
-      sb.auth
-        .refreshSession()
-        .then(function (r2) {
-          var next = r2.data && r2.data.session;
-          cb(next && next.user ? next : sess);
-        })
-        .catch(function () {
-          cb(sess);
-        });
+      var sess = res.data && res.data.session;
+      cb(sess && sess.user ? sess : null);
+    }).catch(function () {
+      cb(null);
     });
   }
 
@@ -1587,6 +1587,24 @@
   }
 
   function subscribeAuth() {
+    if (global.WondiiSession) {
+      var seen = "";
+      global.WondiiSession.subscribe(function (auth) {
+        if (auth.status === "initialising" || auth.status === "error") return;
+        var mark = auth.status + ":" + (auth.userId || "");
+        if (mark === seen) return;
+        seen = mark;
+        if (auth.status !== "authenticated" || !auth.session || !auth.session.user) {
+          clearAccountScope();
+          return;
+        }
+        bindShelfUser(auth.session.user.id);
+        pullAndApply(function () {
+          refreshOpenScoreUis();
+        });
+      });
+      return;
+    }
     ensureClient(function (sb) {
       if (!sb) {
         return;
@@ -1720,6 +1738,19 @@
      * Create an account. cb(err|null, { session, needsConfirm }).
      * Characters and books are stored under this user’s id.
      */
+    updatePassword: function (password, cb) {
+      ensureClient(function (sb) {
+        if (!sb) {
+          cb(new Error("sync_unavailable"));
+          return;
+        }
+        sb.auth.updateUser({ password: String(password || "") }).then(function (r) {
+          cb(r && r.error ? r.error : null);
+        }).catch(function (e) {
+          cb(e || new Error("password_failed"));
+        });
+      });
+    },
     signUp: function (email, password, cb) {
       var loginEmail = String(email || "").trim();
       if (!loginEmail) {
@@ -1731,7 +1762,7 @@
           cb(new Error("sync_unavailable"));
           return;
         }
-        var redirect = global.location.origin + "/portal.html";
+        var redirect = "https://www.wondii.co.uk/portal.html";
         sb.auth
           .signUp({
             email: loginEmail,

@@ -22,6 +22,10 @@
     return;
   }
 
+  function wantsRecovery() {
+    return /(?:^|[#&])type=(?:recovery|invite)(?:&|$)/.test(window.location.hash || "");
+  }
+
   function wantsSignup() {
     try {
       return /(?:^|[?&])signup=1(?:&|$)/.test(window.location.search);
@@ -36,15 +40,21 @@
   }
 
   function applyMode(next) {
-    mode = next === "signup" ? "signup" : "login";
+    mode = next === "signup" ? "signup" : next === "recovery" ? "recovery" : "login";
     var signingUp = mode === "signup";
-    title.textContent = signingUp ? "Create your Wondii account" : "Log in to Wondii";
-    lead.textContent = signingUp
+    var recovering = mode === "recovery";
+    title.textContent = recovering ? "Choose a new password" : signingUp ? "Create your Wondii account" : "Log in to Wondii";
+    lead.textContent = recovering
+      ? "This saves a new password for your Wondii login."
+      : signingUp
       ? "Choose how you’ll use Wondii, then create the account."
       : "Enter your email and password to open the games, stories and characters.";
     var intentBox = document.getElementById("gateIntent");
     if (intentBox) intentBox.hidden = !signingUp;
-    btn.textContent = signingUp ? "Create account" : "Log in";
+    btn.textContent = recovering ? "Save password" : signingUp ? "Create account" : "Log in";
+    if (email) email.hidden = recovering;
+    if (tabLogin) tabLogin.hidden = recovering;
+    if (tabRegister) tabRegister.hidden = recovering;
     if (tabLogin) {
       tabLogin.classList.toggle("is-on", !signingUp);
       tabLogin.setAttribute("aria-selected", signingUp ? "false" : "true");
@@ -68,35 +78,33 @@
 
   function closeGate() {
     root.classList.remove("gate-on");
-    root.classList.add("org-pending");
+    var org = window.WondiiOrg && window.WondiiOrg.get && window.WondiiOrg.get();
+    if (!org || org.status === "loading") root.classList.add("org-pending");
     if (wantsSignup() && window.history && window.history.replaceState) {
-      window.history.replaceState(null, "", "portal.html");
+      window.history.replaceState(null, "", "portal.html" + (window.location.hash || ""));
     }
   }
 
-  if (wantsSignup()) {
+  if (wantsRecovery()) {
+    root.classList.add("gate-on");
+    applyMode("recovery");
+  } else if (wantsSignup()) {
     root.classList.add("gate-on");
     applyMode("signup");
   }
 
-  if (root.classList.contains("gate-on")) {
-    openGate();
-    if (wantsSignup()) {
-      cloud.getSession(function (session) {
+  if (wantsRecovery()) {
+    /* Recovery keeps the password form in front of session restore. */
+  } else if (window.WondiiSession) {
+    window.WondiiSession.subscribe(function (auth) {
+      if (wantsRecovery() || auth.status === "initialising" || auth.status === "error") return;
+      if (auth.status === "authenticated") {
         var carryOn = document.getElementById("gateContinue");
-        if (carryOn) carryOn.hidden = !session;
-      });
-    }
-  } else if (navigator.onLine !== false) {
-    var settled = false;
-    var timer = setTimeout(function () {
-      settled = true;
-    }, 8000);
-    cloud.getSession(function (session, err) {
-      if (settled) return;
-      clearTimeout(timer);
-      settled = true;
-      if (!session && !err && navigator.onLine !== false) openGate();
+        if (wantsSignup() && carryOn) carryOn.hidden = false;
+        if (!wantsSignup()) closeGate();
+        return;
+      }
+      if (navigator.onLine !== false) openGate();
     });
   }
 
@@ -141,7 +149,8 @@
     e.preventDefault();
     var addr = String((email && email.value) || "").trim();
     var pwd = String((pass && pass.value) || "");
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(addr)) {
+    var recovering = mode === "recovery";
+    if (!recovering && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(addr)) {
       setStatus("Enter a valid email address.", true);
       if (email) email.focus();
       return;
@@ -151,10 +160,11 @@
       if (pass) pass.focus();
       return;
     }
-    mode = tabRegister && tabRegister.getAttribute("aria-selected") === "true" ? "signup" : "login";
+    if (mode !== "recovery") mode = tabRegister && tabRegister.getAttribute("aria-selected") === "true" ? "signup" : "login";
     var signingUp = mode === "signup";
+    recovering = mode === "recovery";
     btn.disabled = true;
-    setStatus(mode === "signup" ? "Creating your account…" : "Logging in…");
+    setStatus(recovering ? "Saving your password…" : mode === "signup" ? "Creating your account…" : "Logging in…");
     var done = false;
     var wait = setTimeout(function () {
       if (done) return;
@@ -187,7 +197,14 @@
       closeGate();
     }
 
-    if (signingUp) {
+    if (recovering) {
+      cloud.updatePassword(pwd, function (err) {
+        if (!err && window.history && window.history.replaceState) {
+          window.history.replaceState(null, "", "portal.html");
+        }
+        finish(err, null);
+      });
+    } else if (signingUp) {
       var picked = document.querySelector('input[name="wondiiIntent"]:checked');
       try {
         localStorage.setItem("wondii-account-intent", JSON.stringify({

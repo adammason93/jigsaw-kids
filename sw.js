@@ -1,5 +1,5 @@
 /* Minimal offline shell — network-first, cache as fallback for same-origin */
-const CACHE = "jigsaw-kids-v443";
+const CACHE = "jigsaw-kids-v444";
 const SHELL = [
   "./index.html",
   "./portal.html",
@@ -7,6 +7,7 @@ const SHELL = [
   "./portal-app.css",
   "./characters.html",
   "./js/account-context.js",
+  "./js/wondii-session.js",
   "./js/organisation.js",
   "./js/character-bible.js",
   "./js/wondii-crew.js",

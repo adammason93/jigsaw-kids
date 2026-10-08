@@ -691,6 +691,16 @@
         cloudReady = status === "SUBSCRIBED";
       });
     }
+    if (global.WondiiSession && global.WondiiSession.current && global.WondiiSession.current()) {
+      start(global.WondiiSession.current());
+      return;
+    }
+    if (global.WondiiSession) {
+      global.WondiiSession.client(function (shared) {
+        if (shared) start(shared);
+      });
+      return;
+    }
     if (global.supabase) {
       start(global.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey));
       return;

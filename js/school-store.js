@@ -20,6 +20,10 @@
   }
 
   function client() {
+    if (global.WondiiSession) {
+      sb = global.WondiiSession.current ? global.WondiiSession.current() : null;
+      return sb;
+    }
     var c = cfg();
     if (!c.supabaseUrl || !c.supabaseAnonKey || !global.supabase || !global.supabase.createClient) return null;
     if (!sb) sb = global.supabase.createClient(c.supabaseUrl, c.supabaseAnonKey);

@@ -62,6 +62,13 @@
   }
 
   function ensureClient(done) {
+    if (global.WondiiSession) {
+      global.WondiiSession.client(function (sb) {
+        client = sb;
+        done(sb);
+      });
+      return;
+    }
     if (!isConfigured()) {
       done(null);
       return;
@@ -91,20 +98,14 @@
 
   function withFreshSession(sb, cb) {
     sb.auth.getSession().then(function (res) {
-      var sess = res.data && res.data.session;
-      if (!sess || !sess.user) {
-        cb(null);
+      if (res && res.error) {
+        cb(null, res.error);
         return;
       }
-      sb.auth
-        .refreshSession()
-        .then(function (r2) {
-          var next = r2.data && r2.data.session;
-          cb(next && next.user ? next : sess);
-        })
-        .catch(function () {
-          cb(sess);
-        });
+      var sess = res.data && res.data.session;
+      cb(sess && sess.user ? sess : null, null);
+    }).catch(function (err) {
+      cb(null, err || new Error("session"));
     });
   }
 
@@ -133,6 +134,9 @@
 
   function workspaceFor(sess) {
     if (bound && bound.ownerId) return bound;
+    var org = global.WondiiOrg && global.WondiiOrg.get && global.WondiiOrg.get();
+    if (org && org.status && org.status !== "ready") return null;
+    if (org && org.organisationId) return null;
     if (sess && sess.user && sess.user.id) {
       return {
         kind: "family",
@@ -191,7 +195,11 @@
         cb(new Error("no_client"), null, null);
         return;
       }
-      withFreshSession(sb, function (sess) {
+      withFreshSession(sb, function (sess, sessionErr) {
+        if (sessionErr) {
+          cb(fail("session_unavailable", "Could not open characters. Try again."), null, null);
+          return;
+        }
         if (!sess || !sess.user) {
           var school = bound && bound.kind === "school";
           cb(fail(school ? "school-signed-out" : "no_session", school
@@ -369,9 +377,12 @@
 
   function storageError(error) {
     if (!error) return null;
-    if (error instanceof Error && error.code) return error;
-    var message = error.message || String(error);
-    return fail("save_failed", message);
+    if (error instanceof Error && error.code && error.code !== "save_failed") return error;
+    var message = String((error && error.message) || error || "");
+    if (/row-level security|permission denied|not authorized|unauthorized/i.test(message)) {
+      return fail("save_failed", "This account could not save the character. Sign in again and try once more.");
+    }
+    return fail("save_failed", "The character was not saved.");
   }
 
   /** Upload the picture, then write the workspace index. cb(err, record). */
