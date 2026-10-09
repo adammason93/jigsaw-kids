@@ -101,7 +101,7 @@ async function main() {
   assert.ok(gate.indexOf('auth.status === "initialising"') >= 0);
   assert.strictEqual(gate.indexOf("if (!session && !err"), -1);
   assert.ok(storybook.indexOf("wondii-session.js") < storybook.indexOf("score-cloud.js"));
-  assert.ok(fs.readFileSync(path.join(root, "sw.js"), "utf8").indexOf("jigsaw-kids-v445") >= 0);
+  assert.ok(fs.readFileSync(path.join(root, "sw.js"), "utf8").indexOf("jigsaw-kids-v458") >= 0);
   assert.ok(portal.indexOf('id="pAccountMenu"') >= 0);
   assert.ok(portal.indexOf("My Wondii — Dashboard") >= 0);
   assert.ok(portal.indexOf('data-account="logout"') >= 0);
@@ -110,7 +110,9 @@ async function main() {
   assert.ok(portalJs.indexOf("KidsScoreCloud.signOut") >= 0);
   assert.strictEqual(portalJs.indexOf("createClient"), -1);
   var cloudPatch = cloud.slice(cloud.indexOf("function patchSettingsUi"), cloud.indexOf("function subscribeAuth"));
-  assert.ok(cloudPatch.indexOf("global.WondiiSession") < cloudPatch.indexOf("kidsSyncPassword"));
+  assert.ok(cloudPatch.indexOf("data-score-sync") >= 0);
+  assert.strictEqual(cloudPatch.indexOf("kidsSyncPassword"), -1);
+  assert.strictEqual(cloud.indexOf("createClient"), -1);
   assert.strictEqual(org.indexOf("chip.hidden = !!view.organisation"), -1);
   assert.ok(org.indexOf("chooseWorkspace: chooseWorkspace") >= 0);
   var css = fs.readFileSync(path.join(root, "schools/org-portal.css"), "utf8");

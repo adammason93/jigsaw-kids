@@ -1,6 +1,7 @@
 /**
- * Cloud sync: family password (signInWithPassword). See score-config.example.js.
- * Loads @supabase/supabase-js UMD when settings open or when a session restores.
+ * Cloud sync for scores, colouring pictures and the story shelf.
+ * The signed-in account is the shared WondiiSession. This file does not
+ * create its own Supabase client and does not ask for a family password.
  */
 (function (global) {
   "use strict";
@@ -133,13 +134,7 @@
     nativeRemove(key);
   };
 
-  var SYNC_LIB =
-    "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js";
-
-  /** @type {ReturnType<typeof import("@supabase/supabase-js").createClient>|null} */
   var client = null;
-  var loadingLib = false;
-  var loadWaiters = [];
   var pushTimer = null;
   var settingsPatched = false;
 
@@ -157,67 +152,15 @@
     );
   }
 
-  function loadSupabaseLib(cb) {
-    if (global.supabase && global.supabase.createClient) {
-      cb();
-      return;
-    }
-    if (loadingLib) {
-      loadWaiters.push(cb);
-      return;
-    }
-    loadingLib = true;
-    var s = document.createElement("script");
-    s.src = SYNC_LIB;
-    s.async = true;
-    s.onload = function () {
-      loadingLib = false;
-      cb();
-      loadWaiters.forEach(function (fn) {
-        fn();
-      });
-      loadWaiters = [];
-    };
-    s.onerror = function () {
-      loadingLib = false;
-      loadWaiters = [];
-    };
-    document.head.appendChild(s);
-  }
-
   function ensureClient(done) {
-    if (global.WondiiSession) {
+    if (global.WondiiSession && typeof global.WondiiSession.client === "function") {
       global.WondiiSession.client(function (sb) {
-        client = sb;
-        done(sb);
+        client = sb || null;
+        done(client);
       });
       return;
     }
-    if (!isConfigured()) {
-      done(null);
-      return;
-    }
-    if (client) {
-      done(client);
-      return;
-    }
-    loadSupabaseLib(function () {
-      var supaMod = global.supabase;
-      if (!supaMod || typeof supaMod.createClient !== "function") {
-        done(null);
-        return;
-      }
-      var c = cfg();
-      client = supaMod.createClient(c.supabaseUrl, c.supabaseAnonKey, {
-        auth: {
-          persistSession: true,
-          autoRefreshToken: true,
-          detectSessionInUrl: true,
-          storage: global.localStorage,
-        },
-      });
-      done(client);
-    });
+    done(null);
   }
 
   function clearScoreKeys() {
@@ -348,20 +291,53 @@
         if (!sess || !sess.user) {
           return;
         }
-        var user = sess.user;
-        var nested = collectNestedPayload();
-        sb.from("score_bundles")
-          .upsert(
-            {
-              user_id: user.id,
-              payload: nested,
-              updated_at: new Date().toISOString(),
-            },
-            { onConflict: "user_id" }
-          )
-          .then(function () {});
+        upsertScoreBundle(sb, sess.user.id, collectNestedPayload());
       });
     });
+  }
+
+  function upsertScoreBundle(sb, userId, nested, done) {
+    done = done || function () {};
+    if (!nested || !Object.keys(nested).length) {
+      done();
+      return;
+    }
+    sb.from("score_bundles")
+      .select("payload")
+      .eq("user_id", userId)
+      .maybeSingle()
+      .then(function (rowRes) {
+        if (!rowRes || rowRes.error) {
+          throw (rowRes && rowRes.error) || new Error("score_read_failed");
+        }
+        var remote = rowRes.data && rowRes.data.payload;
+        var merged = {};
+        var key;
+        if (remote && typeof remote === "object") {
+          for (key in remote) {
+            if (Object.prototype.hasOwnProperty.call(remote, key) && isSyncKey(key)) {
+              merged[key] = remote[key];
+            }
+          }
+        }
+        for (key in nested) {
+          if (Object.prototype.hasOwnProperty.call(nested, key)) merged[key] = nested[key];
+        }
+        return sb.from("score_bundles").upsert(
+          {
+            user_id: userId,
+            payload: merged,
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: "user_id" }
+        );
+      })
+      .then(function () {
+        done();
+      })
+      .catch(function () {
+        done();
+      });
   }
 
   function pullAndApply(onDone) {
@@ -514,6 +490,14 @@
         if (!sess || !sess.user) {
           console.warn("[score-cloud] No active session or user");
           cb(new Error("no_session"), null);
+          return;
+        }
+        if (sess.user.app_metadata && sess.user.app_metadata.account_kind === "child") {
+          if (!global.ChildLibrary) {
+            cb(new Error("child_library_unavailable"), null);
+            return;
+          }
+          global.ChildLibrary.downloadShelf(cb);
           return;
         }
         var path = storybookObjectPath(sess.user.id);
@@ -806,18 +790,33 @@
       withFreshSession(sb, function (sess) {
         if (!sess || !sess.user) {
           console.warn(
-            "[score-cloud] No active session — storybook shelf not uploaded. Sign in under ⚙️ Sync, then shelve a book again."
+            "[score-cloud] No active session — storybook shelf not uploaded. Sign in from the Wondii home, then shelve a book again."
           );
           setStorybookShelfSyncState(
-            "Not signed in — your story library did not upload. Use Sync below, then tap “Put on my shelf” once more.",
+            "Not signed in. Sign in from the Wondii home, then tap “Put on my shelf” again.",
             "warn"
           );
           emitStorybookShelfUpload({
             ok: false,
             code: "no_session",
-            message: "Not signed in — open ⚙️ and use family password, then shelve again.",
+            message: "Not signed in. Sign in from the Wondii home, then shelve again.",
           });
           cb(new Error("no_session"));
+          return;
+        }
+        if (sess.user.app_metadata && sess.user.app_metadata.account_kind === "child") {
+          if (!global.ChildLibrary) {
+            cb(new Error("child_library_unavailable"));
+            return;
+          }
+          var reserveKey = "";
+          try { reserveKey = sessionStorage.getItem("wondii-child-book-key") || ""; } catch (e) { reserveKey = ""; }
+          global.ChildLibrary.uploadShelf(rawJsonString, reserveKey, function (err) {
+            if (!err) {
+              try { sessionStorage.removeItem("wondii-child-book-key"); } catch (e2) {}
+            }
+            cb(err);
+          });
           return;
         }
         var path = storybookObjectPath(sess.user.id);
@@ -1391,7 +1390,7 @@
       storybookShelfSyncState.kind = "neutral";
     } else {
       storybookShelfSyncState.text =
-        "Storybooks: sign in below first — saves only reach Supabase after that.";
+        "Storybooks stay with the Wondii account. Sign in from the Wondii home, then shelve the book again.";
       storybookShelfSyncState.kind = "warn";
     }
     storybookShelfSyncState.updatedAt = 0;
@@ -1400,199 +1399,19 @@
 
   function patchSettingsUi() {
     var K = global.KidsCore;
-    if (!K || settingsPatched) {
-      return;
-    }
+    if (!K || settingsPatched) return;
     settingsPatched = true;
     var orig = K.openSettings;
     K.openSettings = function () {
       orig.apply(K, arguments);
       var d = global.document.getElementById("kidsSettingsDialog");
       if (!d) return;
-      if (global.WondiiSession) {
-        var lead = d.querySelector(".kids-settings__lead");
-        if (lead) {
-          lead.textContent = "Sound, contrast and motion stay on this device. Stories, characters and scores stay with this Wondii account.";
-        }
-        var synced = d.querySelector("[data-score-sync]");
-        if (synced) synced.remove();
-        return;
+      var lead = d.querySelector(".kids-settings__lead");
+      if (lead) {
+        lead.textContent = "Sound, contrast and motion stay on this device. Stories and scores stay with the Wondii account you use at home.";
       }
-      if (d.querySelector("[data-score-sync]")) {
-        return;
-      }
-      if (!isConfigured()) {
-        return;
-      }
-      var panel = d.querySelector(".kids-settings__panel");
-      if (!panel) {
-        return;
-      }
-      var hr = panel.querySelector("hr");
-      var zone = global.document.createElement("div");
-      zone.setAttribute("data-score-sync", "1");
-      zone.className = "kids-settings__sync";
-      zone.innerHTML =
-        '<h3 class="kids-settings__sync-title">Sync (optional)</h3>' +
-        '<p class="kids-settings__sync-lead">A grown-up sets this up once in Supabase (one login email + password that match your site config). Here you only type the <strong>family password</strong>—no email.</p>' +
-        '<p class="kids-settings__sync-status" id="kidsSyncStatus" role="status"></p>' +
-        '<p class="kids-settings__sync-account" id="kidsSyncAccountLine" hidden></p>' +
-        '<p class="kids-settings__sync-storybook" id="kidsStorybookShelfLine" role="status" aria-live="polite"></p>' +
-        '<label class="kids-settings__row kids-settings__row--email"><span class="kids-settings__sync-label">Family password</span><input type="password" id="kidsSyncPassword" class="kids-settings__sync-input" autocomplete="current-password" placeholder="Family password" /></label>' +
-        '<label class="kids-settings__show-pass"><input type="checkbox" id="kidsSyncShowPass" checked /> Show password while typing</label>' +
-        '<button type="button" class="kids-settings__sync-btn" id="kidsSyncSignIn">Sign in for cloud sync</button>' +
-        '<button type="button" class="kids-settings__sync-btn kids-settings__sync-btn--ghost" id="kidsSyncPull">Pull scores from cloud now</button>' +
-        '<button type="button" class="kids-settings__sync-btn kids-settings__sync-btn--ghost" id="kidsSyncTestStorybook">Test story library in cloud</button>' +
-        '<button type="button" class="kids-settings__sync-btn kids-settings__sync-btn--ghost" id="kidsSyncOut">Sign out</button>';
-      if (hr) {
-        panel.insertBefore(zone, hr);
-      } else {
-        panel.appendChild(zone);
-      }
-
-      var statusEl = zone.querySelector("#kidsSyncStatus");
-      var passEl = zone.querySelector("#kidsSyncPassword");
-      var showPassEl = zone.querySelector("#kidsSyncShowPass");
-      var btnSignIn = zone.querySelector("#kidsSyncSignIn");
-      var btnPull = zone.querySelector("#kidsSyncPull");
-      var btnTestStory = zone.querySelector("#kidsSyncTestStorybook");
-      var btnOut = zone.querySelector("#kidsSyncOut");
-      var accountLineEl = zone.querySelector("#kidsSyncAccountLine");
-
-      function refreshAuthUi() {
-        ensureClient(function (sb) {
-          if (!sb) {
-            setStatus(statusEl, "Could not load sync.");
-            if (accountLineEl) {
-              accountLineEl.hidden = true;
-            }
-            return;
-          }
-          sb.auth.getSession().then(function (res) {
-            var sess = res.data && res.data.session;
-            if (sess && sess.user) {
-              setStatus(
-                statusEl,
-                "Cloud sync is on — scores and colouring can stay in sync on this tablet."
-              );
-              btnOut.style.display = "";
-              if (accountLineEl) {
-                accountLineEl.hidden = false;
-                accountLineEl.textContent =
-                  "Cloud account id (must match every device after sign-in): " + String(sess.user.id);
-              }
-            } else {
-              setStatus(
-                statusEl,
-                "Log in from the Wondii home with your own email. Stories and scores stay on that account."
-              );
-              btnOut.style.display = "none";
-              if (accountLineEl) {
-                accountLineEl.hidden = true;
-                accountLineEl.textContent = "";
-              }
-            }
-            refreshStorybookShelfHintLine(sess && sess.user ? sess : null);
-          });
-        });
-      }
-
-      refreshAuthUi();
-
-      if (showPassEl && passEl) {
-        passEl.type = showPassEl.checked ? "text" : "password";
-        showPassEl.addEventListener("change", function () {
-          passEl.type = showPassEl.checked ? "text" : "password";
-        });
-      }
-
-      if (btnSignIn) {
-        btnSignIn.addEventListener("click", function () {
-          setStatus(
-            statusEl,
-            "Log in from the Wondii home with your own email. Stories, games and scores stay on that account."
-          );
-        });
-      }
-
-      if (btnPull) {
-        btnPull.addEventListener("click", function () {
-          setStatus(statusEl, "Fetching…");
-          pullAndApply(function (changed) {
-            refreshOpenScoreUis(); // Always trigger refresh to sync storage buckets
-            if (changed) {
-              setStatus(statusEl, "Merged scores from cloud.");
-            } else {
-              setStatus(
-                statusEl,
-                "No new scores from the cloud. Story library still checked — open Build your book to see synced books."
-              );
-            }
-          });
-        });
-      }
-
-      if (btnTestStory) {
-        btnTestStory.addEventListener("click", function () {
-          setStatus(statusEl, "Testing story library storage…");
-          debugStorybookStorage(function (err, info) {
-            if (err) {
-              var em = formatStorageErr(err);
-              setStatus(statusEl, "Story library test failed — see alert.");
-              global.alert(
-                "Could not read your story library in Supabase Storage.\n\n" +
-                  em +
-                  "\n\nCheck: Dashboard → Storage → bucket storybook_room → policies; sign in again with ⚙️; deploy latest site JS (not only edge functions).",
-              );
-              return;
-            }
-            var names = (info.files || [])
-              .map(function (f) {
-                return f.name;
-              })
-              .join(", ");
-            var dl = info.downloadError ? "\nDownload / parse error: " + info.downloadError : "";
-            var bc = info.bookCount;
-            var bytes = info.shelfJsonUtf8BytesApprox;
-            var parseErr = info.parseError;
-            var sizeLine =
-              bytes != null
-                ? "\n\nShelf file length (~JavaScript characters / UTF-16 code units):\n" +
-                  String(bytes) +
-                  "\nThere’s no dashboard “limit of 14” — shelf.json holds one JSON array, and uploads repeat whatever last fit device storage (heavy images → fewer books)."
-                : "";
-            var parseLine = parseErr ? "\nParse error (cloud file may be truncated): " + parseErr : "";
-            setStatus(statusEl, "Story library test finished — see alert.");
-            global.alert(
-              "Story library cloud check\n\n" +
-                "User id:\n" +
-                info.userId +
-                "\n\nFiles in …/storybook/:\n" +
-                (names || "(none)") +
-                "\n\nBooks parsed from shelf.json: " +
-                (bc == null ? "?" : String(bc)) +
-                dl +
-                sizeLine +
-                parseLine +
-                "\n\nIf this count barely grows after “Put on my shelf”, the browser IndexedDB quota is deleting the oldest book before upload — slim shelf updates (URLs without huge images) reduce that.\n\nIf two tablets show different user ids, they are different accounts.",
-            );
-          });
-        });
-      }
-
-      if (btnOut) {
-        btnOut.addEventListener("click", function () {
-          ensureClient(function (sb) {
-            if (!sb) {
-              return;
-            }
-            global.KidsScoreCloud.signOut(function () {
-              refreshAuthUi();
-              setStatus(statusEl, "Signed out on this device.");
-            });
-          });
-        });
-      }
+      var synced = d.querySelector("[data-score-sync]");
+      if (synced) synced.remove();
     };
   }
 
@@ -1678,22 +1497,7 @@
             finishOut();
             return;
           }
-          var nested = collectNestedPayload();
-          if (!Object.keys(nested).length) {
-            finishOut();
-            return;
-          }
-          sb.from("score_bundles")
-            .upsert(
-              {
-                user_id: sess.user.id,
-                payload: nested,
-                updated_at: new Date().toISOString(),
-              },
-              { onConflict: "user_id" }
-            )
-            .then(finishOut)
-            .catch(finishOut);
+          upsertScoreBundle(sb, sess.user.id, collectNestedPayload(), finishOut);
         }).catch(function () {
           sb.auth.signOut().then(function () {
             if (cb) cb();
@@ -1717,7 +1521,7 @@
           });
       });
     },
-    /** Family-password sign-in (same account as ⚙️ Sync). cb(err|null). */
+    /** Password sign-in on the shared session. The games do not show this. cb(err|null). */
     signIn: function (password, cb) {
       var loginEmail = (cfg().syncLoginEmail && String(cfg().syncLoginEmail).trim()) || "";
       this.signInWithEmail(loginEmail, password, cb);
@@ -1761,23 +1565,26 @@
         });
       });
     },
-    signUp: function (email, password, cb) {
+    signUp: function (email, password, cb, extra) {
       var loginEmail = String(email || "").trim();
       if (!loginEmail) {
         cb(new Error("not_configured"));
         return;
       }
+      var displayName = extra && extra.displayName ? String(extra.displayName).trim() : "";
       ensureClient(function (sb) {
         if (!sb) {
           cb(new Error("sync_unavailable"));
           return;
         }
         var redirect = "https://www.wondii.co.uk/portal.html";
+        var options = { emailRedirectTo: redirect };
+        if (displayName) options.data = { full_name: displayName };
         sb.auth
           .signUp({
             email: loginEmail,
             password: String(password || ""),
-            options: { emailRedirectTo: redirect },
+            options: options,
           })
           .then(function (r) {
             if (r && r.error) {

@@ -786,6 +786,7 @@
           </div>
           <div class="sb-read-dock" id="sbReadDock">
             <p class="sb-word-tip" id="sbWordTip" hidden><span aria-hidden="true">👆</span> Tap any word to hear it</p>
+            <p class="sb-word-tip" id="sbReadNote" hidden></p>
             <div class="sb-read-toolbar" id="sbReadToolbar" role="toolbar" aria-label="Reading tools">
               <button
                 type="button"
@@ -883,7 +884,7 @@
 
   <script src="../js/kids-game-characters.js?v=2"></script>
   <script src="../js/score-config.js"></script>
-  <script src="../js/kids-core.js"></script>
+  <script src="../js/kids-core.js?v=2"></script>
   <script>
     /* Fullscreen on first tap (where allowed) hides browser chrome; PWA meta helps “Add to Home Screen”. */
     if (window.K && typeof K.init === "function") {
@@ -894,10 +895,11 @@
   <script src="../js/storybook-shelf-store.js?v=3" defer></script>
   <!-- Required for cloud shelf sync + upload (same as other games) -->
   <script src="../js/wondii-session.js?v=1" defer></script>
-  <script src="../js/score-cloud.js?v=12" defer></script>
+  <script src="../js/child-library.js?v=2" defer></script>
+  <script src="../js/score-cloud.js?v=15" defer></script>
   <script src="../js/organisation.js?v=14" defer></script>
-  <script src="../js/character-store.js?v=3" defer></script>
-  <script src="storybook.js?v=362" defer></script>
+  <script src="../js/character-store.js?v=5" defer></script>
+  <script src="storybook.js?v=364" defer></script>
   <script>
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("../sw.js").catch(function () {});

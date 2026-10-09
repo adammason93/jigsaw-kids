@@ -424,6 +424,7 @@
 
   function readWordOutLoud(word, element) {
     stopStepGuideAudio();
+    hideSpeechNote();
     if (currentAudio) {
       stopReading();
     }
@@ -474,6 +475,7 @@
       if (element) {
         element.classList.remove("sb-word-reading");
       }
+      showSpeechNote();
       stopReading();
     };
   }
@@ -485,6 +487,18 @@
       currentAudio = null;
     }
     setReadToMeState("idle");
+  }
+
+  function showSpeechNote() {
+    var note = document.getElementById("sbReadNote");
+    if (!note) return;
+    note.hidden = false;
+    note.textContent = "Wondii needs a short rest before reading again. Try once more in a little while.";
+  }
+
+  function hideSpeechNote() {
+    var note = document.getElementById("sbReadNote");
+    if (note) note.hidden = true;
   }
 
   function setReadToMeState(state) {
@@ -523,6 +537,7 @@
       if (!fUrl) return;
       
       setReadToMeState("wait");
+      hideSpeechNote();
       
       var audioUrl = cleverServiceTtsUrl(readText);
       if (!audioUrl) {
@@ -546,7 +561,10 @@
       }
       
       currentAudio.onended = stopReading;
-      currentAudio.onerror = stopReading;
+      currentAudio.onerror = function () {
+        showSpeechNote();
+        stopReading();
+      };
     });
   }
   var spreadArtImg = document.getElementById("sbSpreadArtImg");
@@ -3690,6 +3708,21 @@
     return t;
   }
 
+  function pendingChildShelfId() {
+    var key = "";
+    try {
+      key = sessionStorage.getItem("wondii-child-book-key") || "";
+    } catch (eKey) {
+      return "";
+    }
+    if (!key) return "";
+    var auth = window.WondiiSession && window.WondiiSession.get && window.WondiiSession.get();
+    var meta = auth && auth.session && auth.session.user && auth.session.user.app_metadata;
+    if (!meta || meta.account_kind !== "child") return "";
+    var existing = loadShelf();
+    return existing[0] && existing[0].id ? String(existing[0].id) : "";
+  }
+
   function addStoryToShelfFromData(
     title,
     author,
@@ -3706,7 +3739,11 @@
     onWritten
   ) {
     var list = loadShelf();
-    var id = "b" + Date.now() + "-" + ((Math.random() * 1e6) | 0);
+    var retryId = pendingChildShelfId();
+    var id = retryId || ("b" + Date.now() + "-" + ((Math.random() * 1e6) | 0));
+    if (retryId) {
+      list = list.filter(function (book) { return !book || book.id !== retryId; });
+    }
     var storedPages = pages.map(function (p, i) {
       var fb = String(p.imageUrl || "").trim();
       var inline = dataUrls[i] || null;
@@ -4067,7 +4104,7 @@
               if (!cloudErr) {
                 if (hintEl) {
                   hintEl.textContent =
-                    "Saved on this device and backed up to the cloud. Use the same family password on other devices, then “Get latest books from cloud”.";
+                    "Saved on this device and backed up to this Wondii account. Sign in at home on another device to open the same shelf.";
                   window.setTimeout(function () {
                     if (hintEl) {
                       hintEl.textContent =
@@ -4089,7 +4126,7 @@
               }
               if (msg === "no_session") {
                 window.alert(
-                  "This tablet saved the book only on itself — it did not reach the cloud.\n\nOpen ⚙️ (bottom corner) → Sign in with your family password → tap “Put on my shelf” again.\n\n(Deploying edge functions does not update shelf sync — the website’s JavaScript does.)",
+                  "This tablet saved the book only on itself — it did not reach the cloud.\n\nSign in from the Wondii home, then tap “Put on my shelf” again.",
                 );
               } else {
                 window.alert(
@@ -4689,6 +4726,62 @@
       });
   }
 
+  function showStoredBook(item) {
+    if (!item || !item.pages || !item.pages.length) return false;
+    story = {
+      title: item.title,
+      author: item.author || "",
+      bookColor: item.bookColor || null,
+      readerFont: item.readerFont || null,
+      readerArtLayout: item.readerArtLayout === "facing" ? "facing" : "duplex",
+      storyTextMode: storyTextModeFromShelfItem(item, item.readerArtLayout === "facing" ? "facing" : "duplex"),
+      storyLength: storyLengthFromShelfItem(item),
+      sceneImageUrl: item.sceneUrlFallback || item.sceneDataUrl || null,
+      pages: item.pages.map(function (p) {
+        var page = { text: p.text, imageUrl: p.imageUrlFallback || p.imageDataUrl || null };
+        if (p.textSafeZones) page.textSafeZones = p.textSafeZones;
+        if (p.impactWords) page.impactWords = p.impactWords;
+        if (p.textBlocks) page.textBlocks = p.textBlocks;
+        return page;
+      }),
+    };
+    spreadIndex = 0;
+    showBook();
+    return true;
+  }
+
+  function openPrivateFromUrl() {
+    var params;
+    try { params = new URLSearchParams(window.location.search || ""); } catch (e) { return; }
+    var shared = String(params.get("shared") || "").trim();
+    var sharedChar = String(params.get("sharedChar") || "").trim();
+    var child = String(params.get("child") || "").trim();
+    var book = String(params.get("book") || "").trim();
+    if (sharedChar && window.ChildLibrary.isChildSession && window.ChildLibrary.isChildSession()) {
+      window.ChildLibrary.localArtUrl("shared/" + sharedChar + "/character.png", function (err, url) {
+        if (err || !url || typeof savedCharUrlToDataUrl !== "function") return;
+        savedCharUrlToDataUrl(url).then(function (dataUrl) {
+          if (!dataUrl) return;
+          heroPhotoItems.push({ dataUrl: dataUrl, who: "hero", charId: sharedChar });
+          if (typeof renderHeroPhotoThumbs === "function") renderHeroPhotoThumbs();
+          if (typeof openJourney === "function") openJourney();
+        }).catch(function () {});
+      });
+    }
+    if (!window.ChildLibrary) return;
+    if (shared && window.ChildLibrary.isChildSession && window.ChildLibrary.isChildSession()) {
+      window.ChildLibrary.loadSharedBook(shared, function (err, item) {
+        if (!err) showStoredBook(item);
+      });
+      return;
+    }
+    if (child && book && !(window.ChildLibrary.isChildSession && window.ChildLibrary.isChildSession())) {
+      window.ChildLibrary.loadOwnedBook(child, book, function (err, item) {
+        if (!err) showStoredBook(item);
+      });
+    }
+  }
+
   /** `?book=<shelf id>` (homepage shelf) — open that book in the reader once the library has loaded. */
   function openBookFromUrl() {
     var id = "";
@@ -4697,7 +4790,7 @@
     } catch (eP) {
       return;
     }
-    if (!id) return;
+    if (!id || new URLSearchParams(window.location.search || "").get("child")) return;
     try {
       var u = new URL(window.location.href);
       u.searchParams.delete("book");
@@ -4988,13 +5081,18 @@
 
   /** GET clever-service MP3: `?ttsText=` and optional `&ttsVoice=` (manual or inferred). */
   function cleverServiceTtsUrl(plainText) {
-    var base = functionUrl();
-    if (!base || plainText == null || plainText === "") return "";
+    if (plainText == null || plainText === "") return "";
     var q = "?ttsText=" + encodeURIComponent(String(plainText));
     var v = inferStorybookTtsVoiceId();
     if (v) {
       q += "&ttsVoice=" + encodeURIComponent(v);
     }
+    var host = window.location && window.location.hostname ? window.location.hostname : "";
+    if (/(^|\.)wondii\.co\.uk$/i.test(host) && window.location.origin) {
+      return window.location.origin + "/api/speech" + q;
+    }
+    var base = functionUrl();
+    if (!base) return "";
     return base + q;
   }
 
@@ -5065,14 +5163,16 @@
    * @param {(info: { progress: number | null, label: string }) => void} [onProgress]
    * @returns {Promise<{ ok: boolean, status: number, body: Record<string, unknown> }>}
    */
-  function pollStorybookJob(baseUrl, key, jobId, deadlineTs, onProgress) {
+  function pollStorybookJob(baseUrl, key, jobId, deadlineTs, onProgress, accessKey) {
     var pollMs = 2500;
+    var headers = {
+      Authorization: "Bearer " + key,
+      apikey: key,
+    };
+    if (accessKey) headers["X-Wondii-Job-Key"] = String(accessKey);
     return fetch(storybookJobPollUrl(baseUrl, jobId), {
       method: "GET",
-      headers: {
-        Authorization: "Bearer " + key,
-        apikey: key,
-      },
+      headers: headers,
     })
       .then(function (r) {
         return envelopeFromResponse(r);
@@ -5135,7 +5235,8 @@
                 key,
                 jobId,
                 deadlineTs,
-                onProgress
+                onProgress,
+                accessKey
               ).then(resolve);
             }, pollMs);
           });
@@ -6347,14 +6448,16 @@
             })
           : undefined,
       };
+      var childBearer = "";
       function postStorybook(asyncFlag) {
         var body = Object.assign({}, requestBody);
         if (asyncFlag) body.storybook_async = true;
+        var bearer = childBearer || key;
         return fetch(url, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: "Bearer " + key,
+            Authorization: "Bearer " + bearer,
             apikey: key,
           },
           body: JSON.stringify(body),
@@ -6394,15 +6497,53 @@
                 setStorybookBuildProgressUi(pr, info.label || "Working…", {
                   skipDefaultMsg: true,
                 });
-              }
+              },
+              b.storybook_job_key
             );
           }
           return out;
         });
       }
-      runStorybookOnce(useAsync)
-        .then(function (out) {
+      var childBookKey = "";
+      function releaseChildBook() {
+        if (childBookKey && window.ChildLibrary) window.ChildLibrary.refund(childBookKey);
+        childBookKey = "";
+      }
+      var storyStart = (window.ChildLibrary && ChildLibrary.isChildSession && ChildLibrary.isChildSession())
+        ? ChildLibrary.reserve("book")
+        : Promise.resolve({ allowed: true, reason: "adult" });
+      storyStart.then(function (gate) {
+        if (gate && gate.reason !== "adult" && gate.allowed !== true) {
+          setError("Today’s books are used up. You can make another one tomorrow.");
+          sbGenerateInFlight = false;
+          btnGen.disabled = false;
+          btnGen.removeAttribute("aria-busy");
+          setBusy(false);
+          return null;
+        }
+        if (gate && gate.key) {
+          childBookKey = gate.key;
+          requestBody.creationKey = gate.key;
+          try { sessionStorage.setItem("wondii-child-book-key", gate.key); } catch (e) {}
+          try {
+            var childAuth = window.WondiiSession && window.WondiiSession.get && window.WondiiSession.get();
+            childBearer = childAuth && childAuth.session && childAuth.session.access_token || "";
+          } catch (e2) { childBearer = ""; }
+          if (!childBearer) {
+            releaseChildBook();
+            setError("Sign in again to make a book.");
+            sbGenerateInFlight = false;
+            btnGen.disabled = false;
+            btnGen.removeAttribute("aria-busy");
+            setBusy(false);
+            return null;
+          }
+        }
+        return runStorybookOnce(useAsync);
+      }).then(function (out) {
+          if (!out) return;
           if (!out.ok) {
+            releaseChildBook();
             var b =
               out.body && typeof out.body === "object" ? out.body : {};
             /** Supabase WORKER_LIMIT or Gateway Timeout — story + six images often exceeds Edge budget */
@@ -6512,6 +6653,8 @@
           showBook();
         })
         .catch(function (err) {
+          releaseChildBook();
+          if (err && err.code === "allowance") return;
           console.error("[storybook] Make my book", err);
           var u = functionUrl();
           var tech =
@@ -6590,6 +6733,8 @@
     stayOnStorybook = !!(
       bootParams.get("book") ||
       bootParams.get("char") ||
+      bootParams.get("shared") ||
+      bootParams.get("sharedChar") ||
       bootParams.get("sample") === "1" ||
       bootParams.get("demo") === "1"
     );
@@ -6600,6 +6745,7 @@
 
   preselectCharacterFromUrl();
   openBookFromUrl();
+  openPrivateFromUrl();
   try {
     if (sessionStorage.getItem("wondii-org-starter")) openJourney();
   } catch (eOrgSeed) {}

@@ -112,15 +112,19 @@
     hover.alt = "";
     hover.src = row.assets ? row.assets.hover : (row.artwork || "");
     var stand = figure(row.placeholder ? row : { placeholder: { skin: "#e0ac69", hair: "#3b2414", hairStyle: "short", top: "#7d5caf", bottom: "#2c3338" }, gesture: "wave" });
-    function hideMissing(img) {
+    function revealWhenReady(img) {
+      img.hidden = true;
+      function show() { if (img.naturalWidth > 0) img.hidden = false; }
+      img.addEventListener("load", show);
       img.addEventListener("error", function () { img.hidden = true; });
+      if (img.complete) show();
     }
-    hideMissing(idle);
-    hideMissing(hover);
     if (kind === "workspace" && row.artwork) {
       idle.src = row.artwork;
       hover.src = row.artwork;
     }
+    revealWhenReady(idle);
+    revealWhenReady(hover);
     box.appendChild(idle);
     box.appendChild(hover);
     box.appendChild(stand);
@@ -336,6 +340,10 @@
     return base ? base + "/functions/v1/clever-service" : "";
   }
 
+  function childMaker() {
+    return !!(window.ChildLibrary && window.ChildLibrary.isChildSession && window.ChildLibrary.isChildSession());
+  }
+
   function generate(name) {
     var url = functionUrl();
     if (!url) {
@@ -348,11 +356,28 @@
     var key = config.supabaseAnonKey || "";
     var payload = { action: "generate_character", characterName: name, characterType: maker.type };
     if (maker.photo) payload.referencePhoto = maker.photo;
-    fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: "Bearer " + key, apikey: key },
-      body: JSON.stringify(payload)
-    }).then(function (response) {
+    var start = childMaker() ? window.ChildLibrary.reserve("character") : Promise.resolve({ allowed: true, reason: "adult" });
+    start.then(function (gate) {
+      if (childMaker() && (!gate || gate.allowed !== true)) {
+        maker.busy = false;
+        maker.error = "Today’s characters are used up. You can make another one tomorrow.";
+        render();
+        return;
+      }
+      if (gate && gate.key) {
+        payload.creationKey = gate.key;
+        try { sessionStorage.setItem("wondii-child-character-key", gate.key); } catch (e) {}
+      }
+      var bearer = key;
+      if (childMaker() && window.WondiiSession && window.WondiiSession.get) {
+        var auth = window.WondiiSession.get();
+        if (auth && auth.session && auth.session.access_token) bearer = auth.session.access_token;
+      }
+      fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: "Bearer " + bearer, apikey: key },
+        body: JSON.stringify(payload)
+      }).then(function (response) {
       return response.text().then(function (text) {
         var json = null;
         try { json = text ? JSON.parse(text) : null; } catch (e) { json = null; }
@@ -365,10 +390,12 @@
       maker.error = "";
       render();
     }).catch(function (err) {
+      if (gate && gate.key && childMaker()) window.ChildLibrary.refund(gate.key);
       console.error("character generate failed", err);
       maker.busy = false;
       maker.error = err.message || "Could not generate the character.";
       render();
+    });
     });
   }
 
@@ -376,6 +403,27 @@
     var store = window.CharacterStore;
     var space = workspace();
     var blob = store && store.dataUrlToBlob(maker.image);
+    if (childMaker()) {
+      if (!store || !store.saveCharacter || !blob) {
+        maker.busy = false;
+        maker.error = "Generate the character before saving.";
+        render();
+        return;
+      }
+      store.saveCharacter({ name: name, type: maker.type, createdAt: new Date().toISOString() }, blob, function (err, record) {
+        maker.busy = false;
+        if (err || !record) {
+          maker.error = (err && err.message) || "The character was not saved.";
+          render();
+          return;
+        }
+        making = false;
+        saved = [Object.assign({ artwork: maker.image }, record)].concat(saved.filter(function (row) { return row.id !== record.id; }));
+        status = "ready";
+        render();
+      });
+      return;
+    }
     if (!space || !space.ownerId) {
       maker.busy = false;
       maker.error = account() ? account().authNotice(space).text : "Log in to Wondii to save a character.";
@@ -600,6 +648,29 @@
 
   function loadSaved() {
     watchAccount();
+    if (childMaker()) {
+      var childStore = window.CharacterStore;
+      if (!childStore || !childStore.loadCharacters) {
+        saved = [];
+        status = "error";
+        loadError = "This character library is not open yet.";
+        render();
+        return;
+      }
+      status = "loading";
+      render();
+      childStore.loadCharacters(function (err, list) {
+        if (err || !Array.isArray(list)) {
+          saved = [];
+          status = "error";
+          loadError = "Could not open characters. " + ((err && err.message) || "Try again.");
+          render();
+          return;
+        }
+        finishSaved(list);
+      });
+      return;
+    }
     var store = window.CharacterStore;
     var view = window.WondiiOrg && window.WondiiOrg.get && window.WondiiOrg.get();
     if (!view || (view.status !== "ready" && view.status !== "error")) {

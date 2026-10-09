@@ -221,8 +221,22 @@
     });
   }
 
+  function childSession() {
+    var auth = global.WondiiSession && global.WondiiSession.get && global.WondiiSession.get();
+    var user = auth && auth.session && auth.session.user;
+    return !!(user && user.app_metadata && user.app_metadata.account_kind === "child");
+  }
+
   /** Load the user's character index (metadata array). cb(err, array). */
   function loadCharacters(cb) {
+    if (childSession()) {
+      if (!global.ChildLibrary) {
+        cb(fail("child_library_unavailable", "This character library is not open yet."), null);
+        return;
+      }
+      global.ChildLibrary.loadCharacters(cb);
+      return;
+    }
     withSession(function (err, sb, sess) {
       if (err) {
         cb(err, null);
@@ -271,6 +285,14 @@
 
   /** Replace the entire character index. cb(err). */
   function saveCharactersIndex(arr, cb) {
+    if (childSession()) {
+      if (!global.ChildLibrary) {
+        cb(fail("child_library_unavailable", "This character library is not open yet."));
+        return;
+      }
+      global.ChildLibrary.saveCharacters(arr || [], "", cb);
+      return;
+    }
     withSession(function (err, sb, sess) {
       if (err) {
         cb(err);
@@ -314,6 +336,14 @@
 
   /** Signed URL for displaying a character image (1 hour). cb(err, url). */
   function getCharacterSignedUrl(id, cb) {
+    if (childSession()) {
+      if (!global.ChildLibrary) {
+        cb(fail("child_library_unavailable", "This character library is not open yet."), null);
+        return;
+      }
+      global.ChildLibrary.characterArtUrl(id, cb);
+      return;
+    }
     withSession(function (err, sb, sess) {
       if (err) {
         cb(err, null);
@@ -338,6 +368,10 @@
 
   /** Delete the PNG for a character (does not modify index). cb(err). */
   function deleteCharacterImage(id, cb) {
+    if (childSession()) {
+      cb(null);
+      return;
+    }
     withSession(function (err, sb, sess) {
       if (err) {
         cb(err);
@@ -387,6 +421,49 @@
 
   /** Upload the picture, then write the workspace index. cb(err, record). */
   function saveCharacter(record, pngBlob, cb) {
+    if (childSession()) {
+      if (!global.ChildLibrary || !pngBlob) {
+        cb(fail("child_library_unavailable", "Generate the character before saving."));
+        return;
+      }
+      var heldKey = "";
+      try { heldKey = sessionStorage.getItem("wondii-child-character-key") || ""; } catch (e) { heldKey = ""; }
+      var ready = heldKey
+        ? Promise.resolve({ allowed: true, key: heldKey, reason: "held" })
+        : global.ChildLibrary.reserve("character");
+      ready.then(function (gate) {
+        if (!gate || gate.allowed !== true) {
+          cb(fail("allowance", "Today’s character creations are used up."));
+          return;
+        }
+        var saved = {
+          id: record.id || newCharacterId(),
+          name: record.name || "Character",
+          type: record.type || "buddy",
+          createdAt: record.createdAt || new Date().toISOString()
+        };
+        global.ChildLibrary.storeCharacterArt(saved.id, pngBlob, function (artErr) {
+          if (artErr) {
+            cb(fail("save_failed", "That picture was not saved."));
+            return;
+          }
+          global.ChildLibrary.loadCharacters(function (loadErr, list) {
+            var next = Array.isArray(list) ? list.slice() : [];
+            next = next.filter(function (item) { return item && item.id !== saved.id; });
+            next.unshift(saved);
+            global.ChildLibrary.saveCharacters(next, gate.key, function (saveErr) {
+              if (saveErr) {
+                cb(fail("allowance", "That character was not saved."));
+                return;
+              }
+              try { sessionStorage.removeItem("wondii-child-character-key"); } catch (e3) {}
+              cb(null, saved);
+            });
+          });
+        });
+      });
+      return;
+    }
     if (saveLock) {
       cb(fail("busy", "Save is already running."));
       return;

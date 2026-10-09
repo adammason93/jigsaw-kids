@@ -1,0 +1,122 @@
+/* Rules mirrored by the child library migration. The database is the authority. */
+
+export function creationRemaining(allowance, usedToday, reservedToday) {
+  var cap = Math.min(Number(allowance) || 0, 10);
+  var used = Math.max(0, Number(usedToday) || 0);
+  var reserved = Math.max(0, Number(reservedToday) || 0);
+  return Math.max(cap - used - reserved, 0);
+}
+
+export function canReserve(allowance, usedToday, reservedToday) {
+  return creationRemaining(allowance, usedToday, reservedToday) > 0;
+}
+
+export function londonDay(date) {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/London",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit"
+  }).format(date);
+}
+
+export function parentOwnsPath(path, userId) {
+  return typeof path === "string" && typeof userId === "string" && userId.length > 0 && path.indexOf(userId + "/") === 0;
+}
+
+export function sharePreview(book) {
+  var pages = book && Array.isArray(book.pages) ? book.pages.slice(0, 12) : [];
+  return {
+    title: String(book && book.title || "").slice(0, 80),
+    pages: pages.map(function (page) {
+      return { text: String(page && page.text || "").slice(0, 500) };
+    })
+  };
+}
+
+export function newIds(existing, incoming) {
+  var seen = {};
+  (existing || []).forEach(function (id) { seen[id] = true; });
+  return (incoming || []).filter(function (id) { return id && !seen[id]; });
+}
+
+var SAFE_PART = /^[A-Za-z0-9_.-]{1,80}$/;
+var CHILD_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+var RELATIVE = /^(books|characters|shared)\/[A-Za-z0-9_-]{1,80}(?:\/[A-Za-z0-9_.-]{1,80}){0,2}$/;
+
+export function artworkPath(childId, parts) {
+  if (!CHILD_ID.test(String(childId || ""))) return "";
+  var clean = [];
+  var i;
+  for (i = 0; i < (parts || []).length; i++) {
+    var part = String(parts[i] || "");
+    if (!SAFE_PART.test(part) || part.indexOf("..") !== -1) return "";
+    clean.push(part);
+  }
+  if (!clean.length) return "";
+  return String(childId) + "/" + clean.join("/");
+}
+
+export function privateMarker(relativePath) {
+  var path = String(relativePath || "");
+  if (path.indexOf("..") !== -1 || !RELATIVE.test(path)) return "";
+  return "wondii-private:" + path;
+}
+
+export function markerRelative(value) {
+  var raw = String(value || "");
+  if (raw.indexOf("wondii-private:") !== 0) return "";
+  var path = raw.slice("wondii-private:".length);
+  if (path.indexOf("..") !== -1 || path.indexOf("://") !== -1 || !RELATIVE.test(path)) return "";
+  return path;
+}
+
+export function storedFavourite(item, existing) {
+  if (item && Object.prototype.hasOwnProperty.call(item, "favourite")) {
+    return item.favourite === true || item.favourite === "true";
+  }
+  return typeof existing === "boolean" ? existing : false;
+}
+
+export function copyableStorybookUrl(value) {
+  var raw = String(value || "").trim();
+  if (!/^https:\/\//i.test(raw)) return false;
+  try {
+    var parsed = new URL(raw);
+    var host = parsed.hostname.toLowerCase();
+    var supabaseHost = host === "supabase.co" || host.slice(-12) === ".supabase.co";
+    var wondiiHost = host === "wondii.co.uk" || host === "www.wondii.co.uk";
+    if (!supabaseHost && !wondiiHost) return false;
+    return parsed.pathname.indexOf("/storage/v1/object/public/storybook_images/") !== -1;
+  } catch (e) {
+    return false;
+  }
+}
+
+export function serviceWorkerMustBypass(url) {
+  var raw = String(url || "");
+  return raw.indexOf("/storage/v1/") !== -1 || raw.indexOf("supabase.co") !== -1;
+}
+
+/* Sent as the object Cache-Control. A numeric max-age is served as
+   public and Supabase Smart CDN can replay it after revocation. */
+export var PRIVATE_OBJECT_CACHE = "private, no-store";
+
+/* Storage wraps a multipart cacheControl field as max-age=<value>.
+   A binary upload keeps the Cache-Control header unchanged. */
+export function storageMultipartCacheControl(fieldValue) {
+  var value = String(fieldValue || "");
+  return value ? "max-age=" + value : "no-cache";
+}
+
+export function storageBinaryCacheControl(headerValue) {
+  var value = String(headerValue || "");
+  return value || "no-cache";
+}
+
+export function sharedCacheMayStore(cacheControl) {
+  var value = String(cacheControl || "").toLowerCase();
+  if (!value) return true;
+  if (value.indexOf("no-store") !== -1 || value.indexOf("private") !== -1) return false;
+  return true;
+}

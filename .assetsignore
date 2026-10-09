@@ -2,6 +2,7 @@
 workers-site/
 # Git repository and dotfiles (Workers Builds deploys from a full checkout)
 .git/
+.git
 .gitignore
 .assetsignore
 # Build output and account cache written by wrangler during deploy

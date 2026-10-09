@@ -17,7 +17,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="portal-gate.css?v=4" />
+  <link rel="stylesheet" href="portal-gate.css?v=5" />
   <link rel="stylesheet" href="schools/org-portal.css?v=15" />
   <script src="js/score-config.js"></script>
   <script>
@@ -46,6 +46,7 @@
   <link rel="stylesheet" href="css/character-library.css?v=5" />
   <link rel="stylesheet" href="css/character-crew.css?v=2" />
   <link rel="stylesheet" href="css/portal-home.css?v=3" />
+  <link rel="stylesheet" href="css/family.css?v=11" />
 </head>
 <body class="page-portal">
   <div class="gate" id="portalGate" role="dialog" aria-modal="true" aria-labelledby="gateTitle">
@@ -64,6 +65,10 @@
         <label><input type="radio" name="wondiiIntent" value="family" checked /> For me / my family</label>
         <label><input type="radio" name="wondiiIntent" value="school" /> For a school</label>
       </fieldset>
+      <label class="gate__field" id="gateNameField" hidden>
+        <span>Your name</span>
+        <input type="text" id="gateParentName" autocomplete="name" maxlength="40" />
+      </label>
       <label class="gate__field">
         <span>Email</span>
         <input type="email" id="gateEmail" autocomplete="username" required />
@@ -88,6 +93,9 @@
         <img src="games/images/brand/wondi-wordmark.svg" width="276" height="93" alt="" />
       </a>
       <nav class="p-side__nav">
+        <a class="p-side__link" href="#family" data-view-link="family" hidden>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="9" r="2.2"/><circle cx="16" cy="9" r="2.2"/><path d="M3.8 18.5c.8-2.4 2.4-3.6 4.2-3.6s3.4 1.2 4.2 3.6M12 18.5c.8-2.4 2.4-3.6 4.2-3.6s3.4 1.2 4.2 3.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span>My Family</span>
+        </a>
         <a class="p-side__link" href="#home" data-view-link="home" data-teacher="home">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11.2 12 4l9 7.2V20a1 1 0 0 1-1 1h-5.5v-6h-5v6H4a1 1 0 0 1-1-1z"/></svg><span>Home</span>
         </a>
@@ -161,6 +169,7 @@
             <a role="menuitem" href="#home" data-account="home">My Wondii — Dashboard</a>
             <a role="menuitem" href="#characters" data-account="characters">My Characters</a>
             <a role="menuitem" href="#stories" data-account="stories">My Stories</a>
+            <a role="menuitem" href="#family" data-account="family" hidden>My Family</a>
             <div class="p-account__switch" id="pAccountSwitch" hidden>
               <p class="p-account__kicker" id="pAccountSwitchLabel">Switch workspace</p>
               <div id="pAccountWorkspaces" role="group" aria-labelledby="pAccountSwitchLabel"></div>
@@ -184,8 +193,13 @@
         <!-- Home -->
         <section class="p-view" data-view="home" aria-label="Home">
           <p class="org-banner" id="orgBanner" hidden></p>
+          <div id="familyInvite"></div>
           <div id="wondiiHome" class="home-v2" aria-busy="true"></div>
           <section class="org-today" id="orgToday" hidden></section>
+        </section>
+
+        <section class="p-view" data-view="family" aria-labelledby="familyTitle" hidden>
+          <div id="familyDash"></div>
         </section>
 
         <!-- Stories -->
@@ -416,14 +430,15 @@
     </nav>
   </div>
 
-  <script src="js/kids-core.js"></script>
+  <script src="js/kids-core.js?v=2"></script>
   <script src="js/storybook-shelf-store.js?v=3" defer></script>
   <script src="js/wondii-session.js?v=1" defer></script>
-  <script src="js/score-cloud.js?v=12" defer></script>
+  <script src="js/child-library.js?v=2" defer></script>
+  <script src="js/score-cloud.js?v=15" defer></script>
   <script src="js/account-context.js?v=2" defer></script>
-  <script src="js/character-store.js?v=3" defer></script>
+  <script src="js/character-store.js?v=5" defer></script>
   <script src="games/game-platform.js?v=1" defer></script>
-  <script src="portal.js?v=10" defer></script>
+  <script src="portal.js?v=11" defer></script>
   <script src="home-cast.js?v=4" defer></script>
   <script src="js/portal-shell.js?v=1" defer></script>
   <script src="js/organisation.js?v=15" defer></script>
@@ -435,11 +450,13 @@
   <script src="js/character-bible.js?v=1" defer></script>
   <script src="js/wondii-crew.js?v=1" defer></script>
   <script src="js/character-library.js?v=1" defer></script>
-  <script src="schools/learn/character-portal.js?v=5" defer></script>
+  <script src="schools/learn/character-portal.js?v=7" defer></script>
   <script src="js/portal-home-model.js?v=1" defer></script>
   <script src="js/portal-home.js?v=4" defer></script>
   <script src="schools/learn/home.js?v=20" defer></script>
-  <script src="portal-gate.js?v=9" defer></script>
+  <script src="js/qrcode.js?v=1" defer></script>
+  <script src="js/family.js?v=11" defer></script>
+  <script src="portal-gate.js?v=10" defer></script>
   <script>
     if (typeof KidsCore !== "undefined") {
       KidsCore.init({ skipBar: true, skipFullscreen: true });

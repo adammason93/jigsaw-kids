@@ -1,5 +1,5 @@
 /* Minimal offline shell — network-first, cache as fallback for same-origin */
-const CACHE = "jigsaw-kids-v445";
+const CACHE = "jigsaw-kids-v458";
 const SHELL = [
   "./index.html",
   "./portal.html",
@@ -22,6 +22,14 @@ const SHELL = [
   "./css/character-library.css",
   "./css/character-crew.css",
   "./css/portal-home.css",
+  "./js/family.js",
+  "./js/qrcode.js",
+  "./js/child-join.js",
+  "./js/child-library.js",
+  "./child.html",
+  "./child-character.html",
+  "./js/child-character.js",
+  "./css/family.css",
   "./portal-gate.js",
   "./portal-gate.css",
   "./welcome.css",
@@ -208,7 +216,7 @@ self.addEventListener("activate", function (e) {
       return self.clients.matchAll({ type: "window" });
     }).then(function (clients) {
       clients.forEach(function (client) {
-        if (/\/portal(\.html)?\/?(\?|#|$)/.test(client.url) || /\/schools\/learn\/(create|present|class|join)(\.html)?\/?(\?|#|$)/.test(client.url)) {
+        if (/\/portal(\.html)?\/?(\?|#|$)/.test(client.url) || /\/schools\/learn\/(create|present|class|join)(\.html)?\/?(\?|#|$)/.test(client.url) || /\/games\/[^/?#]+\.html/.test(client.url) || /\/child(-character)?\.html/.test(client.url)) {
           client.navigate(client.url);
         }
       });
@@ -216,13 +224,28 @@ self.addEventListener("activate", function (e) {
   );
 });
 
+function isPrivateContentRequest(request) {
+  var url = request && request.url ? request.url : "";
+  if (url.indexOf("/storage/v1/") !== -1) return true;
+  if (url.indexOf("supabase.co") !== -1) return true;
+  return false;
+}
+
 self.addEventListener("fetch", function (e) {
   if (e.request.method !== "GET" || e.request.url.indexOf("http") !== 0) {
     return;
   }
+  // Private library responses carry Cache-Control from storage. Letting the
+  // service worker refetch them can reuse a cached HTTP 200 after the device
+  // is revoked, the profile is suspended, or the access switch is turned off.
+  if (isPrivateContentRequest(e.request)) return;
   var learnPage = e.request.mode === "navigate" && /\/schools\/learn\/(create|present|class|join)(\.html)?\/?(?:\?|#|$)/.test(e.request.url);
   var portalPage = e.request.mode === "navigate" && /\/portal(\.html)?\/?(?:\?|#|$)/.test(e.request.url);
-  var request = (learnPage || portalPage) ? new Request(e.request, { cache: "reload" }) : e.request;
+  var gamePage = e.request.mode === "navigate" && /\/games\/[^/?#]+\.html/.test(e.request.url);
+  var childPage = e.request.mode === "navigate" && /\/child(-character)?\.html/.test(e.request.url);
+  var accountScript = /\/js\/(score-cloud|kids-core|wondii-session|family|child-join|child-library|child-character)\.js/.test(e.request.url)
+    || /\/portal\.js/.test(e.request.url);
+  var request = (learnPage || portalPage || gamePage || childPage || accountScript) ? new Request(e.request, { cache: "reload" }) : e.request;
   e.respondWith(
     fetch(request)
       .then(function (r) {

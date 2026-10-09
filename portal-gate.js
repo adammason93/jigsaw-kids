@@ -51,6 +51,7 @@
       : "Enter your email and password to open the games, stories and characters.";
     var intentBox = document.getElementById("gateIntent");
     if (intentBox) intentBox.hidden = !signingUp;
+    syncNameField();
     btn.textContent = recovering ? "Save password" : signingUp ? "Create account" : "Log in";
     if (email) email.hidden = recovering;
     if (tabLogin) tabLogin.hidden = recovering;
@@ -67,6 +68,17 @@
     if (pass) pass.autocomplete = signingUp ? "new-password" : "current-password";
     setStatus("");
   }
+
+  function syncNameField() {
+    var field = document.getElementById("gateNameField");
+    var picked = document.querySelector('input[name="wondiiIntent"]:checked');
+    var family = !picked || picked.value !== "school";
+    if (field) field.hidden = mode !== "signup" || !family;
+  }
+
+  document.querySelectorAll('input[name="wondiiIntent"]').forEach(function (input) {
+    input.addEventListener("change", syncNameField);
+  });
 
   function openGate() {
     root.classList.add("gate-on");
@@ -206,13 +218,27 @@
       });
     } else if (signingUp) {
       var picked = document.querySelector('input[name="wondiiIntent"]:checked');
+      var familySignup = !picked || picked.value !== "school";
+      var parentName = document.getElementById("gateParentName");
+      var displayName = parentName ? parentName.value.trim() : "";
+      if (familySignup && (displayName.length < 2 || displayName.length > 40)) {
+        done = true;
+        clearTimeout(wait);
+        btn.disabled = false;
+        setStatus("Enter your name.", true);
+        if (parentName) parentName.focus();
+        return;
+      }
       try {
         localStorage.setItem("wondii-account-intent", JSON.stringify({
           email: addr.toLowerCase(),
-          intent: picked && picked.value === "school" ? "school" : "family"
+          intent: familySignup ? "family" : "school",
+          displayName: familySignup ? displayName : ""
         }));
       } catch (intentErr) {}
-      var startSignup = function () { cloud.signUp(addr, pwd, finish); };
+      var startSignup = function () {
+        cloud.signUp(addr, pwd, finish, familySignup ? { displayName: displayName } : null);
+      };
       if (cloud.signOut) cloud.signOut(startSignup);
       else startSignup();
     } else {
