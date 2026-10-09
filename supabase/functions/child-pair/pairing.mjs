@@ -41,8 +41,9 @@ export function childDeviceEmail(deviceId) {
   return "device-" + deviceId + "@users.child.invalid";
 }
 
-/* Cloudflare sets cf-connecting-ip and overwrites a client value.
-   x-forwarded-for is a chain the caller can prepend, so it is ignored. */
+/* The public function URL is served through Cloudflare, which overwrites
+   cf-connecting-ip. x-forwarded-for is a chain the caller can prepend, so it is ignored.
+   A missing platform address shares one bucket rather than trusting another header. */
 export function pairingClientAddress(headers) {
   const value = headerText(headers, "cf-connecting-ip").trim();
   if (!value || value.length > 64 || /[\s,]/.test(value)) return "unknown";

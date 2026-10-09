@@ -164,8 +164,9 @@ assert.ok(join.indexOf("function pairingAllowedHere") < join.indexOf('form.addEv
 
 const switchSql = fs.readFileSync(path.join(root, "supabase/migrations/20261008250000_child_access_switch.sql"), "utf8");
 assert.match(switchSql, /private\.child_access_control/);
-assert.match(switchSql, /pairing_enabled boolean not null default true/);
-assert.match(switchSql, /content_enabled boolean not null default true/);
+assert.match(switchSql, /pairing_enabled boolean not null default false/);
+assert.match(switchSql, /content_enabled boolean not null default false/);
+assert.ok(switchSql.indexOf("if ip_attempts > 20") < switchSql.indexOf("bump_pairing_bucket('global'"));
 assert.match(switchSql, /if private\.child_access_open\('content'\) is not true/);
 assert.match(switchSql, /if private\.child_access_open\('pairing'\) is not true/);
 assert.match(switchSql, /device_revoked/);

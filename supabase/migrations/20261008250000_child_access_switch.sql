@@ -1,11 +1,12 @@
 -- Emergency switch for child pairing and child content.
 -- Apply after 20261008240000. Do not apply until the release window is approved.
+-- Both flags default to false, so applying this file does not open pairing or child content.
 -- Turning the flags off does not delete profiles, devices, shelves, books, characters, or storage objects.
 
 create table if not exists private.child_access_control (
   singleton boolean primary key default true check (singleton),
-  pairing_enabled boolean not null default true,
-  content_enabled boolean not null default true,
+  pairing_enabled boolean not null default false,
+  content_enabled boolean not null default false,
   updated_at timestamptz not null default now()
 );
 
@@ -220,5 +221,34 @@ grant execute on function public.consume_child_pairing(text) to service_role;
 revoke all on function public.register_child_device(uuid, uuid) from public, anon, authenticated;
 grant execute on function public.register_child_device(uuid, uuid) to service_role;
 
+-- A bucket that is already over its own cap must not keep consuming the global cap.
+create or replace function public.pairing_attempt_allowed(p_bucket text)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  ip_attempts integer;
+  global_attempts integer;
+begin
+  if coalesce(p_bucket, '') !~ '^[0-9a-f]{32}$' then
+    return jsonb_build_object('allowed', false, 'reason', 'limited');
+  end if;
+  ip_attempts := private.bump_pairing_bucket(p_bucket, interval '10 minutes');
+  if ip_attempts > 20 then
+    return jsonb_build_object('allowed', false, 'reason', 'limited');
+  end if;
+  global_attempts := private.bump_pairing_bucket('global', interval '10 minutes');
+  if global_attempts > 300 then
+    return jsonb_build_object('allowed', false, 'reason', 'limited');
+  end if;
+  return jsonb_build_object('allowed', true);
+end;
+$$;
+
+revoke all on function public.pairing_attempt_allowed(text) from public, anon, authenticated;
+grant execute on function public.pairing_attempt_allowed(text) to service_role;
+
 comment on table private.child_access_control is
-  'Singleton emergency switch. Set pairing_enabled and content_enabled to false to stop new pairing and block child sessions from protected data. Rows and storage objects stay.';
+  'Singleton switch. Both flags default to false. Set them true only for an approved pairing test or launch. Setting them false stops new pairing and blocks child sessions from protected data. Rows and storage objects stay.';

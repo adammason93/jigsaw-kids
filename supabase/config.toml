@@ -32,6 +32,6 @@ verify_jwt = true
 [functions.child-pair]
 # A device has no user session yet. It posts the public anon key plus one pairing code.
 # The function redeems that code with the service role. Do not deploy until
-# 20261008220000 through 20261008250000 are applied. Set CHILD_PAIRING_ENABLED=1
-# only in the approved window. Leave it unset to refuse every pairing request.
+# 20261008220000 through 20261008250000 are applied. Leave CHILD_PAIRING_ENABLED
+# unset for the public rollout. Set it to 1 only for the controlled pairing test.
 verify_jwt = false
