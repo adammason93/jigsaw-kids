@@ -57,8 +57,8 @@ assert.match(artwork, /private\.session_child_folder\(\)/);
 assert.match(artwork, /private\.parent_owns_child_folder/);
 assert.equal(repair.includes("create policy"), false);
 
-assert.match(library, /cacheControl: "private, no-store"/);
-assert.equal(library.includes('cacheControl: "0"'), false);
+assert.match(library, /"Cache-Control": "private, no-store"/);
+assert.equal(library.includes("cacheControl:"), false);
 assert.match(library, /cache: "no-store"/);
 assert.match(library, /\/storage\/v1\/object\/public\/storybook_images\//);
 assert.match(library, /function copyableStorybookUrl/);
@@ -145,7 +145,16 @@ function loadLibrary(options) {
       }
     },
     fetch(url, init) {
-      fetches.push({ url: String(url), cache: init && init.cache });
+      const method = (init && init.method) || "GET";
+      fetches.push({ url: String(url), cache: init && init.cache, method: method });
+      if (method === "POST" && String(url).indexOf("/storage/v1/object/child_library/") !== -1) {
+        const relative = decodeURIComponent(String(url).split("/storage/v1/object/child_library/")[1] || "");
+        uploads.push({ path: relative, blob: init.body, headers: init.headers || {} });
+        if (failCover && relative.endsWith("/cover.jpg")) {
+          return Promise.resolve({ ok: false, status: 400, text() { return Promise.resolve("cover_failed"); } });
+        }
+        return Promise.resolve({ ok: true, status: 200, text() { return Promise.resolve("{}"); } });
+      }
       if (String(url).endsWith(".json")) {
         const body = JSON.stringify({ id: "b1791534140235-607078", title: "Saved", pages: [{ text: "Hello" }] });
         return Promise.resolve({ ok: true, status: 200, blob() { return Promise.resolve(new Blob([body], { type: "application/json" })); } });
@@ -201,8 +210,9 @@ assert.ok(paths.includes(CHILD + "/books/b1791534140235-607078/cover.jpg"));
 assert.ok(paths.includes(CHILD + "/books/b1791534140235-607078.json"));
 assert.equal(paths.filter(item => item.endsWith("/p0.jpg")).length, 1);
 saved.uploads.forEach(item => {
-  assert.equal(item.opts.upsert, true);
-  assert.equal(item.opts.cacheControl, "private, no-store");
+  assert.equal(item.headers["Cache-Control"], "private, no-store");
+  assert.equal(item.headers["x-upsert"], "true");
+  assert.equal(item.headers["Content-Type"] ? item.headers["Content-Type"].indexOf("multipart") : -1, -1);
 });
 const jsonUpload = saved.uploads.find(item => item.path.endsWith(".json"));
 const storedJson = JSON.parse(await jsonUpload.blob.text());
@@ -210,7 +220,7 @@ assert.equal(storedJson.pages[0].imageUrlFallback.startsWith("wondii-private:"),
 assert.equal(JSON.stringify(storedJson).includes("https://"), false);
 const saveOrder = saved.uploads.findIndex(item => item.path.endsWith(".json"));
 assert.ok(saveOrder > saved.uploads.findIndex(item => item.path.endsWith("/cover.jpg")));
-assert.equal(saved.fetches.every(item => item.cache === "no-store"), true);
+assert.equal(saved.fetches.filter(item => item.method !== "POST").every(item => item.cache === "no-store"), true);
 
 const again = await shelfCall(saved.api, book, "wondiilanternkey01");
 assert.equal(again, null);

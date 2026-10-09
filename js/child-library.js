@@ -91,14 +91,36 @@
     reader.readAsDataURL(blob);
   }
 
+  /* Binary upload. The JS upload() helper sends cacheControl as a multipart
+     field, and Storage rewrites every field value to max-age=<value>.
+     A raw body keeps Cache-Control: private, no-store on the object. */
   function putObject(sb, path, blob, contentType, done) {
-    sb.storage.from(BUCKET).upload(path, blob, {
-      upsert: true,
-      contentType: contentType,
-      cacheControl: "private, no-store"
-    })
-      .then(function (up) { done(up.error || null); })
-      .catch(function (err) { done(err || new Error("upload_failed")); });
+    var url = objectUrl(sb, path);
+    Promise.resolve(sb.auth.getSession()).then(function (sess) {
+      var token = sess && sess.data && sess.data.session && sess.data.session.access_token;
+      if (!url || !token) throw new Error("missing");
+      return fetch(url, {
+        method: "POST",
+        headers: {
+          Authorization: "Bearer " + token,
+          apikey: sb.supabaseKey || "",
+          "Content-Type": contentType || "application/octet-stream",
+          "Cache-Control": "private, no-store",
+          "x-upsert": "true"
+        },
+        body: blob
+      });
+    }).then(function (res) {
+      if (!res || !res.ok) {
+        var read = res && res.text ? res.text() : Promise.resolve("");
+        return Promise.resolve(read).then(function (text) {
+          throw new Error(String(text || "upload_failed"));
+        });
+      }
+      done(null);
+    }).catch(function (err) {
+      done(err || new Error("upload_failed"));
+    });
   }
 
   function objectUrl(sb, path) {
