@@ -1,6 +1,6 @@
 /* Private child_library delivery.
-   The browser calls this route. The service role is used only here, after
-   the caller's own session has been accepted, and is never returned. */
+   The browser calls this route. After the caller's own session is accepted,
+   the object is read from the S3 origin. S3 keys stay in this function. */
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const PART = /^[A-Za-z0-9_.-]{1,80}$/;
@@ -175,35 +175,114 @@ function safeType(header) {
   return TYPES[value] ? value : "application/octet-stream";
 }
 
-function cacheNonce() {
-  const bytes = new Uint8Array(16);
-  crypto.getRandomValues(bytes);
+const EMPTY_PAYLOAD_SHA256 = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
+
+function hexBytes(buffer) {
+  const bytes = buffer instanceof Uint8Array ? buffer : new Uint8Array(buffer);
   let out = "";
   let i;
   for (i = 0; i < bytes.length; i++) out += bytes[i].toString(16).padStart(2, "0");
   return out;
 }
 
+function amzTimestamp(env) {
+  const now = env && env.now ? new Date(env.now) : new Date();
+  return now.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}Z$/, "Z");
+}
+
+function s3Origin(env) {
+  if (env && env.s3Endpoint) return String(env.s3Endpoint).replace(/\/$/, "");
+  const url = String(env && env.supabaseUrl || "").replace(/\/$/, "");
+  if (!/^https:\/\/[a-z0-9]+\.supabase\.co$/i.test(url)) return "";
+  return url.replace(".supabase.co", ".storage.supabase.co");
+}
+
+async function hmacSha256(keyBytes, text) {
+  const key = await crypto.subtle.importKey(
+    "raw",
+    keyBytes,
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"]
+  );
+  return new Uint8Array(await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(text)));
+}
+
+async function sha256Hex(text) {
+  return hexBytes(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text)));
+}
+
+/* AWS Signature Version 4. The signed request is a GetObject on the storage
+   hostname, not a Smart CDN object URL. */
+export async function awsSigV4Authorization(spec) {
+  const names = Object.keys(spec.headers).map(function (name) {
+    return name.toLowerCase();
+  }).sort();
+  const canonicalHeaders = names.map(function (name) {
+    return name + ":" + String(spec.headers[name]).trim() + "\n";
+  }).join("");
+  const signedHeaders = names.join(";");
+  const payload = spec.payloadHash || EMPTY_PAYLOAD_SHA256;
+  const canonical = [
+    spec.method,
+    spec.uri,
+    spec.query || "",
+    canonicalHeaders,
+    signedHeaders,
+    payload
+  ].join("\n");
+  const dateStamp = String(spec.amzDate).slice(0, 8);
+  const scope = dateStamp + "/" + spec.region + "/s3/aws4_request";
+  const stringToSign = [
+    "AWS4-HMAC-SHA256",
+    spec.amzDate,
+    scope,
+    await sha256Hex(canonical)
+  ].join("\n");
+  let key = new TextEncoder().encode("AWS4" + spec.secretAccessKey);
+  key = await hmacSha256(key, dateStamp);
+  key = await hmacSha256(key, spec.region);
+  key = await hmacSha256(key, "s3");
+  key = await hmacSha256(key, "aws4_request");
+  const signature = hexBytes(await hmacSha256(key, stringToSign));
+  return "AWS4-HMAC-SHA256 Credential=" + spec.accessKeyId + "/" + scope +
+    ", SignedHeaders=" + signedHeaders + ", Signature=" + signature;
+}
+
 async function readPrivateObject(env, objectPath, fetchImpl) {
+  const origin = s3Origin(env);
+  const region = String(env.s3Region || "eu-west-1");
+  if (!origin || !env.s3AccessKeyId || !env.s3SecretAccessKey || !region) return { error: "unconfigured" };
   const encoded = objectPath.split("/").map(function (part) {
     return encodeURIComponent(part);
   }).join("/");
-  /* cacheNonce is the Smart CDN bypass. Other query strings are ignored and
-     can replay a cached object. This does not write the object. */
-  const res = await fetchImpl(
-    env.supabaseUrl.replace(/\/$/, "") + "/storage/v1/object/child_library/" + encoded + "?cacheNonce=" + cacheNonce(),
-    {
-      method: "GET",
-      cache: "no-store",
-      redirect: "manual",
-      headers: {
-        Authorization: "Bearer " + env.serviceKey,
-        apikey: env.serviceKey,
-        "Cache-Control": "no-cache",
-        Pragma: "no-cache"
-      }
+  const uri = "/storage/v1/s3/child_library/" + encoded;
+  const amzDate = amzTimestamp(env);
+  const host = new URL(origin).host;
+  const signedHeaders = {
+    host: host,
+    "x-amz-content-sha256": EMPTY_PAYLOAD_SHA256,
+    "x-amz-date": amzDate
+  };
+  const authorization = await awsSigV4Authorization({
+    method: "GET",
+    uri: uri,
+    region: region,
+    accessKeyId: env.s3AccessKeyId,
+    secretAccessKey: env.s3SecretAccessKey,
+    amzDate: amzDate,
+    headers: signedHeaders
+  });
+  const res = await fetchImpl(origin + uri, {
+    method: "GET",
+    cache: "no-store",
+    redirect: "manual",
+    headers: {
+      "x-amz-content-sha256": EMPTY_PAYLOAD_SHA256,
+      "x-amz-date": amzDate,
+      Authorization: authorization
     }
-  );
+  });
   if (res.status >= 300 && res.status < 400) return { error: "unavailable" };
   if (!res.ok) return { error: "missing" };
   const cached = String(res.headers.get("cf-cache-status") || "").toUpperCase();
@@ -226,6 +305,9 @@ export async function handleChildArt(req, env, fetchImpl) {
   const decision = await authorise(env, token, objectInfo, fetchImpl);
   if (!decision.allow) return reply(req, decision.status || 403, decision.reason || "unavailable");
   const file = await readPrivateObject(env, objectInfo.objectPath, fetchImpl);
-  if (!file.bytes) return reply(req, file.error === "unavailable" ? 502 : 404, file.error || "missing");
+  if (!file.bytes) {
+    const status = file.error === "unconfigured" ? 503 : file.error === "unavailable" ? 502 : 404;
+    return reply(req, status, file.error === "unconfigured" ? "unavailable" : (file.error || "missing"));
+  }
   return reply(req, 200, "", file.bytes, file.contentType);
 }

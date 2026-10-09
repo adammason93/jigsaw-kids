@@ -31,7 +31,8 @@ assert.match(library.slice(library.indexOf("function loadSharedBook"), library.i
 assert.equal(cloud.includes("child-art"), false);
 
 assert.match(library, /"Cache-Control": "private, no-store"/);
-assert.match(library, /"x-upsert": "true"/);
+assert.equal(library.includes('"x-upsert"'), false);
+assert.match(library, /KeyAlreadyExists/);
 assert.equal(library.includes("cacheControl:"), false);
 assert.equal(library.includes(".upload("), false);
 assert.match(library, /"Cache-Control": "no-store"/);

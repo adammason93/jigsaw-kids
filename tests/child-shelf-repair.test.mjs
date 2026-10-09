@@ -87,6 +87,8 @@ function loadLibrary(options) {
   const fetches = [];
   const failPictures = options.failPictures === true;
   const failCover = options.failCover === true;
+  const duplicate = options.duplicate === true;
+  const deny = options.deny === true;
   const rpcResult = options.rpcResult || { allowed: true, remaining: 0 };
   const sb = {
     supabaseUrl: "https://enuzrcjnrxwglacivlnu.supabase.co",
@@ -153,6 +155,20 @@ function loadLibrary(options) {
         if (failCover && relative.endsWith("/cover.jpg")) {
           return Promise.resolve({ ok: false, status: 400, text() { return Promise.resolve("cover_failed"); } });
         }
+        if (deny) {
+          return Promise.resolve({
+            ok: false,
+            status: 400,
+            text() { return Promise.resolve('{"statusCode":"403","error":"Unauthorized","message":"new row violates row-level security policy"}'); }
+          });
+        }
+        if (duplicate) {
+          return Promise.resolve({
+            ok: false,
+            status: 400,
+            text() { return Promise.resolve('{"statusCode":"409","error":"Duplicate","code":"KeyAlreadyExists"}'); }
+          });
+        }
         return Promise.resolve({ ok: true, status: 200, text() { return Promise.resolve("{}"); } });
       }
       if (String(url).endsWith(".json")) {
@@ -211,9 +227,15 @@ assert.ok(paths.includes(CHILD + "/books/b1791534140235-607078.json"));
 assert.equal(paths.filter(item => item.endsWith("/p0.jpg")).length, 1);
 saved.uploads.forEach(item => {
   assert.equal(item.headers["Cache-Control"], "private, no-store");
-  assert.equal(item.headers["x-upsert"], "true");
+  assert.equal(Object.prototype.hasOwnProperty.call(item.headers, "x-upsert"), false);
   assert.equal(item.headers["Content-Type"] ? item.headers["Content-Type"].indexOf("multipart") : -1, -1);
 });
+const duplicateSave = loadLibrary({ duplicate: true });
+assert.equal(await shelfCall(duplicateSave.api, book, "wondiilanternkey01"), null);
+const deniedSave = loadLibrary({ deny: true });
+const deniedError = await shelfCall(deniedSave.api, book, "wondiilanternkey01");
+assert.ok(deniedError);
+assert.match(String(deniedError.message || deniedError), /row-level security/);
 const jsonUpload = saved.uploads.find(item => item.path.endsWith(".json"));
 const storedJson = JSON.parse(await jsonUpload.blob.text());
 assert.equal(storedJson.pages[0].imageUrlFallback.startsWith("wondii-private:"), true);

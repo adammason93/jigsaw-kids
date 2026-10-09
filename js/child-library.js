@@ -93,7 +93,11 @@
 
   /* Binary upload. The JS upload() helper sends cacheControl as a multipart
      field, and Storage rewrites every field value to max-age=<value>.
-     A raw body keeps Cache-Control: private, no-store on the object. */
+     A raw body keeps Cache-Control: private, no-store on the object.
+     x-upsert is INSERT .. ON CONFLICT DO UPDATE. PostgreSQL rejects that
+     unless the caller can SELECT the existing row, and child_library has no
+     select policy. A plain insert is allowed. KeyAlreadyExists means this
+     path was already stored. */
   function putObject(sb, path, blob, contentType, done) {
     var url = objectUrl(sb, path);
     Promise.resolve(sb.auth.getSession()).then(function (sess) {
@@ -105,8 +109,7 @@
           Authorization: "Bearer " + token,
           apikey: sb.supabaseKey || "",
           "Content-Type": contentType || "application/octet-stream",
-          "Cache-Control": "private, no-store",
-          "x-upsert": "true"
+          "Cache-Control": "private, no-store"
         },
         body: blob
       });
@@ -114,6 +117,10 @@
       if (!res || !res.ok) {
         var read = res && res.text ? res.text() : Promise.resolve("");
         return Promise.resolve(read).then(function (text) {
+          if (String(text).indexOf("KeyAlreadyExists") !== -1) {
+            done(null);
+            return;
+          }
           throw new Error(String(text || "upload_failed"));
         });
       }

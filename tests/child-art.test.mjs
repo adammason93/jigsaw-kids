@@ -3,7 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { sharedCacheMayStore } from "../js/child-library-rules.mjs";
-import { handleChildArt, parseLibraryObject } from "../supabase/functions/child-art/handler.mjs";
+import { awsSigV4Authorization, handleChildArt, parseLibraryObject } from "../supabase/functions/child-art/handler.mjs";
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
 const CHILD = "863ea310-302c-42d5-b139-0906124b3641";
@@ -13,7 +13,12 @@ const PNG = Uint8Array.of(137, 80, 78, 71, 13, 10, 26, 10);
 const env = {
   supabaseUrl: "https://example.supabase.co",
   anonKey: "anon-test-key",
-  serviceKey: "service-test-key"
+  serviceKey: "service-test-key",
+  s3AccessKeyId: "AKIAIOSFODNN7EXAMPLE",
+  s3SecretAccessKey: "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
+  s3Region: "eu-west-1",
+  s3Endpoint: "https://example.storage.supabase.co",
+  now: "2013-05-24T00:00:00.000Z"
 };
 
 function request(objectPath, token, query) {
@@ -38,7 +43,7 @@ function world(state) {
     if (target.endsWith("/parent_child_activity")) {
       return Promise.resolve(new Response(JSON.stringify(state.parentBody || {}), { status: state.parentStatus || 200 }));
     }
-    if (target.indexOf("/storage/v1/object/child_library/") !== -1) {
+    if (target.indexOf("/storage/v1/s3/child_library/") !== -1) {
       if (state.storageStatus && state.storageStatus !== 200) {
         return Promise.resolve(new Response("no", { status: state.storageStatus }));
       }
@@ -55,7 +60,7 @@ function world(state) {
 }
 
 function storageCalls(calls) {
-  return calls.filter((call) => call.url.indexOf("/storage/v1/object/") !== -1);
+  return calls.filter((call) => call.url.indexOf("/storage/v1/s3/child_library/") !== -1);
 }
 
 function rpcNames(calls) {
@@ -89,15 +94,20 @@ function jwt(accountKind) {
 const childJwt = jwt("child");
 const parentJwt = jwt("");
 
-function assertServiceFetch(call) {
-  const nonce = new URL(call.url).searchParams.get("cacheNonce");
+function assertOriginRead(call) {
+  const url = new URL(call.url);
+  assert.equal(url.host, "example.storage.supabase.co");
+  assert.equal(url.pathname.startsWith("/storage/v1/s3/child_library/"), true);
+  assert.equal(url.pathname.includes("/storage/v1/object/"), false);
+  assert.equal(url.search, "");
   assert.equal(call.init.cache, "no-store");
   assert.equal(call.init.redirect, "manual");
-  assert.equal(call.init.headers.Authorization, "Bearer service-test-key");
-  assert.equal(call.init.headers.apikey, "service-test-key");
-  assert.equal(call.url.includes("/object/public/"), false);
-  assert.match(nonce, /^[0-9a-f]{32}$/);
+  assert.match(call.init.headers.Authorization, /^AWS4-HMAC-SHA256 /);
+  assert.equal(call.init.headers.Authorization.includes("service-test-key"), false);
+  assert.equal(call.init.headers.Authorization.includes(env.s3SecretAccessKey), false);
   assert.equal(call.init.headers.Authorization.includes(childJwt), false);
+  assert.equal(call.init.headers.apikey, undefined);
+  assert.equal(JSON.stringify(call.init.headers).includes("Bearer"), false);
 }
 
 const picture = CHILD + "/books/b1791534140235-607078/p0.jpg";
@@ -111,10 +121,11 @@ assert.equal(ok.headers.get("Content-Type"), "image/png");
 assert.deepEqual(await bodyBytes(ok), PNG);
 assertPrivate(ok);
 assert.equal(storageCalls(allowed.calls).length, 1);
-assertServiceFetch(storageCalls(allowed.calls)[0]);
+assertOriginRead(storageCalls(allowed.calls)[0]);
 assert.equal(allowed.calls[0].init.headers.Authorization, "Bearer child-token");
 assert.equal(allowed.calls[0].init.headers.apikey, "anon-test-key");
-assert.equal(JSON.stringify(allowed.calls).includes("service-test-key"), true);
+assert.equal(JSON.stringify(allowed.calls).includes("service-test-key"), false);
+assert.equal(JSON.stringify(allowed.calls).includes(env.s3SecretAccessKey), false);
 assert.equal(ok.headers.get("Cache-Control").includes("service-test-key"), false);
 
 const shapes = [
@@ -146,7 +157,7 @@ const repeatFetch = (url, init) => {
       ? { allowed: false, reason: "device_revoked" }
       : { allowed: true, childId: CHILD }));
   }
-  if (String(url).indexOf("/storage/v1/object/child_library/") !== -1) {
+  if (String(url).indexOf("/storage/v1/s3/child_library/") !== -1) {
     return Promise.resolve(new Response(PNG, {
       status: 200,
       headers: { "Content-Type": "image/png", "Cache-Control": "public, max-age=3600" }
@@ -220,7 +231,7 @@ const parentOffRes = await handleChildArt(request(picture, parentJwt), env, cont
 assert.equal(parentOffRes.status, 200);
 assert.deepEqual(await bodyBytes(parentOffRes), PNG);
 assertPrivate(parentOffRes);
-assertServiceFetch(storageCalls(contentOffParent.calls)[0]);
+assertOriginRead(storageCalls(contentOffParent.calls)[0]);
 
 const parent = world({
   access: { allowed: false, reason: "not_child" },
@@ -322,14 +333,47 @@ assert.equal(staleText.includes("PNG"), false);
 assert.match(staleText, /unavailable/);
 assert.equal(storageCalls(stale.calls).length, 1);
 
-const firstNonce = new URL(storageCalls(allowed.calls)[0].url).searchParams.get("cacheNonce");
-const secondRead = world({ access: { allowed: true, childId: CHILD }, cacheStatus: "MISS" });
-const secondBytes = await handleChildArt(request(picture, childJwt), env, secondRead.fetchImpl);
-assert.equal(secondBytes.status, 200);
-assert.deepEqual(await bodyBytes(secondBytes), PNG);
-const secondNonce = new URL(storageCalls(secondRead.calls)[0].url).searchParams.get("cacheNonce");
-assert.notEqual(firstNonce, secondNonce);
-assert.equal(new URL(request(picture, childJwt).url).searchParams.get("cacheNonce"), null);
+const again = world({ access: { allowed: true, childId: CHILD } });
+const page = CHILD + "/books/b1791534140235-607078/p1.jpg";
+const reopenFirst = await handleChildArt(request(page, childJwt), env, again.fetchImpl);
+const reopenSecond = await handleChildArt(request(page, childJwt), env, again.fetchImpl);
+assert.equal(reopenFirst.status, 200);
+assert.equal(reopenSecond.status, 200);
+assert.deepEqual(await bodyBytes(reopenFirst), PNG);
+assert.deepEqual(await bodyBytes(reopenSecond), PNG);
+assert.equal(storageCalls(again.calls).length, 2);
+assert.equal(storageCalls(again.calls)[0].url.includes("/storage/v1/object/"), false);
+assert.equal(storageCalls(again.calls)[1].url.includes("cacheNonce"), false);
+assertOriginRead(storageCalls(again.calls)[0]);
+assertOriginRead(storageCalls(again.calls)[1]);
+
+const parentAgain = world({
+  access: { allowed: false, reason: "not_child" },
+  parentStatus: 200,
+  parentBody: { childId: CHILD }
+});
+const parentFirst = await handleChildArt(request(picture, parentJwt), env, parentAgain.fetchImpl);
+const parentSecond = await handleChildArt(request(picture, parentJwt), env, parentAgain.fetchImpl);
+assert.equal(parentFirst.status, 200);
+assert.equal(parentSecond.status, 200);
+assert.deepEqual(await bodyBytes(parentFirst), PNG);
+assert.deepEqual(await bodyBytes(parentSecond), PNG);
+assert.equal(storageCalls(parentAgain.calls).length, 2);
+
+const cachedBypass = world({
+  access: { allowed: false, reason: "device_revoked" },
+  cacheStatus: "HIT"
+});
+const cachedBypassRes = await handleChildArt(request(picture, childJwt), env, cachedBypass.fetchImpl);
+assert.equal(cachedBypassRes.status, 403);
+assert.equal(storageCalls(cachedBypass.calls).length, 0);
+
+const missingKeys = world({ access: { allowed: true, childId: CHILD } });
+const missingKeyEnv = Object.assign({}, env, { s3SecretAccessKey: "" });
+const missingKeyRes = await handleChildArt(request(picture, childJwt), missingKeyEnv, missingKeys.fetchImpl);
+assert.equal(missingKeyRes.status, 503);
+assert.equal(storageCalls(missingKeys.calls).length, 0);
+assert.equal((await missingKeyRes.text()).includes(env.s3AccessKeyId), false);
 
 const redirectWorld = world({ access: { allowed: true, childId: CHILD }, storageStatus: 302 });
 const redirectRes = await handleChildArt(request(picture, "child-token"), env, redirectWorld.fetchImpl);
@@ -409,3 +453,22 @@ const artAt = config.indexOf("[functions.child-art]");
 const artNext = config.indexOf("[functions.", artAt + 10);
 assert.ok(artAt > 0 && artNext > artAt);
 assert.match(config.slice(artAt, artNext), /verify_jwt = false/);
+
+const awsExample = await awsSigV4Authorization({
+  method: "GET",
+  uri: "/test.txt",
+  region: "us-east-1",
+  accessKeyId: "AKIAIOSFODNN7EXAMPLE",
+  secretAccessKey: "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
+  amzDate: "20130524T000000Z",
+  headers: {
+    host: "examplebucket.s3.amazonaws.com",
+    range: "bytes=0-9",
+    "x-amz-content-sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "x-amz-date": "20130524T000000Z"
+  }
+});
+assert.equal(awsExample, "AWS4-HMAC-SHA256 Credential=AKIAIOSFODNN7EXAMPLE/20130524/us-east-1/s3/aws4_request, SignedHeaders=host;range;x-amz-content-sha256;x-amz-date, Signature=f0e8bdb87c964420e857bd35b5d6ed310bd44f0170aba48dd91039c6036bdb41");
+const handlerSource = fs.readFileSync(path.join(root, "supabase/functions/child-art/handler.mjs"), "utf8");
+assert.equal(handlerSource.includes("cacheNonce"), false);
+assert.equal(handlerSource.includes("/storage/v1/object/"), false);
