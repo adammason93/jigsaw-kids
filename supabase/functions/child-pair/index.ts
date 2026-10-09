@@ -1,7 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
 import { createClient } from "npm:@supabase/supabase-js@2";
-import { childDeviceEmail, normalisePairingCode, pairingCodeIsShape } from "./pairing.mjs";
+import { childDeviceEmail, normalisePairingCode, pairingClientAddress, pairingCodeIsShape } from "./pairing.mjs";
 
 /* Redeems one pairing code and returns a child session.
    Not deployed. The service role stays in this function. */
@@ -24,9 +24,7 @@ function json(req: Request, body: unknown, status: number): Response {
 }
 
 async function pairingBucket(req: Request): Promise<string> {
-  const forwarded = req.headers.get("x-forwarded-for") || "";
-  const hops = forwarded.split(",").map((part) => part.trim()).filter(Boolean);
-  const raw = (req.headers.get("cf-connecting-ip") || hops[hops.length - 1] || "unknown").trim();
+  const raw = pairingClientAddress(req.headers);
   const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode("pair|" + raw));
   return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("").slice(0, 32);
 }
@@ -53,6 +51,9 @@ Deno.serve(async (req) => {
     });
   }
   if (req.method !== "POST") return json(req, { allowed: false, reason: "invalid" }, 405);
+  if ((Deno.env.get("CHILD_PAIRING_ENABLED") || "").trim() !== "1") {
+    return json(req, { allowed: false, reason: "unavailable" }, 503);
+  }
 
   const url = (Deno.env.get("SUPABASE_URL") || "").trim();
   const serviceKey = (Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "").trim();
@@ -75,6 +76,9 @@ Deno.serve(async (req) => {
   const consumed = await admin.rpc("consume_child_pairing", { p_code: code });
   const decision = consumed.data;
   if (consumed.error || !decision || decision.allowed !== true || !decision.childId) {
+    if (decision && decision.reason === "unavailable") {
+      return json(req, { allowed: false, reason: "unavailable" }, 503);
+    }
     const reason = decision && decision.reason === "profile_unavailable"
       ? "profile_unavailable"
       : "invalid";

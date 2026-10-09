@@ -238,7 +238,7 @@ assert.ok(creatorJs.indexOf("Tell Wondii what you would like your class to learn
 assert.strictEqual(creatorJs.indexOf("Groups or devices"), -1);
 assert.strictEqual(creatorJs.indexOf("Quick create"), -1);
 assert.ok(worker.indexOf("learnDocument") !== -1);
-assert.ok(sw.indexOf("jigsaw-kids-v456") !== -1);
+assert.ok(sw.indexOf("jigsaw-kids-v457") !== -1);
 var friendlyAt = creatorJs.indexOf("Wondii couldn't finish this adventure.");
 assert.ok(friendlyAt !== -1);
 assert.strictEqual(creatorJs.slice(friendlyAt, friendlyAt + 420).indexOf("generation.issues"), -1);

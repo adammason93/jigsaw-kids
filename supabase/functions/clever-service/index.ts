@@ -5923,6 +5923,9 @@ function speechAudio(bytes: Uint8Array) {
 
 async function handleSpeech(req: Request, text: string): Promise<Response> {
   if (!ttsLengthAllowed(text)) return jsonResponse({ error: "tts_too_long" }, 400);
+  if (!(Deno.env.get("SPEECH_QUOTA_SECRET") || "").trim()) {
+    return speechJson(503, SPEECH_UNAVAILABLE_MESSAGE);
+  }
   const client = serviceRoleSupabase();
   if (!client) return speechJson(503, SPEECH_UNAVAILABLE_MESSAGE);
   const voice = coerceVoiceForTtsModel(

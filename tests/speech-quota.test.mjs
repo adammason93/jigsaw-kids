@@ -133,6 +133,8 @@ assert.ok(proxy.indexOf("caches.default.match") < proxy.indexOf("await fetch("))
 
 const service = fs.readFileSync(path.join(root, "supabase/functions/clever-service/index.ts"), "utf8");
 const handler = service.slice(service.indexOf("async function handleSpeech"), service.indexOf("async function hostResolvesPublic"));
+assert.ok(handler.indexOf("SPEECH_QUOTA_SECRET") >= 0);
+assert.ok(handler.indexOf("SPEECH_QUOTA_SECRET") < handler.indexOf("tts_audio_read"));
 assert.ok(handler.indexOf("tts_audio_read") < handler.indexOf("tts_quota_take"));
 assert.ok(handler.indexOf("tts_quota_take") < handler.indexOf("https://api.openai.com/v1/audio/speech"));
 assert.strictEqual(handler.indexOf("x-forwarded-for"), -1);

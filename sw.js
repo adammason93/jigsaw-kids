@@ -1,5 +1,5 @@
 /* Minimal offline shell — network-first, cache as fallback for same-origin */
-const CACHE = "jigsaw-kids-v456";
+const CACHE = "jigsaw-kids-v457";
 const SHELL = [
   "./index.html",
   "./portal.html",
@@ -232,8 +232,9 @@ self.addEventListener("fetch", function (e) {
   var portalPage = e.request.mode === "navigate" && /\/portal(\.html)?\/?(?:\?|#|$)/.test(e.request.url);
   var gamePage = e.request.mode === "navigate" && /\/games\/[^/?#]+\.html/.test(e.request.url);
   var childPage = e.request.mode === "navigate" && /\/child(-character)?\.html/.test(e.request.url);
-  var authScript = /\/js\/(score-cloud|kids-core|wondii-session)\.js/.test(e.request.url);
-  var request = (learnPage || portalPage || gamePage || childPage || authScript) ? new Request(e.request, { cache: "reload" }) : e.request;
+  var accountScript = /\/js\/(score-cloud|kids-core|wondii-session|family|child-join|child-library|child-character)\.js/.test(e.request.url)
+    || /\/portal\.js/.test(e.request.url);
+  var request = (learnPage || portalPage || gamePage || childPage || accountScript) ? new Request(e.request, { cache: "reload" }) : e.request;
   e.respondWith(
     fetch(request)
       .then(function (r) {

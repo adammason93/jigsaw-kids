@@ -40,3 +40,17 @@ export function childDeviceEmail(deviceId) {
   if (!/^[0-9a-f-]{36}$/i.test(String(deviceId || ""))) return "";
   return "device-" + deviceId + "@users.child.invalid";
 }
+
+/* Cloudflare sets cf-connecting-ip and overwrites a client value.
+   x-forwarded-for is a chain the caller can prepend, so it is ignored. */
+export function pairingClientAddress(headers) {
+  const value = headerText(headers, "cf-connecting-ip").trim();
+  if (!value || value.length > 64 || /[\s,]/.test(value)) return "unknown";
+  return value;
+}
+
+function headerText(headers, name) {
+  if (!headers) return "";
+  if (typeof headers.get === "function") return String(headers.get(name) || "");
+  return String(headers[name] || "");
+}

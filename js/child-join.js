@@ -468,14 +468,24 @@
     });
   }
 
-  if (form) {
-    form.addEventListener("submit", redeem);
-    paintJoin();
+  function pairingAllowedHere() {
+    var host = String((global.location && global.location.hostname) || "").toLowerCase();
+    return host === "wondii.co.uk" || host === "www.wondii.co.uk" || host === "localhost" || host === "127.0.0.1";
   }
-  if (new URLSearchParams(global.location.search).get("pair")) redeem();
-  else if (global.WondiiSession && global.WondiiSession.subscribe) {
-    global.WondiiSession.subscribe(function (snap) {
-      if (snap && snap.status === "authenticated") openSpace();
-    });
+
+  if (!pairingAllowedHere()) {
+    say("Pairing is not available on this preview.");
+    if (form) form.hidden = true;
+  } else {
+    if (form) {
+      form.addEventListener("submit", redeem);
+      paintJoin();
+    }
+    if (new URLSearchParams(global.location.search).get("pair")) redeem();
+    else if (global.WondiiSession && global.WondiiSession.subscribe) {
+      global.WondiiSession.subscribe(function (snap) {
+        if (snap && snap.status === "authenticated") openSpace();
+      });
+    }
   }
 })(window);

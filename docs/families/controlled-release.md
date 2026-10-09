@@ -26,12 +26,13 @@ Confirm those three versions are still recorded before applying anything else. D
 - `20261008220000_child_home.sql`
 - `20261008230000_child_library.sql`
 - `20261008240000_child_artwork.sql`
+- `20261008250000_child_access_switch.sql` (emergency flags; defaults leave pairing and content open once applied)
 - Edge function `child-pair` (source only; `verify_jwt = false` in `supabase/config.toml`)
-- Branch `clever-service` (daily claim on book and character generation)
+- Branch `clever-service` (daily claim on book and character generation; refuses speech when `SPEECH_QUOTA_SECRET` is empty)
 - Branch worker (`workers-site/index.ts` speech signature)
-- Branch website (Family Dashboard, `child.html`, private library scripts, service worker `jigsaw-kids-v456`)
+- Branch website (Family Dashboard, `child.html`, private library scripts, service worker `jigsaw-kids-v457`)
 
-`SPEECH_QUOTA_SECRET` is not set. Do not invent a value in the repo.
+`SPEECH_QUOTA_SECRET` is not set. `CHILD_PAIRING_ENABLED` is not set. Do not invent either value in the repo. Do not deploy `clever-service` or the worker until a secret-name check shows `SPEECH_QUOTA_SECRET`. Do not deploy `child-pair` until `CHILD_PAIRING_ENABLED` is exactly `1`.
 
 ## What the branch already does
 
@@ -46,24 +47,76 @@ A caller who sends only the public anon key is not a child session, so book and 
 
 A paired child who is signed in is gated. The browser sends that child’s access token and a reserved `creationKey`.
 
+## Pending migrations
+
+These four files are additive. They do not drop or alter adult story tables, adult storage policies, or saved adult rows.
+
+- `20261008220000` replaces `child_home()` with an empty library response. No drop, delete, or alter.
+- `20261008230000` adds private library tables and replaces `child_home()` again. Grants stay off `anon`. Adult `storybook_room` and `characters_room` policies are not in this file.
+- `20261008240000` adds the private `child_library` bucket and generation claims. The only policies it drops are `child_library_*`, and those do not exist until this file creates them.
+- `20261008250000` adds one singleton switch and replaces `child_content_access`, `create_child_pairing`, `consume_child_pairing`, and `register_child_device`. It does not delete profiles, devices, shelves, books, characters, or files.
+
+Apply them in that filename order, after `20261008210000` is already recorded. If a statement fails, stop. Do not retry a later file. Recovery is to leave the applied statements in place and follow Rollback. Do not drop `child_library` once a child file has been written.
+
+## Pairing address
+
+`child-pair` rate limits with `pairingClientAddress`. The only address it accepts is a single `cf-connecting-ip` value, which Cloudflare sets and overwrites on the request that reaches the function. `x-forwarded-for`, `x-real-ip`, and `true-client-ip` are ignored. A missing or comma-separated `cf-connecting-ip` uses the one shared bucket `unknown`, so a spoofed list cannot open a fresh allowance. The worker speech proxy is separate: it also reads `cf-connecting-ip` on the Cloudflare Worker and signs it. That path does not trust forwarded headers either.
+
+## Emergency disable
+
+This does not delete saved content.
+
+1. In the Supabase SQL editor, as the database owner:
+
+```sql
+update private.child_access_control
+set pairing_enabled = false,
+    content_enabled = false,
+    updated_at = now()
+where singleton;
+```
+
+`create_child_pairing` then raises `pairing_unavailable` and does not mint a code. `consume_child_pairing` returns `unavailable` before it marks a ticket used. `child_content_access` returns `allowed: false` before the device check, so existing child sessions lose library RPCs and `child_library` storage access. Shelves, books, characters, device rows, and objects stay. Parents still reach their own family records.
+
+2. Set the `child-pair` secret `CHILD_PAIRING_ENABLED` to `0`, or unset it, and redeploy that function. The function returns 503 before it creates an auth user when the value is not exactly `1`. The SQL update is the immediate control if an isolate still has the old value.
+
+3. To reopen later, set both flags back to `true` and set `CHILD_PAIRING_ENABLED` to `1` again. Do not delete rows to do this.
+
+## Service worker rollout
+
+Cache name `jigsaw-kids-v457`. Install skips waiting. Activate deletes every other cache name, claims clients, and reloads open portal, school learn, game, and child pages. Successful network responses are not written back into the cache. Those navigations, plus `wondii-session.js`, `score-cloud.js`, `kids-core.js`, `family.js`, `child-join.js`, `child-library.js`, and `portal.js`, use a reload request so an old HTTP cache copy is not mixed in.
+
+Personal, school, and anonymous sessions keep the same `wondii-u:{uid}:` storage keys and the same Supabase session in `js/wondii-session.js`. Anonymous score writes stay no-ops until a session is bound. A page that is not in the reload list keeps the scripts already in memory until the next navigation. Offline fallback can serve the new precache only after activate; until one successful load, a failed network falls back to `portal.html`.
+
+## Preview
+
+`www.wondii.co.uk` is unchanged by a branch preview. The Families dashboard and `child.html` call family or pairing RPCs only on `wondii.co.uk`, `www.wondii.co.uk`, `localhost`, or `127.0.0.1`. A `workers.dev` preview shows that family setup and pairing are off, including after this branch is pushed and Cloudflare builds a preview alias. `child-pair` stays undeployed until the window below, so a pairing code cannot create a child auth user.
+
 ## Order
 
-Do these in one approved window. Stop on the first failed check.
+Do these in one approved window. Stop on the first failed check. The expected commit is the one that last changed this file:
 
-1. **Confirm hosted state.** The three applied migrations above are present. No `wondii-sec-%` test users remain. `child_library` bucket does not exist yet.
+```bash
+git log -1 --format=%H -- docs/families/controlled-release.md
+```
+
+Deploy that SHA only. Do not merge to `main`.
+
+1. **Confirm hosted state.** `20261008170000`, `20261008180000`, and `20261008210000` are recorded. No `wondii-sec-%` test users remain. `child_library` bucket does not exist yet. `child-pair` is not deployed.
 2. **Apply SQL in filename order only:**
    - `20261008220000_child_home.sql`
-   - `20261008230000_child_library.sql` (replaces `child_home()` with the real library)
-   - `20261008240000_child_artwork.sql` (private bucket, claims, storage policies)
-3. **Record** those three versions the same way the earlier Families migrations were recorded.
-4. **Secrets, before any function or worker publish.**
+   - `20261008230000_child_library.sql`
+   - `20261008240000_child_artwork.sql`
+   - `20261008250000_child_access_switch.sql`
+3. **Record** those four versions the same way the earlier Families migrations were recorded.
+4. **Secrets, before any function or worker publish.** List secret names only. Stop if `SPEECH_QUOTA_SECRET` is missing.
    - Generate one `SPEECH_QUOTA_SECRET` outside the repo.
    - Set it on the `clever-service` function secrets.
-   - Set the same value as a Worker secret (`wrangler secret put SPEECH_QUOTA_SECRET`).
-   - Leave `OPENAI_API_KEY` and the Supabase service role where they already are. Do not put the service role in the website.
-5. **Deploy `clever-service`:** `supabase functions deploy clever-service --no-verify-jwt` from this branch. Do this before the worker so Read to me keeps a function that understands the speech signature.
-6. **Deploy `child-pair`:** `supabase functions deploy child-pair --no-verify-jwt`. This is the public child-login switch. The function creates the child auth user with the service role. Deploy it only in this window, after step 2.
-7. **Publish the website and worker together** with `npx wrangler deploy` from this commit. Do not merge to `main` for this step. The worker refuses Read to me when `SPEECH_QUOTA_SECRET` is empty, so step 4 must already be done. Service worker cache is `jigsaw-kids-v456`, and game, child, and account scripts are reloaded from the network.
+   - Set the same value as a Worker secret (`npx wrangler secret put SPEECH_QUOTA_SECRET`).
+   - Leave `OPENAI_API_KEY` and the Supabase service role where they already are. Do not put the service role in the website. Do not print any secret value.
+5. **Deploy `clever-service`:** `supabase functions deploy clever-service --no-verify-jwt` from this SHA. The branch function returns 503 for speech when `SPEECH_QUOTA_SECRET` is empty, including a direct call that skips the worker. Do this before the worker so Read to me keeps a function that understands the speech signature.
+6. **Enable and deploy `child-pair`.** Set `CHILD_PAIRING_ENABLED` to `1`, then `supabase functions deploy child-pair --no-verify-jwt`. This is the public child-login switch. Deploy it only after step 2. If the secret is unset, the function returns 503 and creates no user.
+7. **Publish the website and worker together** with `npx wrangler deploy` from this SHA. Do not merge to `main`. The worker refuses Read to me when `SPEECH_QUOTA_SECRET` is empty, so step 4 must already be done. Service worker cache is `jigsaw-kids-v457`.
 8. **Leave public marketing unchanged.** Do not announce child login until the smoke tests pass.
 
 Personal and school portals use the same `portal.html` and the same storage buckets. Families adds a Family view and does not replace those policies. School character storage stays on `characters_room`.
@@ -89,10 +142,21 @@ Use two real parent accounts and two child profiles. Delete the devices afterwar
 Stop forward work. Do not drop Families tables if any child has saved a book or character.
 
 1. Republish the previous website and worker (the current live account-menu release). Read to me on that worker does not need `SPEECH_QUOTA_SECRET`.
-2. Redeploy the previous `clever-service`. Adults and the public storybook return to today’s behaviour. Child claims simply stop being called.
-3. Undeploy or disable `child-pair`. New devices can no longer join. Existing child sessions keep working until their devices are revoked from the dashboard, or until the parent suspends the profile.
-4. Leave `20261008220000`, `20261008230000`, and `20261008240000` in place if any private files were written. They are unused by the previous website. Dropping `child_library` deletes those pictures.
+2. Redeploy the previous `clever-service` (live version 248 at the time of this review). Adults and the public storybook return to today’s behaviour. Child claims simply stop being called.
+3. Run the emergency SQL in **Emergency disable**, then set `CHILD_PAIRING_ENABLED` to `0` and redeploy or undeploy `child-pair`. New pairing stops. Existing child sessions lose protected library and storage access. Saved rows and files stay.
+4. Leave `20261008220000` through `20261008250000` in place if any private files were written. They are unused by the previous website. Dropping `child_library` deletes those pictures.
 5. The earlier family, device, and pairing tables stay. They are already live and the purge job should keep running.
+
+## Go / no-go
+
+Go only when every line below is true. Otherwise stop.
+
+- The SHA from `git log -1 --format=%H -- docs/families/controlled-release.md` is the SHA in the release report, and `origin/main` is still the pre-Families commit.
+- Hosted migration history matches **Already on the hosted database**. The four pending files are not yet recorded.
+- Secret names include `SPEECH_QUOTA_SECRET` on `clever-service` and on the worker before those deploys. `CHILD_PAIRING_ENABLED` is `1` only for the `child-pair` deploy.
+- Commands, from `/tmp/wondii-families` at that SHA: apply the four SQL files in order, `supabase functions deploy clever-service --no-verify-jwt`, `supabase functions deploy child-pair --no-verify-jwt`, `npx wrangler deploy`.
+- Hosted checks after deploy, still not before approval: the eleven smoke tests in this file. `FAMILY_LIVE=1` stays unset until that window. No `wondii-sec-%` users.
+- Rollback is the five steps above. Stop if a migration errors, a secret name is missing, `clever-service` deploy fails, Read to me fails for an adult, an adult storage policy changes, or `child-pair` is deployed before `20261008250000`.
 
 ## After this window
 

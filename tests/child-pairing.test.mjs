@@ -6,6 +6,7 @@ import qrcode from "../js/qrcode.js";
 import {
   childDeviceEmail,
   deviceAccessDecision,
+  pairingClientAddress,
   pairingCodeIsShape,
   ticketDecision,
 } from "../supabase/functions/child-pair/pairing.mjs";
@@ -128,5 +129,49 @@ assert.equal(homeSql.includes("grant execute on function public.child_home() to 
 assert.match(join, /child_home/);
 assert.match(join, /games\/star-catcher\.html/);
 assert.equal(join.includes("Create a Book"), false);
+
+assert.equal(pairingClientAddress(new Headers({
+  "cf-connecting-ip": "203.0.113.8",
+  "x-forwarded-for": "198.51.100.9, 203.0.113.8",
+  "x-real-ip": "198.51.100.9",
+  "true-client-ip": "198.51.100.9",
+})), "203.0.113.8");
+assert.equal(pairingClientAddress(new Headers({
+  "x-forwarded-for": "198.51.100.9, 203.0.113.50",
+  "x-real-ip": "203.0.113.50",
+  "true-client-ip": "203.0.113.50",
+})), "unknown");
+assert.equal(pairingClientAddress(new Headers({
+  "cf-connecting-ip": "203.0.113.8, 198.51.100.9",
+})), "unknown");
+assert.equal(pairingClientAddress(new Headers({
+  "cf-connecting-ip": " 203.0.113.8 ",
+})), "203.0.113.8");
+assert.equal(pairingClientAddress(new Headers()), "unknown");
+assert.equal(fn.includes("x-forwarded-for"), false);
+assert.equal(fn.includes("x-real-ip"), false);
+assert.match(fn, /CHILD_PAIRING_ENABLED/);
+assert.match(fn, /pairingClientAddress/);
+
+assert.match(family, /familyWritesAllowed/);
+assert.ok(family.indexOf("if (!familyWritesAllowed())") < family.indexOf("sb.rpc"));
+assert.match(family, /Family setup is turned off on this preview/);
+assert.match(family, /www\.wondii\.co\.uk/);
+assert.ok(family.indexOf("function familyWritesAllowed") < family.indexOf("WondiiSession.subscribe"));
+assert.match(join, /pairingAllowedHere/);
+assert.match(join, /Pairing is not available on this preview/);
+assert.ok(join.indexOf("function pairingAllowedHere") < join.indexOf('form.addEventListener("submit", redeem)'));
+
+const switchSql = fs.readFileSync(path.join(root, "supabase/migrations/20261008250000_child_access_switch.sql"), "utf8");
+assert.match(switchSql, /private\.child_access_control/);
+assert.match(switchSql, /pairing_enabled boolean not null default true/);
+assert.match(switchSql, /content_enabled boolean not null default true/);
+assert.match(switchSql, /if private\.child_access_open\('content'\) is not true/);
+assert.match(switchSql, /if private\.child_access_open\('pairing'\) is not true/);
+assert.match(switchSql, /device_revoked/);
+assert.equal(switchSql.includes("delete from"), false);
+assert.equal(switchSql.includes("drop table"), false);
+assert.match(switchSql, /grant execute on function public\.consume_child_pairing\(text\) to service_role/);
+assert.equal(switchSql.includes("grant execute on function public.consume_child_pairing(text) to authenticated"), false);
 
 console.log("child-pairing tests ok");

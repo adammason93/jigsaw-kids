@@ -162,6 +162,10 @@
   }
 
   function call(name, args, done) {
+    if (!familyWritesAllowed()) {
+      done(new Error("unavailable"));
+      return;
+    }
     client(function (sb) {
       if (!sb) {
         done(new Error("unavailable"));
@@ -375,6 +379,10 @@
   function paint() {
     var host = document.getElementById("familyDash");
     if (!host) return;
+    if (!familyWritesAllowed()) {
+      host.textContent = "Family setup is turned off on this preview. Use wondii.co.uk after the release is approved.";
+      return;
+    }
     bind();
     host.replaceChildren();
     if (schoolOn()) {
@@ -983,7 +991,17 @@
     avatars: AVATARS
   };
 
+  function familyWritesAllowed() {
+    var host = String((global.location && global.location.hostname) || "").toLowerCase();
+    return host === "wondii.co.uk" || host === "www.wondii.co.uk" || host === "localhost" || host === "127.0.0.1";
+  }
+
   function listen() {
+    if (!familyWritesAllowed()) {
+      var dash = document.getElementById("familyDash");
+      if (dash) dash.textContent = "Family setup is turned off on this preview. Use wondii.co.uk after the release is approved.";
+      return;
+    }
     if (global.WondiiSession && global.WondiiSession.subscribe) {
       global.WondiiSession.subscribe(function () {
         boot();
