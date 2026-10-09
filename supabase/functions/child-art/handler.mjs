@@ -103,6 +103,19 @@ function bearer(req) {
   return match ? match[1] : "";
 }
 
+function accountKind(token) {
+  const part = String(token || "").split(".")[1] || "";
+  if (!part) return "";
+  try {
+    const padded = part.replace(/-/g, "+").replace(/_/g, "/") + "=".repeat((4 - (part.length % 4)) % 4);
+    const json = JSON.parse(atob(padded));
+    const kind = json && json.app_metadata && json.app_metadata.account_kind;
+    return kind ? String(kind) : "";
+  } catch (e) {
+    return "";
+  }
+}
+
 async function rpc(env, token, name, args, fetchImpl) {
   const res = await fetchImpl(env.supabaseUrl.replace(/\/$/, "") + "/rest/v1/rpc/" + name, {
     method: "POST",
@@ -116,11 +129,12 @@ async function rpc(env, token, name, args, fetchImpl) {
     },
     body: JSON.stringify(args || {})
   });
-  if (res.status >= 300 && res.status < 400) return { ok: false, data: null };
+  if (res.status >= 300 && res.status < 400) return { ok: false, status: res.status, data: null };
   const text = await res.text();
   let data = null;
   try { data = JSON.parse(text); } catch (e) { data = null; }
-  return { ok: res.ok && data && typeof data === "object", data: data };
+  const object = data && typeof data === "object" && !Array.isArray(data);
+  return { ok: res.ok && object, status: res.status, data: object ? data : null };
 }
 
 function shareListed(home, shareId) {
@@ -132,8 +146,11 @@ function shareListed(home, shareId) {
 
 async function authorise(env, token, objectInfo, fetchImpl) {
   const access = await rpc(env, token, "child_content_access", {}, fetchImpl);
-  const data = access.ok ? access.data : null;
-  if (data && data.allowed === true && String(data.childId || "").toLowerCase() === objectInfo.childId) {
+  /* PostgREST has already checked the signature and expiry. A failed call
+     is not a parent. A child claim is not a parent either. */
+  if (!access.ok) return { allow: false, status: 401, reason: "sign_in_required" };
+  const data = access.data;
+  if (data.allowed === true && String(data.childId || "").toLowerCase() === objectInfo.childId) {
     if (objectInfo.area !== "shared") return { allow: true };
     const home = await rpc(env, token, "child_home", {}, fetchImpl);
     if (!home.ok || home.data.allowed !== true || !shareListed(home.data, objectInfo.shareId)) {
@@ -141,9 +158,9 @@ async function authorise(env, token, objectInfo, fetchImpl) {
     }
     return { allow: true };
   }
-  if (data && data.allowed === true) return { allow: false, status: 403, reason: "not_owner" };
-  const reason = data && data.reason ? String(data.reason) : "unavailable";
-  if (reason === "device_revoked" || reason === "profile_unavailable") {
+  if (data.allowed === true) return { allow: false, status: 403, reason: "not_owner" };
+  const reason = data.reason ? String(data.reason) : "unavailable";
+  if (reason === "device_revoked" || reason === "profile_unavailable" || accountKind(token) === "child") {
     return { allow: false, status: 403, reason: reason };
   }
   const parent = await rpc(env, token, "parent_child_activity", { p_child: objectInfo.childId }, fetchImpl);
@@ -158,23 +175,39 @@ function safeType(header) {
   return TYPES[value] ? value : "application/octet-stream";
 }
 
+function cacheNonce() {
+  const bytes = new Uint8Array(16);
+  crypto.getRandomValues(bytes);
+  let out = "";
+  let i;
+  for (i = 0; i < bytes.length; i++) out += bytes[i].toString(16).padStart(2, "0");
+  return out;
+}
+
 async function readPrivateObject(env, objectPath, fetchImpl) {
   const encoded = objectPath.split("/").map(function (part) {
     return encodeURIComponent(part);
   }).join("/");
-  const res = await fetchImpl(env.supabaseUrl.replace(/\/$/, "") + "/storage/v1/object/child_library/" + encoded, {
-    method: "GET",
-    cache: "no-store",
-    redirect: "manual",
-    headers: {
-      Authorization: "Bearer " + env.serviceKey,
-      apikey: env.serviceKey,
-      "Cache-Control": "no-cache",
-      Pragma: "no-cache"
+  /* cacheNonce is the Smart CDN bypass. Other query strings are ignored and
+     can replay a cached object. This does not write the object. */
+  const res = await fetchImpl(
+    env.supabaseUrl.replace(/\/$/, "") + "/storage/v1/object/child_library/" + encoded + "?cacheNonce=" + cacheNonce(),
+    {
+      method: "GET",
+      cache: "no-store",
+      redirect: "manual",
+      headers: {
+        Authorization: "Bearer " + env.serviceKey,
+        apikey: env.serviceKey,
+        "Cache-Control": "no-cache",
+        Pragma: "no-cache"
+      }
     }
-  });
+  );
   if (res.status >= 300 && res.status < 400) return { error: "unavailable" };
   if (!res.ok) return { error: "missing" };
+  const cached = String(res.headers.get("cf-cache-status") || "").toUpperCase();
+  if (cached === "HIT" || cached === "STALE") return { error: "unavailable" };
   const bytes = new Uint8Array(await res.arrayBuffer());
   if (!bytes.byteLength || bytes.byteLength > MAX_BYTES) return { error: "missing" };
   return { bytes: bytes, contentType: safeType(res.headers.get("content-type")) };

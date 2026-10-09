@@ -3,7 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { sharedCacheMayStore } from "../js/child-library-rules.mjs";
-import { handleChildArt } from "../supabase/functions/child-art/handler.mjs";
+import { handleChildArt, parseLibraryObject } from "../supabase/functions/child-art/handler.mjs";
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
 const CHILD = "863ea310-302c-42d5-b139-0906124b3641";
@@ -32,7 +32,7 @@ function world(state) {
     const target = String(url);
     calls.push({ url: target, init: init || {} });
     if (target.endsWith("/child_content_access")) {
-      return Promise.resolve(Response.json(state.access));
+      return Promise.resolve(new Response(JSON.stringify(state.access || {}), { status: state.accessStatus || 200 }));
     }
     if (target.endsWith("/child_home")) return Promise.resolve(Response.json(state.home));
     if (target.endsWith("/parent_child_activity")) {
@@ -42,13 +42,12 @@ function world(state) {
       if (state.storageStatus && state.storageStatus !== 200) {
         return Promise.resolve(new Response("no", { status: state.storageStatus }));
       }
-      return Promise.resolve(new Response(PNG, {
-        status: 200,
-        headers: {
-          "Content-Type": state.contentType || "image/png",
-          "Cache-Control": "public, max-age=3600"
-        }
-      }));
+      const headers = {
+        "Content-Type": state.contentType || "image/png",
+        "Cache-Control": "public, max-age=3600"
+      };
+      if (state.cacheStatus) headers["cf-cache-status"] = state.cacheStatus;
+      return Promise.resolve(new Response(PNG, { status: 200, headers: headers }));
     }
     return Promise.resolve(new Response("unexpected", { status: 500 }));
   };
@@ -81,14 +80,24 @@ function assertPrivate(res) {
   assert.equal(res.headers.get("Access-Control-Allow-Origin"), "https://www.wondii.co.uk");
 }
 
+function jwt(accountKind) {
+  const payload = { role: "authenticated", app_metadata: accountKind ? { account_kind: accountKind } : {} };
+  const body = btoa(JSON.stringify(payload)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+  return "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9." + body + ".sig";
+}
+
+const childJwt = jwt("child");
+const parentJwt = jwt("");
+
 function assertServiceFetch(call) {
+  const nonce = new URL(call.url).searchParams.get("cacheNonce");
   assert.equal(call.init.cache, "no-store");
   assert.equal(call.init.redirect, "manual");
   assert.equal(call.init.headers.Authorization, "Bearer service-test-key");
   assert.equal(call.init.headers.apikey, "service-test-key");
   assert.equal(call.url.includes("/object/public/"), false);
-  assert.equal(call.url.includes("?"), false);
-  assert.equal(call.init.headers.Authorization.includes("child-token"), false);
+  assert.match(nonce, /^[0-9a-f]{32}$/);
+  assert.equal(call.init.headers.Authorization.includes(childJwt), false);
 }
 
 const picture = CHILD + "/books/b1791534140235-607078/p0.jpg";
@@ -124,7 +133,7 @@ for (const objectPath of shapes) {
   });
   const res = await handleChildArt(request(objectPath, "child-token"), env, hosted.fetchImpl);
   assert.equal(res.status, 200, objectPath);
-  assert.equal(storageCalls(hosted.calls)[0].url.endsWith("/" + objectPath), true, objectPath);
+  assert.equal(new URL(storageCalls(hosted.calls)[0].url).pathname.endsWith("/" + objectPath), true, objectPath);
   assertPrivate(res);
 }
 
@@ -183,20 +192,31 @@ assert.equal(storageCalls(suspended.calls).length, 0);
 
 const contentOffChild = world({
   access: { allowed: false, reason: "unavailable" },
-  parentStatus: 403,
-  parentBody: { message: "child_not_permitted" }
+  parentStatus: 200,
+  parentBody: { childId: CHILD }
 });
-const contentOffRes = await handleChildArt(request(picture, "child-token"), env, contentOffChild.fetchImpl);
+const contentOffRes = await handleChildArt(request(picture, childJwt), env, contentOffChild.fetchImpl);
 assert.equal(contentOffRes.status, 403);
 assert.match(await contentOffRes.text(), /unavailable/);
 assert.equal(storageCalls(contentOffChild.calls).length, 0);
+assert.equal(rpcNames(contentOffChild.calls).includes("parent_child_activity"), false);
+
+const expired = world({
+  accessStatus: 401,
+  access: { allowed: true, childId: CHILD, reason: "unavailable" }
+});
+const expiredRes = await handleChildArt(request(picture, childJwt), env, expired.fetchImpl);
+assert.equal(expiredRes.status, 401);
+assert.equal(expired.calls.length, 1);
+assert.equal(rpcNames(expired.calls)[0], "child_content_access");
+assert.equal(storageCalls(expired.calls).length, 0);
 
 const contentOffParent = world({
   access: { allowed: false, reason: "unavailable" },
   parentStatus: 200,
   parentBody: { childId: CHILD }
 });
-const parentOffRes = await handleChildArt(request(picture, "parent-token"), env, contentOffParent.fetchImpl);
+const parentOffRes = await handleChildArt(request(picture, parentJwt), env, contentOffParent.fetchImpl);
 assert.equal(parentOffRes.status, 200);
 assert.deepEqual(await bodyBytes(parentOffRes), PNG);
 assertPrivate(parentOffRes);
@@ -255,16 +275,20 @@ const shared = world({
 });
 const sharedRes = await handleChildArt(request(CHILD + "/shared/" + SHARE + "/p0.jpg", "child-token"), env, shared.fetchImpl);
 assert.equal(sharedRes.status, 200);
-assert.equal(storageCalls(shared.calls)[0].url.endsWith("/shared/" + SHARE + "/p0.jpg"), true);
+assert.equal(new URL(storageCalls(shared.calls)[0].url).pathname.endsWith("/shared/" + SHARE + "/p0.jpg"), true);
 
-const unshared = world({
-  access: { allowed: true, childId: CHILD },
-  home: { allowed: true, sharedBooks: [], sharedCharacters: [] }
-});
-const unsharedRes = await handleChildArt(request(CHILD + "/shared/" + SHARE + "/character.png", "child-token"), env, unshared.fetchImpl);
-assert.equal(unsharedRes.status, 403);
-assert.match(await unsharedRes.text(), /not_shared/);
-assert.equal(storageCalls(unshared.calls).length, 0);
+const copied = ["book.json", "cover.jpg", "character.png", "p0.jpg", "p5.jpg"];
+for (const name of copied) {
+  const unshared = world({
+    access: { allowed: true, childId: CHILD },
+    home: { allowed: true, sharedBooks: [], sharedCharacters: [] }
+  });
+  const unsharedRes = await handleChildArt(request(CHILD + "/shared/" + SHARE + "/" + name, childJwt), env, unshared.fetchImpl);
+  assert.equal(unsharedRes.status, 403, name);
+  assert.match(await unsharedRes.text(), /not_shared/);
+  assert.equal(storageCalls(unshared.calls).length, 0, name);
+  assert.equal(rpcNames(unshared.calls).includes("parent_child_activity"), false, name);
+}
 
 const blockedPaths = [
   "../storybook_room/secret.jpg",
@@ -290,6 +314,23 @@ const foreign = world({ access: { allowed: true, childId: CHILD } });
 const foreignRes = await handleChildArt(foreignOrigin, env, foreign.fetchImpl);
 assert.equal(foreignRes.headers.get("Access-Control-Allow-Origin"), null);
 
+const stale = world({ access: { allowed: true, childId: CHILD }, cacheStatus: "HIT" });
+const staleRes = await handleChildArt(request(picture, childJwt), env, stale.fetchImpl);
+assert.equal(staleRes.status, 502);
+const staleText = await staleRes.text();
+assert.equal(staleText.includes("PNG"), false);
+assert.match(staleText, /unavailable/);
+assert.equal(storageCalls(stale.calls).length, 1);
+
+const firstNonce = new URL(storageCalls(allowed.calls)[0].url).searchParams.get("cacheNonce");
+const secondRead = world({ access: { allowed: true, childId: CHILD }, cacheStatus: "MISS" });
+const secondBytes = await handleChildArt(request(picture, childJwt), env, secondRead.fetchImpl);
+assert.equal(secondBytes.status, 200);
+assert.deepEqual(await bodyBytes(secondBytes), PNG);
+const secondNonce = new URL(storageCalls(secondRead.calls)[0].url).searchParams.get("cacheNonce");
+assert.notEqual(firstNonce, secondNonce);
+assert.equal(new URL(request(picture, childJwt).url).searchParams.get("cacheNonce"), null);
+
 const redirectWorld = world({ access: { allowed: true, childId: CHILD }, storageStatus: 302 });
 const redirectRes = await handleChildArt(request(picture, "child-token"), env, redirectWorld.fetchImpl);
 assert.equal(redirectRes.status, 502);
@@ -307,6 +348,48 @@ const options = await handleChildArt(new Request("https://example.supabase.co/fu
 }), env, world({}).fetchImpl);
 assert.equal(options.status, 204);
 assertPrivate(options);
+
+const purgePaths = [
+  CHILD + "/books/b1791534140235-607078.json",
+  CHILD + "/books/b1791534140235-607078.original.json",
+  CHILD + "/books/b1791534140235-607078/cover.jpg",
+  CHILD + "/books/b1791534140235-607078/p0.jpg",
+  CHILD + "/books/b1791534140235-607078/p1.jpg",
+  CHILD + "/books/b1791534140235-607078/p2.jpg",
+  CHILD + "/books/b1791534140235-607078/p3.jpg",
+  CHILD + "/books/b1791534140235-607078/p4.jpg",
+  CHILD + "/books/b1791534140235-607078/p5.jpg",
+  CHILD + "/characters/char_mv0oz1m7_djnp3va3.png"
+];
+assert.equal(purgePaths.length, 10);
+assert.equal(new Set(purgePaths).size, 10);
+for (const objectPath of purgePaths) {
+  assert.equal(parseLibraryObject(objectPath).objectPath, objectPath);
+}
+
+const hostedSelect = [
+  ["Offer images: users select own folder", "((bucket_id = 'offer-images'::text) AND ((storage.foldername(name))[1] = (auth.uid())::text))"],
+  ["Share cards: public read", "(bucket_id = 'share-cards'::text)"],
+  ["Share items: public read", "(bucket_id = 'share-items'::text)"],
+  ["characters_room_select_own", "((bucket_id = 'characters_room'::text) AND ((storage.foldername(name))[1] = (auth.uid())::text) AND (NOT private.is_child()))"],
+  ["characters_room_select_school", "((bucket_id = 'characters_room'::text) AND private.is_org_member(private.storage_school_id(name)) AND (NOT private.is_child()))"],
+  ["child_library_child_read", "((bucket_id = 'child_library'::text) AND (split_part(name, '/'::text, 1) = private.session_child_folder()) AND ((split_part(name, '/'::text, 2) = ANY (ARRAY['books'::text, 'characters'::text])) OR ((split_part(name, '/'::text, 2) = 'shared'::text) AND private.child_share_visible(split_part(name, '/'::text, 3)))))"],
+  ["child_library_parent_read", "((bucket_id = 'child_library'::text) AND private.parent_owns_child_folder(split_part(name, '/'::text, 1)))"],
+  ["colouring_room_select_own", "((bucket_id = 'colouring_room'::text) AND ((storage.foldername(name))[1] = (auth.uid())::text) AND (NOT private.is_child()))"],
+  ["organisation_branding_read", "(bucket_id = 'organisation_branding'::text)"],
+  ["storybook_images_public_select", "(bucket_id = 'storybook_images'::text)"],
+  ["storybook_room_select_own", "((bucket_id = 'storybook_room'::text) AND (split_part(name, '/'::text, 1) = (auth.uid())::text) AND (NOT private.is_child()))"],
+  ["wondii_adventure_visuals_public_select", "(bucket_id = 'wondii_adventure_visuals'::text)"],
+  ["wondii_catalogue_read", "(bucket_id = 'wondii_catalogue'::text)"]
+];
+function grantsChildLibrary(expr) {
+  const names = [...String(expr).matchAll(/bucket_id = '([^']+)'/g)].map((match) => match[1]);
+  if (!names.length) return true;
+  return names.includes("child_library");
+}
+const stillGranting = hostedSelect.filter((row) => grantsChildLibrary(row[1]) && row[0] !== "child_library_child_read" && row[0] !== "child_library_parent_read");
+assert.deepEqual(stillGranting, []);
+assert.equal(hostedSelect.filter((row) => grantsChildLibrary(row[1])).length, 2);
 
 const sql = fs.readFileSync(path.join(root, "supabase/migrations/20261008290000_child_library_direct_read_closed.sql"), "utf8");
 const rollback = fs.readFileSync(path.join(root, "supabase/rollbacks/20261008290000_child_library_direct_read_closed.sql"), "utf8");
