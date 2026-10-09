@@ -102,6 +102,18 @@ export function serviceWorkerMustBypass(url) {
    public and Supabase Smart CDN can replay it after revocation. */
 export var PRIVATE_OBJECT_CACHE = "private, no-store";
 
+/* Storage wraps a multipart cacheControl field as max-age=<value>.
+   A binary upload keeps the Cache-Control header unchanged. */
+export function storageMultipartCacheControl(fieldValue) {
+  var value = String(fieldValue || "");
+  return value ? "max-age=" + value : "no-cache";
+}
+
+export function storageBinaryCacheControl(headerValue) {
+  var value = String(headerValue || "");
+  return value || "no-cache";
+}
+
 export function sharedCacheMayStore(cacheControl) {
   var value = String(cacheControl || "").toLowerCase();
   if (!value) return true;

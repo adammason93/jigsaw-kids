@@ -132,8 +132,19 @@
     return base + "/storage/v1/object/" + BUCKET + "/" + encoded;
   }
 
+  /* Reads go through child-art. The storage URL stays available to putObject
+     only, so a revoked session is not answered from a cached storage response. */
+  function readUrl(sb, path) {
+    var base = String(sb && sb.supabaseUrl || "").replace(/\/$/, "");
+    var encoded = String(path || "").split("/").map(function (part) {
+      return encodeURIComponent(part);
+    }).join("/");
+    if (!base || !encoded) return "";
+    return base + "/functions/v1/child-art/" + encoded;
+  }
+
   function getObject(sb, path, done) {
-    var url = objectUrl(sb, path);
+    var url = readUrl(sb, path);
     Promise.resolve(sb.auth.getSession()).then(function (sess) {
       var token = sess && sess.data && sess.data.session && sess.data.session.access_token;
       if (!url || !token) throw new Error("missing");

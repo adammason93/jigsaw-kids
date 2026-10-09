@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { PRIVATE_OBJECT_CACHE, sharedCacheMayStore } from "../js/child-library-rules.mjs";
+import { PRIVATE_OBJECT_CACHE, sharedCacheMayStore, storageBinaryCacheControl, storageMultipartCacheControl } from "../js/child-library-rules.mjs";
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
 const library = fs.readFileSync(path.join(root, "js/child-library.js"), "utf8");
@@ -16,6 +16,19 @@ assert.equal(sharedCacheMayStore("public, max-age=0"), true);
 assert.equal(sharedCacheMayStore("public, max-age=3600"), true);
 assert.equal(sharedCacheMayStore("max-age=0"), true);
 assert.equal(sharedCacheMayStore(""), true);
+assert.equal(storageBinaryCacheControl("private, no-store"), "private, no-store");
+assert.equal(sharedCacheMayStore(storageBinaryCacheControl("private, no-store")), false);
+assert.equal(storageMultipartCacheControl("private, no-store"), "max-age=private, no-store");
+assert.equal(sharedCacheMayStore("public, " + storageMultipartCacheControl("0")), true);
+
+const readAt = library.indexOf("function readUrl");
+const getAt = library.indexOf("function getObject");
+assert.ok(readAt > 0 && getAt > readAt);
+assert.match(library.slice(readAt, getAt), /\/functions\/v1\/child-art\//);
+assert.equal(library.slice(readAt, getAt).includes("/storage/v1/object/"), false);
+assert.match(library.slice(getAt, getAt + 220), /readUrl\(sb, path\)/);
+assert.match(library.slice(library.indexOf("function loadSharedBook"), library.indexOf("function loadSharedBook") + 900), /getObject\(sb, childId \+ "\/shared\/"/);
+assert.equal(cloud.includes("child-art"), false);
 
 assert.match(library, /"Cache-Control": "private, no-store"/);
 assert.match(library, /"x-upsert": "true"/);
