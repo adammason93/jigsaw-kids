@@ -4085,7 +4085,7 @@
               if (!cloudErr) {
                 if (hintEl) {
                   hintEl.textContent =
-                    "Saved on this device and backed up to the cloud. Use the same family password on other devices, then “Get latest books from cloud”.";
+                    "Saved on this device and backed up to this Wondii account. Sign in at home on another device to open the same shelf.";
                   window.setTimeout(function () {
                     if (hintEl) {
                       hintEl.textContent =
@@ -4107,7 +4107,7 @@
               }
               if (msg === "no_session") {
                 window.alert(
-                  "This tablet saved the book only on itself — it did not reach the cloud.\n\nOpen ⚙️ (bottom corner) → Sign in with your family password → tap “Put on my shelf” again.\n\n(Deploying edge functions does not update shelf sync — the website’s JavaScript does.)",
+                  "This tablet saved the book only on itself — it did not reach the cloud.\n\nSign in from the Wondii home, then tap “Put on my shelf” again.",
                 );
               } else {
                 window.alert(

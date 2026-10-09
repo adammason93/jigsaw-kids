@@ -216,7 +216,7 @@ self.addEventListener("activate", function (e) {
       return self.clients.matchAll({ type: "window" });
     }).then(function (clients) {
       clients.forEach(function (client) {
-        if (/\/portal(\.html)?\/?(\?|#|$)/.test(client.url) || /\/schools\/learn\/(create|present|class|join)(\.html)?\/?(\?|#|$)/.test(client.url)) {
+        if (/\/portal(\.html)?\/?(\?|#|$)/.test(client.url) || /\/schools\/learn\/(create|present|class|join)(\.html)?\/?(\?|#|$)/.test(client.url) || /\/games\/[^/?#]+\.html/.test(client.url) || /\/child(-character)?\.html/.test(client.url)) {
           client.navigate(client.url);
         }
       });
@@ -230,7 +230,10 @@ self.addEventListener("fetch", function (e) {
   }
   var learnPage = e.request.mode === "navigate" && /\/schools\/learn\/(create|present|class|join)(\.html)?\/?(?:\?|#|$)/.test(e.request.url);
   var portalPage = e.request.mode === "navigate" && /\/portal(\.html)?\/?(?:\?|#|$)/.test(e.request.url);
-  var request = (learnPage || portalPage) ? new Request(e.request, { cache: "reload" }) : e.request;
+  var gamePage = e.request.mode === "navigate" && /\/games\/[^/?#]+\.html/.test(e.request.url);
+  var childPage = e.request.mode === "navigate" && /\/child(-character)?\.html/.test(e.request.url);
+  var authScript = /\/js\/(score-cloud|kids-core|wondii-session)\.js/.test(e.request.url);
+  var request = (learnPage || portalPage || gamePage || childPage || authScript) ? new Request(e.request, { cache: "reload" }) : e.request;
   e.respondWith(
     fetch(request)
       .then(function (r) {

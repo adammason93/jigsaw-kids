@@ -4,6 +4,10 @@ Local branch: `cursor/family-accounts`. Do not push, merge to `main`, apply thes
 
 Live site stays the account-menu release until this window. A push to `main` publishes the Cloudflare Worker and the website together (`.github/workflows/deploy-cloudflare-worker.yml`). That push is the website and worker step, not a separate static upload.
 
+`origin/main` is not the parent of this branch. Merging into `main` would also carry the story-lesson history and would publish the site. The safer website step is a Wrangler deploy of this commit after the database, secret, and function steps below. Pull request #26 targets `cursor/portal-session` and does not publish `www.wondii.co.uk`.
+
+Games load `js/wondii-session.js` before `js/score-cloud.js`. The settings gear keeps sound, contrast, and motion only. It does not ask for a family password or offer a second sign-in. Sign-in and sign-out stay on the Wondii home. A signed-out storybook can still be generated.
+
 Project: `enuzrcjnrxwglacivlnu` (eu-west-1).
 
 ## Already on the hosted database
@@ -59,7 +63,7 @@ Do these in one approved window. Stop on the first failed check.
    - Leave `OPENAI_API_KEY` and the Supabase service role where they already are. Do not put the service role in the website.
 5. **Deploy `clever-service`:** `supabase functions deploy clever-service --no-verify-jwt` from this branch. Do this before the worker so Read to me keeps a function that understands the speech signature.
 6. **Deploy `child-pair`:** `supabase functions deploy child-pair --no-verify-jwt`. This is the public child-login switch. The function creates the child auth user with the service role. Deploy it only in this window, after step 2.
-7. **Publish the website and worker together** by the approved merge to `main` (or a manual wrangler deploy of this commit). The worker refuses Read to me when `SPEECH_QUOTA_SECRET` is empty, so step 4 must already be done. Service worker cache is `jigsaw-kids-v456`.
+7. **Publish the website and worker together** with `npx wrangler deploy` from this commit. Do not merge to `main` for this step. The worker refuses Read to me when `SPEECH_QUOTA_SECRET` is empty, so step 4 must already be done. Service worker cache is `jigsaw-kids-v456`, and game, child, and account scripts are reloaded from the network.
 8. **Leave public marketing unchanged.** Do not announce child login until the smoke tests pass.
 
 Personal and school portals use the same `portal.html` and the same storage buckets. Families adds a Family view and does not replace those policies. School character storage stays on `characters_room`.
