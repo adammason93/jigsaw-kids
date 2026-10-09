@@ -70,3 +70,30 @@ export function markerRelative(value) {
   if (path.indexOf("..") !== -1 || path.indexOf("://") !== -1 || !RELATIVE.test(path)) return "";
   return path;
 }
+
+export function storedFavourite(item, existing) {
+  if (item && Object.prototype.hasOwnProperty.call(item, "favourite")) {
+    return item.favourite === true || item.favourite === "true";
+  }
+  return typeof existing === "boolean" ? existing : false;
+}
+
+export function copyableStorybookUrl(value) {
+  var raw = String(value || "").trim();
+  if (!/^https:\/\//i.test(raw)) return false;
+  try {
+    var parsed = new URL(raw);
+    var host = parsed.hostname.toLowerCase();
+    var supabaseHost = host === "supabase.co" || host.slice(-12) === ".supabase.co";
+    var wondiiHost = host === "wondii.co.uk" || host === "www.wondii.co.uk";
+    if (!supabaseHost && !wondiiHost) return false;
+    return parsed.pathname.indexOf("/storage/v1/object/public/storybook_images/") !== -1;
+  } catch (e) {
+    return false;
+  }
+}
+
+export function serviceWorkerMustBypass(url) {
+  var raw = String(url || "");
+  return raw.indexOf("/storage/v1/") !== -1 || raw.indexOf("supabase.co") !== -1;
+}

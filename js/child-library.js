@@ -92,18 +92,47 @@
   }
 
   function putObject(sb, path, blob, contentType, done) {
-    sb.storage.from(BUCKET).upload(path, blob, { upsert: true, contentType: contentType })
+    sb.storage.from(BUCKET).upload(path, blob, {
+      upsert: true,
+      contentType: contentType,
+      cacheControl: "0"
+    })
       .then(function (up) { done(up.error || null); })
       .catch(function (err) { done(err || new Error("upload_failed")); });
   }
 
+  function objectUrl(sb, path) {
+    var base = String(sb && sb.supabaseUrl || "").replace(/\/$/, "");
+    var encoded = String(path || "").split("/").map(function (part) {
+      return encodeURIComponent(part);
+    }).join("/");
+    if (!base || !encoded) return "";
+    return base + "/storage/v1/object/" + BUCKET + "/" + encoded;
+  }
+
   function getObject(sb, path, done) {
-    sb.storage.from(BUCKET).download(path)
-      .then(function (res) {
-        if (!res || res.error || !res.data) done((res && res.error) || new Error("missing"), null);
-        else done(null, res.data);
-      })
-      .catch(function (err) { done(err, null); });
+    var url = objectUrl(sb, path);
+    Promise.resolve(sb.auth.getSession()).then(function (sess) {
+      var token = sess && sess.data && sess.data.session && sess.data.session.access_token;
+      if (!url || !token) throw new Error("missing");
+      return fetch(url, {
+        method: "GET",
+        cache: "no-store",
+        credentials: "omit",
+        headers: {
+          Authorization: "Bearer " + token,
+          apikey: sb.supabaseKey || "",
+          "Cache-Control": "no-cache"
+        }
+      });
+    }).then(function (res) {
+      if (!res || !res.ok) throw new Error("missing");
+      return res.blob();
+    }).then(function (blob) {
+      done(null, blob);
+    }).catch(function (err) {
+      done(err || new Error("missing"), null);
+    });
   }
 
   function removeObjects(sb, paths, done) {
@@ -145,6 +174,45 @@
     putObject(sb, path, blob, type, done);
   }
 
+  function copyableStorybookUrl(value) {
+    var raw = String(value || "").trim();
+    if (!/^https:\/\//i.test(raw)) return false;
+    var parsed;
+    try { parsed = new global.URL(raw); } catch (e) { return false; }
+    var host = parsed.hostname.toLowerCase();
+    var supabaseHost = host === "supabase.co" || host.slice(-12) === ".supabase.co";
+    var wondiiHost = host === "wondii.co.uk" || host === "www.wondii.co.uk";
+    if (!supabaseHost && !wondiiHost) return false;
+    return parsed.pathname.indexOf("/storage/v1/object/public/storybook_images/") !== -1;
+  }
+
+  function pictureProblem(value) {
+    var raw = String(value || "");
+    if (!raw) return "";
+    if (raw.indexOf(MARKER) === 0) return markerRelative(raw) ? "" : "picture_invalid";
+    if (raw.indexOf("data:image/") === 0) return "";
+    if (/^https?:\/\//i.test(raw)) return copyableStorybookUrl(raw) ? "" : "public_picture";
+    if (raw.indexOf("data:") === 0) return "public_picture";
+    return "";
+  }
+
+  function fetchPicture(url, done) {
+    fetch(url, {
+      method: "GET",
+      cache: "no-store",
+      credentials: "omit",
+      mode: "cors",
+      referrerPolicy: "no-referrer"
+    }).then(function (res) {
+      if (!res.ok) throw new Error("picture_missing");
+      return res.blob();
+    }).then(function (blob) {
+      done(null, blob);
+    }).catch(function (err) {
+      done(err || new Error("picture_missing"), null);
+    });
+  }
+
   function stripBook(sb, childId, book, done) {
     if (!book || !safeId(book.id)) {
       done(new Error("book_invalid"));
@@ -152,13 +220,25 @@
     }
     var copy = JSON.parse(JSON.stringify(book));
     var jobs = [];
-    var first = "";
+    var seen = {};
+    var pictureCount = 0;
+    var blocked = "";
     function queue(value, assign) {
-      if (typeof value !== "string" || value.indexOf("data:image/") !== 0) return;
-      var name = "p" + jobs.length + ".jpg";
-      var relative = "books/" + book.id + "/" + name;
-      jobs.push({ dataUrl: value, relative: relative, assign: assign });
-      if (!first) first = relative;
+      if (typeof value !== "string" || !value) return;
+      var problem = pictureProblem(value);
+      if (problem) {
+        blocked = problem;
+        return;
+      }
+      if (value.indexOf(MARKER) === 0) return;
+      if (seen[value]) {
+        jobs.push({ reuse: seen[value], assign: assign });
+        return;
+      }
+      var relative = "books/" + book.id + "/p" + pictureCount + ".jpg";
+      pictureCount += 1;
+      seen[value] = relative;
+      jobs.push({ source: value, relative: relative, assign: assign });
     }
     if (Array.isArray(copy.pages)) {
       copy.pages.forEach(function (page) {
@@ -171,39 +251,91 @@
           page.imageUrl = null;
           if (!page.imageUrlFallback) page.imageUrlFallback = marker;
         });
+        queue(page.imageUrlFallback, function (marker) {
+          page.imageDataUrl = null;
+          page.imageUrl = null;
+          page.imageUrlFallback = marker;
+        });
       });
     }
     queue(copy.sceneDataUrl, function (marker) {
       copy.sceneDataUrl = null;
       copy.sceneUrlFallback = marker;
     });
+    queue(copy.sceneUrlFallback, function (marker) {
+      copy.sceneDataUrl = null;
+      copy.sceneUrlFallback = marker;
+    });
+    queue(copy.sceneImageUrl, function (marker) {
+      copy.sceneImageUrl = null;
+      if (!copy.sceneUrlFallback || copy.sceneUrlFallback.indexOf(MARKER) !== 0) copy.sceneUrlFallback = marker;
+    });
+    if (blocked) {
+      done(new Error(blocked));
+      return;
+    }
+    var coverBlob = null;
     eachSeries(jobs, function (job, _index, next) {
-      storePicture(sb, childId + "/" + job.relative, job.dataUrl, function (err) {
+      if (job.reuse) {
+        job.assign(MARKER + job.reuse);
+        next(null);
+        return;
+      }
+      function stored(err, blob) {
         if (err) {
           next(err);
           return;
         }
+        if (!coverBlob && blob) coverBlob = blob;
         job.assign(MARKER + job.relative);
         next(null);
+      }
+      if (job.source.indexOf("data:image/") === 0) {
+        var blob = dataUrlToBlob(job.source);
+        if (!blob) {
+          next(new Error("picture_invalid"));
+          return;
+        }
+        var type = blob.type === "image/png" || blob.type === "image/webp" ? blob.type : "image/jpeg";
+        putObject(sb, childId + "/" + job.relative, blob, type, function (err) {
+          stored(err, err ? null : blob);
+        });
+        return;
+      }
+      fetchPicture(job.source, function (err, blob) {
+        if (err || !blob) {
+          next(err || new Error("picture_missing"));
+          return;
+        }
+        var remoteType = blob.type === "image/png" || blob.type === "image/webp" ? blob.type : "image/jpeg";
+        putObject(sb, childId + "/" + job.relative, blob, remoteType, function (putErr) {
+          stored(putErr, putErr ? null : blob);
+        });
       });
     }, function (err) {
       if (err) {
         done(err);
         return;
       }
-      if (first) {
-        var coverSource = jobs[0] && jobs[0].dataUrl;
-        if (coverSource) {
-          storePicture(sb, childId + "/books/" + book.id + "/cover.jpg", coverSource, function () {
-            putObject(sb, childId + "/books/" + book.id + ".json", new global.Blob([JSON.stringify(copy)], { type: "application/json" }), "application/json", function (jsonErr) {
-              done(jsonErr, copy);
-            });
-          });
+      function writeJson() {
+        putObject(
+          sb,
+          childId + "/books/" + book.id + ".json",
+          new global.Blob([JSON.stringify(copy)], { type: "application/json" }),
+          "application/json",
+          function (jsonErr) { done(jsonErr, jsonErr ? null : copy); }
+        );
+      }
+      if (!coverBlob) {
+        writeJson();
+        return;
+      }
+      putObject(sb, childId + "/books/" + book.id + "/cover.jpg", coverBlob, coverBlob.type || "image/jpeg", function (coverErr) {
+        if (coverErr) {
+          done(coverErr);
           return;
         }
-      }
-      putObject(sb, childId + "/books/" + book.id + ".json", new global.Blob([JSON.stringify(copy)], { type: "application/json" }), "application/json", function (jsonErr) {
-        done(jsonErr, copy);
+        writeJson();
       });
     });
   }
@@ -516,23 +648,30 @@
             cb(err);
             return;
           }
-          putObject(sb, childId + "/shared/" + shareId + "/cover.jpg", characterBlob, "image/jpeg", function () { cb(null); });
+          putObject(sb, childId + "/shared/" + shareId + "/cover.jpg", characterBlob, characterBlob.type || "image/jpeg", function (coverErr) {
+            cb(coverErr);
+          });
         });
         return;
       }
       var copy = JSON.parse(JSON.stringify(book || {}));
       copy.id = copy.id || shareId;
       var jobs = [];
+      var shareBlocked = "";
       function queue(value, assign) {
-        if (typeof value !== "string") return;
-        if (value.indexOf("data:image/") !== 0 && !/^https?:\/\//i.test(value)) return;
+        if (typeof value !== "string" || !value) return;
+        if (value.indexOf(MARKER) === 0) return;
+        if (value.indexOf("data:image/") !== 0 && !copyableStorybookUrl(value)) {
+          if (/^https?:\/\//i.test(value) || value.indexOf("data:") === 0) shareBlocked = "public_picture";
+          return;
+        }
         var relative = "shared/" + shareId + "/p" + jobs.length + ".jpg";
         jobs.push({ source: value, relative: relative, assign: assign });
       }
       if (Array.isArray(copy.pages)) {
         copy.pages.forEach(function (page) {
           if (!page) return;
-          queue(page.imageDataUrl || page.imageUrl, function (marker) {
+          queue(page.imageDataUrl || page.imageUrl || page.imageUrlFallback, function (marker) {
             page.imageDataUrl = null;
             page.imageUrl = null;
             page.imageUrlFallback = marker;
@@ -543,21 +682,45 @@
         copy.sceneDataUrl = null;
         copy.sceneUrlFallback = marker;
       });
+      queue(copy.sceneUrlFallback, function (marker) {
+        copy.sceneDataUrl = null;
+        copy.sceneUrlFallback = marker;
+      });
+      if (shareBlocked) {
+        cb(new Error(shareBlocked));
+        return;
+      }
+      var shareCover = null;
       eachSeries(jobs, function (job, _index, next) {
-        function stored(err) {
-          if (!err) job.assign(MARKER + job.relative);
-          next(err);
+        function stored(err, blob) {
+          if (err) {
+            next(err);
+            return;
+          }
+          if (!shareCover && blob) shareCover = blob;
+          job.assign(MARKER + job.relative);
+          next(null);
         }
         if (job.source.indexOf("data:image/") === 0) {
-          storePicture(sb, childId + "/" + job.relative, job.source, stored);
+          var blob = dataUrlToBlob(job.source);
+          if (!blob) {
+            next(new Error("picture_invalid"));
+            return;
+          }
+          putObject(sb, childId + "/" + job.relative, blob, blob.type || "image/jpeg", function (err) {
+            stored(err, err ? null : blob);
+          });
           return;
         }
-        fetch(job.source).then(function (res) {
-          if (!res.ok) throw new Error("picture_missing");
-          return res.blob();
-        }).then(function (blob) {
-          putObject(sb, childId + "/" + job.relative, blob, blob.type || "image/jpeg", stored);
-        }).catch(function (err) { stored(err); });
+        fetchPicture(job.source, function (err, blob) {
+          if (err || !blob) {
+            next(err || new Error("picture_missing"));
+            return;
+          }
+          putObject(sb, childId + "/" + job.relative, blob, blob.type || "image/jpeg", function (putErr) {
+            stored(putErr, putErr ? null : blob);
+          });
+        });
       }, function (err) {
         if (err) {
           cb(err);
@@ -569,16 +732,13 @@
             cb(jsonErr);
             return;
           }
-          if (!jobs[0]) {
+          if (!shareCover) {
             cb(null);
             return;
           }
-          var cover = jobs[0].source && jobs[0].source.indexOf("data:image/") === 0 ? jobs[0].source : "";
-          if (!cover) {
-            cb(null);
-            return;
-          }
-          storePicture(sb, childId + "/shared/" + shareId + "/cover.jpg", cover, function () { cb(null); });
+          putObject(sb, childId + "/shared/" + shareId + "/cover.jpg", shareCover, shareCover.type || "image/jpeg", function (coverErr) {
+            cb(coverErr);
+          });
         });
       });
     });

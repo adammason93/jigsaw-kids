@@ -1,5 +1,5 @@
 /* Minimal offline shell — network-first, cache as fallback for same-origin */
-const CACHE = "jigsaw-kids-v457";
+const CACHE = "jigsaw-kids-v458";
 const SHELL = [
   "./index.html",
   "./portal.html",
@@ -224,10 +224,21 @@ self.addEventListener("activate", function (e) {
   );
 });
 
+function isPrivateContentRequest(request) {
+  var url = request && request.url ? request.url : "";
+  if (url.indexOf("/storage/v1/") !== -1) return true;
+  if (url.indexOf("supabase.co") !== -1) return true;
+  return false;
+}
+
 self.addEventListener("fetch", function (e) {
   if (e.request.method !== "GET" || e.request.url.indexOf("http") !== 0) {
     return;
   }
+  // Private library responses carry Cache-Control from storage. Letting the
+  // service worker refetch them can reuse a cached HTTP 200 after the device
+  // is revoked, the profile is suspended, or the access switch is turned off.
+  if (isPrivateContentRequest(e.request)) return;
   var learnPage = e.request.mode === "navigate" && /\/schools\/learn\/(create|present|class|join)(\.html)?\/?(?:\?|#|$)/.test(e.request.url);
   var portalPage = e.request.mode === "navigate" && /\/portal(\.html)?\/?(?:\?|#|$)/.test(e.request.url);
   var gamePage = e.request.mode === "navigate" && /\/games\/[^/?#]+\.html/.test(e.request.url);

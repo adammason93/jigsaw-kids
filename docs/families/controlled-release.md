@@ -30,7 +30,7 @@ Confirm those three versions are still recorded before applying anything else. D
 - Edge function `child-pair` (source only; `verify_jwt = false` in `supabase/config.toml`)
 - Branch `clever-service` (daily claim on book and character generation; refuses speech when `SPEECH_QUOTA_SECRET` is empty)
 - Branch worker (`workers-site/index.ts` speech signature)
-- Branch website (Family Dashboard, `child.html`, private library scripts, service worker `jigsaw-kids-v457`)
+- Branch website (Family Dashboard, `child.html`, private library scripts, service worker `jigsaw-kids-v458`)
 
 `SPEECH_QUOTA_SECRET` is not set. `CHILD_PAIRING_ENABLED` is not set. Do not invent either value in the repo. Do not deploy `clever-service` or the worker until a secret-name check shows `SPEECH_QUOTA_SECRET`. Leave `CHILD_PAIRING_ENABLED` unset through the public rollout. Set it to `1` only for the controlled pairing test below, and set it back to `0` immediately afterwards if public launch is not approved.
 
@@ -114,7 +114,7 @@ Set `CHILD_PAIRING_ENABLED` back to `1` and redeploy `child-pair` only when pair
 
 ## Service worker rollout
 
-Cache name `jigsaw-kids-v457`. Install skips waiting. Activate deletes every other cache name, claims clients, and reloads open portal, school learn, game, and child pages. Successful network responses are not written back into the cache. Those navigations, plus `wondii-session.js`, `score-cloud.js`, `kids-core.js`, `family.js`, `child-join.js`, `child-library.js`, and `portal.js`, use a reload request so an old HTTP cache copy is not mixed in.
+Cache name `jigsaw-kids-v458`. Install skips waiting. Activate deletes every other cache name, claims clients, and reloads open portal, school learn, game, and child pages. Successful network responses are not written back into the cache. Requests to Supabase storage, including `child_library`, are not handled by the service worker, so a revoked, suspended, or switched-off child session cannot be answered from an earlier cached response. Those navigations, plus `wondii-session.js`, `score-cloud.js`, `kids-core.js`, `family.js`, `child-join.js`, `child-library.js`, and `portal.js`, use a reload request so an old HTTP cache copy is not mixed in.
 
 Personal, school, and anonymous sessions keep the same `wondii-u:{uid}:` storage keys and the same Supabase session in `js/wondii-session.js`. Anonymous score writes stay no-ops until a session is bound. A page that is not in the reload list keeps the scripts already in memory until the next navigation. Offline fallback can serve the new precache only after activate; until one successful load, a failed network falls back to `portal.html`.
 
@@ -150,7 +150,7 @@ Do not set `CHILD_PAIRING_ENABLED`. Do not deploy `child-pair`.
    - Leave `CHILD_PAIRING_ENABLED` unset.
    - Leave `OPENAI_API_KEY` and the Supabase service role where they already are. Do not put the service role in the website. Do not print any secret value.
 5. **Deploy `clever-service`:** `supabase functions deploy clever-service --no-verify-jwt` from this SHA. The branch function returns 503 for speech when `SPEECH_QUOTA_SECRET` is empty. Do this before the worker.
-6. **Publish the website and worker together** with `npx wrangler deploy` from this SHA. Do not merge to `main`. Service worker cache is `jigsaw-kids-v457`.
+6. **Publish the website and worker together** with `npx wrangler deploy` from this SHA. Do not merge to `main`. Service worker cache is `jigsaw-kids-v458`.
 7. **Adult and public checks, before any pairing.** Use an existing personal account, an existing school account, a signed-out browser, and one adult storybook:
    - Personal books and characters still open.
    - School classes still open. School pictures stay in `characters_room`.

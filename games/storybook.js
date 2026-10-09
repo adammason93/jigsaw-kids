@@ -3708,6 +3708,21 @@
     return t;
   }
 
+  function pendingChildShelfId() {
+    var key = "";
+    try {
+      key = sessionStorage.getItem("wondii-child-book-key") || "";
+    } catch (eKey) {
+      return "";
+    }
+    if (!key) return "";
+    var auth = window.WondiiSession && window.WondiiSession.get && window.WondiiSession.get();
+    var meta = auth && auth.session && auth.session.user && auth.session.user.app_metadata;
+    if (!meta || meta.account_kind !== "child") return "";
+    var existing = loadShelf();
+    return existing[0] && existing[0].id ? String(existing[0].id) : "";
+  }
+
   function addStoryToShelfFromData(
     title,
     author,
@@ -3724,7 +3739,11 @@
     onWritten
   ) {
     var list = loadShelf();
-    var id = "b" + Date.now() + "-" + ((Math.random() * 1e6) | 0);
+    var retryId = pendingChildShelfId();
+    var id = retryId || ("b" + Date.now() + "-" + ((Math.random() * 1e6) | 0));
+    if (retryId) {
+      list = list.filter(function (book) { return !book || book.id !== retryId; });
+    }
     var storedPages = pages.map(function (p, i) {
       var fb = String(p.imageUrl || "").trim();
       var inline = dataUrls[i] || null;
