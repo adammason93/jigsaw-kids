@@ -91,17 +91,70 @@
     reader.readAsDataURL(blob);
   }
 
+  function storageConflict(code) {
+    var err = new Error(code);
+    err.code = code;
+    return err;
+  }
+
+  function sha256Hex(buffer) {
+    var subtle = global.crypto && global.crypto.subtle;
+    if (!subtle) return Promise.reject(storageConflict("unverified_duplicate"));
+    return subtle.digest("SHA-256", buffer).then(function (digest) {
+      var bytes = new Uint8Array(digest);
+      var out = "";
+      var i;
+      for (i = 0; i < bytes.length; i++) {
+        var hex = bytes[i].toString(16);
+        out += hex.length === 1 ? "0" + hex : hex;
+      }
+      return out;
+    });
+  }
+
+  /* The existing object is read through child-art, which checks this session.
+     The stored bytes have to match the file we meant to save. A different
+     file, or a read we cannot check, stays a conflict. */
+  function confirmExistingObject(sb, path, blob, token) {
+    var url = readUrl(sb, path);
+    if (!url || !token || !blob) return Promise.reject(storageConflict("unverified_duplicate"));
+    return fetch(url, {
+      method: "GET",
+      cache: "no-store",
+      credentials: "omit",
+      headers: {
+        Authorization: "Bearer " + token,
+        apikey: sb.supabaseKey || "",
+        "Cache-Control": "no-store",
+        Pragma: "no-cache"
+      }
+    }).then(function (res) {
+      if (!res || !res.ok || !res.blob) throw storageConflict("unverified_duplicate");
+      return res.blob();
+    }).then(function (remote) {
+      return Promise.all([blob.arrayBuffer(), remote.arrayBuffer()]);
+    }).then(function (parts) {
+      if (!parts[0].byteLength || parts[0].byteLength !== parts[1].byteLength) {
+        throw storageConflict("storage_conflict");
+      }
+      return Promise.all([sha256Hex(parts[0]), sha256Hex(parts[1])]);
+    }).then(function (hashes) {
+      if (!hashes || hashes[0] !== hashes[1]) throw storageConflict("storage_conflict");
+    });
+  }
+
   /* Binary upload. The JS upload() helper sends cacheControl as a multipart
      field, and Storage rewrites every field value to max-age=<value>.
      A raw body keeps Cache-Control: private, no-store on the object.
      x-upsert is INSERT .. ON CONFLICT DO UPDATE. PostgreSQL rejects that
      unless the caller can SELECT the existing row, and child_library has no
-     select policy. A plain insert is allowed. KeyAlreadyExists means this
-     path was already stored. */
+     select policy. A plain insert is allowed. A duplicate path is checked
+     through child-art before it can count as saved. */
   function putObject(sb, path, blob, contentType, done) {
     var url = objectUrl(sb, path);
+    var token = "";
     Promise.resolve(sb.auth.getSession()).then(function (sess) {
-      var token = sess && sess.data && sess.data.session && sess.data.session.access_token;
+      token = sess && sess.data && sess.data.session && sess.data.session.access_token;
       if (!url || !token) throw new Error("missing");
       return fetch(url, {
         method: "POST",
@@ -114,16 +167,15 @@
         body: blob
       });
     }).then(function (res) {
-      if (!res || !res.ok) {
-        var read = res && res.text ? res.text() : Promise.resolve("");
-        return Promise.resolve(read).then(function (text) {
-          if (String(text).indexOf("KeyAlreadyExists") !== -1) {
-            done(null);
-            return;
-          }
-          throw new Error(String(text || "upload_failed"));
-        });
-      }
+      if (res && res.ok) return null;
+      var read = res && res.text ? res.text() : Promise.resolve("");
+      return Promise.resolve(read).then(function (text) {
+        if (String(text).indexOf("KeyAlreadyExists") !== -1) {
+          return confirmExistingObject(sb, path, blob, token);
+        }
+        throw new Error(String(text || "upload_failed"));
+      });
+    }).then(function () {
       done(null);
     }).catch(function (err) {
       done(err || new Error("upload_failed"));

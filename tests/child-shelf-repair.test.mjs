@@ -87,7 +87,8 @@ function loadLibrary(options) {
   const fetches = [];
   const failPictures = options.failPictures === true;
   const failCover = options.failCover === true;
-  const duplicate = options.duplicate === true;
+  const duplicate = options.duplicate || "";
+  const posted = {};
   const deny = options.deny === true;
   const rpcResult = options.rpcResult || { allowed: true, remaining: 0 };
   const sb = {
@@ -146,6 +147,7 @@ function loadLibrary(options) {
         if (this.onload) this.onload();
       }
     },
+    crypto: globalThis.crypto,
     fetch(url, init) {
       const method = (init && init.method) || "GET";
       fetches.push({ url: String(url), cache: init && init.cache, method: method });
@@ -163,6 +165,7 @@ function loadLibrary(options) {
           });
         }
         if (duplicate) {
+          posted[relative] = init.body;
           return Promise.resolve({
             ok: false,
             status: 400,
@@ -170,6 +173,20 @@ function loadLibrary(options) {
           });
         }
         return Promise.resolve({ ok: true, status: 200, text() { return Promise.resolve("{}"); } });
+      }
+      if (duplicate && String(url).indexOf("/functions/v1/child-art/") !== -1) {
+        const relative = decodeURIComponent(String(url).split("/functions/v1/child-art/")[1] || "");
+        if (duplicate === "unverified") {
+          return Promise.resolve({ ok: false, status: 502, blob() { return Promise.resolve(new Blob()); } });
+        }
+        if (duplicate === "differ") {
+          return Promise.resolve({ ok: true, status: 200, blob() { return Promise.resolve(new Blob(["different-bytes"])); } });
+        }
+        const stored = posted[relative];
+        if (!stored) {
+          return Promise.resolve({ ok: false, status: 404, blob() { return Promise.resolve(new Blob()); } });
+        }
+        return Promise.resolve({ ok: true, status: 200, blob() { return Promise.resolve(stored); } });
       }
       if (String(url).endsWith(".json")) {
         const body = JSON.stringify({ id: "b1791534140235-607078", title: "Saved", pages: [{ text: "Hello" }] });
@@ -230,8 +247,21 @@ saved.uploads.forEach(item => {
   assert.equal(Object.prototype.hasOwnProperty.call(item.headers, "x-upsert"), false);
   assert.equal(item.headers["Content-Type"] ? item.headers["Content-Type"].indexOf("multipart") : -1, -1);
 });
-const duplicateSave = loadLibrary({ duplicate: true });
-assert.equal(await shelfCall(duplicateSave.api, book, "wondiilanternkey01"), null);
+const matched = loadLibrary({ duplicate: "match" });
+assert.equal(await shelfCall(matched.api, book, "wondiilanternkey01"), null);
+assert.equal(matched.rpcs.some(call => call.name === "save_child_shelf"), true);
+const checks = matched.fetches.filter(item => item.url.indexOf("/functions/v1/child-art/") !== -1);
+assert.ok(checks.length > 0);
+assert.equal(checks.every(item => item.method === "GET" && item.cache === "no-store"), true);
+assert.equal(checks.some(item => item.url.indexOf("/storage/v1/object/") !== -1), false);
+const differed = loadLibrary({ duplicate: "differ" });
+const differError = await shelfCall(differed.api, book, "wondiilanternkey01");
+assert.equal(differError && differError.code, "storage_conflict");
+assert.equal(differed.rpcs.some(call => call.name === "save_child_shelf"), false);
+const unverified = loadLibrary({ duplicate: "unverified" });
+const unverifiedError = await shelfCall(unverified.api, book, "wondiilanternkey01");
+assert.equal(unverifiedError && unverifiedError.code, "unverified_duplicate");
+assert.equal(unverified.rpcs.some(call => call.name === "save_child_shelf"), false);
 const deniedSave = loadLibrary({ deny: true });
 const deniedError = await shelfCall(deniedSave.api, book, "wondiilanternkey01");
 assert.ok(deniedError);
