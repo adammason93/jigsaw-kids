@@ -6733,6 +6733,8 @@
     stayOnStorybook = !!(
       bootParams.get("book") ||
       bootParams.get("char") ||
+      bootParams.get("shared") ||
+      bootParams.get("sharedChar") ||
       bootParams.get("sample") === "1" ||
       bootParams.get("demo") === "1"
     );

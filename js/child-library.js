@@ -95,7 +95,7 @@
     sb.storage.from(BUCKET).upload(path, blob, {
       upsert: true,
       contentType: contentType,
-      cacheControl: "0"
+      cacheControl: "private, no-store"
     })
       .then(function (up) { done(up.error || null); })
       .catch(function (err) { done(err || new Error("upload_failed")); });
@@ -122,7 +122,8 @@
         headers: {
           Authorization: "Bearer " + token,
           apikey: sb.supabaseKey || "",
-          "Cache-Control": "no-cache"
+          "Cache-Control": "no-store",
+          Pragma: "no-cache"
         }
       });
     }).then(function (res) {

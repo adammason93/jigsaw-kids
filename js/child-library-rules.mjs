@@ -97,3 +97,14 @@ export function serviceWorkerMustBypass(url) {
   var raw = String(url || "");
   return raw.indexOf("/storage/v1/") !== -1 || raw.indexOf("supabase.co") !== -1;
 }
+
+/* Sent as the object Cache-Control. A numeric max-age is served as
+   public and Supabase Smart CDN can replay it after revocation. */
+export var PRIVATE_OBJECT_CACHE = "private, no-store";
+
+export function sharedCacheMayStore(cacheControl) {
+  var value = String(cacheControl || "").toLowerCase();
+  if (!value) return true;
+  if (value.indexOf("no-store") !== -1 || value.indexOf("private") !== -1) return false;
+  return true;
+}

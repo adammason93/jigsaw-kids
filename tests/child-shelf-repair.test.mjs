@@ -57,7 +57,8 @@ assert.match(artwork, /private\.session_child_folder\(\)/);
 assert.match(artwork, /private\.parent_owns_child_folder/);
 assert.equal(repair.includes("create policy"), false);
 
-assert.match(library, /cacheControl: "0"/);
+assert.match(library, /cacheControl: "private, no-store"/);
+assert.equal(library.includes('cacheControl: "0"'), false);
 assert.match(library, /cache: "no-store"/);
 assert.match(library, /\/storage\/v1\/object\/public\/storybook_images\//);
 assert.match(library, /function copyableStorybookUrl/);
@@ -201,7 +202,7 @@ assert.ok(paths.includes(CHILD + "/books/b1791534140235-607078.json"));
 assert.equal(paths.filter(item => item.endsWith("/p0.jpg")).length, 1);
 saved.uploads.forEach(item => {
   assert.equal(item.opts.upsert, true);
-  assert.equal(item.opts.cacheControl, "0");
+  assert.equal(item.opts.cacheControl, "private, no-store");
 });
 const jsonUpload = saved.uploads.find(item => item.path.endsWith(".json"));
 const storedJson = JSON.parse(await jsonUpload.blob.text());
