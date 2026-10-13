@@ -10,10 +10,23 @@ function text(path) {
   return readFileSync(new URL(path, root), "utf8");
 }
 
-test("the 3D reader file is unchanged", () => {
+test("the closed cover uses the saved title and nothing else in the reader moved", () => {
   const book = text("games/book-prototype/book.js");
-  const sha = createHash("sha1").update(book).digest("hex");
+  const restored = book
+    .replace("let closedCoverTitle = \"The Secret of the Golden Key\";\n\n", "")
+    .replace(
+      "leafHtml.textContent = \"Closed cover. Drag to turn the book all the way around. \" + closedCoverTitle + \".\";",
+      "leafHtml.textContent = \"Closed cover. Drag to turn the book all the way around. The Secret of the Golden Key.\";"
+    )
+    .replace("    closedCoverTitle = String(plan.title || \"Untitled story\").trim() || \"Untitled story\";\n", "");
+  const sha = createHash("sha1").update(restored).digest("hex");
   assert.equal(sha, "e1cc182e222e8fd75186911e17949a43629fd1b5");
+  assert.match(book, /closedCoverTitle = String\(plan\.title \|\| "Untitled story"\)/);
+  assert.match(book, /OPEN_COVER = -Math\.PI/);
+  assert.match(book, /const TURN_MS = 880/);
+  assert.match(book, /lead: \{ value: 0\.62 \}/);
+  assert.match(book, /bow: \{ value: 0\.012 \}/);
+  assert.match(book, /spinY \+= 0\.22 \* dt/);
   assert.equal(book.includes("sampleAssets()"), true);
 });
 
@@ -47,6 +60,10 @@ test("the journey sends each real portrait and the verified picture-book style",
   const page = text("games/storybook.html");
   assert.equal(journey.includes('portrait: "images/characters/crew/" + star()[0]'), false);
   assert.match(journey, /style: "soft_3d"/);
+  assert.match(journey, /lib\.listSharedCharacters/);
+  assert.match(journey, /shareRowId\(state\.pendingStar\)/);
+  assert.equal(journey.includes("postboxList"), false);
+  assert.equal(journey.includes("lib.giftArt"), false);
   assert.match(journey, /cast: members/);
   assert.match(journey, /members\.push\(\{ id: id, name: row\[1\], src: portraitSrc\(id\) \}\)/);
   assert.match(story, /function referenceForPerson/);
@@ -237,4 +254,139 @@ test("a signed-out book id asks for sign-in", async () => {
   const signedOut = await sandbox.WondiiBookData.load();
   assert.equal(signedOut.ok, false);
   assert.equal(signedOut.reason, "unauthorised");
+});
+
+function journeyPage(storage, library) {
+  const nodes = {};
+  function walk(node, found) {
+    found.push(node);
+    (node.children || []).forEach(function (child) { walk(child, found); });
+  }
+  function el() {
+    const node = {
+      hidden: false,
+      textContent: "",
+      className: "",
+      disabled: false,
+      dataset: {},
+      style: { setProperty() {} },
+      children: [],
+      attributes: {},
+      classList: {
+        add() {},
+        remove() {},
+        toggle() { return false; },
+        contains() { return false; }
+      },
+      setAttribute(name, value) { node.attributes[name] = String(value); },
+      getAttribute(name) { return Object.prototype.hasOwnProperty.call(node.attributes, name) ? node.attributes[name] : null; },
+      appendChild(child) { node.children.push(child); return child; },
+      addEventListener() {},
+      querySelector() { return null; },
+      querySelectorAll(selector) {
+        const found = [];
+        walk(node, found);
+        if (selector === "[data-art]") return found.filter(function (item) { return item.getAttribute("data-art"); });
+        return [];
+      },
+      focus() {}
+    };
+    Object.defineProperty(node, "innerHTML", {
+      set() { node.children = []; }
+    });
+    return node;
+  }
+  ["sbLanding", "sbStoryJourney", "sjStage", "sjJourneyTitle", "sjStepLabel", "sjNext", "sjBack", "sjStatus"].forEach(function (id) {
+    nodes[id] = el();
+  });
+  const document = {
+    body: el(),
+    getElementById(id) { return nodes[id] || null; },
+    createElement() { return el(); },
+    createTextNode(text) { return { textContent: text, children: [] }; },
+    addEventListener() {},
+    querySelectorAll(selector) {
+      const found = [];
+      Object.keys(nodes).forEach(function (id) { walk(nodes[id], found); });
+      if (selector === "[data-art]") return found.filter(function (item) { return item.getAttribute && item.getAttribute("data-art"); });
+      return [];
+    }
+  };
+  const sandbox = {
+    document: document,
+    sessionStorage: {
+      getItem(key) { return Object.prototype.hasOwnProperty.call(storage, key) ? storage[key] : null; },
+      setItem(key, value) { storage[key] = String(value); },
+      removeItem(key) { delete storage[key]; }
+    },
+    matchMedia() { return { matches: true }; },
+    setTimeout(fn) { fn(); return 1; },
+    clearTimeout() {},
+    setInterval() { return 1; },
+    clearInterval() {},
+    requestAnimationFrame(fn) { fn(); return 1; },
+    ChildLibrary: library,
+    addEventListener() {}
+  };
+  sandbox.window = sandbox;
+  vm.createContext(sandbox);
+  vm.runInContext(text("games/story-journey.js"), sandbox, { filename: "story-journey.js" });
+  return { nodes: nodes, document: document };
+}
+
+function pressedLabels(stage) {
+  const found = [];
+  function walk(node) {
+    if (node && node.getAttribute && node.getAttribute("aria-pressed") === "true") {
+      found.push(node.getAttribute("aria-label") || "");
+    }
+    (node && node.children || []).forEach(walk);
+  }
+  walk(stage);
+  return found;
+}
+
+test("a shared character link selects that character and leaves an unknown id empty", () => {
+  const share = "e7d4e450-2e5a-44af-a6bb-1d6afbf51c9f";
+  const other = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee";
+  const art = [];
+  const opened = journeyPage({ "wondii-journey-star": share }, {
+    isChildSession() { return true; },
+    listSharedCharacters(cb) {
+      cb(null, [
+        { id: share, title: "Teddy", sourceId: "char_teddy" },
+        { id: other, title: "Pip", sourceId: "char_pip" }
+      ]);
+    },
+    localArtUrl(relative, cb) {
+      art.push(relative);
+      if (relative.indexOf(share) !== -1) cb(null, "blob:http://127.0.0.1/teddy");
+      else cb(new Error("missing"), null);
+    }
+  });
+  assert.equal(opened.nodes.sbStoryJourney.hidden, false);
+  assert.equal(opened.nodes.sbLanding.hidden, true);
+  assert.deepEqual(pressedLabels(opened.nodes.sjStage), ["Teddy, the star"]);
+  assert.equal(art.indexOf("shared/" + share + "/character.png") !== -1, true);
+  const pictures = [];
+  function walk(node) {
+    if (node && node.getAttribute && node.getAttribute("data-art") === share) pictures.push(node.src || "");
+    (node && node.children || []).forEach(walk);
+  }
+  walk(opened.nodes.sjStage);
+  assert.equal(pictures.indexOf("blob:http://127.0.0.1/teddy") !== -1, true);
+  assert.equal(JSON.stringify(pictures).includes("wondii-maya"), false);
+
+  const missed = journeyPage({ "wondii-journey-star": share }, {
+    isChildSession() { return true; },
+    listSharedCharacters(cb) {
+      cb(null, [{ id: other, title: "Pip", sourceId: "char_pip" }]);
+    },
+    localArtUrl(relative, cb) { cb(null, "blob:http://127.0.0.1/pip"); }
+  });
+  assert.deepEqual(pressedLabels(missed.nodes.sjStage), []);
+  assert.equal(missed.nodes.sjNext.disabled, true);
+  assert.match(missed.nodes.sjStatus.textContent, /could not be opened/);
+  assert.equal(JSON.stringify(pressedLabels(missed.nodes.sjStage)).includes("Maya"), false);
+  assert.equal(JSON.stringify(pressedLabels(missed.nodes.sjStage)).includes("Pip"), false);
 });

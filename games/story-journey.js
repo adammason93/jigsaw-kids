@@ -498,31 +498,38 @@
     });
   }
 
+  function shareRowId(value) {
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(value || ""));
+  }
+
   function requestShared() {
     if (library.sharedState === "loading" || library.sharedState === "ready" || library.sharedState === "signed-out") return;
     var lib = window.ChildLibrary;
-    if (!lib || !lib.postboxList || !lib.giftArt) {
+    if (!lib || !lib.isChildSession || !lib.isChildSession() || !lib.listSharedCharacters) {
       library.sharedState = "signed-out";
+      if (state.pendingStar && shareRowId(state.pendingStar) && step === "cast") paint();
       return;
     }
     library.sharedState = "loading";
-    lib.postboxList(function (data) {
-      if (!data || data.allowed === false) {
+    lib.listSharedCharacters(function (err, rows) {
+      if (err) {
         library.shared = [];
-        library.sharedState = "signed-out";
+        library.sharedState = String(err && err.message) === "not_child" ? "signed-out" : "error";
         if (step === "cast") paint();
         return;
       }
       library.shared = [];
-      (data.received || []).forEach(function (row) {
-        if (!row || row.kind !== "character" || row.status !== "accepted") return;
-        if (!/^[0-9a-f-]{36}$/i.test(String(row.senderId || "")) || !/^[A-Za-z0-9_-]{1,80}$/.test(String(row.sourceId || ""))) return;
-        var token = "shared:" + row.senderId + ":" + row.sourceId;
-        var name = String(row.title || "Friend").trim().slice(0, 40) || "Friend";
-        library.shared.push([token, name]);
-        lib.giftArt(row.senderId, row.sourceId, function (err, url) {
-          if (!err) storePortrait(token, url);
-        });
+      (rows || []).forEach(function (row) {
+        if (!row || !shareRowId(row.id)) return;
+        var id = String(row.id);
+        var name = String(row.title || "").trim().slice(0, 40);
+        if (!name) return;
+        library.shared.push([id, name]);
+        if (lib.localArtUrl) {
+          lib.localArtUrl("shared/" + id + "/character.png", function (artErr, url) {
+            if (!artErr) storePortrait(id, url);
+          });
+        }
       });
       rememberRows(library.shared);
       library.sharedState = "ready";
@@ -1019,6 +1026,9 @@
       return;
     }
     nextBtn.disabled = true;
+    /* Pictures draw the star and one tagged friend. Up to three photos are
+       accepted; further friends stay in the words. Saved characters and crew
+       are not used as identity sheets. Leave this limit in place. */
     setStatus(members.length > 2
       ? "Everyone is named in the story. Pictures can show the star and one friend."
       : "Starting your book…");
@@ -1148,7 +1158,11 @@
       sessionStorage.removeItem("wondii-org-starter");
     }
   } catch (eSeed) {}
-  if (state.pendingStar) {
+  if (state.pendingStar && shareRowId(state.pendingStar)) {
+    state.tab = "shared";
+    requestShared();
+    openTheBook();
+  } else if (state.pendingStar) {
     state.tab = "mine";
     requestMine();
     requestShared();

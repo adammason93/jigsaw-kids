@@ -167,3 +167,57 @@ test("a shared book is loaded only for that child and only from the shared path"
   assert.equal(refusedResult.reason, "closed");
   assert.equal(refusedResult.kind, undefined);
 });
+
+function libraryWithHome(kind, rpc) {
+  const user = { id: "u1", app_metadata: { account_kind: kind, child_profile_id: CHILD } };
+  const sandbox = {
+    WondiiSession: {
+      get() {
+        return { status: "authenticated", session: { user: user } };
+      },
+      client(done) {
+        done({ rpc: rpc });
+      }
+    }
+  };
+  sandbox.window = sandbox;
+  vm.createContext(sandbox);
+  vm.runInContext(text("js/child-library.js"), sandbox);
+  return sandbox.ChildLibrary;
+}
+
+test("shared characters come from the child home and an adult is not given a substitute", async () => {
+  const calls = [];
+  const child = libraryWithHome("child", function (name) {
+    calls.push(name);
+    return Promise.resolve({
+      data: {
+        allowed: true,
+        sharedCharacters: [{ id: SHARE, title: "Teddy", sourceId: "char_teddy" }]
+      }
+    });
+  });
+  const rows = await new Promise(function (resolve, reject) {
+    child.listSharedCharacters(function (err, list) {
+      if (err) reject(err);
+      else resolve(list);
+    });
+  });
+  assert.deepEqual(calls, ["child_home"]);
+  assert.equal(rows[0].id, SHARE);
+  assert.equal(rows[0].title, "Teddy");
+
+  let adultCalls = 0;
+  const adult = libraryWithHome("parent", function () {
+    adultCalls += 1;
+    return Promise.resolve({ data: { allowed: true, sharedCharacters: [] } });
+  });
+  const adultResult = await new Promise(function (resolve) {
+    adult.listSharedCharacters(function (err, list) {
+      resolve({ message: err && err.message, list: list });
+    });
+  });
+  assert.equal(adultResult.message, "not_child");
+  assert.equal(adultResult.list.length, 0);
+  assert.equal(adultCalls, 0);
+});

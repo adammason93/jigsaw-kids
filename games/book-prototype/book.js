@@ -936,6 +936,8 @@ function seatLeftPage(onCover) {
   }
 }
 
+let closedCoverTitle = "The Secret of the Golden Key";
+
 function setClosedPose() {
   mode = "closed";
   spreadIndex = 0;
@@ -949,7 +951,7 @@ function setClosedPose() {
   if (endPaper) endPaper.visible = true;
   if (rightPaper) rightPaper.visible = false;
   if (rightRim) rightRim.visible = false;
-  leafHtml.textContent = "Closed cover. Drag to turn the book all the way around. The Secret of the Golden Key.";
+  leafHtml.textContent = "Closed cover. Drag to turn the book all the way around. " + closedCoverTitle + ".";
   if (leftMesh) leftMesh.rotation.y = 0;
   fitPages();
   spinY = 0;
@@ -1399,6 +1401,7 @@ function savedAssets(plan) {
     document.title = plan.title + " — Wondii";
     const notes = document.getElementById("notesBtn");
     if (notes) notes.hidden = true;
+    closedCoverTitle = String(plan.title || "Untitled story").trim() || "Untitled story";
     armReader();
   });
 }

@@ -731,6 +731,20 @@
     });
   }
 
+  function listSharedCharacters(cb) {
+    if (!isChildSession()) {
+      cb(new Error("not_child"), []);
+      return;
+    }
+    rpc("child_home", {}, function (err, data) {
+      if (err || !data || data.allowed !== true) {
+        cb(err || new Error((data && data.reason) || "unavailable"), []);
+        return;
+      }
+      cb(null, Array.isArray(data.sharedCharacters) ? data.sharedCharacters : []);
+    });
+  }
+
   function loadSharedBook(shareId, cb) {
     if (!safeId(shareId)) {
       cb(new Error("share_invalid"), null);
@@ -912,6 +926,7 @@
     localArtUrl: localArtUrl,
     loadOwnedBook: loadOwnedBook,
     loadSharedBook: loadSharedBook,
+    listSharedCharacters: listSharedCharacters,
     storeSharedPackage: storeSharedPackage,
     removeShareFiles: removeShareFiles
   };
