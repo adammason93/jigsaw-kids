@@ -1541,6 +1541,93 @@ html.kids-reduce-motion .hcard__fav.is-on {
   animation: none;
 }
 
+/* Compact menu. Only bars that include the menu button opt in.
+   Other Games pages keep the wrapping row they already use. */
+.home-nav-menu {
+  display: none;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border: 0;
+  border-radius: 14px;
+  background: #f4f1fb;
+  color: #141b4d;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.home-nav-menu svg {
+  width: 22px;
+  height: 22px;
+}
+
+@media (max-width: 900px) {
+  .home-bar--menu {
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr) auto;
+    align-items: center;
+    flex-wrap: nowrap;
+    position: relative;
+    gap: 0.35rem;
+    border-radius: 22px;
+    padding: 0.35rem 0.45rem;
+  }
+
+  .home-bar--menu .home-nav-menu {
+    display: grid;
+  }
+
+  .home-bar--menu .home-logo {
+    grid-column: 2;
+    justify-self: center;
+    margin: 0;
+  }
+
+  .home-bar--menu .home-bar__end {
+    grid-column: 3;
+    margin-left: 0;
+    padding-left: 0;
+    border-left: 0;
+    gap: 0.35rem;
+  }
+
+  .home-bar--menu .home-nav {
+    display: none;
+    position: absolute;
+    top: calc(100% + 0.35rem);
+    left: 0.35rem;
+    right: 0.35rem;
+    z-index: 40;
+    width: auto;
+    order: 0;
+    margin: 0;
+    flex-direction: column;
+    gap: 0.2rem;
+    padding: 0.45rem;
+    border-radius: 18px;
+    background: #fff;
+    box-shadow: 0 16px 32px rgba(49, 20, 110, 0.22);
+  }
+
+  .home-bar--menu .home-nav.is-open {
+    display: flex;
+  }
+
+  .home-bar--menu .home-nav__link {
+    flex: none;
+    flex-direction: row;
+    justify-content: flex-start;
+    min-height: 44px;
+    padding: 0 1rem;
+    border-radius: 999px;
+    font-size: 0.95rem;
+  }
+
+  .home-bar--menu .home-nav__my {
+    display: inline;
+  }
+}
+
 html.kids-reduce-motion .hcard:hover,
 html.kids-reduce-motion .hcard:hover .hcard__img {
   transform: none;

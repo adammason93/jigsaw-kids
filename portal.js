@@ -264,7 +264,7 @@
     li.className = "p-card p-card--book";
     var a = document.createElement("a");
     a.className = "p-card__link";
-    a.href = STORY_URL + "?book=" + encodeURIComponent(b.id);
+    a.href = "games/book-prototype/?book=" + encodeURIComponent(b.id);
     var holder = document.createElement("span");
     holder.className = "p-card__img p-card__img--book";
     fillCover(holder, b);
@@ -402,7 +402,7 @@
       copy.innerHTML =
         '<p class="p-feature__kicker">Your newest story</p><h2 class="p-feature__title"></h2>' +
         '<p class="p-feature__meta"><span>Story</span><span>' + pageCount(b) + "</span></p>" +
-        '<a class="p-feature__go" href="' + STORY_URL + "?book=" + encodeURIComponent(b.id) + '">Read now</a>';
+        '<a class="p-feature__go" href="games/book-prototype/?book=' + encodeURIComponent(b.id) + '">Read now</a>';
       copy.querySelector(".p-feature__title").textContent = String(b.title || "My Story");
     } else {
       copy.innerHTML =

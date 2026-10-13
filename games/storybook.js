@@ -1197,6 +1197,11 @@
       overArt: '"Comic Neue","Schoolbell","Nunito",sans-serif',
       emphasis: '"Sniglet","Comic Neue","Nunito",sans-serif',
     },
+    lora: {
+      body: 'Lora, Georgia, serif',
+      overArt: 'Lora, Georgia, serif',
+      emphasis: 'Lora, Georgia, serif',
+    },
   };
 
   function normalizeReaderFontKey(key) {
@@ -1204,6 +1209,7 @@
     return SB_READER_FONT_PRESETS[k] ? k : "fredoka";
   }
   var spreadIndex = 0;
+  var spreadListener = null;
   /** @type {boolean} */
   var spreadAnimLock = false;
   /** @type {number | null} — paint incoming duplex + prose early in the hinge */
@@ -2236,6 +2242,19 @@
     if (spreadPeelFrontText) spreadPeelFrontText.innerHTML = "";
   }
 
+  function theEndHtml() {
+    return (
+      '<div class="sb-the-end-wrap" role="status">' +
+      '<h2 class="sb-the-end-title">The End</h2>' +
+      '<p class="sb-the-end-lead">We hope you enjoyed the story!</p>' +
+      '<div class="sj-end-actions">' +
+      '<button type="button" class="sb-btn sb-btn--primary" data-sj-end="again">Read again</button>' +
+      '<button type="button" class="sb-btn sb-btn--ghost" data-sj-end="shelf">Back to my bookshelf</button>' +
+      '<button type="button" class="sb-btn sb-btn--ghost" data-sj-end="another">Create another story</button>' +
+      "</div></div>"
+    );
+  }
+
   /**
    * Left column content for one spread (prose words HTML, The End block, or empty).
    * @param {number} si
@@ -2249,16 +2268,12 @@
     if (n < 1) return { kind: "empty" };
     si = Math.max(0, Math.min(Number(si), n - 1));
     if (si * 2 >= story.pages.length) {
-      return {
-        kind: "theend",
-        html:
-          '<div class="sb-the-end-wrap" role="status">' +
-          '<h2 class="sb-the-end-title">The End</h2>' +
-          '<p class="sb-the-end-lead">We hope you enjoyed the story!</p>' +
-          "</div>",
-      };
+      return { kind: "theend", html: theEndHtml() };
     }
     var leftP = story.pages[si * 2];
+    if (leftP && String(leftP.text || "").trim().toLowerCase() === "the end") {
+      return { kind: "theend", html: theEndHtml() };
+    }
     if (leftP && leftP.text) {
       return { kind: "prose", html: storyPageTextToReadableHtml(leftP.text) };
     }
@@ -2278,14 +2293,7 @@
     if (n < 1) return { kind: "empty" };
     si = Math.max(0, Math.min(Number(si), n - 1));
     if (si * 2 >= story.pages.length) {
-      return {
-        kind: "theend",
-        html:
-          '<div class="sb-the-end-wrap" role="status">' +
-          '<h2 class="sb-the-end-title">The End</h2>' +
-          '<p class="sb-the-end-lead">We hope you enjoyed the story!</p>' +
-          "</div>",
-      };
+      return { kind: "theend", html: theEndHtml() };
     }
     var ri = si * 2 + 1;
     if (ri >= story.pages.length) {
@@ -3150,6 +3158,14 @@
     updateSpreadPageNumberDisplay();
     updatePagerHints();
     prefetchAdjacentSpreadIllustrations();
+    if (spreadListener && story && story.pages) {
+      var heard = story.pages[spreadIndex * 2] || {};
+      spreadListener({
+        pageId: heard.pageId || "",
+        text: heard.text || "",
+        index: spreadIndex
+      });
+    }
   }
 
   function renderSpread() {
@@ -3690,6 +3706,11 @@
     return t;
   }
 
+  function storyAtmosphereFor(extra) {
+    if (!window.WondiiStoryAtmosphere || !window.WondiiStoryAtmosphere.enabled()) return null;
+    return window.WondiiStoryAtmosphere.resolve(extra || {});
+  }
+
   function addStoryToShelfFromData(
     title,
     author,
@@ -3737,6 +3758,11 @@
       pages: storedPages,
       sceneDataUrl: storedSceneData,
       sceneUrlFallback: sceneUrlFallback || null,
+      atmosphere: storyAtmosphereFor({
+        place: selectedPlace,
+        plot: plotInput ? plotInput.value : "",
+        atmosphere: story && story.atmosphere
+      }),
     });
     saveShelf(list, cloudDone, onWritten);
   }
@@ -3760,7 +3786,9 @@
       }
     }
     if (!item || !item.pages || !item.pages.length) return;
-    story = {
+    story = window.WondiiBookBrain
+      ? window.WondiiBookBrain.readerStoryFromShelfItem(item)
+      : {
       title: item.title,
       author: item.author || "",
       bookColor: item.bookColor || null,
@@ -3772,7 +3800,6 @@
         item.readerArtLayout === "facing" ? "facing" : "duplex"
       ),
       storyLength: storyLengthFromShelfItem(item),
-      /* Prefer remote asset when present so reopen matches stored PNG (not shelf JPEG). */
       sceneImageUrl: item.sceneUrlFallback || item.sceneDataUrl || null,
       pages: item.pages.map(function (p) {
         var page = {
@@ -3785,6 +3812,7 @@
         return page;
       }),
     };
+    if (item.atmosphere) story.atmosphere = item.atmosphere;
     spreadIndex = 0;
     showBook();
   }
@@ -4016,8 +4044,19 @@
     shelfEl.scrollBy({ left: amount, behavior: "smooth" });
   }
 
+  function shelfAlreadyHasStory() {
+    if (!story || !story.title) return false;
+    return loadShelf().some(function (b) {
+      return b && b.title === story.title && String(b.author || "") === String(story.author || "");
+    });
+  }
+
   function saveBookToShelf() {
     if (!story || !story.pages.length || !btnShelf) return;
+    if (shelfAlreadyHasStory()) {
+      btnShelf.textContent = "On my bookshelf";
+      return;
+    }
     var label = btnShelf.textContent;
     btnShelf.disabled = true;
     btnShelf.textContent = "Saving…";
@@ -5554,6 +5593,11 @@
       landing.classList.remove("is-hidden");
       landing.hidden = false;
     }
+    var journeyHome = document.getElementById("sbStoryJourney");
+    if (journeyHome) journeyHome.hidden = true;
+    try {
+      document.dispatchEvent(new CustomEvent("wondii-story-home"));
+    } catch (eHome) {}
     if (book) {
       book.classList.remove("sb-reader--sample");
       book.classList.add("is-hidden");
@@ -5586,6 +5630,8 @@
       landing.classList.add("is-hidden");
       landing.hidden = true;
     }
+    var journeyOpen = document.getElementById("sbStoryJourney");
+    if (journeyOpen) journeyOpen.hidden = true;
     if (book) {
       book.classList.remove("is-hidden");
       book.hidden = false;
@@ -5597,20 +5643,33 @@
     }
     if (readerHeading) readerHeading.textContent = story.title;
     if (coverTitle && story) coverTitle.textContent = story.title;
-    var coverWho = story && story.author ? String(story.author).replace(/\(sample\)/i, "").trim() : "";
+    var coverWho = story && story.featuring
+      ? ""
+      : story && story.author
+        ? String(story.author).replace(/\(sample\)/i, "").trim()
+        : "";
     var coverKicker = document.getElementById("sbCoverKicker");
     var coverMade = document.getElementById("sbCoverMade");
     if (coverKicker) {
-      coverKicker.textContent = coverWho
-        ? "An adventure starring " + coverWho
-        : "An adventure made for you";
+      coverKicker.textContent = story && story.featuring
+        ? "Featuring " + story.featuring
+        : coverWho
+          ? "An adventure starring " + coverWho
+          : "An adventure made for you";
     }
     if (coverMade) {
-      coverMade.textContent = coverWho ? "Made especially for " + coverWho : "Made especially for you";
+      coverMade.textContent = story && story.demoExample
+        ? "Demo example"
+        : coverWho
+          ? "Made especially for " + coverWho
+          : "Made especially for you";
     }
     updateReadChrome();
     syncReadDock();
     syncFaveButton();
+    if (btnShelf) {
+      btnShelf.textContent = shelfAlreadyHasStory() ? "On my bookshelf" : "Put on my shelf";
+    }
     if (btnOpenCover && story) {
       btnOpenCover.setAttribute(
         "aria-label",
@@ -5733,6 +5792,7 @@
     } catch (e) {
       return;
     }
+    if (document.documentElement.classList.contains("book-v2")) return;
     if (String(params.get("from") || "") !== "portal" && String(params.get("create") || "") !== "1") return;
     try {
       var u = new URL(window.location.href);
@@ -5776,6 +5836,9 @@
 
   function mergeFailedMessage(raw) {
     var s = String(raw || "");
+    if (s === "no_account" || s === "no_session") {
+      return "This book is still here, but it is not on the bookshelf yet. Sign in with a Wondii account, then tap Put on my shelf.";
+    }
     if (
       s === "localStorage_quota" ||
       s === "storage_quota" ||
@@ -6018,14 +6081,36 @@
     btnFaveBook.textContent = on ? "♥" : "♡";
   }
 
+    if (book) {
+    book.addEventListener("click", function (e) {
+      var endBtn = e.target && e.target.closest ? e.target.closest("[data-sj-end]") : null;
+      if (!endBtn) return;
+      e.preventDefault();
+      var act = endBtn.getAttribute("data-sj-end");
+      if (act === "again") {
+        spreadIndex = 0;
+        renderSpread();
+        closeBookCover();
+      } else if (act === "shelf") {
+        returnToStoryLanding();
+      } else if (act === "another") {
+        returnToStoryLanding();
+        try {
+          document.dispatchEvent(new CustomEvent("wondii-story-create"));
+        } catch (eCreate) {}
+      }
+    });
+  }
   if (btnLibraryBack) {
     btnLibraryBack.addEventListener("click", function () {
-      goToPortalStories();
+      if (document.getElementById("sbStartJourney")) returnToStoryLanding();
+      else goToPortalStories();
     });
   }
   if (btnReaderDismiss) {
     btnReaderDismiss.addEventListener("click", function () {
-      goToPortalStories();
+      if (document.getElementById("sbStartJourney")) returnToStoryLanding();
+      else goToPortalStories();
     });
   }
   if (btnFaveBook) {
@@ -6507,7 +6592,10 @@
             storyLength: readStoryLengthFromWizard(),
             pages: out.body.pages || [],
             sceneImageUrl: out.body.sceneImageUrl || null,
+            place: selectedPlace,
+            plot: plotHint,
           };
+          story.atmosphere = storyAtmosphereFor(story);
           spreadIndex = 0;
           showBook();
         })
@@ -6591,7 +6679,12 @@
       bootParams.get("book") ||
       bootParams.get("char") ||
       bootParams.get("sample") === "1" ||
-      bootParams.get("demo") === "1"
+      bootParams.get("demo") === "1" ||
+      bootParams.get("create") === "1" ||
+      bootParams.get("journey") === "1" ||
+      bootParams.get("fixture") ||
+      document.documentElement.classList.contains("book-v2") ||
+      document.getElementById("sbStartJourney")
     );
     if (bootParams.get("sample") === "1" || bootParams.get("demo") === "1") {
       openSampleBook();
@@ -6601,7 +6694,7 @@
   preselectCharacterFromUrl();
   openBookFromUrl();
   try {
-    if (sessionStorage.getItem("wondii-org-starter")) openJourney();
+    if (!document.documentElement.classList.contains("book-v2") && sessionStorage.getItem("wondii-org-starter")) openJourney();
   } catch (eOrgSeed) {}
 
   var makerNow = document.getElementById("sbModal");
@@ -6618,4 +6711,135 @@
   syncIllustrationStyleRadios();
   syncStoryTextModeRadios();
   syncStoryLengthRadios();
+
+  var DEMO_IMG = "../docs/agent/book-v2/visual-proof/e/images/";
+  var DEMO_PAGES = [
+    "Beneath the propped blue atlas, brass feet tapped without going anywhere. Mina bent low over the library reading dais. Leo crouched beside her, peering under the cover.",
+    "Mina turned the beetle's key, and its feet carried it onto the bridge plate. The entrance bridge folded against the wall. Beyond the plate, the beetle stopped; their way back was gone.",
+    "Leo tested the bench above the water; it held firm. Mina pointed past the wave and drain plates to the sun. \"Let's get it there.\"",
+    "Leo reached for the key, paused, then wound the beetle toward the sun. Its brass feet pressed the wave plate. The wall hatch swung inward, letting floodwater pour through.",
+    "Water swept the atlas off its shelf and onto the drain grille. Leo caught Mina's hand and helped her onto the bench. Below them, the blue cover vanished under the surge.",
+    "Leo's hand hovered over the key, then drew back. Mina traced the engraved lines between the brass plates. He held her sleeve clear of the water while her finger followed each groove.",
+    "The drain plate's engraved line led Mina's finger to the grille. From the sun, two more lines reached the drain latch and the inlet catch. \"Leo, this one joins both.\"",
+    "Mina wound the beetle onto the drain plate while Leo lifted the atlas. The drain opened beneath the book. Water sucked it down, pinning the cover against the grille.",
+    "The beetle stepped off the drain plate and stopped just short of the sun. The grille shut, and the atlas came loose. One blue corner floated up beside the bench.",
+    "Leo lifted the atlas clear and hugged it against his chest. Mina wound the beetle; its feet reached the sun plate. The inlet snapped shut, the drain locked open, and water rushed away.",
+    "Leo propped the wet atlas on the dry bench. Mina carried the beetle beneath its cover, keeping her fingers away from the key. Under the blue shelter, its brass feet rested."
+  ];
+
+  function buildDemoBook() {
+    var pages = [
+      { text: "", imageUrl: null },
+      { text: "Demo example. This book was already made. Opening it does not create a new story.", imageUrl: null }
+    ];
+    DEMO_PAGES.forEach(function (line, i) {
+      pages.push({ text: line, imageUrl: null });
+      pages.push({ text: "", imageUrl: DEMO_IMG + "p" + (i + 1) + ".jpg" });
+    });
+    pages.push({ text: "The End", imageUrl: null });
+    pages.push({ text: "", imageUrl: DEMO_IMG + "cover.jpg" });
+    return {
+      title: "The Beetle's Last Turn",
+      author: "Demo example",
+      bookColor: "navy",
+      readerFont: "fredoka",
+      readerArtLayout: "facing",
+      storyTextMode: "prose",
+      storyLength: "medium",
+      sceneImageUrl: DEMO_IMG + "cover.jpg",
+      featuring: "Mina and Leo",
+      pages: pages,
+      isSample: true,
+      demoExample: true
+    };
+  }
+
+  function portraitToReference(src, who) {
+    return fetch(src).then(function (response) {
+      if (!response.ok) throw new Error("portrait");
+      return response.blob();
+    }).then(function (blob) {
+      return new Promise(function (resolve, reject) {
+        var reader = new FileReader();
+        reader.onload = function () { resolve(String(reader.result || "")); };
+        reader.onerror = function () { reject(new Error("portrait")); };
+        reader.readAsDataURL(blob);
+      });
+    }).then(function (dataUrl) {
+      heroPhotoItems = [{ dataUrl: dataUrl, who: who || "hero" }];
+      renderHeroPhotoThumbs();
+    });
+  }
+
+  window.WondiiStoryDraft = {
+    apply: function (draft) {
+      var next = draft || {};
+      if (nameInput) nameInput.value = String(next.name || "").slice(0, 24);
+      if (plotInput) plotInput.value = String(next.plot || "").slice(0, PLOT_INPUT_MAX);
+      selectedChar = "nobuddy";
+      selectedPlace = next.place || "library";
+      if (next.length) {
+        setStoryLength(next.length);
+        syncStoryLengthRadios();
+        var lengthRadio = document.querySelector(
+          'input[name="sbStoryLength"][value="' + String(next.length) + '"]'
+        );
+        if (lengthRadio) lengthRadio.checked = true;
+      }
+      var portrait = next.portrait ? String(next.portrait) : "";
+      if (!portrait) {
+        heroPhotoItems = [];
+        return Promise.resolve();
+      }
+      return portraitToReference(portrait, next.name || "hero").catch(function () {
+        heroPhotoItems = [];
+      });
+    },
+    create: function () {
+      if (btnGen) btnGen.click();
+    },
+    openDemo: function () {
+      story = buildDemoBook();
+      spreadIndex = 0;
+      showBook();
+    }
+  };
+
+  window.WondiiStorybookReader = {
+    open: function (readerStory) {
+      if (!readerStory || !readerStory.pages || !readerStory.pages.length) return;
+      story = readerStory;
+      spreadIndex = 0;
+      showBook();
+    },
+    close: function () {
+      story = null;
+      spreadIndex = 0;
+      if (book) {
+        book.classList.add("is-hidden");
+        book.hidden = true;
+        book.classList.remove("sb-book--cover-visible");
+      }
+    },
+    listen: function (fn) {
+      spreadListener = typeof fn === "function" ? fn : null;
+    },
+    updatePage: function (pageId, text) {
+      if (!story || !story.pages) return;
+      story.pages.forEach(function (page) {
+        if (page.pageId === pageId) page.text = text;
+      });
+      renderSpread();
+    },
+    shelve: function (item, done) {
+      if (!item || !item.id) return;
+      reloadShelfCacheFromStore(function () {
+        var list = loadShelf().filter(function (entry) {
+          return entry.id !== item.id;
+        });
+        list.unshift(item);
+        saveShelf(list, null, done || null);
+      });
+    }
+  };
 })();

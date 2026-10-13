@@ -6,7 +6,7 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <link rel="preload" href="/games/images/storybook-landing-room-bg.jpg" as="image" />
+  <link rel="preload" href="/games/images/connect-four-world.jpg" as="image" />
   <meta name="theme-color" content="#141b4d" />
   <title>Make a book — Wondii</title>
   <link rel="manifest" href="../manifest.json" />
@@ -14,6 +14,8 @@
   <!-- storybook-app.css = renamed file so CDN/browser cache cannot keep old storybook.css -->
   <link rel="stylesheet" href="storybook-app.css?v=182" />
   <link rel="stylesheet" href="storybook-wondii.css?v=13" />
+  <link rel="stylesheet" href="../home.css?v=8" />
+  <link rel="stylesheet" href="story-journey.css?v=48" />
   <link rel="stylesheet" href="../tablet-ipad.css" />
   <!-- Last wins: guarantees new background even if a proxy cached an ancient stylesheet elsewhere -->
   <style>
@@ -67,49 +69,100 @@
     </div>
   </div>
   <div class="sb-app" id="app">
-    <nav class="sb-nav">
-      <a class="sb-back back-btn" href="../portal.html#stories" aria-label="Back to stories">
-        <span class="back-btn__icon" aria-hidden="true">&#8592;</span><span class="back-btn__text">Back</span>
+    <header class="home-bar home-bar--menu sb-nav">
+      <button type="button" class="home-nav-menu" id="sjNavMenu" aria-expanded="false" aria-controls="sjMainNav" aria-label="Menu">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+      <a class="home-logo" href="../portal.html" aria-label="Wondii — home">
+        <img class="home-logo__pad" src="images/brand/wondi-wordmark.svg" width="168" height="56" alt="" />
       </a>
-    </nav>
+      <nav class="home-nav" id="sjMainNav" aria-label="Main">
+        <a class="home-nav__link" href="../portal.html">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11.2 12 4l9 7.2V20a1 1 0 0 1-1 1h-5.5v-6h-5v6H4a1 1 0 0 1-1-1z"/></svg>
+          <span>Home</span>
+        </a>
+        <a class="home-nav__link is-active" href="../portal.html#stories" aria-current="page">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5C6.5 4.3 9.2 4.3 12 6c2.8-1.7 5.5-1.7 8-.5V19c-2.5-1.2-5.2-1.2-8 .5-2.8-1.7-5.5-1.7-8-.5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M12 6v13.5" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+          <span>Stories</span>
+        </a>
+        <a class="home-nav__link" href="../portal.html#games">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7h10a5 5 0 0 1 4.9 6l-.8 4a2.5 2.5 0 0 1-4.3 1.2L14.5 16h-5l-2.3 2.2A2.5 2.5 0 0 1 2.9 17l-.8-4A5 5 0 0 1 7 7zm0 3v1.5H5.5v1.5H7v1.5h1.5V13H10v-1.5H8.5V10zm9.5 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm-2 2a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/></svg>
+          <span>Games</span>
+        </a>
+        <a class="home-nav__link" href="../portal.html#favourites">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7.5-4.6-10-9.3C.4 8.3 2.3 4 6.3 4c2.3 0 3.9 1.3 5.7 3.3C13.8 5.3 15.4 4 17.7 4c4 0 5.9 4.3 4.3 7.7C19.5 16.4 12 21 12 21z"/></svg>
+          <span><span class="home-nav__my">My </span>Favourites</span>
+        </a>
+        <a class="home-nav__link" href="../portal.html#about">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm1.3 15h-2.6v-6.5h2.6zM12 9.2a1.6 1.6 0 1 1 0-3.2 1.6 1.6 0 0 1 0 3.2z"/></svg>
+          <span>About</span>
+        </a>
+      </nav>
+      <div class="home-bar__end">
+        <button type="button" class="home-gear" id="sjHelp" title="Help" aria-label="Help">?</button>
+        <a class="home-avatar" href="../characters.html" title="My characters">
+          <img src="images/brand/wondi-mark.svg" alt="My characters" width="46" height="46" decoding="async" />
+        </a>
+        <button type="button" class="home-gear" id="sjSettings" title="Grown-up settings" aria-label="Grown-up settings">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.4 13a7.6 7.6 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.4 7.4 0 0 0-1.7-1L15 3.3h-4l-.4 2.6a7.4 7.4 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.6 7.6 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1a7.4 7.4 0 0 0 1.7 1l.3 2.6h4l.4-2.6a7.4 7.4 0 0 0 1.7-1l2.5 1 2-3.5zM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg>
+        </button>
+      </div>
+    </header>
+    <div class="sj-help" id="sjHelpDialog" hidden>
+      <div class="sj-help__card" role="dialog" aria-modal="true" aria-labelledby="sjHelpTitle">
+        <h2 id="sjHelpTitle">Making your story</h2>
+        <p>Choose your stars, your world, and your idea.</p>
+        <p>Surprise me picks a friend for you. Nothing is made until you press Create my story.</p>
+        <button type="button" class="sj-pill sj-pill--primary" id="sjHelpClose">Got it</button>
+      </div>
+    </div>
 
-    <!-- Landing: start the journey -->
-    <section class="sb-landing" id="sbLanding" aria-labelledby="sbLandingTitle">
-      <div class="sb-landing__split">
-        <div class="sb-landing__left">
-          <header class="sb-landing__head">
-            <p class="sb-landing__emoji" aria-hidden="true">📖✨</p>
-            <h1 class="sb-landing__title" id="sbLandingTitle">Build your book</h1>
-          </header>
-          <div class="sb-landing__copy">
-            <p class="sb-landing__tagline">
-              Five short steps. Then we write the story and draw the pictures.
-            </p>
-            <p class="sb-landing__lead">
-              Name, a friend, a place, and what happens. You can change the look at the end.
-            </p>
-          </div>
-          <p class="sb-note sb-note--landing" id="sbError" role="alert" hidden></p>
-          <div class="sb-landing__actions">
-            <button type="button" class="sb-btn sb-btn--primary sb-btn--landing-primary" id="sbStartJourney">
-              Start your story journey
-            </button>
-            <div class="sb-landing__secondary">
-              <button type="button" class="sb-btn sb-btn--ghost sb-btn--landing-secondary" id="sbPreviewSample">
-                Preview sample book
-              </button>
-              <p class="sb-landing__demo-hint">
-                Uses the same two-page layout as a real story. Arrows move one spread at a time.
-              </p>
-            </div>
+    <!-- Story creation welcome. The finished reader keeps the book. -->
+    <section class="sb-landing sj-room" id="sbLanding" aria-labelledby="sbLandingTitle">
+      <div class="sj-room__copy">
+        <p class="sj-room__kicker">Step into Wondii and make a story that's all yours.</p>
+        <h1 class="sj-room__title" id="sbLandingTitle">Every great story starts somewhere...</h1>
+      </div>
+      <div class="sj-welcome" id="sjDesk">
+        <figure class="sj-companion" hidden>
+          <img src="images/characters/crew/wondii-maya.jpg" alt="" width="120" height="120" />
+          <figcaption>Maya</figcaption>
+        </figure>
+        <div class="sj-teasers" aria-hidden="true">
+          <p>Explore some magical worlds</p>
+          <div>
+            <figure><img src="images/connect-four-world.jpg" alt="" /><figcaption>Wondii World</figcaption></figure>
+            <figure><img src="images/storybook-landing-room-bg.jpg" alt="" /><figcaption>At home</figcaption></figure>
+            <figure><img src="images/jigsaw-presets/dino.jpg" alt="" /><figcaption>In nature</figcaption></figure>
+            <figure><img src="images/jigsaw-presets/dolphin.jpg" alt="" /><figcaption>Under the sea</figcaption></figure>
+            <figure><img src="images/jigsaw-presets/unicorn.jpg" alt="" /><figcaption>Somewhere magical</figcaption></figure>
           </div>
         </div>
-
-        <div class="sb-landing__right" hidden>
+        <button type="button" class="sj-tome" id="sjTome" tabindex="-1" aria-hidden="true">
+          <span class="sj-tome__pages" aria-hidden="true"></span>
+          <span class="sj-tome__cover">
+            <span class="sj-tome__window">
+              <img src="images/characters/crew/wondii-maya.jpg" alt="" width="240" height="300" />
+            </span>
+            <span class="sj-tome__name">Your story</span>
+          </span>
+          <span class="sj-sparkles" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+        </button>
+      </div>
+      <p class="sb-note sb-note--landing" id="sbError" role="alert" hidden></p>
+      <div class="sj-room__actions">
+        <button type="button" class="sj-pill sj-pill--primary" id="sbStartJourney">Start my story</button>
+        <button type="button" class="sj-pill" id="sbSurprise">Surprise me</button>
+        <button type="button" class="sj-quiet" id="sbPreviewSample">Open a demo story</button>
+      </div>
+      <p class="sj-quiet-note">The demo story is already finished.</p>
+      <div class="sb-landing__split">
+        <div class="sb-landing__left" hidden></div>
+        <div class="sb-landing__right">
           <div class="sb-library" id="sbLibrary">
-            <h2 class="sb-library__h" id="sbLibraryHeading">My library</h2>
+            <h2 class="sb-library__h" id="sbLibraryHeading">My bookshelf</h2>
             <p class="sb-library__hint" id="sbLibraryHint">
-              Put a book on the shelf after you read it — tap a cover to open it again. Swipe inside the bookshelf to see older titles — there is no fixed limit to how many you can save. Many large books fill this tablet’s browser storage; if there’s no room left, save will stop until you delete some titles yourself (nothing is removed automatically). Use ⚙️ Sync & ☁️ for cloud backups.
+              Saved books stay here. Tap a cover to open it again.
             </p>
             <div class="sb-carousel" aria-label="Saved books library">
               <button type="button" class="sb-carousel__btn sb-carousel__btn--prev" id="sbCarouselPrev" aria-label="Scroll left">
@@ -122,6 +175,17 @@
             </div>
           </div>
         </div>
+      </div>
+    </section>
+
+    <section class="sj-room sj-room--journey" id="sbStoryJourney" hidden aria-labelledby="sjJourneyTitle">
+      <p class="sj-crumbs" id="sjStepLabel">Your stars</p>
+      <h1 class="sj-title" id="sjJourneyTitle">Who will star in your story?</h1>
+      <div id="sjStage" class="sj-stage"></div>
+      <p class="sj-status" id="sjStatus" role="status"></p>
+      <div class="sj-desk-actions">
+        <button type="button" class="sj-pill" id="sjBack">Back</button>
+        <button type="button" class="sj-pill sj-pill--primary" id="sjNext">Continue</button>
       </div>
     </section>
 
@@ -797,6 +861,10 @@
                 <span class="sb-read-toolbar__icon" aria-hidden="true">🔊</span>
                 <span class="sb-read-toolbar__label">Read to me</span>
               </button>
+              <button type="button" class="sb-read-toolbar__btn" id="sjTextSize" aria-pressed="false">
+                <span class="sb-read-toolbar__icon" aria-hidden="true">A</span>
+                <span class="sb-read-toolbar__label">Text size</span>
+              </button>
               <button type="button" class="sb-read-toolbar__btn" id="sbReadMyself" aria-pressed="false">
                 <span class="sb-read-toolbar__icon" aria-hidden="true">✨</span>
                 <span class="sb-read-toolbar__label">Read myself</span>
@@ -893,9 +961,13 @@
   <!-- IndexedDB shelf (mobile); must load before score-cloud + storybook -->
   <script src="../js/storybook-shelf-store.js?v=3" defer></script>
   <!-- Required for cloud shelf sync + upload (same as other games) -->
-  <script src="../js/score-cloud.js?v=6" defer></script>
-  <script src="../js/character-store.js" defer></script>
-  <script src="storybook.js?v=362" defer></script>
+  <script src="../js/wondii-session.js?v=1" defer></script>
+  <script src="../js/score-cloud.js?v=12" defer></script>
+  <script src="../js/organisation.js?v=14" defer></script>
+  <script src="../js/character-store.js?v=3" defer></script>
+  <script src="../js/story-atmosphere.js?v=1" defer></script>
+  <script src="storybook.js?v=369" defer></script>
+  <script src="story-journey.js?v=21" defer></script>
   <script>
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("../sw.js").catch(function () {});
