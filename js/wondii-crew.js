@@ -25,6 +25,7 @@
       gesture: row.gesture,
       bibleId: row.bibleId || "",
       placeholder: row.placeholder,
+      portrait: "games/images/characters/crew/" + row.id + ".jpg",
       assets: assets,
       manageable: false
     };
@@ -35,7 +36,7 @@
       id: "wondii-maya", name: "Maya", trait: "Curious", description: "Loves asking 'why?'",
       personality: ["observant", "inquisitive", "enthusiastic about discovering things"],
       gesture: "wave", bibleId: "maya",
-      idle: "assets/characters/wondii/maya-idle.webp", hover: "assets/characters/wondii/maya-wave.webp",
+      idle: "games/images/characters/maya-v1.jpg", hover: "assets/characters/wondii/maya-wave.webp",
       placeholder: { skin: "#c68642", hair: "#3b2414", hairStyle: "curls", top: "#f6c445", bottom: "#3d5a80" }
     }),
     character({
@@ -148,7 +149,7 @@
       characterType: "system",
       characterId: row.id,
       bibleId: row.bibleId || "",
-      reference: row.assets.idle,
+      reference: row.bibleId === "maya" ? row.assets.idle : row.portrait,
       origin: "system"
     };
   }
@@ -163,6 +164,17 @@
       reference: record.reference || ("characters/" + record.id + ".png"),
       origin: "saved"
     };
+  }
+
+  /* Approved full-body portraits. Maya's book sheet stays on assets.idle. */
+  function displayArt(row) {
+    var portrait = row && row.portrait;
+    if (!portrait || portrait.indexOf("games/images/characters/crew/") !== 0) return "";
+    return portrait;
+  }
+
+  function cardArt(row) {
+    return displayArt(row);
   }
 
   function manifest() {
@@ -189,6 +201,8 @@
     list: list,
     get: get,
     poseState: poseState,
+    displayArt: displayArt,
+    cardArt: cardArt,
     bookCast: bookCast,
     workspaceCast: workspaceCast,
     canManage: canManage,

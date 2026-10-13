@@ -23,6 +23,9 @@ assert.equal(privateMarker("books/b12/p0.jpg"), "wondii-private:books/b12/p0.jpg
 assert.equal(privateMarker("https://example.com/a.jpg"), "");
 assert.equal(markerRelative("wondii-private:shared/share1/book.json"), "shared/share1/book.json");
 assert.equal(markerRelative("wondii-private:books/b12/p0.jpg"), "books/b12/p0.jpg");
+assert.equal(markerRelative("wondii-private:characters/char_pip.png"), "characters/char_pip.png");
+assert.equal(privateMarker("characters/char_pip.png"), "wondii-private:characters/char_pip.png");
+assert.equal(markerRelative("wondii-private:characters/../secret.png"), "");
 assert.equal(markerRelative("data:image/png;base64,aaaa"), "");
 
 assert.equal(claimDecision("adult", null).proceed, true);

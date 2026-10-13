@@ -40,6 +40,10 @@ assert.ok(family.indexOf("Opening your family") >= 0);
 assert.strictEqual(family.indexOf("Books created: 0"), -1);
 assert.strictEqual(family.indexOf("Open library"), -1);
 assert.ok(family.indexOf("schoolOn()") >= 0);
+assert.ok(family.indexOf("Families is in open beta") >= 0);
+assert.ok(family.indexOf("Report a problem") >= 0);
+assert.ok(family.indexOf("family-beta") >= 0);
+assert.strictEqual(family.indexOf("hello@"), -1);
 
 assert.ok(portal.indexOf('id="gateParentName"') >= 0);
 assert.ok(portal.indexOf('data-view="family"') >= 0);

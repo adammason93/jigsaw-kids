@@ -29,12 +29,57 @@
     global.WondiiSession.client(done);
   }
 
+  function sessionRules() {
+    return global.WondiiChildSession || null;
+  }
+
+  function forgetPairCode() {
+    var rules = sessionRules();
+    if (!rules || !global.history || !global.location) return;
+    var next = rules.stripPair(global.location.href);
+    var current = global.location.pathname + global.location.search + global.location.hash;
+    if (next === current) return;
+    global.history.replaceState({}, "", next);
+  }
+
+  function applyAccess(sb, access) {
+    var rules = sessionRules();
+    var outcome = rules
+      ? rules.accessOutcome(access && access.reason)
+      : { action: "keep", signOut: false, message: "Wondii could not open just now. This phone stays linked. Try again in a moment." };
+    if (outcome.signOut) sb.auth.signOut();
+    if (outcome.action === "open") {
+      if (opened) return;
+      opened = true;
+      forgetPairCode();
+      if (form) form.hidden = true;
+      loadHome(sb);
+      return;
+    }
+    if (outcome.action === "join") {
+      if (form) form.hidden = false;
+      say(outcome.message);
+      return;
+    }
+    if (form) form.hidden = true;
+    say(outcome.message);
+  }
+
   function checkAccess(sb, done) {
     sb.rpc("child_content_access").then(function (res) {
-      var allowed = res && res.data && res.data.allowed === true;
-      done(allowed);
+      if (res && res.error) {
+        var message = String(res.error.message || "");
+        done({ allowed: false, reason: /fetch|network/i.test(message) ? "network" : "unavailable" });
+        return;
+      }
+      var data = res && res.data;
+      if (data && data.allowed === true) {
+        done({ allowed: true, reason: "allowed" });
+        return;
+      }
+      done({ allowed: false, reason: (data && data.reason) || "unavailable" });
     }).catch(function () {
-      done(false);
+      done({ allowed: false, reason: "network" });
     });
   }
 
@@ -52,14 +97,8 @@
           say("Wondii could not open just now. Try the code once more.");
           return;
         }
-        checkAccess(sb, function (allowed) {
-          if (!allowed) {
-            sb.auth.signOut();
-            say("This device cannot open Wondii. Ask a grown-up for a new code.");
-            return;
-          }
-          if (form) form.hidden = true;
-          loadHome(sb);
+        checkAccess(sb, function (access) {
+          applyAccess(sb, access);
         });
       }).catch(function () {
         say("Wondii could not open just now. Try the code once more.");
@@ -107,13 +146,16 @@
     picture.appendChild(svg("circle", { cx: "46", cy: "36", r: "2", fill: "#243056" }));
     picture.appendChild(svg("path", { d: "M34 44 Q40 49 46 44", fill: "none", stroke: "#243056", "stroke-width": "1.6", "stroke-linecap": "round" }));
     wrap.appendChild(picture);
-    var src = crew && crew.assets && crew.assets.idle;
+    var src = (crew && global.WondiiCrew && global.WondiiCrew.cardArt && global.WondiiCrew.cardArt(crew)) || (crew && crew.assets && crew.assets.idle) || "";
     if (src) {
       var img = document.createElement("img");
       img.alt = "";
       img.hidden = true;
       img.addEventListener("load", function () {
-        if (img.naturalWidth > 0) img.hidden = false;
+        if (img.naturalWidth > 0) {
+          img.hidden = false;
+          picture.hidden = true;
+        }
       });
       img.addEventListener("error", function () { img.remove(); });
       img.src = src;
@@ -287,6 +329,7 @@
     var mine = node("section", "family-child__panel");
     mine.id = "my-books";
     mine.appendChild(node("p", "family-kicker", "My creations"));
+    mine.appendChild(node("p", "family-note", "A grown-up in your family can open the books and characters you save. Only you can change them."));
     mine.appendChild(node("h2", null, "My books"));
     if (data.continueId) {
       var current = (data.books || []).filter(function (book) { return book && book.id === data.continueId; })[0];
@@ -440,16 +483,34 @@
     }).then(function (result) {
       var data = result.data || {};
       if (!result.ok || data.allowed !== true || !data.access_token || !data.refresh_token) {
-        say(data.reason === "profile_unavailable"
-          ? "This profile is paused. Ask a grown-up to allow it again."
-          : data.reason === "limited"
-            ? "Too many tries. Wait a little while and ask for a new code."
-            : "That code has expired or was already used.");
+        restoreOrExplain(data.reason || "invalid");
         return;
       }
       enter(data);
     }).catch(function () {
-      say("Wondii could not check that code. Try again in a moment.");
+      restoreOrExplain("network");
+    });
+  }
+
+  function restoreOrExplain(reason) {
+    sessionClient(function (sb) {
+      if (!sb || !sb.auth || !sb.auth.getSession) {
+        say(sessionRules() ? sessionRules().redeemFailureMessage(reason) : "That code has expired or was already used.");
+        return;
+      }
+      sb.auth.getSession().then(function (res) {
+        var saved = res && res.data && res.data.session;
+        if (saved && saved.user) {
+          forgetPairCode();
+          openSpace();
+          return;
+        }
+        var rules = sessionRules();
+        say(rules ? rules.redeemFailureMessage(reason) : "That code has expired or was already used.");
+      }).catch(function () {
+        var rules = sessionRules();
+        say(rules ? rules.redeemFailureMessage("network") : "Wondii could not check that code. Try again in a moment.");
+      });
     });
   }
 
@@ -459,11 +520,8 @@
     if (opened) return;
     sessionClient(function (sb) {
       if (!sb) return;
-      checkAccess(sb, function (allowed) {
-        if (!allowed || opened) return;
-        opened = true;
-        if (form) form.hidden = true;
-        loadHome(sb);
+      checkAccess(sb, function (access) {
+        applyAccess(sb, access);
       });
     });
   }
@@ -481,11 +539,26 @@
       form.addEventListener("submit", redeem);
       paintJoin();
     }
-    if (new URLSearchParams(global.location.search).get("pair")) redeem();
-    else if (global.WondiiSession && global.WondiiSession.subscribe) {
-      global.WondiiSession.subscribe(function (snap) {
-        if (snap && snap.status === "authenticated") openSpace();
-      });
+    startChild();
+  }
+
+  function startChild() {
+    var pairCode = new URLSearchParams(global.location.search).get("pair") || "";
+    var started = false;
+    function begin(action) {
+      if (started || action === "wait") return;
+      started = true;
+      if (action === "restore") openSpace();
+      else if (action === "redeem") redeem();
     }
+    if (!global.WondiiSession || !global.WondiiSession.subscribe || !sessionRules()) {
+      if (pairCode) redeem();
+      return;
+    }
+    global.WondiiSession.subscribe(function (snap) {
+      if (!snap) return;
+      var hasSession = !!(snap.session && snap.session.user);
+      begin(sessionRules().bootAction(snap.status, pairCode, hasSession));
+    });
   }
 })(window);

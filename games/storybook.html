@@ -14,6 +14,7 @@
   <!-- storybook-app.css = renamed file so CDN/browser cache cannot keep old storybook.css -->
   <link rel="stylesheet" href="storybook-app.css?v=182" />
   <link rel="stylesheet" href="storybook-wondii.css?v=13" />
+  <link rel="stylesheet" href="story-journey.css?v=48" />
   <link rel="stylesheet" href="../tablet-ipad.css" />
   <!-- Last wins: guarantees new background even if a proxy cached an ancient stylesheet elsewhere -->
   <style>
@@ -73,43 +74,61 @@
       </a>
     </nav>
 
-    <!-- Landing: start the journey -->
-    <section class="sb-landing" id="sbLanding" aria-labelledby="sbLandingTitle">
-      <div class="sb-landing__split">
-        <div class="sb-landing__left">
-          <header class="sb-landing__head">
-            <p class="sb-landing__emoji" aria-hidden="true">📖✨</p>
-            <h1 class="sb-landing__title" id="sbLandingTitle">Build your book</h1>
-          </header>
-          <div class="sb-landing__copy">
-            <p class="sb-landing__tagline">
-              Five short steps. Then we write the story and draw the pictures.
-            </p>
-            <p class="sb-landing__lead">
-              Name, a friend, a place, and what happens. You can change the look at the end.
-            </p>
-          </div>
-          <p class="sb-note sb-note--landing" id="sbError" role="alert" hidden></p>
-          <div class="sb-landing__actions">
-            <button type="button" class="sb-btn sb-btn--primary sb-btn--landing-primary" id="sbStartJourney">
-              Start your story journey
-            </button>
-            <div class="sb-landing__secondary">
-              <button type="button" class="sb-btn sb-btn--ghost sb-btn--landing-secondary" id="sbPreviewSample">
-                Preview sample book
-              </button>
-              <p class="sb-landing__demo-hint">
-                Uses the same two-page layout as a real story. Arrows move one spread at a time.
-              </p>
-            </div>
+    <div class="sj-help" id="sjHelpDialog" hidden>
+      <div class="sj-help__card" role="dialog" aria-modal="true" aria-labelledby="sjHelpTitle">
+        <h2 id="sjHelpTitle">Making your story</h2>
+        <p>Choose your stars, your world, and your idea.</p>
+        <p>Surprise me picks a friend for you. Nothing is made until you press Create my story.</p>
+        <button type="button" class="sj-pill sj-pill--primary" id="sjHelpClose">Got it</button>
+      </div>
+    </div>
+
+    <!-- Story creation welcome. The finished reader keeps the book. -->
+    <section class="sb-landing sj-room" id="sbLanding" aria-labelledby="sbLandingTitle">
+      <div class="sj-room__copy">
+        <p class="sj-room__kicker">Step into Wondii and make a story that's all yours.</p>
+        <h1 class="sj-room__title" id="sbLandingTitle">Every great story starts somewhere...</h1>
+      </div>
+      <div class="sj-welcome" id="sjDesk">
+        <figure class="sj-companion" hidden>
+          <img src="images/characters/crew/wondii-maya.jpg" alt="" width="120" height="120" />
+          <figcaption>Maya</figcaption>
+        </figure>
+        <div class="sj-teasers" aria-hidden="true">
+          <p>Explore some magical worlds</p>
+          <div>
+            <figure><img src="images/connect-four-world.jpg" alt="" /><figcaption>Wondii World</figcaption></figure>
+            <figure><img src="images/storybook-landing-room-bg.jpg" alt="" /><figcaption>At home</figcaption></figure>
+            <figure><img src="images/jigsaw-presets/dino.jpg" alt="" /><figcaption>In nature</figcaption></figure>
+            <figure><img src="images/jigsaw-presets/dolphin.jpg" alt="" /><figcaption>Under the sea</figcaption></figure>
+            <figure><img src="images/jigsaw-presets/unicorn.jpg" alt="" /><figcaption>Somewhere magical</figcaption></figure>
           </div>
         </div>
-
-        <div class="sb-landing__right" hidden>
+        <button type="button" class="sj-tome" id="sjTome" tabindex="-1" aria-hidden="true">
+          <span class="sj-tome__pages" aria-hidden="true"></span>
+          <span class="sj-tome__cover">
+            <span class="sj-tome__window">
+              <img src="images/characters/crew/wondii-maya.jpg" alt="" width="240" height="300" />
+            </span>
+            <span class="sj-tome__name">Your story</span>
+          </span>
+          <span class="sj-sparkles" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+        </button>
+      </div>
+      <p class="sb-note sb-note--landing" id="sbError" role="alert" hidden></p>
+      <div class="sj-room__actions">
+        <button type="button" class="sj-pill sj-pill--primary" id="sbStartJourney">Start my story</button>
+        <button type="button" class="sj-pill" id="sbSurprise">Surprise me</button>
+        <button type="button" class="sj-quiet" id="sbPreviewSample">Open a demo story</button>
+      </div>
+      <p class="sj-quiet-note">The demo story is already finished.</p>
+      <div class="sb-landing__split">
+        <div class="sb-landing__left" hidden></div>
+        <div class="sb-landing__right">
           <div class="sb-library" id="sbLibrary">
-            <h2 class="sb-library__h" id="sbLibraryHeading">My library</h2>
+            <h2 class="sb-library__h" id="sbLibraryHeading">My bookshelf</h2>
             <p class="sb-library__hint" id="sbLibraryHint">
-              Put a book on the shelf after you read it — tap a cover to open it again. Swipe inside the bookshelf to see older titles — there is no fixed limit to how many you can save. Many large books fill this tablet’s browser storage; if there’s no room left, save will stop until you delete some titles yourself (nothing is removed automatically). Use ⚙️ Sync & ☁️ for cloud backups.
+              Saved books stay here. Tap a cover to open it again.
             </p>
             <div class="sb-carousel" aria-label="Saved books library">
               <button type="button" class="sb-carousel__btn sb-carousel__btn--prev" id="sbCarouselPrev" aria-label="Scroll left">
@@ -122,6 +141,17 @@
             </div>
           </div>
         </div>
+      </div>
+    </section>
+
+    <section class="sj-room sj-room--journey" id="sbStoryJourney" hidden aria-labelledby="sjJourneyTitle">
+      <p class="sj-crumbs" id="sjStepLabel">Your stars</p>
+      <h1 class="sj-title" id="sjJourneyTitle">Who will star in your story?</h1>
+      <div id="sjStage" class="sj-stage"></div>
+      <p class="sj-status" id="sjStatus" role="status"></p>
+      <div class="sj-desk-actions">
+        <button type="button" class="sj-pill" id="sjBack">Back</button>
+        <button type="button" class="sj-pill sj-pill--primary" id="sjNext">Continue</button>
       </div>
     </section>
 
@@ -894,12 +924,14 @@
   <!-- IndexedDB shelf (mobile); must load before score-cloud + storybook -->
   <script src="../js/storybook-shelf-store.js?v=3" defer></script>
   <!-- Required for cloud shelf sync + upload (same as other games) -->
-  <script src="../js/wondii-session.js?v=1" defer></script>
-  <script src="../js/child-library.js?v=2" defer></script>
+  <script src="../js/wondii-session.js?v=2" defer></script>
+  <script src="../js/child-library.js?v=4" defer></script>
   <script src="../js/score-cloud.js?v=15" defer></script>
   <script src="../js/organisation.js?v=14" defer></script>
   <script src="../js/character-store.js?v=5" defer></script>
-  <script src="storybook.js?v=364" defer></script>
+  <script src="storybook.js?v=366" defer></script>
+  <script src="../js/story-atmosphere.js?v=1" defer></script>
+  <script src="story-journey.js?v=21" defer></script>
   <script>
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("../sw.js").catch(function () {});

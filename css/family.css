@@ -68,6 +68,30 @@
 
 .family-lead { max-width: 38rem; }
 
+.family-beta {
+  margin: 0 0 1rem;
+  padding: 1rem 1.15rem;
+  border-radius: 22px;
+  background: #fff8e8;
+  color: #141b4d;
+  box-shadow: 0 8px 20px rgba(20, 27, 77, 0.06);
+}
+
+.family-beta p {
+  margin: 0.35rem 0 0;
+  color: #5c6284;
+}
+
+.family-beta__report {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  margin-top: 0.55rem;
+  color: #5b3f91;
+  font-weight: 800;
+  text-decoration: none;
+}
+
 .family-status {
   margin: 0.6rem 0 0;
   font-weight: 800;
@@ -151,6 +175,145 @@
   list-style: none;
 }
 
+.family-count {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+  cursor: pointer;
+}
+.family-creation {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0.65rem 0;
+}
+.family-creation .family-person__face { width: 72px; height: 72px; flex: 0 0 72px; }
+
+.family-creations-page { margin-top: 0.4rem; }
+.family-creations-page > .family-title { margin: 0.35rem 0 0.4rem; font-size: clamp(1.8rem, 3vw, 2.4rem); }
+.family-collection { margin: 1.4rem 0; }
+.family-collection h3,
+.family-recent h3,
+.family-share h3 {
+  margin: 0 0 0.7rem;
+  font-family: Fredoka, Nunito, sans-serif;
+  color: #141b4d;
+}
+.family-creations {
+  display: grid;
+  gap: 1rem;
+}
+.family-creations--one { grid-template-columns: minmax(0, 1fr); }
+.family-creations--few { grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr)); }
+.family-creations--many { grid-template-columns: repeat(auto-fill, minmax(min(100%, 14rem), 1fr)); }
+.family-piece {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  min-height: 100%;
+  padding: 0.75rem;
+  border: 0;
+  border-radius: 28px;
+  background: #fff;
+  box-shadow: 0 10px 28px rgba(20, 27, 77, 0.08);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+.family-piece__art {
+  display: grid;
+  place-items: end center;
+  min-height: 14rem;
+  border-radius: 22px;
+  overflow: hidden;
+  background: #f8f4ff;
+}
+.family-piece__art img {
+  width: 100%;
+  height: 16rem;
+  object-fit: contain;
+  object-position: center bottom;
+}
+.family-piece__copy { display: grid; gap: 0.25rem; }
+.family-piece__title {
+  font-family: Fredoka, Nunito, sans-serif;
+  font-size: 1.25rem;
+  color: #141b4d;
+}
+.family-piece__action {
+  margin-top: 0.35rem;
+  color: #5b3f91;
+  font-weight: 800;
+}
+.family-creations--one .family-piece {
+  display: grid;
+  grid-template-columns: minmax(14rem, 22rem) minmax(0, 1fr);
+  align-items: center;
+  gap: 1.25rem 1.5rem;
+  text-align: left;
+}
+.family-creations--one .family-piece__art img { height: min(28rem, 62vh); }
+.family-creations--one .family-piece__title { font-size: clamp(1.6rem, 3vw, 2.2rem); }
+.family-detail {
+  display: grid;
+  grid-template-columns: minmax(14rem, 24rem) minmax(0, 1fr);
+  gap: 1.25rem 1.5rem;
+  align-items: center;
+  padding: 1rem;
+  border-radius: 28px;
+  background: #fff;
+  box-shadow: 0 10px 28px rgba(20, 27, 77, 0.08);
+}
+.family-detail__frame {
+  display: grid;
+  place-items: center;
+  min-height: 16rem;
+  border-radius: 22px;
+  background: #f8f4ff;
+}
+.family-detail__art {
+  width: 100%;
+  max-height: min(32rem, 70vh);
+  object-fit: contain;
+}
+.family-detail h3 {
+  margin: 0.4rem 0;
+  font-family: Fredoka, Nunito, sans-serif;
+  font-size: clamp(1.8rem, 3vw, 2.4rem);
+  color: #141b4d;
+}
+.family-recent__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.family-recent__list li {
+  margin: 0.35rem 0;
+  color: #5c6284;
+  font-weight: 800;
+}
+.family-share {
+  margin-top: 1.6rem;
+  padding-top: 1.2rem;
+  border-top: 1px solid rgba(20, 27, 77, 0.08);
+}
+.family-share .family-btn { margin: 0.35rem 0.45rem 0.35rem 0; }
+@media (max-width: 700px) {
+  .family-creations--one .family-piece,
+  .family-creations--few,
+  .family-creations--many,
+  .family-detail { grid-template-columns: minmax(0, 1fr); }
+  .family-piece,
+  .family-detail { text-align: center; }
+  .family-piece__copy { justify-items: center; }
+}
 .family-card__stats li,
 .family-card__flag {
   padding: 0.22rem 0.6rem;

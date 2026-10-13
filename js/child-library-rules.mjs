@@ -34,6 +34,20 @@ export function sharePreview(book) {
   };
 }
 
+/* child_characters reports not_child for every refusal. The access check
+   has the real reason, and that is what the child should be told. */
+export function characterListReason(listData, accessData) {
+  if (accessData && accessData.allowed !== true && accessData.reason) return String(accessData.reason);
+  if (listData && listData.reason) return String(listData.reason);
+  return "unavailable";
+}
+
+export function characterListMessage(reason) {
+  if (reason === "device_revoked") return "This device has been stopped. Ask a grown-up for a new code.";
+  if (reason === "profile_unavailable") return "This profile is paused. Ask a grown-up to allow it again.";
+  return "Wondii could not open your characters just now. Try again in a moment.";
+}
+
 export function newIds(existing, incoming) {
   var seen = {};
   (existing || []).forEach(function (id) { seen[id] = true; });
@@ -42,7 +56,7 @@ export function newIds(existing, incoming) {
 
 var SAFE_PART = /^[A-Za-z0-9_.-]{1,80}$/;
 var CHILD_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-var RELATIVE = /^(books|characters|shared)\/[A-Za-z0-9_-]{1,80}(?:\/[A-Za-z0-9_.-]{1,80}){0,2}$/;
+var RELATIVE = /^(?:(?:books|shared)\/[A-Za-z0-9_-]{1,80}(?:\/[A-Za-z0-9_.-]{1,80}){0,2}|characters\/[A-Za-z0-9_-]{1,80}(?:\.png|\/[A-Za-z0-9_.-]{1,80}){0,2})$/;
 
 export function artworkPath(childId, parts) {
   if (!CHILD_ID.test(String(childId || ""))) return "";

@@ -203,4 +203,16 @@ manifest.forEach(function (row) {
   assert.ok(row.hover.indexOf("assets/characters/wondii/") === 0);
 });
 
+assert.ok(page.indexOf('}), "saved")') >= 0);
+assert.ok(page.indexOf("crew-card--feature") >= 0);
+assert.ok(page.indexOf("Start a story") >= 0);
+assert.ok(page.indexOf("Create Your First Character") >= 0);
+assert.ok(css.indexOf("crew-grid--one") >= 0);
+assert.ok(css.indexOf("crew-grid--few") >= 0);
+assert.ok(css.indexOf("crew-grid--many") >= 0);
+assert.ok(css.indexOf("crew-grid--six") >= 0);
+assert.ok(css.indexOf("object-fit: contain") >= 0);
+assert.ok(css.indexOf("crew-card__art--portrait") >= 0);
+assert.ok(page.indexOf("crew-card__art--portrait") >= 0);
+
 console.log("wondii crew tests ok");

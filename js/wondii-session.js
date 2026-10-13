@@ -9,6 +9,8 @@
   var client = null;
   var listeners = [];
   var waiters = [];
+  var libWaiters = [];
+  var libLoading = false;
   var starting = false;
   var settled = false;
   var epoch = 0;
@@ -100,16 +102,33 @@
     finish(sb);
   }
 
+  function settleLib(ok) {
+    libLoading = false;
+    var pending = libWaiters.slice();
+    libWaiters = [];
+    pending.forEach(function (fn) { fn(ok); });
+  }
+
   function ensureLib(done) {
     if (global.supabase && global.supabase.createClient) {
-      done();
+      done(true);
       return;
     }
+    libWaiters.push(done);
+    if (libLoading || !global.document) return;
+    libLoading = true;
     var script = global.document.createElement("script");
     script.src = LIB;
-    script.onload = function () { done(); };
-    script.onerror = function () { done(); };
+    script.onload = function () { settleLib(!!(global.supabase && global.supabase.createClient)); };
+    script.onerror = function () { settleLib(false); };
     global.document.head.appendChild(script);
+  }
+
+  function dropWaiter(done) {
+    var index = waiters.indexOf(done);
+    if (index < 0) return;
+    waiters.splice(index, 1);
+    done(null);
   }
 
   function clientAsync(done) {
@@ -119,12 +138,14 @@
     }
     waiters.push(done);
     if (!global.document) return;
-    ensureLib(function () {
-      start();
-      if (!client) {
-        waiters = waiters.filter(function (fn) { return fn !== done; });
-        done(null);
+    ensureLib(function (ok) {
+      if (!ok) {
+        dropWaiter(done);
+        return;
       }
+      start();
+      if (client || starting) return;
+      dropWaiter(done);
     });
   }
 
@@ -156,7 +177,11 @@
   };
 
   if (global.document) {
-    ensureLib(function () {
+    ensureLib(function (ok) {
+      if (!ok) {
+        if (!settled) applySession(null, new Error("session"), ++epoch);
+        return;
+      }
       start();
       if (!client && !settled) applySession(null, new Error("session"), ++epoch);
     });

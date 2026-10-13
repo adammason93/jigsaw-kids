@@ -4054,6 +4054,7 @@
   }
 
   function saveBookToShelf() {
+    if (parentReadingChild) return;
     if (!story || !story.pages.length || !btnShelf) return;
     var label = btnShelf.textContent;
     btnShelf.disabled = true;
@@ -4087,6 +4088,8 @@
               ? story.storyLength
               : "medium",
             function (cloudErr) {
+              btnShelf.disabled = false;
+              btnShelf.textContent = label;
               if (
                 !window.KidsScoreCloud ||
                 !window.KidsScoreCloud.isConfigured ||
@@ -4102,9 +4105,12 @@
                 hintEl.setAttribute("data-default-hint", hintEl.textContent.trim() || defaultHint);
               }
               if (!cloudErr) {
+                var childSaved = window.ChildLibrary && window.ChildLibrary.isChildSession && window.ChildLibrary.isChildSession();
+                if (childSaved) renderShelf();
                 if (hintEl) {
-                  hintEl.textContent =
-                    "Saved on this device and backed up to this Wondii account. Sign in at home on another device to open the same shelf.";
+                  hintEl.textContent = childSaved
+                    ? "Saved to your Wondii. It will still be here when you come back."
+                    : "Saved on this device and backed up to this Wondii account. Sign in at home on another device to open the same shelf.";
                   window.setTimeout(function () {
                     if (hintEl) {
                       hintEl.textContent =
@@ -4112,6 +4118,7 @@
                     }
                   }, 12000);
                 }
+                if (childSaved) btnShelf.textContent = "Saved";
                 return;
               }
               var msg = cloudErr && cloudErr.message ? String(cloudErr.message) : String(cloudErr);
@@ -4124,10 +4131,14 @@
               ) {
                 return;
               }
-              if (msg === "no_session") {
+              if (msg === "no_session" || msg === "no_client") {
                 window.alert(
-                  "This tablet saved the book only on itself — it did not reach the cloud.\n\nSign in from the Wondii home, then tap “Put on my shelf” again.",
+                  window.ChildLibrary && window.ChildLibrary.isChildSession && window.ChildLibrary.isChildSession()
+                    ? "This book is still on this device, but it is not saved to your Wondii yet. Tap “Put on my shelf” again."
+                    : "This tablet saved the book only on itself — it did not reach the cloud.\n\nSign in from the Wondii home, then tap “Put on my shelf” again.",
                 );
+              } else if (window.ChildLibrary && window.ChildLibrary.isChildSession && window.ChildLibrary.isChildSession()) {
+                window.alert("This book is still open, but it is not saved to your Wondii yet. Tap “Put on my shelf” again.");
               } else {
                 window.alert(
                   "Saved on this device, but cloud backup failed:\n\n" +
@@ -4136,8 +4147,9 @@
                 );
               }
               if (hintEl) {
-                hintEl.textContent =
-                  "Cloud backup failed — see the message above. Books are still on this device.";
+                hintEl.textContent = window.ChildLibrary && window.ChildLibrary.isChildSession && window.ChildLibrary.isChildSession()
+                  ? "Not saved yet. Tap “Put on my shelf” to try again."
+                  : "Cloud backup failed — see the message above. Books are still on this device.";
                 window.setTimeout(function () {
                   if (hintEl) {
                     hintEl.textContent =
@@ -4147,17 +4159,19 @@
               }
             },
             function () {
-          renderShelf();
+              if (!(window.ChildLibrary && window.ChildLibrary.isChildSession && window.ChildLibrary.isChildSession())) {
+                renderShelf();
+              }
             },
           );
         } catch (e) {
+          btnShelf.disabled = false;
+          btnShelf.textContent = label;
           window.alert("Couldn’t save — storage might be full. Try downloading instead.");
         }
       })
       .catch(function () {
         window.alert("Couldn’t prepare pictures for the shelf. Try again.");
-      })
-      .finally(function () {
         btnShelf.disabled = false;
         btnShelf.textContent = label;
       });
@@ -4750,6 +4764,8 @@
     return true;
   }
 
+  var parentReadingChild = false;
+
   function openPrivateFromUrl() {
     var params;
     try { params = new URLSearchParams(window.location.search || ""); } catch (e) { return; }
@@ -4776,8 +4792,10 @@
       return;
     }
     if (child && book && !(window.ChildLibrary.isChildSession && window.ChildLibrary.isChildSession())) {
+      parentReadingChild = true;
       window.ChildLibrary.loadOwnedBook(child, book, function (err, item) {
         if (!err) showStoredBook(item);
+        else window.alert("That book could not be opened.");
       });
     }
   }
@@ -5736,6 +5754,15 @@
         book.style.removeProperty("--sb-cover-inside-art");
       }
     }
+    var actionsDock = document.getElementById("sbBookActionsDock");
+    if (actionsDock) actionsDock.hidden = !!parentReadingChild;
+    var fave = document.getElementById("sbFaveBook");
+    if (fave) fave.hidden = !!parentReadingChild;
+    var readNote = document.getElementById("sbReadNote");
+    if (readNote && parentReadingChild) {
+      readNote.hidden = false;
+      readNote.textContent = "You can read this book. Only the child can change it.";
+    }
     applyBookThemingFromStory();
     renderSpread();
     updateReadChrome();
@@ -5885,7 +5912,7 @@
       return (
         "Could not save your library — this phone or tablet ran out of browser storage for this site.\n\n" +
         "None of your stories were removed automatically. The new save did not replace anything.\n\n" +
-        "Remove books yourself (tap × on a shelf cover), or clear site data for this website in Safari/Chrome settings to free space — then try again. Use ⚙️ Sync & ☁️ when you can so backups can upload."
+        "Remove books yourself (tap × on a shelf cover), or clear site data for this website in Safari/Chrome settings to free space — then try again. Sign in at the Wondii home so this account can keep a backup."
       );
     }
     return s;
@@ -5898,13 +5925,23 @@
     var shelfPullTimer = null;
     function pullShelfFromCloudNow() {
       window.KidsScoreCloud.mergeStorybookShelfFromCloud(function (err) {
+        if (err && !pullShelfFromCloudNow.retried && (err.message === "no_client" || err.message === "no_session")) {
+          pullShelfFromCloudNow.retried = true;
+          window.setTimeout(pullShelfFromCloudNow, 500);
+          return;
+        }
         if (err) {
+          var child = window.ChildLibrary && window.ChildLibrary.isChildSession && window.ChildLibrary.isChildSession();
           var msg = err && err.message ? err.message : String(err);
-          window.alert(
-            "Could not load your library from the cloud.\n\n" +
-              mergeFailedMessage(msg) +
-              "\n\nAlso check you are signed in under ⚙️ on this device.",
-          );
+          var missed = msg === "no_session" || msg === "no_client" || msg === "no_account" || /not signed in/i.test(msg);
+          if (child) {
+            window.alert("Wondii could not open your books just now. Try again in a moment.");
+          } else if (!missed) {
+            window.alert(
+              "Could not load your library from the cloud.\n\n" +
+                mergeFailedMessage(msg)
+            );
+          }
         }
         reloadShelfCacheFromStore(function () {
           renderShelf();
@@ -6651,6 +6688,9 @@
           };
           spreadIndex = 0;
           showBook();
+          if (window.ChildLibrary && window.ChildLibrary.isChildSession && window.ChildLibrary.isChildSession()) {
+            saveBookToShelf();
+          }
         })
         .catch(function (err) {
           releaseChildBook();
@@ -6764,4 +6804,97 @@
   syncIllustrationStyleRadios();
   syncStoryTextModeRadios();
   syncStoryLengthRadios();
+
+  var DEMO_IMG = "../docs/agent/book-v2/visual-proof/e/images/";
+  var DEMO_PAGES = [
+    "Beneath the propped blue atlas, brass feet tapped without going anywhere. Mina bent low over the library reading dais. Leo crouched beside her, peering under the cover.",
+    "Mina turned the beetle's key, and its feet carried it onto the bridge plate. The entrance bridge folded against the wall. Beyond the plate, the beetle stopped; their way back was gone.",
+    "Leo tested the bench above the water; it held firm. Mina pointed past the wave and drain plates to the sun. \"Let's get it there.\"",
+    "Leo reached for the key, paused, then wound the beetle toward the sun. Its brass feet pressed the wave plate. The wall hatch swung inward, letting floodwater pour through.",
+    "Water swept the atlas off its shelf and onto the drain grille. Leo caught Mina's hand and helped her onto the bench. Below them, the blue cover vanished under the surge.",
+    "Leo's hand hovered over the key, then drew back. Mina traced the engraved lines between the brass plates. He held her sleeve clear of the water while her finger followed each groove.",
+    "The drain plate's engraved line led Mina's finger to the grille. From the sun, two more lines reached the drain latch and the inlet catch. \"Leo, this one joins both.\"",
+    "Mina wound the beetle onto the drain plate while Leo lifted the atlas. The drain opened beneath the book. Water sucked it down, pinning the cover against the grille.",
+    "The beetle stepped off the drain plate and stopped just short of the sun. The grille shut, and the atlas came loose. One blue corner floated up beside the bench.",
+    "Leo lifted the atlas clear and hugged it against his chest. Mina wound the beetle; its feet reached the sun plate. The inlet snapped shut, the drain locked open, and water rushed away.",
+    "Leo propped the wet atlas on the dry bench. Mina carried the beetle beneath its cover, keeping her fingers away from the key. Under the blue shelter, its brass feet rested."
+  ];
+
+  function buildDemoBook() {
+    var pages = [
+      { text: "", imageUrl: null },
+      { text: "Demo example. This book was already made. Opening it does not create a new story.", imageUrl: null }
+    ];
+    DEMO_PAGES.forEach(function (line, i) {
+      pages.push({ text: line, imageUrl: null });
+      pages.push({ text: "", imageUrl: DEMO_IMG + "p" + (i + 1) + ".jpg" });
+    });
+    pages.push({ text: "The End", imageUrl: null });
+    pages.push({ text: "", imageUrl: DEMO_IMG + "cover.jpg" });
+    return {
+      title: "The Beetle's Last Turn",
+      author: "Demo example",
+      bookColor: "navy",
+      readerFont: "fredoka",
+      readerArtLayout: "facing",
+      storyTextMode: "prose",
+      storyLength: "medium",
+      sceneImageUrl: DEMO_IMG + "cover.jpg",
+      featuring: "Mina and Leo",
+      pages: pages,
+      isSample: true,
+      demoExample: true
+    };
+  }
+
+  function portraitToReference(src, who) {
+    return fetch(src).then(function (response) {
+      if (!response.ok) throw new Error("portrait");
+      return response.blob();
+    }).then(function (blob) {
+      return new Promise(function (resolve, reject) {
+        var reader = new FileReader();
+        reader.onload = function () { resolve(String(reader.result || "")); };
+        reader.onerror = function () { reject(new Error("portrait")); };
+        reader.readAsDataURL(blob);
+      });
+    }).then(function (dataUrl) {
+      heroPhotoItems = [{ dataUrl: dataUrl, who: who || "hero" }];
+      renderHeroPhotoThumbs();
+    });
+  }
+
+  window.WondiiStoryDraft = {
+    apply: function (draft) {
+      var next = draft || {};
+      if (nameInput) nameInput.value = String(next.name || "").slice(0, 24);
+      if (plotInput) plotInput.value = String(next.plot || "").slice(0, PLOT_INPUT_MAX);
+      selectedChar = "nobuddy";
+      selectedPlace = next.place || "library";
+      if (next.length) {
+        setStoryLength(next.length);
+        syncStoryLengthRadios();
+        var lengthRadio = document.querySelector(
+          'input[name="sbStoryLength"][value="' + String(next.length) + '"]'
+        );
+        if (lengthRadio) lengthRadio.checked = true;
+      }
+      var portrait = next.portrait ? String(next.portrait) : "";
+      if (!portrait) {
+        heroPhotoItems = [];
+        return Promise.resolve();
+      }
+      return portraitToReference(portrait, next.name || "hero").catch(function () {
+        heroPhotoItems = [];
+      });
+    },
+    create: function () {
+      if (btnGen) btnGen.click();
+    },
+    openDemo: function () {
+      story = buildDemoBook();
+      spreadIndex = 0;
+      showBook();
+    }
+  };
 })();

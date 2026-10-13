@@ -57,7 +57,7 @@
     if (raw.indexOf(MARKER) !== 0) return "";
     var path = raw.slice(MARKER.length);
     if (path.indexOf("..") !== -1 || path.indexOf("://") !== -1) return "";
-    if (!/^(books|characters|shared)\/[A-Za-z0-9_-]{1,80}(?:\/[A-Za-z0-9_.-]{1,80}){0,2}$/.test(path)) return "";
+    if (!/^(?:(?:books|shared)\/[A-Za-z0-9_-]{1,80}(?:\/[A-Za-z0-9_.-]{1,80}){0,2}|characters\/[A-Za-z0-9_-]{1,80}(?:\.png|\/[A-Za-z0-9_.-]{1,80}){0,2})$/.test(path)) return "";
     return path;
   }
 
@@ -584,13 +584,30 @@
     });
   }
 
+  function characterListReason(listData, accessData) {
+    if (accessData && accessData.allowed !== true && accessData.reason) return String(accessData.reason);
+    if (listData && listData.reason) return String(listData.reason);
+    return "unavailable";
+  }
+
+  function characterListMessage(reason) {
+    if (reason === "device_revoked") return "This device has been stopped. Ask a grown-up for a new code.";
+    if (reason === "profile_unavailable") return "This profile is paused. Ask a grown-up to allow it again.";
+    return "Wondii could not open your characters just now. Try again in a moment.";
+  }
+
   function loadCharacters(cb) {
     rpc("child_characters", {}, function (err, data) {
-      if (err || !data || data.allowed !== true) {
-        cb(err || new Error("not_child"), null);
+      if (!err && data && data.allowed === true) {
+        cb(null, Array.isArray(data.characters) ? data.characters : []);
         return;
       }
-      cb(null, Array.isArray(data.characters) ? data.characters : []);
+      rpc("child_content_access", {}, function (accessErr, access) {
+        var reason = characterListReason(data, accessErr ? null : access);
+        var error = new Error(characterListMessage(reason));
+        error.code = reason;
+        cb(error, null);
+      });
     });
   }
 
@@ -655,6 +672,32 @@
 
   function characterArtUrl(id, cb) {
     localArtUrl("characters/" + id + ".png", cb);
+  }
+
+  function ownedChildId(value) {
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(value || ""));
+  }
+
+  /* A parent reads one child’s private picture. child-art checks the family. */
+  function ownedArtUrl(childId, relative, cb) {
+    var path = markerRelative(MARKER + String(relative || ""));
+    if (!ownedChildId(childId) || !path) {
+      cb(new Error("picture_invalid"), null);
+      return;
+    }
+    client(function (sb) {
+      if (!sb) {
+        cb(new Error("unavailable"), null);
+        return;
+      }
+      getObject(sb, childId + "/" + path, function (err, blob) {
+        if (err || !blob) {
+          cb(err || new Error("missing"), null);
+          return;
+        }
+        cb(null, global.URL.createObjectURL(blob));
+      });
+    });
   }
 
   function loadOwnedBook(childId, bookId, cb) {
@@ -865,6 +908,7 @@
     setFavourite: setFavourite,
     storeCharacterArt: storeCharacterArt,
     characterArtUrl: characterArtUrl,
+    ownedArtUrl: ownedArtUrl,
     localArtUrl: localArtUrl,
     loadOwnedBook: loadOwnedBook,
     loadSharedBook: loadSharedBook,

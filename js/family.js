@@ -35,7 +35,11 @@
   var deviceRows = [];
   var deviceMessage = "";
   var activityChild = null;
+  var activityFocus = "";
+  var activityCharacter = "";
   var activityData = null;
+  var activityCounts = {};
+  var artUrls = [];
   var adultBooks = [];
   var adultCharacters = [];
 
@@ -89,12 +93,16 @@
     var row = global.WondiiCrew && global.WondiiCrew.get && global.WondiiCrew.get(id);
     var wrap = el("span", { className: "family-portrait" });
     wrap.appendChild(bust((row && row.placeholder) || {}));
-    var src = row && row.assets && row.assets.idle;
+    var src = (row && global.WondiiCrew && global.WondiiCrew.cardArt && global.WondiiCrew.cardArt(row)) || (row && row.assets && row.assets.idle) || "";
     if (src) {
       var img = el("img", { src: src, alt: "" });
       img.hidden = true;
       img.addEventListener("load", function () {
-        if (img.naturalWidth > 0) img.hidden = false;
+        if (img.naturalWidth > 0) {
+          img.hidden = false;
+          var drawn = wrap.querySelector("svg");
+          if (drawn) drawn.hidden = true;
+        }
       });
       img.addEventListener("error", function () { img.remove(); });
       if (img.complete && img.naturalWidth > 0) img.hidden = false;
@@ -144,8 +152,10 @@
     if (/sign_in_required/.test(code)) return "Log in again to manage your family.";
     if (/profile_unavailable/.test(code)) return "Allow this profile again before pairing a device.";
     if (/pairing_limited/.test(code)) return "You can create another pairing code in a little while.";
+    if (/pairing_unavailable/.test(code)) return "Adding devices is temporarily unavailable. Your family and existing profiles are safe.";
     if (/could not find the function|PGRST202|schema cache/i.test(code)) return "That part of the family is not available yet.";
     if (/no_family/.test(code)) return "Create your family first.";
+    if (/failed to fetch|networkerror|network request failed|load failed/i.test(code)) return "Check your connection and try again.";
     if (/unavailable/.test(code)) return "Wondii could not open your family just now. Try again in a moment.";
     return "That didn’t save. Check your connection and try again.";
   }
@@ -207,6 +217,7 @@
       loaded = true;
       if (err) message = failText(err);
       paint();
+      if (!err) loadCounts();
       if (done) done(err || null);
     });
   }
@@ -309,6 +320,41 @@
     return form;
   }
 
+  function countButton(id, focus, count, singular) {
+    var label = count + " " + singular + (count === 1 ? "" : "s") + " created";
+    return el("button", {
+      type: "button",
+      className: "family-count",
+      "data-family": "activity",
+      "data-id": id,
+      "data-focus": focus
+    }, label);
+  }
+
+  function loadCounts() {
+    snapshot.children.forEach(function (child) {
+      if (!child || child.status === "pending_deletion") return;
+      call("parent_child_activity", { p_child: child.id }, function (err, data) {
+        if (err || !data || !Array.isArray(data.books) || !Array.isArray(data.characters)) return;
+        activityCounts[child.id] = { books: data.books.length, characters: data.characters.length };
+        if (!activityChild && !deviceChild && !editing) paint();
+      });
+    });
+  }
+
+  function whenLabel(value) {
+    var when = value ? new Date(value) : null;
+    if (!when || isNaN(when.getTime())) return "";
+    return when.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
+  }
+
+  function releaseArt() {
+    artUrls.forEach(function (url) {
+      try { URL.revokeObjectURL(url); } catch (e) {}
+    });
+    artUrls = [];
+  }
+
   function card(child) {
     var item = el("article", { className: "family-card" });
     item.appendChild(portrait(avatar(child.avatarId).id));
@@ -317,6 +363,15 @@
     copy.appendChild(el("p", null, ageLabel(child.ageBand)));
     if (child.status === "suspended") copy.appendChild(el("p", { className: "family-card__flag" }, "Access paused"));
     var stats = el("ul", { className: "family-card__stats" });
+    var counts = activityCounts[child.id];
+    if (counts && child.status === "active") {
+      var bookCount = el("li");
+      bookCount.appendChild(countButton(child.id, "books", counts.books, "book"));
+      var characterCount = el("li");
+      characterCount.appendChild(countButton(child.id, "characters", counts.characters, "character"));
+      stats.appendChild(bookCount);
+      stats.appendChild(characterCount);
+    }
     [
       child.booksPerDay + " books a day",
       child.charactersPerDay + " characters a day",
@@ -327,10 +382,12 @@
     copy.appendChild(stats);
     item.appendChild(copy);
     var actions = el("div", { className: "family-card__actions" });
-    actions.appendChild(el("button", { type: "button", className: "family-btn", "data-family": "edit", "data-id": child.id }, "Manage profile"));
+    if (child.status === "active") {
+      actions.appendChild(el("button", { type: "button", className: "family-btn", "data-family": "activity", "data-id": child.id }, "View creations"));
+    }
+    actions.appendChild(el("button", { type: "button", className: "family-btn family-btn--ghost", "data-family": "edit", "data-id": child.id }, "Manage profile"));
     if (child.status === "active") {
       actions.appendChild(el("button", { type: "button", className: "family-btn family-btn--ghost", "data-family": "device", "data-id": child.id }, "Add device"));
-      actions.appendChild(el("button", { type: "button", className: "family-btn family-btn--ghost", "data-family": "activity", "data-id": child.id }, "Activity"));
     }
     if (child.status === "suspended") {
       actions.appendChild(el("button", { type: "button", className: "family-btn family-btn--ghost", "data-family": "resume", "data-id": child.id }, "Allow access"));
@@ -376,6 +433,17 @@
     return link;
   }
 
+  function betaNotice() {
+    var note = el("aside", { className: "family-beta" });
+    note.appendChild(el("p", { className: "family-kicker" }, "Beta"));
+    note.appendChild(el("p", null, "Families is in open beta. Any parent with a Wondii account can try it. It is still being tested, so a screen may not work the first time."));
+    note.appendChild(el("a", {
+      className: "family-beta__report",
+      href: "mailto:?subject=" + encodeURIComponent("Wondii Families beta") + "&body=" + encodeURIComponent("What I was trying to do:\n\nWhat happened:\n\nWhich child:\n")
+    }, "Report a problem"));
+    return note;
+  }
+
   function paint() {
     var host = document.getElementById("familyDash");
     if (!host) return;
@@ -384,7 +452,9 @@
       return;
     }
     bind();
+    releaseArt();
     host.replaceChildren();
+    host.appendChild(betaNotice());
     if (schoolOn()) {
       var school = el("header", { className: "family-hero" });
       school.appendChild(el("p", { className: "family-kicker" }, "Family"));
@@ -417,7 +487,9 @@
     var email = accountEmail();
     if (email) hero.appendChild(el("p", { className: "family-account" }, "Signed in as " + email));
     hero.appendChild(el("p", { className: "family-lead" }, snapshot.family
-      ? "Add a child, choose an avatar and an age band, and decide their daily allowances."
+      ? (activityChild
+        ? "You can read what this child has saved. Only they can change it."
+        : "Add a child, choose an avatar and an age band, and decide their daily allowances.")
       : "You are the adult for this family. Your existing books and characters are not moved."));
     if (message) {
       hero.appendChild(el("p", { className: "family-status", role: "status" }, message));
@@ -446,12 +518,16 @@
     add.appendChild(el("span", { className: "family-add__label" }, "Add a child"));
     add.appendChild(el("span", { className: "family-add__hint" }, "Choose an avatar and a daily allowance"));
     grid.appendChild(add);
+    if (activityChild && !editing && !deviceChild) {
+      host.appendChild(creationsView(activityChild));
+      return;
+    }
     host.appendChild(grid);
 
     var library = el("section", { className: "family-panel" });
     library.appendChild(el("p", { className: "family-kicker" }, "Your library"));
     library.appendChild(el("h2", null, "Recent family activity"));
-    library.appendChild(el("p", null, "Books and characters created for a child will gather here. Nothing is tracked beyond those creations."));
+    library.appendChild(el("p", null, "Open View creations on a child to read their books and see their characters. Nothing is tracked beyond those creations."));
     var links = el("div", { className: "family-links" });
     links.appendChild(libraryTile("#stories", "book", "Grown-up shelf", "Your stories"));
     links.appendChild(libraryTile("#characters", "character", "Grown-up cast", "Your characters"));
@@ -475,8 +551,6 @@
       if (focus) focus.focus();
     } else if (deviceChild) {
       host.appendChild(deviceSheet(deviceChild));
-    } else if (activityChild) {
-      host.appendChild(activitySheet(activityChild));
     }
   }
 
@@ -525,75 +599,235 @@
     return id ? String(id) : "";
   }
 
-  function activitySheet(id) {
-    var child = childById(id);
-    var sheet = el("div", { className: "family-sheet", role: "dialog", "aria-modal": "true", "aria-labelledby": "familyActivityTitle" });
-    var panel = el("section", { className: "family-form" });
-    panel.appendChild(el("h2", { className: "family-form__title", id: "familyActivityTitle" }, child ? child.nickname + "’s Wondii" : "Activity"));
-    if (!activityData) {
-      panel.appendChild(el("p", { className: "family-note" }, "Opening activity…"));
-    } else if (activityData.error) {
-      panel.appendChild(el("p", { className: "family-status", role: "status" }, activityData.error));
-    } else {
-      var remaining = el("ul", { className: "family-card__stats" });
-      remaining.appendChild(el("li", null, activityData.booksRemaining + " books left today"));
-      remaining.appendChild(el("li", null, activityData.charactersRemaining + " characters left today"));
-      panel.appendChild(remaining);
-      var books = activityData.books || [];
-      panel.appendChild(el("h3", null, "Books"));
-      if (!books.length) panel.appendChild(el("p", { className: "family-empty" }, "No books yet."));
-      books.forEach(function (book) {
-        if (!book || !book.id) return;
-        var row = el("p", null, "");
-        var open = el("a", { href: "games/storybook.html?child=" + encodeURIComponent(id) + "&book=" + encodeURIComponent(book.id) }, book.title || "Open book");
-        row.appendChild(open);
-        panel.appendChild(row);
-      });
-      var characters = activityData.characters || [];
-      panel.appendChild(el("h3", null, "Characters"));
-      panel.appendChild(el("p", { className: characters.length ? "" : "family-empty" }, characters.length ? characters.map(function (item) { return item.name; }).join(", ") : "No characters yet."));
-      var shares = activityData.shares || [];
-      if (shares.length) {
-        var shared = el("ul", { className: "family-devices" });
-        shares.forEach(function (share) {
-          var item = el("li", null, share.title);
-          item.appendChild(el("button", { type: "button", className: "family-btn family-btn--quiet", "data-family": "unshare", "data-id": share.id }, "Stop sharing"));
-          shared.appendChild(item);
-        });
-        panel.appendChild(shared);
+  function savedBlurb(item) {
+    var description = item && item.description ? String(item.description) : "";
+    var personality = "";
+    if (item && Array.isArray(item.personality)) personality = item.personality.filter(Boolean).join(", ");
+    else if (item && item.personality) personality = String(item.personality);
+    if (description && personality && personality !== description) return description + " " + personality;
+    return personality || description || "";
+  }
+
+  function collectionClass(count) {
+    if (count === 1) return "family-creations family-creations--one";
+    if (count > 1 && count < 4) return "family-creations family-creations--few";
+    return "family-creations family-creations--many";
+  }
+
+  function loadPieceArt(childId, relative, img) {
+    if (!global.ChildLibrary || !global.ChildLibrary.ownedArtUrl) return;
+    global.ChildLibrary.ownedArtUrl(childId, relative, function (err, url) {
+      if (err || !url || !img.isConnected) {
+        if (url) {
+          try { URL.revokeObjectURL(url); } catch (e) {}
+        }
+        return;
       }
-    }
-    if (adultCharacters.length && accountUserId()) {
-      panel.appendChild(el("h3", null, "Share one of your characters"));
-      adultCharacters.forEach(function (character) {
-        if (!character || !character.id || !character.name) return;
-        panel.appendChild(el("button", {
-          type: "button",
-          className: "family-btn family-btn--ghost",
-          "data-family": "share-character",
-          "data-id": id,
-          "data-source": character.id,
-          "data-title": character.name
-        }, "Share " + character.name));
+      artUrls.push(url);
+      img.src = url;
+      img.hidden = false;
+    });
+  }
+
+  function bookPiece(childId, book) {
+    var link = el("a", {
+      className: "family-piece",
+      href: "games/storybook.html?child=" + encodeURIComponent(childId) + "&book=" + encodeURIComponent(book.id)
+    });
+    var frame = el("span", { className: "family-piece__art" });
+    var img = el("img", { alt: "" , hidden: true });
+    frame.appendChild(img);
+    link.appendChild(frame);
+    var copy = el("span", { className: "family-piece__copy" });
+    copy.appendChild(el("span", { className: "family-piece__title" }, book.title || "Untitled book"));
+    var made = whenLabel(book.createdAt);
+    if (made) copy.appendChild(el("span", { className: "family-note" }, made));
+    copy.appendChild(el("span", { className: "family-piece__action" }, "Read this book"));
+    link.appendChild(copy);
+    loadPieceArt(childId, "books/" + book.id + "/cover.jpg", img);
+    return link;
+  }
+
+  function characterPiece(childId, item) {
+    var button = el("button", {
+      type: "button",
+      className: "family-piece",
+      "data-family": "character",
+      "data-id": childId,
+      "data-character": item.id
+    });
+    var frame = el("span", { className: "family-piece__art" });
+    var img = el("img", { alt: "", hidden: true });
+    frame.appendChild(img);
+    button.appendChild(frame);
+    var copy = el("span", { className: "family-piece__copy" });
+    copy.appendChild(el("span", { className: "family-piece__title" }, item.name || "Character"));
+    var made = whenLabel(item.createdAt);
+    if (made) copy.appendChild(el("span", { className: "family-note" }, made));
+    var blurb = savedBlurb(item);
+    if (blurb) copy.appendChild(el("span", { className: "family-note" }, blurb));
+    copy.appendChild(el("span", { className: "family-piece__action" }, "Look closer"));
+    button.appendChild(copy);
+    loadPieceArt(childId, "characters/" + item.id + ".png", img);
+    return button;
+  }
+
+  function characterDetail(childId, item, nickname) {
+    var panel = el("article", { className: "family-detail" });
+    var frame = el("div", { className: "family-detail__frame" });
+    var img = el("img", { className: "family-detail__art", alt: item.name || "Character", hidden: true });
+    var missing = el("p", { className: "family-note", hidden: true }, "This picture could not be opened.");
+    frame.appendChild(img);
+    frame.appendChild(missing);
+    panel.appendChild(frame);
+    var copy = el("div", { className: "family-detail__copy" });
+    copy.appendChild(el("button", { type: "button", className: "family-back", "data-family": "close-character" }, "Back to characters"));
+    copy.appendChild(el("h3", null, item.name || "Character"));
+    var blurb = savedBlurb(item);
+    if (blurb) copy.appendChild(el("p", null, blurb));
+    var made = whenLabel(item.createdAt);
+    if (made) copy.appendChild(el("p", { className: "family-note" }, "Created " + made));
+    copy.appendChild(el("p", { className: "family-note" }, "Only " + nickname + " can change this."));
+    panel.appendChild(copy);
+    if (global.ChildLibrary && global.ChildLibrary.ownedArtUrl) {
+      global.ChildLibrary.ownedArtUrl(childId, "characters/" + item.id + ".png", function (err, url) {
+        if (err || !url || !img.isConnected) {
+          if (url) {
+            try { URL.revokeObjectURL(url); } catch (e) {}
+          }
+          if (missing.isConnected) missing.hidden = false;
+          return;
+        }
+        artUrls.push(url);
+        img.src = url;
+        img.hidden = false;
       });
+    } else if (missing) {
+      missing.hidden = false;
     }
-    if (adultBooks.length && accountUserId()) {
-      panel.appendChild(el("h3", null, "Share one of your books"));
-      adultBooks.forEach(function (book) {
-        if (!book || !book.id || !book.title) return;
-        panel.appendChild(el("button", {
-          type: "button",
-          className: "family-btn family-btn--ghost",
-          "data-family": "share-book",
-          "data-id": id,
-          "data-source": book.id,
-          "data-title": book.title
-        }, "Share " + book.title));
+    return panel;
+  }
+
+  function creationGrid(childId, kind, items) {
+    var list = el("div", { className: collectionClass(items.length) });
+    list.setAttribute("aria-label", kind === "books" ? "Books" : "Characters");
+    items.forEach(function (item) {
+      if (!item || !item.id) return;
+      list.appendChild(kind === "books" ? bookPiece(childId, item) : characterPiece(childId, item));
+    });
+    return list;
+  }
+
+  function recentActivity(data) {
+    var rows = [];
+    (data.books || []).forEach(function (book) {
+      if (!book || !book.id) return;
+      rows.push({ when: book.createdAt || "", label: (book.title || "A book") + " saved" });
+    });
+    (data.characters || []).forEach(function (item) {
+      if (!item || !item.id) return;
+      rows.push({ when: item.createdAt || "", label: (item.name || "A character") + " saved" });
+    });
+    rows.sort(function (a, b) { return String(b.when).localeCompare(String(a.when)); });
+    return rows.slice(0, 4);
+  }
+
+  function shareTray(id) {
+    if ((!adultCharacters.length && !adultBooks.length) || !accountUserId()) return null;
+    var tray = el("section", { className: "family-share" });
+    tray.appendChild(el("h3", null, "From your own shelf"));
+    tray.appendChild(el("p", { className: "family-note" }, "This shares something you made. It does not change what the child saved."));
+    adultCharacters.forEach(function (character) {
+      if (!character || !character.id || !character.name) return;
+      tray.appendChild(el("button", {
+        type: "button",
+        className: "family-btn family-btn--ghost",
+        "data-family": "share-character",
+        "data-id": id,
+        "data-source": character.id,
+        "data-title": character.name
+      }, "Share " + character.name));
+    });
+    adultBooks.forEach(function (book) {
+      if (!book || !book.id || !book.title) return;
+      tray.appendChild(el("button", {
+        type: "button",
+        className: "family-btn family-btn--ghost",
+        "data-family": "share-book",
+        "data-id": id,
+        "data-source": book.id,
+        "data-title": book.title
+      }, "Share " + book.title));
+    });
+    return tray;
+  }
+
+  function creationsView(id) {
+    var child = childById(id);
+    var nickname = child ? child.nickname : "the child";
+    var page = el("section", { className: "family-creations-page", "aria-labelledby": "familyActivityTitle" });
+    page.appendChild(el("button", { type: "button", className: "family-back", "data-family": "close-activity" }, "Back to your family"));
+    page.appendChild(el("h2", { className: "family-title", id: "familyActivityTitle" }, nickname + "’s creations"));
+    if (!activityData) {
+      page.appendChild(el("p", { className: "family-note", role: "status" }, "Opening " + nickname + "’s creations…"));
+      return page;
+    }
+    if (activityData.error) {
+      page.appendChild(el("p", { className: "family-status", role: "status" }, activityData.error));
+      page.appendChild(el("button", { type: "button", className: "family-btn", "data-family": "activity", "data-id": id }, "Try again"));
+      return page;
+    }
+    page.appendChild(el("p", { className: "family-note" }, "You can look at these. Only " + nickname + " can change them."));
+    var recent = recentActivity(activityData);
+    if (recent.length) {
+      var activity = el("section", { className: "family-recent" });
+      activity.appendChild(el("h3", null, "Recent"));
+      var list = el("ul", { className: "family-recent__list" });
+      recent.forEach(function (row) {
+        var made = whenLabel(row.when);
+        list.appendChild(el("li", null, row.label + (made ? " · " + made : "")));
       });
+      activity.appendChild(list);
+      page.appendChild(activity);
     }
-    panel.appendChild(el("button", { type: "button", className: "family-btn family-btn--ghost", "data-family": "close-activity" }, "Close"));
-    sheet.appendChild(panel);
-    return sheet;
+    var books = (activityData.books || []).filter(function (book) { return book && book.id; });
+    var characters = (activityData.characters || []).filter(function (item) { return item && item.id; });
+    var sections = [
+      { kind: "books", title: "Books", id: "familyBooks", items: books, empty: "No books yet. When " + nickname + " saves a book, it will appear here." },
+      { kind: "characters", title: "Characters", id: "familyCharacters", items: characters, empty: "No characters yet. When " + nickname + " saves a character, it will appear here." }
+    ];
+    if (activityFocus === "characters") sections.reverse();
+    sections.forEach(function (section) {
+      var block = el("section", { className: "family-collection" });
+      block.appendChild(el("h3", { id: section.id }, section.title));
+      if (section.kind === "characters" && activityCharacter) {
+        var chosen = null;
+        section.items.forEach(function (item) {
+          if (item.id === activityCharacter) chosen = item;
+        });
+        block.appendChild(chosen
+          ? characterDetail(id, chosen, nickname)
+          : el("p", { className: "family-empty" }, "That character could not be opened."));
+      } else if (!section.items.length) {
+        block.appendChild(el("p", { className: "family-empty" }, section.empty));
+      } else {
+        block.appendChild(creationGrid(id, section.kind, section.items));
+      }
+      page.appendChild(block);
+    });
+    var shares = activityData.shares || [];
+    if (shares.length) {
+      var shared = el("ul", { className: "family-devices" });
+      shares.forEach(function (share) {
+        var item = el("li", null, share.title);
+        item.appendChild(el("button", { type: "button", className: "family-btn family-btn--quiet", "data-family": "unshare", "data-id": share.id }, "Stop sharing"));
+        shared.appendChild(item);
+      });
+      page.appendChild(shared);
+    }
+    var tray = shareTray(id);
+    if (tray) page.appendChild(tray);
+    return page;
   }
 
   function pairingQr(url) {
@@ -685,6 +919,7 @@
     deviceRows = [];
     deviceMessage = "";
     activityChild = null;
+    activityCharacter = "";
     activityData = null;
     adultBooks = [];
     adultCharacters = [];
@@ -718,9 +953,20 @@
     }
     if (action === "close-activity") {
       activityChild = null;
+      activityCharacter = "";
       activityData = null;
       adultBooks = [];
       adultCharacters = [];
+      paint();
+      return;
+    }
+    if (action === "close-character") {
+      activityCharacter = "";
+      paint();
+      return;
+    }
+    if (action === "character") {
+      activityCharacter = button.getAttribute("data-character") || "";
       paint();
       return;
     }
@@ -728,6 +974,8 @@
       editing = null;
       deviceChild = null;
       activityChild = id;
+      activityCharacter = "";
+      activityFocus = button.getAttribute("data-focus") || "";
       activityData = null;
       adultBooks = [];
       adultCharacters = [];
@@ -735,7 +983,14 @@
       call("parent_child_activity", { p_child: id }, function (err, data) {
         if (activityChild !== id) return;
         activityData = err ? { error: failText(err) } : data;
+        if (data && Array.isArray(data.books) && Array.isArray(data.characters)) {
+          activityCounts[id] = { books: data.books.length, characters: data.characters.length };
+        }
         paint();
+        if (activityFocus) {
+          var focusTarget = document.getElementById(activityFocus === "characters" ? "familyCharacters" : "familyBooks");
+          if (focusTarget && focusTarget.scrollIntoView) focusTarget.scrollIntoView({ block: "nearest" });
+        }
       });
       if (global.CharacterStore && global.CharacterStore.loadCharacters) {
         global.CharacterStore.loadCharacters(function (err, list) {

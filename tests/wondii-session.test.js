@@ -128,6 +128,41 @@ async function main() {
   assert.ok(characters.indexOf('view.status !== "ready"') >= 0);
   assert.ok(characters.indexOf("wondii-org") >= 0);
 
+  var created = [];
+  var waiting = {
+    document: {
+      createElement: function () {
+        var script = {};
+        created.push(script);
+        return script;
+      },
+      head: { appendChild: function () {} },
+      dispatchEvent: function () {}
+    },
+    SCORE_SYNC: { supabaseUrl: "https://example.supabase.co", supabaseAnonKey: "anon" },
+    setTimeout: function () { return 1; },
+    clearTimeout: function () {},
+    localStorage: {},
+    CustomEvent: function CustomEvent() {}
+  };
+  vm.runInNewContext(fs.readFileSync(path.join(root, "js/wondii-session.js"), "utf8"), waiting, { filename: "wondii-session.js" });
+  var delivered = null;
+  waiting.WondiiSession.client(function (sb) { delivered = sb; });
+  assert.strictEqual(delivered, null);
+  assert.strictEqual(created.length, 1);
+  waiting.supabase = {
+    createClient: function () {
+      return {
+        auth: {
+          onAuthStateChange: function () {},
+          getSession: function () { return Promise.resolve({ data: { session: null } }); }
+        }
+      };
+    }
+  };
+  created[0].onload();
+  assert.ok(delivered, "the storybook must wait for the sign-in client instead of failing immediately");
+
   console.log("wondii-session tests ok");
 }
 
