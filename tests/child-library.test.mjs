@@ -121,7 +121,7 @@ assert.match(join, /A grown-up in your family can open/);
 assert.match(story, /parentReadingChild/);
 assert.match(story, /Saved to your Wondii/);
 assert.match(story, /Not saved yet/);
-assert.equal(story.includes("signed in under"), true);
+assert.equal(story.includes("signed in under"), false);
 
 assert.equal(characterListReason(
   { allowed: false, reason: "not_child" },
