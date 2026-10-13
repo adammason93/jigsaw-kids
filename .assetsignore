@@ -1,3 +1,17 @@
+# Worker entry source must not ship as browseable static files with assets.directory="."
+workers-site/
+# Git repository and dotfiles (Workers Builds deploys from a full checkout)
 .git
+.git/
 .git/**
 **/.git
+.gitignore
+.assetsignore
+# Build output and account cache written by wrangler during deploy
+.wrangler/
+# Repo / editor / tooling folders the site never serves
+.github/
+.vscode/
+.claude/
+ai-dev/
+supabase/
