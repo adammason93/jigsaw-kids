@@ -5861,6 +5861,7 @@
     } catch (e) {
       return;
     }
+    if (document.getElementById("sbStartJourney")) return;
     if (String(params.get("from") || "") !== "portal" && String(params.get("create") || "") !== "1") return;
     try {
       var u = new URL(window.location.href);
@@ -6776,7 +6777,10 @@
       bootParams.get("shared") ||
       bootParams.get("sharedChar") ||
       bootParams.get("sample") === "1" ||
-      bootParams.get("demo") === "1"
+      bootParams.get("demo") === "1" ||
+      bootParams.get("create") === "1" ||
+      bootParams.get("journey") === "1" ||
+      document.getElementById("sbStartJourney")
     );
     if (bootParams.get("sample") === "1" || bootParams.get("demo") === "1") {
       openSampleBook();
