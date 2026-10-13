@@ -632,7 +632,7 @@
   function bookPiece(childId, book) {
     var link = el("a", {
       className: "family-piece",
-      href: "games/storybook.html?child=" + encodeURIComponent(childId) + "&book=" + encodeURIComponent(book.id)
+      href: "games/book-prototype/?book=" + encodeURIComponent(book.id) + "&child=" + encodeURIComponent(childId)
     });
     var frame = el("span", { className: "family-piece__art" });
     var img = el("img", { alt: "" , hidden: true });

@@ -592,6 +592,8 @@
   var storyLengthFieldset = document.getElementById("sbStoryLength");
   var K_READER_ART_LAYOUT = "sbReaderArtLayout";
   var K_ILLUSTRATION_STYLE = "sbIllustrationStyle";
+  var journeyIllustrationHold = false;
+  var journeyFamilyPeople = [];
   var K_STORY_TEXT_MODE = "sbStoryTextMode";
   var K_STORY_LENGTH = "sbStoryLength";
 
@@ -753,6 +755,7 @@
   }
 
   function setIllustrationStyle(mode) {
+    if (journeyIllustrationHold) return;
     try {
       localStorage.setItem(K_ILLUSTRATION_STYLE, coerceIllustrationStyleKey(mode));
     } catch (eSetSt) {}
@@ -3788,42 +3791,8 @@
   }
 
   function openShelfBook(bookId) {
-    var list = loadShelf();
-    var item = null;
-    for (var i = 0; i < list.length; i++) {
-      if (list[i].id === bookId) {
-        item = list[i];
-        break;
-      }
-    }
-    if (!item || !item.pages || !item.pages.length) return;
-    story = {
-      title: item.title,
-      author: item.author || "",
-      bookColor: item.bookColor || null,
-      readerFont: item.readerFont || null,
-      readerArtLayout:
-        item.readerArtLayout === "facing" ? "facing" : "duplex",
-      storyTextMode: storyTextModeFromShelfItem(
-        item,
-        item.readerArtLayout === "facing" ? "facing" : "duplex"
-      ),
-      storyLength: storyLengthFromShelfItem(item),
-      /* Prefer remote asset when present so reopen matches stored PNG (not shelf JPEG). */
-      sceneImageUrl: item.sceneUrlFallback || item.sceneDataUrl || null,
-      pages: item.pages.map(function (p) {
-        var page = {
-          text: p.text,
-          imageUrl: p.imageUrlFallback || p.imageDataUrl || null,
-        };
-        if (p.textSafeZones) page.textSafeZones = p.textSafeZones;
-        if (p.impactWords) page.impactWords = p.impactWords;
-        if (p.textBlocks) page.textBlocks = p.textBlocks;
-        return page;
-      }),
-    };
-    spreadIndex = 0;
-    showBook();
+    if (!bookId) return;
+    window.location.assign("book-prototype/?book=" + encodeURIComponent(bookId));
   }
 
   /**
@@ -4774,63 +4743,49 @@
     var child = String(params.get("child") || "").trim();
     var book = String(params.get("book") || "").trim();
     if (sharedChar && window.ChildLibrary.isChildSession && window.ChildLibrary.isChildSession()) {
-      window.ChildLibrary.localArtUrl("shared/" + sharedChar + "/character.png", function (err, url) {
-        if (err || !url || typeof savedCharUrlToDataUrl !== "function") return;
-        savedCharUrlToDataUrl(url).then(function (dataUrl) {
-          if (!dataUrl) return;
-          heroPhotoItems.push({ dataUrl: dataUrl, who: "hero", charId: sharedChar });
-          if (typeof renderHeroPhotoThumbs === "function") renderHeroPhotoThumbs();
-          if (typeof openJourney === "function") openJourney();
-        }).catch(function () {});
-      });
+      if (document.getElementById("sbStoryJourney")) {
+        try { sessionStorage.setItem("wondii-journey-star", sharedChar); } catch (eShare) {}
+      } else {
+        window.ChildLibrary.localArtUrl("shared/" + sharedChar + "/character.png", function (err, url) {
+          if (err || !url || typeof savedCharUrlToDataUrl !== "function") return;
+          savedCharUrlToDataUrl(url).then(function (dataUrl) {
+            if (!dataUrl) return;
+            heroPhotoItems.push({ dataUrl: dataUrl, who: "hero", charId: sharedChar });
+            if (typeof renderHeroPhotoThumbs === "function") renderHeroPhotoThumbs();
+            if (typeof openJourney === "function") openJourney();
+          }).catch(function () {});
+        });
+      }
     }
-    if (!window.ChildLibrary) return;
-    if (shared && window.ChildLibrary.isChildSession && window.ChildLibrary.isChildSession()) {
-      window.ChildLibrary.loadSharedBook(shared, function (err, item) {
-        if (!err) showStoredBook(item);
-      });
+    if (shared) {
+      window.location.replace("book-prototype/?book=" + encodeURIComponent(shared) + "&shared=1");
       return;
     }
-    if (child && book && !(window.ChildLibrary.isChildSession && window.ChildLibrary.isChildSession())) {
+    if (!window.ChildLibrary) return;
+    if (child && book) {
       parentReadingChild = true;
-      window.ChildLibrary.loadOwnedBook(child, book, function (err, item) {
-        if (!err) showStoredBook(item);
-        else window.alert("That book could not be opened.");
-      });
+      window.location.replace(
+        "book-prototype/?book=" + encodeURIComponent(book) + "&child=" + encodeURIComponent(child)
+      );
     }
   }
 
   /** `?book=<shelf id>` (homepage shelf) — open that book in the reader once the library has loaded. */
   function openBookFromUrl() {
-    var id = "";
+    var params;
     try {
-      id = String(new URLSearchParams(window.location.search || "").get("book") || "").trim();
+      params = new URLSearchParams(window.location.search || "");
     } catch (eP) {
       return;
     }
-    if (!id || new URLSearchParams(window.location.search || "").get("child")) return;
-    try {
-      var u = new URL(window.location.href);
-      u.searchParams.delete("book");
-      window.history.replaceState({}, "", u.pathname + (u.search || "") + (u.hash || ""));
-    } catch (eU) {}
-
-    var opened = false;
-    function tryOpen() {
-      if (opened) return;
-      var found = loadShelf().some(function (b) {
-        return b && b.id === id;
-      });
-      if (!found) return;
-      opened = true;
-      window.removeEventListener("kids-scorecard-refresh", onRefresh);
-      openShelfBook(id);
-    }
-    function onRefresh() {
-      reloadShelfCacheFromStore(tryOpen);
-    }
-    window.addEventListener("kids-scorecard-refresh", onRefresh);
-    reloadShelfCacheFromStore(tryOpen);
+    if (!params.has("book")) return;
+    var id = String(params.get("book") || "").trim();
+    var child = String(params.get("child") || "").trim();
+    var shared = String(params.get("shared") || "").trim();
+    var url = "book-prototype/?book=" + encodeURIComponent(id);
+    if (child) url += "&child=" + encodeURIComponent(child);
+    if (shared === "1" || shared === "true") url += "&shared=1";
+    window.location.replace(url);
   }
 
   /** `?char=<saved id>` or `?char=builtin:<KidsGameCharacters id>` — open the maker with that character added. */
@@ -4847,6 +4802,11 @@
       u.searchParams.delete("char");
       window.history.replaceState({}, "", u.pathname + (u.search || "") + (u.hash || ""));
     } catch (eU) {}
+
+    if (document.getElementById("sbStoryJourney")) {
+      try { sessionStorage.setItem("wondii-journey-star", raw); } catch (eStar) {}
+      return;
+    }
 
     openJourney();
     goToStep(0);
@@ -5268,7 +5228,7 @@
   }
 
   function getSelectedFamilyPeople() {
-    return [];
+    return journeyFamilyPeople.slice();
   }
 
   function buildBookColorUI() {
@@ -6054,6 +6014,7 @@
           return;
         }
         if (e.target.closest("#sbStartJourney")) {
+          if (document.getElementById("sbStoryJourney")) return;
           e.preventDefault();
           openJourney();
         }
@@ -6416,7 +6377,6 @@
       if (sbGenerateInFlight) return;
       setError("");
       setReaderArtLayout(readBookSpreadLayoutFromWizard());
-      setIllustrationStyle(readIllustrationStyleFromWizard());
       setStoryTextMode(readStoryTextModeFromWizard());
       setStoryLength(readStoryLengthFromWizard());
       var url = functionUrl();
@@ -6456,6 +6416,8 @@
         startStorybookBuildProgressGuessing();
       }
       var familyPeople = getSelectedFamilyPeople();
+      var chosenIllustrationStyle = readIllustrationStyleFromWizard();
+      if (!journeyIllustrationHold) setIllustrationStyle(chosenIllustrationStyle);
       var requestBody = {
         childName: childName || "Friend",
         character: normalizeWizardPresetKey(selectedChar),
@@ -6470,7 +6432,7 @@
             ? trimCustomWizardText(placeCustomInput) || undefined
             : undefined,
         pictureBookQuality: selectedPictureBookQuality(),
-        illustrationStyle: readIllustrationStyleFromWizard(),
+        illustrationStyle: chosenIllustrationStyle,
         readerArtLayout: readBookSpreadLayoutFromWizard(),
         storyTextMode: readStoryTextModeFromWizard(),
         storyLength: readStoryLengthFromWizard(),
@@ -6486,6 +6448,11 @@
             })
           : undefined,
       };
+      if (journeyIllustrationHold) {
+        journeyIllustrationHold = false;
+        syncIllustrationStyleRadios();
+      }
+      journeyFamilyPeople = [];
       var childBearer = "";
       function postStorybook(asyncFlag) {
         var body = Object.assign({}, requestBody);
@@ -6782,8 +6749,8 @@
       bootParams.get("journey") === "1" ||
       document.getElementById("sbStartJourney")
     );
-    if (bootParams.get("sample") === "1" || bootParams.get("demo") === "1") {
-      openSampleBook();
+    if ((bootParams.get("sample") === "1" || bootParams.get("demo") === "1") && !bootParams.get("book")) {
+      window.location.replace("book-prototype/?" + (bootParams.get("demo") === "1" ? "demo=1" : "sample=1"));
     }
   } catch (err) {}
 
@@ -6791,7 +6758,7 @@
   openBookFromUrl();
   openPrivateFromUrl();
   try {
-    if (sessionStorage.getItem("wondii-org-starter")) openJourney();
+    if (sessionStorage.getItem("wondii-org-starter") && !document.getElementById("sbStoryJourney")) openJourney();
   } catch (eOrgSeed) {}
 
   var makerNow = document.getElementById("sbModal");
@@ -6863,9 +6830,24 @@
         reader.readAsDataURL(blob);
       });
     }).then(function (dataUrl) {
-      heroPhotoItems = [{ dataUrl: dataUrl, who: who || "hero" }];
+      heroPhotoItems.push({ dataUrl: dataUrl, who: who || "hero" });
       renderHeroPhotoThumbs();
     });
+  }
+
+  function friendToken(name) {
+    var token = String(name || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+    if (token.length < 2 || token.length > 24) return "";
+    return token;
+  }
+
+  function referenceForPerson(person) {
+    var src = person && person.src ? String(person.src) : "";
+    if (!src) return "";
+    var crew = /(?:^|\/)images\/characters\/crew\/([a-z0-9-]+)\.jpg(?:[?#].*)?$/i.exec(src);
+    if (!crew) return src;
+    if (person.id && crew[1] === String(person.id)) return src;
+    return "";
   }
 
   window.WondiiStoryDraft = {
@@ -6883,14 +6865,35 @@
         );
         if (lengthRadio) lengthRadio.checked = true;
       }
-      var portrait = next.portrait ? String(next.portrait) : "";
-      if (!portrait) {
-        heroPhotoItems = [];
-        return Promise.resolve();
+      if (next.style === "soft_3d") {
+        var styleRadio = document.querySelector('input[name="sbIllustrationStyle"][value="soft_3d"]');
+        if (styleRadio) {
+          journeyIllustrationHold = true;
+          styleRadio.checked = true;
+        }
       }
-      return portraitToReference(portrait, next.name || "hero").catch(function () {
-        heroPhotoItems = [];
+      var cast = Array.isArray(next.cast) ? next.cast : [];
+      heroPhotoItems = [];
+      journeyFamilyPeople = [];
+      var seenFriend = {};
+      var jobs = [];
+      cast.forEach(function (person, index) {
+        if (!person || !person.name) return;
+        if (index > 0) {
+          var token = friendToken(person.name);
+          if (token && !seenFriend[token]) {
+            seenFriend[token] = true;
+            journeyFamilyPeople.push({ id: token, label: String(person.name).slice(0, 40) });
+          }
+        }
+        var src = referenceForPerson(person);
+        if (!src || jobs.length >= 3) return;
+        var who = index === 0 ? String(person.name) : (friendToken(person.name) || "");
+        if (!who) return;
+        jobs.push(portraitToReference(src, who).catch(function () {}));
       });
+      if (typeof renderHeroPhotoThumbs === "function") renderHeroPhotoThumbs();
+      return Promise.all(jobs);
     },
     create: function () {
       if (btnGen) btnGen.click();

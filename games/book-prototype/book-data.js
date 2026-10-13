@@ -1,6 +1,8 @@
-/* Turns a saved Wondii shelf book into the content the 3D reader already draws.
-   It does not draw, animate, or store books. A book id is only accepted when it
-   is on the signed-in account's shelf. */
+/* Turns a saved Wondii book into the content the 3D reader already draws.
+   It does not draw, animate, or store books. A book id is accepted only from
+   the signed-in shelf, a parent's read of that child's book, or a child's
+   shared copy. The sample is reached only when this page was opened with
+   sample=1 or demo=1 and no book id. A failed load never becomes the sample. */
 (function (root) {
   "use strict";
 
@@ -8,8 +10,27 @@
     missing: "This link does not name a book.",
     unauthorised: "Sign in to open this book. It stays on the account that saved it.",
     unavailable: "This book is not on your shelf.",
+    closed: "This book could not be opened.",
     empty: "This book has no pages yet."
   };
+
+  function prepareReader() {
+    var params;
+    try {
+      params = new URLSearchParams(root.location.search);
+    } catch (e) {
+      return;
+    }
+    if (params.has("book")) return;
+    if (params.get("sample") === "1" || params.get("demo") === "1") return;
+    params.set("book", "");
+    var path = root.location.pathname || "";
+    var hash = root.location.hash || "";
+    var next = path + "?" + params.toString() + hash;
+    if (root.history && root.history.replaceState) {
+      root.history.replaceState(null, "", next);
+    }
+  }
 
   function requestedId() {
     var params;
@@ -115,32 +136,126 @@
     });
   }
 
+  function searchParams() {
+    try {
+      return new URLSearchParams(root.location.search);
+    } catch (e) {
+      return new URLSearchParams();
+    }
+  }
+
+  function childParam() {
+    return String(searchParams().get("child") || "").trim();
+  }
+
+  function sharedRequested() {
+    var value = String(searchParams().get("shared") || "").trim();
+    return value === "1" || value === "true";
+  }
+
+  function childSession() {
+    var lib = root.ChildLibrary;
+    return !!(lib && lib.isChildSession && lib.isChildSession());
+  }
+
+  function waitForShelf() {
+    return new Promise(function (resolve) {
+      var done = false;
+      function finish() {
+        if (done) return;
+        done = true;
+        resolve();
+      }
+      root.addEventListener("kids-scorecard-refresh", finish, { once: true });
+      root.addEventListener("kids-storybook-merge-failed", finish, { once: true });
+      root.setTimeout(finish, 8000);
+    });
+  }
+
+  function fromLibrary(loader) {
+    return new Promise(function (resolve) {
+      var settled = false;
+      function finish(result) {
+        if (settled) return;
+        settled = true;
+        resolve(result);
+      }
+      root.setTimeout(function () {
+        finish({ ok: false, reason: "closed" });
+      }, 12000);
+      try {
+        loader(function (err, item) {
+          if (err || !item) {
+            finish({ ok: false, reason: "closed" });
+            return;
+          }
+          var reading = plan(item);
+          if (!reading.pages.length) {
+            finish({ ok: false, reason: "empty" });
+            return;
+          }
+          finish({ ok: true, kind: "saved", plan: reading });
+        });
+      } catch (e) {
+        finish({ ok: false, reason: "closed" });
+      }
+    });
+  }
+
+  function loadShelf(userId, id) {
+    var store = root.StorybookShelfStore;
+    if (!userId || !store || typeof store.getVisibleJson !== "function") {
+      return Promise.resolve({ ok: false, reason: "unauthorised" });
+    }
+    var bound = store.currentUserId ? String(store.currentUserId() || "") : "";
+    if (bound && bound !== userId) return Promise.resolve({ ok: false, reason: "unauthorised" });
+    return store.getVisibleJson().then(function (books) {
+      var decision = classify(id, userId, books);
+      if (!decision.ok) return decision;
+      return { ok: true, kind: "saved", plan: plan(decision.book) };
+    }).catch(function () {
+      return { ok: false, reason: "unavailable" };
+    });
+  }
+
   function load() {
     var id = requestedId();
     if (id == null) return Promise.resolve({ ok: true, kind: "sample" });
     if (!id) return Promise.resolve({ ok: false, reason: "missing" });
+    var child = childParam();
+    var shared = sharedRequested();
     return whenSession().then(function (view) {
       var fixture = localFixture();
-      if (fixture) {
+      if (fixture && !child && !shared) {
         var local = classify(id, fixture.userId, fixture.books);
         if (local.ok) return { ok: true, kind: "saved", plan: plan(local.book), fixture: true };
       }
       var userId = view && view.userId ? String(view.userId) : "";
-      var store = root.StorybookShelfStore;
-      if (userId && store && typeof store.getVisibleJson === "function") {
-        var bound = store.currentUserId ? String(store.currentUserId() || "") : "";
-        if (bound && bound !== userId) return { ok: false, reason: "unauthorised" };
-        return store.getVisibleJson().then(function (books) {
-          var decision = classify(id, userId, books);
-          if (!decision.ok) return decision;
-          return { ok: true, kind: "saved", plan: plan(decision.book) };
+      if (!userId) return { ok: false, reason: "unauthorised" };
+      if (child) {
+        if (childSession() || !root.ChildLibrary || !root.ChildLibrary.loadOwnedBook) {
+          return { ok: false, reason: "closed" };
+        }
+        return fromLibrary(function (cb) {
+          root.ChildLibrary.loadOwnedBook(child, id, cb);
         });
       }
-      return { ok: false, reason: "unauthorised" };
+      if (shared) {
+        if (!childSession() || !root.ChildLibrary || !root.ChildLibrary.loadSharedBook) {
+          return { ok: false, reason: "closed" };
+        }
+        return fromLibrary(function (cb) {
+          root.ChildLibrary.loadSharedBook(id, cb);
+        });
+      }
+      return waitForShelf().then(function () {
+        return loadShelf(userId, id);
+      });
     });
   }
 
   root.WondiiBookData = {
+    prepareReader: prepareReader,
     requestedId: requestedId,
     classify: classify,
     plan: plan,

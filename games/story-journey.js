@@ -83,7 +83,8 @@
     notice: "",
     sceneKind: "place",
     justJoined: "",
-    moreIdeas: false
+    moreIdeas: false,
+    pendingStar: ""
   };
   var library = { mine: [], shared: [], mineState: "idle", sharedState: "idle" };
   var portraits = {};
@@ -358,7 +359,8 @@
     if (state.justJoined === who[0]) fig.classList.add("is-join");
     var img = document.createElement("img");
     img.alt = "";
-    img.src = portraitSrc(who[0]) || "images/characters/crew/wondii-maya.jpg";
+    var picture = portraitSrc(who[0]);
+    if (picture) img.src = picture;
     img.setAttribute("data-art", who[0]);
     fig.appendChild(img);
     var cap = document.createElement("figcaption");
@@ -461,6 +463,7 @@
         });
         rememberRows(library.mine);
         library.mineState = "ready";
+        applyPendingStar();
         if (step === "cast") paint();
       });
       return;
@@ -490,6 +493,7 @@
       });
       rememberRows(library.mine);
       library.mineState = "ready";
+      applyPendingStar();
       if (step === "cast") paint();
     });
   }
@@ -522,8 +526,45 @@
       });
       rememberRows(library.shared);
       library.sharedState = "ready";
+      applyPendingStar();
       if (step === "cast") paint();
     });
+  }
+
+  function takePendingStar() {
+    var raw = "";
+    try {
+      raw = sessionStorage.getItem("wondii-journey-star") || "";
+      if (raw) sessionStorage.removeItem("wondii-journey-star");
+    } catch (ePending) {
+      return;
+    }
+    raw = String(raw).trim();
+    if (!raw) return;
+    if (raw.indexOf("builtin:") === 0) raw = raw.slice(8);
+    castTouched = true;
+    var crew = CREW.filter(function (item) {
+      return item[0] === raw || item[0] === "wondii-" + raw;
+    })[0];
+    if (crew) {
+      state.ids = [crew[0]];
+      state.pendingStar = "";
+      return;
+    }
+    state.pendingStar = raw;
+    state.ids = [];
+  }
+
+  function applyPendingStar() {
+    if (!state.pendingStar) return;
+    var raw = state.pendingStar;
+    var lists = library.mine.concat(library.shared);
+    var row = lists.filter(function (item) { return item[0] === raw; })[0];
+    if (!row) return;
+    state.ids = [row[0]];
+    state.pendingStar = "";
+    castTouched = true;
+    if (step === "cast") paint();
   }
 
   function libraryNote(which) {
@@ -633,7 +674,13 @@
     root.appendChild(meadow);
     root.appendChild(picker);
     stage.appendChild(root);
-    setStatus(state.notice || (nextBtn.disabled ? "Choose a star before you continue." : ""));
+    var pendingNote = "";
+    if (state.pendingStar && !state.ids.length) {
+      pendingNote = library.mineState === "loading" || library.sharedState === "loading"
+        ? "That character is still opening. Choose someone here if they do not appear."
+        : "That character could not be opened here. Choose someone from the crew or your characters.";
+    }
+    setStatus(pendingNote || state.notice || (nextBtn.disabled ? "Choose a star before you continue." : ""));
     state.justJoined = "";
   }
 
@@ -961,16 +1008,29 @@
       setStatus("This page cannot start a book yet. Your choices are still here.");
       return;
     }
+    var members = [];
+    state.ids.forEach(function (id) {
+      var row = person(id);
+      if (!row) return;
+      members.push({ id: id, name: row[1], src: portraitSrc(id) });
+    });
+    if (!members.length || members.length !== state.ids.length) {
+      setStatus("Choose each person again so nobody is left out of the story.");
+      return;
+    }
     nextBtn.disabled = true;
-    setStatus("Starting your book…");
+    setStatus(members.length > 2
+      ? "Everyone is named in the story. Pictures can show the star and one friend."
+      : "Starting your book…");
     var idea = state.idea.trim();
     if (!idea) state.idea = "Maybe they discover a secret door in a magical forest.";
     window.WondiiStoryDraft.apply({
-      name: star()[1],
+      name: members[0].name,
       plot: plotText(),
       place: state.place,
       length: state.length,
-      portrait: "images/characters/crew/" + star()[0] + ".jpg"
+      style: "soft_3d",
+      cast: members
     }).then(function () {
       if (!idea) state.idea = "";
       window.WondiiStoryDraft.create();
@@ -1080,6 +1140,19 @@
     });
   }
 
+  takePendingStar();
+  try {
+    var orgSeed = sessionStorage.getItem("wondii-org-starter");
+    if (orgSeed) {
+      state.idea = String(orgSeed).slice(0, 500);
+      sessionStorage.removeItem("wondii-org-starter");
+    }
+  } catch (eSeed) {}
+  if (state.pendingStar) {
+    state.tab = "mine";
+    requestMine();
+    requestShared();
+  }
   applyScene(PLACE_ART.library);
   dressWelcome();
 

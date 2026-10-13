@@ -334,7 +334,7 @@
     if (data.continueId) {
       var current = (data.books || []).filter(function (book) { return book && book.id === data.continueId; })[0];
       var cont = node("a", "family-continue", "");
-      cont.href = "games/storybook.html?book=" + encodeURIComponent(data.continueId);
+      cont.href = "games/book-prototype/?book=" + encodeURIComponent(data.continueId);
       cont.appendChild(node("span", "family-kicker", "Continue reading"));
       cont.appendChild(node("span", "family-continue__title", current && current.title ? current.title : "Your book"));
       mine.appendChild(cont);
@@ -343,7 +343,7 @@
       mine.appendChild(emptyState("Your books will appear here.", "games/storybook.html", "Create a book"));
     } else {
       mine.appendChild(bookGrid(data.books, function (book) {
-        return "games/storybook.html?book=" + encodeURIComponent(book.id || "");
+        return "games/book-prototype/?book=" + encodeURIComponent(book.id || "");
       }, function (book) {
         return "books/" + book.id + "/cover.jpg";
       }, true));
@@ -352,7 +352,7 @@
     mine.appendChild(node("h2", null, "Favourites"));
     mine.appendChild(favourites.length
       ? bookGrid(favourites, function (book) {
-        return "games/storybook.html?book=" + encodeURIComponent(book.id || "");
+        return "games/book-prototype/?book=" + encodeURIComponent(book.id || "");
       }, function (book) {
         return "books/" + book.id + "/cover.jpg";
       }, false)
@@ -371,7 +371,7 @@
     shared.appendChild((!Array.isArray(data.sharedBooks) || !data.sharedBooks.length)
       ? emptyState("Books a grown-up shares will appear here.", "", "")
       : bookGrid(data.sharedBooks, function (book) {
-        return "games/storybook.html?shared=" + encodeURIComponent(book.id || "");
+        return "games/book-prototype/?book=" + encodeURIComponent(book.id || "") + "&shared=1";
       }, function (book) {
         return "shared/" + book.id + "/cover.jpg";
       }, false));
