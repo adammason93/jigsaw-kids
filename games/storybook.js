@@ -1218,6 +1218,11 @@
       overArt: '"Comic Neue","Schoolbell","Nunito",sans-serif',
       emphasis: '"Sniglet","Comic Neue","Nunito",sans-serif',
     },
+    lora: {
+      body: 'Lora, Georgia, serif',
+      overArt: 'Lora, Georgia, serif',
+      emphasis: 'Lora, Georgia, serif',
+    },
   };
 
   function normalizeReaderFontKey(key) {
@@ -1225,6 +1230,7 @@
     return SB_READER_FONT_PRESETS[k] ? k : "fredoka";
   }
   var spreadIndex = 0;
+  var spreadListener = null;
   /** @type {boolean} */
   var spreadAnimLock = false;
   /** @type {number | null} — paint incoming duplex + prose early in the hinge */
@@ -2257,6 +2263,19 @@
     if (spreadPeelFrontText) spreadPeelFrontText.innerHTML = "";
   }
 
+  function theEndHtml() {
+    return (
+      '<div class="sb-the-end-wrap" role="status">' +
+      '<h2 class="sb-the-end-title">The End</h2>' +
+      '<p class="sb-the-end-lead">We hope you enjoyed the story!</p>' +
+      '<div class="sj-end-actions">' +
+      '<button type="button" class="sb-btn sb-btn--primary" data-sj-end="again">Read again</button>' +
+      '<button type="button" class="sb-btn sb-btn--ghost" data-sj-end="shelf">Back to my bookshelf</button>' +
+      '<button type="button" class="sb-btn sb-btn--ghost" data-sj-end="another">Create another story</button>' +
+      "</div></div>"
+    );
+  }
+
   /**
    * Left column content for one spread (prose words HTML, The End block, or empty).
    * @param {number} si
@@ -2270,16 +2289,12 @@
     if (n < 1) return { kind: "empty" };
     si = Math.max(0, Math.min(Number(si), n - 1));
     if (si * 2 >= story.pages.length) {
-      return {
-        kind: "theend",
-        html:
-          '<div class="sb-the-end-wrap" role="status">' +
-          '<h2 class="sb-the-end-title">The End</h2>' +
-          '<p class="sb-the-end-lead">We hope you enjoyed the story!</p>' +
-          "</div>",
-      };
+      return { kind: "theend", html: theEndHtml() };
     }
     var leftP = story.pages[si * 2];
+    if (leftP && String(leftP.text || "").trim().toLowerCase() === "the end") {
+      return { kind: "theend", html: theEndHtml() };
+    }
     if (leftP && leftP.text) {
       return { kind: "prose", html: storyPageTextToReadableHtml(leftP.text) };
     }
@@ -2299,14 +2314,7 @@
     if (n < 1) return { kind: "empty" };
     si = Math.max(0, Math.min(Number(si), n - 1));
     if (si * 2 >= story.pages.length) {
-      return {
-        kind: "theend",
-        html:
-          '<div class="sb-the-end-wrap" role="status">' +
-          '<h2 class="sb-the-end-title">The End</h2>' +
-          '<p class="sb-the-end-lead">We hope you enjoyed the story!</p>' +
-          "</div>",
-      };
+      return { kind: "theend", html: theEndHtml() };
     }
     var ri = si * 2 + 1;
     if (ri >= story.pages.length) {
@@ -3171,6 +3179,14 @@
     updateSpreadPageNumberDisplay();
     updatePagerHints();
     prefetchAdjacentSpreadIllustrations();
+    if (spreadListener && story && story.pages) {
+      var heard = story.pages[spreadIndex * 2] || {};
+      spreadListener({
+        pageId: heard.pageId || "",
+        text: heard.text || "",
+        index: spreadIndex
+      });
+    }
   }
 
   function renderSpread() {
@@ -3711,6 +3727,11 @@
     return t;
   }
 
+  function storyAtmosphereFor(extra) {
+    if (!window.WondiiStoryAtmosphere || !window.WondiiStoryAtmosphere.enabled()) return null;
+    return window.WondiiStoryAtmosphere.resolve(extra || {});
+  }
+
   function pendingChildShelfId() {
     var key = "";
     try {
@@ -3777,6 +3798,11 @@
       pages: storedPages,
       sceneDataUrl: storedSceneData,
       sceneUrlFallback: sceneUrlFallback || null,
+      atmosphere: storyAtmosphereFor({
+        place: selectedPlace,
+        plot: plotInput ? plotInput.value : "",
+        atmosphere: story && story.atmosphere
+      }),
     });
     saveShelf(list, cloudDone, onWritten);
   }
@@ -4022,9 +4048,20 @@
     shelfEl.scrollBy({ left: amount, behavior: "smooth" });
   }
 
+  function shelfAlreadyHasStory() {
+    if (!story || !story.title) return false;
+    return loadShelf().some(function (b) {
+      return b && b.title === story.title && String(b.author || "") === String(story.author || "");
+    });
+  }
+
   function saveBookToShelf() {
     if (parentReadingChild) return;
     if (!story || !story.pages.length || !btnShelf) return;
+    if (shelfAlreadyHasStory()) {
+      btnShelf.textContent = "On my bookshelf";
+      return;
+    }
     var label = btnShelf.textContent;
     btnShelf.disabled = true;
     btnShelf.textContent = "Saving…";
@@ -5633,6 +5670,11 @@
       landing.classList.remove("is-hidden");
       landing.hidden = false;
     }
+    var journeyHome = document.getElementById("sbStoryJourney");
+    if (journeyHome) journeyHome.hidden = true;
+    try {
+      document.dispatchEvent(new CustomEvent("wondii-story-home"));
+    } catch (eHome) {}
     if (book) {
       book.classList.remove("sb-reader--sample");
       book.classList.add("is-hidden");
@@ -5665,6 +5707,8 @@
       landing.classList.add("is-hidden");
       landing.hidden = true;
     }
+    var journeyOpen = document.getElementById("sbStoryJourney");
+    if (journeyOpen) journeyOpen.hidden = true;
     if (book) {
       book.classList.remove("is-hidden");
       book.hidden = false;
@@ -5676,20 +5720,33 @@
     }
     if (readerHeading) readerHeading.textContent = story.title;
     if (coverTitle && story) coverTitle.textContent = story.title;
-    var coverWho = story && story.author ? String(story.author).replace(/\(sample\)/i, "").trim() : "";
+    var coverWho = story && story.featuring
+      ? ""
+      : story && story.author
+        ? String(story.author).replace(/\(sample\)/i, "").trim()
+        : "";
     var coverKicker = document.getElementById("sbCoverKicker");
     var coverMade = document.getElementById("sbCoverMade");
     if (coverKicker) {
-      coverKicker.textContent = coverWho
-        ? "An adventure starring " + coverWho
-        : "An adventure made for you";
+      coverKicker.textContent = story && story.featuring
+        ? "Featuring " + story.featuring
+        : coverWho
+          ? "An adventure starring " + coverWho
+          : "An adventure made for you";
     }
     if (coverMade) {
-      coverMade.textContent = coverWho ? "Made especially for " + coverWho : "Made especially for you";
+      coverMade.textContent = story && story.demoExample
+        ? "Demo example"
+        : coverWho
+          ? "Made especially for " + coverWho
+          : "Made especially for you";
     }
     updateReadChrome();
     syncReadDock();
     syncFaveButton();
+    if (btnShelf) {
+      btnShelf.textContent = shelfAlreadyHasStory() ? "On my bookshelf" : "Put on my shelf";
+    }
     if (btnOpenCover && story) {
       btnOpenCover.setAttribute(
         "aria-label",
@@ -5865,6 +5922,9 @@
 
   function mergeFailedMessage(raw) {
     var s = String(raw || "");
+    if (s === "no_account" || s === "no_session") {
+      return "This book is still here, but it is not on the bookshelf yet. Sign in with a Wondii account, then tap Put on my shelf.";
+    }
     if (
       s === "localStorage_quota" ||
       s === "storage_quota" ||
@@ -6118,14 +6178,36 @@
     btnFaveBook.textContent = on ? "♥" : "♡";
   }
 
+    if (book) {
+    book.addEventListener("click", function (e) {
+      var endBtn = e.target && e.target.closest ? e.target.closest("[data-sj-end]") : null;
+      if (!endBtn) return;
+      e.preventDefault();
+      var act = endBtn.getAttribute("data-sj-end");
+      if (act === "again") {
+        spreadIndex = 0;
+        renderSpread();
+        closeBookCover();
+      } else if (act === "shelf") {
+        returnToStoryLanding();
+      } else if (act === "another") {
+        returnToStoryLanding();
+        try {
+          document.dispatchEvent(new CustomEvent("wondii-story-create"));
+        } catch (eCreate) {}
+      }
+    });
+  }
   if (btnLibraryBack) {
     btnLibraryBack.addEventListener("click", function () {
-      goToPortalStories();
+      if (document.getElementById("sbStartJourney")) returnToStoryLanding();
+      else goToPortalStories();
     });
   }
   if (btnReaderDismiss) {
     btnReaderDismiss.addEventListener("click", function () {
-      goToPortalStories();
+      if (document.getElementById("sbStartJourney")) returnToStoryLanding();
+      else goToPortalStories();
     });
   }
   if (btnFaveBook) {
@@ -6653,7 +6735,10 @@
             storyLength: readStoryLengthFromWizard(),
             pages: out.body.pages || [],
             sceneImageUrl: out.body.sceneImageUrl || null,
+            place: selectedPlace,
+            plot: plotHint,
           };
+          story.atmosphere = storyAtmosphereFor(story);
           spreadIndex = 0;
           showBook();
           if (window.ChildLibrary && window.ChildLibrary.isChildSession && window.ChildLibrary.isChildSession()) {
@@ -6904,4 +6989,43 @@
       showBook();
     }
   };
+
+  window.WondiiStorybookReader = {
+    open: function (readerStory) {
+      if (!readerStory || !readerStory.pages || !readerStory.pages.length) return;
+      story = readerStory;
+      spreadIndex = 0;
+      showBook();
+    },
+    close: function () {
+      story = null;
+      spreadIndex = 0;
+      if (book) {
+        book.classList.add("is-hidden");
+        book.hidden = true;
+        book.classList.remove("sb-book--cover-visible");
+      }
+    },
+    listen: function (fn) {
+      spreadListener = typeof fn === "function" ? fn : null;
+    },
+    updatePage: function (pageId, text) {
+      if (!story || !story.pages) return;
+      story.pages.forEach(function (page) {
+        if (page.pageId === pageId) page.text = text;
+      });
+      renderSpread();
+    },
+    shelve: function (item, done) {
+      if (!item || !item.id) return;
+      reloadShelfCacheFromStore(function () {
+        var list = loadShelf().filter(function (entry) {
+          return entry.id !== item.id;
+        });
+        list.unshift(item);
+        saveShelf(list, null, done || null);
+      });
+    }
+  };
+
 })();
