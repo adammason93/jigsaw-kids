@@ -36,7 +36,9 @@ var older = handle.handleBookV2({
 });
 assert.strictEqual(older.status, 400);
 assert.strictEqual(older.body.generated, false);
-assert.ok(older.body.problems.indexOf("unknown-cast:char_hugo") >= 0);
+assert.ok(older.body.problems.indexOf("unmapped-cast:char_hugo") >= 0);
+assert.ok(older.body.problems.indexOf("unmapped-cast:wondii-jasper") >= 0);
+assert.ok(older.body.identities.every(function (row) { return row.bibleId !== "maya" || row.journeyId === "wondii-maya"; }));
 
 var planned = handle.handleBookV2({
   familyAgeBand: "10-12",
@@ -58,6 +60,7 @@ assert.strictEqual(planned.body.pictureConsistency, "not-solved");
 assert.strictEqual(planned.body.illustrationStyle, "wondii-picture-book");
 assert.strictEqual(planned.body.writing.constraintYear, "Year 6");
 assert.deepStrictEqual(planned.body.castIds, ["wondii-maya", "wondii-leo"]);
+assert.deepStrictEqual(planned.body.bibleIds, ["maya", "leo"]);
 assert.ok(planned.body.preview.title.indexOf("not a finished book") >= 0);
 assert.ok(planned.body.preview.pages[0].text.indexOf("not called") >= 0);
 assert.ok(planned.body.preview.pages[0].text.indexOf("castle") >= 0);
@@ -86,6 +89,8 @@ assert.ok(journey.indexOf("WondiiStoryDraft.create") < 0);
 assert.ok(journey.indexOf("style: \"soft_3d\"") < 0);
 assert.ok(journey.indexOf("/v1/book") >= 0);
 assert.ok(journey.indexOf("book-v2-local-preview") >= 0);
+assert.ok(journey.indexOf("body.saved && body.book && body.book.id") >= 0);
+assert.ok(journey.indexOf("saveShelf") < 0);
 
 process.env.BOOK_V2_PAID = "1";
 var blocked = handle.handleBookV2({

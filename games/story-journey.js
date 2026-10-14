@@ -1091,7 +1091,8 @@
         place: state.place,
         length: state.length,
         theme: state.theme,
-        familyAgeBand: state.ageBand
+        familyAgeBand: state.ageBand,
+        creationKey: creationKey()
       })
     }).then(function (response) {
       return response.json().then(function (body) {
@@ -1102,6 +1103,10 @@
       if (!result.ok || !body.ok) {
         nextBtn.disabled = false;
         setStatus(body.message || "The story plan could not start. Nothing was saved.");
+        return;
+      }
+      if (body.saved && body.book && body.book.id) {
+        window.location.assign("book-prototype/?book=" + encodeURIComponent(body.book.id));
         return;
       }
       if (!body.simulated || !body.preview || body.generated) {
@@ -1129,6 +1134,16 @@
         : "Book V2 is not set up on this site yet. Nothing was saved.");
     });
   });
+
+  function creationKey() {
+    if (state.creationKey) return state.creationKey;
+    var alphabet = "abcdefghijklmnopqrstuvwxyz0123456789";
+    var out = "book";
+    var i;
+    for (i = 0; i < 16; i++) out += alphabet.charAt((Math.random() * alphabet.length) | 0);
+    state.creationKey = out;
+    return out;
+  }
 
   function bookV2Url() {
     var host = window.location.hostname;

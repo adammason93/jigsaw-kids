@@ -54,15 +54,25 @@ assert.strictEqual(older.ok, true, older.problems.join(", "));
 assert.strictEqual(older.ageBand, "10-12");
 assert.strictEqual(older.constraintYear, "Year 6");
 assert.notStrictEqual(older.constraintYear, "Year 1");
-assert.deepStrictEqual(older.request.castIds, ["wondii-maya", "wondii-leo"]);
+assert.deepStrictEqual(older.request.castIds, ["maya", "leo"]);
 assert.strictEqual(older.request.length, "storybook");
 assert.strictEqual(older.request.tone, "mystery");
 assert.strictEqual(older.illustrationStyle, "wondii-picture-book");
 assert.strictEqual(older.generated, false);
 assert.strictEqual(older.imageCalls, 0);
-assert.strictEqual(older.cast[0].characterId, "wondii-maya");
-assert.ok(older.cast[0].reference.indexOf("maya-v1.jpg") >= 0);
-assert.ok(older.cast.every(function (row) { return row.characterId !== "maya" || row.characterId === "wondii-maya"; }));
+assert.strictEqual(older.identities[0].journeyId, "wondii-maya");
+assert.strictEqual(older.identities[0].bibleId, "maya");
+assert.strictEqual(older.identities[0].name, "Maya");
+assert.ok(older.identities[0].reference.indexOf("maya-v1.jpg") >= 0);
+assert.ok(older.identities[0].portrait.indexOf("wondii-maya.jpg") >= 0);
+assert.strictEqual(older.identities[1].journeyId, "wondii-leo");
+assert.strictEqual(older.identities[1].bibleId, "leo");
+assert.strictEqual(older.identities[1].name, "Leo");
+assert.strictEqual(older.identities[1].lockedSheet, false);
+assert.strictEqual(older.identities[1].sheet, "portrait-only");
+assert.ok(older.identities[1].portrait.indexOf("wondii-leo.jpg") >= 0);
+assert.ok(older.identities[1].reference.indexOf("maya-v1") < 0);
+assert.ok(older.identities[1].portrait.indexOf("maya") < 0);
 
 var personal = Adapter.prepare(local({
   familyAgeBand: "7-9",
@@ -79,8 +89,11 @@ var personal = Adapter.prepare(local({
   length: "short"
 }));
 assert.strictEqual(personal.ok, false);
-assert.ok(personal.problems.indexOf("unknown-cast:char_hugo") >= 0);
-assert.ok(!personal.cast || personal.cast.every(function (row) { return row.characterId !== "wondii-maya"; }));
+assert.ok(personal.problems.indexOf("unmapped-cast:char_hugo") >= 0);
+assert.strictEqual(personal.identities[0].kind, "saved");
+assert.strictEqual(personal.identities[0].bibleId, "");
+assert.strictEqual(personal.identities[0].reference, "");
+assert.ok(personal.identities.every(function (row) { return row.bibleId !== "maya" && row.journeyId !== "wondii-maya"; }));
 
 var saved = Adapter.prepare(local({
   familyAgeBand: "4-6",
@@ -99,20 +112,44 @@ var saved = Adapter.prepare(local({
   length: "long",
   theme: "Adventure"
 }));
-assert.strictEqual(saved.ok, true, saved.problems.join(", "));
+assert.strictEqual(saved.ok, false);
+assert.ok(saved.problems.indexOf("unmapped-cast:char_hugo") >= 0);
 assert.strictEqual(saved.ageBand, "4-6");
 assert.strictEqual(saved.constraintYear, "Year 1");
 assert.strictEqual(saved.request.idea, "A story set in the castle.");
 assert.ok(saved.request.idea.indexOf("forest") < 0);
-assert.deepStrictEqual(saved.request.castIds, ["wondii-maya", "char_hugo"]);
-assert.strictEqual(saved.request.length, "adventure");
-var hugo = saved.request.characterReferences.filter(function (row) { return row.characterId === "char_hugo"; })[0];
-var maya = saved.request.characterReferences.filter(function (row) { return row.characterId === "wondii-maya"; })[0];
-assert.ok(hugo);
+assert.deepStrictEqual(saved.request.castIds, []);
+var hugo = saved.identities.filter(function (row) { return row.journeyId === "char_hugo"; })[0];
+var maya = saved.identities.filter(function (row) { return row.journeyId === "wondii-maya"; })[0];
+assert.strictEqual(hugo.kind, "saved");
+assert.strictEqual(hugo.bibleId, "");
 assert.ok(hugo.reference.indexOf("char_hugo") >= 0);
 assert.ok(hugo.reference.indexOf("maya") < 0);
-assert.ok(maya);
+assert.strictEqual(maya.bibleId, "maya");
 assert.ok(maya.reference.indexOf("maya-v1.jpg") >= 0);
+assert.notStrictEqual(hugo.reference, maya.reference);
+
+var unsupported = Adapter.prepare(local({
+  familyAgeBand: "7-9",
+  members: [{ id: "wondii-amara", name: "Amara" }],
+  idea: "Amara waits by the gate.",
+  length: "short"
+}));
+assert.strictEqual(unsupported.ok, false);
+assert.ok(unsupported.problems.indexOf("unmapped-cast:wondii-amara") >= 0);
+assert.strictEqual(unsupported.identities[0].kind, "unsupported");
+assert.strictEqual(unsupported.identities[0].bibleId, "");
+assert.ok(unsupported.identities[0].reference.indexOf("maya") < 0);
+
+var mismatch = Adapter.prepare(local({
+  familyAgeBand: "7-9",
+  members: [{ id: "wondii-leo", name: "Maya" }],
+  idea: "A light moves along the wall.",
+  length: "short"
+}));
+assert.strictEqual(mismatch.ok, false);
+assert.ok(mismatch.problems.indexOf("identity-mismatch:wondii-leo") >= 0);
+assert.notStrictEqual(mismatch.identities[0].bibleId, "maya");
 
 var emptyWorld = Adapter.prepare(local({
   familyAgeBand: "4-6",

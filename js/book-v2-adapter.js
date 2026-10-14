@@ -29,9 +29,25 @@
     castle: "the castle"
   };
 
+  /* Verified pairs only. An unlisted id is refused, never given someone else's identity. */
+  var BIBLE_PAIR = {
+    "wondii-maya": "maya",
+    "wondii-leo": "leo"
+  };
+
   function brain() {
     if (root && root.WondiiBookBrain) return root.WondiiBookBrain;
     return require("./book-brain.js");
+  }
+
+  function crewApi() {
+    if (root && root.WondiiCrew) return root.WondiiCrew;
+    return require("./wondii-crew.js");
+  }
+
+  function characterApi() {
+    if (root && root.WondiiCharacterBible) return root.WondiiCharacterBible;
+    return require("./character-bible.js");
   }
 
   function enabled(env) {
@@ -84,6 +100,66 @@
     return refs;
   }
 
+  function savedRowFor(id, saved) {
+    var found = null;
+    (saved || []).forEach(function (row) {
+      if (!row) return;
+      var rowId = String(row.characterId || row.id || "");
+      if (rowId === id) found = row;
+    });
+    return found;
+  }
+
+  function mapMember(member, saved) {
+    var journeyId = String(member && member.id || "");
+    var givenName = String(member && member.name || "");
+    var bibleId = BIBLE_PAIR[journeyId] || "";
+    var bible = bibleId ? characterApi().getCharacter(bibleId) : null;
+    var crew = journeyId ? crewApi().get(journeyId) : null;
+    var portrait = crew && crew.portrait ? crew.portrait : "";
+    var approved = bible ? characterApi().resolveReference(bibleId) : null;
+    var approvedFile = approved && approved.status === "approved" ? String(approved.file || "") : "";
+    var problems = [];
+    if (!journeyId) problems.push("cast-missing");
+    if (bibleId && (!bible || crew && crew.bibleId && crew.bibleId !== bibleId)) problems.push("unmapped-cast:" + journeyId);
+    if (bible && givenName && givenName.toLowerCase() !== String(bible.name).toLowerCase()) problems.push("identity-mismatch:" + journeyId);
+    if (!bibleId) {
+      var kind = journeyId.indexOf("wondii-") === 0 ? "unsupported" : "saved";
+      var row = savedRowFor(journeyId, saved);
+      var ownReference = "";
+      if (kind === "saved" && row && row.ownerId && (row.ownerType === "family" || row.ownerType === "school") && referenceMatches(journeyId, row.reference)) {
+        ownReference = String(row.reference);
+      }
+      if (journeyId) problems.push("unmapped-cast:" + journeyId);
+      return {
+        ok: false,
+        kind: kind,
+        journeyId: journeyId,
+        bibleId: "",
+        name: givenName,
+        portrait: ownReference,
+        reference: ownReference,
+        lockedSheet: false,
+        sheet: "none",
+        problems: problems
+      };
+    }
+    return {
+      ok: problems.length === 0,
+      kind: "supported",
+      journeyId: journeyId,
+      bibleId: bibleId,
+      name: bible.name,
+      portrait: portrait,
+      reference: approvedFile || portrait,
+      approvedReference: approvedFile,
+      referenceVersionId: approved && approved.status === "approved" ? approved.versionId || "" : "",
+      lockedSheet: !!approvedFile,
+      sheet: approvedFile ? (approved.versionId || "approved") : (portrait ? "portrait-only" : "none"),
+      problems: problems
+    };
+  }
+
   function ideaFor(input) {
     var written = String(input && input.idea || "").trim();
     if (written) return written;
@@ -123,9 +199,37 @@
     }
     var profile = brain().readerProfile({ ageBand: age.ageBand });
     var members = Array.isArray(source.members) ? source.members : [];
-    var castIds = members.map(function (member) { return member && member.id ? String(member.id) : ""; }).filter(Boolean);
+    var identities = members.map(function (member) {
+      return mapMember(member, source.savedReferences);
+    });
+    var mapProblems = [];
+    identities.forEach(function (identity) {
+      (identity.problems || []).forEach(function (problem) {
+        if (mapProblems.indexOf(problem) < 0) mapProblems.push(problem);
+      });
+    });
+    if (!identities.length) mapProblems.push("cast-size");
+    if (mapProblems.length) {
+      return {
+        active: true,
+        route: "book-v2",
+        ok: false,
+        generated: false,
+        imageCalls: 0,
+        problems: mapProblems,
+        identities: identities,
+        request: { castIds: [], idea: ideaFor(source) },
+        cast: identities,
+        familyAgeBand: age.familyAgeBand,
+        ageBand: age.ageBand,
+        constraintYear: profile && profile.constraintYear || "",
+        place: source.place || "",
+        illustrationStyle: brain().VISUAL_STYLE,
+        message: "The story plan could not start. Nothing was saved."
+      };
+    }
     var ask = {
-      castIds: castIds,
+      castIds: identities.map(function (identity) { return identity.bibleId; }),
       idea: ideaFor(source),
       ageBand: age.ageBand,
       length: LENGTHS[source.length] || "",
@@ -143,8 +247,9 @@
         generated: false,
         imageCalls: 0,
         problems: accepted.problems,
+        identities: identities,
         request: accepted.request,
-        cast: accepted.cast,
+        cast: identities,
         familyAgeBand: age.familyAgeBand,
         ageBand: age.ageBand,
         constraintYear: profile && profile.constraintYear || "",
@@ -160,8 +265,9 @@
       generated: false,
       imageCalls: 0,
       problems: [],
+      identities: identities,
       request: accepted.request,
-      cast: accepted.cast,
+      cast: identities,
       familyAgeBand: age.familyAgeBand,
       ageBand: age.ageBand,
       constraintYear: profile && profile.constraintYear || "",
@@ -254,7 +360,9 @@
   return {
     FAMILY_AGE: FAMILY_AGE,
     enabled: enabled,
+    BIBLE_PAIR: BIBLE_PAIR,
     mapAge: mapAge,
+    mapMember: mapMember,
     prepare: prepare,
     planRequest: planRequest,
     readerPlan: readerPlan,

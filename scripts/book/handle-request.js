@@ -14,6 +14,7 @@ function names(body, planned) {
 }
 
 function identityOf(planned) {
+  if (planned.identities && planned.identities.length) return planned.identities;
   return (planned.cast || []).map(function (row) {
     var id = String(row.characterId || "");
     var reference = String(row.reference || "");
@@ -67,6 +68,7 @@ function handleBookV2(body) {
         illustrations: "not-run",
         pictureConsistency: "not-solved",
         problems: planned.problems || [],
+        identities: planned.identities || [],
         message: planned.message || "The story plan could not start. Nothing was saved."
       }
     };
@@ -87,7 +89,9 @@ function handleBookV2(body) {
         ageBand: planned.ageBand || "",
         constraintYear: planned.constraintYear || ""
       },
-      castIds: planned.request && planned.request.castIds || [],
+      castIds: (planned.identities || []).map(function (row) { return row.journeyId; }),
+      bibleIds: (planned.identities || []).map(function (row) { return row.bibleId; }),
+      identities: planned.identities || [],
       message: "Book V2 accepted the plan. The story model was not called, and no pictures were drawn.",
       preview: previewShelf(body, planned)
     }

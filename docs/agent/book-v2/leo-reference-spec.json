@@ -1,0 +1,54 @@
+{
+  "characterId": "leo",
+  "journeyId": "wondii-leo",
+  "name": "Leo",
+  "status": "specification-only",
+  "approved": false,
+  "generated": false,
+  "styleId": "wondii-picture-book",
+  "versionId": "",
+  "portrait": "games/images/characters/crew/wondii-leo.jpg",
+  "approvedSheet": null,
+  "note": "Do not generate this sheet and do not mark Leo visually approved. The portrait and the written bible do not yet agree, and no person has reviewed a reference sheet.",
+  "portraitAppearance": {
+    "source": "games/images/characters/crew/wondii-leo.jpg",
+    "age": "school-age child, about seven, not a toddler and not a teen",
+    "face": "large brown eyes, freckles across the nose and cheeks, soft eyebrows, a small closed-mouth smile",
+    "skinTone": "light, with rosy cheeks",
+    "hair": "short curly medium-brown hair, tousled, not straight and not sandy",
+    "clothes": "green zip hoodie over a white t-shirt with a small mountain and sun graphic",
+    "trousers": "khaki cargo pants with rolled cuffs",
+    "footwear": "blue sneakers with white laces, white soles, and white socks",
+    "accessory": "navy backpack, one strap held at the chest",
+    "pose": "standing, one hand in a pocket"
+  },
+  "writtenIdentity": {
+    "source": "js/character-bible.js leo",
+    "face": "freckles, grey-green eyes",
+    "hair": "short sandy hair",
+    "clothes": "green jumper, dark trousers",
+    "footwear": "red sneakers",
+    "personality": ["careful", "kind"],
+    "visualIdentifiers": ["short sandy hair", "green jumper", "red sneakers"]
+  },
+  "crewCard": {
+    "source": "js/wondii-crew.js wondii-leo",
+    "trait": "Brave",
+    "personality": ["courageous", "positive", "willing to take the first step"]
+  },
+  "conflicts": [
+    "The approved portrait has curly medium-brown hair. The written bible says short sandy hair.",
+    "The approved portrait has brown eyes. The written bible says grey-green eyes.",
+    "The approved portrait wears a green zip hoodie, a mountain t-shirt, and khaki cargo pants. The written bible says a green jumper and dark trousers.",
+    "The approved portrait wears blue sneakers. The written bible says red sneakers.",
+    "The crew card says Leo is brave. The written bible says he is careful and kind.",
+    "The portrait is one full-body pose. It is not a turnaround sheet."
+  ],
+  "sheetWhenApproved": {
+    "views": ["front view standing", "three-quarter view", "side view", "a happy face", "a worried face", "one walking pose", "a full body", "a face close-up"],
+    "mustFollow": "the approved portrait, not the conflicting bible clothes or hair",
+    "mustNotInclude": ["maya-v1", "another character's face", "red sneakers", "sandy straight hair", "letters", "numbers", "captions"],
+    "background": "white paper",
+    "medium": "soft painted picture-book sheet, the same wondii-picture-book finish as Maya's approved sheet, not a new 3D render"
+  }
+}
