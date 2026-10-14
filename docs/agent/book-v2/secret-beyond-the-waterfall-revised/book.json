@@ -1,0 +1,5107 @@
+{
+  "status": "REVIEWABLE",
+  "request": {
+    "castIds": [
+      "wondii-maya",
+      "wondii-leo"
+    ],
+    "idea": "Maya and Leo discover a mysterious pathway behind a waterfall that leads them into a hidden world.",
+    "yearGroup": "",
+    "ageBand": "7-9",
+    "length": "storybook",
+    "tone": "adventure",
+    "context": "family",
+    "pageCount": 12
+  },
+  "modelCalls": 3,
+  "repairCalls": 1,
+  "repairs": [
+    {
+      "stage": "bible",
+      "problems": [
+        "journey-unknown-place:mist-pathway"
+      ]
+    }
+  ],
+  "stagesRepaired": [
+    "bible"
+  ],
+  "bible": {
+    "title": "The Rain That Rose",
+    "yearGroup": "",
+    "ageBand": "7-9",
+    "readerAge": "7–9",
+    "readerStage": "ages-7-9",
+    "narrativeComplexity": "a problem with a consequence the reader can connect, with a feeling allowed under the action",
+    "tone": "adventure",
+    "targetLength": "storybook",
+    "pageCount": 12,
+    "userIdea": "Maya and Leo discover a mysterious pathway behind a waterfall that leads them into a hidden world.",
+    "castIds": [
+      "wondii-maya",
+      "wondii-leo"
+    ],
+    "identityRegistry": [
+      {
+        "characterId": "wondii-maya",
+        "journeyId": "wondii-maya",
+        "bibleId": "maya",
+        "name": "Maya",
+        "source": "wondii-crew",
+        "portrait": "games/images/characters/crew/wondii-maya.jpg",
+        "approvedReference": "games/images/characters/maya-v1.jpg",
+        "reference": "games/images/characters/maya-v1.jpg",
+        "referenceApproved": true,
+        "lockedSheet": true,
+        "sheet": "maya-v1",
+        "reliable": true,
+        "proposed": false,
+        "locked": true,
+        "personality": [
+          "observant",
+          "inquisitive",
+          "enthusiastic about discovering things"
+        ],
+        "appearance": "Approved sheet maya-v1. Portrait games/images/characters/crew/wondii-maya.jpg.",
+        "clothing": "as shown in games/images/characters/maya-v1.jpg",
+        "distinctive": [
+          "Curious"
+        ],
+        "role": "selected",
+        "pages": [],
+        "limitation": "",
+        "appearanceSpec": {
+          "source": "approved-sheet",
+          "file": "games/images/characters/maya-v1.jpg",
+          "face": "",
+          "hair": "",
+          "clothing": "as shown in games/images/characters/maya-v1.jpg",
+          "colours": [],
+          "proportions": "",
+          "distinctive": [
+            "Curious"
+          ],
+          "matchPortrait": false,
+          "consistencyPromised": false
+        },
+        "blocksGeneration": false,
+        "referenceVersion": "maya-v1"
+      },
+      {
+        "characterId": "wondii-leo",
+        "journeyId": "wondii-leo",
+        "bibleId": "leo",
+        "name": "Leo",
+        "source": "wondii-crew",
+        "portrait": "games/images/characters/crew/wondii-leo.jpg",
+        "approvedReference": "",
+        "reference": "games/images/characters/crew/wondii-leo.jpg",
+        "referenceApproved": false,
+        "lockedSheet": false,
+        "sheet": "portrait-only",
+        "reliable": false,
+        "proposed": true,
+        "locked": true,
+        "personality": [
+          "courageous",
+          "positive",
+          "willing to take the first step"
+        ],
+        "appearance": "Match the portrait exactly. No written clothing description is stored for this portrait.",
+        "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+        "distinctive": [
+          "Brave"
+        ],
+        "role": "selected",
+        "pages": [],
+        "limitation": "Portrait only. This portrait is the reference. Visual consistency is not guaranteed.",
+        "appearanceSpec": {
+          "source": "portrait",
+          "file": "games/images/characters/crew/wondii-leo.jpg",
+          "face": "",
+          "hair": "",
+          "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+          "colours": [],
+          "proportions": "",
+          "distinctive": [
+            "Brave"
+          ],
+          "matchPortrait": true,
+          "consistencyPromised": false
+        },
+        "blocksGeneration": false,
+        "referenceVersion": "portrait:games/images/characters/crew/wondii-leo.jpg"
+      }
+    ],
+    "storyCast": [],
+    "visualStyle": "wondii-picture-book",
+    "premise": "When maya follows a dry leaf, she and Leo discover a mysterious opening behind falling water. Its pathway leads into a hidden world where sunlight lifts rain toward the waterfall entrance.",
+    "hook": "A leaf slips through falling water without getting wet, revealing a gap in the curtain.",
+    "goal": "Reach the entrance before the last sunlight leaves the rising rain.",
+    "centralProblem": "The stones connecting the lake to the entrance rise out of reach, removing the children's route home.",
+    "stakes": "Without another way up, Maya and Leo will spend the night stranded below the entrance.",
+    "climaxBeatId": "b11",
+    "resolutionBeatId": "b12",
+    "emotionalArc": [
+      "Maya follows an unexpected opening while Leo checks their footing.",
+      "Their exploration stops when the route home rises away.",
+      "A failed launch makes them combine testing with daring.",
+      "They return with a new habit of looking together."
+    ],
+    "motif": "Water traveling upward; leaves becoming boats.",
+    "locations": [
+      {
+        "locationId": "waterfall-shelf",
+        "name": "the waterfall shelf",
+        "connectedTo": [
+          "mist-pathway"
+        ],
+        "visualIdentity": "Silver water curtains a broad gray ledge, leaving a dry gap at one edge.",
+        "setting": "rock shelf beside falling water",
+        "zones": [
+          "dry ledge",
+          "curtain opening"
+        ],
+        "persistentObjects": []
+      },
+      {
+        "locationId": "mist-pathway",
+        "name": "the mist pathway",
+        "connectedTo": [
+          "waterfall-shelf",
+          "bowl-leaf-lake"
+        ],
+        "visualIdentity": "Blue stone walls hold upward-moving droplets; the high mouth overlooks a luminous lake.",
+        "setting": "passage through water-smoothed rock",
+        "zones": [
+          "sloping passage",
+          "high mouth"
+        ],
+        "persistentObjects": []
+      },
+      {
+        "locationId": "bowl-leaf-lake",
+        "name": "the bowl-leaf lake",
+        "connectedTo": [
+          "mist-pathway",
+          "sunstripe-grove"
+        ],
+        "visualIdentity": "Enormous floating leaves cup water beneath a golden shaft reaching the high passage mouth.",
+        "setting": "hidden lake beneath an open shaft of sky",
+        "zones": [
+          "stepping stones",
+          "leaf shore",
+          "shallow bank",
+          "rising rain"
+        ],
+        "persistentObjects": []
+      },
+      {
+        "locationId": "sunstripe-grove",
+        "name": "the sunstripe grove",
+        "connectedTo": [
+          "bowl-leaf-lake"
+        ],
+        "visualIdentity": "Arched stems bear bowl-shaped leaves; sunlit droplets rise while shaded droplets fall.",
+        "setting": "grove of towering waterside plants",
+        "zones": [
+          "shore roots",
+          "broad-leaf plants",
+          "sunlit clearing"
+        ],
+        "persistentObjects": []
+      }
+    ],
+    "entities": [
+      {
+        "entityId": "drifting-leaf",
+        "name": "the drifting leaf",
+        "identity": "A small copper-colored leaf that passes through the waterfall's dry opening.",
+        "landmark": false,
+        "ownerCharacterId": null,
+        "locationId": "waterfall-shelf",
+        "state": "Passing through the dry opening.",
+        "introducedAt": "b1"
+      },
+      {
+        "entityId": "climbing-water",
+        "name": "the climbing water",
+        "identity": "Clear water that rises wherever this hidden world's sunlight touches it.",
+        "landmark": false,
+        "ownerCharacterId": null,
+        "locationId": "bowl-leaf-lake",
+        "state": "Lifting the boat toward the passage in narrowing sunlight.",
+        "introducedAt": "b2"
+      },
+      {
+        "entityId": "floating-stones",
+        "name": "the stepping stones",
+        "identity": "Broad pale stones forming a descending crossing from the passage mouth to the lake shore.",
+        "landmark": false,
+        "ownerCharacterId": null,
+        "locationId": "bowl-leaf-lake",
+        "state": "Lifted beyond reach, leaving no shore crossing.",
+        "introducedAt": "b2"
+      },
+      {
+        "entityId": "bowl-leaves",
+        "name": "the bowl leaves",
+        "identity": "Large green leaves with curled rims and central pools that help them float level.",
+        "landmark": false,
+        "ownerCharacterId": null,
+        "locationId": "bowl-leaf-lake",
+        "state": "Floating with water pooled inside their curled rims.",
+        "introducedAt": "b2"
+      },
+      {
+        "entityId": "leaf-boat",
+        "name": "the leaf boat",
+        "identity": "One fallen bowl leaf large enough for both children, with a long, sturdy attached stem.",
+        "landmark": false,
+        "ownerCharacterId": null,
+        "locationId": "mist-pathway",
+        "state": "Resting against the broad stone lip after both children disembark.",
+        "introducedAt": "b6"
+      },
+      {
+        "entityId": "test-leaf",
+        "name": "the test leaf",
+        "identity": "A small green leaf floating beside the shallow bank.",
+        "landmark": false,
+        "ownerCharacterId": null,
+        "locationId": "bowl-leaf-lake",
+        "state": "Floating into the sunlit current and rising toward the passage mouth.",
+        "introducedAt": "b9"
+      }
+    ],
+    "beats": [
+      {
+        "beatId": "b1",
+        "role": "hook",
+        "locationId": "waterfall-shelf",
+        "charactersPresent": [
+          "wondii-maya",
+          "wondii-leo"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "wondii-maya",
+            "trait": "curious",
+            "shows": "Tracks the dry leaf and reaches toward the gap it reveals."
+          },
+          {
+            "characterId": "wondii-leo",
+            "trait": "careful",
+            "shows": "Tests the ledge with his foot before joining Maya."
+          }
+        ],
+        "problemFamily": "",
+        "because": "",
+        "resolvesProblem": false,
+        "action": "Maya follows a dry leaf through the waterfall's edge and finds an opening. Leo checks the footing beside her.",
+        "emotion": "Maya leans toward the gap.",
+        "entitiesRequired": [
+          "drifting-leaf"
+        ],
+        "visualFocus": "The copper leaf passing through the curtain.",
+        "shotType": "establishing",
+        "compositionIntent": "Contrast the broad water curtain with the narrow dry opening.",
+        "textPurpose": "Make an unusual observation cause their first decision.",
+        "pageTurnHook": "What lies on the dry side of the water?",
+        "textSafeRegion": "upper-left",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "wondii-maya",
+              "locationId": "waterfall-shelf",
+              "clothing": "as shown in games/images/characters/maya-v1.jpg",
+              "carriedEntities": [],
+              "emotion": "steady",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "wondii-leo",
+              "locationId": "waterfall-shelf",
+              "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+              "carriedEntities": [],
+              "emotion": "steady",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": []
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "wondii-maya",
+              "locationId": "waterfall-shelf",
+              "clothing": "as shown in games/images/characters/maya-v1.jpg",
+              "carriedEntities": [],
+              "emotion": "Maya leans toward the gap.",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "wondii-leo",
+              "locationId": "waterfall-shelf",
+              "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+              "carriedEntities": [],
+              "emotion": "Maya leans toward the gap.",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "drifting-leaf",
+              "ownerCharacterId": null,
+              "locationId": "waterfall-shelf",
+              "state": "Passing through the dry opening."
+            }
+          ]
+        },
+        "locationZone": "curtain opening",
+        "worldState": "Falling water appears to cover solid rock.",
+        "environmentalState": "",
+        "weather": "",
+        "timeOfDay": "",
+        "goalNow": "Find where the dry leaf went.",
+        "obstacleNow": "The water conceals the opening.",
+        "discoveryNow": "",
+        "consequenceNow": "Maya locates a gap wide enough for both children.",
+        "relationshipNow": "",
+        "stakesNow": "",
+        "pageTurnIntent": "Reveal what the water conceals.",
+        "entryFrom": "",
+        "exitToward": "mist-pathway",
+        "destinationHint": ""
+      },
+      {
+        "beatId": "b2",
+        "role": "discovery",
+        "locationId": "mist-pathway",
+        "charactersPresent": [
+          "wondii-maya",
+          "wondii-leo"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "wondii-maya",
+            "trait": "curious",
+            "shows": "Follows a climbing droplet along the wall to the passage mouth."
+          }
+        ],
+        "problemFamily": "unknown-direction",
+        "because": "b1",
+        "resolvesProblem": false,
+        "action": "They follow water beads climbing the passage wall to a high opening. Below, pale stepping stones lead toward enormous floating leaves.",
+        "emotion": "Leo holds the rock edge while Maya points below.",
+        "entitiesRequired": [
+          "drifting-leaf",
+          "climbing-water",
+          "floating-stones",
+          "bowl-leaves"
+        ],
+        "visualFocus": "Climbing droplets above descending stones.",
+        "shotType": "reveal",
+        "compositionIntent": "Frame the expansive lake through the narrow mouth.",
+        "textPurpose": "Introduce the water rule and the route they will lose.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-right",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "wondii-maya",
+              "locationId": "waterfall-shelf",
+              "clothing": "as shown in games/images/characters/maya-v1.jpg",
+              "carriedEntities": [],
+              "emotion": "Maya leans toward the gap.",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "wondii-leo",
+              "locationId": "waterfall-shelf",
+              "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+              "carriedEntities": [],
+              "emotion": "Maya leans toward the gap.",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "drifting-leaf",
+              "ownerCharacterId": null,
+              "locationId": "waterfall-shelf",
+              "state": "Passing through the dry opening."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "wondii-maya",
+              "locationId": "mist-pathway",
+              "clothing": "as shown in games/images/characters/maya-v1.jpg",
+              "carriedEntities": [],
+              "emotion": "Leo holds the rock edge while Maya points below.",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "wondii-leo",
+              "locationId": "mist-pathway",
+              "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+              "carriedEntities": [],
+              "emotion": "Leo holds the rock edge while Maya points below.",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "drifting-leaf",
+              "ownerCharacterId": null,
+              "locationId": "waterfall-shelf",
+              "state": "Passing through the dry opening."
+            },
+            {
+              "entityId": "climbing-water",
+              "ownerCharacterId": null,
+              "locationId": "mist-pathway",
+              "state": "Rising along the sunlit wall."
+            },
+            {
+              "entityId": "floating-stones",
+              "ownerCharacterId": null,
+              "locationId": "bowl-leaf-lake",
+              "state": "Forming a usable descent from the passage mouth."
+            },
+            {
+              "entityId": "bowl-leaves",
+              "ownerCharacterId": null,
+              "locationId": "bowl-leaf-lake",
+              "state": "Floating with water pooled inside their curled rims."
+            }
+          ]
+        },
+        "locationZone": "high mouth",
+        "worldState": "The passage opens above a lake.",
+        "environmentalState": "",
+        "weather": "",
+        "timeOfDay": "",
+        "goalNow": "See where the climbing droplets lead.",
+        "obstacleNow": "The lake lies far below the passage mouth.",
+        "discoveryNow": "",
+        "consequenceNow": "Descending stones provide a route to its shore.",
+        "relationshipNow": "",
+        "stakesNow": "",
+        "pageTurnIntent": "",
+        "entryFrom": "waterfall-shelf",
+        "exitToward": "bowl-leaf-lake",
+        "destinationHint": ""
+      },
+      {
+        "beatId": "b3",
+        "role": "exploration",
+        "locationId": "bowl-leaf-lake",
+        "charactersPresent": [
+          "wondii-maya",
+          "wondii-leo"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "wondii-leo",
+            "trait": "careful",
+            "shows": "Keeps his feet on shore while watching the leaf settle."
+          }
+        ],
+        "problemFamily": "unfamiliar-balance",
+        "because": "b2",
+        "resolvesProblem": false,
+        "action": "Maya presses a bowl leaf's rim and watches its pooled water settle it level. Matching leaves tower nearby.",
+        "emotion": "Maya points from the floating leaf to the plants.",
+        "entitiesRequired": [
+          "drifting-leaf",
+          "climbing-water",
+          "floating-stones",
+          "bowl-leaves"
+        ],
+        "visualFocus": "Water settling in the leaf's middle.",
+        "shotType": "close",
+        "compositionIntent": "Center the pool with the plants visible beyond.",
+        "textPurpose": "Plant the balance discovery and motivate entering the grove.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-left",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "wondii-maya",
+              "locationId": "mist-pathway",
+              "clothing": "as shown in games/images/characters/maya-v1.jpg",
+              "carriedEntities": [],
+              "emotion": "Leo holds the rock edge while Maya points below.",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "wondii-leo",
+              "locationId": "mist-pathway",
+              "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+              "carriedEntities": [],
+              "emotion": "Leo holds the rock edge while Maya points below.",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "drifting-leaf",
+              "ownerCharacterId": null,
+              "locationId": "waterfall-shelf",
+              "state": "Passing through the dry opening."
+            },
+            {
+              "entityId": "climbing-water",
+              "ownerCharacterId": null,
+              "locationId": "mist-pathway",
+              "state": "Rising along the sunlit wall."
+            },
+            {
+              "entityId": "floating-stones",
+              "ownerCharacterId": null,
+              "locationId": "bowl-leaf-lake",
+              "state": "Forming a usable descent from the passage mouth."
+            },
+            {
+              "entityId": "bowl-leaves",
+              "ownerCharacterId": null,
+              "locationId": "bowl-leaf-lake",
+              "state": "Floating with water pooled inside their curled rims."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "wondii-maya",
+              "locationId": "bowl-leaf-lake",
+              "clothing": "as shown in games/images/characters/maya-v1.jpg",
+              "carriedEntities": [],
+              "emotion": "Maya points from the floating leaf to the plants.",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "wondii-leo",
+              "locationId": "bowl-leaf-lake",
+              "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+              "carriedEntities": [],
+              "emotion": "Maya points from the floating leaf to the plants.",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "drifting-leaf",
+              "ownerCharacterId": null,
+              "locationId": "waterfall-shelf",
+              "state": "Passing through the dry opening."
+            },
+            {
+              "entityId": "climbing-water",
+              "ownerCharacterId": null,
+              "locationId": "mist-pathway",
+              "state": "Rising along the sunlit wall."
+            },
+            {
+              "entityId": "floating-stones",
+              "ownerCharacterId": null,
+              "locationId": "bowl-leaf-lake",
+              "state": "Forming a usable descent from the passage mouth."
+            },
+            {
+              "entityId": "bowl-leaves",
+              "ownerCharacterId": null,
+              "locationId": "bowl-leaf-lake",
+              "state": "Floating with water pooled inside their curled rims."
+            }
+          ]
+        },
+        "locationZone": "leaf shore",
+        "worldState": "The children have descended the stones to shore.",
+        "environmentalState": "",
+        "weather": "",
+        "timeOfDay": "",
+        "goalNow": "Find out how the leaves float.",
+        "obstacleNow": "The nearest leaf rocks when pressed.",
+        "discoveryNow": "",
+        "consequenceNow": "Its central pool settles it, and matching plants invite further exploration.",
+        "relationshipNow": "",
+        "stakesNow": "",
+        "pageTurnIntent": "",
+        "entryFrom": "mist-pathway",
+        "exitToward": "sunstripe-grove",
+        "destinationHint": ""
+      },
+      {
+        "beatId": "b4",
+        "role": "wonder",
+        "locationId": "sunstripe-grove",
+        "charactersPresent": [
+          "wondii-maya",
+          "wondii-leo"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "wondii-maya",
+            "trait": "curious",
+            "shows": "Moves her wet hand between sunlight and shade to compare droplets."
+          }
+        ],
+        "problemFamily": "sunlight-rule",
+        "because": "b3",
+        "resolvesProblem": false,
+        "action": "Maya moves her wet hand into a sunstripe, where droplets lift from her fingers. In the shade, they fall.",
+        "emotion": "Leo extends his hand beside hers to repeat the test.",
+        "entitiesRequired": [
+          "drifting-leaf",
+          "climbing-water",
+          "floating-stones",
+          "bowl-leaves"
+        ],
+        "visualFocus": "Droplets moving in opposite directions.",
+        "shotType": "medium",
+        "compositionIntent": "Divide the scene between golden light and blue shade.",
+        "textPurpose": "Establish the rule that will create danger and enable escape.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-right",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "wondii-maya",
+              "locationId": "bowl-leaf-lake",
+              "clothing": "as shown in games/images/characters/maya-v1.jpg",
+              "carriedEntities": [],
+              "emotion": "Maya points from the floating leaf to the plants.",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "wondii-leo",
+              "locationId": "bowl-leaf-lake",
+              "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+              "carriedEntities": [],
+              "emotion": "Maya points from the floating leaf to the plants.",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "drifting-leaf",
+              "ownerCharacterId": null,
+              "locationId": "waterfall-shelf",
+              "state": "Passing through the dry opening."
+            },
+            {
+              "entityId": "climbing-water",
+              "ownerCharacterId": null,
+              "locationId": "mist-pathway",
+              "state": "Rising along the sunlit wall."
+            },
+            {
+              "entityId": "floating-stones",
+              "ownerCharacterId": null,
+              "locationId": "bowl-leaf-lake",
+              "state": "Forming a usable descent from the passage mouth."
+            },
+            {
+              "entityId": "bowl-leaves",
+              "ownerCharacterId": null,
+              "locationId": "bowl-leaf-lake",
+              "state": "Floating with water pooled inside their curled rims."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "wondii-maya",
+              "locationId": "sunstripe-grove",
+              "clothing": "as shown in games/images/characters/maya-v1.jpg",
+              "carriedEntities": [],
+              "emotion": "Leo extends his hand beside hers to repeat the test.",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "wondii-leo",
+              "locationId": "sunstripe-grove",
+              "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+              "carriedEntities": [],
+              "emotion": "Leo extends his hand beside hers to repeat the test.",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "drifting-leaf",
+              "ownerCharacterId": null,
+              "locationId": "waterfall-shelf",
+              "state": "Passing through the dry opening."
+            },
+            {
+              "entityId": "climbing-water",
+              "ownerCharacterId": null,
+              "locationId": "sunstripe-grove",
+              "state": "Rising in sunlight and falling in shade."
+            },
+            {
+              "entityId": "floating-stones",
+              "ownerCharacterId": null,
+              "locationId": "bowl-leaf-lake",
+              "state": "Forming a usable descent from the passage mouth."
+            },
+            {
+              "entityId": "bowl-leaves",
+              "ownerCharacterId": null,
+              "locationId": "bowl-leaf-lake",
+              "state": "Floating with water pooled inside their curled rims."
+            }
+          ]
+        },
+        "locationZone": "sunlit clearing",
+        "worldState": "Sunlight separates rising water from falling water.",
+        "environmentalState": "",
+        "weather": "",
+        "timeOfDay": "",
+        "goalNow": "Test what makes droplets rise.",
+        "obstacleNow": "Water behaves differently across the light's edge.",
+        "discoveryNow": "",
+        "consequenceNow": "They discover that sunlight causes the lifting.",
+        "relationshipNow": "",
+        "stakesNow": "",
+        "pageTurnIntent": "",
+        "entryFrom": "bowl-leaf-lake",
+        "exitToward": "",
+        "destinationHint": ""
+      },
+      {
+        "beatId": "b5",
+        "role": "setback",
+        "locationId": "sunstripe-grove",
+        "charactersPresent": [
+          "wondii-maya",
+          "wondii-leo"
+        ],
+        "absent": {},
+        "expresses": [],
+        "problemFamily": "vanishing-crossing",
+        "because": "b4",
+        "resolvesProblem": false,
+        "action": "Sunlit water lifts the stepping stones away from shore. Leo grips Maya's sleeve as their route home rises overhead.",
+        "emotion": "Maya stops pointing and looks toward the entrance.",
+        "entitiesRequired": [
+          "drifting-leaf",
+          "climbing-water",
+          "floating-stones",
+          "bowl-leaves"
+        ],
+        "visualFocus": "The unusable crossing above the children.",
+        "shotType": "high",
+        "compositionIntent": "Show the widening gap beneath the stones.",
+        "textPurpose": "Create the central problem from the established rule.",
+        "pageTurnHook": "The entrance is still there. Their steps are not.",
+        "textSafeRegion": "upper-left",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "wondii-maya",
+              "locationId": "sunstripe-grove",
+              "clothing": "as shown in games/images/characters/maya-v1.jpg",
+              "carriedEntities": [],
+              "emotion": "Leo extends his hand beside hers to repeat the test.",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "wondii-leo",
+              "locationId": "sunstripe-grove",
+              "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+              "carriedEntities": [],
+              "emotion": "Leo extends his hand beside hers to repeat the test.",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "drifting-leaf",
+              "ownerCharacterId": null,
+              "locationId": "waterfall-shelf",
+              "state": "Passing through the dry opening."
+            },
+            {
+              "entityId": "climbing-water",
+              "ownerCharacterId": null,
+              "locationId": "sunstripe-grove",
+              "state": "Rising in sunlight and falling in shade."
+            },
+            {
+              "entityId": "floating-stones",
+              "ownerCharacterId": null,
+              "locationId": "bowl-leaf-lake",
+              "state": "Forming a usable descent from the passage mouth."
+            },
+            {
+              "entityId": "bowl-leaves",
+              "ownerCharacterId": null,
+              "locationId": "bowl-leaf-lake",
+              "state": "Floating with water pooled inside their curled rims."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "wondii-maya",
+              "locationId": "sunstripe-grove",
+              "clothing": "as shown in games/images/characters/maya-v1.jpg",
+              "carriedEntities": [],
+              "emotion": "Maya stops pointing and looks toward the entrance.",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "wondii-leo",
+              "locationId": "sunstripe-grove",
+              "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+              "carriedEntities": [],
+              "emotion": "Maya stops pointing and looks toward the entrance.",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "drifting-leaf",
+              "ownerCharacterId": null,
+              "locationId": "waterfall-shelf",
+              "state": "Passing through the dry opening."
+            },
+            {
+              "entityId": "climbing-water",
+              "ownerCharacterId": null,
+              "locationId": "sunstripe-grove",
+              "state": "Rising in sunlight and falling in shade."
+            },
+            {
+              "entityId": "floating-stones",
+              "ownerCharacterId": null,
+              "locationId": "bowl-leaf-lake",
+              "state": "Lifted beyond reach, leaving no shore crossing."
+            },
+            {
+              "entityId": "bowl-leaves",
+              "ownerCharacterId": null,
+              "locationId": "bowl-leaf-lake",
+              "state": "Floating with water pooled inside their curled rims."
+            }
+          ]
+        },
+        "locationZone": "shore roots",
+        "worldState": "The moving sunstripe reaches the crossing.",
+        "environmentalState": "",
+        "weather": "",
+        "timeOfDay": "",
+        "goalNow": "Return to the entrance.",
+        "obstacleNow": "The stones rise beyond reach.",
+        "discoveryNow": "",
+        "consequenceNow": "Walking home is impossible, and the sunstripe is narrowing.",
+        "relationshipNow": "",
+        "stakesNow": "",
+        "pageTurnIntent": "Turn exploration into a return problem.",
+        "entryFrom": "",
+        "exitToward": "",
+        "destinationHint": ""
+      },
+      {
+        "beatId": "b6",
+        "role": "goal",
+        "locationId": "sunstripe-grove",
+        "charactersPresent": [
+          "wondii-maya",
+          "wondii-leo"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "wondii-maya",
+            "trait": "brave",
+            "shows": "Proposes riding the lifting water rather than waiting under the missing crossing."
+          },
+          {
+            "characterId": "wondii-leo",
+            "trait": "careful",
+            "shows": "Checks the fallen leaf for splits and leaves its sturdy stem attached."
+          }
+        ],
+        "problemFamily": "choosing-vessel",
+        "because": "b5",
+        "resolvesProblem": false,
+        "action": "Maya proposes riding a fallen bowl leaf up with the water. Leo checks its rim and keeps the long stem.",
+        "emotion": "They lift opposite sides together.",
+        "entitiesRequired": [
+          "drifting-leaf",
+          "climbing-water",
+          "floating-stones",
+          "bowl-leaves",
+          "leaf-boat"
+        ],
+        "visualFocus": "The intact bowl and trailing stem.",
+        "shotType": "low",
+        "compositionIntent": "Show the leaf's size relative to both children.",
+        "textPurpose": "Turn their discovery into a plan and plant the steering tool.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-right",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "wondii-maya",
+              "locationId": "sunstripe-grove",
+              "clothing": "as shown in games/images/characters/maya-v1.jpg",
+              "carriedEntities": [],
+              "emotion": "Maya stops pointing and looks toward the entrance.",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "wondii-leo",
+              "locationId": "sunstripe-grove",
+              "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+              "carriedEntities": [],
+              "emotion": "Maya stops pointing and looks toward the entrance.",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "drifting-leaf",
+              "ownerCharacterId": null,
+              "locationId": "waterfall-shelf",
+              "state": "Passing through the dry opening."
+            },
+            {
+              "entityId": "climbing-water",
+              "ownerCharacterId": null,
+              "locationId": "sunstripe-grove",
+              "state": "Rising in sunlight and falling in shade."
+            },
+            {
+              "entityId": "floating-stones",
+              "ownerCharacterId": null,
+              "locationId": "bowl-leaf-lake",
+              "state": "Lifted beyond reach, leaving no shore crossing."
+            },
+            {
+              "entityId": "bowl-leaves",
+              "ownerCharacterId": null,
+              "locationId": "bowl-leaf-lake",
+              "state": "Floating with water pooled inside their curled rims."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "wondii-maya",
+              "locationId": "sunstripe-grove",
+              "clothing": "as shown in games/images/characters/maya-v1.jpg",
+              "carriedEntities": [],
+              "emotion": "They lift opposite sides together.",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "wondii-leo",
+              "locationId": "sunstripe-grove",
+              "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+              "carriedEntities": [
+                "leaf-boat"
+              ],
+              "emotion": "They lift opposite sides together.",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "drifting-leaf",
+              "ownerCharacterId": null,
+              "locationId": "waterfall-shelf",
+              "state": "Passing through the dry opening."
+            },
+            {
+              "entityId": "climbing-water",
+              "ownerCharacterId": null,
+              "locationId": "sunstripe-grove",
+              "state": "Rising in sunlight and falling in shade."
+            },
+            {
+              "entityId": "floating-stones",
+              "ownerCharacterId": null,
+              "locationId": "bowl-leaf-lake",
+              "state": "Lifted beyond reach, leaving no shore crossing."
+            },
+            {
+              "entityId": "bowl-leaves",
+              "ownerCharacterId": null,
+              "locationId": "bowl-leaf-lake",
+              "state": "Floating with water pooled inside their curled rims."
+            },
+            {
+              "entityId": "leaf-boat",
+              "ownerCharacterId": "wondii-leo",
+              "locationId": "sunstripe-grove",
+              "state": "Carried toward the lake with Maya supporting the opposite rim."
+            }
+          ]
+        },
+        "locationZone": "broad-leaf plants",
+        "worldState": "A fallen bowl leaf offers a possible vessel.",
+        "environmentalState": "",
+        "weather": "",
+        "timeOfDay": "",
+        "goalNow": "Find a boat for the lifting water.",
+        "obstacleNow": "It must carry both children without tearing.",
+        "discoveryNow": "",
+        "consequenceNow": "They choose an intact leaf with its stem attached.",
+        "relationshipNow": "",
+        "stakesNow": "",
+        "pageTurnIntent": "",
+        "entryFrom": "",
+        "exitToward": "bowl-leaf-lake",
+        "destinationHint": ""
+      },
+      {
+        "beatId": "b7",
+        "role": "attempt",
+        "locationId": "bowl-leaf-lake",
+        "charactersPresent": [
+          "wondii-maya",
+          "wondii-leo"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "wondii-leo",
+            "trait": "kind",
+            "shows": "Holds the rim steady for Maya to board before climbing in himself."
+          }
+        ],
+        "problemFamily": "wrong-current",
+        "because": "b6",
+        "resolvesProblem": false,
+        "action": "Leo steadies the leaf while Maya boards, then climbs in beside her. Their boat spins away from the rising rain.",
+        "emotion": "Maya reaches toward the narrowing gold stripe.",
+        "entitiesRequired": [
+          "drifting-leaf",
+          "climbing-water",
+          "floating-stones",
+          "bowl-leaves",
+          "leaf-boat"
+        ],
+        "visualFocus": "The boat moving away from sunlight.",
+        "shotType": "action",
+        "compositionIntent": "Use a curved wake to show the unwanted turn.",
+        "textPurpose": "Give their plan a consequential failure.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-left",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "wondii-maya",
+              "locationId": "sunstripe-grove",
+              "clothing": "as shown in games/images/characters/maya-v1.jpg",
+              "carriedEntities": [],
+              "emotion": "They lift opposite sides together.",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "wondii-leo",
+              "locationId": "sunstripe-grove",
+              "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+              "carriedEntities": [
+                "leaf-boat"
+              ],
+              "emotion": "They lift opposite sides together.",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "drifting-leaf",
+              "ownerCharacterId": null,
+              "locationId": "waterfall-shelf",
+              "state": "Passing through the dry opening."
+            },
+            {
+              "entityId": "climbing-water",
+              "ownerCharacterId": null,
+              "locationId": "sunstripe-grove",
+              "state": "Rising in sunlight and falling in shade."
+            },
+            {
+              "entityId": "floating-stones",
+              "ownerCharacterId": null,
+              "locationId": "bowl-leaf-lake",
+              "state": "Lifted beyond reach, leaving no shore crossing."
+            },
+            {
+              "entityId": "bowl-leaves",
+              "ownerCharacterId": null,
+              "locationId": "bowl-leaf-lake",
+              "state": "Floating with water pooled inside their curled rims."
+            },
+            {
+              "entityId": "leaf-boat",
+              "ownerCharacterId": "wondii-leo",
+              "locationId": "sunstripe-grove",
+              "state": "Carried toward the lake with Maya supporting the opposite rim."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "wondii-maya",
+              "locationId": "bowl-leaf-lake",
+              "clothing": "as shown in games/images/characters/maya-v1.jpg",
+              "carriedEntities": [],
+              "emotion": "Maya reaches toward the narrowing gold stripe.",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "wondii-leo",
+              "locationId": "bowl-leaf-lake",
+              "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+              "carriedEntities": [],
+              "emotion": "Maya reaches toward the narrowing gold stripe.",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "drifting-leaf",
+              "ownerCharacterId": null,
+              "locationId": "waterfall-shelf",
+              "state": "Passing through the dry opening."
+            },
+            {
+              "entityId": "climbing-water",
+              "ownerCharacterId": null,
+              "locationId": "sunstripe-grove",
+              "state": "Rising in sunlight and falling in shade."
+            },
+            {
+              "entityId": "floating-stones",
+              "ownerCharacterId": null,
+              "locationId": "bowl-leaf-lake",
+              "state": "Lifted beyond reach, leaving no shore crossing."
+            },
+            {
+              "entityId": "bowl-leaves",
+              "ownerCharacterId": null,
+              "locationId": "bowl-leaf-lake",
+              "state": "Floating with water pooled inside their curled rims."
+            },
+            {
+              "entityId": "leaf-boat",
+              "ownerCharacterId": null,
+              "locationId": "bowl-leaf-lake",
+              "state": "Afloat with both children, spinning toward the shallow bank."
+            }
+          ]
+        },
+        "locationZone": "leaf shore",
+        "worldState": "Their leaf floats with both children aboard.",
+        "environmentalState": "",
+        "weather": "",
+        "timeOfDay": "",
+        "goalNow": "Reach the lifting current.",
+        "obstacleNow": "The lake current turns the boat away.",
+        "discoveryNow": "",
+        "consequenceNow": "The launch sends them toward shallow water instead.",
+        "relationshipNow": "",
+        "stakesNow": "",
+        "pageTurnIntent": "",
+        "entryFrom": "sunstripe-grove",
+        "exitToward": "",
+        "destinationHint": ""
+      },
+      {
+        "beatId": "b8",
+        "role": "consequence",
+        "locationId": "bowl-leaf-lake",
+        "charactersPresent": [
+          "wondii-maya",
+          "wondii-leo"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "wondii-leo",
+            "trait": "careful",
+            "shows": "Lowers the stem gradually until it touches bottom."
+          }
+        ],
+        "problemFamily": "drift-control",
+        "because": "b7",
+        "resolvesProblem": false,
+        "action": "Leo lowers the long stem until it catches the shallow bottom. The boat stops, and Maya helps push it straight.",
+        "emotion": "Their shoulders loosen when the spinning stops.",
+        "entitiesRequired": [
+          "drifting-leaf",
+          "climbing-water",
+          "floating-stones",
+          "bowl-leaves",
+          "leaf-boat"
+        ],
+        "visualFocus": "The attached stem becoming a pole.",
+        "shotType": "overhead",
+        "compositionIntent": "Make the stem's contact with the bottom visible.",
+        "textPurpose": "Let the failed launch produce a useful discovery.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-right",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "wondii-maya",
+              "locationId": "bowl-leaf-lake",
+              "clothing": "as shown in games/images/characters/maya-v1.jpg",
+              "carriedEntities": [],
+              "emotion": "Maya reaches toward the narrowing gold stripe.",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "wondii-leo",
+              "locationId": "bowl-leaf-lake",
+              "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+              "carriedEntities": [],
+              "emotion": "Maya reaches toward the narrowing gold stripe.",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "drifting-leaf",
+              "ownerCharacterId": null,
+              "locationId": "waterfall-shelf",
+              "state": "Passing through the dry opening."
+            },
+            {
+              "entityId": "climbing-water",
+              "ownerCharacterId": null,
+              "locationId": "sunstripe-grove",
+              "state": "Rising in sunlight and falling in shade."
+            },
+            {
+              "entityId": "floating-stones",
+              "ownerCharacterId": null,
+              "locationId": "bowl-leaf-lake",
+              "state": "Lifted beyond reach, leaving no shore crossing."
+            },
+            {
+              "entityId": "bowl-leaves",
+              "ownerCharacterId": null,
+              "locationId": "bowl-leaf-lake",
+              "state": "Floating with water pooled inside their curled rims."
+            },
+            {
+              "entityId": "leaf-boat",
+              "ownerCharacterId": null,
+              "locationId": "bowl-leaf-lake",
+              "state": "Afloat with both children, spinning toward the shallow bank."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "wondii-maya",
+              "locationId": "bowl-leaf-lake",
+              "clothing": "as shown in games/images/characters/maya-v1.jpg",
+              "carriedEntities": [],
+              "emotion": "Their shoulders loosen when the spinning stops.",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "wondii-leo",
+              "locationId": "bowl-leaf-lake",
+              "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+              "carriedEntities": [],
+              "emotion": "Their shoulders loosen when the spinning stops.",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "drifting-leaf",
+              "ownerCharacterId": null,
+              "locationId": "waterfall-shelf",
+              "state": "Passing through the dry opening."
+            },
+            {
+              "entityId": "climbing-water",
+              "ownerCharacterId": null,
+              "locationId": "sunstripe-grove",
+              "state": "Rising in sunlight and falling in shade."
+            },
+            {
+              "entityId": "floating-stones",
+              "ownerCharacterId": null,
+              "locationId": "bowl-leaf-lake",
+              "state": "Lifted beyond reach, leaving no shore crossing."
+            },
+            {
+              "entityId": "bowl-leaves",
+              "ownerCharacterId": null,
+              "locationId": "bowl-leaf-lake",
+              "state": "Floating with water pooled inside their curled rims."
+            },
+            {
+              "entityId": "leaf-boat",
+              "ownerCharacterId": null,
+              "locationId": "bowl-leaf-lake",
+              "state": "Stopped in shallow water with its stem braced against the bottom."
+            }
+          ]
+        },
+        "locationZone": "shallow bank",
+        "worldState": "The boat reaches shallow water outside the lifting current.",
+        "environmentalState": "",
+        "weather": "",
+        "timeOfDay": "",
+        "goalNow": "Stop drifting and gain control.",
+        "obstacleNow": "They have no paddle.",
+        "discoveryNow": "",
+        "consequenceNow": "The attached stem works as a brake and pole.",
+        "relationshipNow": "",
+        "stakesNow": "",
+        "pageTurnIntent": "",
+        "entryFrom": "",
+        "exitToward": "",
+        "destinationHint": ""
+      },
+      {
+        "beatId": "b9",
+        "role": "relationship",
+        "locationId": "bowl-leaf-lake",
+        "charactersPresent": [
+          "wondii-maya",
+          "wondii-leo"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "wondii-leo",
+            "trait": "kind",
+            "shows": "Offers a test they can watch together instead of rejecting Maya's plan."
+          },
+          {
+            "characterId": "wondii-maya",
+            "trait": "curious",
+            "shows": "Pauses her push to track the small leaf's route."
+          }
+        ],
+        "problemFamily": "untested-entry",
+        "because": "b8",
+        "resolvesProblem": false,
+        "action": "Maya starts pushing toward the light, but Leo suggests testing a small floating leaf first. They watch it climb toward the entrance.",
+        "emotion": "Maya nods and points to where the leaf begins rising.",
+        "entitiesRequired": [
+          "drifting-leaf",
+          "climbing-water",
+          "floating-stones",
+          "bowl-leaves",
+          "leaf-boat",
+          "test-leaf"
+        ],
+        "visualFocus": "Their shared attention following the test.",
+        "shotType": "reaction",
+        "compositionIntent": "Keep both faces beneath the ascending leaf.",
+        "textPurpose": "Combine Maya's forward motion with Leo's testing.",
+        "pageTurnHook": "The small leaf has found their way up.",
+        "textSafeRegion": "upper-left",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "wondii-maya",
+              "locationId": "bowl-leaf-lake",
+              "clothing": "as shown in games/images/characters/maya-v1.jpg",
+              "carriedEntities": [],
+              "emotion": "Their shoulders loosen when the spinning stops.",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "wondii-leo",
+              "locationId": "bowl-leaf-lake",
+              "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+              "carriedEntities": [],
+              "emotion": "Their shoulders loosen when the spinning stops.",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "drifting-leaf",
+              "ownerCharacterId": null,
+              "locationId": "waterfall-shelf",
+              "state": "Passing through the dry opening."
+            },
+            {
+              "entityId": "climbing-water",
+              "ownerCharacterId": null,
+              "locationId": "sunstripe-grove",
+              "state": "Rising in sunlight and falling in shade."
+            },
+            {
+              "entityId": "floating-stones",
+              "ownerCharacterId": null,
+              "locationId": "bowl-leaf-lake",
+              "state": "Lifted beyond reach, leaving no shore crossing."
+            },
+            {
+              "entityId": "bowl-leaves",
+              "ownerCharacterId": null,
+              "locationId": "bowl-leaf-lake",
+              "state": "Floating with water pooled inside their curled rims."
+            },
+            {
+              "entityId": "leaf-boat",
+              "ownerCharacterId": null,
+              "locationId": "bowl-leaf-lake",
+              "state": "Stopped in shallow water with its stem braced against the bottom."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "wondii-maya",
+              "locationId": "bowl-leaf-lake",
+              "clothing": "as shown in games/images/characters/maya-v1.jpg",
+              "carriedEntities": [],
+              "emotion": "Maya nods and points to where the leaf begins rising.",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "wondii-leo",
+              "locationId": "bowl-leaf-lake",
+              "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+              "carriedEntities": [],
+              "emotion": "Maya nods and points to where the leaf begins rising.",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "drifting-leaf",
+              "ownerCharacterId": null,
+              "locationId": "waterfall-shelf",
+              "state": "Passing through the dry opening."
+            },
+            {
+              "entityId": "climbing-water",
+              "ownerCharacterId": null,
+              "locationId": "sunstripe-grove",
+              "state": "Rising in sunlight and falling in shade."
+            },
+            {
+              "entityId": "floating-stones",
+              "ownerCharacterId": null,
+              "locationId": "bowl-leaf-lake",
+              "state": "Lifted beyond reach, leaving no shore crossing."
+            },
+            {
+              "entityId": "bowl-leaves",
+              "ownerCharacterId": null,
+              "locationId": "bowl-leaf-lake",
+              "state": "Floating with water pooled inside their curled rims."
+            },
+            {
+              "entityId": "leaf-boat",
+              "ownerCharacterId": null,
+              "locationId": "bowl-leaf-lake",
+              "state": "Stopped in shallow water with its stem braced against the bottom."
+            },
+            {
+              "entityId": "test-leaf",
+              "ownerCharacterId": null,
+              "locationId": "bowl-leaf-lake",
+              "state": "Floating into the sunlit current and rising toward the passage mouth."
+            }
+          ]
+        },
+        "locationZone": "shallow bank",
+        "worldState": "They can steer but have not identified a safe lifting route.",
+        "environmentalState": "",
+        "weather": "",
+        "timeOfDay": "",
+        "goalNow": "Choose where to enter the rising water.",
+        "obstacleNow": "They could miss the current.",
+        "discoveryNow": "",
+        "consequenceNow": "A small leaf traces the route, and Maya accepts Leo's test.",
+        "relationshipNow": "",
+        "stakesNow": "",
+        "pageTurnIntent": "Reveal a large possibility through a small test.",
+        "entryFrom": "",
+        "exitToward": "",
+        "destinationHint": ""
+      },
+      {
+        "beatId": "b10",
+        "role": "approach",
+        "locationId": "bowl-leaf-lake",
+        "charactersPresent": [
+          "wondii-maya",
+          "wondii-leo"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "wondii-maya",
+            "trait": "brave",
+            "shows": "Keeps pushing into the tested current as the boat begins lifting."
+          },
+          {
+            "characterId": "wondii-leo",
+            "trait": "careful",
+            "shows": "Moves beside the central pool and directs Maya to the same stable position."
+          }
+        ],
+        "problemFamily": "lifting-balance",
+        "because": "b9",
+        "resolvesProblem": false,
+        "action": "They pole into the tested current, and the leaf lifts unevenly. Both settle beside its central pool, leveling their boat.",
+        "emotion": "Maya watches the entrance while Leo watches the rim.",
+        "entitiesRequired": [
+          "drifting-leaf",
+          "climbing-water",
+          "floating-stones",
+          "bowl-leaves",
+          "leaf-boat",
+          "test-leaf"
+        ],
+        "visualFocus": "The central pool holding the bowl level.",
+        "shotType": "low",
+        "compositionIntent": "Show the rising boat beneath the high entrance.",
+        "textPurpose": "Pay off the route test and balance discovery.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-right",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "wondii-maya",
+              "locationId": "bowl-leaf-lake",
+              "clothing": "as shown in games/images/characters/maya-v1.jpg",
+              "carriedEntities": [],
+              "emotion": "Maya nods and points to where the leaf begins rising.",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "wondii-leo",
+              "locationId": "bowl-leaf-lake",
+              "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+              "carriedEntities": [],
+              "emotion": "Maya nods and points to where the leaf begins rising.",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "drifting-leaf",
+              "ownerCharacterId": null,
+              "locationId": "waterfall-shelf",
+              "state": "Passing through the dry opening."
+            },
+            {
+              "entityId": "climbing-water",
+              "ownerCharacterId": null,
+              "locationId": "sunstripe-grove",
+              "state": "Rising in sunlight and falling in shade."
+            },
+            {
+              "entityId": "floating-stones",
+              "ownerCharacterId": null,
+              "locationId": "bowl-leaf-lake",
+              "state": "Lifted beyond reach, leaving no shore crossing."
+            },
+            {
+              "entityId": "bowl-leaves",
+              "ownerCharacterId": null,
+              "locationId": "bowl-leaf-lake",
+              "state": "Floating with water pooled inside their curled rims."
+            },
+            {
+              "entityId": "leaf-boat",
+              "ownerCharacterId": null,
+              "locationId": "bowl-leaf-lake",
+              "state": "Stopped in shallow water with its stem braced against the bottom."
+            },
+            {
+              "entityId": "test-leaf",
+              "ownerCharacterId": null,
+              "locationId": "bowl-leaf-lake",
+              "state": "Floating into the sunlit current and rising toward the passage mouth."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "wondii-maya",
+              "locationId": "bowl-leaf-lake",
+              "clothing": "as shown in games/images/characters/maya-v1.jpg",
+              "carriedEntities": [],
+              "emotion": "Maya watches the entrance while Leo watches the rim.",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "wondii-leo",
+              "locationId": "bowl-leaf-lake",
+              "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+              "carriedEntities": [],
+              "emotion": "Maya watches the entrance while Leo watches the rim.",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "drifting-leaf",
+              "ownerCharacterId": null,
+              "locationId": "waterfall-shelf",
+              "state": "Passing through the dry opening."
+            },
+            {
+              "entityId": "climbing-water",
+              "ownerCharacterId": null,
+              "locationId": "bowl-leaf-lake",
+              "state": "Lifting the boat toward the passage in narrowing sunlight."
+            },
+            {
+              "entityId": "floating-stones",
+              "ownerCharacterId": null,
+              "locationId": "bowl-leaf-lake",
+              "state": "Lifted beyond reach, leaving no shore crossing."
+            },
+            {
+              "entityId": "bowl-leaves",
+              "ownerCharacterId": null,
+              "locationId": "bowl-leaf-lake",
+              "state": "Floating with water pooled inside their curled rims."
+            },
+            {
+              "entityId": "leaf-boat",
+              "ownerCharacterId": null,
+              "locationId": "bowl-leaf-lake",
+              "state": "Rising level with both children beside its central pool."
+            },
+            {
+              "entityId": "test-leaf",
+              "ownerCharacterId": null,
+              "locationId": "bowl-leaf-lake",
+              "state": "Floating into the sunlit current and rising toward the passage mouth."
+            }
+          ]
+        },
+        "locationZone": "rising rain",
+        "worldState": "The remaining sunstripe reaches the passage mouth.",
+        "environmentalState": "",
+        "weather": "",
+        "timeOfDay": "",
+        "goalNow": "Follow the tested route without tipping.",
+        "obstacleNow": "The water lifts one side first.",
+        "discoveryNow": "",
+        "consequenceNow": "Sitting beside the central pool levels their rising boat.",
+        "relationshipNow": "",
+        "stakesNow": "",
+        "pageTurnIntent": "",
+        "entryFrom": "",
+        "exitToward": "mist-pathway",
+        "destinationHint": ""
+      },
+      {
+        "beatId": "b11",
+        "role": "climax",
+        "locationId": "mist-pathway",
+        "charactersPresent": [
+          "wondii-maya",
+          "wondii-leo"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "wondii-leo",
+            "trait": "careful",
+            "shows": "Braces the stem against stone and steadies the boat for Maya."
+          },
+          {
+            "characterId": "wondii-maya",
+            "trait": "brave",
+            "shows": "Steps onto the lip first and anchors the stem for Leo."
+          }
+        ],
+        "problemFamily": "shared-landing",
+        "because": "b10",
+        "resolvesProblem": false,
+        "action": "Leo braces the stem against the pathway lip, and Maya steps onto the stone. She holds it while he crosses.",
+        "emotion": "Neither releases the stem until both stand on rock.",
+        "entitiesRequired": [
+          "drifting-leaf",
+          "climbing-water",
+          "floating-stones",
+          "bowl-leaves",
+          "leaf-boat",
+          "test-leaf"
+        ],
+        "visualFocus": "Both children gaining solid footing.",
+        "shotType": "action",
+        "compositionIntent": "Connect hands, stem, boat, and landing in one readable arrangement.",
+        "textPurpose": "Settle the lost-route problem using their earlier discoveries.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-left",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "wondii-maya",
+              "locationId": "bowl-leaf-lake",
+              "clothing": "as shown in games/images/characters/maya-v1.jpg",
+              "carriedEntities": [],
+              "emotion": "Maya watches the entrance while Leo watches the rim.",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "wondii-leo",
+              "locationId": "bowl-leaf-lake",
+              "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+              "carriedEntities": [],
+              "emotion": "Maya watches the entrance while Leo watches the rim.",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "drifting-leaf",
+              "ownerCharacterId": null,
+              "locationId": "waterfall-shelf",
+              "state": "Passing through the dry opening."
+            },
+            {
+              "entityId": "climbing-water",
+              "ownerCharacterId": null,
+              "locationId": "bowl-leaf-lake",
+              "state": "Lifting the boat toward the passage in narrowing sunlight."
+            },
+            {
+              "entityId": "floating-stones",
+              "ownerCharacterId": null,
+              "locationId": "bowl-leaf-lake",
+              "state": "Lifted beyond reach, leaving no shore crossing."
+            },
+            {
+              "entityId": "bowl-leaves",
+              "ownerCharacterId": null,
+              "locationId": "bowl-leaf-lake",
+              "state": "Floating with water pooled inside their curled rims."
+            },
+            {
+              "entityId": "leaf-boat",
+              "ownerCharacterId": null,
+              "locationId": "bowl-leaf-lake",
+              "state": "Rising level with both children beside its central pool."
+            },
+            {
+              "entityId": "test-leaf",
+              "ownerCharacterId": null,
+              "locationId": "bowl-leaf-lake",
+              "state": "Floating into the sunlit current and rising toward the passage mouth."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "wondii-maya",
+              "locationId": "mist-pathway",
+              "clothing": "as shown in games/images/characters/maya-v1.jpg",
+              "carriedEntities": [],
+              "emotion": "Neither releases the stem until both stand on rock.",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "wondii-leo",
+              "locationId": "mist-pathway",
+              "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+              "carriedEntities": [],
+              "emotion": "Neither releases the stem until both stand on rock.",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "drifting-leaf",
+              "ownerCharacterId": null,
+              "locationId": "waterfall-shelf",
+              "state": "Passing through the dry opening."
+            },
+            {
+              "entityId": "climbing-water",
+              "ownerCharacterId": null,
+              "locationId": "bowl-leaf-lake",
+              "state": "Lifting the boat toward the passage in narrowing sunlight."
+            },
+            {
+              "entityId": "floating-stones",
+              "ownerCharacterId": null,
+              "locationId": "bowl-leaf-lake",
+              "state": "Lifted beyond reach, leaving no shore crossing."
+            },
+            {
+              "entityId": "bowl-leaves",
+              "ownerCharacterId": null,
+              "locationId": "bowl-leaf-lake",
+              "state": "Floating with water pooled inside their curled rims."
+            },
+            {
+              "entityId": "leaf-boat",
+              "ownerCharacterId": null,
+              "locationId": "mist-pathway",
+              "state": "Resting against the broad stone lip after both children disembark."
+            },
+            {
+              "entityId": "test-leaf",
+              "ownerCharacterId": null,
+              "locationId": "bowl-leaf-lake",
+              "state": "Floating into the sunlit current and rising toward the passage mouth."
+            }
+          ]
+        },
+        "locationZone": "high mouth",
+        "worldState": "The boat reaches the entrance before the sunstripe withdraws.",
+        "environmentalState": "",
+        "weather": "",
+        "timeOfDay": "",
+        "goalNow": "Get both children onto solid stone.",
+        "obstacleNow": "Their floating boat must stay against the lip.",
+        "discoveryNow": "",
+        "consequenceNow": "The familiar stem secures their landing and restores their route home.",
+        "relationshipNow": "",
+        "stakesNow": "",
+        "pageTurnIntent": "",
+        "entryFrom": "bowl-leaf-lake",
+        "exitToward": "waterfall-shelf",
+        "destinationHint": ""
+      },
+      {
+        "beatId": "b12",
+        "role": "resolution",
+        "locationId": "waterfall-shelf",
+        "charactersPresent": [
+          "wondii-maya",
+          "wondii-leo"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "wondii-leo",
+            "trait": "careful",
+            "shows": "Examines the edge of another dry gap before pointing it out."
+          },
+          {
+            "characterId": "wondii-maya",
+            "trait": "curious",
+            "shows": "Crouches beside Leo and follows his pointing finger."
+          }
+        ],
+        "problemFamily": "",
+        "because": "b11",
+        "resolvesProblem": true,
+        "action": "Back beside the waterfall, Leo bends to inspect another dry gap. Maya crouches beside him as their upside-down reflections shimmer.",
+        "emotion": "This time, Maya waits for Leo to point.",
+        "entitiesRequired": [
+          "drifting-leaf",
+          "climbing-water",
+          "floating-stones",
+          "bowl-leaves",
+          "leaf-boat",
+          "test-leaf"
+        ],
+        "visualFocus": "Two searching faces above two upside-down reflections.",
+        "shotType": "vignette",
+        "compositionIntent": "Pair the crouching children with inverted reflections in the water curtain.",
+        "textPurpose": "Leave a changed partnership and a remembered image.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-right",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "wondii-maya",
+              "locationId": "mist-pathway",
+              "clothing": "as shown in games/images/characters/maya-v1.jpg",
+              "carriedEntities": [],
+              "emotion": "Neither releases the stem until both stand on rock.",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "wondii-leo",
+              "locationId": "mist-pathway",
+              "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+              "carriedEntities": [],
+              "emotion": "Neither releases the stem until both stand on rock.",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "drifting-leaf",
+              "ownerCharacterId": null,
+              "locationId": "waterfall-shelf",
+              "state": "Passing through the dry opening."
+            },
+            {
+              "entityId": "climbing-water",
+              "ownerCharacterId": null,
+              "locationId": "bowl-leaf-lake",
+              "state": "Lifting the boat toward the passage in narrowing sunlight."
+            },
+            {
+              "entityId": "floating-stones",
+              "ownerCharacterId": null,
+              "locationId": "bowl-leaf-lake",
+              "state": "Lifted beyond reach, leaving no shore crossing."
+            },
+            {
+              "entityId": "bowl-leaves",
+              "ownerCharacterId": null,
+              "locationId": "bowl-leaf-lake",
+              "state": "Floating with water pooled inside their curled rims."
+            },
+            {
+              "entityId": "leaf-boat",
+              "ownerCharacterId": null,
+              "locationId": "mist-pathway",
+              "state": "Resting against the broad stone lip after both children disembark."
+            },
+            {
+              "entityId": "test-leaf",
+              "ownerCharacterId": null,
+              "locationId": "bowl-leaf-lake",
+              "state": "Floating into the sunlit current and rising toward the passage mouth."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "wondii-maya",
+              "locationId": "waterfall-shelf",
+              "clothing": "as shown in games/images/characters/maya-v1.jpg",
+              "carriedEntities": [],
+              "emotion": "This time, Maya waits for Leo to point.",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "wondii-leo",
+              "locationId": "waterfall-shelf",
+              "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+              "carriedEntities": [],
+              "emotion": "This time, Maya waits for Leo to point.",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "drifting-leaf",
+              "ownerCharacterId": null,
+              "locationId": "waterfall-shelf",
+              "state": "Passing through the dry opening."
+            },
+            {
+              "entityId": "climbing-water",
+              "ownerCharacterId": null,
+              "locationId": "bowl-leaf-lake",
+              "state": "Lifting the boat toward the passage in narrowing sunlight."
+            },
+            {
+              "entityId": "floating-stones",
+              "ownerCharacterId": null,
+              "locationId": "bowl-leaf-lake",
+              "state": "Lifted beyond reach, leaving no shore crossing."
+            },
+            {
+              "entityId": "bowl-leaves",
+              "ownerCharacterId": null,
+              "locationId": "bowl-leaf-lake",
+              "state": "Floating with water pooled inside their curled rims."
+            },
+            {
+              "entityId": "leaf-boat",
+              "ownerCharacterId": null,
+              "locationId": "mist-pathway",
+              "state": "Resting against the broad stone lip after both children disembark."
+            },
+            {
+              "entityId": "test-leaf",
+              "ownerCharacterId": null,
+              "locationId": "bowl-leaf-lake",
+              "state": "Floating into the sunlit current and rising toward the passage mouth."
+            }
+          ]
+        },
+        "locationZone": "dry ledge",
+        "worldState": "The children are outside again; the concealed world remains beyond the curtain.",
+        "environmentalState": "",
+        "weather": "",
+        "timeOfDay": "",
+        "goalNow": "Take one last look.",
+        "obstacleNow": "",
+        "discoveryNow": "",
+        "consequenceNow": "Leo initiates a discovery, and Maya pauses beside him.",
+        "relationshipNow": "",
+        "stakesNow": "",
+        "pageTurnIntent": "",
+        "entryFrom": "mist-pathway",
+        "exitToward": "",
+        "destinationHint": ""
+      }
+    ],
+    "journey": [
+      {
+        "section": "Finding the concealed entrance",
+        "locationId": "waterfall-shelf",
+        "purpose": "Investigate the dry leaf passing through falling water.",
+        "objective": "Find a safe opening.",
+        "discoveryOrObstacle": "The leaf exposes a dry gap with firm footing.",
+        "change": "Maya follows the gap, and Leo checks the ledge before joining her.",
+        "leadsTo": "mist-pathway",
+        "knownPlace": true
+      },
+      {
+        "section": "Following water uphill",
+        "locationId": "mist-pathway",
+        "purpose": "Discover where the opening leads.",
+        "objective": "Follow the droplets climbing the passage walls.",
+        "discoveryOrObstacle": "The passage opens above a hidden lake, with stepping stones descending to its shore.",
+        "change": "The visible crossing lets the children enter the world below.",
+        "leadsTo": "bowl-leaf-lake",
+        "knownPlace": true
+      },
+      {
+        "section": "Discovering the floating bowls",
+        "locationId": "bowl-leaf-lake",
+        "purpose": "Explore the lake revealed by the passage.",
+        "objective": "Find out how its enormous leaves stay level.",
+        "discoveryOrObstacle": "Water pooled in each leaf's center settles its rocking rim; matching leaves grow beside the shore.",
+        "change": "Maya wants to investigate the plants that produce these floating bowls.",
+        "leadsTo": "sunstripe-grove",
+        "knownPlace": true
+      },
+      {
+        "section": "Losing the way down",
+        "locationId": "sunstripe-grove",
+        "purpose": "Investigate the bowl-leaf plants and the upward droplets.",
+        "objective": "Test the water's rule, then find another route home.",
+        "discoveryOrObstacle": "Sunlight lifts water; when it reaches the crossing, the stones rise beyond reach.",
+        "change": "The children choose a fallen bowl leaf with a sturdy stem to ride the lifting water.",
+        "leadsTo": "bowl-leaf-lake",
+        "knownPlace": true
+      },
+      {
+        "section": "Learning to ride the rain",
+        "locationId": "bowl-leaf-lake",
+        "purpose": "Use the remaining sunlight to reach the entrance.",
+        "objective": "Steer their boat into the lifting current and keep it level.",
+        "discoveryOrObstacle": "Their first launch spins away, but the attached stem stops them in shallow water.",
+        "change": "A small leaf tests the route; the stem steers their boat, and the central pool steadies its ascent.",
+        "leadsTo": "mist-pathway",
+        "knownPlace": true
+      },
+      {
+        "section": "Landing and returning",
+        "locationId": "mist-pathway",
+        "purpose": "Transfer from the rising boat to solid stone.",
+        "objective": "Get both children safely onto the passage.",
+        "discoveryOrObstacle": "The boat must be held against the lip while they cross.",
+        "change": "They brace the familiar stem and take turns anchoring it, regaining the connected route outside.",
+        "leadsTo": "waterfall-shelf",
+        "knownPlace": true
+      },
+      {
+        "section": "Looking together",
+        "locationId": "waterfall-shelf",
+        "purpose": "Complete their return through the original opening.",
+        "objective": "Take one last look at the water curtain.",
+        "discoveryOrObstacle": "Leo notices another dry gap.",
+        "change": "Maya waits beside him instead of rushing ahead.",
+        "leadsTo": "",
+        "knownPlace": true
+      }
+    ],
+    "adventureNotes": []
+  },
+  "storyProblems": [],
+  "planProblems": [],
+  "textProblems": [],
+  "pages": [
+    {
+      "pageId": "p1",
+      "beatId": "b1",
+      "locationId": "waterfall-shelf",
+      "charactersPresent": [
+        "wondii-maya",
+        "wondii-leo"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "waterfall-shelf",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [],
+            "emotion": "steady",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "waterfall-shelf",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [],
+            "emotion": "steady",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": []
+      },
+      "action": "Maya follows a dry leaf through the waterfall's edge and finds an opening. Leo checks the footing beside her.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "waterfall-shelf",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [],
+            "emotion": "Maya leans toward the gap.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "waterfall-shelf",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [],
+            "emotion": "Maya leans toward the gap.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "drifting-leaf",
+            "ownerCharacterId": null,
+            "locationId": "waterfall-shelf",
+            "state": "Passing through the dry opening."
+          }
+        ]
+      },
+      "emotion": "Maya leans toward the gap.",
+      "entitiesRequired": [
+        "drifting-leaf"
+      ],
+      "visualFocus": "The copper leaf passing through the curtain.",
+      "shotType": "establishing",
+      "compositionIntent": "Contrast the broad water curtain with the narrow dry opening.",
+      "textPurpose": "Make an unusual observation cause their first decision.",
+      "pageTurnHook": "What lies on the dry side of the water?",
+      "needsFromPrevious": null,
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "waterfall-shelf",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [],
+            "emotion": "Maya leans toward the gap.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "waterfall-shelf",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [],
+            "emotion": "Maya leans toward the gap.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "drifting-leaf",
+            "ownerCharacterId": null,
+            "locationId": "waterfall-shelf",
+            "state": "Passing through the dry opening."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-left",
+      "sentences": [
+        {
+          "text": "On the waterfall shelf, a dry leaf drifted straight through the water's edge.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Maya followed it and found an opening where no water fell.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Beside her, Leo tested his footing before moving closer.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "\"It's dry in there,\" Maya whispered.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "narrativePhase": "SETUP",
+      "locationZone": "curtain opening",
+      "pageTurnIntent": "CONTINUE",
+      "layoutIntent": "SINGLE_PAGE_SCENE",
+      "progressionReason": "opening",
+      "worldState": "Falling water appears to cover solid rock.",
+      "visualNoveltyReason": "opening",
+      "prose": "On the waterfall shelf, a dry leaf drifted straight through the water's edge. Maya followed it and found an opening where no water fell. Beside her, Leo tested his footing before moving closer. \"It's dry in there,\" Maya whispered."
+    },
+    {
+      "pageId": "p2",
+      "beatId": "b2",
+      "locationId": "mist-pathway",
+      "charactersPresent": [
+        "wondii-maya",
+        "wondii-leo"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "waterfall-shelf",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [],
+            "emotion": "Maya leans toward the gap.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "waterfall-shelf",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [],
+            "emotion": "Maya leans toward the gap.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "drifting-leaf",
+            "ownerCharacterId": null,
+            "locationId": "waterfall-shelf",
+            "state": "Passing through the dry opening."
+          }
+        ]
+      },
+      "action": "They follow water beads climbing the passage wall to a high opening. Below, pale stepping stones lead toward enormous floating leaves.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "mist-pathway",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [],
+            "emotion": "Leo holds the rock edge while Maya points below.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "mist-pathway",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [],
+            "emotion": "Leo holds the rock edge while Maya points below.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "drifting-leaf",
+            "ownerCharacterId": null,
+            "locationId": "waterfall-shelf",
+            "state": "Passing through the dry opening."
+          },
+          {
+            "entityId": "climbing-water",
+            "ownerCharacterId": null,
+            "locationId": "mist-pathway",
+            "state": "Rising along the sunlit wall."
+          },
+          {
+            "entityId": "floating-stones",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Forming a usable descent from the passage mouth."
+          },
+          {
+            "entityId": "bowl-leaves",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Floating with water pooled inside their curled rims."
+          }
+        ]
+      },
+      "emotion": "Leo holds the rock edge while Maya points below.",
+      "entitiesRequired": [
+        "drifting-leaf",
+        "climbing-water",
+        "floating-stones",
+        "bowl-leaves"
+      ],
+      "visualFocus": "Climbing droplets above descending stones.",
+      "shotType": "reveal",
+      "compositionIntent": "Frame the expansive lake through the narrow mouth.",
+      "textPurpose": "Introduce the water rule and the route they will lose.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "waterfall-shelf",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [],
+            "emotion": "Maya leans toward the gap.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "waterfall-shelf",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [],
+            "emotion": "Maya leans toward the gap.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "drifting-leaf",
+            "ownerCharacterId": null,
+            "locationId": "waterfall-shelf",
+            "state": "Passing through the dry opening."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "mist-pathway",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [],
+            "emotion": "Leo holds the rock edge while Maya points below.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "mist-pathway",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [],
+            "emotion": "Leo holds the rock edge while Maya points below.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "drifting-leaf",
+            "ownerCharacterId": null,
+            "locationId": "waterfall-shelf",
+            "state": "Passing through the dry opening."
+          },
+          {
+            "entityId": "climbing-water",
+            "ownerCharacterId": null,
+            "locationId": "mist-pathway",
+            "state": "Rising along the sunlit wall."
+          },
+          {
+            "entityId": "floating-stones",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Forming a usable descent from the passage mouth."
+          },
+          {
+            "entityId": "bowl-leaves",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Floating with water pooled inside their curled rims."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-right",
+      "sentences": [
+        {
+          "text": "Inside the mist pathway, beads of water climbed the sunlit wall.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Maya followed them upward, with Leo close behind.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "The passage ended at a high opening.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Below it, pale stepping stones led down toward enormous floating leaves, their curled rims holding pools of water.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "narrativePhase": "DISCOVERY",
+      "locationZone": "high mouth",
+      "pageTurnIntent": "CONTINUE",
+      "layoutIntent": "PAGE_PAIR",
+      "progressionReason": "location, goal, obstacle, action, consequence, discovery, world_state, entity_state, information",
+      "worldState": "The passage opens above a lake.",
+      "visualNoveltyReason": "location, goal, obstacle, action, consequence, discovery, world_state, entity_state, information",
+      "prose": "Inside the mist pathway, beads of water climbed the sunlit wall. Maya followed them upward, with Leo close behind. The passage ended at a high opening. Below it, pale stepping stones led down toward enormous floating leaves, their curled rims holding pools of water."
+    },
+    {
+      "pageId": "p3",
+      "beatId": "b3",
+      "locationId": "bowl-leaf-lake",
+      "charactersPresent": [
+        "wondii-maya",
+        "wondii-leo"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "mist-pathway",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [],
+            "emotion": "Leo holds the rock edge while Maya points below.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "mist-pathway",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [],
+            "emotion": "Leo holds the rock edge while Maya points below.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "drifting-leaf",
+            "ownerCharacterId": null,
+            "locationId": "waterfall-shelf",
+            "state": "Passing through the dry opening."
+          },
+          {
+            "entityId": "climbing-water",
+            "ownerCharacterId": null,
+            "locationId": "mist-pathway",
+            "state": "Rising along the sunlit wall."
+          },
+          {
+            "entityId": "floating-stones",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Forming a usable descent from the passage mouth."
+          },
+          {
+            "entityId": "bowl-leaves",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Floating with water pooled inside their curled rims."
+          }
+        ]
+      },
+      "action": "Maya presses a bowl leaf's rim and watches its pooled water settle it level. Matching leaves tower nearby.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "bowl-leaf-lake",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [],
+            "emotion": "Maya points from the floating leaf to the plants.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "bowl-leaf-lake",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [],
+            "emotion": "Maya points from the floating leaf to the plants.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "drifting-leaf",
+            "ownerCharacterId": null,
+            "locationId": "waterfall-shelf",
+            "state": "Passing through the dry opening."
+          },
+          {
+            "entityId": "climbing-water",
+            "ownerCharacterId": null,
+            "locationId": "mist-pathway",
+            "state": "Rising along the sunlit wall."
+          },
+          {
+            "entityId": "floating-stones",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Forming a usable descent from the passage mouth."
+          },
+          {
+            "entityId": "bowl-leaves",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Floating with water pooled inside their curled rims."
+          }
+        ]
+      },
+      "emotion": "Maya points from the floating leaf to the plants.",
+      "entitiesRequired": [
+        "drifting-leaf",
+        "climbing-water",
+        "floating-stones",
+        "bowl-leaves"
+      ],
+      "visualFocus": "Water settling in the leaf's middle.",
+      "shotType": "close",
+      "compositionIntent": "Center the pool with the plants visible beyond.",
+      "textPurpose": "Plant the balance discovery and motivate entering the grove.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "mist-pathway",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [],
+            "emotion": "Leo holds the rock edge while Maya points below.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "mist-pathway",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [],
+            "emotion": "Leo holds the rock edge while Maya points below.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "drifting-leaf",
+            "ownerCharacterId": null,
+            "locationId": "waterfall-shelf",
+            "state": "Passing through the dry opening."
+          },
+          {
+            "entityId": "climbing-water",
+            "ownerCharacterId": null,
+            "locationId": "mist-pathway",
+            "state": "Rising along the sunlit wall."
+          },
+          {
+            "entityId": "floating-stones",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Forming a usable descent from the passage mouth."
+          },
+          {
+            "entityId": "bowl-leaves",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Floating with water pooled inside their curled rims."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "bowl-leaf-lake",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [],
+            "emotion": "Maya points from the floating leaf to the plants.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "bowl-leaf-lake",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [],
+            "emotion": "Maya points from the floating leaf to the plants.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "drifting-leaf",
+            "ownerCharacterId": null,
+            "locationId": "waterfall-shelf",
+            "state": "Passing through the dry opening."
+          },
+          {
+            "entityId": "climbing-water",
+            "ownerCharacterId": null,
+            "locationId": "mist-pathway",
+            "state": "Rising along the sunlit wall."
+          },
+          {
+            "entityId": "floating-stones",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Forming a usable descent from the passage mouth."
+          },
+          {
+            "entityId": "bowl-leaves",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Floating with water pooled inside their curled rims."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-left",
+      "sentences": [
+        {
+          "text": "At the bowl-leaf lake, Maya pressed down on a curled rim.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Water slid across the leaf's bowl.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Then the pool settled, and the leaf floated level again.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Leo watched the rim rise beneath her hand while matching leaves towered nearby.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "narrativePhase": "ATTEMPT",
+      "locationZone": "leaf shore",
+      "pageTurnIntent": "CONTINUE",
+      "layoutIntent": "PAGE_PAIR",
+      "progressionReason": "location, goal, obstacle, action, consequence, world_state, information",
+      "worldState": "The children have descended the stones to shore.",
+      "visualNoveltyReason": "location, goal, obstacle, action, consequence, world_state, information",
+      "prose": "At the bowl-leaf lake, Maya pressed down on a curled rim. Water slid across the leaf's bowl. Then the pool settled, and the leaf floated level again. Leo watched the rim rise beneath her hand while matching leaves towered nearby."
+    },
+    {
+      "pageId": "p4",
+      "beatId": "b4",
+      "locationId": "sunstripe-grove",
+      "charactersPresent": [
+        "wondii-maya",
+        "wondii-leo"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "bowl-leaf-lake",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [],
+            "emotion": "Maya points from the floating leaf to the plants.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "bowl-leaf-lake",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [],
+            "emotion": "Maya points from the floating leaf to the plants.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "drifting-leaf",
+            "ownerCharacterId": null,
+            "locationId": "waterfall-shelf",
+            "state": "Passing through the dry opening."
+          },
+          {
+            "entityId": "climbing-water",
+            "ownerCharacterId": null,
+            "locationId": "mist-pathway",
+            "state": "Rising along the sunlit wall."
+          },
+          {
+            "entityId": "floating-stones",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Forming a usable descent from the passage mouth."
+          },
+          {
+            "entityId": "bowl-leaves",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Floating with water pooled inside their curled rims."
+          }
+        ]
+      },
+      "action": "Maya moves her wet hand into a sunstripe, where droplets lift from her fingers. In the shade, they fall.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "sunstripe-grove",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [],
+            "emotion": "Leo extends his hand beside hers to repeat the test.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "sunstripe-grove",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [],
+            "emotion": "Leo extends his hand beside hers to repeat the test.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "drifting-leaf",
+            "ownerCharacterId": null,
+            "locationId": "waterfall-shelf",
+            "state": "Passing through the dry opening."
+          },
+          {
+            "entityId": "climbing-water",
+            "ownerCharacterId": null,
+            "locationId": "sunstripe-grove",
+            "state": "Rising in sunlight and falling in shade."
+          },
+          {
+            "entityId": "floating-stones",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Forming a usable descent from the passage mouth."
+          },
+          {
+            "entityId": "bowl-leaves",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Floating with water pooled inside their curled rims."
+          }
+        ]
+      },
+      "emotion": "Leo extends his hand beside hers to repeat the test.",
+      "entitiesRequired": [
+        "drifting-leaf",
+        "climbing-water",
+        "floating-stones",
+        "bowl-leaves"
+      ],
+      "visualFocus": "Droplets moving in opposite directions.",
+      "shotType": "medium",
+      "compositionIntent": "Divide the scene between golden light and blue shade.",
+      "textPurpose": "Establish the rule that will create danger and enable escape.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "bowl-leaf-lake",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [],
+            "emotion": "Maya points from the floating leaf to the plants.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "bowl-leaf-lake",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [],
+            "emotion": "Maya points from the floating leaf to the plants.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "drifting-leaf",
+            "ownerCharacterId": null,
+            "locationId": "waterfall-shelf",
+            "state": "Passing through the dry opening."
+          },
+          {
+            "entityId": "climbing-water",
+            "ownerCharacterId": null,
+            "locationId": "mist-pathway",
+            "state": "Rising along the sunlit wall."
+          },
+          {
+            "entityId": "floating-stones",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Forming a usable descent from the passage mouth."
+          },
+          {
+            "entityId": "bowl-leaves",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Floating with water pooled inside their curled rims."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "sunstripe-grove",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [],
+            "emotion": "Leo extends his hand beside hers to repeat the test.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "sunstripe-grove",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [],
+            "emotion": "Leo extends his hand beside hers to repeat the test.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "drifting-leaf",
+            "ownerCharacterId": null,
+            "locationId": "waterfall-shelf",
+            "state": "Passing through the dry opening."
+          },
+          {
+            "entityId": "climbing-water",
+            "ownerCharacterId": null,
+            "locationId": "sunstripe-grove",
+            "state": "Rising in sunlight and falling in shade."
+          },
+          {
+            "entityId": "floating-stones",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Forming a usable descent from the passage mouth."
+          },
+          {
+            "entityId": "bowl-leaves",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Floating with water pooled inside their curled rims."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-right",
+      "sentences": [
+        {
+          "text": "In the sunstripe grove, Maya held her wet hand in the light.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Droplets lifted from her fingers.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "She moved her hand into shade, and the droplets fell.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Leo leaned closer as she passed her hand through the sunstripe once more.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "narrativePhase": "ATTEMPT",
+      "locationZone": "sunlit clearing",
+      "pageTurnIntent": "PAUSE",
+      "layoutIntent": "QUIET_PAGE",
+      "progressionReason": "location, goal, obstacle, consequence, world_state, entity_state, information",
+      "worldState": "Sunlight separates rising water from falling water.",
+      "visualNoveltyReason": "location, goal, obstacle, consequence, world_state, entity_state, information",
+      "prose": "In the sunstripe grove, Maya held her wet hand in the light. Droplets lifted from her fingers. She moved her hand into shade, and the droplets fell. Leo leaned closer as she passed her hand through the sunstripe once more."
+    },
+    {
+      "pageId": "p5",
+      "beatId": "b5",
+      "locationId": "sunstripe-grove",
+      "charactersPresent": [
+        "wondii-maya",
+        "wondii-leo"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "sunstripe-grove",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [],
+            "emotion": "Leo extends his hand beside hers to repeat the test.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "sunstripe-grove",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [],
+            "emotion": "Leo extends his hand beside hers to repeat the test.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "drifting-leaf",
+            "ownerCharacterId": null,
+            "locationId": "waterfall-shelf",
+            "state": "Passing through the dry opening."
+          },
+          {
+            "entityId": "climbing-water",
+            "ownerCharacterId": null,
+            "locationId": "sunstripe-grove",
+            "state": "Rising in sunlight and falling in shade."
+          },
+          {
+            "entityId": "floating-stones",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Forming a usable descent from the passage mouth."
+          },
+          {
+            "entityId": "bowl-leaves",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Floating with water pooled inside their curled rims."
+          }
+        ]
+      },
+      "action": "Sunlit water lifts the stepping stones away from shore. Leo grips Maya's sleeve as their route home rises overhead.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "sunstripe-grove",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [],
+            "emotion": "Maya stops pointing and looks toward the entrance.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "sunstripe-grove",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [],
+            "emotion": "Maya stops pointing and looks toward the entrance.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "drifting-leaf",
+            "ownerCharacterId": null,
+            "locationId": "waterfall-shelf",
+            "state": "Passing through the dry opening."
+          },
+          {
+            "entityId": "climbing-water",
+            "ownerCharacterId": null,
+            "locationId": "sunstripe-grove",
+            "state": "Rising in sunlight and falling in shade."
+          },
+          {
+            "entityId": "floating-stones",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Lifted beyond reach, leaving no shore crossing."
+          },
+          {
+            "entityId": "bowl-leaves",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Floating with water pooled inside their curled rims."
+          }
+        ]
+      },
+      "emotion": "Maya stops pointing and looks toward the entrance.",
+      "entitiesRequired": [
+        "drifting-leaf",
+        "climbing-water",
+        "floating-stones",
+        "bowl-leaves"
+      ],
+      "visualFocus": "The unusable crossing above the children.",
+      "shotType": "high",
+      "compositionIntent": "Show the widening gap beneath the stones.",
+      "textPurpose": "Create the central problem from the established rule.",
+      "pageTurnHook": "The entrance is still there. Their steps are not.",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "sunstripe-grove",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [],
+            "emotion": "Leo extends his hand beside hers to repeat the test.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "sunstripe-grove",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [],
+            "emotion": "Leo extends his hand beside hers to repeat the test.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "drifting-leaf",
+            "ownerCharacterId": null,
+            "locationId": "waterfall-shelf",
+            "state": "Passing through the dry opening."
+          },
+          {
+            "entityId": "climbing-water",
+            "ownerCharacterId": null,
+            "locationId": "sunstripe-grove",
+            "state": "Rising in sunlight and falling in shade."
+          },
+          {
+            "entityId": "floating-stones",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Forming a usable descent from the passage mouth."
+          },
+          {
+            "entityId": "bowl-leaves",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Floating with water pooled inside their curled rims."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "sunstripe-grove",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [],
+            "emotion": "Maya stops pointing and looks toward the entrance.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "sunstripe-grove",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [],
+            "emotion": "Maya stops pointing and looks toward the entrance.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "drifting-leaf",
+            "ownerCharacterId": null,
+            "locationId": "waterfall-shelf",
+            "state": "Passing through the dry opening."
+          },
+          {
+            "entityId": "climbing-water",
+            "ownerCharacterId": null,
+            "locationId": "sunstripe-grove",
+            "state": "Rising in sunlight and falling in shade."
+          },
+          {
+            "entityId": "floating-stones",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Lifted beyond reach, leaving no shore crossing."
+          },
+          {
+            "entityId": "bowl-leaves",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Floating with water pooled inside their curled rims."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-left",
+      "sentences": [
+        {
+          "text": "In the sunstripe grove, water rose through the light and lifted the stepping stones.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Leo caught Maya's sleeve.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "\"Our steps!\"",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Their route home drifted overhead, too high to reach.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "narrativePhase": "SETBACK",
+      "locationZone": "shore roots",
+      "pageTurnIntent": "ANTICIPATE",
+      "layoutIntent": "PAGE_PAIR",
+      "progressionReason": "location, goal, obstacle, action, consequence, world_state, information",
+      "worldState": "The moving sunstripe reaches the crossing.",
+      "visualNoveltyReason": "location, goal, obstacle, action, consequence, world_state, information",
+      "prose": "In the sunstripe grove, water rose through the light and lifted the stepping stones. Leo caught Maya's sleeve. \"Our steps!\" Their route home drifted overhead, too high to reach."
+    },
+    {
+      "pageId": "p6",
+      "beatId": "b6",
+      "locationId": "sunstripe-grove",
+      "charactersPresent": [
+        "wondii-maya",
+        "wondii-leo"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "sunstripe-grove",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [],
+            "emotion": "Maya stops pointing and looks toward the entrance.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "sunstripe-grove",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [],
+            "emotion": "Maya stops pointing and looks toward the entrance.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "drifting-leaf",
+            "ownerCharacterId": null,
+            "locationId": "waterfall-shelf",
+            "state": "Passing through the dry opening."
+          },
+          {
+            "entityId": "climbing-water",
+            "ownerCharacterId": null,
+            "locationId": "sunstripe-grove",
+            "state": "Rising in sunlight and falling in shade."
+          },
+          {
+            "entityId": "floating-stones",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Lifted beyond reach, leaving no shore crossing."
+          },
+          {
+            "entityId": "bowl-leaves",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Floating with water pooled inside their curled rims."
+          }
+        ]
+      },
+      "action": "Maya proposes riding a fallen bowl leaf up with the water. Leo checks its rim and keeps the long stem.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "sunstripe-grove",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [],
+            "emotion": "They lift opposite sides together.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "sunstripe-grove",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [
+              "leaf-boat"
+            ],
+            "emotion": "They lift opposite sides together.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "drifting-leaf",
+            "ownerCharacterId": null,
+            "locationId": "waterfall-shelf",
+            "state": "Passing through the dry opening."
+          },
+          {
+            "entityId": "climbing-water",
+            "ownerCharacterId": null,
+            "locationId": "sunstripe-grove",
+            "state": "Rising in sunlight and falling in shade."
+          },
+          {
+            "entityId": "floating-stones",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Lifted beyond reach, leaving no shore crossing."
+          },
+          {
+            "entityId": "bowl-leaves",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Floating with water pooled inside their curled rims."
+          },
+          {
+            "entityId": "leaf-boat",
+            "ownerCharacterId": "wondii-leo",
+            "locationId": "sunstripe-grove",
+            "state": "Carried toward the lake with Maya supporting the opposite rim."
+          }
+        ]
+      },
+      "emotion": "They lift opposite sides together.",
+      "entitiesRequired": [
+        "drifting-leaf",
+        "climbing-water",
+        "floating-stones",
+        "bowl-leaves",
+        "leaf-boat"
+      ],
+      "visualFocus": "The intact bowl and trailing stem.",
+      "shotType": "low",
+      "compositionIntent": "Show the leaf's size relative to both children.",
+      "textPurpose": "Turn their discovery into a plan and plant the steering tool.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "sunstripe-grove",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [],
+            "emotion": "Maya stops pointing and looks toward the entrance.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "sunstripe-grove",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [],
+            "emotion": "Maya stops pointing and looks toward the entrance.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "drifting-leaf",
+            "ownerCharacterId": null,
+            "locationId": "waterfall-shelf",
+            "state": "Passing through the dry opening."
+          },
+          {
+            "entityId": "climbing-water",
+            "ownerCharacterId": null,
+            "locationId": "sunstripe-grove",
+            "state": "Rising in sunlight and falling in shade."
+          },
+          {
+            "entityId": "floating-stones",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Lifted beyond reach, leaving no shore crossing."
+          },
+          {
+            "entityId": "bowl-leaves",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Floating with water pooled inside their curled rims."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "sunstripe-grove",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [],
+            "emotion": "They lift opposite sides together.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "sunstripe-grove",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [
+              "leaf-boat"
+            ],
+            "emotion": "They lift opposite sides together.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "drifting-leaf",
+            "ownerCharacterId": null,
+            "locationId": "waterfall-shelf",
+            "state": "Passing through the dry opening."
+          },
+          {
+            "entityId": "climbing-water",
+            "ownerCharacterId": null,
+            "locationId": "sunstripe-grove",
+            "state": "Rising in sunlight and falling in shade."
+          },
+          {
+            "entityId": "floating-stones",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Lifted beyond reach, leaving no shore crossing."
+          },
+          {
+            "entityId": "bowl-leaves",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Floating with water pooled inside their curled rims."
+          },
+          {
+            "entityId": "leaf-boat",
+            "ownerCharacterId": "wondii-leo",
+            "locationId": "sunstripe-grove",
+            "state": "Carried toward the lake with Maya supporting the opposite rim."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-right",
+      "sentences": [
+        {
+          "text": "Maya crouched beside a fallen bowl leaf in the sunstripe grove.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "\"Let's ride one up with the water.\"",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Leo checked its curled rim and kept the long stem attached.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "He lifted one side; Maya supported the other, and together they carried their leaf-boat away.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "narrativePhase": "COMMITMENT",
+      "locationZone": "broad-leaf plants",
+      "pageTurnIntent": "CONTINUE",
+      "layoutIntent": "PAGE_PAIR",
+      "progressionReason": "location, goal, obstacle, action, consequence, discovery, world_state, entity_state, information",
+      "worldState": "A fallen bowl leaf offers a possible vessel.",
+      "visualNoveltyReason": "location, goal, obstacle, action, consequence, discovery, world_state, entity_state, information",
+      "prose": "Maya crouched beside a fallen bowl leaf in the sunstripe grove. \"Let's ride one up with the water.\" Leo checked its curled rim and kept the long stem attached. He lifted one side; Maya supported the other, and together they carried their leaf-boat away."
+    },
+    {
+      "pageId": "p7",
+      "beatId": "b7",
+      "locationId": "bowl-leaf-lake",
+      "charactersPresent": [
+        "wondii-maya",
+        "wondii-leo"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "sunstripe-grove",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [],
+            "emotion": "They lift opposite sides together.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "sunstripe-grove",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [
+              "leaf-boat"
+            ],
+            "emotion": "They lift opposite sides together.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "drifting-leaf",
+            "ownerCharacterId": null,
+            "locationId": "waterfall-shelf",
+            "state": "Passing through the dry opening."
+          },
+          {
+            "entityId": "climbing-water",
+            "ownerCharacterId": null,
+            "locationId": "sunstripe-grove",
+            "state": "Rising in sunlight and falling in shade."
+          },
+          {
+            "entityId": "floating-stones",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Lifted beyond reach, leaving no shore crossing."
+          },
+          {
+            "entityId": "bowl-leaves",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Floating with water pooled inside their curled rims."
+          },
+          {
+            "entityId": "leaf-boat",
+            "ownerCharacterId": "wondii-leo",
+            "locationId": "sunstripe-grove",
+            "state": "Carried toward the lake with Maya supporting the opposite rim."
+          }
+        ]
+      },
+      "action": "Leo steadies the leaf while Maya boards, then climbs in beside her. Their boat spins away from the rising rain.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "bowl-leaf-lake",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [],
+            "emotion": "Maya reaches toward the narrowing gold stripe.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "bowl-leaf-lake",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [],
+            "emotion": "Maya reaches toward the narrowing gold stripe.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "drifting-leaf",
+            "ownerCharacterId": null,
+            "locationId": "waterfall-shelf",
+            "state": "Passing through the dry opening."
+          },
+          {
+            "entityId": "climbing-water",
+            "ownerCharacterId": null,
+            "locationId": "sunstripe-grove",
+            "state": "Rising in sunlight and falling in shade."
+          },
+          {
+            "entityId": "floating-stones",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Lifted beyond reach, leaving no shore crossing."
+          },
+          {
+            "entityId": "bowl-leaves",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Floating with water pooled inside their curled rims."
+          },
+          {
+            "entityId": "leaf-boat",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Afloat with both children, spinning toward the shallow bank."
+          }
+        ]
+      },
+      "emotion": "Maya reaches toward the narrowing gold stripe.",
+      "entitiesRequired": [
+        "drifting-leaf",
+        "climbing-water",
+        "floating-stones",
+        "bowl-leaves",
+        "leaf-boat"
+      ],
+      "visualFocus": "The boat moving away from sunlight.",
+      "shotType": "action",
+      "compositionIntent": "Use a curved wake to show the unwanted turn.",
+      "textPurpose": "Give their plan a consequential failure.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "sunstripe-grove",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [],
+            "emotion": "They lift opposite sides together.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "sunstripe-grove",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [
+              "leaf-boat"
+            ],
+            "emotion": "They lift opposite sides together.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "drifting-leaf",
+            "ownerCharacterId": null,
+            "locationId": "waterfall-shelf",
+            "state": "Passing through the dry opening."
+          },
+          {
+            "entityId": "climbing-water",
+            "ownerCharacterId": null,
+            "locationId": "sunstripe-grove",
+            "state": "Rising in sunlight and falling in shade."
+          },
+          {
+            "entityId": "floating-stones",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Lifted beyond reach, leaving no shore crossing."
+          },
+          {
+            "entityId": "bowl-leaves",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Floating with water pooled inside their curled rims."
+          },
+          {
+            "entityId": "leaf-boat",
+            "ownerCharacterId": "wondii-leo",
+            "locationId": "sunstripe-grove",
+            "state": "Carried toward the lake with Maya supporting the opposite rim."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "bowl-leaf-lake",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [],
+            "emotion": "Maya reaches toward the narrowing gold stripe.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "bowl-leaf-lake",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [],
+            "emotion": "Maya reaches toward the narrowing gold stripe.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "drifting-leaf",
+            "ownerCharacterId": null,
+            "locationId": "waterfall-shelf",
+            "state": "Passing through the dry opening."
+          },
+          {
+            "entityId": "climbing-water",
+            "ownerCharacterId": null,
+            "locationId": "sunstripe-grove",
+            "state": "Rising in sunlight and falling in shade."
+          },
+          {
+            "entityId": "floating-stones",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Lifted beyond reach, leaving no shore crossing."
+          },
+          {
+            "entityId": "bowl-leaves",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Floating with water pooled inside their curled rims."
+          },
+          {
+            "entityId": "leaf-boat",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Afloat with both children, spinning toward the shallow bank."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-left",
+      "sentences": [
+        {
+          "text": "At the bowl-leaf lake, Leo held the leaf steady while Maya climbed aboard.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Then he eased himself in beside her.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "The boat turned once, then turned again.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Instead of entering the rising rain, it spun toward the shallow bank.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "narrativePhase": "ATTEMPT",
+      "locationZone": "leaf shore",
+      "pageTurnIntent": "CONTINUE",
+      "layoutIntent": "PAGE_PAIR",
+      "progressionReason": "location, goal, obstacle, action, consequence, world_state, entity_state, information",
+      "worldState": "Their leaf floats with both children aboard.",
+      "visualNoveltyReason": "location, goal, obstacle, action, consequence, world_state, entity_state, information",
+      "prose": "At the bowl-leaf lake, Leo held the leaf steady while Maya climbed aboard. Then he eased himself in beside her. The boat turned once, then turned again. Instead of entering the rising rain, it spun toward the shallow bank."
+    },
+    {
+      "pageId": "p8",
+      "beatId": "b8",
+      "locationId": "bowl-leaf-lake",
+      "charactersPresent": [
+        "wondii-maya",
+        "wondii-leo"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "bowl-leaf-lake",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [],
+            "emotion": "Maya reaches toward the narrowing gold stripe.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "bowl-leaf-lake",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [],
+            "emotion": "Maya reaches toward the narrowing gold stripe.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "drifting-leaf",
+            "ownerCharacterId": null,
+            "locationId": "waterfall-shelf",
+            "state": "Passing through the dry opening."
+          },
+          {
+            "entityId": "climbing-water",
+            "ownerCharacterId": null,
+            "locationId": "sunstripe-grove",
+            "state": "Rising in sunlight and falling in shade."
+          },
+          {
+            "entityId": "floating-stones",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Lifted beyond reach, leaving no shore crossing."
+          },
+          {
+            "entityId": "bowl-leaves",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Floating with water pooled inside their curled rims."
+          },
+          {
+            "entityId": "leaf-boat",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Afloat with both children, spinning toward the shallow bank."
+          }
+        ]
+      },
+      "action": "Leo lowers the long stem until it catches the shallow bottom. The boat stops, and Maya helps push it straight.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "bowl-leaf-lake",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [],
+            "emotion": "Their shoulders loosen when the spinning stops.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "bowl-leaf-lake",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [],
+            "emotion": "Their shoulders loosen when the spinning stops.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "drifting-leaf",
+            "ownerCharacterId": null,
+            "locationId": "waterfall-shelf",
+            "state": "Passing through the dry opening."
+          },
+          {
+            "entityId": "climbing-water",
+            "ownerCharacterId": null,
+            "locationId": "sunstripe-grove",
+            "state": "Rising in sunlight and falling in shade."
+          },
+          {
+            "entityId": "floating-stones",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Lifted beyond reach, leaving no shore crossing."
+          },
+          {
+            "entityId": "bowl-leaves",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Floating with water pooled inside their curled rims."
+          },
+          {
+            "entityId": "leaf-boat",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Stopped in shallow water with its stem braced against the bottom."
+          }
+        ]
+      },
+      "emotion": "Their shoulders loosen when the spinning stops.",
+      "entitiesRequired": [
+        "drifting-leaf",
+        "climbing-water",
+        "floating-stones",
+        "bowl-leaves",
+        "leaf-boat"
+      ],
+      "visualFocus": "The attached stem becoming a pole.",
+      "shotType": "overhead",
+      "compositionIntent": "Make the stem's contact with the bottom visible.",
+      "textPurpose": "Let the failed launch produce a useful discovery.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "bowl-leaf-lake",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [],
+            "emotion": "Maya reaches toward the narrowing gold stripe.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "bowl-leaf-lake",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [],
+            "emotion": "Maya reaches toward the narrowing gold stripe.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "drifting-leaf",
+            "ownerCharacterId": null,
+            "locationId": "waterfall-shelf",
+            "state": "Passing through the dry opening."
+          },
+          {
+            "entityId": "climbing-water",
+            "ownerCharacterId": null,
+            "locationId": "sunstripe-grove",
+            "state": "Rising in sunlight and falling in shade."
+          },
+          {
+            "entityId": "floating-stones",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Lifted beyond reach, leaving no shore crossing."
+          },
+          {
+            "entityId": "bowl-leaves",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Floating with water pooled inside their curled rims."
+          },
+          {
+            "entityId": "leaf-boat",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Afloat with both children, spinning toward the shallow bank."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "bowl-leaf-lake",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [],
+            "emotion": "Their shoulders loosen when the spinning stops.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "bowl-leaf-lake",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [],
+            "emotion": "Their shoulders loosen when the spinning stops.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "drifting-leaf",
+            "ownerCharacterId": null,
+            "locationId": "waterfall-shelf",
+            "state": "Passing through the dry opening."
+          },
+          {
+            "entityId": "climbing-water",
+            "ownerCharacterId": null,
+            "locationId": "sunstripe-grove",
+            "state": "Rising in sunlight and falling in shade."
+          },
+          {
+            "entityId": "floating-stones",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Lifted beyond reach, leaving no shore crossing."
+          },
+          {
+            "entityId": "bowl-leaves",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Floating with water pooled inside their curled rims."
+          },
+          {
+            "entityId": "leaf-boat",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Stopped in shallow water with its stem braced against the bottom."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-right",
+      "sentences": [
+        {
+          "text": "Near the shallow bank of the bowl-leaf lake, Leo lowered the long stem.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Its end caught the bottom, stopping the boat's spin.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "\"Hold it there,\" Maya said.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "She helped push against the stem until their leaf pointed straight.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "narrativePhase": "ESCALATION",
+      "locationZone": "shallow bank",
+      "pageTurnIntent": "CONTINUE",
+      "layoutIntent": "PAGE_PAIR",
+      "progressionReason": "location, goal, obstacle, action, consequence, world_state, information",
+      "worldState": "The boat reaches shallow water outside the lifting current.",
+      "visualNoveltyReason": "location, goal, obstacle, action, consequence, world_state, information",
+      "prose": "Near the shallow bank of the bowl-leaf lake, Leo lowered the long stem. Its end caught the bottom, stopping the boat's spin. \"Hold it there,\" Maya said. She helped push against the stem until their leaf pointed straight."
+    },
+    {
+      "pageId": "p9",
+      "beatId": "b9",
+      "locationId": "bowl-leaf-lake",
+      "charactersPresent": [
+        "wondii-maya",
+        "wondii-leo"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "bowl-leaf-lake",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [],
+            "emotion": "Their shoulders loosen when the spinning stops.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "bowl-leaf-lake",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [],
+            "emotion": "Their shoulders loosen when the spinning stops.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "drifting-leaf",
+            "ownerCharacterId": null,
+            "locationId": "waterfall-shelf",
+            "state": "Passing through the dry opening."
+          },
+          {
+            "entityId": "climbing-water",
+            "ownerCharacterId": null,
+            "locationId": "sunstripe-grove",
+            "state": "Rising in sunlight and falling in shade."
+          },
+          {
+            "entityId": "floating-stones",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Lifted beyond reach, leaving no shore crossing."
+          },
+          {
+            "entityId": "bowl-leaves",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Floating with water pooled inside their curled rims."
+          },
+          {
+            "entityId": "leaf-boat",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Stopped in shallow water with its stem braced against the bottom."
+          }
+        ]
+      },
+      "action": "Maya starts pushing toward the light, but Leo suggests testing a small floating leaf first. They watch it climb toward the entrance.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "bowl-leaf-lake",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [],
+            "emotion": "Maya nods and points to where the leaf begins rising.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "bowl-leaf-lake",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [],
+            "emotion": "Maya nods and points to where the leaf begins rising.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "drifting-leaf",
+            "ownerCharacterId": null,
+            "locationId": "waterfall-shelf",
+            "state": "Passing through the dry opening."
+          },
+          {
+            "entityId": "climbing-water",
+            "ownerCharacterId": null,
+            "locationId": "sunstripe-grove",
+            "state": "Rising in sunlight and falling in shade."
+          },
+          {
+            "entityId": "floating-stones",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Lifted beyond reach, leaving no shore crossing."
+          },
+          {
+            "entityId": "bowl-leaves",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Floating with water pooled inside their curled rims."
+          },
+          {
+            "entityId": "leaf-boat",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Stopped in shallow water with its stem braced against the bottom."
+          },
+          {
+            "entityId": "test-leaf",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Floating into the sunlit current and rising toward the passage mouth."
+          }
+        ]
+      },
+      "emotion": "Maya nods and points to where the leaf begins rising.",
+      "entitiesRequired": [
+        "drifting-leaf",
+        "climbing-water",
+        "floating-stones",
+        "bowl-leaves",
+        "leaf-boat",
+        "test-leaf"
+      ],
+      "visualFocus": "Their shared attention following the test.",
+      "shotType": "reaction",
+      "compositionIntent": "Keep both faces beneath the ascending leaf.",
+      "textPurpose": "Combine Maya's forward motion with Leo's testing.",
+      "pageTurnHook": "The small leaf has found their way up.",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "bowl-leaf-lake",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [],
+            "emotion": "Their shoulders loosen when the spinning stops.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "bowl-leaf-lake",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [],
+            "emotion": "Their shoulders loosen when the spinning stops.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "drifting-leaf",
+            "ownerCharacterId": null,
+            "locationId": "waterfall-shelf",
+            "state": "Passing through the dry opening."
+          },
+          {
+            "entityId": "climbing-water",
+            "ownerCharacterId": null,
+            "locationId": "sunstripe-grove",
+            "state": "Rising in sunlight and falling in shade."
+          },
+          {
+            "entityId": "floating-stones",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Lifted beyond reach, leaving no shore crossing."
+          },
+          {
+            "entityId": "bowl-leaves",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Floating with water pooled inside their curled rims."
+          },
+          {
+            "entityId": "leaf-boat",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Stopped in shallow water with its stem braced against the bottom."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "bowl-leaf-lake",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [],
+            "emotion": "Maya nods and points to where the leaf begins rising.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "bowl-leaf-lake",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [],
+            "emotion": "Maya nods and points to where the leaf begins rising.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "drifting-leaf",
+            "ownerCharacterId": null,
+            "locationId": "waterfall-shelf",
+            "state": "Passing through the dry opening."
+          },
+          {
+            "entityId": "climbing-water",
+            "ownerCharacterId": null,
+            "locationId": "sunstripe-grove",
+            "state": "Rising in sunlight and falling in shade."
+          },
+          {
+            "entityId": "floating-stones",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Lifted beyond reach, leaving no shore crossing."
+          },
+          {
+            "entityId": "bowl-leaves",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Floating with water pooled inside their curled rims."
+          },
+          {
+            "entityId": "leaf-boat",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Stopped in shallow water with its stem braced against the bottom."
+          },
+          {
+            "entityId": "test-leaf",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Floating into the sunlit current and rising toward the passage mouth."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-left",
+      "sentences": [
+        {
+          "text": "Maya began pushing toward the light on the bowl-leaf lake.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "\"Wait—try a small leaf first,\" Leo said.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "She stopped, and together they nudged a small floating leaf into the sunlit current.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "It rose toward the entrance while their boat stayed braced in the shallows.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "narrativePhase": "COMMITMENT",
+      "locationZone": "shallow bank",
+      "pageTurnIntent": "CONTINUE",
+      "layoutIntent": "PAGE_PAIR",
+      "progressionReason": "goal, obstacle, action, consequence, discovery, world_state, entity_state, information",
+      "worldState": "They can steer but have not identified a safe lifting route.",
+      "visualNoveltyReason": "goal, obstacle, action, consequence, discovery, world_state, entity_state, information",
+      "prose": "Maya began pushing toward the light on the bowl-leaf lake. \"Wait—try a small leaf first,\" Leo said. She stopped, and together they nudged a small floating leaf into the sunlit current. It rose toward the entrance while their boat stayed braced in the shallows."
+    },
+    {
+      "pageId": "p10",
+      "beatId": "b10",
+      "locationId": "bowl-leaf-lake",
+      "charactersPresent": [
+        "wondii-maya",
+        "wondii-leo"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "bowl-leaf-lake",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [],
+            "emotion": "Maya nods and points to where the leaf begins rising.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "bowl-leaf-lake",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [],
+            "emotion": "Maya nods and points to where the leaf begins rising.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "drifting-leaf",
+            "ownerCharacterId": null,
+            "locationId": "waterfall-shelf",
+            "state": "Passing through the dry opening."
+          },
+          {
+            "entityId": "climbing-water",
+            "ownerCharacterId": null,
+            "locationId": "sunstripe-grove",
+            "state": "Rising in sunlight and falling in shade."
+          },
+          {
+            "entityId": "floating-stones",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Lifted beyond reach, leaving no shore crossing."
+          },
+          {
+            "entityId": "bowl-leaves",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Floating with water pooled inside their curled rims."
+          },
+          {
+            "entityId": "leaf-boat",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Stopped in shallow water with its stem braced against the bottom."
+          },
+          {
+            "entityId": "test-leaf",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Floating into the sunlit current and rising toward the passage mouth."
+          }
+        ]
+      },
+      "action": "They pole into the tested current, and the leaf lifts unevenly. Both settle beside its central pool, leveling their boat.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "bowl-leaf-lake",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [],
+            "emotion": "Maya watches the entrance while Leo watches the rim.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "bowl-leaf-lake",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [],
+            "emotion": "Maya watches the entrance while Leo watches the rim.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "drifting-leaf",
+            "ownerCharacterId": null,
+            "locationId": "waterfall-shelf",
+            "state": "Passing through the dry opening."
+          },
+          {
+            "entityId": "climbing-water",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Lifting the boat toward the passage in narrowing sunlight."
+          },
+          {
+            "entityId": "floating-stones",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Lifted beyond reach, leaving no shore crossing."
+          },
+          {
+            "entityId": "bowl-leaves",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Floating with water pooled inside their curled rims."
+          },
+          {
+            "entityId": "leaf-boat",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Rising level with both children beside its central pool."
+          },
+          {
+            "entityId": "test-leaf",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Floating into the sunlit current and rising toward the passage mouth."
+          }
+        ]
+      },
+      "emotion": "Maya watches the entrance while Leo watches the rim.",
+      "entitiesRequired": [
+        "drifting-leaf",
+        "climbing-water",
+        "floating-stones",
+        "bowl-leaves",
+        "leaf-boat",
+        "test-leaf"
+      ],
+      "visualFocus": "The central pool holding the bowl level.",
+      "shotType": "low",
+      "compositionIntent": "Show the rising boat beneath the high entrance.",
+      "textPurpose": "Pay off the route test and balance discovery.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "bowl-leaf-lake",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [],
+            "emotion": "Maya nods and points to where the leaf begins rising.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "bowl-leaf-lake",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [],
+            "emotion": "Maya nods and points to where the leaf begins rising.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "drifting-leaf",
+            "ownerCharacterId": null,
+            "locationId": "waterfall-shelf",
+            "state": "Passing through the dry opening."
+          },
+          {
+            "entityId": "climbing-water",
+            "ownerCharacterId": null,
+            "locationId": "sunstripe-grove",
+            "state": "Rising in sunlight and falling in shade."
+          },
+          {
+            "entityId": "floating-stones",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Lifted beyond reach, leaving no shore crossing."
+          },
+          {
+            "entityId": "bowl-leaves",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Floating with water pooled inside their curled rims."
+          },
+          {
+            "entityId": "leaf-boat",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Stopped in shallow water with its stem braced against the bottom."
+          },
+          {
+            "entityId": "test-leaf",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Floating into the sunlit current and rising toward the passage mouth."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "bowl-leaf-lake",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [],
+            "emotion": "Maya watches the entrance while Leo watches the rim.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "bowl-leaf-lake",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [],
+            "emotion": "Maya watches the entrance while Leo watches the rim.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "drifting-leaf",
+            "ownerCharacterId": null,
+            "locationId": "waterfall-shelf",
+            "state": "Passing through the dry opening."
+          },
+          {
+            "entityId": "climbing-water",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Lifting the boat toward the passage in narrowing sunlight."
+          },
+          {
+            "entityId": "floating-stones",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Lifted beyond reach, leaving no shore crossing."
+          },
+          {
+            "entityId": "bowl-leaves",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Floating with water pooled inside their curled rims."
+          },
+          {
+            "entityId": "leaf-boat",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Rising level with both children beside its central pool."
+          },
+          {
+            "entityId": "test-leaf",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Floating into the sunlit current and rising toward the passage mouth."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-right",
+      "sentences": [
+        {
+          "text": "On the bowl-leaf lake, they poled their boat into the current the small leaf had tested.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "The rising rain lifted one rim higher than the other.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Maya slid toward the central pool, and Leo settled beside her.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Their boat leveled as it climbed through the narrowing sunlight.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "narrativePhase": "ESCALATION",
+      "locationZone": "rising rain",
+      "pageTurnIntent": "CONTINUE",
+      "layoutIntent": "PAGE_PAIR",
+      "progressionReason": "location, goal, obstacle, action, consequence, world_state, entity_state, information",
+      "worldState": "The remaining sunstripe reaches the passage mouth.",
+      "visualNoveltyReason": "location, goal, obstacle, action, consequence, world_state, entity_state, information",
+      "prose": "On the bowl-leaf lake, they poled their boat into the current the small leaf had tested. The rising rain lifted one rim higher than the other. Maya slid toward the central pool, and Leo settled beside her. Their boat leveled as it climbed through the narrowing sunlight."
+    },
+    {
+      "pageId": "p11",
+      "beatId": "b11",
+      "locationId": "mist-pathway",
+      "charactersPresent": [
+        "wondii-maya",
+        "wondii-leo"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "bowl-leaf-lake",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [],
+            "emotion": "Maya watches the entrance while Leo watches the rim.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "bowl-leaf-lake",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [],
+            "emotion": "Maya watches the entrance while Leo watches the rim.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "drifting-leaf",
+            "ownerCharacterId": null,
+            "locationId": "waterfall-shelf",
+            "state": "Passing through the dry opening."
+          },
+          {
+            "entityId": "climbing-water",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Lifting the boat toward the passage in narrowing sunlight."
+          },
+          {
+            "entityId": "floating-stones",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Lifted beyond reach, leaving no shore crossing."
+          },
+          {
+            "entityId": "bowl-leaves",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Floating with water pooled inside their curled rims."
+          },
+          {
+            "entityId": "leaf-boat",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Rising level with both children beside its central pool."
+          },
+          {
+            "entityId": "test-leaf",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Floating into the sunlit current and rising toward the passage mouth."
+          }
+        ]
+      },
+      "action": "Leo braces the stem against the pathway lip, and Maya steps onto the stone. She holds it while he crosses.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "mist-pathway",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [],
+            "emotion": "Neither releases the stem until both stand on rock.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "mist-pathway",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [],
+            "emotion": "Neither releases the stem until both stand on rock.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "drifting-leaf",
+            "ownerCharacterId": null,
+            "locationId": "waterfall-shelf",
+            "state": "Passing through the dry opening."
+          },
+          {
+            "entityId": "climbing-water",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Lifting the boat toward the passage in narrowing sunlight."
+          },
+          {
+            "entityId": "floating-stones",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Lifted beyond reach, leaving no shore crossing."
+          },
+          {
+            "entityId": "bowl-leaves",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Floating with water pooled inside their curled rims."
+          },
+          {
+            "entityId": "leaf-boat",
+            "ownerCharacterId": null,
+            "locationId": "mist-pathway",
+            "state": "Resting against the broad stone lip after both children disembark."
+          },
+          {
+            "entityId": "test-leaf",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Floating into the sunlit current and rising toward the passage mouth."
+          }
+        ]
+      },
+      "emotion": "Neither releases the stem until both stand on rock.",
+      "entitiesRequired": [
+        "drifting-leaf",
+        "climbing-water",
+        "floating-stones",
+        "bowl-leaves",
+        "leaf-boat",
+        "test-leaf"
+      ],
+      "visualFocus": "Both children gaining solid footing.",
+      "shotType": "action",
+      "compositionIntent": "Connect hands, stem, boat, and landing in one readable arrangement.",
+      "textPurpose": "Settle the lost-route problem using their earlier discoveries.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "bowl-leaf-lake",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [],
+            "emotion": "Maya watches the entrance while Leo watches the rim.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "bowl-leaf-lake",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [],
+            "emotion": "Maya watches the entrance while Leo watches the rim.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "drifting-leaf",
+            "ownerCharacterId": null,
+            "locationId": "waterfall-shelf",
+            "state": "Passing through the dry opening."
+          },
+          {
+            "entityId": "climbing-water",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Lifting the boat toward the passage in narrowing sunlight."
+          },
+          {
+            "entityId": "floating-stones",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Lifted beyond reach, leaving no shore crossing."
+          },
+          {
+            "entityId": "bowl-leaves",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Floating with water pooled inside their curled rims."
+          },
+          {
+            "entityId": "leaf-boat",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Rising level with both children beside its central pool."
+          },
+          {
+            "entityId": "test-leaf",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Floating into the sunlit current and rising toward the passage mouth."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "mist-pathway",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [],
+            "emotion": "Neither releases the stem until both stand on rock.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "mist-pathway",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [],
+            "emotion": "Neither releases the stem until both stand on rock.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "drifting-leaf",
+            "ownerCharacterId": null,
+            "locationId": "waterfall-shelf",
+            "state": "Passing through the dry opening."
+          },
+          {
+            "entityId": "climbing-water",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Lifting the boat toward the passage in narrowing sunlight."
+          },
+          {
+            "entityId": "floating-stones",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Lifted beyond reach, leaving no shore crossing."
+          },
+          {
+            "entityId": "bowl-leaves",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Floating with water pooled inside their curled rims."
+          },
+          {
+            "entityId": "leaf-boat",
+            "ownerCharacterId": null,
+            "locationId": "mist-pathway",
+            "state": "Resting against the broad stone lip after both children disembark."
+          },
+          {
+            "entityId": "test-leaf",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Floating into the sunlit current and rising toward the passage mouth."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-left",
+      "sentences": [
+        {
+          "text": "At the mist pathway, Leo braced the stem against the broad stone lip.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Maya stepped onto the stone and held the stem firmly.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "\"I've got it. Come across.\"",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Leo stepped beside her, leaving their leaf-boat resting against the lip.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "narrativePhase": "CLIMAX",
+      "locationZone": "high mouth",
+      "pageTurnIntent": "CONTINUE",
+      "layoutIntent": "DOUBLE_PAGE_SPREAD",
+      "progressionReason": "location, goal, obstacle, action, consequence, world_state, entity_state, information",
+      "worldState": "The boat reaches the entrance before the sunstripe withdraws.",
+      "visualNoveltyReason": "location, goal, obstacle, action, consequence, world_state, entity_state, information",
+      "prose": "At the mist pathway, Leo braced the stem against the broad stone lip. Maya stepped onto the stone and held the stem firmly. \"I've got it. Come across.\" Leo stepped beside her, leaving their leaf-boat resting against the lip."
+    },
+    {
+      "pageId": "p12",
+      "beatId": "b12",
+      "locationId": "waterfall-shelf",
+      "charactersPresent": [
+        "wondii-maya",
+        "wondii-leo"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "mist-pathway",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [],
+            "emotion": "Neither releases the stem until both stand on rock.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "mist-pathway",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [],
+            "emotion": "Neither releases the stem until both stand on rock.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "drifting-leaf",
+            "ownerCharacterId": null,
+            "locationId": "waterfall-shelf",
+            "state": "Passing through the dry opening."
+          },
+          {
+            "entityId": "climbing-water",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Lifting the boat toward the passage in narrowing sunlight."
+          },
+          {
+            "entityId": "floating-stones",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Lifted beyond reach, leaving no shore crossing."
+          },
+          {
+            "entityId": "bowl-leaves",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Floating with water pooled inside their curled rims."
+          },
+          {
+            "entityId": "leaf-boat",
+            "ownerCharacterId": null,
+            "locationId": "mist-pathway",
+            "state": "Resting against the broad stone lip after both children disembark."
+          },
+          {
+            "entityId": "test-leaf",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Floating into the sunlit current and rising toward the passage mouth."
+          }
+        ]
+      },
+      "action": "Back beside the waterfall, Leo bends to inspect another dry gap. Maya crouches beside him as their upside-down reflections shimmer.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "waterfall-shelf",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [],
+            "emotion": "This time, Maya waits for Leo to point.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "waterfall-shelf",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [],
+            "emotion": "This time, Maya waits for Leo to point.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "drifting-leaf",
+            "ownerCharacterId": null,
+            "locationId": "waterfall-shelf",
+            "state": "Passing through the dry opening."
+          },
+          {
+            "entityId": "climbing-water",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Lifting the boat toward the passage in narrowing sunlight."
+          },
+          {
+            "entityId": "floating-stones",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Lifted beyond reach, leaving no shore crossing."
+          },
+          {
+            "entityId": "bowl-leaves",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Floating with water pooled inside their curled rims."
+          },
+          {
+            "entityId": "leaf-boat",
+            "ownerCharacterId": null,
+            "locationId": "mist-pathway",
+            "state": "Resting against the broad stone lip after both children disembark."
+          },
+          {
+            "entityId": "test-leaf",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Floating into the sunlit current and rising toward the passage mouth."
+          }
+        ]
+      },
+      "emotion": "This time, Maya waits for Leo to point.",
+      "entitiesRequired": [
+        "drifting-leaf",
+        "climbing-water",
+        "floating-stones",
+        "bowl-leaves",
+        "leaf-boat",
+        "test-leaf"
+      ],
+      "visualFocus": "Two searching faces above two upside-down reflections.",
+      "shotType": "vignette",
+      "compositionIntent": "Pair the crouching children with inverted reflections in the water curtain.",
+      "textPurpose": "Leave a changed partnership and a remembered image.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "mist-pathway",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [],
+            "emotion": "Neither releases the stem until both stand on rock.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "mist-pathway",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [],
+            "emotion": "Neither releases the stem until both stand on rock.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "drifting-leaf",
+            "ownerCharacterId": null,
+            "locationId": "waterfall-shelf",
+            "state": "Passing through the dry opening."
+          },
+          {
+            "entityId": "climbing-water",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Lifting the boat toward the passage in narrowing sunlight."
+          },
+          {
+            "entityId": "floating-stones",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Lifted beyond reach, leaving no shore crossing."
+          },
+          {
+            "entityId": "bowl-leaves",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Floating with water pooled inside their curled rims."
+          },
+          {
+            "entityId": "leaf-boat",
+            "ownerCharacterId": null,
+            "locationId": "mist-pathway",
+            "state": "Resting against the broad stone lip after both children disembark."
+          },
+          {
+            "entityId": "test-leaf",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Floating into the sunlit current and rising toward the passage mouth."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "wondii-maya",
+            "locationId": "waterfall-shelf",
+            "clothing": "as shown in games/images/characters/maya-v1.jpg",
+            "carriedEntities": [],
+            "emotion": "This time, Maya waits for Leo to point.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "wondii-leo",
+            "locationId": "waterfall-shelf",
+            "clothing": "as shown in games/images/characters/crew/wondii-leo.jpg",
+            "carriedEntities": [],
+            "emotion": "This time, Maya waits for Leo to point.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "drifting-leaf",
+            "ownerCharacterId": null,
+            "locationId": "waterfall-shelf",
+            "state": "Passing through the dry opening."
+          },
+          {
+            "entityId": "climbing-water",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Lifting the boat toward the passage in narrowing sunlight."
+          },
+          {
+            "entityId": "floating-stones",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Lifted beyond reach, leaving no shore crossing."
+          },
+          {
+            "entityId": "bowl-leaves",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Floating with water pooled inside their curled rims."
+          },
+          {
+            "entityId": "leaf-boat",
+            "ownerCharacterId": null,
+            "locationId": "mist-pathway",
+            "state": "Resting against the broad stone lip after both children disembark."
+          },
+          {
+            "entityId": "test-leaf",
+            "ownerCharacterId": null,
+            "locationId": "bowl-leaf-lake",
+            "state": "Floating into the sunlit current and rising toward the passage mouth."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-right",
+      "sentences": [
+        {
+          "text": "Back on the waterfall shelf, Leo bent to inspect another dry gap.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "This time, Maya crouched beside him.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Neither hurried through.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Beside the falling water, their upside-down reflections shimmered.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "narrativePhase": "RESOLUTION",
+      "locationZone": "dry ledge",
+      "pageTurnIntent": "RESOLVE",
+      "layoutIntent": "SINGLE_PAGE_SCENE",
+      "progressionReason": "location, goal, action, consequence, world_state, information",
+      "worldState": "The children are outside again; the concealed world remains beyond the curtain.",
+      "visualNoveltyReason": "location, goal, action, consequence, world_state, information",
+      "prose": "Back on the waterfall shelf, Leo bent to inspect another dry gap. This time, Maya crouched beside him. Neither hurried through. Beside the falling water, their upside-down reflections shimmered."
+    }
+  ],
+  "imageCalls": 0,
+  "imageDraws": 0,
+  "imageReason": "images_disabled",
+  "imageUsd": 0
+}

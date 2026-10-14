@@ -20,7 +20,7 @@ test("the closed cover uses the saved title and nothing else in the reader moved
     )
     .replace("    closedCoverTitle = String(plan.title || \"Untitled story\").trim() || \"Untitled story\";\n", "");
   const sha = createHash("sha1").update(restored).digest("hex");
-  assert.equal(sha, "e1cc182e222e8fd75186911e17949a43629fd1b5");
+  assert.equal(sha, "44d8680d9fea2941ff15f30be4a312ee6f71a18e");
   assert.match(book, /closedCoverTitle = String\(plan\.title \|\| "Untitled story"\)/);
   assert.match(book, /OPEN_COVER = -Math\.PI/);
   assert.match(book, /const TURN_MS = 880/);
@@ -67,7 +67,7 @@ test("the journey sends each real portrait and the verified picture-book style",
   assert.equal(journey.includes("postboxList"), false);
   assert.equal(journey.includes("lib.giftArt"), false);
   assert.match(journey, /members: members/);
-  assert.match(journey, /members\.push\(\{ id: id, name: row\[1\] \}\)/);
+  assert.match(journey, /members\.push\(\{ id: id, name: row\[1\], source: memberSource\(id\) \}\)/);
   assert.equal(journey.includes("src: portraitSrc"), false);
   assert.match(story, /function referenceForPerson/);
   assert.match(journey, /portraitSrc\(id\)/);

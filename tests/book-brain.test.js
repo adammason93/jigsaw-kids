@@ -428,6 +428,49 @@ assert.ok(quickShape.indexOf("length-shape") < 0, quickShape.join(", "));
 assert.ok(quickShape.indexOf("depth-thin") < 0, quickShape.join(", "));
 var storybookShape = Book.lengthShape(bible.beats, Book.lengthProfile("storybook"));
 assert.ok(storybookShape.indexOf("length-shape") >= 0);
+assert.ok(storybookShape.indexOf("page-count") < 0);
+var eleven = [];
+for (var step = 0; step < 11; step += 1) {
+  eleven.push({
+    role: step === 0 ? "hook" : (step === 9 ? "climax" : (step === 10 ? "resolution" : "discovery")),
+    action: "A different castle clue number " + step + " changes the search."
+  });
+}
+var ranged = Book.lengthShape(eleven, Book.lengthProfile("storybook"));
+assert.ok(ranged.indexOf("page-count") < 0);
+assert.ok(ranged.indexOf("length-shape") < 0);
+var exactProfile = Book.lengthProfile("storybook");
+exactProfile.exactPages = 12;
+var missed = Book.lengthShape(eleven, exactProfile);
+assert.ok(missed.indexOf("page-count") >= 0);
+assert.strictEqual(eleven.length, 11);
+var matched = eleven.concat([{ role: "breath", action: "Maya and Leo watch the castle lights return together." }]);
+var held = Book.lengthShape(matched, exactProfile);
+assert.ok(held.indexOf("page-count") < 0);
+var outside = Book.acceptCreation({
+  castIds: ["maya"],
+  idea: "Maya finds a lantern.",
+  yearGroup: "Year 5",
+  length: "storybook",
+  pageCount: 20
+});
+assert.ok(outside.problems.indexOf("page-count") >= 0);
+assert.strictEqual(Book.readerProfile({ yearGroup: "Year 5", ageBand: "7-9", pageCount: 12 }).limits.maxSentenceWords, 22);
+var asked = Book.publicRequest({
+  castIds: ["maya"],
+  idea: "Maya finds a lantern.",
+  ageBand: "7-9",
+  length: "storybook",
+  pageCount: 12
+});
+assert.strictEqual(asked.pageCount, 12);
+assert.strictEqual(asked.yearGroup, "");
+var unpadded = clone(bible);
+unpadded.pageCount = unpadded.beats.length + 1;
+var refusedPlan = Book.planPages(unpadded);
+assert.ok(refusedPlan.problems.indexOf("page-count") >= 0);
+assert.strictEqual(refusedPlan.pages, null);
+assert.strictEqual(unpadded.beats.length, bible.beats.length);
 var adventureShape = Book.lengthShape(bible.beats, Book.lengthProfile("adventure"));
 assert.ok(adventureShape.indexOf("length-shape") >= 0);
 
@@ -454,6 +497,16 @@ assert.notStrictEqual(Book.readerProfile({ yearGroup: "Year 2" }).limits.maxSent
 assert.strictEqual(Book.readerProfile({ yearGroup: "Reception" }).narrativeComplexity, Book.readerProfile({ ageBand: "3-4" }).narrativeComplexity);
 assert.strictEqual(Book.readerProfile({ yearGroup: "Year 3" }).limits.maxPageWords, Book.readerProfile({ ageBand: "7-8" }).limits.maxPageWords);
 assert.strictEqual(Book.readerProfile({ yearGroup: "Year 5" }).limits.maxSentenceWords, Book.readerProfile({ ageBand: "9-10" }).limits.maxSentenceWords);
+assert.strictEqual(Book.readerProfile({ yearGroup: "Year 5" }).constraintYear, "Year 5");
+assert.strictEqual(Book.readerProfile({ yearGroup: "Year 5", ageBand: "7-9" }).limits.maxSentenceWords, 22);
+var agesSeven = Book.readerProfile({ ageBand: "7-9" });
+assert.strictEqual(agesSeven.constraintYear, "Ages 7–9");
+assert.notStrictEqual(agesSeven.constraintYear, "Year 5");
+assert.strictEqual(agesSeven.limits.maxSentenceWords, 18);
+assert.strictEqual(agesSeven.limits.maxSentences, 4);
+assert.strictEqual(agesSeven.limits.maxDialogueTurns, 2);
+assert.strictEqual(agesSeven.limits.maxPageWords, 64);
+assert.ok(agesSeven.writing.indexOf("seven-year-old") >= 0);
 assert.strictEqual(Book.readerProfile({ yearGroup: "Year 6" }).limits.maxPageWords, Book.readerProfile({ ageBand: "11-12" }).limits.maxPageWords);
 assert.notStrictEqual(Book.readerProfile({ yearGroup: "Year 4" }).stage, Book.readerProfile({ ageBand: "7-8" }).stage);
 

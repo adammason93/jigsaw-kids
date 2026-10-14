@@ -51,36 +51,166 @@ function sentencesOf(prose) {
   }).filter(Boolean);
 }
 
-function entityNameTokens(entity) {
-  return tokens(entity && entity.name).filter(function (word) {
-    return word.length > 3;
+var NAME_GLUE = {
+  the: 1, a: 1, an: 1, and: 1, or: 1, of: 1, to: 1, her: 1, his: 1, its: 1,
+  their: 1, with: 1, on: 1, in: 1, at: 1, by: 1, for: 1, from: 1
+};
+var COPULA = { was: 1, were: 1, looked: 1, seemed: 1, turned: 1, became: 1, grew: 1 };
+
+function bareWord(word) {
+  return String(word || "").replace(/'s$/, "");
+}
+
+function nameTokens(entity) {
+  return tokens(entity && entity.name).map(bareWord).filter(function (word) {
+    return word && !NAME_GLUE[word];
   });
 }
 
 function mentions(entity, sentence) {
-  var names = entityNameTokens(entity);
-  var bag = tokens(sentence);
-  return names.some(function (word) { return bag.indexOf(word) >= 0; });
+  var names = nameTokens(entity);
+  if (!names.length) return false;
+  var bag = tokens(sentence).map(bareWord);
+  return bag.indexOf(names[names.length - 1]) >= 0;
 }
 
-function colourNear(sentence, entity, colour) {
+function nameSlice(names, words) {
+  var start = 0;
+  var wanted = words.join(" ");
+  while (start <= names.length - words.length) {
+    if (names.slice(start, start + words.length).join(" ") === wanted) return true;
+    start += 1;
+  }
+  return false;
+}
+
+function isNameToken(word, entities) {
+  return (entities || []).some(function (entity) {
+    return nameTokens(entity).indexOf(word) >= 0;
+  });
+}
+
+function phraseAfter(bag, colourIndex, entities) {
+  var words = [];
+  var skippedVerb = false;
+  var index;
+  for (index = colourIndex + 1; index < bag.length && index <= colourIndex + 6; index += 1) {
+    var word = bareWord(bag[index]);
+    if (!word || NAME_GLUE[word] || COLOURS[word] || COPULA[word]) continue;
+    if (!words.length && !isNameToken(word, entities)) {
+      if (skippedVerb) break;
+      skippedVerb = true;
+      continue;
+    }
+    if (words.length && !nameSliceOwns(words.concat([word]), entities)) break;
+    words.push(word);
+  }
+  return words;
+}
+
+function nameSliceOwns(words, entities) {
+  return (entities || []).some(function (entity) {
+    return nameSlice(nameTokens(entity), words);
+  });
+}
+
+function phraseBefore(bag, colourIndex) {
+  var index;
+  for (index = colourIndex - 1; index >= 0 && index >= colourIndex - 5; index -= 1) {
+    var word = bareWord(bag[index]);
+    if (!word || NAME_GLUE[word] || COLOURS[word] || COPULA[word]) continue;
+    return [word];
+  }
+  return [];
+}
+
+function hasForwardNoun(bag, colourIndex) {
+  var index;
+  for (index = colourIndex + 1; index < bag.length && index <= colourIndex + 4; index += 1) {
+    var word = bareWord(bag[index]);
+    if (!word || NAME_GLUE[word] || COLOURS[word] || COPULA[word]) continue;
+    return true;
+  }
+  return false;
+}
+
+function colourPhrase(sentence, colour, entities) {
   var bag = tokens(sentence);
-  var names = entityNameTokens(entity);
-  var colourAt = [];
+  var places = [];
   bag.forEach(function (word, index) {
-    if (word.replace(/'s$/, "") === colour) colourAt.push(index);
+    if (bareWord(word) === colour) places.push(index);
   });
-  return names.some(function (name) {
-    var at = bag.indexOf(name);
-    if (at < 0) return false;
-    return colourAt.some(function (index) { return Math.abs(index - at) <= 4; });
+  return places.map(function (index) {
+    var after = phraseAfter(bag, index, entities);
+    if (after.length) return after;
+    if (hasForwardNoun(bag, index)) return [];
+    return phraseBefore(bag, index);
+  }).filter(function (phrase) { return phrase.length; });
+}
+
+function colourModifiers(entity) {
+  return nameTokens(entity).slice(0, -1).filter(function (word) { return !COLOURS[word]; });
+}
+
+function colourNear(sentence, entity, colour, entities) {
+  var names = nameTokens(entity);
+  if (!names.length) return false;
+  var head = names[names.length - 1];
+  return colourPhrase(sentence, colour, entities).some(function (phrase) {
+    if (phrase[phrase.length - 1] !== head) return false;
+    var candidates = (entities || []).filter(function (item) {
+      var itemNames = nameTokens(item);
+      return itemNames.length && itemNames[itemNames.length - 1] === head;
+    });
+    if (!candidates.length) candidates = [entity];
+    var complete = candidates.filter(function (item) {
+      return colourModifiers(item).every(function (word) { return phrase.indexOf(word) >= 0; });
+    });
+    var winner = (complete.length ? complete : candidates).reduce(function (best, item) {
+      return nameTokens(item).length > nameTokens(best).length ? item : best;
+    });
+    return winner.entityId === entity.entityId;
   });
+}
+
+function registryEntry(bible, id) {
+  return ((bible && bible.identityRegistry) || []).filter(function (row) {
+    return row && (row.characterId === id || row.journeyId === id);
+  })[0] || null;
+}
+
+function describedCharacter(bible, id) {
+  var row = registryEntry(bible, id);
+  var bibleId = row && row.bibleId ? row.bibleId : id;
+  var character = Cast.getCharacter(id) || Cast.getCharacter(bibleId);
+  if (!character && !row) return null;
+  var portraitOnly = !!(row && row.referenceApproved !== true);
+  var refs = character ? Cast.storyReferences(character.characterId) : { assetIds: [], status: "missing", versionId: "", file: "" };
+  var file = row ? (row.approvedReference || row.portrait || "") : (refs.file || "");
+  return {
+    characterId: id,
+    name: (row && row.name) || (character && character.name) || id,
+    face: portraitOnly ? "as shown in this character's own portrait" : (character && character.face) || "",
+    skinTone: portraitOnly ? "as shown in this character's own portrait" : (character && character.skinTone) || "",
+    hair: portraitOnly ? "as shown in this character's own portrait" : (character && character.hair) || "",
+    ageAppearance: (character && character.ageAppearance) || "",
+    body: (character && character.body) || "",
+    defaultClothing: portraitOnly ? "as shown in this character's own portrait" : (character && character.defaultClothing) || "",
+    footwear: portraitOnly ? "as shown in this character's own portrait" : (character && character.footwear) || "",
+    accessories: portraitOnly ? [] : ((character && character.accessories) || []).slice(),
+    relativeHeight: (character && character.relativeHeight) || "",
+    visualIdentifiers: portraitOnly ? ["match the portrait exactly"] : ((character && character.visualIdentifiers) || []).slice(),
+    referenceAssetIds: portraitOnly ? [] : (refs.assetIds || []).slice(),
+    referenceVersionId: portraitOnly ? (row.referenceVersion || "") : (refs.versionId || ""),
+    referenceFile: file,
+    referenceStatus: portraitOnly ? "portrait" : (refs.status || "missing")
+  };
 }
 
 function characterOwns(bible, page, sentence, colour) {
   var present = page.charactersPresent || bible.castIds || [];
   return present.some(function (id) {
-    var character = Cast.getCharacter(id);
+    var character = describedCharacter(bible, id);
     if (!character || tokens(sentence).indexOf(character.name.toLowerCase()) < 0) return false;
     var look = [character.defaultClothing, character.footwear].concat(character.accessories || []).concat(character.visualIdentifiers || []).join(" ");
     return coloursIn(look).indexOf(colour) >= 0;
@@ -115,7 +245,7 @@ function unplannedVisualProblems(bible, pages) {
       var fromPrevious = false;
       if (!bound.length && colours.length && previous.length === 1 && !characterOwns(bible, page, sentence, colours[0])) {
         var namesSomeone = (page.charactersPresent || bible.castIds || []).some(function (id) {
-          var character = Cast.getCharacter(id);
+          var character = describedCharacter(bible, id);
           return character && tokens(sentence).indexOf(character.name.toLowerCase()) >= 0;
         });
         if (!namesSomeone) {
@@ -127,7 +257,7 @@ function unplannedVisualProblems(bible, pages) {
         var allow = known[entity.entityId].concat(allowedColours(entity, page));
         var intro = entity.introducedAt && page.beatId === entity.introducedAt;
         colours.forEach(function (colour) {
-          if (!fromPrevious && !colourNear(sentence, entity, colour)) return;
+          if (!fromPrevious && !colourNear(sentence, entity, colour, entities)) return;
           if (allow.indexOf(colour) >= 0) return;
           if (intro) {
             known[entity.entityId].push(colour);
@@ -316,27 +446,15 @@ function styleCoherence(readings) {
 function castLook(bible, proposals) {
   var proposalsById = proposals || {};
   return (bible.castIds || []).map(function (id) {
-    var character = Cast.getCharacter(id);
-    if (!character) return null;
-    var refs = Cast.storyReferences(id, proposalsById[id]);
-    return {
-      characterId: id,
-      name: character.name,
-      face: character.face,
-      skinTone: character.skinTone,
-      hair: character.hair,
-      ageAppearance: character.ageAppearance,
-      body: character.body,
-      defaultClothing: character.defaultClothing,
-      footwear: character.footwear,
-      accessories: (character.accessories || []).slice(),
-      relativeHeight: character.relativeHeight,
-      visualIdentifiers: (character.visualIdentifiers || []).slice(),
-      referenceAssetIds: refs.assetIds,
-      referenceVersionId: refs.versionId || "",
-      referenceFile: refs.file || "",
-      referenceStatus: refs.status
-    };
+    var look = describedCharacter(bible, id);
+    if (!look) return null;
+    var proposal = proposalsById[id] || proposalsById[look.characterId];
+    if (proposal && proposal.assetIds && look.referenceStatus !== "portrait") {
+      look.referenceAssetIds = proposal.assetIds.slice();
+      look.referenceVersionId = proposal.versionId || look.referenceVersionId;
+      look.referenceStatus = proposal.status || look.referenceStatus;
+    }
+    return look;
   }).filter(Boolean);
 }
 
@@ -596,7 +714,7 @@ function pageVisualContract(bible, pages, index) {
   var journeySpread = Journey.analyse({ bible: bible, pages: pages }).spreads[index] || {};
   var pageRole = page.pageRole || journeySpread.pageRole || "";
   var plannedTextRegion = page.plannedTextRegion || journeySpread.plannedTextRegion || page.textSafeRegion || "";
-  return {
+  var contract = {
     spreadId: page.pageId,
     beatId: page.beatId,
     role: beat.role || "",
@@ -628,8 +746,19 @@ function pageVisualContract(bible, pages, index) {
     openingState: clone(page.stateBefore || null),
     continuityFromPrevious: previous ? previous.pageId : null,
     requirementsForNext: next ? { spreadId: next.pageId, mustMatch: clone(page.stateAfter || null) } : null,
+    cameraBrief: journeySpread.cameraBrief || "",
+    continuityLine: journeySpread.continuityLine || "",
+    placeTransition: journeySpread.placeTransition || "",
+    worldTone: journeySpread.worldTone || "",
+    varietyNote: journeySpread.varietyNote || "",
+    placeStay: journeySpread.placeStay || 1,
+    placeCue: placeCue(page.prose, page.action || beat.action || ""),
     prose: ""
   };
+  var scene = sceneInventory(bible, contract);
+  contract.mustShow = scene.showIds;
+  contract.sceneLeave = scene.leave.join("; ");
+  return contract;
 }
 
 function planVisuals(bible, proposals) {
@@ -700,6 +829,101 @@ function sheetPrompt(character) {
   ].join(" ");
 }
 
+function placeCue(prose, action) {
+  var sentences = String(prose || "").split(/(?<=[.!?])\s+/);
+  var sentence = sentences.filter(function (line) {
+    return /\b(dark|unlit|dim|moonlit|rain|snow|sunset|sunrise)\b/i.test(line);
+  })[0] || "";
+  if (!sentence) return "";
+  var word = (sentence.match(/\b(dark|unlit|dim|moonlit|rain|snow|sunset|sunrise)\b/i) || [])[0];
+  if (word && String(action || "").toLowerCase().indexOf(word.toLowerCase()) >= 0) return "";
+  return sentence.replace(/\s+/g, " ").trim();
+}
+
+function headNoun(name) {
+  var words = tokens(name).filter(function (word) {
+    return word.length > 2 && !ALIAS_SKIP[word];
+  });
+  return words.length ? words[words.length - 1] : "";
+}
+
+function mentionsHead(entity, text) {
+  var head = headNoun(entity && (entity.name || entity.entityId));
+  if (!head || head.length < 3) return false;
+  return tokens(text).indexOf(head) >= 0;
+}
+
+function sharesContentWord(entity, text) {
+  var nameWords = tokens(entity && (entity.name || entity.entityId)).filter(function (word) {
+    return word.length > 4 && !ALIAS_SKIP[word];
+  });
+  var blob = tokens(text);
+  return nameWords.some(function (word) { return blob.indexOf(word) >= 0; });
+}
+
+function placeName(bible, locationId) {
+  var place = ((bible && bible.locations) || []).filter(function (item) {
+    return item.locationId === locationId;
+  })[0];
+  return (place && place.name) || locationId || "another place";
+}
+
+function sceneInventory(bible, spread) {
+  var here = spread.locationId || "";
+  var place = ((bible && bible.locations) || []).filter(function (item) {
+    return item.locationId === here;
+  })[0];
+  var momentText = [
+    spread.storyEvent, spread.illustrationMoment, spread.visualFocus,
+    spread.compositionIntent, spread.placeCue, place && place.visualIdentity
+  ].filter(Boolean).join(" ");
+  var rows = (spread.entityStateBefore || []).slice();
+  var seen = {};
+  rows.forEach(function (row) { if (row && row.entityId) seen[row.entityId] = true; });
+  ((spread.stateAfter && spread.stateAfter.entities) || []).forEach(function (row) {
+    if (!row || !row.entityId || seen[row.entityId]) return;
+    var known = ((bible && bible.entities) || []).filter(function (item) {
+      return item.entityId === row.entityId;
+    })[0] || row;
+    if (!mentionsHead(known, momentText) && !(row.locationId === here && mentionsHead(known, place && place.visualIdentity))) return;
+    rows.push(row);
+    seen[row.entityId] = true;
+  });
+  var show = [];
+  var leave = [];
+  var span = [];
+  var showIds = [];
+  rows.forEach(function (row) {
+    var known = ((bible && bible.entities) || []).filter(function (item) {
+      return item.entityId === row.entityId;
+    })[0] || {};
+    var name = known.name || row.entityId;
+    var stated = row.locationId || "";
+    var carried = /\b(pocket|carrying|carried|wearing|tucked)\b/i.test(row.state || "");
+    var inMoment = mentionsHead(known.entityId ? known : { name: name, entityId: row.entityId }, momentText);
+    var elsewhere = !!(stated && stated !== here && !inMoment && !carried);
+    if (elsewhere && sharesContentWord(known.entityId ? known : { name: name }, momentText)) {
+      span.push("The rest of " + name + " stays in " + placeName(bible, stated) + ". Show only the part this moment names.");
+      return;
+    }
+    if (elsewhere) {
+      leave.push(name + ", still in " + placeName(bible, stated));
+      return;
+    }
+    if (carried && !inMoment) {
+      show.push(name + " stays " + String(row.state || "with its owner").replace(/\.$/, "") + ". It is not the subject.");
+      return;
+    }
+    var line = name;
+    var identity = known.identity ? String(known.identity).split(". ")[0] : "";
+    if (identity) line += ": " + identity.replace(/\.$/, "");
+    if (row.state) line += ". Right now: " + String(row.state).replace(/\.$/, "");
+    show.push(line);
+    showIds.push(row.entityId);
+  });
+  return { show: show, leave: leave, span: span, showIds: showIds };
+}
+
 function spreadPrompt(bible, spread, cast) {
   var place = (bible.locations || []).filter(function (item) { return item.locationId === spread.locationId; })[0];
   var people = (spread.charactersPresent || []).map(function (id) {
@@ -710,10 +934,7 @@ function spreadPrompt(bible, spread, cast) {
     var outfit = wornOutfit(state.clothing, row.defaultClothing);
     return row.name + ", " + row.hair + ", " + row.skinTone + ", wearing " + outfit + " and " + row.footwear;
   }).join("; ");
-  var things = (spread.entityStateBefore || []).map(function (entity) {
-    var known = (bible.entities || []).filter(function (item) { return item.entityId === entity.entityId; })[0];
-    return (known ? known.name : entity.entityId) + " (" + (known && known.identity ? known.identity : "") + ") state now: " + entity.state;
-  }).join("; ");
+  var scene = sceneInventory(bible, spread);
   var composition = spread.compositionIntent || "";
   var focus = spread.visualFocus || spread.storyEvent;
   if (!spread.montage) {
@@ -738,25 +959,32 @@ function spreadPrompt(bible, spread, cast) {
   return [
     styleClause(look),
     "One illustration for a children's picture book, in the same painted style as the character reference.",
-    "Match the reference child's face, hair, skin, age, and clothes. Do not redesign them.",
+    "Match each shown character to their own reference. Keep every face, hair, skin, age, and outfit. Do not redesign them, merge them, or give one character another's clothes. The same child must stay recognisable on every page. Pose, expression, and viewing angle may change. Face, hair, and clothing may not. The reference locks identity only. Do not copy its pose, background, or framing.",
     "No letters, no words, no numbers, no captions, no speech balloons, no watermark.",
     "Leave the " + (spread.textSafeRegion || "upper") + " area quieter, with open sky, wall, or ground, so type can sit there later. Do not draw a box.",
+    "Draw only this instant: " + (spread.illustrationMoment || spread.storyEvent),
     "Place: " + (place ? place.name + ". " + (place.visualIdentity || "") : spread.locationId) + ".",
+    spread.placeCue ? "Story condition: " + spread.placeCue : "",
+    spread.continuityLine ? "Continuity: " + spread.continuityLine : "",
+    spread.placeTransition || "",
+    spread.worldTone || "",
     spread.locationZone ? "Zone: " + spread.locationZone + "." : "",
     spread.visualNoveltyReason && spread.visualNoveltyReason !== "opening" && spread.visualNoveltyReason !== "framing-only" ? "This scene is different because: " + spread.visualNoveltyReason + ". Keep this place and this change." : "",
+    "Camera: " + (spread.cameraBrief || ("Shot: " + spread.shotType + ".")) + (composition ? " " + composition : "") + " The character references are not the camera.",
+    scene.show.length ? "In this picture: " + scene.show.join("; ") + "." : "",
+    scene.span.length ? scene.span.join(" ") : "",
+    scene.leave.length ? "Do not draw these. They stay where they already are: " + scene.leave.join("; ") + "." : "",
     "Who: " + people + ".",
-    "Already true at the start of this picture: " + (things || "nothing extra") + ".",
     persistent ? "Persistent story entities, the same look at any size or place: " + persistent : "",
     persistent ? "Keep each persistent object the same simple shape in this picture." : "",
-    "The full event, for understanding only: " + (spread.storyEvent || ""),
-    "Draw only this instant: " + (spread.illustrationMoment || spread.storyEvent),
     spread.montage ? "This spread is an explicit montage." : "Show each character in one pose only.",
     "Emotion to show, not a caption: " + (spread.emotion || "quiet") + ".",
-    "Shot: " + spread.shotType + ". " + composition,
     "Focus: " + focus,
-    "Light: " + spread.lighting + ".",
+    "Light: " + (spread.placeCue && /\bdark|unlit|dim\b/i.test(spread.placeCue)
+      ? "The route in this picture stays dark. Do not light it from another room."
+      : spread.lighting) + ".",
     "Do not show a later result that has not happened yet.",
-    "Draw each persistent story entity once.",
+    "Draw each object listed for this picture once. Do not add an object that was left in another place.",
     pageRoleLine(spread)
   ].filter(Boolean).join(" ");
 }
@@ -1340,7 +1568,8 @@ function acceptIllustration(vision, spread) {
   if (report.style) readingDrift(report.style).forEach(function (problem) { problems.push(problem); });
   if (report.momentMatch === false) problems.push("moment");
   if (report.montageShown === true && !spread.montage) problems.push("montage");
-  var specs = spread.entitySpecs || (spread.mustShow || spread.entitiesRequired || []).map(function (id) {
+  var requiredIds = (spread.mustShow && spread.mustShow.length) ? spread.mustShow : (spread.entitiesRequired || []);
+  var specs = spread.entitySpecs || requiredIds.map(function (id) {
     return { entityId: id, aliases: aliasesFor({ entityId: id, name: id, identity: "" }), scale: "ordinary", landmark: false };
   });
   judgeSightings(specs, report).forEach(function (row) {
@@ -1353,6 +1582,31 @@ function acceptIllustration(vision, spread) {
   if (report.textSafeUsable === false) problems.push("text-safe");
   if (report.duplicateCharacter === true && !spread.montage && !spread.bookCast) problems.push("duplicate");
   return { ok: problems.length === 0, problems: problems };
+}
+
+function characterConsistencyCheckpoint(pages, options) {
+  var settings = options || {};
+  var problems = [];
+  (pages || []).forEach(function (page, index) {
+    var number = page && page.page ? page.page : index + 1;
+    if (!page || !page.characters) {
+      problems.push("unchecked:p" + number);
+      return;
+    }
+    page.characters.forEach(function (character) {
+      var id = character && character.characterId || "unknown";
+      if (!character || character.identityMatch !== true) problems.push("identity:" + id + ":p" + number);
+      if (character && character.outfitMatch === false) problems.push("outfit:" + id + ":p" + number);
+    });
+  });
+  var human = settings.humanApproved === true && problems.length === 0;
+  return {
+    approved: human,
+    needsHumanReview: !human,
+    problems: problems,
+    referenceIsNotProof: true,
+    note: "Supplying a character reference, or matching it on one page, does not prove that character stays the same across the book."
+  };
 }
 
 module.exports = {
@@ -1388,6 +1642,7 @@ module.exports = {
   sheetPrompt: sheetPrompt,
   spreadPrompt: spreadPrompt,
   acceptIllustration: acceptIllustration,
+  characterConsistencyCheckpoint: characterConsistencyCheckpoint,
   planCover: planCover,
   coverPrompt: coverPrompt,
   coverRepairPrompt: coverRepairPrompt,

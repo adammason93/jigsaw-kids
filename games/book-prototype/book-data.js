@@ -74,6 +74,9 @@
         text: page && page.text ? String(page.text) : "",
         imageSrc: src,
         missingArt: !src,
+        shot: page && (page.shot || page.shotType) ? String(page.shot || page.shotType) : "",
+        phase: page && (page.phase || page.narrativePhase) ? String(page.phase || page.narrativePhase) : "",
+        layoutIntent: page && page.layoutIntent ? String(page.layoutIntent) : "",
         textSafeZones: page && page.textSafeZones ? page.textSafeZones : null,
         impactWords: page && page.impactWords ? page.impactWords : null,
         textBlocks: page && page.textBlocks ? page.textBlocks : null
@@ -218,10 +221,42 @@
     });
   }
 
+  function viewerFrom(view, fixture) {
+    if (view && view.userId) {
+      var school = !!(view.organisation || view.organisationId || view.workspaceKind === "school");
+      return { userId: String(view.userId), workspaceKind: school ? "school" : "family" };
+    }
+    if (fixture && fixture.userId) return { userId: String(fixture.userId), workspaceKind: "family" };
+    return null;
+  }
+
+  function loadShowcase(id, viewer) {
+    var Showcase = root.WondiiBookShowcase;
+    var gate = Showcase.canOpen(id, viewer);
+    if (!gate.ok) return Promise.resolve({ ok: false, reason: gate.reason });
+    return fetch(Showcase.recordUrl(id)).then(function (res) {
+      if (!res.ok) return { ok: false, reason: "closed" };
+      return res.json().then(function (record) {
+        if (!record || record.id !== id || record.readOnly !== true) return { ok: false, reason: "unavailable" };
+        if (record.publishState !== Showcase.publishState(id)) return { ok: false, reason: "unavailable" };
+        var reading = plan(record);
+        if (!reading.pages.length) return { ok: false, reason: "empty" };
+        return { ok: true, kind: "showcase", plan: reading, readOnly: true };
+      });
+    }).catch(function () {
+      return { ok: false, reason: "closed" };
+    });
+  }
+
   function load() {
     var id = requestedId();
     if (id == null) return Promise.resolve({ ok: true, kind: "sample" });
     if (!id) return Promise.resolve({ ok: false, reason: "missing" });
+    if (root.WondiiBookShowcase && root.WondiiBookShowcase.isShowcase(id)) {
+      return whenSession().then(function (view) {
+        return loadShowcase(id, viewerFrom(view, localFixture()));
+      });
+    }
     var child = childParam();
     var shared = sharedRequested();
     return whenSession().then(function (view) {

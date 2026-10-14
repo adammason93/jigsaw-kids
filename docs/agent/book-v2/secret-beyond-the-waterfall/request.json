@@ -1,0 +1,71 @@
+{
+  "generated": false,
+  "paidCalls": 0,
+  "saveTo": "docs/agent/book-v2/secret-beyond-the-waterfall/",
+  "leavesUntouched": "docs/agent/book-v2/castle-lost-lanterns/",
+  "pipeline": [
+    "story kind and journey guide",
+    "book bible, including the journey",
+    "adventure progression checks",
+    "page plan",
+    "read-aloud prose",
+    "illustration plan for each page"
+  ],
+  "pictures": "Not part of this request. Illustration generation stays off until a separate approval.",
+  "estimate": {
+    "storyHappyUsd": 0.22,
+    "storyHappyGbp": 0.17,
+    "storyWithOneRepairUsd": 0.32,
+    "storyWithOneRepairGbp": 0.24,
+    "basis": "The previous 12-page story cost $0.160. The journey makes the plan a little longer. One repair is included in the higher figure. Eight text calls remain the cap. These are estimates, not a provider cap.",
+    "illustrationLaterUsd": 0.5,
+    "illustrationLaterGbp": 0.38
+  },
+  "input": {
+    "familyAgeBand": "7-9",
+    "members": [
+      {
+        "id": "wondii-maya",
+        "name": "Maya",
+        "source": "wondii-crew"
+      },
+      {
+        "id": "wondii-leo",
+        "name": "Leo",
+        "source": "wondii-crew"
+      }
+    ],
+    "idea": "Maya and Leo discover a mysterious pathway behind a waterfall that leads them into a hidden world.",
+    "length": "medium",
+    "pageCount": 12,
+    "theme": "Adventure",
+    "creationKey": "secret-beyond-the-waterfall-01"
+  },
+  "storyKind": "adventure",
+  "needsJourney": true,
+  "ageBand": "7-9",
+  "constraintYear": "Ages 7–9",
+  "tone": "adventure",
+  "length": "storybook",
+  "pageCount": 12,
+  "castIds": [
+    "wondii-maya",
+    "wondii-leo"
+  ],
+  "references": [
+    {
+      "characterId": "wondii-maya",
+      "name": "Maya",
+      "reference": "maya-v1.jpg",
+      "referenceApproved": true
+    },
+    {
+      "characterId": "wondii-leo",
+      "name": "Leo",
+      "reference": "wondii-leo.jpg",
+      "referenceApproved": false
+    }
+  ],
+  "illustrationStyle": "wondii-picture-book",
+  "guide": "Before the beats, plan the journey as major sections, not as one section per page. Each section names the place, why the characters are there, what they are trying to do, the discovery or obstacle, how that changes what they do next, and how it connects to the following section. A new place needs a narrative reason. Do not move the characters only to change the background. One place can hold the whole book when the events, stakes, and discoveries keep changing. Do not spend most of the book inspecting variations of one object in lookalike surroundings, unless that single search is the idea itself. Invent the places this idea needs. A forest, cave, garden, cellar, mountain, library, ocean, temple, station, or island is not a default, and none of them is required. setting is the kind of place, in a few original words. Reuse the same setting when two rooms are the same kind of place. A new setting is a different environment, not another corner of the same room. The selected children keep the same faces, hair, and clothes in every place. They may run, climb, look, and react. A new place does not give them a new outfit. The illustration planner may draw only places the beats visit. Do not mention a place the beats never enter. This is an adventure. Let discoveries and obstacles change what the characters try next. Travel when a new environment creates a new situation. Staying in one place is fine when the situation itself develops. If a check says journey-missing, add the journey. If it says journey-gap, name the discovery and the change it causes. If it says journey-unlinked, connect the section to the next one. If it says narrow-world, the goal is stuck on one investigation in one kind of place. If it says clue-stuck, each mystery section needs a different clue. If it says setting-missing, say what kind of place each location is."
+}

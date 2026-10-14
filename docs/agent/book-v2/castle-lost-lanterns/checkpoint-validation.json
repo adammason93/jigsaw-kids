@@ -1,0 +1,256 @@
+{
+  "stage": "checkpoint-ready",
+  "paidCalls": 0,
+  "textCalls": 0,
+  "proseSha256": "0371a6fbb6cbfc36eb60b5a20bd0ca703d1b2ca15977051479ee25c5b53b1fcd",
+  "storedStatus": "NOT_REVIEWABLE",
+  "storedTextProblems": [
+    "unplanned-visual:brass-socket:p2"
+  ],
+  "recomputedOk": true,
+  "problems": [],
+  "title": "The Lantern’s Missing Path",
+  "pages": 12,
+  "ageBand": "7-9",
+  "yearGroup": "",
+  "readerStage": "ages-7-9",
+  "illustrations": {
+    "model": "gpt-image-2.5-sunburst",
+    "size": "1536x1024",
+    "quality": "medium",
+    "style": "wondii-picture-book",
+    "requests": 12,
+    "repairsPerPage": 1,
+    "maxImageCalls": 24,
+    "maxVisionCalls": 24,
+    "textCalls": 0,
+    "alreadyDrawn": 0
+  },
+  "references": [
+    {
+      "page": 1,
+      "characters": [
+        "wondii-maya",
+        "wondii-leo"
+      ],
+      "files": [
+        {
+          "characterId": "wondii-maya",
+          "file": "games/images/characters/maya-v1.jpg"
+        },
+        {
+          "characterId": "wondii-leo",
+          "file": "games/images/characters/crew/wondii-leo.jpg"
+        }
+      ]
+    },
+    {
+      "page": 2,
+      "characters": [
+        "wondii-maya",
+        "wondii-leo"
+      ],
+      "files": [
+        {
+          "characterId": "wondii-maya",
+          "file": "games/images/characters/maya-v1.jpg"
+        },
+        {
+          "characterId": "wondii-leo",
+          "file": "games/images/characters/crew/wondii-leo.jpg"
+        }
+      ]
+    },
+    {
+      "page": 3,
+      "characters": [
+        "wondii-maya",
+        "wondii-leo"
+      ],
+      "files": [
+        {
+          "characterId": "wondii-maya",
+          "file": "games/images/characters/maya-v1.jpg"
+        },
+        {
+          "characterId": "wondii-leo",
+          "file": "games/images/characters/crew/wondii-leo.jpg"
+        }
+      ]
+    },
+    {
+      "page": 4,
+      "characters": [
+        "wondii-maya",
+        "wondii-leo"
+      ],
+      "files": [
+        {
+          "characterId": "wondii-maya",
+          "file": "games/images/characters/maya-v1.jpg"
+        },
+        {
+          "characterId": "wondii-leo",
+          "file": "games/images/characters/crew/wondii-leo.jpg"
+        }
+      ]
+    },
+    {
+      "page": 5,
+      "characters": [
+        "wondii-maya",
+        "wondii-leo"
+      ],
+      "files": [
+        {
+          "characterId": "wondii-maya",
+          "file": "games/images/characters/maya-v1.jpg"
+        },
+        {
+          "characterId": "wondii-leo",
+          "file": "games/images/characters/crew/wondii-leo.jpg"
+        }
+      ]
+    },
+    {
+      "page": 6,
+      "characters": [
+        "wondii-maya",
+        "wondii-leo"
+      ],
+      "files": [
+        {
+          "characterId": "wondii-maya",
+          "file": "games/images/characters/maya-v1.jpg"
+        },
+        {
+          "characterId": "wondii-leo",
+          "file": "games/images/characters/crew/wondii-leo.jpg"
+        }
+      ]
+    },
+    {
+      "page": 7,
+      "characters": [
+        "wondii-maya",
+        "wondii-leo"
+      ],
+      "files": [
+        {
+          "characterId": "wondii-maya",
+          "file": "games/images/characters/maya-v1.jpg"
+        },
+        {
+          "characterId": "wondii-leo",
+          "file": "games/images/characters/crew/wondii-leo.jpg"
+        }
+      ]
+    },
+    {
+      "page": 8,
+      "characters": [
+        "wondii-maya",
+        "wondii-leo"
+      ],
+      "files": [
+        {
+          "characterId": "wondii-maya",
+          "file": "games/images/characters/maya-v1.jpg"
+        },
+        {
+          "characterId": "wondii-leo",
+          "file": "games/images/characters/crew/wondii-leo.jpg"
+        }
+      ]
+    },
+    {
+      "page": 9,
+      "characters": [
+        "wondii-maya",
+        "wondii-leo"
+      ],
+      "files": [
+        {
+          "characterId": "wondii-maya",
+          "file": "games/images/characters/maya-v1.jpg"
+        },
+        {
+          "characterId": "wondii-leo",
+          "file": "games/images/characters/crew/wondii-leo.jpg"
+        }
+      ]
+    },
+    {
+      "page": 10,
+      "characters": [
+        "wondii-maya",
+        "wondii-leo"
+      ],
+      "files": [
+        {
+          "characterId": "wondii-maya",
+          "file": "games/images/characters/maya-v1.jpg"
+        },
+        {
+          "characterId": "wondii-leo",
+          "file": "games/images/characters/crew/wondii-leo.jpg"
+        }
+      ]
+    },
+    {
+      "page": 11,
+      "characters": [
+        "wondii-maya",
+        "wondii-leo"
+      ],
+      "files": [
+        {
+          "characterId": "wondii-maya",
+          "file": "games/images/characters/maya-v1.jpg"
+        },
+        {
+          "characterId": "wondii-leo",
+          "file": "games/images/characters/crew/wondii-leo.jpg"
+        }
+      ]
+    },
+    {
+      "page": 12,
+      "characters": [
+        "wondii-maya",
+        "wondii-leo"
+      ],
+      "files": [
+        {
+          "characterId": "wondii-maya",
+          "file": "games/images/characters/maya-v1.jpg"
+        },
+        {
+          "characterId": "wondii-leo",
+          "file": "games/images/characters/crew/wondii-leo.jpg"
+        }
+      ]
+    }
+  ],
+  "cost": {
+    "measuredPageUsd": 0.037646,
+    "happyImageUsd": 0.451752,
+    "worstImageUsd": 0.903504,
+    "happyUsd": 0.454548,
+    "worstUsd": 0.909096,
+    "happyGbp": 0.342729,
+    "worstGbp": 0.685458,
+    "gbpPerUsd": 0.754,
+    "providerEnforcesCap": false,
+    "visionNote": "Vision is a price-table estimate for one low-detail page plus two reference images. The image price is the measured Maya-and-Leo castle edit."
+  },
+  "reader": {
+    "ok": true,
+    "saved": true,
+    "reopened": true,
+    "pages": 12,
+    "spreadCount": 7,
+    "textsMatch": true,
+    "picturesOnDisk": false
+  }
+}

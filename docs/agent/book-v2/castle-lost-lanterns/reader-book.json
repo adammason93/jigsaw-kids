@@ -1,0 +1,61 @@
+{
+  "id": "castle-lost-lanterns",
+  "title": "The Lantern’s Missing Path",
+  "author": "Wondii",
+  "readerArtLayout": "duplex",
+  "storyTextMode": "prose",
+  "storyLength": "medium",
+  "illustrationStyle": "wondii-picture-book",
+  "v2": true,
+  "pages": [
+    {
+      "text": "Maya crouched beside a glowing amber lantern in the castle courtyard. A blue ribbon lay beside it. The lantern’s light stretched along a silver strip, stopping while the paths beyond stayed dark. Leo leaned over the strip, searching for one more glimmer.",
+      "imageUrlFallback": "/docs/agent/book-v2/castle-lost-lanterns/images/p1.jpg"
+    },
+    {
+      "text": "Maya lifted the lantern, and the silver strip went dark. She lowered it against the strip again; amber light ran along the silver. Leo tucked the blue ribbon into his pocket. Beyond the shining strip, the connected paths and glass lamps stayed dark.",
+      "imageUrlFallback": "/docs/agent/book-v2/castle-lost-lanterns/images/p2.jpg"
+    },
+    {
+      "text": "Leo moved between the dim arches of the castle courtyard. \"Which doorway did we come through?\" Maya lifted the lantern by its handle, leaving the strip dark. \"Let's mend its path,\" she said.",
+      "imageUrlFallback": "/docs/agent/book-v2/castle-lost-lanterns/images/p3.jpg"
+    },
+    {
+      "text": "The unlit silver strip led them into the silver gallery. Where the paths met, Leo crouched beside a round brass socket. \"That looks just the right size.\" Maya held the lantern above it, matching its base to the opening.",
+      "imageUrlFallback": "/docs/agent/book-v2/castle-lost-lanterns/images/p4.jpg"
+    },
+    {
+      "text": "Maya settled the lantern into the brass socket. A short silver branch shone. Above them, one glass lamp bloomed amber. Leo followed the longer route with his eyes, but no light came.",
+      "imageUrlFallback": "/docs/agent/book-v2/castle-lost-lanterns/images/p5.jpg"
+    },
+    {
+      "text": "Beneath the shining lamp in the silver gallery, Maya crouched between the two paths. Her eyes followed the bright branch, then searched the longer, dark route. One silver edge stood higher than the rest. Maya pointed, and Leo bent beside her to see.",
+      "imageUrlFallback": "/docs/agent/book-v2/castle-lost-lanterns/images/p6.jpg"
+    },
+    {
+      "text": "They followed the dark route into the ivy chamber. Maya bent low, and Leo peered beneath the raised plate. A thick ivy loop lay between the silver ends. It had grown through the window and pushed the plate up.",
+      "imageUrlFallback": "/docs/agent/book-v2/castle-lost-lanterns/images/p7.jpg"
+    },
+    {
+      "text": "Maya pressed down on the plate. Underneath, the thick ivy loop bent sharply. \"Stop,\" Leo said. \"Let's give it room.\" Maya took her hands away, leaving the silver ends apart.",
+      "imageUrlFallback": "/docs/agent/book-v2/castle-lost-lanterns/images/p8.jpg"
+    },
+    {
+      "text": "Leo lifted the ivy loop toward the window rail. He let go, and it slipped back beneath the plate. Maya glanced at his pocket, where he had tucked the ribbon. \"You kept the blue ribbon!\"",
+      "imageUrlFallback": "/docs/agent/book-v2/castle-lost-lanterns/images/p9.jpg"
+    },
+    {
+      "text": "Maya held the plate up and clear of the ivy. Leo drew the blue ribbon from his pocket. He threaded it around the loop and the window rail. \"Leave it loose,\" Maya said.",
+      "imageUrlFallback": "/docs/agent/book-v2/castle-lost-lanterns/images/p10.jpg"
+    },
+    {
+      "text": "Leo tied the ribbon loosely, holding the ivy above the plate. Maya lowered the plate onto both silver ends. Amber light raced across the join and along every silver branch. Glass lamps bloomed throughout the castle.",
+      "imageUrlFallback": "/docs/agent/book-v2/castle-lost-lanterns/images/p11.jpg"
+    },
+    {
+      "text": "Back in the silver gallery, Maya passed the lantern without reaching for its handle. Leo pointed toward the shining arch ahead. \"There's our way home.\" Their shadows joined, stretching along the light, and they followed them.",
+      "imageUrlFallback": "/docs/agent/book-v2/castle-lost-lanterns/images/p12.jpg"
+    }
+  ],
+  "sceneUrlFallback": "/docs/agent/book-v2/castle-lost-lanterns/images/p1.jpg"
+}

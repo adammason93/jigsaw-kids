@@ -1,0 +1,69 @@
+{
+  "generated": false,
+  "paidCalls": 0,
+  "pictures": false,
+  "saveTo": "docs/agent/book-v2/secret-beyond-the-waterfall-revised/",
+  "leavesUntouched": [
+    "docs/agent/book-v2/secret-beyond-the-waterfall/",
+    "docs/agent/book-v2/castle-lost-lanterns/"
+  ],
+  "pipeline": "The normal Book V2 text pipeline: journey guide, book bible, adventure checks, page plan, read-aloud prose, and an illustration plan. No images.",
+  "estimate": {
+    "measuredPreviousUsd": 0.249884,
+    "measuredPreviousGbp": 0.188,
+    "likelyUsd": 0.3,
+    "likelyGbp": 0.23,
+    "highUsd": 0.4,
+    "highGbp": 0.3,
+    "textCallCap": 8,
+    "imageCalls": 0,
+    "basis": "The Water That Made Steps used 5 text calls and cost $0.249884. The new guide is slightly longer, so a similar attempt is about $0.30. Two extra repairs could reach about $0.40. Eight text calls remain the cap. No illustrations."
+  },
+  "input": {
+    "familyAgeBand": "7-9",
+    "members": [
+      {
+        "id": "wondii-maya",
+        "name": "Maya",
+        "source": "wondii-crew"
+      },
+      {
+        "id": "wondii-leo",
+        "name": "Leo",
+        "source": "wondii-crew"
+      }
+    ],
+    "idea": "Maya and Leo discover a mysterious pathway behind a waterfall that leads them into a hidden world.",
+    "length": "medium",
+    "pageCount": 12,
+    "theme": "Adventure",
+    "creationKey": "secret-beyond-the-waterfall-02"
+  },
+  "storyKind": "adventure",
+  "needsJourney": true,
+  "ageBand": "7-9",
+  "constraintYear": "Ages 7–9",
+  "tone": "adventure",
+  "length": "storybook",
+  "pageCount": 12,
+  "castIds": [
+    "wondii-maya",
+    "wondii-leo"
+  ],
+  "references": [
+    {
+      "characterId": "wondii-maya",
+      "name": "Maya",
+      "reference": "maya-v1.jpg",
+      "referenceApproved": true
+    },
+    {
+      "characterId": "wondii-leo",
+      "name": "Leo",
+      "reference": "wondii-leo.jpg",
+      "referenceApproved": false
+    }
+  ],
+  "illustrationStyle": "wondii-picture-book",
+  "guide": "Before the beats, plan the journey as major sections, not as one section per page. Each section names the place, why the characters are there, what they are trying to do, the discovery or obstacle, how that changes what they do next, and how it connects to the following section. A new place needs a narrative reason. Do not move the characters only to change the background. One place can hold the whole book when the events, stakes, and discoveries keep changing. Do not spend most of the book inspecting variations of one object in lookalike surroundings, unless that single search is the idea itself. Invent the places this idea needs. A forest, cave, garden, cellar, mountain, library, ocean, temple, station, or island is not a default, and none of them is required. setting is the kind of place, in a few original words. Reuse the same setting when two rooms are the same kind of place. A new setting is a different environment, not another corner of the same room. The selected children keep the same faces, hair, and clothes in every place. They may run, climb, look, and react. A new place does not give them a new outfit. The illustration planner may draw only places the beats visit. Do not mention a place the beats never enter. This is an adventure. Reward curiosity with a new situation: a discovery, a meeting, a surprise, a friendship, a mystery, or a journey. A repair can be the story when the idea is a repair. Do not default to a broken magical object and a long sequence of putting it back. If the premise promises a hidden world or a journey, do not spend most of the book on one task in one place. One place can still hold the book when what happens there becomes a different kind of situation. Keep each event easy to hear aloud. Do not explain how a mechanism works across many pages. If a check says journey-missing, add the journey. If it says journey-gap, name the discovery and the change it causes. If it says journey-unlinked, connect the section to the next one. If it says narrow-world, the goal is stuck on one investigation in one kind of place. If it says narrow-adventure, the children are repeating one task, often operating the same object. Give them a different kind of situation, or let a promised journey open up. Do not add empty places. If it says clue-stuck, each mystery section needs a different clue. If it says setting-missing, say what kind of place each location is."
+}

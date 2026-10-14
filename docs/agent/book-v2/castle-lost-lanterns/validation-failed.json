@@ -1,0 +1,135 @@
+{
+  "calls": {
+    "text": 5,
+    "image": 0,
+    "vision": 0
+  },
+  "listedUsd": 0.159686,
+  "gbpPerUsd": 0.754,
+  "listedGbp": 0.120403,
+  "ledger": [
+    {
+      "kind": "text",
+      "purpose": "book-bible",
+      "label": "",
+      "http": 200,
+      "usd": 0.064122,
+      "usage": {
+        "prompt_tokens": 1901,
+        "completion_tokens": 6032,
+        "total_tokens": 7933,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 1898,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 423,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      }
+    },
+    {
+      "kind": "text",
+      "purpose": "book-bible-repair",
+      "label": "",
+      "http": 200,
+      "usd": 0.06985,
+      "usage": {
+        "prompt_tokens": 6130,
+        "completion_tokens": 5759,
+        "total_tokens": 11889,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 6127,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 55,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      }
+    },
+    {
+      "kind": "text",
+      "purpose": "book-prose",
+      "label": "",
+      "http": 200,
+      "usd": 0.015756,
+      "usage": {
+        "prompt_tokens": 3293,
+        "completion_tokens": 917,
+        "total_tokens": 4210,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 3290,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 20,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      }
+    },
+    {
+      "kind": "text",
+      "purpose": "book-prose-repair",
+      "label": "",
+      "http": 200,
+      "usd": 0.007036,
+      "usage": {
+        "prompt_tokens": 1598,
+        "completion_tokens": 384,
+        "total_tokens": 1982,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 1595,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 124,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      }
+    },
+    {
+      "kind": "text",
+      "purpose": "book-prose-repair",
+      "label": "",
+      "http": 200,
+      "usd": 0.002922,
+      "usage": {
+        "prompt_tokens": 1096,
+        "completion_tokens": 73,
+        "total_tokens": 1169,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 1093,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      }
+    }
+  ],
+  "stage": "story-stopped",
+  "problems": [
+    "not-reviewable",
+    "text",
+    "unplanned-visual:brass-socket:p2"
+  ],
+  "title": "The Lantern’s Missing Path",
+  "pages": 12
+}

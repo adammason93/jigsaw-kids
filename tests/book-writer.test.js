@@ -54,7 +54,78 @@ function spokenFor(pages) {
 
 var brief = Writer.bibleBrief(Book.publicRequest(request()));
 assert.ok(brief.user.indexOf("Ravi's shadow keeps running away from him.") >= 0);
+assert.ok(brief.user.indexOf("between 6 and 8") >= 0);
+assert.ok(brief.user.indexOf("exactly 12") < 0);
 assert.ok(brief.user.indexOf("Reception") >= 0);
+var seven = Writer.bibleBrief(Book.publicRequest({
+  castIds: ["maya"],
+  idea: "Maya finds a lantern in a castle.",
+  ageBand: "7-9",
+  length: "storybook",
+  tone: "magical"
+}));
+assert.ok(seven.user.indexOf("Ages 7–9") >= 0);
+assert.ok(seven.user.indexOf("seven-year-old") >= 0);
+assert.ok(seven.user.indexOf("18") >= 0);
+assert.ok(seven.user.indexOf("Year 5") < 0);
+var school = Writer.bibleBrief(Book.publicRequest({
+  castIds: ["maya"],
+  idea: "Maya finds a lantern in a castle.",
+  yearGroup: "Year 5",
+  length: "storybook",
+  tone: "magical"
+}));
+assert.ok(school.user.indexOf("Year 5") >= 0);
+assert.ok(school.user.indexOf("22") >= 0);
+assert.ok(school.user.indexOf("between 9 and 13") >= 0);
+assert.ok(school.user.indexOf("exactly 12") < 0);
+var exact = Writer.bibleBrief(Book.publicRequest({
+  castIds: ["maya"],
+  idea: "Maya finds a lantern in a castle.",
+  ageBand: "7-9",
+  length: "storybook",
+  tone: "magical",
+  pageCount: 12
+}));
+assert.ok(exact.user.indexOf("exactly 12") >= 0);
+assert.ok(exact.user.indexOf("Ages 7–9") >= 0);
+assert.ok(exact.user.indexOf("Year 5") < 0);
+assert.ok(exact.user.indexOf("between 9 and 13") < 0);
+assert.ok(exact.user.indexOf("stay between") < 0);
+assert.ok(exact.system.indexOf("wonder") >= 0);
+assert.ok(exact.system.indexOf("stakes") >= 0);
+assert.ok(exact.system.indexOf("fixed number of feeling beats") >= 0);
+var repaired = Writer.repairBibleBrief(Book.publicRequest({
+  castIds: ["maya"],
+  idea: "Maya finds a lantern in a castle.",
+  ageBand: "7-9",
+  length: "storybook",
+  tone: "magical",
+  pageCount: 12
+}), { beats: [] }, ["page-count"]);
+assert.ok(repaired.user.indexOf("exactly 12") >= 0);
+assert.ok(repaired.user.indexOf("page-count") >= 0);
+var spokenExact = Writer.proseBrief({
+  title: "Lanterns",
+  userIdea: "Maya finds a lantern in a castle.",
+  ageBand: "7-9",
+  tone: "magical",
+  pageCount: 12,
+  castIds: ["maya"],
+  beats: [{ beatId: "b1", role: "resolution" }]
+}, [{ pageId: "p1", beatId: "b1", locationId: "yard", action: "Maya opens the door.", charactersPresent: ["maya"], prose: "" }], null);
+assert.ok(spokenExact.user.indexOf("exactly 12") >= 0);
+assert.ok(spokenExact.system.indexOf("wonder") >= 0);
+var spokenRepair = Writer.repairProseBrief({
+  title: "Lanterns",
+  userIdea: "Maya finds a lantern in a castle.",
+  ageBand: "7-9",
+  tone: "magical",
+  pageCount: 12,
+  castIds: ["maya"],
+  beats: [{ beatId: "b1", role: "resolution" }]
+}, [{ pageId: "p1", beatId: "b1", locationId: "yard", action: "Maya opens the door.", charactersPresent: ["maya"], prose: "Maya opens the door." }], { pages: [] }, ["empty-prose:p1"]);
+assert.ok(spokenRepair.user.indexOf("exactly 12") >= 0);
 assert.ok(brief.user.indexOf(Book.TONE_WRITING.funny) >= 0);
 assert.ok(brief.system.indexOf("secret door") < 0);
 assert.ok(brief.user.indexOf("secret door") < 0);
@@ -73,6 +144,24 @@ assert.ok(spokenBrief.system.indexOf("must still contain the idea") < 0);
 assert.ok(spokenBrief.system.indexOf("Do not quote it") >= 0);
 
 function run() {
+  var blocked = 0;
+  return Writer.generateBook({
+    castIds: ["maya"],
+    idea: "Maya finds a lantern in a castle.",
+    yearGroup: "Year 5",
+    length: "storybook",
+    pageCount: 20
+  }, {
+    callModel: function () { blocked += 1; return Promise.resolve({ beats: [] }); }
+  }).then(function (book) {
+    assert.strictEqual(blocked, 0);
+    assert.strictEqual(book.status, "NOT_REVIEWABLE");
+    assert.ok(book.storyProblems.indexOf("page-count") >= 0);
+    return continueRun();
+  });
+}
+
+function continueRun() {
   var draws = 0;
   return Writer.generateBook(request(), {
     callModel: function () {

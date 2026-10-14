@@ -35,6 +35,11 @@
     "wondii-leo": "leo"
   };
 
+  function identityApi() {
+    if (root && root.WondiiBookV2Identity) return root.WondiiBookV2Identity;
+    return require("./book-v2-identity.js");
+  }
+
   function brain() {
     if (root && root.WondiiBookBrain) return root.WondiiBookBrain;
     return require("./book-brain.js");
@@ -162,10 +167,12 @@
 
   function ideaFor(input) {
     var written = String(input && input.idea || "").trim();
-    if (written) return written;
-    var place = PLACES[input && input.place];
-    if (!place) return "";
-    return "A story set in " + place + ".";
+    var place = PLACES[input && input.place] || "";
+    if (!written) return place ? "A story set in " + place + "." : "";
+    if (place && written.toLowerCase().indexOf(place.toLowerCase()) < 0) {
+      return written.replace(/[.?!]\s*$/, "") + ". The story is set in " + place + ".";
+    }
+    return written;
   }
 
   function prepare(input) {
@@ -198,25 +205,16 @@
       };
     }
     var profile = brain().readerProfile({ ageBand: age.ageBand });
-    var members = Array.isArray(source.members) ? source.members : [];
-    var identities = members.map(function (member) {
-      return mapMember(member, source.savedReferences);
-    });
-    var mapProblems = [];
-    identities.forEach(function (identity) {
-      (identity.problems || []).forEach(function (problem) {
-        if (mapProblems.indexOf(problem) < 0) mapProblems.push(problem);
-      });
-    });
-    if (!identities.length) mapProblems.push("cast-size");
-    if (mapProblems.length) {
+    var built = identityApi().buildRegistry(source);
+    var identities = built.selected || [];
+    if (!built.ok) {
       return {
         active: true,
         route: "book-v2",
         ok: false,
         generated: false,
         imageCalls: 0,
-        problems: mapProblems,
+        problems: built.problems,
         identities: identities,
         request: { castIds: [], idea: ideaFor(source) },
         cast: identities,
@@ -229,13 +227,15 @@
       };
     }
     var ask = {
-      castIds: identities.map(function (identity) { return identity.bibleId; }),
+      castIds: identities.map(function (identity) { return identity.journeyId; }),
+      identityRegistry: built.registry,
       idea: ideaFor(source),
       ageBand: age.ageBand,
       length: LENGTHS[source.length] || "",
+      pageCount: source.pageCount,
       tone: TONES[source.theme] || null,
       context: "family",
-      characterReferences: referencesFor(members, source.savedReferences)
+      characterReferences: referencesFor(source.members, source.savedReferences)
     };
     var accepted = brain().acceptCreation(ask);
     var style = brain().VISUAL_STYLE;
@@ -258,6 +258,7 @@
         message: "The story plan could not start. Nothing was saved."
       };
     }
+    accepted.request.identityRegistry = built.registry;
     return {
       active: true,
       route: "book-v2",
@@ -273,6 +274,7 @@
       constraintYear: profile && profile.constraintYear || "",
       place: source.place || "",
       illustrationStyle: style,
+      illustration: built.illustration,
       message: "Book V2 is ready to plan. The story model has not been called."
     };
   }

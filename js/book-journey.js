@@ -61,6 +61,19 @@
     close: "close", vignette: "close"
   };
 
+  var CAMERA = {
+    establishing: "Wide establishing view, so this place feels larger than the characters.",
+    reveal: "A reveal: the new discovery is the clearest thing in the picture.",
+    high: "A high view that shows how this place is arranged.",
+    overhead: "Look down, so the arrangement on the ground is easy to read.",
+    low: "A low viewpoint along the ground.",
+    medium: "A medium view of the characters doing this moment.",
+    action: "Show the movement, with a pose that changes from the previous picture.",
+    reaction: "Stay near the faces, and keep the cause of the feeling visible.",
+    close: "Move in close on the discovery. Do not repeat a wide view of the room.",
+    vignette: "A quiet closing view, with the changed place or the way onward still visible."
+  };
+
   var REGISTER_WORDS = {
     high: ["release", "joy", "cheer", "thrill", "panic", "brave", "proud", "excited", "wild"],
     uneasy: ["worry", "worried", "afraid", "scared", "nervous", "stuck", "angry", "fear"],
@@ -192,6 +205,7 @@
       emotion: page.emotion || beat.emotion || "",
       register: registerOf(page.emotion || beat.emotion || ""),
       shotType: page.shotType || beat.shotType || "",
+      composition: page.compositionIntent || beat.compositionIntent || "",
       scale: scaleOf(page.shotType || beat.shotType || ""),
       layout: page.textSafeRegion || beat.textSafeRegion || "",
       lighting: page.lighting || beat.lighting || "",
@@ -461,6 +475,68 @@
     };
   }
 
+  function cameraBrief(snap) {
+    return CAMERA[snap.shotType] || "A medium view of the characters in this moment.";
+  }
+
+  function worldTone(tone) {
+    var key = String(tone || "").toLowerCase();
+    if (key === "bedtime") return "Keep the picture calm and gentle. Do not add spectacle.";
+    if (key === "educational" || key === "factual" || key === "historical") {
+      return "Keep the place accurate for this story. Do not add fantasy scenery.";
+    }
+    if (key === "magical" || key === "adventure" || key === "surprise") {
+      return "Let this place feel alive through the story's own landmarks. Do not invent a new location.";
+    }
+    return "Follow this story's own places. Do not invent a new location.";
+  }
+
+  function continuityLine(bible, snaps, index) {
+    var snap = snaps[index];
+    var place = placeOf(bible, snap.locationId);
+    var name = (place && place.name) || snap.locationId || "this place";
+    var look = (place && place.visualIdentity) || "";
+    var earlier = "";
+    var i;
+    for (i = 0; i < index; i += 1) {
+      if (snaps[i].locationId && snaps[i].locationId === snap.locationId) earlier = snaps[i].spreadId;
+    }
+    if (earlier) {
+      return "Same place as " + earlier + ": " + name + ". Keep its look: " + look + " Do not redesign it as a new room.";
+    }
+    return "First view of " + name + ". Establish this look and keep it later: " + look;
+  }
+
+  function placeTransition(snaps, index) {
+    var snap = snaps[index];
+    var previous = index ? snaps[index - 1] : null;
+    if (!previous || !snap.locationId || previous.locationId === snap.locationId) return "";
+    var seen = false;
+    var i;
+    for (i = 0; i < index; i += 1) {
+      if (snaps[i].locationId === snap.locationId) seen = true;
+    }
+    if (seen) return "Returning to a place already shown. Keep its established look. Do not redesign it.";
+    return "New story location. Draw this place only. Do not bring the previous place's scenery unless the story says it is still here.";
+  }
+
+  function placeStay(snaps, index) {
+    var stay = 1;
+    var id = snaps[index].locationId;
+    var i = index;
+    while (i > 0 && snaps[i - 1].locationId === id) {
+      stay += 1;
+      i -= 1;
+    }
+    return stay;
+  }
+
+  function varietyNote(previous, snap) {
+    if (!previous || !snap.locationId || previous.locationId !== snap.locationId) return "";
+    if (previous.shotType && previous.shotType === snap.shotType) return "same-viewpoint";
+    return "";
+  }
+
   function repetitionRuns(snaps) {
     var runs = [];
     var current = [];
@@ -573,7 +649,13 @@
         consequenceVisible: delta ? consequenceVisible(delta) : false,
         recognisableWithoutText: recognisable(previous, snap, delta || {}),
         storyProgressed: progressed,
-        cameraOnly: cameraOnly
+        cameraOnly: cameraOnly,
+        cameraBrief: cameraBrief(snap),
+        continuityLine: continuityLine(bible, snaps, index),
+        placeTransition: placeTransition(snaps, index),
+        worldTone: worldTone(tone),
+        varietyNote: varietyNote(previous, snap),
+        placeStay: placeStay(snaps, index)
       };
     });
     var repetition = repetitionRuns(snaps);
@@ -617,6 +699,8 @@
     recommendTextRegion: recommendTextRegion,
     gutterSafe: gutterSafe,
     registerOf: registerOf,
-    familyOf: familyOf
+    familyOf: familyOf,
+    cameraBrief: cameraBrief,
+    worldTone: worldTone
   };
 });

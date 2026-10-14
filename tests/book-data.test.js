@@ -65,6 +65,15 @@ var bare = Data.plan({
   pages: [{ text: "Words only", imageDataUrl: null, imageUrlFallback: "" }]
 });
 assert.strictEqual(bare.pages[0].missingArt, true);
+assert.strictEqual(bare.pages[0].shot, "");
+var noted = Data.plan({
+  id: "noted",
+  title: "Noted",
+  pages: [{ text: "Hello", shotType: "close", narrativePhase: "ATTEMPT", layoutIntent: "PAGE_PAIR", imageUrlFallback: "x" }]
+});
+assert.strictEqual(noted.pages[0].shot, "close");
+assert.strictEqual(noted.pages[0].phase, "ATTEMPT");
+assert.strictEqual(noted.pages[0].layoutIntent, "PAGE_PAIR");
 assert.strictEqual(bare.coverSrc, "");
 assert.ok(!/golden key/i.test(JSON.stringify(bare)));
 

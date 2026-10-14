@@ -1,4 +1,5 @@
 import * as THREE from "./vendor/three.module.js";
+import { choosePageLayouts, coverCanvasSize, coverLayout, imageCrop, pageComposition, pageImageBand, spineCanvasSize } from "./page-layout.js?v=2";
 
 const PAGE_W = 1.22;
 const PAGE_H = 1.83;
@@ -93,8 +94,8 @@ function canvasTexture(source) {
 
 function pageCanvas() {
   const c = document.createElement("canvas");
-  c.width = 900;
-  c.height = Math.round(900 * (PAGE_H / PAGE_W));
+  c.width = 1200;
+  c.height = Math.round(1200 * (PAGE_H / PAGE_W));
   return c;
 }
 
@@ -125,21 +126,65 @@ function wrap(g, text, x, y, max, lineHeight) {
   return y;
 }
 
+function wrapLines(g, text, max, size, weight, family) {
+  g.font = weight + " " + size + "px " + family;
+  const words = String(text || "").split(/\s+/).filter(Boolean);
+  const lines = [];
+  let line = "";
+  words.forEach(function (word) {
+    const trial = line ? line + " " + word : word;
+    if (g.measureText(trial).width > max && line) {
+      lines.push(line);
+      line = word;
+    } else {
+      line = trial;
+    }
+  });
+  if (line) lines.push(line);
+  return lines.length ? lines : [""];
+}
+
 function drawCover(image, titleText, kickerText) {
+  const size = coverCanvasSize(COVER_W - 0.045, COVER_H - 0.045, 1600);
   const c = document.createElement("canvas");
-  c.width = image.width;
-  c.height = image.height;
+  c.width = size.width;
+  c.height = size.height;
   const g = c.getContext("2d");
-  g.drawImage(image, 0, 0, c.width, c.height);
+  const layout = coverLayout(c.width, c.height, image.width || c.width, image.height || c.height);
+  const src = layout.source;
+  g.fillStyle = "#3a2158";
+  g.fillRect(0, 0, c.width, c.height);
+  g.drawImage(image, src.sx, src.sy, src.sw, src.sh, layout.art.x, layout.art.y, layout.art.w, layout.art.h);
+  g.fillStyle = "#3a2158";
+  g.fillRect(0, layout.title.y, c.width, layout.title.h);
+  g.fillStyle = "#e8c878";
+  g.fillRect(layout.title.x, layout.title.y + Math.round(c.height * 0.018), layout.title.w, Math.max(2, Math.round(c.width * 0.0025)));
+  const title = titleText || "Untitled story";
+  const kicker = kickerText || "";
+  let titleSize = Math.round(c.width * 0.084);
+  const minTitle = Math.round(c.width * 0.044);
+  let lines = wrapLines(g, title, layout.title.w, titleSize, "650", "Fraunces, Georgia, serif");
+  while ((lines.length > 3 || lines.some(function (line) { return g.measureText(line).width > layout.title.w; })) && titleSize > minTitle) {
+    titleSize -= 2;
+    lines = wrapLines(g, title, layout.title.w, titleSize, "650", "Fraunces, Georgia, serif");
+  }
+  const titleLead = Math.round(titleSize * 1.16);
+  const kickerSize = Math.round(c.width * 0.026);
+  const block = lines.length * titleLead + (kicker ? Math.round(kickerSize * 2.2) : 0);
+  let y = layout.title.y + Math.max(Math.round(layout.title.h * 0.12), (layout.title.h - block) / 2);
   g.textAlign = "center";
-  g.shadowColor = "rgba(6, 12, 32, 0.78)";
-  g.shadowBlur = 22;
-  g.shadowOffsetY = 4;
+  g.textBaseline = "top";
   g.fillStyle = "#fffaf2";
-  g.font = "650 " + Math.round(c.width * 0.09) + "px Fraunces, Georgia, serif";
-  wrap(g, titleText || "The Secret of the Golden Key", c.width / 2, c.height * 0.1, c.width * 0.78, c.width * 0.1);
-  g.font = "600 " + Math.round(c.width * 0.038) + "px Fredoka, Nunito, sans-serif";
-  g.fillText(kickerText || "A Wondii Adventure", c.width / 2, c.height * 0.34);
+  g.font = "650 " + titleSize + "px Fraunces, Georgia, serif";
+  lines.forEach(function (line) {
+    g.fillText(line, c.width / 2, y);
+    y += titleLead;
+  });
+  if (kicker) {
+    g.font = "600 " + kickerSize + "px Fredoka, Nunito, sans-serif";
+    g.fillStyle = "#f3e6cf";
+    g.fillText(kicker, c.width / 2, y + Math.round(kickerSize * 0.7));
+  }
   return c;
 }
 
@@ -221,11 +266,70 @@ function drawBookNamePage(titleText) {
   fillPaper(g, "#fbf6ea");
   g.textAlign = "center";
   g.fillStyle = "#2a241c";
-  g.font = "650 76px Fraunces, Georgia, serif";
+  const titleSize = Math.round(c.width * 0.084);
+  g.font = "650 " + titleSize + "px Fraunces, Georgia, serif";
   const title = titleText || sample.title || "The Secret of the Golden Key";
-  wrap(g, title, c.width / 2, c.height * 0.42, c.width - 170, 88);
+  wrap(g, title, c.width / 2, c.height * 0.42, c.width * 0.82, Math.round(titleSize * 1.16));
   gutterShade(g, "left");
   return c;
+}
+
+function drawBlankLeaf() {
+  const c = pageCanvas();
+  const g = c.getContext("2d");
+  g.fillStyle = "#f3eee4";
+  g.fillRect(0, 0, c.width, c.height);
+  return c;
+}
+
+function drawClosingPage() {
+  const c = pageCanvas();
+  const g = c.getContext("2d");
+  g.fillStyle = "#fffaf6";
+  g.fillRect(0, 0, c.width, c.height);
+  const title = "The End";
+  const lines = [
+    "We hope you loved this little adventure.",
+    "Until the next story..."
+  ];
+  const titleSize = Math.round(c.width * 0.108);
+  const lineSize = Math.round(c.width * 0.034);
+  const lineLead = Math.round(lineSize * 1.7);
+  const afterTitle = Math.round(titleSize * 0.42);
+  const afterRule = Math.round(lineSize * 1.35);
+  const block = titleSize + afterTitle + afterRule + lineLead * (lines.length - 1) + lineSize;
+  g.textAlign = "center";
+  g.textBaseline = "alphabetic";
+  g.font = "560 " + titleSize + "px Fraunces, Georgia, serif";
+  const titleWidth = g.measureText(title).width;
+  let y = (c.height - block) / 2 + Math.round(titleSize * 0.82);
+  g.fillStyle = "#5c4636";
+  g.fillText(title, c.width / 2, y);
+  y += afterTitle;
+  const rule = Math.min(Math.round(c.width * 0.22), Math.round(titleWidth * 0.46));
+  g.strokeStyle = "rgba(92, 70, 54, 0.38)";
+  g.lineWidth = Math.max(1, c.width * 0.0014);
+  g.beginPath();
+  g.moveTo((c.width - rule) / 2, y);
+  g.lineTo((c.width + rule) / 2, y);
+  g.stroke();
+  y += afterRule + Math.round(lineSize * 0.8);
+  g.fillStyle = "#6e5846";
+  g.font = "italic 560 " + lineSize + "px Fraunces, Georgia, serif";
+  lines.forEach(function (line) {
+    g.fillText(line, c.width / 2, y);
+    y += lineLead;
+  });
+  return c;
+}
+
+function closingSpread() {
+  return {
+    label: "The End",
+    left: drawBlankLeaf(),
+    right: drawClosingPage(),
+    text: "The End. We hope you loved this little adventure. Until the next story..."
+  };
 }
 
 function drawAuthorPage(authorName) {
@@ -235,10 +339,10 @@ function drawAuthorPage(authorName) {
   const author = authorName || sample.author || "Wondii";
   g.textAlign = "center";
   g.fillStyle = "#6a5b4a";
-  g.font = "700 28px Nunito, sans-serif";
+  g.font = "700 " + Math.round(c.width * 0.031) + "px Nunito, sans-serif";
   g.fillText("WRITTEN BY", c.width / 2, c.height * 0.46);
   g.fillStyle = "#2a241c";
-  g.font = "650 72px Fraunces, Georgia, serif";
+  g.font = "650 " + Math.round(c.width * 0.08) + "px Fraunces, Georgia, serif";
   g.fillText(author, c.width / 2, c.height * 0.54);
   gutterShade(g, "right");
   return c;
@@ -302,6 +406,9 @@ function richParagraphs(g, lines, max, size) {
       }
     });
     if (row.length) rows.push(row);
+    if (rows.length > 1 && rows[rows.length - 1].length === 1 && rows[rows.length - 2].length > 2) {
+      rows[rows.length - 1].unshift(rows[rows.length - 2].pop());
+    }
     return rows;
   });
 }
@@ -316,7 +423,7 @@ function layoutCopy(g, lines, zone) {
   const spaceFont = function (size) {
     return "560 " + size + "px Fraunces, Georgia, serif";
   };
-  let size = zone.maxSize;
+  let size = zone.size || zone.maxSize;
   let paragraphs = richParagraphs(g, lines, zone.w, size);
   let leading = Math.round(size * 1.45);
   let height = blockHeight(paragraphs, leading);
@@ -327,9 +434,10 @@ function layoutCopy(g, lines, zone) {
     height = blockHeight(paragraphs, leading);
   }
   const textRows = paragraphs.reduce(function (sum, rows) { return sum + rows.length; }, 0);
-  const sparse = !zone.align && textRows <= 4 && height < zone.h * 0.62;
+  const sparse = zone.anchor !== "start" && !zone.align && textRows <= 4 && height < zone.h * 0.62;
   const align = zone.align || (sparse ? "center" : "left");
-  let y = (sparse ? zone.y + (zone.h - height) / 2 : zone.y) + leading * 0.82;
+  const middle = zone.valign === "middle" || sparse;
+  let y = (middle ? zone.y + Math.max(0, (zone.h - height) / 2) : zone.y) + leading * 0.82;
   const ink = zone.color || "#2a241c";
   const accent = zone.accent || (ink === "#fffaf2" ? "#ffe7a8" : "#6d28d9");
   g.shadowBlur = zone.color ? g.shadowBlur : 0;
@@ -360,9 +468,10 @@ function paintFolio(g, folio, side, ink) {
   const c = g.canvas;
   g.shadowBlur = 0;
   g.fillStyle = ink || "#7a6a56";
-  g.font = "560 28px Fraunces, Georgia, serif";
+  g.font = "560 " + Math.max(22, Math.round(c.width * 0.031)) + "px Fraunces, Georgia, serif";
   g.textAlign = side === "left" ? "left" : "right";
-  g.fillText(String(folio), side === "left" ? 46 : c.width - 46, c.height - 42);
+  const inset = Math.round(c.width * 0.051);
+  g.fillText(String(folio), side === "left" ? inset : c.width - inset, c.height - Math.round(c.height * 0.031));
 }
 
 function paperPage() {
@@ -371,34 +480,105 @@ function paperPage() {
   return c;
 }
 
-function drawProsePage(lines, folio, side) {
+function measureCopy(g, lines, width, size) {
+  const paragraphs = richParagraphs(g, lines, width, size);
+  const leading = Math.round(size * 1.45);
+  return { height: blockHeight(paragraphs, leading), size: size };
+}
+
+function fitTypeSize(g, pages, layouts) {
+  const samplePage = pageCanvas();
+  const pageW = samplePage.width;
+  const pageH = samplePage.height;
+  let size = Math.round(pageW * 0.046);
+  const minSize = Math.round(pageW * 0.03);
+  (pages || []).forEach(function (page, index) {
+    const lines = storyLines(page.text);
+    const layout = layouts ? layouts[index] : "above";
+    const side = index % 2 ? "right" : "left";
+    let trial = size;
+    if (page.image) {
+      const probe = pageComposition(layout, pageW, pageH, page.image.width, page.image.height, side, 0);
+      while (trial > minSize) {
+        const measured = measureCopy(g, lines, probe.text.w, trial);
+        const placed = pageComposition(layout, pageW, pageH, page.image.width, page.image.height, side, measured.height);
+        if (measured.height <= placed.text.h && placed.text.y + measured.height <= pageH - placed.folio) break;
+        trial -= 2;
+      }
+    } else {
+      const textW = pageW - Math.round(pageW * 0.15);
+      const zoneH = pageH - Math.round(pageH * 0.14);
+      while (trial > minSize && measureCopy(g, lines, textW, trial).height > zoneH) trial -= 2;
+    }
+    if (trial < size) size = trial;
+  });
+  return size;
+}
+
+function drawFramedPage(image, lines, folio, side, typeSize, layout) {
   const c = paperPage();
   const g = c.getContext("2d");
+  const size = typeSize || Math.round(c.width * 0.046);
+  const probe = pageComposition(layout, c.width, c.height, image.width, image.height, side, 0);
+  const measured = measureCopy(g, lines, probe.text.w, size);
+  const placed = pageComposition(layout, c.width, c.height, image.width, image.height, side, measured.height);
+  g.drawImage(image, 0, 0, image.width, image.height, placed.image.x, placed.image.y, placed.image.w, placed.image.h);
   layoutCopy(g, lines, {
-    x: 84,
-    y: 90,
-    w: c.width - 168,
-    h: c.height - 190,
-    maxSize: 46,
-    minSize: 28
+    x: placed.text.x,
+    y: placed.text.y,
+    w: placed.text.w,
+    h: placed.text.h,
+    maxSize: size,
+    minSize: Math.round(c.width * 0.028),
+    size: size,
+    anchor: "start",
+    align: placed.align,
+    valign: placed.valign
   });
   paintFolio(g, folio, side);
   gutterShade(g, side);
   return c;
 }
 
-function drawAbovePage(image, lines, folio, side) {
+function drawProsePage(lines, folio, side, typeSize) {
   const c = paperPage();
   const g = c.getContext("2d");
-  const band = Math.round(c.width * (image.height / image.width));
-  g.drawImage(image, 0, 0, c.width, band);
+  const inset = Math.round(c.width * 0.09);
+  const size = typeSize || Math.round(c.width * 0.051);
   layoutCopy(g, lines, {
-    x: 72,
-    y: band + 28,
-    w: c.width - 144,
-    h: c.height - band - 108,
-    maxSize: 40,
-    minSize: 26
+    x: inset,
+    y: Math.round(c.height * 0.067),
+    w: c.width - inset * 2,
+    h: c.height - Math.round(c.height * 0.14),
+    maxSize: size,
+    minSize: Math.round(c.width * 0.03),
+    size: typeSize || 0,
+    anchor: typeSize ? "start" : ""
+  });
+  paintFolio(g, folio, side);
+  gutterShade(g, side);
+  return c;
+}
+
+function drawAbovePage(image, lines, folio, side, typeSize) {
+  const c = paperPage();
+  const g = c.getContext("2d");
+  const inset = Math.round(c.width * 0.075);
+  const textW = c.width - inset * 2;
+  const size = typeSize || Math.round(c.width * 0.046);
+  const measured = measureCopy(g, lines, textW, size);
+  const placed = pageImageBand(c.width, c.height, image.width, image.height, measured.height);
+  const crop = imageCrop(c.width, placed.band, image.width, image.height, 0.5, 0.4);
+  g.drawImage(image, crop.sx, crop.sy, crop.sw, crop.sh, 0, 0, c.width, placed.band);
+  layoutCopy(g, lines, {
+    x: inset,
+    y: placed.band + placed.gap,
+    w: textW,
+    h: Math.max(placed.folio, c.height - placed.band - placed.gap - placed.folio),
+    maxSize: size,
+    minSize: Math.round(c.width * 0.028),
+    size: size,
+    anchor: "start"
   });
   paintFolio(g, folio, side);
   gutterShade(g, side);
@@ -520,7 +700,8 @@ function makeSpreads(art) {
       ], "10", "left"),
       right: drawBleedPage(art.p10, "Maya opened her hands. The golden key rose, leaving a thin trail of light.", "11"),
       text: "Maya opened her hands. The golden key rose."
-    }
+    },
+    closingSpread()
   ];
 }
 
@@ -603,9 +784,10 @@ function sideMesh(side) {
 
 function drawSpineTitle(titleText) {
   const title = titleText || sample.title || "The Secret of the Golden Key";
+  const spineSize = spineCanvasSize(SPINE_DEPTH - 0.1, COVER_H - 0.42, 1800);
   const c = document.createElement("canvas");
-  c.width = 420;
-  c.height = 1600;
+  c.width = spineSize.width;
+  c.height = spineSize.height;
   const g = c.getContext("2d");
   g.fillStyle = "#241433";
   g.fillRect(0, 0, c.width, c.height);
@@ -674,15 +856,18 @@ function storyLines(text) {
   return parts.length ? parts : [" "];
 }
 
-function paintPage(page, side) {
+function paintPage(page, side, typeSize, layout) {
   const lines = storyLines(page.text);
-  if (page.image) return drawAbovePage(page.image, lines, String(page.number), side);
+  if (page.image) return drawFramedPage(page.image, lines, String(page.number), side, typeSize, layout || "above");
   if (page.missingArt) lines.push("The picture for this page is not on this book yet.");
-  return drawProsePage(lines, String(page.number), side);
+  return drawProsePage(lines, String(page.number), side, typeSize);
 }
 
 function paintSavedSpreads(plan) {
   const pages = plan.pages || [];
+  const layouts = choosePageLayouts(pages);
+  const measurer = pageCanvas().getContext("2d");
+  const typeSize = fitTypeSize(measurer, pages, layouts);
   const painted = [{
     label: "Title",
     left: drawBookNamePage(plan.title),
@@ -693,12 +878,13 @@ function paintSavedSpreads(plan) {
     const left = pages[i];
     const right = pages[i + 1];
     painted.push({
-      label: "Story",
-      left: paintPage(left, "left"),
-      right: right ? paintPage(right, "right") : drawProsePage(["The end."], String(pages.length + 1), "right"),
+      label: layouts[i] === "spread" ? "Aligned spread" : "Story",
+      left: paintPage(left, "left", typeSize, layouts[i]),
+      right: right ? paintPage(right, "right", typeSize, layouts[i + 1]) : drawBlankLeaf(),
       text: [left.text, right && right.text].filter(Boolean).join(" ")
     });
   }
+  painted.push(closingSpread());
   return painted;
 }
 
@@ -1344,6 +1530,7 @@ function readyFonts() {
   return Promise.all([
     document.fonts.load("650 72px Fraunces"),
     document.fonts.load("560 42px Fraunces"),
+    document.fonts.load("italic 560 42px Fraunces"),
     document.fonts.load("600 48px Fredoka")
   ]);
 }

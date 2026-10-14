@@ -1,0 +1,567 @@
+{
+  "stage": "illustrations",
+  "pictures": "generated",
+  "published": false,
+  "textCalls": 0,
+  "calls": {
+    "text": 0,
+    "image": 13,
+    "vision": 12
+  },
+  "listedUsd": 0.533212,
+  "listedGbp": 0.402042,
+  "capUsd": 0.938,
+  "pages": [
+    {
+      "pageId": "p1",
+      "ok": true,
+      "repairs": 0,
+      "reason": "",
+      "problems": [],
+      "needsReview": false,
+      "file": "p1.jpg"
+    },
+    {
+      "pageId": "p2",
+      "ok": true,
+      "repairs": 0,
+      "reason": "",
+      "problems": [],
+      "needsReview": false,
+      "file": "p2.jpg"
+    },
+    {
+      "pageId": "p3",
+      "ok": true,
+      "repairs": 1,
+      "reason": "repaired",
+      "problems": [],
+      "needsReview": false,
+      "file": "p3.jpg"
+    },
+    {
+      "pageId": "p4",
+      "ok": true,
+      "repairs": 0,
+      "reason": "",
+      "problems": [],
+      "needsReview": false,
+      "file": "p4.jpg"
+    },
+    {
+      "pageId": "p5",
+      "ok": true,
+      "repairs": 0,
+      "reason": "",
+      "problems": [],
+      "needsReview": false,
+      "file": "p5.jpg"
+    },
+    {
+      "pageId": "p6",
+      "ok": true,
+      "repairs": 0,
+      "reason": "",
+      "problems": [],
+      "needsReview": false,
+      "file": "p6.jpg"
+    },
+    {
+      "pageId": "p7",
+      "ok": true,
+      "repairs": 0,
+      "reason": "",
+      "problems": [],
+      "needsReview": false,
+      "file": "p7.jpg"
+    },
+    {
+      "pageId": "p8",
+      "ok": true,
+      "repairs": 0,
+      "reason": "",
+      "problems": [],
+      "needsReview": false,
+      "file": "p8.jpg"
+    },
+    {
+      "pageId": "p9",
+      "ok": true,
+      "repairs": 0,
+      "reason": "",
+      "problems": [],
+      "needsReview": false,
+      "file": "p9.jpg"
+    },
+    {
+      "pageId": "p10",
+      "ok": true,
+      "repairs": 0,
+      "reason": "",
+      "problems": [],
+      "needsReview": false,
+      "file": "p10.jpg"
+    },
+    {
+      "pageId": "p11",
+      "ok": true,
+      "repairs": 0,
+      "reason": "",
+      "problems": [],
+      "needsReview": false,
+      "file": "p11.jpg"
+    },
+    {
+      "pageId": "p12",
+      "ok": true,
+      "repairs": 0,
+      "reason": "",
+      "problems": [],
+      "needsReview": false,
+      "file": "p12.jpg"
+    }
+  ],
+  "ledger": [
+    {
+      "kind": "image",
+      "label": "wondii-maya+wondii-leo",
+      "http": 200,
+      "usd": 0.039146,
+      "usage": {
+        "present": true,
+        "perReference": false,
+        "reason": "aggregate-only",
+        "model": "gpt-image-2.5-sunburst",
+        "inputTokens": 3928,
+        "imageInputTokens": 3072,
+        "textInputTokens": 856,
+        "outputTokens": 343,
+        "imageOutputTokens": 343
+      }
+    },
+    {
+      "kind": "vision",
+      "label": "p1",
+      "http": 200,
+      "usd": 0.001467,
+      "usage": {
+        "prompt_tokens": 9033,
+        "completion_tokens": 187,
+        "total_tokens": 9220,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      }
+    },
+    {
+      "kind": "image",
+      "label": "wondii-maya+wondii-leo",
+      "http": 200,
+      "usd": 0.039791,
+      "usage": {
+        "present": true,
+        "perReference": false,
+        "reason": "aggregate-only",
+        "model": "gpt-image-2.5-sunburst",
+        "inputTokens": 4057,
+        "imageInputTokens": 3072,
+        "textInputTokens": 985,
+        "outputTokens": 343,
+        "imageOutputTokens": 343
+      }
+    },
+    {
+      "kind": "vision",
+      "label": "p2",
+      "http": 200,
+      "usd": 0.001474,
+      "usage": {
+        "prompt_tokens": 9080,
+        "completion_tokens": 187,
+        "total_tokens": 9267,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      }
+    },
+    {
+      "kind": "image",
+      "label": "wondii-maya+wondii-leo",
+      "http": 400,
+      "usd": 0.037646,
+      "usage": {
+        "present": false,
+        "perReference": false,
+        "reason": "usage-missing"
+      }
+    },
+    {
+      "kind": "image",
+      "label": "wondii-maya+wondii-leo",
+      "http": 200,
+      "usd": 0.039601,
+      "usage": {
+        "present": true,
+        "perReference": false,
+        "reason": "aggregate-only",
+        "model": "gpt-image-2.5-sunburst",
+        "inputTokens": 4019,
+        "imageInputTokens": 3072,
+        "textInputTokens": 947,
+        "outputTokens": 343,
+        "imageOutputTokens": 343
+      }
+    },
+    {
+      "kind": "vision",
+      "label": "p4",
+      "http": 200,
+      "usd": 0.001478,
+      "usage": {
+        "prompt_tokens": 9102,
+        "completion_tokens": 187,
+        "total_tokens": 9289,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      }
+    },
+    {
+      "kind": "image",
+      "label": "wondii-maya+wondii-leo",
+      "http": 200,
+      "usd": 0.039661,
+      "usage": {
+        "present": true,
+        "perReference": false,
+        "reason": "aggregate-only",
+        "model": "gpt-image-2.5-sunburst",
+        "inputTokens": 4031,
+        "imageInputTokens": 3072,
+        "textInputTokens": 959,
+        "outputTokens": 343,
+        "imageOutputTokens": 343
+      }
+    },
+    {
+      "kind": "vision",
+      "label": "p5",
+      "http": 200,
+      "usd": 0.001475,
+      "usage": {
+        "prompt_tokens": 9082,
+        "completion_tokens": 187,
+        "total_tokens": 9269,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      }
+    },
+    {
+      "kind": "image",
+      "label": "wondii-maya+wondii-leo",
+      "http": 200,
+      "usd": 0.039671,
+      "usage": {
+        "present": true,
+        "perReference": false,
+        "reason": "aggregate-only",
+        "model": "gpt-image-2.5-sunburst",
+        "inputTokens": 4033,
+        "imageInputTokens": 3072,
+        "textInputTokens": 961,
+        "outputTokens": 343,
+        "imageOutputTokens": 343
+      }
+    },
+    {
+      "kind": "vision",
+      "label": "p6",
+      "http": 200,
+      "usd": 0.001479,
+      "usage": {
+        "prompt_tokens": 9109,
+        "completion_tokens": 187,
+        "total_tokens": 9296,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      }
+    },
+    {
+      "kind": "image",
+      "label": "wondii-maya+wondii-leo",
+      "http": 200,
+      "usd": 0.040151,
+      "usage": {
+        "present": true,
+        "perReference": false,
+        "reason": "aggregate-only",
+        "model": "gpt-image-2.5-sunburst",
+        "inputTokens": 4129,
+        "imageInputTokens": 3072,
+        "textInputTokens": 1057,
+        "outputTokens": 343,
+        "imageOutputTokens": 343
+      }
+    },
+    {
+      "kind": "vision",
+      "label": "p7",
+      "http": 200,
+      "usd": 0.001474,
+      "usage": {
+        "prompt_tokens": 9077,
+        "completion_tokens": 187,
+        "total_tokens": 9264,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      }
+    },
+    {
+      "kind": "image",
+      "label": "wondii-maya+wondii-leo",
+      "http": 200,
+      "usd": 0.040056,
+      "usage": {
+        "present": true,
+        "perReference": false,
+        "reason": "aggregate-only",
+        "model": "gpt-image-2.5-sunburst",
+        "inputTokens": 4110,
+        "imageInputTokens": 3072,
+        "textInputTokens": 1038,
+        "outputTokens": 343,
+        "imageOutputTokens": 343
+      }
+    },
+    {
+      "kind": "vision",
+      "label": "p8",
+      "http": 200,
+      "usd": 0.001478,
+      "usage": {
+        "prompt_tokens": 9104,
+        "completion_tokens": 187,
+        "total_tokens": 9291,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      }
+    },
+    {
+      "kind": "image",
+      "label": "wondii-maya+wondii-leo",
+      "http": 200,
+      "usd": 0.040241,
+      "usage": {
+        "present": true,
+        "perReference": false,
+        "reason": "aggregate-only",
+        "model": "gpt-image-2.5-sunburst",
+        "inputTokens": 4147,
+        "imageInputTokens": 3072,
+        "textInputTokens": 1075,
+        "outputTokens": 343,
+        "imageOutputTokens": 343
+      }
+    },
+    {
+      "kind": "vision",
+      "label": "p9",
+      "http": 200,
+      "usd": 0.001478,
+      "usage": {
+        "prompt_tokens": 9106,
+        "completion_tokens": 187,
+        "total_tokens": 9293,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      }
+    },
+    {
+      "kind": "image",
+      "label": "wondii-maya+wondii-leo",
+      "http": 200,
+      "usd": 0.040031,
+      "usage": {
+        "present": true,
+        "perReference": false,
+        "reason": "aggregate-only",
+        "model": "gpt-image-2.5-sunburst",
+        "inputTokens": 4105,
+        "imageInputTokens": 3072,
+        "textInputTokens": 1033,
+        "outputTokens": 343,
+        "imageOutputTokens": 343
+      }
+    },
+    {
+      "kind": "vision",
+      "label": "p10",
+      "http": 200,
+      "usd": 0.001474,
+      "usage": {
+        "prompt_tokens": 9076,
+        "completion_tokens": 187,
+        "total_tokens": 9263,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      }
+    },
+    {
+      "kind": "image",
+      "label": "wondii-maya+wondii-leo",
+      "http": 200,
+      "usd": 0.039821,
+      "usage": {
+        "present": true,
+        "perReference": false,
+        "reason": "aggregate-only",
+        "model": "gpt-image-2.5-sunburst",
+        "inputTokens": 4063,
+        "imageInputTokens": 3072,
+        "textInputTokens": 991,
+        "outputTokens": 343,
+        "imageOutputTokens": 343
+      }
+    },
+    {
+      "kind": "vision",
+      "label": "p11",
+      "http": 200,
+      "usd": 0.001484,
+      "usage": {
+        "prompt_tokens": 9142,
+        "completion_tokens": 187,
+        "total_tokens": 9329,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      }
+    },
+    {
+      "kind": "image",
+      "label": "wondii-maya+wondii-leo",
+      "http": 200,
+      "usd": 0.039931,
+      "usage": {
+        "present": true,
+        "perReference": false,
+        "reason": "aggregate-only",
+        "model": "gpt-image-2.5-sunburst",
+        "inputTokens": 4085,
+        "imageInputTokens": 3072,
+        "textInputTokens": 1013,
+        "outputTokens": 343,
+        "imageOutputTokens": 343
+      }
+    },
+    {
+      "kind": "vision",
+      "label": "p12",
+      "http": 200,
+      "usd": 0.001482,
+      "usage": {
+        "prompt_tokens": 9129,
+        "completion_tokens": 187,
+        "total_tokens": 9316,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "audio_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "audio_tokens": 0,
+          "accepted_prediction_tokens": 0,
+          "rejected_prediction_tokens": 0
+        }
+      }
+    },
+    {
+      "kind": "image",
+      "label": "p3-repair",
+      "http": 200,
+      "usd": 0.039796
+    },
+    {
+      "kind": "vision",
+      "label": "p3-repair",
+      "http": 200,
+      "usd": 0.001426
+    }
+  ]
+}

@@ -1,0 +1,118 @@
+{
+  "calls": {
+    "text": 0,
+    "image": 13,
+    "vision": 13
+  },
+  "usd": 0.51932,
+  "pages": [
+    {
+      "page": 1,
+      "spreadId": "p1",
+      "ok": true,
+      "repairs": 0,
+      "reason": "",
+      "problems": [],
+      "file": "docs/agent/book-v2/castle-lost-lanterns/images/p1.jpg"
+    },
+    {
+      "page": 2,
+      "spreadId": "p2",
+      "ok": true,
+      "repairs": 0,
+      "reason": "",
+      "problems": [],
+      "file": "docs/agent/book-v2/castle-lost-lanterns/images/p2.jpg"
+    },
+    {
+      "page": 3,
+      "spreadId": "p3",
+      "ok": true,
+      "repairs": 0,
+      "reason": "",
+      "problems": [],
+      "file": "docs/agent/book-v2/castle-lost-lanterns/images/p3.jpg"
+    },
+    {
+      "page": 4,
+      "spreadId": "p4",
+      "ok": true,
+      "repairs": 0,
+      "reason": "",
+      "problems": [],
+      "file": "docs/agent/book-v2/castle-lost-lanterns/images/p4.jpg"
+    },
+    {
+      "page": 5,
+      "spreadId": "p5",
+      "ok": true,
+      "repairs": 0,
+      "reason": "",
+      "problems": [],
+      "file": "docs/agent/book-v2/castle-lost-lanterns/images/p5.jpg"
+    },
+    {
+      "page": 6,
+      "spreadId": "p6",
+      "ok": true,
+      "repairs": 0,
+      "reason": "",
+      "problems": [],
+      "file": "docs/agent/book-v2/castle-lost-lanterns/images/p6.jpg"
+    },
+    {
+      "page": 7,
+      "spreadId": "p7",
+      "ok": true,
+      "repairs": 0,
+      "reason": "",
+      "problems": [],
+      "file": "docs/agent/book-v2/castle-lost-lanterns/images/p7.jpg"
+    },
+    {
+      "page": 8,
+      "spreadId": "p8",
+      "ok": true,
+      "repairs": 0,
+      "reason": "",
+      "problems": [],
+      "file": "docs/agent/book-v2/castle-lost-lanterns/images/p8.jpg"
+    },
+    {
+      "page": 9,
+      "spreadId": "p9",
+      "ok": true,
+      "repairs": 1,
+      "reason": "repaired",
+      "problems": [],
+      "file": "docs/agent/book-v2/castle-lost-lanterns/images/p9.jpg"
+    },
+    {
+      "page": 10,
+      "spreadId": "p10",
+      "ok": true,
+      "repairs": 0,
+      "reason": "",
+      "problems": [],
+      "file": "docs/agent/book-v2/castle-lost-lanterns/images/p10.jpg"
+    },
+    {
+      "page": 11,
+      "spreadId": "p11",
+      "ok": true,
+      "repairs": 0,
+      "reason": "",
+      "problems": [],
+      "file": "docs/agent/book-v2/castle-lost-lanterns/images/p11.jpg"
+    },
+    {
+      "page": 12,
+      "spreadId": "p12",
+      "ok": true,
+      "repairs": 0,
+      "reason": "",
+      "problems": [],
+      "file": "docs/agent/book-v2/castle-lost-lanterns/images/p12.jpg"
+    }
+  ]
+}

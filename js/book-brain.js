@@ -84,7 +84,14 @@
     "11-12": { stage: "year6", constraintYear: "Year 6", ageRange: "11–12", narrativeComplexity: "mixed feelings and a little inference" },
     /* Family bands keep the older child's level. 7–9 is not written as 7–8, and 10–12 is not written as 9–10. */
     "4-6": { stage: "year1", constraintYear: "Year 1", ageRange: "4–6", narrativeComplexity: "a simple cause the reader can follow" },
-    "7-9": { stage: "year5", constraintYear: "Year 5", ageRange: "7–9", narrativeComplexity: "a question that can last across the book" },
+    "7-9": {
+      stage: "ages-7-9",
+      constraintYear: "Ages 7–9",
+      ageRange: "7–9",
+      narrativeComplexity: "a problem with a consequence the reader can connect, with a feeling allowed under the action",
+      limits: { maxSentenceWords: 18, maxSentences: 4, maxDialogueTurns: 2, maxPageWords: 64 },
+      writing: "Clear sentences a seven-year-old can follow. Dialogue can carry a decision. A feeling can sit under the action. The page stays a picture book."
+    },
     "10-12": { stage: "year6", constraintYear: "Year 6", ageRange: "10–12", narrativeComplexity: "mixed feelings and a little inference" }
   };
 
@@ -145,7 +152,7 @@
   };
 
   var TONE_WRITING = {
-    adventure: "The problem gets harder because of what the characters do. There is movement and a real cost before the ending.",
+    adventure: "Curiosity changes what the characters do next. They may explore, meet someone, uncover a surprise, or face a cost. Do not default to repairing one magical object.",
     funny: "The humour is in a mistake or a mismatch. Do not announce that something is funny.",
     magical: "One impossible thing is treated as real, and its rule stays the same from the first time it appears.",
     mystery: "A question is planted in the hook. The climax answers that same question. Do not swap in a different puzzle at the end.",
@@ -182,6 +189,13 @@
     return JSON.stringify(a) === JSON.stringify(b);
   }
 
+  function requestedPageCount(source) {
+    if (!source || source.pageCount == null || source.pageCount === "") return 0;
+    var count = Number(source.pageCount);
+    if (count !== Math.floor(count)) return -1;
+    return count;
+  }
+
   function publicRequest(input) {
     var source = input || {};
     var tone = source.tone ? String(source.tone) : null;
@@ -191,7 +205,7 @@
     var yearGroup = String(source.yearGroup || "");
     if (yearGroup && !YEAR_LIMITS[yearGroup]) yearGroup = "";
     var context = source.context === "school" || source.context === "family" ? source.context : (yearGroup ? "school" : (ageBand ? "family" : null));
-    return {
+    var request = {
       castIds: Array.isArray(source.castIds) ? source.castIds.map(String) : [],
       idea: String(source.idea || "").trim(),
       yearGroup: yearGroup,
@@ -200,6 +214,9 @@
       tone: tone,
       context: context
     };
+    var pageCount = requestedPageCount(source);
+    if (pageCount) request.pageCount = pageCount;
+    return request;
   }
 
   function textLimits(yearGroup) {
@@ -213,7 +230,7 @@
     var band = !ask.yearGroup ? AGE_BANDS[ask.ageBand] : null;
     var chosen = year || band;
     if (!chosen) return null;
-    var limits = textLimits(chosen.constraintYear);
+    var limits = chosen.limits || textLimits(chosen.constraintYear);
     return {
       source: year ? "year" : "age",
       stage: chosen.stage,
@@ -222,6 +239,7 @@
       constraintYear: chosen.constraintYear,
       approximateAgeRange: chosen.ageRange,
       narrativeComplexity: chosen.narrativeComplexity,
+      writing: chosen.writing || "",
       limits: limits
     };
   }
@@ -249,7 +267,9 @@
   function lengthShape(beats, profile) {
     var problems = [];
     var list = beats || [];
-    if (!profile || list.length < profile.minSpreads || list.length > profile.maxSpreads) problems.push("length-shape");
+    if (profile && profile.exactPages) {
+      if (list.length !== profile.exactPages) problems.push("page-count");
+    } else if (!profile || list.length < profile.minSpreads || list.length > profile.maxSpreads) problems.push("length-shape");
     if (!list.length || list[0].role !== "hook" || list[list.length - 1].role !== "resolution") problems.push("length-shape");
     if (!list.some(function (beat) { return beat.role === "climax"; })) problems.push("length-shape");
     list.forEach(function (beat) {
@@ -336,19 +356,33 @@
   function acceptCreation(input) {
     var request = publicRequest(input);
     var refs = referenceMap(input);
+    var locked = {};
+    (input.identityRegistry || []).forEach(function (row) {
+      if (row && row.locked === true && row.characterId && (row.portrait || row.approvedReference)) {
+        locked[String(row.characterId)] = row;
+      }
+    });
     var lock = characterApi().lockCast(request.castIds);
     var problems = lock.problems.filter(function (problem) {
       var id = problem.indexOf("unknown-cast:") === 0 ? problem.slice("unknown-cast:".length) : "";
-      return !(id && refs[id]);
+      return !(id && (refs[id] || locked[id]));
     });
     var cast = lock.cast.slice();
     request.castIds.forEach(function (id) {
-      if (refs[id] && !cast.some(function (row) { return row.characterId === id; })) cast.push(refs[id]);
+      if (cast.some(function (row) { return row.characterId === id; })) return;
+      if (locked[id]) cast.push(locked[id]);
+      else if (refs[id]) cast.push(refs[id]);
     });
     if (request.castIds.length < 1 || request.castIds.length > 4) problems.push("cast-size");
     if (!request.idea) problems.push("idea-missing");
     if (!readerProfile(request)) problems.push("year");
     if (!lengthProfile(request.length)) problems.push("length");
+    if (request.pageCount) {
+      var pagesWanted = lengthProfile(request.length);
+      if (request.pageCount < 0 || !pagesWanted || request.pageCount < pagesWanted.minSpreads || request.pageCount > pagesWanted.maxSpreads) {
+        problems.push("page-count");
+      }
+    }
     request.characterReferences = request.castIds.map(function (id) { return refs[id]; }).filter(Boolean);
     return {
       ok: problems.length === 0,
@@ -379,7 +413,14 @@
     var beats = book.beats || [];
     var locations = book.locations || [];
     var entities = book.entities || [];
+    var known = knownRegistry(book.identityRegistry);
     var cast = characterApi().lockCast(book.castIds || []);
+    if (!cast.ok) {
+      cast.problems.forEach(function (problem) {
+        var id = problem.indexOf("unknown-cast:") === 0 ? problem.slice("unknown-cast:".length) : "";
+        if (!(id && known[id])) problems.push(problem);
+      });
+    }
 
     if (!book.userIdea && !ask.idea) problems.push("idea-missing");
     var idea = ask.idea || book.userIdea || "";
@@ -394,7 +435,6 @@
 
     if (!book.goal) problems.push("goal-missing");
     if (!book.centralProblem) problems.push("problem-missing");
-    if (!cast.ok) problems = problems.concat(cast.problems);
     (book.castIds || []).forEach(function (id) {
       var seen = false;
       var missingReason = false;
@@ -404,7 +444,7 @@
         else if (!(beat.absent && beat.absent[id])) missingReason = true;
       });
       if (!seen || missingReason) problems.push("cast-missing:" + id);
-      var character = characterApi().getCharacter(id);
+      var character = catalogueCharacter(id, book.identityRegistry);
       var expressed = beats.some(function (beat) {
         return (beat.expresses || []).some(function (note) {
           return note.characterId === id && character && character.personality.indexOf(note.trait) >= 0;
@@ -413,8 +453,16 @@
       if (character && character.personality.length && !expressed) problems.push("personality-unused:" + id);
     });
 
+    var exact = ask.pageCount || book.pageCount || 0;
+    var shaped = profile;
+    if (exact < 0 || (exact > 0 && profile && (exact < profile.minSpreads || exact > profile.maxSpreads))) {
+      problems.push("page-count");
+    } else if (exact > 0 && profile) {
+      shaped = clone(profile);
+      shaped.exactPages = exact;
+    }
     if (!profile) problems.push("length-shape");
-    else problems = problems.concat(lengthShape(beats, profile));
+    else problems = problems.concat(lengthShape(beats, shaped));
     require("./book-progression.js").review({ bible: book }).blockProblems.forEach(function (problem) {
       if (problems.indexOf(problem) < 0) problems.push(problem);
     });
@@ -532,6 +580,7 @@
       if (visual) page.visualNoveltyReason = visual.visualNoveltyReason;
     });
     var problems = continuityProblems(pages).concat(compositionProblems(pages));
+    if (bible.pageCount && pages.length !== bible.pageCount) problems.push("page-count");
     var hooks = pages.filter(function (page) { return page.pageTurnHook; }).length;
     if (pages.length > 2 && hooks === pages.length) problems.push("page-turn-every-page");
     if (problems.length) return { ok: false, problems: problems, pages: null };
@@ -725,10 +774,11 @@
 
   function reviewText(bible, pages) {
     var problems = [];
+    if (bible && bible.pageCount && (pages || []).length !== bible.pageCount) problems.push("page-count");
     var limits = limitsFor(bible);
     var openings = [];
     var names = (bible.castIds || []).map(function (id) {
-      var character = characterApi().getCharacter(id);
+      var character = catalogueCharacter(id, bible.identityRegistry);
       return character ? character.name : "";
     });
     (pages || []).forEach(function (page) {
@@ -782,7 +832,7 @@
       problems.push("trait-told");
     }
     (bible.castIds || []).forEach(function (id) {
-      var character = characterApi().getCharacter(id);
+      var character = catalogueCharacter(id, bible.identityRegistry);
       if (character && joined.indexOf(character.name) < 0) problems.push("cast-missing:" + id);
     });
     if (!(pages || []).some(function (page) { return page.beatId === bible.climaxBeatId; })) problems.push("climax-missing");
@@ -988,7 +1038,19 @@ function applyTextEdit(book, pageId, text) {
     return String(value || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
   }
 
+  function knownRegistry(rows) {
+    var locked = {};
+    (rows || []).forEach(function (row) {
+      if (row && row.locked === true && row.characterId && (row.portrait || row.approvedReference)) {
+        locked[String(row.characterId)] = row;
+      }
+    });
+    return locked;
+  }
+
   function compileStory(draft, request) {
+    var registry = Array.isArray(request && request.identityRegistry) ? request.identityRegistry : [];
+    var known = knownRegistry(registry);
     var ask = publicRequest(request || {});
     var problems = [];
     var profile = lengthProfile(ask.length);
@@ -998,7 +1060,12 @@ function applyTextEdit(book, pageId, text) {
     if (!ask.idea) problems.push("idea-missing");
     if (ask.castIds.length < 1 || ask.castIds.length > 4) problems.push("cast-size");
     var lock = characterApi().lockCast(ask.castIds);
-    if (!lock.ok) problems = problems.concat(lock.problems);
+    if (!lock.ok) {
+      lock.problems.forEach(function (problem) {
+        var id = problem.indexOf("unknown-cast:") === 0 ? problem.slice("unknown-cast:".length) : "";
+        if (!(id && known[id])) problems.push(problem);
+      });
+    }
     problems = problems.concat(lengthShape(incoming, profile));
     if (problems.length) return { ok: false, problems: problems, bible: null };
 
@@ -1008,6 +1075,7 @@ function applyTextEdit(book, pageId, text) {
         name: String(place.name || place.locationId || ""),
         connectedTo: (place.connectedTo || []).map(slug),
         visualIdentity: String(place.visualIdentity || ""),
+        setting: String(place.setting || "").trim(),
         zones: (place.zones || []).map(function (zone) { return String(zone || ""); }).filter(Boolean),
         persistentObjects: (place.persistentObjects || []).map(slug)
       };
@@ -1040,10 +1108,24 @@ function applyTextEdit(book, pageId, text) {
       locked.visualImportance = row.visualImportance || "";
       return locked;
     });
+    storyCast.forEach(function (row) {
+      if (ask.castIds.indexOf(row.characterId) >= 0) problems.push("story-replaces-selected:" + row.characterId);
+      registry.forEach(function (selected) {
+        if (!selected || selected.source === "story-generated") return;
+        if (row.name && selected.name && row.name.toLowerCase() === selected.name.toLowerCase() && row.characterId !== selected.characterId) {
+          problems.push("story-name-clash:" + row.characterId);
+        }
+        (row.referenceAssetIds || []).forEach(function (file) {
+          if (file && (file === selected.portrait || file === selected.approvedReference || file === selected.reference)) {
+            problems.push("story-uses-selected-art:" + row.characterId);
+          }
+        });
+      });
+    });
     var storyIds = storyCast.map(function (row) { return row.characterId; });
     var storyMemory = {};
-    var characters = ask.castIds.map(function (id) {
-      return charState(id, slug(incoming[0].locationId), "steady", "friend", []);
+      var characters = ask.castIds.map(function (id) {
+      return charState(id, slug(incoming[0].locationId), "steady", "friend", [], registry);
     });
     var beats = incoming.map(function (raw, index) {
       var beatId = "b" + (index + 1);
@@ -1056,7 +1138,7 @@ function applyTextEdit(book, pageId, text) {
       });
       (raw.expresses || []).forEach(function (note) {
         if (storyIds.indexOf(note.characterId) >= 0) return;
-        var character = characterApi().getCharacter(note.characterId);
+        var character = catalogueCharacter(note.characterId, registry);
         if (!character || character.personality.indexOf(note.trait) < 0) problems.push("personality-unused:" + note.characterId);
         if (!note.shows || TOLD_TRAIT.test(note.shows) || String(note.shows).toLowerCase() === String(note.trait).toLowerCase()) {
           problems.push("trait-told:" + beatId);
@@ -1081,7 +1163,7 @@ function applyTextEdit(book, pageId, text) {
       });
       characters = characters.map(function (row) {
         var here = present.indexOf(row.characterId) >= 0;
-        return charState(row.characterId, here ? locationId : row.locationId, here ? (raw.emotion || row.emotion) : row.emotion, row.storyRole, row.carriedEntities);
+        return charState(row.characterId, here ? locationId : row.locationId, here ? (raw.emotion || row.emotion) : row.emotion, row.storyRole, row.carriedEntities, registry);
       });
       (raw.entityState || []).forEach(function (change) {
         var id = slug(change.entityId);
@@ -1115,7 +1197,7 @@ function applyTextEdit(book, pageId, text) {
       });
       characters = characters.map(function (row) {
         var carried = living.filter(function (entity) { return entity.ownerCharacterId === row.characterId; }).map(function (entity) { return entity.entityId; });
-        return charState(row.characterId, row.locationId, row.emotion, row.storyRole, carried);
+        return charState(row.characterId, row.locationId, row.emotion, row.storyRole, carried, registry);
       });
       var shot = SHOTS.indexOf(raw.shotType) >= 0 ? raw.shotType : "medium";
       if (shot === previousShot) shot = SHOTS[(SHOTS.indexOf(shot) + 1) % SHOTS.length];
@@ -1185,8 +1267,10 @@ function applyTextEdit(book, pageId, text) {
       narrativeComplexity: reader ? reader.narrativeComplexity : "",
       tone: ask.tone,
       targetLength: ask.length,
+      pageCount: ask.pageCount > 0 ? ask.pageCount : 0,
       userIdea: ask.idea,
       castIds: ask.castIds.slice(),
+      identityRegistry: registry,
       storyCast: storyCast,
       visualStyle: VISUAL_STYLE,
       premise: String(source.premise || ""),
@@ -1202,6 +1286,12 @@ function applyTextEdit(book, pageId, text) {
       entities: entityRecords,
       beats: beats
     };
+    bible.journey = require("./book-adventure.js").normalise(source.journey, locations);
+    var adventureReview = require("./book-adventure.js").assess(bible, ask);
+    bible.adventureNotes = adventureReview.reviewProblems.slice();
+    adventureReview.blockProblems.forEach(function (problem) {
+      if (problems.indexOf(problem) < 0) problems.push(problem);
+    });
     var review = validateBible(bible, ask);
     return { ok: review.ok && problems.length === 0, problems: problems.concat(review.problems), bible: bible };
   }
@@ -1241,8 +1331,24 @@ function applyTextEdit(book, pageId, text) {
     return { ok: problems.length === 0 && review.ok, problems: problems.concat(review.problems), pages: next };
   }
 
-  function charState(id, locationId, emotion, role, carried) {
+  function catalogueCharacter(id, registry) {
+    var direct = characterApi().getCharacter(id);
+    if (direct) return direct;
+    var row = (registry || []).filter(function (item) {
+      return item && (item.characterId === id || item.journeyId === id);
+    })[0];
+    if (row && row.bibleId) return characterApi().getCharacter(row.bibleId);
+    return null;
+  }
+
+  function charState(id, locationId, emotion, role, carried, registry) {
     var character = characterApi().getCharacter(id);
+    if (!character) {
+      var row = (registry || []).filter(function (item) {
+        return item && (item.characterId === id || item.journeyId === id);
+      })[0];
+      if (row) character = { characterId: id, defaultClothing: row.clothing || "" };
+    }
     var state = characterApi().storyState(character, {
       locationId: locationId,
       emotion: emotion,

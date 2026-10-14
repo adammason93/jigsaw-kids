@@ -36,9 +36,10 @@ var older = handle.handleBookV2({
 });
 assert.strictEqual(older.status, 400);
 assert.strictEqual(older.body.generated, false);
-assert.ok(older.body.problems.indexOf("unmapped-cast:char_hugo") >= 0);
-assert.ok(older.body.problems.indexOf("unmapped-cast:wondii-jasper") >= 0);
-assert.ok(older.body.identities.every(function (row) { return row.bibleId !== "maya" || row.journeyId === "wondii-maya"; }));
+assert.ok(older.body.problems.indexOf("wrong-artwork:char_hugo") >= 0);
+assert.ok(older.body.identities.every(function (row) {
+  return row.journeyId !== "wondii-jasper" || (row.portrait.indexOf("wondii-jasper.jpg") >= 0 && row.reference.indexOf("maya-v1") < 0);
+}));
 
 var planned = handle.handleBookV2({
   familyAgeBand: "10-12",
@@ -80,8 +81,8 @@ var young = handle.handleBookV2({
   length: "short"
 });
 assert.strictEqual(young.body.writing.ageBand, "7-9");
-assert.strictEqual(young.body.writing.constraintYear, "Year 5");
-assert.notStrictEqual(young.body.writing.constraintYear, "Year 3");
+assert.strictEqual(young.body.writing.constraintYear, "Ages 7–9");
+assert.notStrictEqual(young.body.writing.constraintYear, "Year 5");
 
 var journey = fs.readFileSync(path.join(root, "games/story-journey.js"), "utf8");
 assert.ok(journey.indexOf("magical forest") < 0);

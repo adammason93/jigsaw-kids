@@ -167,10 +167,15 @@ function generateImage(prompt, purpose) {
 }
 
 function editImage(prompt, reference, purpose) {
+  var files = Array.isArray(reference) ? reference : [{ name: "maya-sheet.jpg", bytes: reference }];
   var form = new FormData();
   form.append("model", MODEL);
   form.append("prompt", prompt);
-  form.append("image[]", new Blob([reference], { type: "image/jpeg" }), "maya-sheet.jpg");
+  files.forEach(function (file) {
+    var bytes = file && file.bytes ? file.bytes : file;
+    var name = file && file.name ? file.name : "reference.jpg";
+    form.append("image[]", new Blob([bytes], { type: "image/jpeg" }), name);
+  });
   form.append("size", SIZE);
   form.append("quality", QUALITY);
   form.append("output_format", "jpeg");
@@ -193,11 +198,13 @@ function saveImage(id, payload) {
 }
 
 function visionCheck(spread, b64, purpose) {
-  var look = plans.visualBible.cast[0];
   var place = (bible.locations || []).filter(function (item) { return item.locationId === spread.locationId; })[0];
+  var people = (plans.visualBible.cast || []).map(function (look) {
+    return look.name + " (" + look.characterId + ") must match " + (look.referenceFile || "their own reference") + ": " + look.hair + "; " + look.skinTone + "; " + look.face + "; " + look.defaultClothing + "; " + look.footwear + "; " + (look.visualIdentifiers || []).join(", ") + ".";
+  }).join(" ");
   var question = [
     "You are checking one children's book illustration against a plan. Return JSON only.",
-    "The child must have: " + look.hair + "; " + look.skinTone + " skin; " + look.face + "; " + look.defaultClothing + "; " + look.footwear + "; " + (look.visualIdentifiers || []).join(", ") + ".",
+    "Every listed child must be identifiable. " + people,
     "Place: " + (place ? place.name + ". " + place.visualIdentity : spread.locationId) + ".",
     "Selected instant only: " + (spread.illustrationMoment || spread.storyEvent),
     "The full event is context. momentMatch is true only when the picture shows that one instant.",
@@ -213,7 +220,7 @@ function visionCheck(spread, b64, purpose) {
     "Text-safe region: " + spread.textSafeRegion + " should be calmer open space, not a drawn box.",
     "Also return style: {\"rendering\":\"painted\",\"characterRendering\":\"painted\",\"proportions\":\"picture-book\",\"edge\":\"soft\",\"texture\":\"painted\",\"finish\":\"picture-book\",\"environmentRendering\":\"painted\",\"palette\":\"\",\"weather\":\"\",\"timeOfDay\":\"\"}.",
     "Style names the illustrator, not the place. A new room, time of day, or weather is not a new style. rendering is 3d, vector, glossy, photoreal, or animation-still only if the picture actually switched technique.",
-    "Return {\"observations\":\"\",\"characters\":[{\"characterId\":\"maya\",\"identityMatch\":true,\"outfitMatch\":true,\"count\":1}],\"entities\":[{\"entityId\":\"id\",\"status\":\"confirmed\",\"seen\":\"\"}],\"locationMatch\":true,\"prematureResult\":false,\"textDetected\":false,\"anatomyOk\":true,\"textSafeUsable\":true,\"duplicateCharacter\":false,\"momentMatch\":true,\"montageShown\":false,\"style\":{\"rendering\":\"painted\",\"proportions\":\"picture-book\",\"finish\":\"picture-book\"}}.",
+    "Return one characters entry for every listed child, using that child's characterId. Return {\"observations\":\"\",\"characters\":[{\"characterId\":\"maya\",\"identityMatch\":true,\"outfitMatch\":true,\"count\":1}],\"entities\":[{\"entityId\":\"id\",\"status\":\"confirmed\",\"seen\":\"\"}],\"locationMatch\":true,\"prematureResult\":false,\"textDetected\":false,\"anatomyOk\":true,\"textSafeUsable\":true,\"duplicateCharacter\":false,\"momentMatch\":true,\"montageShown\":false,\"style\":{\"rendering\":\"painted\",\"proportions\":\"picture-book\",\"finish\":\"picture-book\"}}.",
     "count is how many times that same child is drawn. outfitMatch is true only if the canonical clothes, socks, and shoes are the ones in the picture."
   ].join(" ");
   return guarded("https://api.openai.com/v1/chat/completions", {
@@ -285,6 +292,34 @@ function run() {
   return drawPages(fs.readFileSync(sheetFile));
 }
 
+function loadReference(file) {
+  if (!file || !file.file) {
+    if (file && file.appearance) return null;
+    throw new Error("Missing reference for " + (file && file.characterId || "unknown"));
+  }
+  if (file.privateArt) throw new Error("Inaccessible reference for " + file.characterId);
+  var abs = path.isAbsolute(file.file) ? file.file : path.join(ROOT, file.file);
+  if (!fs.existsSync(abs)) throw new Error("Missing reference for " + file.characterId);
+  return { name: path.basename(abs), bytes: fs.readFileSync(abs), characterId: file.characterId };
+}
+
+function referencesForSpread(spread, fallback) {
+  var registry = bible.identityRegistry || [];
+  if (!registry.length) return [[{ name: "maya-sheet.jpg", bytes: fallback }]];
+  var Identity = require("../../js/book-v2-identity.js");
+  var plan = Identity.prepareScene(registry, spread.charactersPresent || []);
+  if (!plan.ok || plan.blocksGeneration || (plan.omitted || []).length) {
+    throw new Error("Not drawing. " + (plan.limitations || []).concat(plan.omitted || []).join(" "));
+  }
+  var passes = (plan.passes || []).map(function (pass) {
+    return pass.map(loadReference).filter(Boolean);
+  });
+  if (passes.length > 1) {
+    throw new Error("Not drawing a partial cast. " + passes.length + " reference passes are prepared and nobody is omitted.");
+  }
+  return passes;
+}
+
 function drawPages(sheetBuf) {
   var results = [];
   return proofContracts.reduce(function (chain, spread, index) {
@@ -308,12 +343,14 @@ function drawPages(sheetBuf) {
         console.log(JSON.stringify(row));
       }
       fs.writeFileSync(path.join(OUT, "images", spread.spreadId + ".prompt.txt"), prompt);
-      return editImage(prompt, sheetBuf, spread.spreadId).then(function (drawn) {
+      var passes = referencesForSpread(spread, sheetBuf);
+      var references = passes[0] || [];
+      return editImage(prompt, references, spread.spreadId).then(function (drawn) {
         if (!drawn.ok) {
           repairs += 1;
           var rejected = Visual.repairPrompt(bible, spread, lineup);
           fs.writeFileSync(path.join(OUT, "images", spread.spreadId + "-repair.prompt.txt"), rejected);
-          return editImage(rejected, sheetBuf, spread.spreadId + "-repair").then(function (again) {
+          return editImage(rejected, references, spread.spreadId + "-repair").then(function (again) {
             if (!again.ok) {
               var missed = {
                 spreadId: spread.spreadId,
@@ -340,7 +377,7 @@ function drawPages(sheetBuf) {
           repairs += 1;
           var retry = Visual.repairPrompt(bible, spread, lineup);
           fs.writeFileSync(path.join(OUT, "images", spread.spreadId + "-repair.prompt.txt"), retry);
-          return editImage(retry, sheetBuf, spread.spreadId + "-repair").then(function (again) {
+          return editImage(retry, references, spread.spreadId + "-repair").then(function (again) {
             if (!again.ok) return finish(check, "repair-not-accepted");
             var replaced = saveImage(spread.spreadId, again.payload);
             return visionCheck(spread, replaced.b64, "vision-" + spread.spreadId + "-repair").then(function (next) {

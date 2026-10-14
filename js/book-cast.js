@@ -132,6 +132,28 @@ function referencePlan(member) {
   return { strength: strength, required: true, expensive: strength === "sheet", ready: assets.length > 0 };
 }
 
+function registryRow(registry, id) {
+  return (registry || []).filter(function (item) {
+    return item && item.locked === true && item.source !== "story-generated" && (item.portrait || item.approvedReference) && (item.characterId === id || item.journeyId === id);
+  })[0] || null;
+}
+
+function registryIdentity(id, row) {
+  var spec = row.appearanceSpec || {};
+  return {
+    characterId: id,
+    name: row.name || id,
+    origin: "canonical",
+    type: "human",
+    species: "human",
+    face: spec.face || "",
+    hair: spec.hair || "",
+    defaultClothing: row.clothing || "",
+    distinctiveFeatures: row.distinctive || [],
+    visualIdentifiers: row.distinctive || []
+  };
+}
+
 function compileBookCast(bible, pages) {
   var book = bible || {};
   var list = pages || book.pages || [];
@@ -153,24 +175,30 @@ function compileBookCast(bible, pages) {
   var problems = [];
   var members = Object.keys(seen).map(function (id) {
     var canonical = Cast.getCharacter(id);
+    var fromRegistry = !canonical ? registryRow(book.identityRegistry, id) : null;
     var declaredRow = declared[id];
     var identity = null;
     if (canonical) identity = canonicalIdentity(canonical);
+    else if (fromRegistry) identity = lockIdentity(registryIdentity(id, fromRegistry));
     else if (declaredRow) identity = lockIdentity(Object.assign({}, declaredRow, { origin: "story" }));
     else problems.push("identity-missing:" + id);
     var importance = (declaredRow && declaredRow.visualImportance) || ((seen[id].length >= 2) ? "recurring" : "background");
     var member = {
       characterId: id,
       name: identity ? identity.name : id,
-      origin: canonical ? "canonical" : "story",
-      relationship: canonical ? "selected" : "story-created",
+      origin: canonical || fromRegistry ? "canonical" : "story",
+      relationship: canonical || fromRegistry ? "selected" : "story-created",
       identity: identity,
       spreadsPresent: seen[id].slice(),
       firstAppearance: seen[id][0] || "",
       finalAppearance: seen[id][seen[id].length - 1] || "",
       recurring: seen[id].length >= 2,
       visualImportance: importance,
-      referenceAssetIds: canonical ? (Cast.storyReferences(id).assetIds || []).slice() : asList(declaredRow && declaredRow.referenceAssetIds),
+      referenceAssetIds: canonical
+        ? (Cast.storyReferences(id).assetIds || []).slice()
+        : (fromRegistry && (fromRegistry.approvedReference || fromRegistry.portrait)
+          ? [fromRegistry.approvedReference || fromRegistry.portrait]
+          : asList(declaredRow && declaredRow.referenceAssetIds)),
       referenceVersionId: canonical ? (Cast.storyReferences(id).versionId || "") : ""
     };
     member.reference = referencePlan(member);

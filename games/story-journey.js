@@ -989,7 +989,7 @@
     ages.className = "sj-lengths";
     [
       ["4-6", "Ages 4–6", "Year 1 writing"],
-      ["7-9", "Ages 7–9", "Year 5 writing"],
+      ["7-9", "Ages 7–9", "Ages 7–9 writing"],
       ["10-12", "Ages 10–12", "Year 6 writing"]
     ].forEach(function (row) {
       var button = document.createElement("button");
@@ -1068,7 +1068,7 @@
     state.ids.forEach(function (id) {
       var row = person(id);
       if (!row) return;
-      members.push({ id: id, name: row[1] });
+      members.push({ id: id, name: row[1], source: memberSource(id) });
     });
     if (!members.length || members.length !== state.ids.length) {
       setStatus("Choose each person again so nobody is left out of the story.");
@@ -1087,6 +1087,8 @@
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         members: members,
+        savedReferences: savedArt(members),
+        sharedCharacters: sharedArt(members),
         idea: state.idea.trim(),
         place: state.place,
         length: state.length,
@@ -1134,6 +1136,31 @@
         : "Book V2 is not set up on this site yet. Nothing was saved.");
     });
   });
+
+  function memberSource(id) {
+    if (CREW.some(function (row) { return row[0] === id; })) return "wondii-crew";
+    if (library.shared.some(function (row) { return row[0] === id; })) return "shared";
+    if (library.mine.some(function (row) { return row[0] === id; })) return "saved";
+    return "";
+  }
+
+  function privateArt(id) {
+    var picture = portraits[id] || "";
+    if (!picture || /^https?:/i.test(picture) || picture.indexOf("data:") === 0) return "";
+    return picture;
+  }
+
+  function savedArt(members) {
+    return members.filter(function (member) { return member.source === "saved" && privateArt(member.id); }).map(function (member) {
+      return { id: member.id, name: member.name, ownerType: "family", ownerId: "session", reference: privateArt(member.id) };
+    });
+  }
+
+  function sharedArt(members) {
+    return members.filter(function (member) { return member.source === "shared" && privateArt(member.id); }).map(function (member) {
+      return { id: member.id, name: member.name, shareId: member.id, reference: privateArt(member.id) };
+    });
+  }
 
   function creationKey() {
     if (state.creationKey) return state.creationKey;

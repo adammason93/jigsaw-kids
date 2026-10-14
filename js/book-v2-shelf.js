@@ -108,6 +108,7 @@
     var allowance = ports && ports.allowance;
     var key = String(source.creationKey || "");
     if (!KEY.test(key)) return fail("allowance-key");
+    if (key === "showcase-the-lanterns-missing-path" || key === "showcase-the-rain-that-rose") return fail("read-only");
     if (!owner.userId || !store || !store.readShelf || !store.writeShelf) return fail("unauthorised");
     var child = owner.accountKind === "child";
     if (child && !owner.childId) return fail("unauthorised");

@@ -144,6 +144,31 @@ assert.strictEqual(plans.spreads.length, 11);
 assert.strictEqual(plans.visualBible.style.styleId, "wondii-picture-book");
 assert.strictEqual(plans.visualBible.cast.length, 1);
 assert.strictEqual(plans.visualBible.cast[0].characterId, "maya");
+assert.ok(plans.visualBible.cast[0].referenceFile.indexOf("maya-v1.jpg") >= 0);
+var Identity = require("../js/book-v2-identity.js");
+var crewBook = Identity.buildRegistry({
+  members: [
+    { id: "wondii-maya", name: "Maya", source: "wondii-crew" },
+    { id: "wondii-leo", name: "Leo", source: "wondii-crew" }
+  ]
+});
+var crewLook = Visual.visualBookBible({
+  castIds: ["wondii-maya", "wondii-leo"],
+  identityRegistry: crewBook.registry,
+  tone: "magical"
+}, {}).cast;
+assert.strictEqual(crewLook.length, 2);
+assert.strictEqual(crewLook[0].characterId, "wondii-maya");
+assert.strictEqual(crewLook[0].name, "Maya");
+assert.ok(crewLook[0].referenceFile.indexOf("maya-v1.jpg") >= 0);
+assert.ok(crewLook[0].defaultClothing.indexOf("yellow cardigan") >= 0);
+assert.strictEqual(crewLook[1].characterId, "wondii-leo");
+assert.strictEqual(crewLook[1].name, "Leo");
+assert.ok(crewLook[1].referenceFile.indexOf("wondii-leo.jpg") >= 0);
+assert.ok(crewLook[1].referenceFile.indexOf("maya-v1") < 0);
+assert.ok(crewLook[1].defaultClothing.indexOf("portrait") >= 0);
+assert.ok(crewLook[1].hair.indexOf("sandy") < 0);
+assert.ok(crewLook[1].footwear.indexOf("red sneakers") < 0);
 assert.ok(plans.spreads.every(function (spread) { return spread.prose === ""; }));
 assert.strictEqual(Visual.MAX_VISUAL_REPAIRS, 1);
 var p2 = plans.spreads.filter(function (spread) { return spread.spreadId === "p2"; })[0];
@@ -328,5 +353,100 @@ var counted = Visual.acceptIllustration({
 assert.ok(counted.problems.indexOf("count:sailor") >= 0);
 assert.ok(counted.problems.indexOf("moment") >= 0);
 assert.ok(counted.problems.indexOf("montage") >= 0);
+
+var nearbyBible = {
+  castIds: ["maya", "leo"],
+  entities: [
+    { entityId: "ribbon", name: "the ribbon", identity: "a blue ribbon", introducedAt: "b1" },
+    { entityId: "lantern", name: "the lantern", identity: "a gold lantern", introducedAt: "b1" },
+    { entityId: "socket", name: "the lantern socket", identity: "a round floor recess", introducedAt: "b1" },
+    { entityId: "loose-shadow", name: "the loose shadow", identity: "a grey shadow", introducedAt: "b1" },
+    { entityId: "shadow", name: "the shadow", identity: "a black shadow", introducedAt: "b1" }
+  ],
+  beats: []
+};
+var nearbyPages = [
+  { pageId: "p1", beatId: "b1", charactersPresent: ["maya", "leo"], prose: "The story begins." },
+  { pageId: "p2", beatId: "b2", charactersPresent: ["maya", "leo"], prose: "The blue ribbon lay beside the gold lantern." }
+];
+assert.deepStrictEqual(Visual.unplannedVisualProblems(nearbyBible, nearbyPages), []);
+var plainSocket = Visual.unplannedVisualProblems(nearbyBible, [
+  { pageId: "p1", beatId: "b1", charactersPresent: ["maya"], prose: "Maya found the recess." },
+  { pageId: "p2", beatId: "b2", charactersPresent: ["maya"], prose: "The blue ribbon lay beside the socket." }
+]);
+assert.deepStrictEqual(plainSocket, []);
+var contradictions = Visual.unplannedVisualProblems(nearbyBible, [
+  { pageId: "p1", beatId: "b1", charactersPresent: ["maya", "leo"], prose: "Maya and Leo looked around." },
+  { pageId: "p2", beatId: "b2", charactersPresent: ["maya", "leo"], prose: "The blue ribbon lay beside the purple lantern." }
+]);
+assert.ok(contradictions.indexOf("unplanned-visual:lantern:p2") >= 0, contradictions.join(", "));
+assert.ok(contradictions.indexOf("unplanned-visual:ribbon:p2") < 0, contradictions.join(", "));
+var bothWrong = Visual.unplannedVisualProblems(nearbyBible, [
+  { pageId: "p1", beatId: "b1", charactersPresent: ["maya", "leo"], prose: "Maya and Leo waited." },
+  { pageId: "p2", beatId: "b2", charactersPresent: ["maya", "leo"], prose: "Maya pointed at the orange lantern while Leo held the purple ribbon." }
+]);
+assert.ok(bothWrong.indexOf("unplanned-visual:lantern:p2") >= 0, bothWrong.join(", "));
+assert.ok(bothWrong.indexOf("unplanned-visual:ribbon:p2") >= 0, bothWrong.join(", "));
+assert.ok(bothWrong.indexOf("unplanned-visual:socket:p2") < 0, bothWrong.join(", "));
+var sharedHead = Visual.unplannedVisualProblems(nearbyBible, [
+  { pageId: "p1", beatId: "b1", charactersPresent: ["maya"], prose: "A shadow crossed the floor." },
+  { pageId: "p2", beatId: "b2", charactersPresent: ["maya"], prose: "The purple loose shadow slid past the black shadow." }
+]);
+assert.ok(sharedHead.indexOf("unplanned-visual:loose-shadow:p2") >= 0, sharedHead.join(", "));
+assert.ok(sharedHead.indexOf("unplanned-visual:shadow:p2") < 0, sharedHead.join(", "));
+var savedCastle = JSON.parse(fs.readFileSync(path.join(__dirname, "../docs/agent/book-v2/castle-lost-lanterns/book.json"), "utf8"));
+var castleVisual = Visual.unplannedVisualProblems(savedCastle.bible, savedCastle.pages);
+assert.ok(castleVisual.indexOf("unplanned-visual:brass-socket:p2") < 0, castleVisual.join(", "));
+assert.strictEqual(savedCastle.pages.length, 12);
+assert.ok(savedCastle.pages[1].prose.indexOf("silver") >= 0);
+var castleText = Book.reviewText(savedCastle.bible, savedCastle.pages);
+assert.deepStrictEqual(castleText.problems, [], castleText.problems.join(", "));
+
+var matched = [
+  { page: 1, characters: [{ characterId: "wondii-maya", identityMatch: true, outfitMatch: true }, { characterId: "wondii-leo", identityMatch: true, outfitMatch: true }] },
+  { page: 2, characters: [{ characterId: "wondii-maya", identityMatch: true, outfitMatch: true }, { characterId: "wondii-leo", identityMatch: true, outfitMatch: true }] }
+];
+var supplied = Visual.characterConsistencyCheckpoint(matched);
+assert.strictEqual(supplied.approved, false);
+assert.strictEqual(supplied.needsHumanReview, true);
+assert.strictEqual(supplied.referenceIsNotProof, true);
+assert.deepStrictEqual(supplied.problems, []);
+var drifted = Visual.characterConsistencyCheckpoint([
+  { page: 9, characters: [{ characterId: "wondii-leo", identityMatch: false, outfitMatch: false }] }
+]);
+assert.ok(drifted.problems.indexOf("identity:wondii-leo:p9") >= 0);
+assert.ok(drifted.problems.indexOf("outfit:wondii-leo:p9") >= 0);
+assert.strictEqual(drifted.approved, false);
+var signed = Visual.characterConsistencyCheckpoint(matched, { humanApproved: true });
+assert.strictEqual(signed.approved, true);
+assert.strictEqual(signed.needsHumanReview, false);
+var signedDrift = Visual.characterConsistencyCheckpoint([
+  { page: 9, characters: [{ characterId: "wondii-leo", identityMatch: false }] }
+], { humanApproved: true });
+assert.strictEqual(signedDrift.approved, false);
+
+var journeyPlan = Visual.contractsFor(savedCastle.bible, savedCastle.pages);
+var journeyPrompt = Visual.spreadPrompt(savedCastle.bible, journeyPlan.spreads[0], journeyPlan.visualBible.cast);
+assert.ok(journeyPrompt.indexOf("Match each shown character") >= 0);
+assert.ok(journeyPrompt.indexOf("Match each shown character") < journeyPrompt.indexOf("Camera:"));
+assert.ok(journeyPrompt.indexOf("Continuity: First view of the castle courtyard") >= 0);
+assert.ok(journeyPrompt.indexOf("Wide establishing view") >= 0);
+assert.ok(journeyPrompt.indexOf("Do not invent a new location") >= 0);
+assert.ok(!/waterfall|floating island|crystal chamber/i.test(journeyPrompt));
+var returnPrompt = Visual.spreadPrompt(savedCastle.bible, journeyPlan.spreads[11], journeyPlan.visualBible.cast);
+assert.ok(returnPrompt.indexOf("Same place as p6: the silver gallery") >= 0);
+var page7 = Visual.spreadPrompt(savedCastle.bible, journeyPlan.spreads[6], journeyPlan.visualBible.bookCast.members);
+assert.ok(page7.indexOf("Story condition: They followed the dark route") >= 0);
+assert.ok(page7.indexOf("the connecting plate: A hinged silver plate") >= 0);
+assert.ok(page7.indexOf("the ivy: A leafy vine") >= 0);
+assert.ok(page7.indexOf("Do not draw these. They stay where they already are: the lantern, still in the silver gallery") >= 0);
+assert.ok(page7.indexOf("the lantern socket, still in the silver gallery") >= 0);
+assert.ok(page7.indexOf("Its light travels only along") < 0);
+assert.ok(page7.indexOf("socket stays Holding") < 0);
+assert.ok(page7.indexOf("Move in close on the discovery") >= 0);
+assert.ok(page7.indexOf("maya-v1") >= 0);
+assert.ok(page7.indexOf("wondii-leo.jpg") >= 0);
+assert.deepStrictEqual(journeyPlan.spreads[6].mustShow, ["hinged-plate", "window-ivy"]);
+assert.ok(returnPrompt.indexOf("maya-v1") >= 0 || returnPrompt.indexOf("Match each shown character") >= 0);
 
 console.log("book-visual tests ok");

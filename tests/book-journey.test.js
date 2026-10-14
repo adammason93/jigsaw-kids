@@ -208,4 +208,47 @@ assert.strictEqual(left.spreads[0].plannedTextRegion, "upper-left");
 assert.strictEqual(left.spreads[1].pageRole, "right-page");
 assert.strictEqual(left.spreads[1].plannedTextRegion, "upper-right");
 
+var bedtime = Journey.analyse({
+  tone: "bedtime",
+  bible: {
+    tone: "bedtime",
+    locations: [{ locationId: "room", name: "the bedroom", visualIdentity: "A small bedroom with a blue blanket and one window." }],
+    beats: []
+  },
+  pages: [
+    { pageId: "p1", beatId: "b1", role: "hook", locationId: "room", shotType: "close", compositionIntent: "Stay near the bed." },
+    { pageId: "p2", beatId: "b2", role: "resolution", locationId: "room", shotType: "close", compositionIntent: "The same bed, quieter." }
+  ]
+});
+assert.ok(bedtime.spreads[0].worldTone.indexOf("calm and gentle") >= 0);
+assert.ok(bedtime.spreads[0].continuityLine.indexOf("First view of the bedroom") === 0);
+assert.ok(bedtime.spreads[1].continuityLine.indexOf("Same place as p1: the bedroom") === 0);
+assert.strictEqual(bedtime.spreads[1].varietyNote, "same-viewpoint");
+assert.ok(bedtime.spreads[0].cameraBrief.indexOf("close") >= 0);
+assert.ok(!/castle|lantern|waterfall|floating island/i.test(bedtime.spreads.map(function (row) { return row.continuityLine + row.cameraBrief + row.worldTone; }).join(" ")));
+
+var school = Journey.analyse({
+  bible: {
+    tone: "educational",
+    locations: [{ locationId: "class", name: "the classroom", visualIdentity: "A classroom with a tall window and a labelled map." }]
+  },
+  pages: [{ pageId: "s1", beatId: "e1", role: "discovery", locationId: "class", shotType: "medium" }]
+});
+assert.ok(school.spreads[0].worldTone.indexOf("accurate") >= 0);
+assert.ok(school.spreads[0].worldTone.indexOf("fantasy") >= 0);
+
+var saved = JSON.parse(fs.readFileSync(path.join(__dirname, "../docs/agent/book-v2/castle-lost-lanterns/book.json"), "utf8"));
+var castle = Journey.analyse({ bible: saved.bible, pages: saved.pages });
+assert.ok(castle.spreads[0].cameraBrief.indexOf("Wide establishing") === 0);
+assert.ok(castle.spreads[1].cameraBrief.indexOf("Move in close") === 0);
+assert.ok(castle.spreads[3].cameraBrief.indexOf("Look down") === 0);
+assert.ok(castle.spreads[6].continuityLine.indexOf("First view of the ivy chamber") === 0);
+assert.ok(castle.spreads[11].continuityLine.indexOf("Same place as p6: the silver gallery") === 0);
+assert.ok(castle.spreads[11].continuityLine.indexOf("p6") >= 0);
+assert.strictEqual(castle.spreads[6].placeStay, 1);
+assert.strictEqual(castle.spreads[10].placeStay, 5);
+assert.ok(!castle.spreads.some(function (row) { return row.varietyNote === "same-viewpoint"; }));
+var joined = castle.spreads.map(function (row) { return row.continuityLine; }).join(" ");
+assert.ok(!/village|waterfall|library|crystal|forest/i.test(joined));
+
 console.log("book-journey tests ok");
