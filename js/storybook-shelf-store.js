@@ -241,6 +241,11 @@
       return !!readView();
     },
 
+    viewUserId: function () {
+      var view = readView();
+      return view && view.uid ? String(view.uid) : "";
+    },
+
     getVisibleJson: function () {
       var view = readView();
       if (view) return Promise.resolve(view.books.slice());

@@ -92,6 +92,28 @@ assert.ok(journey.indexOf("/v1/book") >= 0);
 assert.ok(journey.indexOf("book-v2-local-preview") >= 0);
 assert.ok(journey.indexOf("body.saved && body.book && body.book.id") >= 0);
 assert.ok(journey.indexOf("saveShelf") < 0);
+assert.ok(journey.indexOf("Book V2 is not available on this site yet. Nothing was saved.") >= 0);
+assert.ok(journey.indexOf("Book V2 could not be reached. Nothing was saved.") >= 0);
+assert.ok(journey.indexOf("This story plan was not tied to your account. Nothing was saved.") >= 0);
+assert.ok(journey.indexOf("Your library could not be read, so this story was not saved. Nothing was changed.") >= 0);
+assert.ok(journey.indexOf("if (body.generated)") >= 0);
+assert.ok(journey.indexOf("body.accountId") >= 0);
+assert.ok(journey.indexOf("placePlan") >= 0);
+assert.ok(journey.indexOf("mergeOwned") >= 0);
+assert.ok(journey.indexOf("downloadStorybookLibrary") >= 0);
+assert.ok(journey.indexOf("isChildSession") >= 0);
+assert.ok(journey.indexOf("scheduleStorybookUpload") > journey.indexOf("isChildSession"));
+var edge = fs.readFileSync(path.join(root, "supabase/functions/book-v2/index.ts"), "utf8");
+var bundled = fs.readFileSync(path.join(root, "supabase/functions/book-v2/handle.mjs"), "utf8");
+assert.ok(edge.indexOf("api.openai.com") < 0);
+assert.ok(edge.indexOf("OPENAI") < 0);
+assert.ok(edge.indexOf("createRequire") < 0);
+assert.ok(edge.indexOf("accountId: userId") >= 0);
+assert.ok(edge.indexOf("token === anon") >= 0);
+assert.ok(edge.indexOf("new Response(null, { status: 204, headers })") >= 0);
+assert.ok(bundled.indexOf("api.openai.com") < 0);
+assert.ok(bundled.indexOf("OPENAI") < 0);
+assert.ok(fs.readFileSync(path.join(root, "supabase/config.toml"), "utf8").indexOf("[functions.book-v2]") >= 0);
 
 process.env.BOOK_V2_PAID = "1";
 var blocked = handle.handleBookV2({

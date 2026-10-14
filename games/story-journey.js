@@ -1076,64 +1076,128 @@
     }
     nextBtn.disabled = true;
     setStatus("Checking the story plan…");
-    var endpoint = bookV2Url();
-    if (!endpoint) {
-      nextBtn.disabled = false;
-      setStatus("Book V2 is not set up on this site yet. Nothing was saved.");
-      return;
-    }
-    fetch(endpoint, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        members: members,
-        savedReferences: savedArt(members),
-        sharedCharacters: sharedArt(members),
-        idea: state.idea.trim(),
-        place: state.place,
-        length: state.length,
-        theme: state.theme,
-        familyAgeBand: state.ageBand,
-        creationKey: creationKey()
-      })
-    }).then(function (response) {
-      return response.json().then(function (body) {
-        return { ok: response.ok, body: body || {} };
+    whenSession(function (view) {
+      var local = isLocalHost();
+      var userId = view && view.userId ? String(view.userId) : "";
+      if (!local && !userId) {
+        nextBtn.disabled = false;
+        setStatus("Sign in to keep this story. Nothing was saved.");
+        return;
+      }
+      var endpoint = bookV2Url();
+      if (!endpoint) {
+        nextBtn.disabled = false;
+        setStatus("Book V2 is not available on this site yet. Nothing was saved.");
+        return;
+      }
+      var key = creationKey();
+      fetch(endpoint, {
+        method: "POST",
+        headers: planHeaders(view),
+        body: JSON.stringify({
+          members: members,
+          savedReferences: savedArt(members),
+          sharedCharacters: sharedArt(members),
+          idea: state.idea.trim(),
+          place: state.place,
+          length: state.length,
+          theme: state.theme,
+          familyAgeBand: state.ageBand,
+          creationKey: key
+        })
+      }).then(function (response) {
+        return response.text().then(function (raw) {
+          var body = {};
+          try { body = raw ? JSON.parse(raw) : {}; } catch (eParse) { body = {}; }
+          return { ok: response.ok, status: response.status, body: body };
+        });
+      }).then(function (result) {
+        var body = result.body || {};
+        if (result.status === 404 || body.code === "NOT_FOUND") {
+          nextBtn.disabled = false;
+          setStatus("Book V2 is not available on this site yet. Nothing was saved.");
+          return;
+        }
+        if (result.status === 401 || result.status === 403) {
+          nextBtn.disabled = false;
+          setStatus("Sign in again before this story can be planned. Nothing was saved.");
+          return;
+        }
+        if (!result.ok || !body.ok) {
+          nextBtn.disabled = false;
+          setStatus(body.message || "The story plan could not start. Nothing was saved.");
+          return;
+        }
+        if (body.generated) {
+          nextBtn.disabled = false;
+          setStatus("Book V2 tried to write the story before that was approved. Nothing was saved.");
+          return;
+        }
+        if (body.saved && body.book && body.book.id) {
+          window.location.assign("book-prototype/?book=" + encodeURIComponent(body.book.id));
+          return;
+        }
+        if (!body.simulated || !body.preview) {
+          nextBtn.disabled = false;
+          setStatus("Book V2 did not return a story plan. Nothing was saved.");
+          return;
+        }
+        var accountId = body.accountId ? String(body.accountId) : "";
+        if (!local && accountId !== userId) {
+          nextBtn.disabled = false;
+          setStatus("This story plan was not tied to your account. Nothing was saved.");
+          return;
+        }
+        if (local && accountId && accountId !== userId) {
+          nextBtn.disabled = false;
+          setStatus("This story plan was not tied to your account. Nothing was saved.");
+          return;
+        }
+        if (userId) {
+          keepPlannedBook(body.preview, key, accountId || userId, state.idea).then(function (book) {
+            setStatus(body.message || "Opening your story plan.");
+            window.location.assign("book-prototype/?book=" + encodeURIComponent(book.id));
+          }).catch(function (err) {
+            nextBtn.disabled = false;
+            var reason = err && err.message ? String(err.message) : "";
+            if (reason === "occupied") {
+              setStatus("An existing book already uses this story. Nothing was changed.");
+              return;
+            }
+            if (reason === "library") {
+              setStatus("Your library could not be read, so this story was not saved. Nothing was changed.");
+              return;
+            }
+            if (reason === "upload") {
+              setStatus("The story plan could not be saved on your account. Nothing was changed.");
+              return;
+            }
+            if (reason === "wrong-shelf") {
+              setStatus("Switch back to your own library before saving this story. Nothing was saved.");
+              return;
+            }
+            setStatus("The story plan was checked, but it could not be saved on this account. Nothing was kept.");
+          });
+          return;
+        }
+        try {
+          sessionStorage.setItem("wondii-reader-fixture", JSON.stringify({
+            userId: "local-fixture",
+            books: [body.preview]
+          }));
+        } catch (eStore) {
+          nextBtn.disabled = false;
+          setStatus("The preview could not be opened on this device. Nothing was saved.");
+          return;
+        }
+        setStatus(body.message || "Opening the local preview.");
+        window.location.assign("book-prototype/?book=" + encodeURIComponent(body.preview.id || "book-v2-local-preview"));
+      }).catch(function () {
+        nextBtn.disabled = false;
+        setStatus(local
+          ? "Book V2 is not running on this computer. Nothing was saved."
+          : "Book V2 could not be reached. Nothing was saved.");
       });
-    }).then(function (result) {
-      var body = result.body || {};
-      if (!result.ok || !body.ok) {
-        nextBtn.disabled = false;
-        setStatus(body.message || "The story plan could not start. Nothing was saved.");
-        return;
-      }
-      if (body.saved && body.book && body.book.id) {
-        window.location.assign("book-prototype/?book=" + encodeURIComponent(body.book.id));
-        return;
-      }
-      if (!body.simulated || !body.preview || body.generated) {
-        nextBtn.disabled = false;
-        setStatus("Book V2 did not return a local preview. Nothing was saved.");
-        return;
-      }
-      try {
-        sessionStorage.setItem("wondii-reader-fixture", JSON.stringify({
-          userId: "local-fixture",
-          books: [body.preview]
-        }));
-      } catch (eStore) {
-        nextBtn.disabled = false;
-        setStatus("The preview could not be opened on this device. Nothing was saved.");
-        return;
-      }
-      setStatus(body.message || "Opening the local preview.");
-      window.location.assign("book-prototype/?book=" + encodeURIComponent(body.preview.id || "book-v2-local-preview"));
-    }).catch(function () {
-      nextBtn.disabled = false;
-      var local = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
-      setStatus(local
-        ? "Book V2 is not running on this computer. Nothing was saved."
-        : "Book V2 is not set up on this site yet. Nothing was saved.");
     });
   });
 
@@ -1172,9 +1236,154 @@
     return out;
   }
 
-  function bookV2Url() {
+  function isLocalHost() {
     var host = window.location.hostname;
-    if (host === "localhost" || host === "127.0.0.1") return "http://127.0.0.1:8796/v1/book";
+    return host === "localhost" || host === "127.0.0.1";
+  }
+
+  function whenSession(done) {
+    var session = window.WondiiSession;
+    if (!session || !session.get) {
+      done({ status: "missing", userId: "" });
+      return;
+    }
+    var view = session.get();
+    if (view && view.status !== "initialising") {
+      done(view);
+      return;
+    }
+    if (!session.subscribe) {
+      done(view || { status: "missing", userId: "" });
+      return;
+    }
+    var settled = false;
+    function finish(next) {
+      if (settled || !next || next.status === "initialising") return;
+      settled = true;
+      done(next);
+    }
+    session.subscribe(finish);
+    window.setTimeout(function () {
+      if (settled) return;
+      settled = true;
+      done(session.get ? session.get() : { status: "timeout", userId: "" });
+    }, 4000);
+  }
+
+  function planHeaders(view) {
+    var headers = { "Content-Type": "application/json" };
+    if (isLocalHost()) return headers;
+    var config = window.SCORE_CONFIG || window.SCORE_SYNC || {};
+    if (config.supabaseAnonKey) headers.apikey = String(config.supabaseAnonKey);
+    var token = view && view.session && view.session.access_token ? String(view.session.access_token) : "";
+    if (token) headers.Authorization = "Bearer " + token;
+    return headers;
+  }
+
+  function plannedTitle(idea) {
+    var title = String(idea || "").trim();
+    if (title.length > 48) title = title.slice(0, 45).trim() + "…";
+    return title || "A new Wondii story";
+  }
+
+  function cloudCode(err) {
+    if (!err) return "";
+    return String(err.message || err.code || err);
+  }
+
+  function localCloudMiss(err) {
+    var code = cloudCode(err);
+    return code === "no_session" || code === "not_configured" || code === "no_client";
+  }
+
+  function readCloudShelf() {
+    var cloud = window.KidsScoreCloud;
+    if (!cloud || !cloud.downloadStorybookLibrary) {
+      if (isLocalHost()) return Promise.resolve([]);
+      return Promise.reject(new Error("library"));
+    }
+    return new Promise(function (resolve, reject) {
+      cloud.downloadStorybookLibrary(function (err, data) {
+        if (!err) {
+          resolve(Array.isArray(data) ? data : []);
+          return;
+        }
+        if (isLocalHost() && localCloudMiss(err)) {
+          resolve([]);
+          return;
+        }
+        reject(new Error("library"));
+      });
+    });
+  }
+
+  function keepPlannedBook(preview, key, userId, idea) {
+    var Shelf = window.WondiiBookV2Shelf;
+    var store = window.StorybookShelfStore;
+    if (!Shelf || !Shelf.placePlan || !Shelf.mergeOwned) return Promise.reject(new Error("no_shelf"));
+    if (!store || !userId || !store.getJson || !store.setJson) return Promise.reject(new Error("no_account"));
+    var bound = store.currentUserId ? String(store.currentUserId() || "") : "";
+    if (bound && bound !== userId) return Promise.reject(new Error("wrong-shelf"));
+    if (store.viewUserId && store.isIsolated && store.isIsolated()) {
+      var viewUid = String(store.viewUserId() || "");
+      if (viewUid && viewUid !== userId) return Promise.reject(new Error("wrong-shelf"));
+    }
+    if (!bound && store.bindUser) store.bindUser(userId);
+    var child = window.ChildLibrary && window.ChildLibrary.isChildSession && window.ChildLibrary.isChildSession();
+    function uploadAccountShelf(raw) {
+      var cloud = window.KidsScoreCloud;
+      if (!cloud || !cloud.scheduleStorybookUpload) {
+        if (isLocalHost()) return Promise.resolve();
+        return Promise.reject(new Error("upload"));
+      }
+      return new Promise(function (resolve, reject) {
+        cloud.scheduleStorybookUpload(raw, function (err) {
+          if (!err) {
+            resolve();
+            return;
+          }
+          if (isLocalHost() && localCloudMiss(err)) {
+            resolve();
+            return;
+          }
+          reject(new Error("upload"));
+        });
+      });
+    }
+    return store.getJson().then(function (local) {
+      return readCloudShelf().then(function (cloud) {
+        var merged = Shelf.mergeOwned(local, cloud);
+        var placed = Shelf.placePlan({
+          creationKey: String(key),
+          owner: { userId: String(userId), accountKind: "adult" },
+          preview: preview,
+          title: plannedTitle(idea),
+          shelf: merged,
+          savedAt: new Date().toISOString()
+        });
+        if (!placed.ok) return Promise.reject(new Error(placed.reason || "save"));
+        function show(list) {
+          if (store.isIsolated && store.isIsolated() && store.setIsolated) store.setIsolated(userId, list);
+          return list;
+        }
+        return store.setJson(placed.shelf).then(function () {
+          show(placed.shelf);
+          if (child) return placed.book;
+          return uploadAccountShelf(JSON.stringify(placed.shelf)).then(function () {
+            return placed.book;
+          }).catch(function (err) {
+            return store.setJson(merged).then(function () {
+              show(merged);
+              throw err;
+            });
+          });
+        });
+      });
+    });
+  }
+
+  function bookV2Url() {
+    if (isLocalHost()) return "http://127.0.0.1:8796/v1/book";
     var config = window.SCORE_CONFIG || window.SCORE_SYNC || null;
     var base = config && config.supabaseUrl ? String(config.supabaseUrl).replace(/\/$/, "") : "";
     if (!base) return "";

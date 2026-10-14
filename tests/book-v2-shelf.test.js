@@ -148,4 +148,144 @@ var hidden = sandbox.WondiiBookData.classify(saved.book.id, "user-other", ports.
 assert.strictEqual(hidden.ok, false);
 assert.strictEqual(hidden.reason, "unavailable");
 
+var rain = {
+  id: "the-rain-that-rose",
+  title: "The Rain That Rose",
+  pages: [{ text: "The rain rose.", imageDataUrl: "data:image/gif;base64,rain" }],
+  savedAt: "2026-10-01T00:00:00.000Z"
+};
+var parent = { userId: "user-parent", accountKind: "adult" };
+var preview = {
+  id: "book-v2-local-preview",
+  generated: false,
+  simulated: true,
+  pages: [
+    { text: "Book V2 accepted this plan.", imageDataUrl: "data:image/gif;base64,should-not-stick" },
+    { text: "", imageDataUrl: null }
+  ]
+};
+var firstPlan = Shelf.placePlan({
+  creationKey: "bookplan000000000001",
+  owner: parent,
+  title: "A lost star",
+  preview: preview,
+  shelf: [rain],
+  savedAt: "2026-10-14T12:00:00.000Z"
+});
+assert.strictEqual(firstPlan.ok, true, firstPlan.reason);
+assert.strictEqual(firstPlan.claimed, false);
+assert.strictEqual(firstPlan.duplicate, false);
+assert.strictEqual(firstPlan.book.ownerId, parent.userId);
+assert.strictEqual(firstPlan.book.ownerUserId, parent.userId);
+assert.strictEqual(firstPlan.book.generated, false);
+assert.strictEqual(firstPlan.book.pages[0].imageDataUrl, null);
+assert.strictEqual(firstPlan.shelf.length, 2);
+assert.strictEqual(firstPlan.shelf[1].id, rain.id);
+assert.strictEqual(firstPlan.shelf[1].title, rain.title);
+assert.strictEqual(firstPlan.shelf[1].pages[0].text, rain.pages[0].text);
+
+var retry = Shelf.placePlan({
+  creationKey: "bookplan000000000001",
+  owner: parent,
+  title: "A lost star",
+  preview: preview,
+  shelf: firstPlan.shelf,
+  savedAt: "2026-10-14T12:05:00.000Z"
+});
+assert.strictEqual(retry.duplicate, true);
+assert.strictEqual(retry.book.id, firstPlan.book.id);
+assert.strictEqual(retry.shelf.length, 2);
+assert.strictEqual(retry.shelf.filter(function (book) { return book.creationKey === "bookplan000000000001"; }).length, 1);
+assert.strictEqual(retry.shelf[1].title, "The Rain That Rose");
+
+var second = Shelf.placePlan({
+  creationKey: "bookplan000000000002",
+  owner: parent,
+  title: "A second story",
+  preview: preview,
+  shelf: retry.shelf,
+  savedAt: "2026-10-14T12:06:00.000Z"
+});
+assert.strictEqual(second.duplicate, false);
+assert.notStrictEqual(second.book.id, firstPlan.book.id);
+assert.strictEqual(second.shelf.length, 3);
+assert.ok(second.shelf.some(function (book) { return book.id === rain.id && book.title === rain.title; }));
+
+var otherParent = Shelf.placePlan({
+  creationKey: "bookplan000000000001",
+  owner: { userId: "user-other-parent", accountKind: "adult" },
+  title: "A lost star",
+  preview: preview,
+  shelf: [],
+  savedAt: "2026-10-14T12:07:00.000Z"
+});
+assert.notStrictEqual(otherParent.book.id, firstPlan.book.id);
+assert.strictEqual(otherParent.book.ownerId, "user-other-parent");
+assert.ok(!otherParent.shelf.some(function (book) { return book.ownerId === parent.userId; }));
+
+var finished = {
+  id: firstPlan.book.id,
+  creationKey: "bookplan000000000001",
+  title: "Finished castle",
+  ownerId: parent.userId,
+  generated: true,
+  simulated: false,
+  pages: [{ text: "Maya held the lantern.", imageDataUrl: "data:image/gif;base64,castle" }]
+};
+var beforeFinished = JSON.stringify([rain, finished]);
+var keptFinished = Shelf.placePlan({
+  creationKey: "bookplan000000000001",
+  owner: parent,
+  title: "A lost star",
+  preview: preview,
+  shelf: [rain, finished],
+  savedAt: "2026-10-14T12:08:00.000Z"
+});
+assert.strictEqual(keptFinished.duplicate, true);
+assert.strictEqual(keptFinished.book.title, "Finished castle");
+assert.strictEqual(JSON.stringify(keptFinished.shelf), beforeFinished);
+
+var unrelatedId = {
+  id: second.book.id,
+  creationKey: "someone-elses-key",
+  title: "Do not replace",
+  ownerId: parent.userId,
+  pages: [{ text: "Leave this book alone." }]
+};
+var beforeOccupied = JSON.stringify([unrelatedId]);
+var occupied = Shelf.placePlan({
+  creationKey: "bookplan000000000002",
+  owner: parent,
+  title: "A second story",
+  preview: preview,
+  shelf: [unrelatedId],
+  savedAt: "2026-10-14T12:09:00.000Z"
+});
+assert.strictEqual(occupied.ok, false);
+assert.strictEqual(occupied.reason, "occupied");
+assert.strictEqual(occupied.saved, false);
+assert.strictEqual(JSON.stringify(occupied.shelf), beforeOccupied);
+
+var charged = Shelf.placePlan({
+  creationKey: "bookplan000000000003",
+  owner: parent,
+  title: "No pictures",
+  preview: Object.assign({}, preview, { generated: true }),
+  shelf: [rain]
+});
+assert.strictEqual(charged.saved, false);
+assert.strictEqual(charged.reason, "generated");
+assert.strictEqual(JSON.stringify([rain]), JSON.stringify([rain]));
+
+var merged = Shelf.mergeOwned(
+  [{ id: "local-only", title: "On this device", savedAt: "2026-10-14T12:00:00.000Z" }],
+  [{ id: rain.id, title: rain.title, pages: rain.pages, savedAt: rain.savedAt }]
+);
+assert.strictEqual(merged.length, 2);
+assert.ok(merged.some(function (book) { return book.id === rain.id; }));
+assert.ok(merged.some(function (book) { return book.id === "local-only"; }));
+
+var allowance = Shelf.memoryAllowance();
+assert.strictEqual(allowance.claimedCount(), 0);
+
 console.log("book-v2 shelf tests ok");

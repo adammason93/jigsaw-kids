@@ -35,6 +35,13 @@ verify_jwt = true
 # Do not deploy until this review is approved. Do not enable pairing for the deploy.
 verify_jwt = false
 
+[functions.book-v2]
+# Create my story. Browser preflight has no JWT, so the gateway does not verify it.
+# The function rejects a missing token and the public anon key, then only plans.
+# It does not call the story model or draw pictures.
+# Do not deploy until this review is approved.
+verify_jwt = false
+
 [functions.child-pair]
 # A device has no user session yet. It posts the public anon key plus one pairing code.
 # The function redeems that code with the service role. Do not deploy until

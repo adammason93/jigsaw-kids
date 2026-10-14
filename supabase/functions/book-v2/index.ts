@@ -1,42 +1,81 @@
-/* Deploy target for Book V2. Not deployed by this change.
-   The handler lives in scripts/book/handle-request.js and refuses paid generation.
-   Supabase must be given that file with this function before a production call can succeed. */
+import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { createClient } from "npm:@supabase/supabase-js@2";
+import handle from "./handle.mjs";
 
-import { createRequire } from "node:module";
-import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
+/* Book V2 plan check. The bundled handler is scripts/book/handle-request.js.
+   It does not call a story model, draw pictures, or read a provider key.
+   The gateway leaves OPTIONS open so the browser preflight can succeed.
+   A story plan still requires the signed-in user's own token.
+   Deploy only after this review is approved. */
 
-const require = createRequire(import.meta.url);
-const here = dirname(fileURLToPath(import.meta.url));
-const handle = require(join(here, "../../../scripts/book/handle-request.js"));
+function allowedOrigin(req: Request): string {
+  const origin = req.headers.get("origin") || "";
+  if (/^https:\/\/([a-z0-9-]+\.)?wondii\.co\.uk$/i.test(origin)) return origin;
+  if (/^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(origin)) return origin;
+  return "";
+}
 
-const cors = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, content-type, apikey",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-  "Cache-Control": "no-store",
-};
+function json(req: Request, body: unknown, status: number): Response {
+  const origin = allowedOrigin(req);
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    "Cache-Control": "no-store",
+  };
+  if (origin) {
+    headers["Access-Control-Allow-Origin"] = origin;
+    headers["Access-Control-Allow-Headers"] = "authorization, content-type, apikey";
+    headers["Access-Control-Allow-Methods"] = "POST, OPTIONS";
+    headers.Vary = "Origin";
+  }
+  return new Response(JSON.stringify(body), { status, headers });
+}
+
+async function signedInUser(req: Request): Promise<string> {
+  const url = Deno.env.get("SUPABASE_URL") || "";
+  const anon = Deno.env.get("SUPABASE_ANON_KEY") || "";
+  const header = req.headers.get("Authorization") || "";
+  const token = header.replace(/^Bearer\s+/i, "").trim();
+  if (!url || !anon || !token || token === anon) return "";
+  const client = createClient(url, anon, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+  const result = await client.auth.getUser(token);
+  const user = result.data && result.data.user;
+  if (result.error || !user || !user.id) return "";
+  return String(user.id);
+}
 
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
+  if (req.method === "OPTIONS") {
+    const origin = allowedOrigin(req);
+    const headers: Record<string, string> = {};
+    if (origin) {
+      headers["Access-Control-Allow-Origin"] = origin;
+      headers["Access-Control-Allow-Headers"] = "authorization, content-type, apikey";
+      headers["Access-Control-Allow-Methods"] = "POST, OPTIONS";
+      headers.Vary = "Origin";
+    }
+    return new Response(null, { status: 204, headers });
+  }
   if (req.method !== "POST") {
-    return new Response(JSON.stringify({ ok: false, message: "Book V2 is not on this path." }), {
-      status: 404,
-      headers: { ...cors, "Content-Type": "application/json" },
-    });
+    return json(req, { ok: false, message: "Book V2 is not on this path." }, 404);
+  }
+  let userId = "";
+  try {
+    userId = await signedInUser(req);
+  } catch (_error) {
+    userId = "";
+  }
+  if (!userId) {
+    return json(req, { ok: false, message: "Sign in again before this story can be planned. Nothing was saved." }, 401);
   }
   let body: unknown = {};
   try {
     body = await req.json();
   } catch (_error) {
-    return new Response(JSON.stringify({ ok: false, message: "The story request could not be read." }), {
-      status: 400,
-      headers: { ...cors, "Content-Type": "application/json" },
-    });
+    return json(req, { ok: false, message: "The story request could not be read." }, 400);
   }
   const result = handle.handleBookV2(body);
-  return new Response(JSON.stringify(result.body), {
-    status: result.status,
-    headers: { ...cors, "Content-Type": "application/json" },
-  });
+  const planned = result.body && typeof result.body === "object" ? result.body as Record<string, unknown> : {};
+  return json(req, { ...planned, accountId: userId }, result.status);
 });

@@ -213,8 +213,143 @@
     };
   }
 
+  function planPages(preview) {
+    return (preview && preview.pages || []).map(function (page) {
+      return {
+        text: page && page.text ? String(page.text) : "",
+        imageDataUrl: null,
+        imageUrlFallback: null
+      };
+    });
+  }
+
+  function isPlanRecord(book) {
+    return !!(book && book.simulated === true && book.generated !== true);
+  }
+
+  /* One story plan on this account's shelf.
+     A repeated key updates that plan. A different key is a new record.
+     An existing book that is not this plan is left untouched. */
+  function placePlan(input) {
+    var source = input || {};
+    var owner = source.owner || {};
+    var key = String(source.creationKey || "");
+    var userId = String(owner.userId || "");
+    var preview = source.preview || {};
+    var shelf = Array.isArray(source.shelf) ? source.shelf : [];
+    if (!KEY.test(key)) return fail("allowance-key");
+    if (key === "showcase-the-lanterns-missing-path" || key === "showcase-the-rain-that-rose") return fail("read-only");
+    if (!userId) return fail("unauthorised");
+    if (owner.accountKind === "child" && !owner.childId) return fail("unauthorised");
+    if (owner.accountKind !== "child" && owner.childId) return fail("wrong-shelf");
+    if (preview.generated === true) return fail("generated");
+    var title = String(source.title || "").trim();
+    if (!title) return fail("incomplete");
+    var pages = planPages(preview);
+    if (!pages.some(function (page) { return page.text.trim(); })) return fail("incomplete");
+
+    var id = bookId(owner, key);
+    var snapshot = shelf.slice();
+    var next = [];
+    var replaced = false;
+    var i;
+    for (i = 0; i < shelf.length; i++) {
+      var book = shelf[i];
+      if (!book) continue;
+      var mark = book.ownerUserId || book.ownerId || "";
+      var sameKey = !!(book.creationKey && String(book.creationKey) === key);
+      var sameId = String(book.id || "") === id;
+      if (mark && String(mark) !== userId) {
+        if (sameId || sameKey) return Object.assign(fail("occupied"), { shelf: snapshot });
+        next.push(book);
+        continue;
+      }
+      if (sameKey || sameId) {
+        if (book.creationKey && String(book.creationKey) !== key) {
+          return Object.assign(fail("occupied"), { shelf: snapshot });
+        }
+        if (!isPlanRecord(book)) {
+          return {
+            ok: true,
+            saved: true,
+            claimed: false,
+            duplicate: true,
+            reason: "already-saved",
+            book: book,
+            shelf: snapshot,
+            reader: "book-prototype/?book=" + encodeURIComponent(book.id),
+            message: "This book is already on the shelf."
+          };
+        }
+        if (!replaced) replaced = true;
+        continue;
+      }
+      next.push(book);
+    }
+
+    var planned = {
+      id: id,
+      title: title,
+      author: "",
+      readerArtLayout: "duplex",
+      storyTextMode: "prose",
+      storyLength: "medium",
+      creationKey: key,
+      ownerUserId: userId,
+      ownerId: userId,
+      childId: owner.accountKind === "child" ? owner.childId : "",
+      illustrationStyle: "wondii-picture-book",
+      v2: true,
+      simulated: true,
+      generated: false,
+      savedAt: source.savedAt || new Date().toISOString(),
+      pages: pages,
+      sceneDataUrl: null,
+      sceneUrlFallback: null
+    };
+    next.unshift(planned);
+    return {
+      ok: true,
+      saved: true,
+      claimed: false,
+      duplicate: replaced,
+      reason: replaced ? "already-saved" : "saved",
+      book: planned,
+      shelf: next,
+      reader: "book-prototype/?book=" + encodeURIComponent(planned.id),
+      message: replaced ? "This story plan is already on the shelf." : "The story plan is on your shelf."
+    };
+  }
+
+  /* Keep every book from the account's cloud shelf and this device.
+     The newer saved copy wins when both have the same id. */
+  function mergeOwned(local, cloud) {
+    var map = Object.create(null);
+    var order = [];
+    function take(list) {
+      (list || []).forEach(function (book) {
+        if (!book || book.id == null || String(book.id) === "") return;
+        var id = String(book.id);
+        if (!Object.prototype.hasOwnProperty.call(map, id)) order.push(id);
+        var prev = map[id];
+        if (!prev) {
+          map[id] = book;
+          return;
+        }
+        var tPrev = Date.parse(prev.savedAt || "") || 0;
+        var tNext = Date.parse(book.savedAt || "") || 0;
+        if (tNext >= tPrev) map[id] = book;
+      });
+    }
+    take(cloud);
+    take(local);
+    return order.map(function (id) { return map[id]; });
+  }
+
   return {
     commitBook: commitBook,
+    placePlan: placePlan,
+    mergeOwned: mergeOwned,
     memoryStore: memoryStore,
     memoryAllowance: memoryAllowance
   };

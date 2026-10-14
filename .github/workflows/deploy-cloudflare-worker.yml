@@ -43,6 +43,18 @@ jobs:
             exit 1
           fi
 
+      - name: Keep the Book V2 planner
+        run: |
+          grep -q "/functions/v1/book-v2" games/story-journey.js
+          grep -q "placePlan" games/story-journey.js
+          grep -q "\[functions.book-v2\]" supabase/config.toml
+          test -f supabase/functions/book-v2/index.ts
+          test -f supabase/functions/book-v2/handle.mjs
+          if grep -q "SUPABASE_SERVICE_ROLE_KEY" supabase/functions/book-v2/index.ts; then
+            echo "::error::The Book V2 planner must not use the service role."
+            exit 1
+          fi
+
       - name: Publish
         uses: cloudflare/wrangler-action@v3
         with:
