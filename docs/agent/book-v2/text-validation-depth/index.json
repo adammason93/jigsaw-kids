@@ -1,0 +1,88 @@
+{
+  "at": "2026-10-07T09:18:14.155Z",
+  "imageUsd": 0,
+  "books": [
+    {
+      "id": "a",
+      "status": "REVIEWABLE",
+      "title": "A Tune Under the Floor",
+      "modelCalls": 2,
+      "repairCalls": 0,
+      "stagesRepaired": [],
+      "listedUsd": 0.03881,
+      "guardUsd": 0.07762,
+      "imageUsd": 0,
+      "storyProblems": [],
+      "textProblems": []
+    },
+    {
+      "id": "b",
+      "status": "REVIEWABLE",
+      "title": "A Track for a Shadow",
+      "modelCalls": 4,
+      "repairCalls": 2,
+      "stagesRepaired": [
+        "prose"
+      ],
+      "listedUsd": 0.047794,
+      "guardUsd": 0.095588,
+      "imageUsd": 0,
+      "storyProblems": [],
+      "textProblems": []
+    },
+    {
+      "id": "c",
+      "status": "REVIEWABLE",
+      "title": "A Patch Above the Clouds",
+      "modelCalls": 2,
+      "repairCalls": 0,
+      "stagesRepaired": [],
+      "listedUsd": 0.06585,
+      "guardUsd": 0.1317,
+      "imageUsd": 0,
+      "storyProblems": [],
+      "textProblems": []
+    },
+    {
+      "id": "d",
+      "status": "REVIEWABLE",
+      "title": "The Clock That Kept Going",
+      "modelCalls": 2,
+      "repairCalls": 0,
+      "stagesRepaired": [],
+      "listedUsd": 0.05674,
+      "guardUsd": 0.11348,
+      "imageUsd": 0,
+      "storyProblems": [],
+      "textProblems": []
+    },
+    {
+      "id": "e",
+      "status": "REVIEWABLE",
+      "title": "A Blink for the Sky",
+      "modelCalls": 2,
+      "repairCalls": 0,
+      "stagesRepaired": [],
+      "listedUsd": 0.051934,
+      "guardUsd": 0.103868,
+      "imageUsd": 0,
+      "storyProblems": [],
+      "textProblems": []
+    },
+    {
+      "id": "f",
+      "status": "REVIEWABLE",
+      "title": "The Puddle's Missing Snail",
+      "modelCalls": 3,
+      "repairCalls": 1,
+      "stagesRepaired": [
+        "prose"
+      ],
+      "listedUsd": 0.053436,
+      "guardUsd": 0.106872,
+      "imageUsd": 0,
+      "storyProblems": [],
+      "textProblems": []
+    }
+  ]
+}

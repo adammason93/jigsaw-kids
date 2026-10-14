@@ -1,0 +1,2728 @@
+{
+  "status": "REVIEWABLE",
+  "request": {
+    "castIds": [
+      "mina",
+      "maya"
+    ],
+    "idea": "They wake up and discover their town is floating in the clouds.",
+    "yearGroup": "Year 3",
+    "length": "storybook",
+    "tone": "adventure"
+  },
+  "modelCalls": 4,
+  "repairCalls": 2,
+  "repairs": [
+    {
+      "stage": "prose",
+      "problems": [
+        "reading-load:p5"
+      ]
+    },
+    {
+      "stage": "prose",
+      "problems": [
+        "reading-load:p5"
+      ]
+    }
+  ],
+  "stagesRepaired": [
+    "prose"
+  ],
+  "bible": {
+    "title": "The Sail Beneath the Square",
+    "yearGroup": "Year 3",
+    "readerAge": "Year 3",
+    "tone": "adventure",
+    "targetLength": "storybook",
+    "userIdea": "They wake up and discover their town is floating in the clouds.",
+    "castIds": [
+      "mina",
+      "maya"
+    ],
+    "visualStyle": "wondii-picture-book",
+    "premise": "Mina and Maya wake to discover their town floating among clouds. When steering fails, they must use a small discovery about wet cloth to stop their home drifting into destructive rain.",
+    "hook": "Beyond the bedroom window, clouds slide beneath the streets instead of above them.",
+    "goal": "Stop the town before it reaches a rain curtain that could wash away its supporting clouds.",
+    "centralProblem": "The drifting town has no ground beneath it, and its steering sail cannot withstand the wind.",
+    "stakes": "The children risk losing their home; their first attempt already costs the town its vegetable garden.",
+    "climaxBeatId": "b5",
+    "resolutionBeatId": "b6",
+    "emotionalArc": [
+      "wonder",
+      "urgency",
+      "determination",
+      "alarm",
+      "resourcefulness",
+      "settled confidence"
+    ],
+    "motif": "Cloth that flutters freely becomes cloth that holds fast.",
+    "locations": [
+      {
+        "locationId": "shared-bedroom",
+        "name": "the upstairs bedroom",
+        "connectedTo": [
+          "cloudside-square"
+        ],
+        "visualIdentity": "Twin beds beside a broad window; clouds pass below the visible street."
+      },
+      {
+        "locationId": "cloudside-square",
+        "name": "the cloudside square",
+        "connectedTo": [
+          "shared-bedroom"
+        ],
+        "visualIdentity": "A fountain, a steering mast, and a vegetable garden beside a low stone edge overlooking clouds."
+      }
+    ],
+    "entities": [
+      {
+        "entityId": "floating-town",
+        "name": "the floating town",
+        "identity": "The children's familiar streets and houses, carried on a thick bed of clouds.",
+        "ownerCharacterId": null,
+        "locationId": "cloudside-square",
+        "state": "Stopped safely short of the rain curtain.",
+        "introducedAt": "b1"
+      },
+      {
+        "entityId": "supporting-clouds",
+        "name": "the supporting clouds",
+        "identity": "Dense clouds beneath the town; wet cloth grips them, while dry cloth slides freely.",
+        "ownerCharacterId": null,
+        "locationId": "shared-bedroom",
+        "state": "Visible beneath the streets, carrying the town.",
+        "introducedAt": "b1"
+      },
+      {
+        "entityId": "purple-scarf",
+        "name": "Maya's scarf",
+        "identity": "A long purple scarf with a fringed end.",
+        "ownerCharacterId": "maya",
+        "locationId": "cloudside-square",
+        "state": "Spread beside the fountain to dry.",
+        "introducedAt": "b1"
+      },
+      {
+        "entityId": "square-fountain",
+        "name": "the fountain",
+        "identity": "A broad water basin with a sturdy stone stem.",
+        "ownerCharacterId": null,
+        "locationId": "cloudside-square",
+        "state": "Full of water, with a sturdy stone stem.",
+        "introducedAt": "b2"
+      },
+      {
+        "entityId": "steering-sail",
+        "name": "the steering sail",
+        "identity": "A large striped cloth sail raised by a rope on the square's mast.",
+        "ownerCharacterId": null,
+        "locationId": "cloudside-square",
+        "state": "Soaked, tied around the fountain stem, and gripping the cloud below as an anchor.",
+        "introducedAt": "b2"
+      },
+      {
+        "entityId": "vegetable-garden",
+        "name": "the vegetable garden",
+        "identity": "A wooden planting bed filled with carrots and climbing beans near the square's edge.",
+        "ownerCharacterId": null,
+        "locationId": "cloudside-square",
+        "state": "Swept over the edge and lost below the town.",
+        "introducedAt": "b2"
+      },
+      {
+        "entityId": "rain-curtain",
+        "name": "the rain curtain",
+        "identity": "A dark wall of falling rain that dissolves clouds along its lower edge.",
+        "ownerCharacterId": null,
+        "locationId": "cloudside-square",
+        "state": "Ahead of the drifting town, dissolving clouds underneath it.",
+        "introducedAt": "b2"
+      }
+    ],
+    "beats": [
+      {
+        "beatId": "b1",
+        "role": "hook",
+        "locationId": "shared-bedroom",
+        "charactersPresent": [
+          "mina",
+          "maya"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "mina",
+            "trait": "observant",
+            "shows": "Checks the roofline against the window frame and points to clouds beneath the street."
+          }
+        ],
+        "problemFamily": "",
+        "because": "",
+        "resolvesProblem": false,
+        "action": "Mina and Maya wake as their bedroom tilts, revealing clouds beneath the town outside.",
+        "emotion": "Astonished attention",
+        "entitiesRequired": [
+          "floating-town",
+          "supporting-clouds",
+          "purple-scarf"
+        ],
+        "visualFocus": "Mina's two black buns and purple dress beside Maya's dark curls and yellow cardigan.",
+        "shotType": "establishing",
+        "compositionIntent": "Keep the familiar bedroom foreground steady against an impossible view below.",
+        "textPurpose": "Establish the waking discovery without explaining its cause.",
+        "pageTurnHook": "What is carrying their streets?",
+        "textSafeRegion": "upper-left",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "mina",
+              "locationId": "shared-bedroom",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "steady",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "maya",
+              "locationId": "shared-bedroom",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [],
+              "emotion": "steady",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": []
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "mina",
+              "locationId": "shared-bedroom",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "Astonished attention",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "maya",
+              "locationId": "shared-bedroom",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [
+                "purple-scarf"
+              ],
+              "emotion": "Astonished attention",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "floating-town",
+              "ownerCharacterId": null,
+              "locationId": "shared-bedroom",
+              "state": "Visible through the window, floating and drifting."
+            },
+            {
+              "entityId": "supporting-clouds",
+              "ownerCharacterId": null,
+              "locationId": "shared-bedroom",
+              "state": "Visible beneath the streets, carrying the town."
+            },
+            {
+              "entityId": "purple-scarf",
+              "ownerCharacterId": "maya",
+              "locationId": "shared-bedroom",
+              "state": "Looped around Maya's shoulders."
+            }
+          ]
+        }
+      },
+      {
+        "beatId": "b2",
+        "role": "discovery",
+        "locationId": "cloudside-square",
+        "charactersPresent": [
+          "mina",
+          "maya"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "maya",
+            "trait": "curious",
+            "shows": "Lowers her scarf's fountain-soaked fringe over the edge and tests its surprising grip."
+          },
+          {
+            "characterId": "mina",
+            "trait": "observant",
+            "shows": "Tracks vanishing clouds beneath the rain and points from them to the approaching town."
+          }
+        ],
+        "problemFamily": "dangerous-drift",
+        "because": "b1",
+        "resolvesProblem": false,
+        "action": "In the square, they spot rain dissolving clouds ahead; Maya's fountain-wet scarf grips a passing cloud.",
+        "emotion": "Wonder sharpening into urgency",
+        "entitiesRequired": [
+          "floating-town",
+          "supporting-clouds",
+          "purple-scarf",
+          "square-fountain",
+          "steering-sail",
+          "vegetable-garden",
+          "rain-curtain"
+        ],
+        "visualFocus": "The wet scarf fringe holding against a cloud while its dry length flutters.",
+        "shotType": "overhead",
+        "compositionIntent": "Show the fountain, mast, garden, cloud edge, and approaching rain in one readable geography.",
+        "textPurpose": "Make the goal clear and plant the physical rule needed for the solution.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-right",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "mina",
+              "locationId": "shared-bedroom",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "Astonished attention",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "maya",
+              "locationId": "shared-bedroom",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [
+                "purple-scarf"
+              ],
+              "emotion": "Astonished attention",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "floating-town",
+              "ownerCharacterId": null,
+              "locationId": "shared-bedroom",
+              "state": "Visible through the window, floating and drifting."
+            },
+            {
+              "entityId": "supporting-clouds",
+              "ownerCharacterId": null,
+              "locationId": "shared-bedroom",
+              "state": "Visible beneath the streets, carrying the town."
+            },
+            {
+              "entityId": "purple-scarf",
+              "ownerCharacterId": "maya",
+              "locationId": "shared-bedroom",
+              "state": "Looped around Maya's shoulders."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "mina",
+              "locationId": "cloudside-square",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "Wonder sharpening into urgency",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "maya",
+              "locationId": "cloudside-square",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [
+                "purple-scarf"
+              ],
+              "emotion": "Wonder sharpening into urgency",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "floating-town",
+              "ownerCharacterId": null,
+              "locationId": "shared-bedroom",
+              "state": "Visible through the window, floating and drifting."
+            },
+            {
+              "entityId": "supporting-clouds",
+              "ownerCharacterId": null,
+              "locationId": "shared-bedroom",
+              "state": "Visible beneath the streets, carrying the town."
+            },
+            {
+              "entityId": "purple-scarf",
+              "ownerCharacterId": "maya",
+              "locationId": "cloudside-square",
+              "state": "Its wet fringe grips a cloud; Maya lifts it free."
+            },
+            {
+              "entityId": "square-fountain",
+              "ownerCharacterId": null,
+              "locationId": "cloudside-square",
+              "state": "Full of water, with a sturdy stone stem."
+            },
+            {
+              "entityId": "steering-sail",
+              "ownerCharacterId": null,
+              "locationId": "cloudside-square",
+              "state": "Furled on its mast, with its raising rope accessible."
+            },
+            {
+              "entityId": "vegetable-garden",
+              "ownerCharacterId": null,
+              "locationId": "cloudside-square",
+              "state": "Intact beside the square's edge."
+            },
+            {
+              "entityId": "rain-curtain",
+              "ownerCharacterId": null,
+              "locationId": "cloudside-square",
+              "state": "Ahead of the drifting town, dissolving clouds underneath it."
+            }
+          ]
+        }
+      },
+      {
+        "beatId": "b3",
+        "role": "attempt",
+        "locationId": "cloudside-square",
+        "charactersPresent": [
+          "mina",
+          "maya"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "maya",
+            "trait": "brave",
+            "shows": "Plants her shoes against the mast and takes the first hard pull on its rope."
+          }
+        ],
+        "problemFamily": "uncontrolled-steering",
+        "because": "b2",
+        "resolvesProblem": false,
+        "action": "To steer away from the rain, Maya pulls the mast rope while Mina guides the rising sail.",
+        "emotion": "Determined effort",
+        "entitiesRequired": [
+          "floating-town",
+          "supporting-clouds",
+          "purple-scarf",
+          "square-fountain",
+          "steering-sail",
+          "vegetable-garden",
+          "rain-curtain"
+        ],
+        "visualFocus": "Both children working beneath the expanding striped cloth.",
+        "shotType": "action",
+        "compositionIntent": "Use the taut rope and spreading sail to direct movement away from the rain.",
+        "textPurpose": "Give the children an active first solution that exposes more sail to the wind.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-left",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "mina",
+              "locationId": "cloudside-square",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "Wonder sharpening into urgency",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "maya",
+              "locationId": "cloudside-square",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [
+                "purple-scarf"
+              ],
+              "emotion": "Wonder sharpening into urgency",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "floating-town",
+              "ownerCharacterId": null,
+              "locationId": "shared-bedroom",
+              "state": "Visible through the window, floating and drifting."
+            },
+            {
+              "entityId": "supporting-clouds",
+              "ownerCharacterId": null,
+              "locationId": "shared-bedroom",
+              "state": "Visible beneath the streets, carrying the town."
+            },
+            {
+              "entityId": "purple-scarf",
+              "ownerCharacterId": "maya",
+              "locationId": "cloudside-square",
+              "state": "Its wet fringe grips a cloud; Maya lifts it free."
+            },
+            {
+              "entityId": "square-fountain",
+              "ownerCharacterId": null,
+              "locationId": "cloudside-square",
+              "state": "Full of water, with a sturdy stone stem."
+            },
+            {
+              "entityId": "steering-sail",
+              "ownerCharacterId": null,
+              "locationId": "cloudside-square",
+              "state": "Furled on its mast, with its raising rope accessible."
+            },
+            {
+              "entityId": "vegetable-garden",
+              "ownerCharacterId": null,
+              "locationId": "cloudside-square",
+              "state": "Intact beside the square's edge."
+            },
+            {
+              "entityId": "rain-curtain",
+              "ownerCharacterId": null,
+              "locationId": "cloudside-square",
+              "state": "Ahead of the drifting town, dissolving clouds underneath it."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "mina",
+              "locationId": "cloudside-square",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "Determined effort",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "maya",
+              "locationId": "cloudside-square",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [
+                "purple-scarf"
+              ],
+              "emotion": "Determined effort",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "floating-town",
+              "ownerCharacterId": null,
+              "locationId": "shared-bedroom",
+              "state": "Visible through the window, floating and drifting."
+            },
+            {
+              "entityId": "supporting-clouds",
+              "ownerCharacterId": null,
+              "locationId": "shared-bedroom",
+              "state": "Visible beneath the streets, carrying the town."
+            },
+            {
+              "entityId": "purple-scarf",
+              "ownerCharacterId": "maya",
+              "locationId": "cloudside-square",
+              "state": "Its wet fringe grips a cloud; Maya lifts it free."
+            },
+            {
+              "entityId": "square-fountain",
+              "ownerCharacterId": null,
+              "locationId": "cloudside-square",
+              "state": "Full of water, with a sturdy stone stem."
+            },
+            {
+              "entityId": "steering-sail",
+              "ownerCharacterId": null,
+              "locationId": "cloudside-square",
+              "state": "Fully raised and catching a powerful gust."
+            },
+            {
+              "entityId": "vegetable-garden",
+              "ownerCharacterId": null,
+              "locationId": "cloudside-square",
+              "state": "Intact beside the square's edge."
+            },
+            {
+              "entityId": "rain-curtain",
+              "ownerCharacterId": null,
+              "locationId": "cloudside-square",
+              "state": "Ahead of the drifting town, dissolving clouds underneath it."
+            }
+          ]
+        }
+      },
+      {
+        "beatId": "b4",
+        "role": "complication",
+        "locationId": "cloudside-square",
+        "charactersPresent": [
+          "mina",
+          "maya"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "mina",
+            "trait": "gentle",
+            "shows": "Draws Maya away from the whipping cloth without yanking her arm."
+          }
+        ],
+        "problemFamily": "steering-loss",
+        "because": "b3",
+        "resolvesProblem": false,
+        "action": "The raised sail catches a gust that tears it loose and sweeps the vegetable garden overboard.",
+        "emotion": "Alarm and loss",
+        "entitiesRequired": [
+          "floating-town",
+          "supporting-clouds",
+          "purple-scarf",
+          "square-fountain",
+          "steering-sail",
+          "vegetable-garden",
+          "rain-curtain"
+        ],
+        "visualFocus": "The torn sail on the stones and beans trailing from the falling garden.",
+        "shotType": "high",
+        "compositionIntent": "Contrast the stranded cloth with the garden disappearing into open space.",
+        "textPurpose": "Make the failed attempt costly and leave its material available for another use.",
+        "pageTurnHook": "The sail is ruined—but its cloth remains.",
+        "textSafeRegion": "upper-right",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "mina",
+              "locationId": "cloudside-square",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "Determined effort",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "maya",
+              "locationId": "cloudside-square",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [
+                "purple-scarf"
+              ],
+              "emotion": "Determined effort",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "floating-town",
+              "ownerCharacterId": null,
+              "locationId": "shared-bedroom",
+              "state": "Visible through the window, floating and drifting."
+            },
+            {
+              "entityId": "supporting-clouds",
+              "ownerCharacterId": null,
+              "locationId": "shared-bedroom",
+              "state": "Visible beneath the streets, carrying the town."
+            },
+            {
+              "entityId": "purple-scarf",
+              "ownerCharacterId": "maya",
+              "locationId": "cloudside-square",
+              "state": "Its wet fringe grips a cloud; Maya lifts it free."
+            },
+            {
+              "entityId": "square-fountain",
+              "ownerCharacterId": null,
+              "locationId": "cloudside-square",
+              "state": "Full of water, with a sturdy stone stem."
+            },
+            {
+              "entityId": "steering-sail",
+              "ownerCharacterId": null,
+              "locationId": "cloudside-square",
+              "state": "Fully raised and catching a powerful gust."
+            },
+            {
+              "entityId": "vegetable-garden",
+              "ownerCharacterId": null,
+              "locationId": "cloudside-square",
+              "state": "Intact beside the square's edge."
+            },
+            {
+              "entityId": "rain-curtain",
+              "ownerCharacterId": null,
+              "locationId": "cloudside-square",
+              "state": "Ahead of the drifting town, dissolving clouds underneath it."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "mina",
+              "locationId": "cloudside-square",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "Alarm and loss",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "maya",
+              "locationId": "cloudside-square",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [
+                "purple-scarf"
+              ],
+              "emotion": "Alarm and loss",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "floating-town",
+              "ownerCharacterId": null,
+              "locationId": "shared-bedroom",
+              "state": "Visible through the window, floating and drifting."
+            },
+            {
+              "entityId": "supporting-clouds",
+              "ownerCharacterId": null,
+              "locationId": "shared-bedroom",
+              "state": "Visible beneath the streets, carrying the town."
+            },
+            {
+              "entityId": "purple-scarf",
+              "ownerCharacterId": "maya",
+              "locationId": "cloudside-square",
+              "state": "Its wet fringe grips a cloud; Maya lifts it free."
+            },
+            {
+              "entityId": "square-fountain",
+              "ownerCharacterId": null,
+              "locationId": "cloudside-square",
+              "state": "Full of water, with a sturdy stone stem."
+            },
+            {
+              "entityId": "steering-sail",
+              "ownerCharacterId": null,
+              "locationId": "cloudside-square",
+              "state": "Torn free of the mast and lying across the square."
+            },
+            {
+              "entityId": "vegetable-garden",
+              "ownerCharacterId": null,
+              "locationId": "cloudside-square",
+              "state": "Swept over the edge and lost below the town."
+            },
+            {
+              "entityId": "rain-curtain",
+              "ownerCharacterId": null,
+              "locationId": "cloudside-square",
+              "state": "Ahead of the drifting town, dissolving clouds underneath it."
+            }
+          ]
+        }
+      },
+      {
+        "beatId": "b5",
+        "role": "climax",
+        "locationId": "cloudside-square",
+        "charactersPresent": [
+          "mina",
+          "maya"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "mina",
+            "trait": "observant",
+            "shows": "Matches the scarf's dark wet fringe to the sail and pushes its cloth into the fountain."
+          },
+          {
+            "characterId": "maya",
+            "trait": "brave",
+            "shows": "Braces at the stone edge and lowers the soaked sail while Mina secures its other end."
+          }
+        ],
+        "problemFamily": "cloud-anchoring",
+        "because": "b4",
+        "resolvesProblem": false,
+        "action": "They soak the torn sail, tie it around the fountain, and lower it into the clouds. The gripping cloth stops the town before the rain.",
+        "emotion": "Concentrated resolve",
+        "entitiesRequired": [
+          "floating-town",
+          "supporting-clouds",
+          "purple-scarf",
+          "square-fountain",
+          "steering-sail",
+          "vegetable-garden",
+          "rain-curtain"
+        ],
+        "visualFocus": "Wet stripes pressed firmly into the cloud, with the rain beyond.",
+        "shotType": "low",
+        "compositionIntent": "Show the soaked sail stretching between the fountain above and the cloud beneath.",
+        "textPurpose": "Resolve the drift using the earlier scarf discovery and the failed attempt's remains.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-left",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "mina",
+              "locationId": "cloudside-square",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "Alarm and loss",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "maya",
+              "locationId": "cloudside-square",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [
+                "purple-scarf"
+              ],
+              "emotion": "Alarm and loss",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "floating-town",
+              "ownerCharacterId": null,
+              "locationId": "shared-bedroom",
+              "state": "Visible through the window, floating and drifting."
+            },
+            {
+              "entityId": "supporting-clouds",
+              "ownerCharacterId": null,
+              "locationId": "shared-bedroom",
+              "state": "Visible beneath the streets, carrying the town."
+            },
+            {
+              "entityId": "purple-scarf",
+              "ownerCharacterId": "maya",
+              "locationId": "cloudside-square",
+              "state": "Its wet fringe grips a cloud; Maya lifts it free."
+            },
+            {
+              "entityId": "square-fountain",
+              "ownerCharacterId": null,
+              "locationId": "cloudside-square",
+              "state": "Full of water, with a sturdy stone stem."
+            },
+            {
+              "entityId": "steering-sail",
+              "ownerCharacterId": null,
+              "locationId": "cloudside-square",
+              "state": "Torn free of the mast and lying across the square."
+            },
+            {
+              "entityId": "vegetable-garden",
+              "ownerCharacterId": null,
+              "locationId": "cloudside-square",
+              "state": "Swept over the edge and lost below the town."
+            },
+            {
+              "entityId": "rain-curtain",
+              "ownerCharacterId": null,
+              "locationId": "cloudside-square",
+              "state": "Ahead of the drifting town, dissolving clouds underneath it."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "mina",
+              "locationId": "cloudside-square",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "Concentrated resolve",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "maya",
+              "locationId": "cloudside-square",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [
+                "purple-scarf"
+              ],
+              "emotion": "Concentrated resolve",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "floating-town",
+              "ownerCharacterId": null,
+              "locationId": "cloudside-square",
+              "state": "Stopped safely short of the rain curtain."
+            },
+            {
+              "entityId": "supporting-clouds",
+              "ownerCharacterId": null,
+              "locationId": "shared-bedroom",
+              "state": "Visible beneath the streets, carrying the town."
+            },
+            {
+              "entityId": "purple-scarf",
+              "ownerCharacterId": "maya",
+              "locationId": "cloudside-square",
+              "state": "Its wet fringe grips a cloud; Maya lifts it free."
+            },
+            {
+              "entityId": "square-fountain",
+              "ownerCharacterId": null,
+              "locationId": "cloudside-square",
+              "state": "Full of water, with a sturdy stone stem."
+            },
+            {
+              "entityId": "steering-sail",
+              "ownerCharacterId": null,
+              "locationId": "cloudside-square",
+              "state": "Soaked, tied around the fountain stem, and gripping the cloud below as an anchor."
+            },
+            {
+              "entityId": "vegetable-garden",
+              "ownerCharacterId": null,
+              "locationId": "cloudside-square",
+              "state": "Swept over the edge and lost below the town."
+            },
+            {
+              "entityId": "rain-curtain",
+              "ownerCharacterId": null,
+              "locationId": "cloudside-square",
+              "state": "Ahead of the drifting town, dissolving clouds underneath it."
+            }
+          ]
+        }
+      },
+      {
+        "beatId": "b6",
+        "role": "resolution",
+        "locationId": "cloudside-square",
+        "charactersPresent": [
+          "mina",
+          "maya"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "mina",
+            "trait": "gentle",
+            "shows": "Smooths the scarf fringe between her fingers before returning it to Maya."
+          }
+        ],
+        "problemFamily": "",
+        "because": "b5",
+        "resolvesProblem": true,
+        "action": "Mina spreads Maya's scarf beside the fountain while Maya checks their anchored town above the clouds.",
+        "emotion": "Quiet ownership",
+        "entitiesRequired": [
+          "floating-town",
+          "supporting-clouds",
+          "purple-scarf",
+          "square-fountain",
+          "steering-sail",
+          "vegetable-garden",
+          "rain-curtain"
+        ],
+        "visualFocus": "Small dry cloth resting beside the large wet cloth that now holds their home.",
+        "shotType": "vignette",
+        "compositionIntent": "Frame the drying scarf beside the taut sail, with the empty garden space still visible.",
+        "textPurpose": "Close on a changed checking habit and a visual callback without erasing the cost.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-right",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "mina",
+              "locationId": "cloudside-square",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "Concentrated resolve",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "maya",
+              "locationId": "cloudside-square",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [
+                "purple-scarf"
+              ],
+              "emotion": "Concentrated resolve",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "floating-town",
+              "ownerCharacterId": null,
+              "locationId": "cloudside-square",
+              "state": "Stopped safely short of the rain curtain."
+            },
+            {
+              "entityId": "supporting-clouds",
+              "ownerCharacterId": null,
+              "locationId": "shared-bedroom",
+              "state": "Visible beneath the streets, carrying the town."
+            },
+            {
+              "entityId": "purple-scarf",
+              "ownerCharacterId": "maya",
+              "locationId": "cloudside-square",
+              "state": "Its wet fringe grips a cloud; Maya lifts it free."
+            },
+            {
+              "entityId": "square-fountain",
+              "ownerCharacterId": null,
+              "locationId": "cloudside-square",
+              "state": "Full of water, with a sturdy stone stem."
+            },
+            {
+              "entityId": "steering-sail",
+              "ownerCharacterId": null,
+              "locationId": "cloudside-square",
+              "state": "Soaked, tied around the fountain stem, and gripping the cloud below as an anchor."
+            },
+            {
+              "entityId": "vegetable-garden",
+              "ownerCharacterId": null,
+              "locationId": "cloudside-square",
+              "state": "Swept over the edge and lost below the town."
+            },
+            {
+              "entityId": "rain-curtain",
+              "ownerCharacterId": null,
+              "locationId": "cloudside-square",
+              "state": "Ahead of the drifting town, dissolving clouds underneath it."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "mina",
+              "locationId": "cloudside-square",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "Quiet ownership",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "maya",
+              "locationId": "cloudside-square",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [
+                "purple-scarf"
+              ],
+              "emotion": "Quiet ownership",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "floating-town",
+              "ownerCharacterId": null,
+              "locationId": "cloudside-square",
+              "state": "Stopped safely short of the rain curtain."
+            },
+            {
+              "entityId": "supporting-clouds",
+              "ownerCharacterId": null,
+              "locationId": "shared-bedroom",
+              "state": "Visible beneath the streets, carrying the town."
+            },
+            {
+              "entityId": "purple-scarf",
+              "ownerCharacterId": "maya",
+              "locationId": "cloudside-square",
+              "state": "Spread beside the fountain to dry."
+            },
+            {
+              "entityId": "square-fountain",
+              "ownerCharacterId": null,
+              "locationId": "cloudside-square",
+              "state": "Full of water, with a sturdy stone stem."
+            },
+            {
+              "entityId": "steering-sail",
+              "ownerCharacterId": null,
+              "locationId": "cloudside-square",
+              "state": "Soaked, tied around the fountain stem, and gripping the cloud below as an anchor."
+            },
+            {
+              "entityId": "vegetable-garden",
+              "ownerCharacterId": null,
+              "locationId": "cloudside-square",
+              "state": "Swept over the edge and lost below the town."
+            },
+            {
+              "entityId": "rain-curtain",
+              "ownerCharacterId": null,
+              "locationId": "cloudside-square",
+              "state": "Ahead of the drifting town, dissolving clouds underneath it."
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "storyProblems": [],
+  "planProblems": [],
+  "textProblems": [],
+  "pages": [
+    {
+      "pageId": "p1",
+      "beatId": "b1",
+      "locationId": "shared-bedroom",
+      "charactersPresent": [
+        "mina",
+        "maya"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "shared-bedroom",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "steady",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "shared-bedroom",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "steady",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": []
+      },
+      "action": "Mina and Maya wake as their bedroom tilts, revealing clouds beneath the town outside.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "shared-bedroom",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Astonished attention",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "shared-bedroom",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [
+              "purple-scarf"
+            ],
+            "emotion": "Astonished attention",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floating-town",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Visible through the window, floating and drifting."
+          },
+          {
+            "entityId": "supporting-clouds",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Visible beneath the streets, carrying the town."
+          },
+          {
+            "entityId": "purple-scarf",
+            "ownerCharacterId": "maya",
+            "locationId": "shared-bedroom",
+            "state": "Looped around Maya's shoulders."
+          }
+        ]
+      },
+      "emotion": "Astonished attention",
+      "entitiesRequired": [
+        "floating-town",
+        "supporting-clouds",
+        "purple-scarf"
+      ],
+      "visualFocus": "Mina's two black buns and purple dress beside Maya's dark curls and yellow cardigan.",
+      "shotType": "establishing",
+      "compositionIntent": "Keep the familiar bedroom foreground steady against an impossible view below.",
+      "textPurpose": "Establish the waking discovery without explaining its cause.",
+      "pageTurnHook": "What is carrying their streets?",
+      "needsFromPrevious": null,
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "shared-bedroom",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Astonished attention",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "shared-bedroom",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [
+              "purple-scarf"
+            ],
+            "emotion": "Astonished attention",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floating-town",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Visible through the window, floating and drifting."
+          },
+          {
+            "entityId": "supporting-clouds",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Visible beneath the streets, carrying the town."
+          },
+          {
+            "entityId": "purple-scarf",
+            "ownerCharacterId": "maya",
+            "locationId": "shared-bedroom",
+            "state": "Looped around Maya's shoulders."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-left",
+      "sentences": [
+        {
+          "text": "The bedroom tilted, jolting Mina and Maya awake.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Maya hurried to the window, her purple scarf slipping sideways.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Mina caught her shoulder: outside, clouds carried the streets, and the whole town drifted.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "The bedroom tilted, jolting Mina and Maya awake. Maya hurried to the window, her purple scarf slipping sideways. Mina caught her shoulder: outside, clouds carried the streets, and the whole town drifted."
+    },
+    {
+      "pageId": "p2",
+      "beatId": "b2",
+      "locationId": "cloudside-square",
+      "charactersPresent": [
+        "mina",
+        "maya"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "shared-bedroom",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Astonished attention",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "shared-bedroom",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [
+              "purple-scarf"
+            ],
+            "emotion": "Astonished attention",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floating-town",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Visible through the window, floating and drifting."
+          },
+          {
+            "entityId": "supporting-clouds",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Visible beneath the streets, carrying the town."
+          },
+          {
+            "entityId": "purple-scarf",
+            "ownerCharacterId": "maya",
+            "locationId": "shared-bedroom",
+            "state": "Looped around Maya's shoulders."
+          }
+        ]
+      },
+      "action": "In the square, they spot rain dissolving clouds ahead; Maya's fountain-wet scarf grips a passing cloud.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "cloudside-square",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Wonder sharpening into urgency",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "cloudside-square",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [
+              "purple-scarf"
+            ],
+            "emotion": "Wonder sharpening into urgency",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floating-town",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Visible through the window, floating and drifting."
+          },
+          {
+            "entityId": "supporting-clouds",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Visible beneath the streets, carrying the town."
+          },
+          {
+            "entityId": "purple-scarf",
+            "ownerCharacterId": "maya",
+            "locationId": "cloudside-square",
+            "state": "Its wet fringe grips a cloud; Maya lifts it free."
+          },
+          {
+            "entityId": "square-fountain",
+            "ownerCharacterId": null,
+            "locationId": "cloudside-square",
+            "state": "Full of water, with a sturdy stone stem."
+          },
+          {
+            "entityId": "steering-sail",
+            "ownerCharacterId": null,
+            "locationId": "cloudside-square",
+            "state": "Furled on its mast, with its raising rope accessible."
+          },
+          {
+            "entityId": "vegetable-garden",
+            "ownerCharacterId": null,
+            "locationId": "cloudside-square",
+            "state": "Intact beside the square's edge."
+          },
+          {
+            "entityId": "rain-curtain",
+            "ownerCharacterId": null,
+            "locationId": "cloudside-square",
+            "state": "Ahead of the drifting town, dissolving clouds underneath it."
+          }
+        ]
+      },
+      "emotion": "Wonder sharpening into urgency",
+      "entitiesRequired": [
+        "floating-town",
+        "supporting-clouds",
+        "purple-scarf",
+        "square-fountain",
+        "steering-sail",
+        "vegetable-garden",
+        "rain-curtain"
+      ],
+      "visualFocus": "The wet scarf fringe holding against a cloud while its dry length flutters.",
+      "shotType": "overhead",
+      "compositionIntent": "Show the fountain, mast, garden, cloud edge, and approaching rain in one readable geography.",
+      "textPurpose": "Make the goal clear and plant the physical rule needed for the solution.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "shared-bedroom",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Astonished attention",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "shared-bedroom",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [
+              "purple-scarf"
+            ],
+            "emotion": "Astonished attention",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floating-town",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Visible through the window, floating and drifting."
+          },
+          {
+            "entityId": "supporting-clouds",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Visible beneath the streets, carrying the town."
+          },
+          {
+            "entityId": "purple-scarf",
+            "ownerCharacterId": "maya",
+            "locationId": "shared-bedroom",
+            "state": "Looped around Maya's shoulders."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "cloudside-square",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Wonder sharpening into urgency",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "cloudside-square",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [
+              "purple-scarf"
+            ],
+            "emotion": "Wonder sharpening into urgency",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floating-town",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Visible through the window, floating and drifting."
+          },
+          {
+            "entityId": "supporting-clouds",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Visible beneath the streets, carrying the town."
+          },
+          {
+            "entityId": "purple-scarf",
+            "ownerCharacterId": "maya",
+            "locationId": "cloudside-square",
+            "state": "Its wet fringe grips a cloud; Maya lifts it free."
+          },
+          {
+            "entityId": "square-fountain",
+            "ownerCharacterId": null,
+            "locationId": "cloudside-square",
+            "state": "Full of water, with a sturdy stone stem."
+          },
+          {
+            "entityId": "steering-sail",
+            "ownerCharacterId": null,
+            "locationId": "cloudside-square",
+            "state": "Furled on its mast, with its raising rope accessible."
+          },
+          {
+            "entityId": "vegetable-garden",
+            "ownerCharacterId": null,
+            "locationId": "cloudside-square",
+            "state": "Intact beside the square's edge."
+          },
+          {
+            "entityId": "rain-curtain",
+            "ownerCharacterId": null,
+            "locationId": "cloudside-square",
+            "state": "Ahead of the drifting town, dissolving clouds underneath it."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-right",
+      "sentences": [
+        {
+          "text": "\"The clouds are disappearing!\" Maya pointed towards the rain ahead of the square.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Her scarf trailed through the fountain, then snagged a passing cloud.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Mina spotted the wet fringe holding tight before Maya lifted it free.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "\"The clouds are disappearing!\" Maya pointed towards the rain ahead of the square. Her scarf trailed through the fountain, then snagged a passing cloud. Mina spotted the wet fringe holding tight before Maya lifted it free."
+    },
+    {
+      "pageId": "p3",
+      "beatId": "b3",
+      "locationId": "cloudside-square",
+      "charactersPresent": [
+        "mina",
+        "maya"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "cloudside-square",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Wonder sharpening into urgency",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "cloudside-square",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [
+              "purple-scarf"
+            ],
+            "emotion": "Wonder sharpening into urgency",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floating-town",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Visible through the window, floating and drifting."
+          },
+          {
+            "entityId": "supporting-clouds",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Visible beneath the streets, carrying the town."
+          },
+          {
+            "entityId": "purple-scarf",
+            "ownerCharacterId": "maya",
+            "locationId": "cloudside-square",
+            "state": "Its wet fringe grips a cloud; Maya lifts it free."
+          },
+          {
+            "entityId": "square-fountain",
+            "ownerCharacterId": null,
+            "locationId": "cloudside-square",
+            "state": "Full of water, with a sturdy stone stem."
+          },
+          {
+            "entityId": "steering-sail",
+            "ownerCharacterId": null,
+            "locationId": "cloudside-square",
+            "state": "Furled on its mast, with its raising rope accessible."
+          },
+          {
+            "entityId": "vegetable-garden",
+            "ownerCharacterId": null,
+            "locationId": "cloudside-square",
+            "state": "Intact beside the square's edge."
+          },
+          {
+            "entityId": "rain-curtain",
+            "ownerCharacterId": null,
+            "locationId": "cloudside-square",
+            "state": "Ahead of the drifting town, dissolving clouds underneath it."
+          }
+        ]
+      },
+      "action": "To steer away from the rain, Maya pulls the mast rope while Mina guides the rising sail.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "cloudside-square",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Determined effort",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "cloudside-square",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [
+              "purple-scarf"
+            ],
+            "emotion": "Determined effort",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floating-town",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Visible through the window, floating and drifting."
+          },
+          {
+            "entityId": "supporting-clouds",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Visible beneath the streets, carrying the town."
+          },
+          {
+            "entityId": "purple-scarf",
+            "ownerCharacterId": "maya",
+            "locationId": "cloudside-square",
+            "state": "Its wet fringe grips a cloud; Maya lifts it free."
+          },
+          {
+            "entityId": "square-fountain",
+            "ownerCharacterId": null,
+            "locationId": "cloudside-square",
+            "state": "Full of water, with a sturdy stone stem."
+          },
+          {
+            "entityId": "steering-sail",
+            "ownerCharacterId": null,
+            "locationId": "cloudside-square",
+            "state": "Fully raised and catching a powerful gust."
+          },
+          {
+            "entityId": "vegetable-garden",
+            "ownerCharacterId": null,
+            "locationId": "cloudside-square",
+            "state": "Intact beside the square's edge."
+          },
+          {
+            "entityId": "rain-curtain",
+            "ownerCharacterId": null,
+            "locationId": "cloudside-square",
+            "state": "Ahead of the drifting town, dissolving clouds underneath it."
+          }
+        ]
+      },
+      "emotion": "Determined effort",
+      "entitiesRequired": [
+        "floating-town",
+        "supporting-clouds",
+        "purple-scarf",
+        "square-fountain",
+        "steering-sail",
+        "vegetable-garden",
+        "rain-curtain"
+      ],
+      "visualFocus": "Both children working beneath the expanding striped cloth.",
+      "shotType": "action",
+      "compositionIntent": "Use the taut rope and spreading sail to direct movement away from the rain.",
+      "textPurpose": "Give the children an active first solution that exposes more sail to the wind.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "cloudside-square",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Wonder sharpening into urgency",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "cloudside-square",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [
+              "purple-scarf"
+            ],
+            "emotion": "Wonder sharpening into urgency",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floating-town",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Visible through the window, floating and drifting."
+          },
+          {
+            "entityId": "supporting-clouds",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Visible beneath the streets, carrying the town."
+          },
+          {
+            "entityId": "purple-scarf",
+            "ownerCharacterId": "maya",
+            "locationId": "cloudside-square",
+            "state": "Its wet fringe grips a cloud; Maya lifts it free."
+          },
+          {
+            "entityId": "square-fountain",
+            "ownerCharacterId": null,
+            "locationId": "cloudside-square",
+            "state": "Full of water, with a sturdy stone stem."
+          },
+          {
+            "entityId": "steering-sail",
+            "ownerCharacterId": null,
+            "locationId": "cloudside-square",
+            "state": "Furled on its mast, with its raising rope accessible."
+          },
+          {
+            "entityId": "vegetable-garden",
+            "ownerCharacterId": null,
+            "locationId": "cloudside-square",
+            "state": "Intact beside the square's edge."
+          },
+          {
+            "entityId": "rain-curtain",
+            "ownerCharacterId": null,
+            "locationId": "cloudside-square",
+            "state": "Ahead of the drifting town, dissolving clouds underneath it."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "cloudside-square",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Determined effort",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "cloudside-square",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [
+              "purple-scarf"
+            ],
+            "emotion": "Determined effort",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floating-town",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Visible through the window, floating and drifting."
+          },
+          {
+            "entityId": "supporting-clouds",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Visible beneath the streets, carrying the town."
+          },
+          {
+            "entityId": "purple-scarf",
+            "ownerCharacterId": "maya",
+            "locationId": "cloudside-square",
+            "state": "Its wet fringe grips a cloud; Maya lifts it free."
+          },
+          {
+            "entityId": "square-fountain",
+            "ownerCharacterId": null,
+            "locationId": "cloudside-square",
+            "state": "Full of water, with a sturdy stone stem."
+          },
+          {
+            "entityId": "steering-sail",
+            "ownerCharacterId": null,
+            "locationId": "cloudside-square",
+            "state": "Fully raised and catching a powerful gust."
+          },
+          {
+            "entityId": "vegetable-garden",
+            "ownerCharacterId": null,
+            "locationId": "cloudside-square",
+            "state": "Intact beside the square's edge."
+          },
+          {
+            "entityId": "rain-curtain",
+            "ownerCharacterId": null,
+            "locationId": "cloudside-square",
+            "state": "Ahead of the drifting town, dissolving clouds underneath it."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-left",
+      "sentences": [
+        {
+          "text": "\"Let's turn away from the rain,\" said Maya, reaching for the mast rope.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "She pulled while Mina guided the sail upwards.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "The cloth opened wide, and a powerful gust filled it.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "\"Let's turn away from the rain,\" said Maya, reaching for the mast rope. She pulled while Mina guided the sail upwards. The cloth opened wide, and a powerful gust filled it."
+    },
+    {
+      "pageId": "p4",
+      "beatId": "b4",
+      "locationId": "cloudside-square",
+      "charactersPresent": [
+        "mina",
+        "maya"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "cloudside-square",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Determined effort",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "cloudside-square",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [
+              "purple-scarf"
+            ],
+            "emotion": "Determined effort",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floating-town",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Visible through the window, floating and drifting."
+          },
+          {
+            "entityId": "supporting-clouds",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Visible beneath the streets, carrying the town."
+          },
+          {
+            "entityId": "purple-scarf",
+            "ownerCharacterId": "maya",
+            "locationId": "cloudside-square",
+            "state": "Its wet fringe grips a cloud; Maya lifts it free."
+          },
+          {
+            "entityId": "square-fountain",
+            "ownerCharacterId": null,
+            "locationId": "cloudside-square",
+            "state": "Full of water, with a sturdy stone stem."
+          },
+          {
+            "entityId": "steering-sail",
+            "ownerCharacterId": null,
+            "locationId": "cloudside-square",
+            "state": "Fully raised and catching a powerful gust."
+          },
+          {
+            "entityId": "vegetable-garden",
+            "ownerCharacterId": null,
+            "locationId": "cloudside-square",
+            "state": "Intact beside the square's edge."
+          },
+          {
+            "entityId": "rain-curtain",
+            "ownerCharacterId": null,
+            "locationId": "cloudside-square",
+            "state": "Ahead of the drifting town, dissolving clouds underneath it."
+          }
+        ]
+      },
+      "action": "The raised sail catches a gust that tears it loose and sweeps the vegetable garden overboard.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "cloudside-square",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Alarm and loss",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "cloudside-square",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [
+              "purple-scarf"
+            ],
+            "emotion": "Alarm and loss",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floating-town",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Visible through the window, floating and drifting."
+          },
+          {
+            "entityId": "supporting-clouds",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Visible beneath the streets, carrying the town."
+          },
+          {
+            "entityId": "purple-scarf",
+            "ownerCharacterId": "maya",
+            "locationId": "cloudside-square",
+            "state": "Its wet fringe grips a cloud; Maya lifts it free."
+          },
+          {
+            "entityId": "square-fountain",
+            "ownerCharacterId": null,
+            "locationId": "cloudside-square",
+            "state": "Full of water, with a sturdy stone stem."
+          },
+          {
+            "entityId": "steering-sail",
+            "ownerCharacterId": null,
+            "locationId": "cloudside-square",
+            "state": "Torn free of the mast and lying across the square."
+          },
+          {
+            "entityId": "vegetable-garden",
+            "ownerCharacterId": null,
+            "locationId": "cloudside-square",
+            "state": "Swept over the edge and lost below the town."
+          },
+          {
+            "entityId": "rain-curtain",
+            "ownerCharacterId": null,
+            "locationId": "cloudside-square",
+            "state": "Ahead of the drifting town, dissolving clouds underneath it."
+          }
+        ]
+      },
+      "emotion": "Alarm and loss",
+      "entitiesRequired": [
+        "floating-town",
+        "supporting-clouds",
+        "purple-scarf",
+        "square-fountain",
+        "steering-sail",
+        "vegetable-garden",
+        "rain-curtain"
+      ],
+      "visualFocus": "The torn sail on the stones and beans trailing from the falling garden.",
+      "shotType": "high",
+      "compositionIntent": "Contrast the stranded cloth with the garden disappearing into open space.",
+      "textPurpose": "Make the failed attempt costly and leave its material available for another use.",
+      "pageTurnHook": "The sail is ruined—but its cloth remains.",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "cloudside-square",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Determined effort",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "cloudside-square",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [
+              "purple-scarf"
+            ],
+            "emotion": "Determined effort",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floating-town",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Visible through the window, floating and drifting."
+          },
+          {
+            "entityId": "supporting-clouds",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Visible beneath the streets, carrying the town."
+          },
+          {
+            "entityId": "purple-scarf",
+            "ownerCharacterId": "maya",
+            "locationId": "cloudside-square",
+            "state": "Its wet fringe grips a cloud; Maya lifts it free."
+          },
+          {
+            "entityId": "square-fountain",
+            "ownerCharacterId": null,
+            "locationId": "cloudside-square",
+            "state": "Full of water, with a sturdy stone stem."
+          },
+          {
+            "entityId": "steering-sail",
+            "ownerCharacterId": null,
+            "locationId": "cloudside-square",
+            "state": "Fully raised and catching a powerful gust."
+          },
+          {
+            "entityId": "vegetable-garden",
+            "ownerCharacterId": null,
+            "locationId": "cloudside-square",
+            "state": "Intact beside the square's edge."
+          },
+          {
+            "entityId": "rain-curtain",
+            "ownerCharacterId": null,
+            "locationId": "cloudside-square",
+            "state": "Ahead of the drifting town, dissolving clouds underneath it."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "cloudside-square",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Alarm and loss",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "cloudside-square",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [
+              "purple-scarf"
+            ],
+            "emotion": "Alarm and loss",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floating-town",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Visible through the window, floating and drifting."
+          },
+          {
+            "entityId": "supporting-clouds",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Visible beneath the streets, carrying the town."
+          },
+          {
+            "entityId": "purple-scarf",
+            "ownerCharacterId": "maya",
+            "locationId": "cloudside-square",
+            "state": "Its wet fringe grips a cloud; Maya lifts it free."
+          },
+          {
+            "entityId": "square-fountain",
+            "ownerCharacterId": null,
+            "locationId": "cloudside-square",
+            "state": "Full of water, with a sturdy stone stem."
+          },
+          {
+            "entityId": "steering-sail",
+            "ownerCharacterId": null,
+            "locationId": "cloudside-square",
+            "state": "Torn free of the mast and lying across the square."
+          },
+          {
+            "entityId": "vegetable-garden",
+            "ownerCharacterId": null,
+            "locationId": "cloudside-square",
+            "state": "Swept over the edge and lost below the town."
+          },
+          {
+            "entityId": "rain-curtain",
+            "ownerCharacterId": null,
+            "locationId": "cloudside-square",
+            "state": "Ahead of the drifting town, dissolving clouds underneath it."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-right",
+      "sentences": [
+        {
+          "text": "The sail wrenched free, flinging Maya backwards and crashing across the square.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Over the edge went the vegetable garden, tumbling out of sight.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Maya stood staring at the empty edge; Mina crouched beside the torn cloth.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "The sail wrenched free, flinging Maya backwards and crashing across the square. Over the edge went the vegetable garden, tumbling out of sight. Maya stood staring at the empty edge; Mina crouched beside the torn cloth."
+    },
+    {
+      "pageId": "p5",
+      "beatId": "b5",
+      "locationId": "cloudside-square",
+      "charactersPresent": [
+        "mina",
+        "maya"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "cloudside-square",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Alarm and loss",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "cloudside-square",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [
+              "purple-scarf"
+            ],
+            "emotion": "Alarm and loss",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floating-town",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Visible through the window, floating and drifting."
+          },
+          {
+            "entityId": "supporting-clouds",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Visible beneath the streets, carrying the town."
+          },
+          {
+            "entityId": "purple-scarf",
+            "ownerCharacterId": "maya",
+            "locationId": "cloudside-square",
+            "state": "Its wet fringe grips a cloud; Maya lifts it free."
+          },
+          {
+            "entityId": "square-fountain",
+            "ownerCharacterId": null,
+            "locationId": "cloudside-square",
+            "state": "Full of water, with a sturdy stone stem."
+          },
+          {
+            "entityId": "steering-sail",
+            "ownerCharacterId": null,
+            "locationId": "cloudside-square",
+            "state": "Torn free of the mast and lying across the square."
+          },
+          {
+            "entityId": "vegetable-garden",
+            "ownerCharacterId": null,
+            "locationId": "cloudside-square",
+            "state": "Swept over the edge and lost below the town."
+          },
+          {
+            "entityId": "rain-curtain",
+            "ownerCharacterId": null,
+            "locationId": "cloudside-square",
+            "state": "Ahead of the drifting town, dissolving clouds underneath it."
+          }
+        ]
+      },
+      "action": "They soak the torn sail, tie it around the fountain, and lower it into the clouds. The gripping cloth stops the town before the rain.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "cloudside-square",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Concentrated resolve",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "cloudside-square",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [
+              "purple-scarf"
+            ],
+            "emotion": "Concentrated resolve",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floating-town",
+            "ownerCharacterId": null,
+            "locationId": "cloudside-square",
+            "state": "Stopped safely short of the rain curtain."
+          },
+          {
+            "entityId": "supporting-clouds",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Visible beneath the streets, carrying the town."
+          },
+          {
+            "entityId": "purple-scarf",
+            "ownerCharacterId": "maya",
+            "locationId": "cloudside-square",
+            "state": "Its wet fringe grips a cloud; Maya lifts it free."
+          },
+          {
+            "entityId": "square-fountain",
+            "ownerCharacterId": null,
+            "locationId": "cloudside-square",
+            "state": "Full of water, with a sturdy stone stem."
+          },
+          {
+            "entityId": "steering-sail",
+            "ownerCharacterId": null,
+            "locationId": "cloudside-square",
+            "state": "Soaked, tied around the fountain stem, and gripping the cloud below as an anchor."
+          },
+          {
+            "entityId": "vegetable-garden",
+            "ownerCharacterId": null,
+            "locationId": "cloudside-square",
+            "state": "Swept over the edge and lost below the town."
+          },
+          {
+            "entityId": "rain-curtain",
+            "ownerCharacterId": null,
+            "locationId": "cloudside-square",
+            "state": "Ahead of the drifting town, dissolving clouds underneath it."
+          }
+        ]
+      },
+      "emotion": "Concentrated resolve",
+      "entitiesRequired": [
+        "floating-town",
+        "supporting-clouds",
+        "purple-scarf",
+        "square-fountain",
+        "steering-sail",
+        "vegetable-garden",
+        "rain-curtain"
+      ],
+      "visualFocus": "Wet stripes pressed firmly into the cloud, with the rain beyond.",
+      "shotType": "low",
+      "compositionIntent": "Show the soaked sail stretching between the fountain above and the cloud beneath.",
+      "textPurpose": "Resolve the drift using the earlier scarf discovery and the failed attempt's remains.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "cloudside-square",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Alarm and loss",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "cloudside-square",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [
+              "purple-scarf"
+            ],
+            "emotion": "Alarm and loss",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floating-town",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Visible through the window, floating and drifting."
+          },
+          {
+            "entityId": "supporting-clouds",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Visible beneath the streets, carrying the town."
+          },
+          {
+            "entityId": "purple-scarf",
+            "ownerCharacterId": "maya",
+            "locationId": "cloudside-square",
+            "state": "Its wet fringe grips a cloud; Maya lifts it free."
+          },
+          {
+            "entityId": "square-fountain",
+            "ownerCharacterId": null,
+            "locationId": "cloudside-square",
+            "state": "Full of water, with a sturdy stone stem."
+          },
+          {
+            "entityId": "steering-sail",
+            "ownerCharacterId": null,
+            "locationId": "cloudside-square",
+            "state": "Torn free of the mast and lying across the square."
+          },
+          {
+            "entityId": "vegetable-garden",
+            "ownerCharacterId": null,
+            "locationId": "cloudside-square",
+            "state": "Swept over the edge and lost below the town."
+          },
+          {
+            "entityId": "rain-curtain",
+            "ownerCharacterId": null,
+            "locationId": "cloudside-square",
+            "state": "Ahead of the drifting town, dissolving clouds underneath it."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "cloudside-square",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Concentrated resolve",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "cloudside-square",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [
+              "purple-scarf"
+            ],
+            "emotion": "Concentrated resolve",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floating-town",
+            "ownerCharacterId": null,
+            "locationId": "cloudside-square",
+            "state": "Stopped safely short of the rain curtain."
+          },
+          {
+            "entityId": "supporting-clouds",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Visible beneath the streets, carrying the town."
+          },
+          {
+            "entityId": "purple-scarf",
+            "ownerCharacterId": "maya",
+            "locationId": "cloudside-square",
+            "state": "Its wet fringe grips a cloud; Maya lifts it free."
+          },
+          {
+            "entityId": "square-fountain",
+            "ownerCharacterId": null,
+            "locationId": "cloudside-square",
+            "state": "Full of water, with a sturdy stone stem."
+          },
+          {
+            "entityId": "steering-sail",
+            "ownerCharacterId": null,
+            "locationId": "cloudside-square",
+            "state": "Soaked, tied around the fountain stem, and gripping the cloud below as an anchor."
+          },
+          {
+            "entityId": "vegetable-garden",
+            "ownerCharacterId": null,
+            "locationId": "cloudside-square",
+            "state": "Swept over the edge and lost below the town."
+          },
+          {
+            "entityId": "rain-curtain",
+            "ownerCharacterId": null,
+            "locationId": "cloudside-square",
+            "state": "Ahead of the drifting town, dissolving clouds underneath it."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-left",
+      "sentences": [
+        {
+          "text": "Mina spotted Maya's wet purple scarf fringe gripping a cloud.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Maya lifted it free, then helped Mina soak the torn sail in the fountain.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "They tied it around the stone stem and lowered it into the clouds.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "The cloth gripped; the town stopped short of the rain.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "Mina spotted Maya's wet purple scarf fringe gripping a cloud. Maya lifted it free, then helped Mina soak the torn sail in the fountain. They tied it around the stone stem and lowered it into the clouds. The cloth gripped; the town stopped short of the rain."
+    },
+    {
+      "pageId": "p6",
+      "beatId": "b6",
+      "locationId": "cloudside-square",
+      "charactersPresent": [
+        "mina",
+        "maya"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "cloudside-square",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Concentrated resolve",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "cloudside-square",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [
+              "purple-scarf"
+            ],
+            "emotion": "Concentrated resolve",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floating-town",
+            "ownerCharacterId": null,
+            "locationId": "cloudside-square",
+            "state": "Stopped safely short of the rain curtain."
+          },
+          {
+            "entityId": "supporting-clouds",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Visible beneath the streets, carrying the town."
+          },
+          {
+            "entityId": "purple-scarf",
+            "ownerCharacterId": "maya",
+            "locationId": "cloudside-square",
+            "state": "Its wet fringe grips a cloud; Maya lifts it free."
+          },
+          {
+            "entityId": "square-fountain",
+            "ownerCharacterId": null,
+            "locationId": "cloudside-square",
+            "state": "Full of water, with a sturdy stone stem."
+          },
+          {
+            "entityId": "steering-sail",
+            "ownerCharacterId": null,
+            "locationId": "cloudside-square",
+            "state": "Soaked, tied around the fountain stem, and gripping the cloud below as an anchor."
+          },
+          {
+            "entityId": "vegetable-garden",
+            "ownerCharacterId": null,
+            "locationId": "cloudside-square",
+            "state": "Swept over the edge and lost below the town."
+          },
+          {
+            "entityId": "rain-curtain",
+            "ownerCharacterId": null,
+            "locationId": "cloudside-square",
+            "state": "Ahead of the drifting town, dissolving clouds underneath it."
+          }
+        ]
+      },
+      "action": "Mina spreads Maya's scarf beside the fountain while Maya checks their anchored town above the clouds.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "cloudside-square",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Quiet ownership",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "cloudside-square",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [
+              "purple-scarf"
+            ],
+            "emotion": "Quiet ownership",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floating-town",
+            "ownerCharacterId": null,
+            "locationId": "cloudside-square",
+            "state": "Stopped safely short of the rain curtain."
+          },
+          {
+            "entityId": "supporting-clouds",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Visible beneath the streets, carrying the town."
+          },
+          {
+            "entityId": "purple-scarf",
+            "ownerCharacterId": "maya",
+            "locationId": "cloudside-square",
+            "state": "Spread beside the fountain to dry."
+          },
+          {
+            "entityId": "square-fountain",
+            "ownerCharacterId": null,
+            "locationId": "cloudside-square",
+            "state": "Full of water, with a sturdy stone stem."
+          },
+          {
+            "entityId": "steering-sail",
+            "ownerCharacterId": null,
+            "locationId": "cloudside-square",
+            "state": "Soaked, tied around the fountain stem, and gripping the cloud below as an anchor."
+          },
+          {
+            "entityId": "vegetable-garden",
+            "ownerCharacterId": null,
+            "locationId": "cloudside-square",
+            "state": "Swept over the edge and lost below the town."
+          },
+          {
+            "entityId": "rain-curtain",
+            "ownerCharacterId": null,
+            "locationId": "cloudside-square",
+            "state": "Ahead of the drifting town, dissolving clouds underneath it."
+          }
+        ]
+      },
+      "emotion": "Quiet ownership",
+      "entitiesRequired": [
+        "floating-town",
+        "supporting-clouds",
+        "purple-scarf",
+        "square-fountain",
+        "steering-sail",
+        "vegetable-garden",
+        "rain-curtain"
+      ],
+      "visualFocus": "Small dry cloth resting beside the large wet cloth that now holds their home.",
+      "shotType": "vignette",
+      "compositionIntent": "Frame the drying scarf beside the taut sail, with the empty garden space still visible.",
+      "textPurpose": "Close on a changed checking habit and a visual callback without erasing the cost.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "cloudside-square",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Concentrated resolve",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "cloudside-square",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [
+              "purple-scarf"
+            ],
+            "emotion": "Concentrated resolve",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floating-town",
+            "ownerCharacterId": null,
+            "locationId": "cloudside-square",
+            "state": "Stopped safely short of the rain curtain."
+          },
+          {
+            "entityId": "supporting-clouds",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Visible beneath the streets, carrying the town."
+          },
+          {
+            "entityId": "purple-scarf",
+            "ownerCharacterId": "maya",
+            "locationId": "cloudside-square",
+            "state": "Its wet fringe grips a cloud; Maya lifts it free."
+          },
+          {
+            "entityId": "square-fountain",
+            "ownerCharacterId": null,
+            "locationId": "cloudside-square",
+            "state": "Full of water, with a sturdy stone stem."
+          },
+          {
+            "entityId": "steering-sail",
+            "ownerCharacterId": null,
+            "locationId": "cloudside-square",
+            "state": "Soaked, tied around the fountain stem, and gripping the cloud below as an anchor."
+          },
+          {
+            "entityId": "vegetable-garden",
+            "ownerCharacterId": null,
+            "locationId": "cloudside-square",
+            "state": "Swept over the edge and lost below the town."
+          },
+          {
+            "entityId": "rain-curtain",
+            "ownerCharacterId": null,
+            "locationId": "cloudside-square",
+            "state": "Ahead of the drifting town, dissolving clouds underneath it."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "cloudside-square",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Quiet ownership",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "cloudside-square",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [
+              "purple-scarf"
+            ],
+            "emotion": "Quiet ownership",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floating-town",
+            "ownerCharacterId": null,
+            "locationId": "cloudside-square",
+            "state": "Stopped safely short of the rain curtain."
+          },
+          {
+            "entityId": "supporting-clouds",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Visible beneath the streets, carrying the town."
+          },
+          {
+            "entityId": "purple-scarf",
+            "ownerCharacterId": "maya",
+            "locationId": "cloudside-square",
+            "state": "Spread beside the fountain to dry."
+          },
+          {
+            "entityId": "square-fountain",
+            "ownerCharacterId": null,
+            "locationId": "cloudside-square",
+            "state": "Full of water, with a sturdy stone stem."
+          },
+          {
+            "entityId": "steering-sail",
+            "ownerCharacterId": null,
+            "locationId": "cloudside-square",
+            "state": "Soaked, tied around the fountain stem, and gripping the cloud below as an anchor."
+          },
+          {
+            "entityId": "vegetable-garden",
+            "ownerCharacterId": null,
+            "locationId": "cloudside-square",
+            "state": "Swept over the edge and lost below the town."
+          },
+          {
+            "entityId": "rain-curtain",
+            "ownerCharacterId": null,
+            "locationId": "cloudside-square",
+            "state": "Ahead of the drifting town, dissolving clouds underneath it."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-right",
+      "sentences": [
+        {
+          "text": "Mina spread Maya's purple scarf beside the fountain, smoothing each twist.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Maya checked the sail's knot, then watched the clouds beneath their still town.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "She settled beside Mina, with the scarf drying between them.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "Mina spread Maya's purple scarf beside the fountain, smoothing each twist. Maya checked the sail's knot, then watched the clouds beneath their still town. She settled beside Mina, with the scarf drying between them."
+    }
+  ],
+  "imageCalls": 0,
+  "imageDraws": 0,
+  "imageReason": "images_disabled",
+  "imageUsd": 0,
+  "id": "c",
+  "listedUsd": 0.05236,
+  "guardUsd": 0.10472
+}

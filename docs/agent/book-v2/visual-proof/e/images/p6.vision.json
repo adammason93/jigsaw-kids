@@ -1,0 +1,44 @@
+{
+  "observations": "The illustration depicts a child with long dark curls, medium brown skin, a round face, warm brown eyes, and soft eyebrows. She is wearing a yellow cardigan, white shirt, blue skirt, white socks, and navy shoes. The setting is a sheltered corner beneath a tall garden wall with a clay flowerpot and soft evening shadows. The child is holding a small warm white star that seems to blink twice but is not illuminated.",
+  "characters": [
+    {
+      "characterId": "maya",
+      "identityMatch": true,
+      "outfitMatch": true,
+      "count": 1
+    }
+  ],
+  "entities": [
+    {
+      "entityId": "clay-flowerpot",
+      "status": "confirmed",
+      "seen": "A round clay pot is present next to the child."
+    },
+    {
+      "entityId": "garden-wall",
+      "status": "confirmed",
+      "seen": "A tall pale wall is visible blocking the sky."
+    },
+    {
+      "entityId": "hidden-star",
+      "status": "confirmed",
+      "seen": "A small warm white star is in the child's hands."
+    }
+  ],
+  "locationMatch": true,
+  "prematureResult": false,
+  "textDetected": false,
+  "anatomyOk": true,
+  "textSafeUsable": true,
+  "duplicateCharacter": false,
+  "momentMatch": true,
+  "montageShown": false,
+  "style": {
+    "rendering": "painted",
+    "characterRendering": "painted",
+    "proportions": "picture-book",
+    "edge": "soft",
+    "texture": "painted",
+    "finish": "picture-book"
+  }
+}

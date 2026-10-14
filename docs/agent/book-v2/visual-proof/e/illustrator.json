@@ -1,0 +1,27 @@
+{
+  "title": "A Blink for the Sky",
+  "styleId": "wondii-picture-book",
+  "status": "approved",
+  "scope": "book",
+  "spreadsInheritSameIllustrator": true,
+  "illustrator": {
+    "rendering": "soft painted picture-book",
+    "characterRendering": "the same painted construction for every person and creature",
+    "shapeLanguage": "clear rounded shapes",
+    "edge": "soft painted edges",
+    "texture": "light painted texture",
+    "material": "painted surfaces",
+    "detail": "readable picture-book detail",
+    "depth": "gentle painted depth",
+    "facialRendering": "expressive painted faces with one construction",
+    "proportions": "storybook proportions",
+    "environmentRendering": "painted places, whatever the place contains",
+    "lightingPhilosophy": "painted light that follows the scene",
+    "colourTreatment": "harmonised painted colour",
+    "finish": "one picture-book finish"
+  },
+  "atmosphere": {
+    "tone": "bedtime",
+    "mood": "evening light, quiet contrast, warm points of light"
+  }
+}

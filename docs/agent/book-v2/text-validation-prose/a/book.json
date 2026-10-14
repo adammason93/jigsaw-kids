@@ -1,0 +1,1619 @@
+{
+  "status": "REVIEWABLE",
+  "request": {
+    "castIds": [
+      "maya",
+      "leo"
+    ],
+    "idea": "They find a tiny dragon hiding underneath their school.",
+    "yearGroup": "Year 1",
+    "length": "quick",
+    "tone": "magical"
+  },
+  "modelCalls": 3,
+  "repairCalls": 1,
+  "repairs": [
+    {
+      "stage": "bible",
+      "problems": [
+        "personality-unused:maya"
+      ]
+    }
+  ],
+  "stagesRepaired": [
+    "bible"
+  ],
+  "bible": {
+    "title": "A Hum Beneath the School",
+    "yearGroup": "Year 1",
+    "readerAge": "Year 1",
+    "tone": "magical",
+    "targetLength": "quick",
+    "userIdea": "They find a tiny dragon hiding underneath their school.",
+    "castIds": [
+      "maya",
+      "leo"
+    ],
+    "visualStyle": "wondii-picture-book",
+    "premise": "Maya and Leo find a tiny dragon hiding beneath their school. Its scales shine only while someone hums, so they must keep humming to help it reach its nest.",
+    "hook": "Scratching beneath a floor hatch draws Maya towards the darkness.",
+    "goal": "Help the dragon reach its nest.",
+    "centralProblem": "The dragon cannot see its nest unless someone keeps humming.",
+    "stakes": "Without light, the dragon cannot settle in its nest.",
+    "climaxBeatId": "b4",
+    "resolutionBeatId": "b5",
+    "emotionalArc": [
+      "Maya leans towards the scratching.",
+      "Both children crouch beside the glow.",
+      "Their hands pause when the light fades.",
+      "They share the humming and guiding.",
+      "They leave with soft footsteps."
+    ],
+    "motif": "A steady hum makes a gentle light.",
+    "locations": [
+      {
+        "locationId": "school-floor-hatch",
+        "name": "beside the floor hatch",
+        "connectedTo": [
+          "under-school-steps"
+        ],
+        "visualIdentity": "A wooden school floor with a square hatch and broad steps beneath it."
+      },
+      {
+        "locationId": "under-school-steps",
+        "name": "under the school",
+        "connectedTo": [
+          "school-floor-hatch"
+        ],
+        "visualIdentity": "A low brick space with broad steps, a copper pipe, and deep shadows."
+      }
+    ],
+    "entities": [
+      {
+        "entityId": "wooden-floor-hatch",
+        "name": "floor hatch",
+        "identity": "A square wooden hatch with a recessed handle.",
+        "ownerCharacterId": null,
+        "locationId": "school-floor-hatch",
+        "state": "Open and braced by Leo.",
+        "introducedAt": "b1"
+      },
+      {
+        "entityId": "humming-dragon",
+        "name": "tiny dragon",
+        "identity": "A palm-sized dragon whose pearly scales glow only while someone hums.",
+        "ownerCharacterId": null,
+        "locationId": "under-school-steps",
+        "state": "Curled in its nest with dark scales after the hum ends.",
+        "introducedAt": "b2"
+      },
+      {
+        "entityId": "curved-water-pipe",
+        "name": "curved pipe",
+        "identity": "A fixed copper pipe curving close to the brick floor.",
+        "ownerCharacterId": null,
+        "locationId": "under-school-steps",
+        "state": "Fixed between the dragon and its nest.",
+        "introducedAt": "b3"
+      },
+      {
+        "entityId": "soft-dragon-nest",
+        "name": "dragon nest",
+        "identity": "A small nest of soft leaves tucked behind the curved pipe.",
+        "ownerCharacterId": null,
+        "locationId": "under-school-steps",
+        "state": "Occupied by the dragon.",
+        "introducedAt": "b3"
+      }
+    ],
+    "beats": [
+      {
+        "beatId": "b1",
+        "role": "hook",
+        "locationId": "school-floor-hatch",
+        "charactersPresent": [
+          "maya",
+          "leo"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "maya",
+            "trait": "curious",
+            "shows": "She presses her ear beside the hatch, then lifts it to look."
+          },
+          {
+            "characterId": "leo",
+            "trait": "careful",
+            "shows": "He braces the hatch so it cannot fall shut."
+          }
+        ],
+        "problemFamily": "hidden-sound",
+        "because": "",
+        "resolvesProblem": false,
+        "action": "Maya hears scratching beneath a floor hatch. Leo holds it open while she looks down.",
+        "emotion": "Maya leans closer to the dark opening.",
+        "entitiesRequired": [
+          "wooden-floor-hatch"
+        ],
+        "visualFocus": "Maya's long dark curls and yellow cardigan beside Leo's sandy hair and green jumper.",
+        "shotType": "establishing",
+        "compositionIntent": "Show the open hatch and the steps connecting both locations.",
+        "textPurpose": "Make the sound beneath the floor invite investigation.",
+        "pageTurnHook": "What is scratching below?",
+        "textSafeRegion": "upper-left",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "maya",
+              "locationId": "school-floor-hatch",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [],
+              "emotion": "steady",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "leo",
+              "locationId": "school-floor-hatch",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "steady",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": []
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "maya",
+              "locationId": "school-floor-hatch",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [],
+              "emotion": "Maya leans closer to the dark opening.",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "leo",
+              "locationId": "school-floor-hatch",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "Maya leans closer to the dark opening.",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "wooden-floor-hatch",
+              "ownerCharacterId": null,
+              "locationId": "school-floor-hatch",
+              "state": "Open and braced by Leo."
+            }
+          ]
+        }
+      },
+      {
+        "beatId": "b2",
+        "role": "discovery",
+        "locationId": "under-school-steps",
+        "charactersPresent": [
+          "maya",
+          "leo"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "maya",
+            "trait": "brave",
+            "shows": "She descends the dark steps and crouches beside the scratching."
+          },
+          {
+            "characterId": "leo",
+            "trait": "kind",
+            "shows": "He crouches beside the dragon without grabbing it."
+          }
+        ],
+        "problemFamily": "dark-search",
+        "because": "b1",
+        "resolvesProblem": false,
+        "action": "They find a tiny dragon hiding below the school. Maya hums; its glowing scales reveal searching claws.",
+        "emotion": "Both children lean towards the small pool of light.",
+        "entitiesRequired": [
+          "wooden-floor-hatch",
+          "humming-dragon"
+        ],
+        "visualFocus": "Glowing scales illuminate Maya's white shirt and blue skirt and Leo's dark trousers.",
+        "shotType": "reveal",
+        "compositionIntent": "Reveal the dragon at the foot of the steps.",
+        "textPurpose": "Reveal the creature, its search, and the humming rule.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-right",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "maya",
+              "locationId": "school-floor-hatch",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [],
+              "emotion": "Maya leans closer to the dark opening.",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "leo",
+              "locationId": "school-floor-hatch",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "Maya leans closer to the dark opening.",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "wooden-floor-hatch",
+              "ownerCharacterId": null,
+              "locationId": "school-floor-hatch",
+              "state": "Open and braced by Leo."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "maya",
+              "locationId": "under-school-steps",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [],
+              "emotion": "Both children lean towards the small pool of light.",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "leo",
+              "locationId": "under-school-steps",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "Both children lean towards the small pool of light.",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "wooden-floor-hatch",
+              "ownerCharacterId": null,
+              "locationId": "school-floor-hatch",
+              "state": "Open and braced by Leo."
+            },
+            {
+              "entityId": "humming-dragon",
+              "ownerCharacterId": null,
+              "locationId": "under-school-steps",
+              "state": "Searching in the shadows; scales glow while Maya hums."
+            }
+          ]
+        }
+      },
+      {
+        "beatId": "b3",
+        "role": "attempt",
+        "locationId": "under-school-steps",
+        "charactersPresent": [
+          "maya",
+          "leo"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "maya",
+            "trait": "curious",
+            "shows": "She follows the glow across the floor and locates the nest."
+          },
+          {
+            "characterId": "leo",
+            "trait": "careful",
+            "shows": "He keeps his finger aimed at the nest after the light fades."
+          }
+        ],
+        "problemFamily": "broken-hum",
+        "because": "b2",
+        "resolvesProblem": false,
+        "action": "Maya hums and spots a nest behind a pipe. She stops to point, and the light fades.",
+        "emotion": "Their pointing hands pause in the darkness.",
+        "entitiesRequired": [
+          "wooden-floor-hatch",
+          "humming-dragon",
+          "curved-water-pipe",
+          "soft-dragon-nest"
+        ],
+        "visualFocus": "The last glow outlines leaves behind the copper pipe.",
+        "shotType": "close",
+        "compositionIntent": "Frame the fading scales and the pointing hands.",
+        "textPurpose": "Show that finding the nest is not enough without sustained light.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-left",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "maya",
+              "locationId": "under-school-steps",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [],
+              "emotion": "Both children lean towards the small pool of light.",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "leo",
+              "locationId": "under-school-steps",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "Both children lean towards the small pool of light.",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "wooden-floor-hatch",
+              "ownerCharacterId": null,
+              "locationId": "school-floor-hatch",
+              "state": "Open and braced by Leo."
+            },
+            {
+              "entityId": "humming-dragon",
+              "ownerCharacterId": null,
+              "locationId": "under-school-steps",
+              "state": "Searching in the shadows; scales glow while Maya hums."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "maya",
+              "locationId": "under-school-steps",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [],
+              "emotion": "Their pointing hands pause in the darkness.",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "leo",
+              "locationId": "under-school-steps",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "Their pointing hands pause in the darkness.",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "wooden-floor-hatch",
+              "ownerCharacterId": null,
+              "locationId": "school-floor-hatch",
+              "state": "Open and braced by Leo."
+            },
+            {
+              "entityId": "humming-dragon",
+              "ownerCharacterId": null,
+              "locationId": "under-school-steps",
+              "state": "Scales dark after Maya stops humming."
+            },
+            {
+              "entityId": "curved-water-pipe",
+              "ownerCharacterId": null,
+              "locationId": "under-school-steps",
+              "state": "Fixed between the dragon and its nest."
+            },
+            {
+              "entityId": "soft-dragon-nest",
+              "ownerCharacterId": null,
+              "locationId": "under-school-steps",
+              "state": "Empty, briefly visible behind the pipe."
+            }
+          ]
+        }
+      },
+      {
+        "beatId": "b4",
+        "role": "climax",
+        "locationId": "under-school-steps",
+        "charactersPresent": [
+          "maya",
+          "leo"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "leo",
+            "trait": "kind",
+            "shows": "He keeps humming while Maya guides the dragon."
+          },
+          {
+            "characterId": "maya",
+            "trait": "brave",
+            "shows": "She reaches into the narrow gap and offers a guiding hand."
+          }
+        ],
+        "problemFamily": "shared-guidance",
+        "because": "b3",
+        "resolvesProblem": false,
+        "action": "Leo keeps humming, making the dragon shine. Maya guides it past the pipe into its nest.",
+        "emotion": "Maya opens her pointing hand beside the dragon.",
+        "entitiesRequired": [
+          "wooden-floor-hatch",
+          "humming-dragon",
+          "curved-water-pipe",
+          "soft-dragon-nest"
+        ],
+        "visualFocus": "The glowing dragon follows Maya's hand while Leo hums.",
+        "shotType": "overhead",
+        "compositionIntent": "Show the clear route around the pipe to the nest.",
+        "textPurpose": "Solve the interrupted-light problem by separating humming from guiding.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-right",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "maya",
+              "locationId": "under-school-steps",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [],
+              "emotion": "Their pointing hands pause in the darkness.",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "leo",
+              "locationId": "under-school-steps",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "Their pointing hands pause in the darkness.",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "wooden-floor-hatch",
+              "ownerCharacterId": null,
+              "locationId": "school-floor-hatch",
+              "state": "Open and braced by Leo."
+            },
+            {
+              "entityId": "humming-dragon",
+              "ownerCharacterId": null,
+              "locationId": "under-school-steps",
+              "state": "Scales dark after Maya stops humming."
+            },
+            {
+              "entityId": "curved-water-pipe",
+              "ownerCharacterId": null,
+              "locationId": "under-school-steps",
+              "state": "Fixed between the dragon and its nest."
+            },
+            {
+              "entityId": "soft-dragon-nest",
+              "ownerCharacterId": null,
+              "locationId": "under-school-steps",
+              "state": "Empty, briefly visible behind the pipe."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "maya",
+              "locationId": "under-school-steps",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [],
+              "emotion": "Maya opens her pointing hand beside the dragon.",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "leo",
+              "locationId": "under-school-steps",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "Maya opens her pointing hand beside the dragon.",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "wooden-floor-hatch",
+              "ownerCharacterId": null,
+              "locationId": "school-floor-hatch",
+              "state": "Open and braced by Leo."
+            },
+            {
+              "entityId": "humming-dragon",
+              "ownerCharacterId": null,
+              "locationId": "under-school-steps",
+              "state": "Glowing during Leo's hum and settled in its nest."
+            },
+            {
+              "entityId": "curved-water-pipe",
+              "ownerCharacterId": null,
+              "locationId": "under-school-steps",
+              "state": "Fixed between the dragon and its nest."
+            },
+            {
+              "entityId": "soft-dragon-nest",
+              "ownerCharacterId": null,
+              "locationId": "under-school-steps",
+              "state": "Occupied by the dragon."
+            }
+          ]
+        }
+      },
+      {
+        "beatId": "b5",
+        "role": "resolution",
+        "locationId": "under-school-steps",
+        "charactersPresent": [
+          "maya",
+          "leo"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "leo",
+            "trait": "kind",
+            "shows": "He lets his hum end when the dragon closes its eyes."
+          },
+          {
+            "characterId": "maya",
+            "trait": "curious",
+            "shows": "She pauses beside the steps to watch the dragon curl up."
+          }
+        ],
+        "problemFamily": "",
+        "because": "b4",
+        "resolvesProblem": true,
+        "action": "Leo stops humming; the dragon curls into darkness. Maya and Leo tiptoe towards the steps.",
+        "emotion": "Their feet make no scratching sound.",
+        "entitiesRequired": [
+          "wooden-floor-hatch",
+          "humming-dragon",
+          "curved-water-pipe",
+          "soft-dragon-nest"
+        ],
+        "visualFocus": "A curled dragon rests behind the pipe.",
+        "shotType": "vignette",
+        "compositionIntent": "Pair the shadowed nest with two pairs of tiptoeing feet.",
+        "textPurpose": "Replace the opening scratching with soft footsteps and rest.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-left",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "maya",
+              "locationId": "under-school-steps",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [],
+              "emotion": "Maya opens her pointing hand beside the dragon.",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "leo",
+              "locationId": "under-school-steps",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "Maya opens her pointing hand beside the dragon.",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "wooden-floor-hatch",
+              "ownerCharacterId": null,
+              "locationId": "school-floor-hatch",
+              "state": "Open and braced by Leo."
+            },
+            {
+              "entityId": "humming-dragon",
+              "ownerCharacterId": null,
+              "locationId": "under-school-steps",
+              "state": "Glowing during Leo's hum and settled in its nest."
+            },
+            {
+              "entityId": "curved-water-pipe",
+              "ownerCharacterId": null,
+              "locationId": "under-school-steps",
+              "state": "Fixed between the dragon and its nest."
+            },
+            {
+              "entityId": "soft-dragon-nest",
+              "ownerCharacterId": null,
+              "locationId": "under-school-steps",
+              "state": "Occupied by the dragon."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "maya",
+              "locationId": "under-school-steps",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [],
+              "emotion": "Their feet make no scratching sound.",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "leo",
+              "locationId": "under-school-steps",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "Their feet make no scratching sound.",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "wooden-floor-hatch",
+              "ownerCharacterId": null,
+              "locationId": "school-floor-hatch",
+              "state": "Open and braced by Leo."
+            },
+            {
+              "entityId": "humming-dragon",
+              "ownerCharacterId": null,
+              "locationId": "under-school-steps",
+              "state": "Curled in its nest with dark scales after the hum ends."
+            },
+            {
+              "entityId": "curved-water-pipe",
+              "ownerCharacterId": null,
+              "locationId": "under-school-steps",
+              "state": "Fixed between the dragon and its nest."
+            },
+            {
+              "entityId": "soft-dragon-nest",
+              "ownerCharacterId": null,
+              "locationId": "under-school-steps",
+              "state": "Occupied by the dragon."
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "storyProblems": [],
+  "planProblems": [],
+  "textProblems": [],
+  "pages": [
+    {
+      "pageId": "p1",
+      "beatId": "b1",
+      "locationId": "school-floor-hatch",
+      "charactersPresent": [
+        "maya",
+        "leo"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "school-floor-hatch",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "steady",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "school-floor-hatch",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "steady",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": []
+      },
+      "action": "Maya hears scratching beneath a floor hatch. Leo holds it open while she looks down.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "school-floor-hatch",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Maya leans closer to the dark opening.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "school-floor-hatch",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "Maya leans closer to the dark opening.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "wooden-floor-hatch",
+            "ownerCharacterId": null,
+            "locationId": "school-floor-hatch",
+            "state": "Open and braced by Leo."
+          }
+        ]
+      },
+      "emotion": "Maya leans closer to the dark opening.",
+      "entitiesRequired": [
+        "wooden-floor-hatch"
+      ],
+      "visualFocus": "Maya's long dark curls and yellow cardigan beside Leo's sandy hair and green jumper.",
+      "shotType": "establishing",
+      "compositionIntent": "Show the open hatch and the steps connecting both locations.",
+      "textPurpose": "Make the sound beneath the floor invite investigation.",
+      "pageTurnHook": "What is scratching below?",
+      "needsFromPrevious": null,
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "school-floor-hatch",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Maya leans closer to the dark opening.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "school-floor-hatch",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "Maya leans closer to the dark opening.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "wooden-floor-hatch",
+            "ownerCharacterId": null,
+            "locationId": "school-floor-hatch",
+            "state": "Open and braced by Leo."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-left",
+      "sentences": [
+        {
+          "text": "Maya hears scratching beneath the hatch.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Leo holds it open.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Maya leans over and looks down.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "Maya hears scratching beneath the hatch. Leo holds it open. Maya leans over and looks down."
+    },
+    {
+      "pageId": "p2",
+      "beatId": "b2",
+      "locationId": "under-school-steps",
+      "charactersPresent": [
+        "maya",
+        "leo"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "school-floor-hatch",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Maya leans closer to the dark opening.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "school-floor-hatch",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "Maya leans closer to the dark opening.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "wooden-floor-hatch",
+            "ownerCharacterId": null,
+            "locationId": "school-floor-hatch",
+            "state": "Open and braced by Leo."
+          }
+        ]
+      },
+      "action": "They find a tiny dragon hiding below the school. Maya hums; its glowing scales reveal searching claws.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "under-school-steps",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Both children lean towards the small pool of light.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "under-school-steps",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "Both children lean towards the small pool of light.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "wooden-floor-hatch",
+            "ownerCharacterId": null,
+            "locationId": "school-floor-hatch",
+            "state": "Open and braced by Leo."
+          },
+          {
+            "entityId": "humming-dragon",
+            "ownerCharacterId": null,
+            "locationId": "under-school-steps",
+            "state": "Searching in the shadows; scales glow while Maya hums."
+          }
+        ]
+      },
+      "emotion": "Both children lean towards the small pool of light.",
+      "entitiesRequired": [
+        "wooden-floor-hatch",
+        "humming-dragon"
+      ],
+      "visualFocus": "Glowing scales illuminate Maya's white shirt and blue skirt and Leo's dark trousers.",
+      "shotType": "reveal",
+      "compositionIntent": "Reveal the dragon at the foot of the steps.",
+      "textPurpose": "Reveal the creature, its search, and the humming rule.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "school-floor-hatch",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Maya leans closer to the dark opening.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "school-floor-hatch",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "Maya leans closer to the dark opening.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "wooden-floor-hatch",
+            "ownerCharacterId": null,
+            "locationId": "school-floor-hatch",
+            "state": "Open and braced by Leo."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "under-school-steps",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Both children lean towards the small pool of light.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "under-school-steps",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "Both children lean towards the small pool of light.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "wooden-floor-hatch",
+            "ownerCharacterId": null,
+            "locationId": "school-floor-hatch",
+            "state": "Open and braced by Leo."
+          },
+          {
+            "entityId": "humming-dragon",
+            "ownerCharacterId": null,
+            "locationId": "under-school-steps",
+            "state": "Searching in the shadows; scales glow while Maya hums."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-right",
+      "sentences": [
+        {
+          "text": "A tiny dragon hides in the dark.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Maya hums.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Its scales glow, showing claws that search and search.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "A tiny dragon hides in the dark. Maya hums. Its scales glow, showing claws that search and search."
+    },
+    {
+      "pageId": "p3",
+      "beatId": "b3",
+      "locationId": "under-school-steps",
+      "charactersPresent": [
+        "maya",
+        "leo"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "under-school-steps",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Both children lean towards the small pool of light.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "under-school-steps",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "Both children lean towards the small pool of light.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "wooden-floor-hatch",
+            "ownerCharacterId": null,
+            "locationId": "school-floor-hatch",
+            "state": "Open and braced by Leo."
+          },
+          {
+            "entityId": "humming-dragon",
+            "ownerCharacterId": null,
+            "locationId": "under-school-steps",
+            "state": "Searching in the shadows; scales glow while Maya hums."
+          }
+        ]
+      },
+      "action": "Maya hums and spots a nest behind a pipe. She stops to point, and the light fades.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "under-school-steps",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Their pointing hands pause in the darkness.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "under-school-steps",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "Their pointing hands pause in the darkness.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "wooden-floor-hatch",
+            "ownerCharacterId": null,
+            "locationId": "school-floor-hatch",
+            "state": "Open and braced by Leo."
+          },
+          {
+            "entityId": "humming-dragon",
+            "ownerCharacterId": null,
+            "locationId": "under-school-steps",
+            "state": "Scales dark after Maya stops humming."
+          },
+          {
+            "entityId": "curved-water-pipe",
+            "ownerCharacterId": null,
+            "locationId": "under-school-steps",
+            "state": "Fixed between the dragon and its nest."
+          },
+          {
+            "entityId": "soft-dragon-nest",
+            "ownerCharacterId": null,
+            "locationId": "under-school-steps",
+            "state": "Empty, briefly visible behind the pipe."
+          }
+        ]
+      },
+      "emotion": "Their pointing hands pause in the darkness.",
+      "entitiesRequired": [
+        "wooden-floor-hatch",
+        "humming-dragon",
+        "curved-water-pipe",
+        "soft-dragon-nest"
+      ],
+      "visualFocus": "The last glow outlines leaves behind the copper pipe.",
+      "shotType": "close",
+      "compositionIntent": "Frame the fading scales and the pointing hands.",
+      "textPurpose": "Show that finding the nest is not enough without sustained light.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "under-school-steps",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Both children lean towards the small pool of light.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "under-school-steps",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "Both children lean towards the small pool of light.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "wooden-floor-hatch",
+            "ownerCharacterId": null,
+            "locationId": "school-floor-hatch",
+            "state": "Open and braced by Leo."
+          },
+          {
+            "entityId": "humming-dragon",
+            "ownerCharacterId": null,
+            "locationId": "under-school-steps",
+            "state": "Searching in the shadows; scales glow while Maya hums."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "under-school-steps",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Their pointing hands pause in the darkness.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "under-school-steps",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "Their pointing hands pause in the darkness.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "wooden-floor-hatch",
+            "ownerCharacterId": null,
+            "locationId": "school-floor-hatch",
+            "state": "Open and braced by Leo."
+          },
+          {
+            "entityId": "humming-dragon",
+            "ownerCharacterId": null,
+            "locationId": "under-school-steps",
+            "state": "Scales dark after Maya stops humming."
+          },
+          {
+            "entityId": "curved-water-pipe",
+            "ownerCharacterId": null,
+            "locationId": "under-school-steps",
+            "state": "Fixed between the dragon and its nest."
+          },
+          {
+            "entityId": "soft-dragon-nest",
+            "ownerCharacterId": null,
+            "locationId": "under-school-steps",
+            "state": "Empty, briefly visible behind the pipe."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-left",
+      "sentences": [
+        {
+          "text": "Still humming, Maya spots a nest behind the pipe.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "She stops to point.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "The dragon's light fades.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "Still humming, Maya spots a nest behind the pipe. She stops to point. The dragon's light fades."
+    },
+    {
+      "pageId": "p4",
+      "beatId": "b4",
+      "locationId": "under-school-steps",
+      "charactersPresent": [
+        "maya",
+        "leo"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "under-school-steps",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Their pointing hands pause in the darkness.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "under-school-steps",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "Their pointing hands pause in the darkness.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "wooden-floor-hatch",
+            "ownerCharacterId": null,
+            "locationId": "school-floor-hatch",
+            "state": "Open and braced by Leo."
+          },
+          {
+            "entityId": "humming-dragon",
+            "ownerCharacterId": null,
+            "locationId": "under-school-steps",
+            "state": "Scales dark after Maya stops humming."
+          },
+          {
+            "entityId": "curved-water-pipe",
+            "ownerCharacterId": null,
+            "locationId": "under-school-steps",
+            "state": "Fixed between the dragon and its nest."
+          },
+          {
+            "entityId": "soft-dragon-nest",
+            "ownerCharacterId": null,
+            "locationId": "under-school-steps",
+            "state": "Empty, briefly visible behind the pipe."
+          }
+        ]
+      },
+      "action": "Leo keeps humming, making the dragon shine. Maya guides it past the pipe into its nest.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "under-school-steps",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Maya opens her pointing hand beside the dragon.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "under-school-steps",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "Maya opens her pointing hand beside the dragon.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "wooden-floor-hatch",
+            "ownerCharacterId": null,
+            "locationId": "school-floor-hatch",
+            "state": "Open and braced by Leo."
+          },
+          {
+            "entityId": "humming-dragon",
+            "ownerCharacterId": null,
+            "locationId": "under-school-steps",
+            "state": "Glowing during Leo's hum and settled in its nest."
+          },
+          {
+            "entityId": "curved-water-pipe",
+            "ownerCharacterId": null,
+            "locationId": "under-school-steps",
+            "state": "Fixed between the dragon and its nest."
+          },
+          {
+            "entityId": "soft-dragon-nest",
+            "ownerCharacterId": null,
+            "locationId": "under-school-steps",
+            "state": "Occupied by the dragon."
+          }
+        ]
+      },
+      "emotion": "Maya opens her pointing hand beside the dragon.",
+      "entitiesRequired": [
+        "wooden-floor-hatch",
+        "humming-dragon",
+        "curved-water-pipe",
+        "soft-dragon-nest"
+      ],
+      "visualFocus": "The glowing dragon follows Maya's hand while Leo hums.",
+      "shotType": "overhead",
+      "compositionIntent": "Show the clear route around the pipe to the nest.",
+      "textPurpose": "Solve the interrupted-light problem by separating humming from guiding.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "under-school-steps",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Their pointing hands pause in the darkness.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "under-school-steps",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "Their pointing hands pause in the darkness.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "wooden-floor-hatch",
+            "ownerCharacterId": null,
+            "locationId": "school-floor-hatch",
+            "state": "Open and braced by Leo."
+          },
+          {
+            "entityId": "humming-dragon",
+            "ownerCharacterId": null,
+            "locationId": "under-school-steps",
+            "state": "Scales dark after Maya stops humming."
+          },
+          {
+            "entityId": "curved-water-pipe",
+            "ownerCharacterId": null,
+            "locationId": "under-school-steps",
+            "state": "Fixed between the dragon and its nest."
+          },
+          {
+            "entityId": "soft-dragon-nest",
+            "ownerCharacterId": null,
+            "locationId": "under-school-steps",
+            "state": "Empty, briefly visible behind the pipe."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "under-school-steps",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Maya opens her pointing hand beside the dragon.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "under-school-steps",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "Maya opens her pointing hand beside the dragon.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "wooden-floor-hatch",
+            "ownerCharacterId": null,
+            "locationId": "school-floor-hatch",
+            "state": "Open and braced by Leo."
+          },
+          {
+            "entityId": "humming-dragon",
+            "ownerCharacterId": null,
+            "locationId": "under-school-steps",
+            "state": "Glowing during Leo's hum and settled in its nest."
+          },
+          {
+            "entityId": "curved-water-pipe",
+            "ownerCharacterId": null,
+            "locationId": "under-school-steps",
+            "state": "Fixed between the dragon and its nest."
+          },
+          {
+            "entityId": "soft-dragon-nest",
+            "ownerCharacterId": null,
+            "locationId": "under-school-steps",
+            "state": "Occupied by the dragon."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-right",
+      "sentences": [
+        {
+          "text": "Leo hums on and on.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "The dragon shines.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Maya guides it past the pipe into its soft nest.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "Leo hums on and on. The dragon shines. Maya guides it past the pipe into its soft nest."
+    },
+    {
+      "pageId": "p5",
+      "beatId": "b5",
+      "locationId": "under-school-steps",
+      "charactersPresent": [
+        "maya",
+        "leo"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "under-school-steps",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Maya opens her pointing hand beside the dragon.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "under-school-steps",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "Maya opens her pointing hand beside the dragon.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "wooden-floor-hatch",
+            "ownerCharacterId": null,
+            "locationId": "school-floor-hatch",
+            "state": "Open and braced by Leo."
+          },
+          {
+            "entityId": "humming-dragon",
+            "ownerCharacterId": null,
+            "locationId": "under-school-steps",
+            "state": "Glowing during Leo's hum and settled in its nest."
+          },
+          {
+            "entityId": "curved-water-pipe",
+            "ownerCharacterId": null,
+            "locationId": "under-school-steps",
+            "state": "Fixed between the dragon and its nest."
+          },
+          {
+            "entityId": "soft-dragon-nest",
+            "ownerCharacterId": null,
+            "locationId": "under-school-steps",
+            "state": "Occupied by the dragon."
+          }
+        ]
+      },
+      "action": "Leo stops humming; the dragon curls into darkness. Maya and Leo tiptoe towards the steps.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "under-school-steps",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Their feet make no scratching sound.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "under-school-steps",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "Their feet make no scratching sound.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "wooden-floor-hatch",
+            "ownerCharacterId": null,
+            "locationId": "school-floor-hatch",
+            "state": "Open and braced by Leo."
+          },
+          {
+            "entityId": "humming-dragon",
+            "ownerCharacterId": null,
+            "locationId": "under-school-steps",
+            "state": "Curled in its nest with dark scales after the hum ends."
+          },
+          {
+            "entityId": "curved-water-pipe",
+            "ownerCharacterId": null,
+            "locationId": "under-school-steps",
+            "state": "Fixed between the dragon and its nest."
+          },
+          {
+            "entityId": "soft-dragon-nest",
+            "ownerCharacterId": null,
+            "locationId": "under-school-steps",
+            "state": "Occupied by the dragon."
+          }
+        ]
+      },
+      "emotion": "Their feet make no scratching sound.",
+      "entitiesRequired": [
+        "wooden-floor-hatch",
+        "humming-dragon",
+        "curved-water-pipe",
+        "soft-dragon-nest"
+      ],
+      "visualFocus": "A curled dragon rests behind the pipe.",
+      "shotType": "vignette",
+      "compositionIntent": "Pair the shadowed nest with two pairs of tiptoeing feet.",
+      "textPurpose": "Replace the opening scratching with soft footsteps and rest.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "under-school-steps",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Maya opens her pointing hand beside the dragon.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "under-school-steps",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "Maya opens her pointing hand beside the dragon.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "wooden-floor-hatch",
+            "ownerCharacterId": null,
+            "locationId": "school-floor-hatch",
+            "state": "Open and braced by Leo."
+          },
+          {
+            "entityId": "humming-dragon",
+            "ownerCharacterId": null,
+            "locationId": "under-school-steps",
+            "state": "Glowing during Leo's hum and settled in its nest."
+          },
+          {
+            "entityId": "curved-water-pipe",
+            "ownerCharacterId": null,
+            "locationId": "under-school-steps",
+            "state": "Fixed between the dragon and its nest."
+          },
+          {
+            "entityId": "soft-dragon-nest",
+            "ownerCharacterId": null,
+            "locationId": "under-school-steps",
+            "state": "Occupied by the dragon."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "under-school-steps",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Their feet make no scratching sound.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "under-school-steps",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "Their feet make no scratching sound.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "wooden-floor-hatch",
+            "ownerCharacterId": null,
+            "locationId": "school-floor-hatch",
+            "state": "Open and braced by Leo."
+          },
+          {
+            "entityId": "humming-dragon",
+            "ownerCharacterId": null,
+            "locationId": "under-school-steps",
+            "state": "Curled in its nest with dark scales after the hum ends."
+          },
+          {
+            "entityId": "curved-water-pipe",
+            "ownerCharacterId": null,
+            "locationId": "under-school-steps",
+            "state": "Fixed between the dragon and its nest."
+          },
+          {
+            "entityId": "soft-dragon-nest",
+            "ownerCharacterId": null,
+            "locationId": "under-school-steps",
+            "state": "Occupied by the dragon."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-left",
+      "sentences": [
+        {
+          "text": "Leo stops humming.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "The dragon curls into the dark.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Maya and Leo tiptoe away.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "Leo stops humming. The dragon curls into the dark. Maya and Leo tiptoe away."
+    }
+  ],
+  "imageCalls": 0,
+  "imageDraws": 0,
+  "imageReason": "images_disabled",
+  "imageUsd": 0,
+  "id": "a",
+  "listedUsd": 0.064038,
+  "guardUsd": 0.128076
+}

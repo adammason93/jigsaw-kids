@@ -1,0 +1,1345 @@
+{
+  "status": "REVIEWABLE",
+  "request": {
+    "castIds": [
+      "ravi"
+    ],
+    "idea": "Ravi's shadow keeps running away from him.",
+    "yearGroup": "Reception",
+    "length": "quick",
+    "tone": "funny"
+  },
+  "modelCalls": 2,
+  "repairCalls": 0,
+  "repairs": [],
+  "stagesRepaired": [],
+  "bible": {
+    "title": "Shade for a Shadow",
+    "yearGroup": "Reception",
+    "readerAge": "Reception",
+    "tone": "funny",
+    "targetLength": "quick",
+    "userIdea": "Ravi's shadow keeps running away from him.",
+    "castIds": [
+      "ravi"
+    ],
+    "visualStyle": "wondii-picture-book",
+    "premise": "Ravi's shadow keeps running away from him. It wants shade, so Ravi must bring shade along.",
+    "hook": "Ravi stays still, but his shadow runs off.",
+    "goal": "Keep Ravi's shadow beside him.",
+    "centralProblem": "Ravi's shadow runs away to find shade.",
+    "stakes": "Ravi cannot walk with his shadow beside him.",
+    "climaxBeatId": "b4",
+    "resolutionBeatId": "b5",
+    "emotionalArc": [
+      "surprise",
+      "interest",
+      "determination",
+      "relief",
+      "contentment"
+    ],
+    "motif": "A shadow trying to fit into shade.",
+    "locations": [
+      {
+        "locationId": "sunny-courtyard",
+        "name": "the sunny courtyard",
+        "connectedTo": [],
+        "visualIdentity": "Pale paving, one leafy tree, and a closed umbrella beside its trunk."
+      }
+    ],
+    "entities": [
+      {
+        "entityId": "runaway-shadow",
+        "name": "Ravi's shadow",
+        "identity": "A dark silhouette matching Ravi's short hair and hoodie, able to move independently.",
+        "ownerCharacterId": null,
+        "locationId": "sunny-courtyard",
+        "state": "Moving beside Ravi's shoes within the travelling umbrella shade.",
+        "introducedAt": "b1"
+      },
+      {
+        "entityId": "leafy-tree",
+        "name": "the tree",
+        "identity": "A broad tree casting a cool patch of shade.",
+        "ownerCharacterId": null,
+        "locationId": "sunny-courtyard",
+        "state": "Casting a broad patch of shade.",
+        "introducedAt": "b1"
+      },
+      {
+        "entityId": "yellow-umbrella",
+        "name": "the umbrella",
+        "identity": "A large yellow umbrella with a curved handle.",
+        "ownerCharacterId": "ravi",
+        "locationId": "sunny-courtyard",
+        "state": "Open above Ravi, casting a broad patch of shade.",
+        "introducedAt": "b1"
+      }
+    ],
+    "beats": [
+      {
+        "beatId": "b1",
+        "role": "hook",
+        "locationId": "sunny-courtyard",
+        "charactersPresent": [
+          "ravi"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "ravi",
+            "trait": "bold",
+            "shows": "Steps straight towards his escaping shadow."
+          }
+        ],
+        "problemFamily": "",
+        "because": "",
+        "resolvesProblem": false,
+        "action": "Ravi's shadow keeps running away from him.",
+        "emotion": "surprise",
+        "entitiesRequired": [
+          "runaway-shadow",
+          "leafy-tree",
+          "yellow-umbrella"
+        ],
+        "visualFocus": "Ravi in his orange hoodie and grey trousers, with his shadow several paving stones ahead.",
+        "shotType": "establishing",
+        "compositionIntent": "Separate the stationary child from his running silhouette.",
+        "textPurpose": "Establish the impossible problem.",
+        "pageTurnHook": "The shadow heads straight for the tree.",
+        "textSafeRegion": "upper-left",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "ravi",
+              "locationId": "sunny-courtyard",
+              "clothing": "orange hoodie, grey trousers",
+              "carriedEntities": [],
+              "emotion": "steady",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": []
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "ravi",
+              "locationId": "sunny-courtyard",
+              "clothing": "orange hoodie, grey trousers",
+              "carriedEntities": [],
+              "emotion": "surprise",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "runaway-shadow",
+              "ownerCharacterId": null,
+              "locationId": "sunny-courtyard",
+              "state": "Running independently away from Ravi towards the tree."
+            },
+            {
+              "entityId": "leafy-tree",
+              "ownerCharacterId": null,
+              "locationId": "sunny-courtyard",
+              "state": "Casting a broad patch of shade."
+            },
+            {
+              "entityId": "yellow-umbrella",
+              "ownerCharacterId": null,
+              "locationId": "sunny-courtyard",
+              "state": "Closed and resting beside the tree trunk."
+            }
+          ]
+        }
+      },
+      {
+        "beatId": "b2",
+        "role": "discovery",
+        "locationId": "sunny-courtyard",
+        "charactersPresent": [
+          "ravi"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "ravi",
+            "trait": "inventive",
+            "shows": "Looks from the resting shadow to the umbrella."
+          }
+        ],
+        "problemFamily": "shade-seeking",
+        "because": "b1",
+        "resolvesProblem": false,
+        "action": "His shadow rests in the tree's shade.",
+        "emotion": "interest",
+        "entitiesRequired": [
+          "runaway-shadow",
+          "leafy-tree",
+          "yellow-umbrella"
+        ],
+        "visualFocus": "The shadow lounging beneath the tree while Ravi stands upright.",
+        "shotType": "medium",
+        "compositionIntent": "Connect the resting shadow, shaded ground, and nearby umbrella.",
+        "textPurpose": "Reveal why the shadow runs away.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-right",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "ravi",
+              "locationId": "sunny-courtyard",
+              "clothing": "orange hoodie, grey trousers",
+              "carriedEntities": [],
+              "emotion": "surprise",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "runaway-shadow",
+              "ownerCharacterId": null,
+              "locationId": "sunny-courtyard",
+              "state": "Running independently away from Ravi towards the tree."
+            },
+            {
+              "entityId": "leafy-tree",
+              "ownerCharacterId": null,
+              "locationId": "sunny-courtyard",
+              "state": "Casting a broad patch of shade."
+            },
+            {
+              "entityId": "yellow-umbrella",
+              "ownerCharacterId": null,
+              "locationId": "sunny-courtyard",
+              "state": "Closed and resting beside the tree trunk."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "ravi",
+              "locationId": "sunny-courtyard",
+              "clothing": "orange hoodie, grey trousers",
+              "carriedEntities": [],
+              "emotion": "interest",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "runaway-shadow",
+              "ownerCharacterId": null,
+              "locationId": "sunny-courtyard",
+              "state": "Resting in the tree's shade, apart from Ravi."
+            },
+            {
+              "entityId": "leafy-tree",
+              "ownerCharacterId": null,
+              "locationId": "sunny-courtyard",
+              "state": "Casting a broad patch of shade."
+            },
+            {
+              "entityId": "yellow-umbrella",
+              "ownerCharacterId": null,
+              "locationId": "sunny-courtyard",
+              "state": "Closed and resting beside the tree trunk."
+            }
+          ]
+        }
+      },
+      {
+        "beatId": "b3",
+        "role": "attempt",
+        "locationId": "sunny-courtyard",
+        "charactersPresent": [
+          "ravi"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "ravi",
+            "trait": "inventive",
+            "shows": "Lifts the closed umbrella to make shade beside himself."
+          }
+        ],
+        "problemFamily": "too-narrow",
+        "because": "b2",
+        "resolvesProblem": false,
+        "action": "Ravi holds up a closed umbrella. His shadow squeezes into its thin shade.",
+        "emotion": "determination",
+        "entitiesRequired": [
+          "runaway-shadow",
+          "leafy-tree",
+          "yellow-umbrella"
+        ],
+        "visualFocus": "The shadow squashed into a thin stripe beneath the closed umbrella.",
+        "shotType": "overhead",
+        "compositionIntent": "Make the mismatch between a broad shadow and a narrow strip unmistakable.",
+        "textPurpose": "Show that portable shade attracts the shadow but needs more room.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-left",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "ravi",
+              "locationId": "sunny-courtyard",
+              "clothing": "orange hoodie, grey trousers",
+              "carriedEntities": [],
+              "emotion": "interest",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "runaway-shadow",
+              "ownerCharacterId": null,
+              "locationId": "sunny-courtyard",
+              "state": "Resting in the tree's shade, apart from Ravi."
+            },
+            {
+              "entityId": "leafy-tree",
+              "ownerCharacterId": null,
+              "locationId": "sunny-courtyard",
+              "state": "Casting a broad patch of shade."
+            },
+            {
+              "entityId": "yellow-umbrella",
+              "ownerCharacterId": null,
+              "locationId": "sunny-courtyard",
+              "state": "Closed and resting beside the tree trunk."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "ravi",
+              "locationId": "sunny-courtyard",
+              "clothing": "orange hoodie, grey trousers",
+              "carriedEntities": [
+                "yellow-umbrella"
+              ],
+              "emotion": "determination",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "runaway-shadow",
+              "ownerCharacterId": null,
+              "locationId": "sunny-courtyard",
+              "state": "Squeezed awkwardly into the umbrella's narrow shade beside Ravi."
+            },
+            {
+              "entityId": "leafy-tree",
+              "ownerCharacterId": null,
+              "locationId": "sunny-courtyard",
+              "state": "Casting a broad patch of shade."
+            },
+            {
+              "entityId": "yellow-umbrella",
+              "ownerCharacterId": "ravi",
+              "locationId": "sunny-courtyard",
+              "state": "Held closed above Ravi, casting a thin strip of shade."
+            }
+          ]
+        }
+      },
+      {
+        "beatId": "b4",
+        "role": "climax",
+        "locationId": "sunny-courtyard",
+        "charactersPresent": [
+          "ravi"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "ravi",
+            "trait": "inventive",
+            "shows": "Opens the umbrella to widen the shadow's resting space."
+          }
+        ],
+        "problemFamily": "shade-fit",
+        "because": "b3",
+        "resolvesProblem": false,
+        "action": "Ravi opens the umbrella above his head. His shadow curls into the wide shade.",
+        "emotion": "relief",
+        "entitiesRequired": [
+          "runaway-shadow",
+          "leafy-tree",
+          "yellow-umbrella"
+        ],
+        "visualFocus": "The yellow canopy and the comfortably curled shadow at Ravi's feet.",
+        "shotType": "low",
+        "compositionIntent": "Show the opened canopy providing ample shade directly around Ravi.",
+        "textPurpose": "Settle the runaway problem using the earlier shade discovery.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-right",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "ravi",
+              "locationId": "sunny-courtyard",
+              "clothing": "orange hoodie, grey trousers",
+              "carriedEntities": [
+                "yellow-umbrella"
+              ],
+              "emotion": "determination",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "runaway-shadow",
+              "ownerCharacterId": null,
+              "locationId": "sunny-courtyard",
+              "state": "Squeezed awkwardly into the umbrella's narrow shade beside Ravi."
+            },
+            {
+              "entityId": "leafy-tree",
+              "ownerCharacterId": null,
+              "locationId": "sunny-courtyard",
+              "state": "Casting a broad patch of shade."
+            },
+            {
+              "entityId": "yellow-umbrella",
+              "ownerCharacterId": "ravi",
+              "locationId": "sunny-courtyard",
+              "state": "Held closed above Ravi, casting a thin strip of shade."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "ravi",
+              "locationId": "sunny-courtyard",
+              "clothing": "orange hoodie, grey trousers",
+              "carriedEntities": [
+                "yellow-umbrella"
+              ],
+              "emotion": "relief",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "runaway-shadow",
+              "ownerCharacterId": null,
+              "locationId": "sunny-courtyard",
+              "state": "Resting comfortably in the umbrella's shade at Ravi's feet."
+            },
+            {
+              "entityId": "leafy-tree",
+              "ownerCharacterId": null,
+              "locationId": "sunny-courtyard",
+              "state": "Casting a broad patch of shade."
+            },
+            {
+              "entityId": "yellow-umbrella",
+              "ownerCharacterId": "ravi",
+              "locationId": "sunny-courtyard",
+              "state": "Open above Ravi, casting a broad patch of shade."
+            }
+          ]
+        }
+      },
+      {
+        "beatId": "b5",
+        "role": "resolution",
+        "locationId": "sunny-courtyard",
+        "charactersPresent": [
+          "ravi"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "ravi",
+            "trait": "bold",
+            "shows": "Walks across the sunny paving with the umbrella held high."
+          }
+        ],
+        "problemFamily": "",
+        "because": "b4",
+        "resolvesProblem": true,
+        "action": "Ravi walks with his umbrella. His shadow stays by his shoes.",
+        "emotion": "contentment",
+        "entitiesRequired": [
+          "runaway-shadow",
+          "leafy-tree",
+          "yellow-umbrella"
+        ],
+        "visualFocus": "Ravi walking beneath the umbrella while his shadow travels beside his shoes.",
+        "shotType": "vignette",
+        "compositionIntent": "Keep child, umbrella, and shadow together in one compact image.",
+        "textPurpose": "Show that bringing shade lets Ravi and his shadow walk together.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-left",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "ravi",
+              "locationId": "sunny-courtyard",
+              "clothing": "orange hoodie, grey trousers",
+              "carriedEntities": [
+                "yellow-umbrella"
+              ],
+              "emotion": "relief",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "runaway-shadow",
+              "ownerCharacterId": null,
+              "locationId": "sunny-courtyard",
+              "state": "Resting comfortably in the umbrella's shade at Ravi's feet."
+            },
+            {
+              "entityId": "leafy-tree",
+              "ownerCharacterId": null,
+              "locationId": "sunny-courtyard",
+              "state": "Casting a broad patch of shade."
+            },
+            {
+              "entityId": "yellow-umbrella",
+              "ownerCharacterId": "ravi",
+              "locationId": "sunny-courtyard",
+              "state": "Open above Ravi, casting a broad patch of shade."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "ravi",
+              "locationId": "sunny-courtyard",
+              "clothing": "orange hoodie, grey trousers",
+              "carriedEntities": [
+                "yellow-umbrella"
+              ],
+              "emotion": "contentment",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "runaway-shadow",
+              "ownerCharacterId": null,
+              "locationId": "sunny-courtyard",
+              "state": "Moving beside Ravi's shoes within the travelling umbrella shade."
+            },
+            {
+              "entityId": "leafy-tree",
+              "ownerCharacterId": null,
+              "locationId": "sunny-courtyard",
+              "state": "Casting a broad patch of shade."
+            },
+            {
+              "entityId": "yellow-umbrella",
+              "ownerCharacterId": "ravi",
+              "locationId": "sunny-courtyard",
+              "state": "Open above Ravi, casting a broad patch of shade."
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "storyProblems": [],
+  "planProblems": [],
+  "textProblems": [],
+  "pages": [
+    {
+      "pageId": "p1",
+      "beatId": "b1",
+      "locationId": "sunny-courtyard",
+      "charactersPresent": [
+        "ravi"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "ravi",
+            "locationId": "sunny-courtyard",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [],
+            "emotion": "steady",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": []
+      },
+      "action": "Ravi's shadow keeps running away from him.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "ravi",
+            "locationId": "sunny-courtyard",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [],
+            "emotion": "surprise",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "runaway-shadow",
+            "ownerCharacterId": null,
+            "locationId": "sunny-courtyard",
+            "state": "Running independently away from Ravi towards the tree."
+          },
+          {
+            "entityId": "leafy-tree",
+            "ownerCharacterId": null,
+            "locationId": "sunny-courtyard",
+            "state": "Casting a broad patch of shade."
+          },
+          {
+            "entityId": "yellow-umbrella",
+            "ownerCharacterId": null,
+            "locationId": "sunny-courtyard",
+            "state": "Closed and resting beside the tree trunk."
+          }
+        ]
+      },
+      "emotion": "surprise",
+      "entitiesRequired": [
+        "runaway-shadow",
+        "leafy-tree",
+        "yellow-umbrella"
+      ],
+      "visualFocus": "Ravi in his orange hoodie and grey trousers, with his shadow several paving stones ahead.",
+      "shotType": "establishing",
+      "compositionIntent": "Separate the stationary child from his running silhouette.",
+      "textPurpose": "Establish the impossible problem.",
+      "pageTurnHook": "The shadow heads straight for the tree.",
+      "needsFromPrevious": null,
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "ravi",
+            "locationId": "sunny-courtyard",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [],
+            "emotion": "surprise",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "runaway-shadow",
+            "ownerCharacterId": null,
+            "locationId": "sunny-courtyard",
+            "state": "Running independently away from Ravi towards the tree."
+          },
+          {
+            "entityId": "leafy-tree",
+            "ownerCharacterId": null,
+            "locationId": "sunny-courtyard",
+            "state": "Casting a broad patch of shade."
+          },
+          {
+            "entityId": "yellow-umbrella",
+            "ownerCharacterId": null,
+            "locationId": "sunny-courtyard",
+            "state": "Closed and resting beside the tree trunk."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-left",
+      "sentences": [
+        {
+          "text": "Ravi's shadow keeps running away from him.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Straight to the tree!",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "Ravi's shadow keeps running away from him. Straight to the tree!"
+    },
+    {
+      "pageId": "p2",
+      "beatId": "b2",
+      "locationId": "sunny-courtyard",
+      "charactersPresent": [
+        "ravi"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "ravi",
+            "locationId": "sunny-courtyard",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [],
+            "emotion": "surprise",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "runaway-shadow",
+            "ownerCharacterId": null,
+            "locationId": "sunny-courtyard",
+            "state": "Running independently away from Ravi towards the tree."
+          },
+          {
+            "entityId": "leafy-tree",
+            "ownerCharacterId": null,
+            "locationId": "sunny-courtyard",
+            "state": "Casting a broad patch of shade."
+          },
+          {
+            "entityId": "yellow-umbrella",
+            "ownerCharacterId": null,
+            "locationId": "sunny-courtyard",
+            "state": "Closed and resting beside the tree trunk."
+          }
+        ]
+      },
+      "action": "His shadow rests in the tree's shade.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "ravi",
+            "locationId": "sunny-courtyard",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [],
+            "emotion": "interest",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "runaway-shadow",
+            "ownerCharacterId": null,
+            "locationId": "sunny-courtyard",
+            "state": "Resting in the tree's shade, apart from Ravi."
+          },
+          {
+            "entityId": "leafy-tree",
+            "ownerCharacterId": null,
+            "locationId": "sunny-courtyard",
+            "state": "Casting a broad patch of shade."
+          },
+          {
+            "entityId": "yellow-umbrella",
+            "ownerCharacterId": null,
+            "locationId": "sunny-courtyard",
+            "state": "Closed and resting beside the tree trunk."
+          }
+        ]
+      },
+      "emotion": "interest",
+      "entitiesRequired": [
+        "runaway-shadow",
+        "leafy-tree",
+        "yellow-umbrella"
+      ],
+      "visualFocus": "The shadow lounging beneath the tree while Ravi stands upright.",
+      "shotType": "medium",
+      "compositionIntent": "Connect the resting shadow, shaded ground, and nearby umbrella.",
+      "textPurpose": "Reveal why the shadow runs away.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "ravi",
+            "locationId": "sunny-courtyard",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [],
+            "emotion": "surprise",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "runaway-shadow",
+            "ownerCharacterId": null,
+            "locationId": "sunny-courtyard",
+            "state": "Running independently away from Ravi towards the tree."
+          },
+          {
+            "entityId": "leafy-tree",
+            "ownerCharacterId": null,
+            "locationId": "sunny-courtyard",
+            "state": "Casting a broad patch of shade."
+          },
+          {
+            "entityId": "yellow-umbrella",
+            "ownerCharacterId": null,
+            "locationId": "sunny-courtyard",
+            "state": "Closed and resting beside the tree trunk."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "ravi",
+            "locationId": "sunny-courtyard",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [],
+            "emotion": "interest",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "runaway-shadow",
+            "ownerCharacterId": null,
+            "locationId": "sunny-courtyard",
+            "state": "Resting in the tree's shade, apart from Ravi."
+          },
+          {
+            "entityId": "leafy-tree",
+            "ownerCharacterId": null,
+            "locationId": "sunny-courtyard",
+            "state": "Casting a broad patch of shade."
+          },
+          {
+            "entityId": "yellow-umbrella",
+            "ownerCharacterId": null,
+            "locationId": "sunny-courtyard",
+            "state": "Closed and resting beside the tree trunk."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-right",
+      "sentences": [
+        {
+          "text": "His shadow rests in the tree's shade.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Ravi stands apart.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "His shadow rests in the tree's shade. Ravi stands apart."
+    },
+    {
+      "pageId": "p3",
+      "beatId": "b3",
+      "locationId": "sunny-courtyard",
+      "charactersPresent": [
+        "ravi"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "ravi",
+            "locationId": "sunny-courtyard",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [],
+            "emotion": "interest",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "runaway-shadow",
+            "ownerCharacterId": null,
+            "locationId": "sunny-courtyard",
+            "state": "Resting in the tree's shade, apart from Ravi."
+          },
+          {
+            "entityId": "leafy-tree",
+            "ownerCharacterId": null,
+            "locationId": "sunny-courtyard",
+            "state": "Casting a broad patch of shade."
+          },
+          {
+            "entityId": "yellow-umbrella",
+            "ownerCharacterId": null,
+            "locationId": "sunny-courtyard",
+            "state": "Closed and resting beside the tree trunk."
+          }
+        ]
+      },
+      "action": "Ravi holds up a closed umbrella. His shadow squeezes into its thin shade.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "ravi",
+            "locationId": "sunny-courtyard",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "yellow-umbrella"
+            ],
+            "emotion": "determination",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "runaway-shadow",
+            "ownerCharacterId": null,
+            "locationId": "sunny-courtyard",
+            "state": "Squeezed awkwardly into the umbrella's narrow shade beside Ravi."
+          },
+          {
+            "entityId": "leafy-tree",
+            "ownerCharacterId": null,
+            "locationId": "sunny-courtyard",
+            "state": "Casting a broad patch of shade."
+          },
+          {
+            "entityId": "yellow-umbrella",
+            "ownerCharacterId": "ravi",
+            "locationId": "sunny-courtyard",
+            "state": "Held closed above Ravi, casting a thin strip of shade."
+          }
+        ]
+      },
+      "emotion": "determination",
+      "entitiesRequired": [
+        "runaway-shadow",
+        "leafy-tree",
+        "yellow-umbrella"
+      ],
+      "visualFocus": "The shadow squashed into a thin stripe beneath the closed umbrella.",
+      "shotType": "overhead",
+      "compositionIntent": "Make the mismatch between a broad shadow and a narrow strip unmistakable.",
+      "textPurpose": "Show that portable shade attracts the shadow but needs more room.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "ravi",
+            "locationId": "sunny-courtyard",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [],
+            "emotion": "interest",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "runaway-shadow",
+            "ownerCharacterId": null,
+            "locationId": "sunny-courtyard",
+            "state": "Resting in the tree's shade, apart from Ravi."
+          },
+          {
+            "entityId": "leafy-tree",
+            "ownerCharacterId": null,
+            "locationId": "sunny-courtyard",
+            "state": "Casting a broad patch of shade."
+          },
+          {
+            "entityId": "yellow-umbrella",
+            "ownerCharacterId": null,
+            "locationId": "sunny-courtyard",
+            "state": "Closed and resting beside the tree trunk."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "ravi",
+            "locationId": "sunny-courtyard",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "yellow-umbrella"
+            ],
+            "emotion": "determination",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "runaway-shadow",
+            "ownerCharacterId": null,
+            "locationId": "sunny-courtyard",
+            "state": "Squeezed awkwardly into the umbrella's narrow shade beside Ravi."
+          },
+          {
+            "entityId": "leafy-tree",
+            "ownerCharacterId": null,
+            "locationId": "sunny-courtyard",
+            "state": "Casting a broad patch of shade."
+          },
+          {
+            "entityId": "yellow-umbrella",
+            "ownerCharacterId": "ravi",
+            "locationId": "sunny-courtyard",
+            "state": "Held closed above Ravi, casting a thin strip of shade."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-left",
+      "sentences": [
+        {
+          "text": "Ravi holds up the umbrella, still closed.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "His shadow squeezes into its thin shade.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "Ravi holds up the umbrella, still closed. His shadow squeezes into its thin shade."
+    },
+    {
+      "pageId": "p4",
+      "beatId": "b4",
+      "locationId": "sunny-courtyard",
+      "charactersPresent": [
+        "ravi"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "ravi",
+            "locationId": "sunny-courtyard",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "yellow-umbrella"
+            ],
+            "emotion": "determination",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "runaway-shadow",
+            "ownerCharacterId": null,
+            "locationId": "sunny-courtyard",
+            "state": "Squeezed awkwardly into the umbrella's narrow shade beside Ravi."
+          },
+          {
+            "entityId": "leafy-tree",
+            "ownerCharacterId": null,
+            "locationId": "sunny-courtyard",
+            "state": "Casting a broad patch of shade."
+          },
+          {
+            "entityId": "yellow-umbrella",
+            "ownerCharacterId": "ravi",
+            "locationId": "sunny-courtyard",
+            "state": "Held closed above Ravi, casting a thin strip of shade."
+          }
+        ]
+      },
+      "action": "Ravi opens the umbrella above his head. His shadow curls into the wide shade.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "ravi",
+            "locationId": "sunny-courtyard",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "yellow-umbrella"
+            ],
+            "emotion": "relief",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "runaway-shadow",
+            "ownerCharacterId": null,
+            "locationId": "sunny-courtyard",
+            "state": "Resting comfortably in the umbrella's shade at Ravi's feet."
+          },
+          {
+            "entityId": "leafy-tree",
+            "ownerCharacterId": null,
+            "locationId": "sunny-courtyard",
+            "state": "Casting a broad patch of shade."
+          },
+          {
+            "entityId": "yellow-umbrella",
+            "ownerCharacterId": "ravi",
+            "locationId": "sunny-courtyard",
+            "state": "Open above Ravi, casting a broad patch of shade."
+          }
+        ]
+      },
+      "emotion": "relief",
+      "entitiesRequired": [
+        "runaway-shadow",
+        "leafy-tree",
+        "yellow-umbrella"
+      ],
+      "visualFocus": "The yellow canopy and the comfortably curled shadow at Ravi's feet.",
+      "shotType": "low",
+      "compositionIntent": "Show the opened canopy providing ample shade directly around Ravi.",
+      "textPurpose": "Settle the runaway problem using the earlier shade discovery.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "ravi",
+            "locationId": "sunny-courtyard",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "yellow-umbrella"
+            ],
+            "emotion": "determination",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "runaway-shadow",
+            "ownerCharacterId": null,
+            "locationId": "sunny-courtyard",
+            "state": "Squeezed awkwardly into the umbrella's narrow shade beside Ravi."
+          },
+          {
+            "entityId": "leafy-tree",
+            "ownerCharacterId": null,
+            "locationId": "sunny-courtyard",
+            "state": "Casting a broad patch of shade."
+          },
+          {
+            "entityId": "yellow-umbrella",
+            "ownerCharacterId": "ravi",
+            "locationId": "sunny-courtyard",
+            "state": "Held closed above Ravi, casting a thin strip of shade."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "ravi",
+            "locationId": "sunny-courtyard",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "yellow-umbrella"
+            ],
+            "emotion": "relief",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "runaway-shadow",
+            "ownerCharacterId": null,
+            "locationId": "sunny-courtyard",
+            "state": "Resting comfortably in the umbrella's shade at Ravi's feet."
+          },
+          {
+            "entityId": "leafy-tree",
+            "ownerCharacterId": null,
+            "locationId": "sunny-courtyard",
+            "state": "Casting a broad patch of shade."
+          },
+          {
+            "entityId": "yellow-umbrella",
+            "ownerCharacterId": "ravi",
+            "locationId": "sunny-courtyard",
+            "state": "Open above Ravi, casting a broad patch of shade."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-right",
+      "sentences": [
+        {
+          "text": "Ravi opens his umbrella; his shadow curls underneath.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Ravi's shadow keeps still, instead of running away.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "Ravi opens his umbrella; his shadow curls underneath. Ravi's shadow keeps still, instead of running away."
+    },
+    {
+      "pageId": "p5",
+      "beatId": "b5",
+      "locationId": "sunny-courtyard",
+      "charactersPresent": [
+        "ravi"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "ravi",
+            "locationId": "sunny-courtyard",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "yellow-umbrella"
+            ],
+            "emotion": "relief",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "runaway-shadow",
+            "ownerCharacterId": null,
+            "locationId": "sunny-courtyard",
+            "state": "Resting comfortably in the umbrella's shade at Ravi's feet."
+          },
+          {
+            "entityId": "leafy-tree",
+            "ownerCharacterId": null,
+            "locationId": "sunny-courtyard",
+            "state": "Casting a broad patch of shade."
+          },
+          {
+            "entityId": "yellow-umbrella",
+            "ownerCharacterId": "ravi",
+            "locationId": "sunny-courtyard",
+            "state": "Open above Ravi, casting a broad patch of shade."
+          }
+        ]
+      },
+      "action": "Ravi walks with his umbrella. His shadow stays by his shoes.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "ravi",
+            "locationId": "sunny-courtyard",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "yellow-umbrella"
+            ],
+            "emotion": "contentment",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "runaway-shadow",
+            "ownerCharacterId": null,
+            "locationId": "sunny-courtyard",
+            "state": "Moving beside Ravi's shoes within the travelling umbrella shade."
+          },
+          {
+            "entityId": "leafy-tree",
+            "ownerCharacterId": null,
+            "locationId": "sunny-courtyard",
+            "state": "Casting a broad patch of shade."
+          },
+          {
+            "entityId": "yellow-umbrella",
+            "ownerCharacterId": "ravi",
+            "locationId": "sunny-courtyard",
+            "state": "Open above Ravi, casting a broad patch of shade."
+          }
+        ]
+      },
+      "emotion": "contentment",
+      "entitiesRequired": [
+        "runaway-shadow",
+        "leafy-tree",
+        "yellow-umbrella"
+      ],
+      "visualFocus": "Ravi walking beneath the umbrella while his shadow travels beside his shoes.",
+      "shotType": "vignette",
+      "compositionIntent": "Keep child, umbrella, and shadow together in one compact image.",
+      "textPurpose": "Show that bringing shade lets Ravi and his shadow walk together.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "ravi",
+            "locationId": "sunny-courtyard",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "yellow-umbrella"
+            ],
+            "emotion": "relief",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "runaway-shadow",
+            "ownerCharacterId": null,
+            "locationId": "sunny-courtyard",
+            "state": "Resting comfortably in the umbrella's shade at Ravi's feet."
+          },
+          {
+            "entityId": "leafy-tree",
+            "ownerCharacterId": null,
+            "locationId": "sunny-courtyard",
+            "state": "Casting a broad patch of shade."
+          },
+          {
+            "entityId": "yellow-umbrella",
+            "ownerCharacterId": "ravi",
+            "locationId": "sunny-courtyard",
+            "state": "Open above Ravi, casting a broad patch of shade."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "ravi",
+            "locationId": "sunny-courtyard",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "yellow-umbrella"
+            ],
+            "emotion": "contentment",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "runaway-shadow",
+            "ownerCharacterId": null,
+            "locationId": "sunny-courtyard",
+            "state": "Moving beside Ravi's shoes within the travelling umbrella shade."
+          },
+          {
+            "entityId": "leafy-tree",
+            "ownerCharacterId": null,
+            "locationId": "sunny-courtyard",
+            "state": "Casting a broad patch of shade."
+          },
+          {
+            "entityId": "yellow-umbrella",
+            "ownerCharacterId": "ravi",
+            "locationId": "sunny-courtyard",
+            "state": "Open above Ravi, casting a broad patch of shade."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-left",
+      "sentences": [
+        {
+          "text": "Ravi walks with his umbrella.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Ravi's shadow keeps close, not running away.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "Ravi walks with his umbrella. Ravi's shadow keeps close, not running away."
+    }
+  ],
+  "imageCalls": 0,
+  "imageDraws": 0,
+  "imageReason": "images_disabled",
+  "imageUsd": 0,
+  "id": "b",
+  "listedUsd": 0.032622,
+  "guardUsd": 0.065244
+}

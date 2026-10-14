@@ -1,0 +1,2078 @@
+{
+  "status": "REVIEWABLE",
+  "request": {
+    "castIds": [
+      "ravi"
+    ],
+    "idea": "Ravi's shadow keeps running away from him.",
+    "yearGroup": "Reception",
+    "ageBand": "",
+    "length": "quick",
+    "tone": "funny",
+    "context": "school"
+  },
+  "modelCalls": 4,
+  "repairCalls": 2,
+  "repairs": [
+    {
+      "stage": "prose",
+      "problems": [
+        "idea-not-central"
+      ]
+    },
+    {
+      "stage": "prose",
+      "problems": [
+        "idea-not-central"
+      ]
+    }
+  ],
+  "stagesRepaired": [
+    "prose"
+  ],
+  "bible": {
+    "title": "A Track for a Shadow",
+    "yearGroup": "Reception",
+    "ageBand": "",
+    "readerAge": "4–5",
+    "readerStage": "reception",
+    "narrativeComplexity": "a few concrete moments a child can see",
+    "tone": "funny",
+    "targetLength": "quick",
+    "userIdea": "Ravi's shadow keeps running away from him.",
+    "castIds": [
+      "ravi"
+    ],
+    "visualStyle": "wondii-picture-book",
+    "premise": "ravi's shadow keeps running away, so he makes a chalk track that brings it back to his shoes.",
+    "hook": "Ravi stops, but his shadow races on.",
+    "goal": "Keep the shadow beside Ravi.",
+    "centralProblem": "The shadow will not stay at Ravi's feet.",
+    "stakes": "Ravi cannot take a matching step.",
+    "climaxBeatId": "b6",
+    "resolutionBeatId": "b7",
+    "emotionalArc": [
+      "surprise",
+      "determination",
+      "puzzlement",
+      "interest",
+      "purpose",
+      "delight",
+      "ease"
+    ],
+    "motif": "Chalk lines and mismatched feet.",
+    "locations": [
+      {
+        "locationId": "school-yard",
+        "name": "school yard",
+        "connectedTo": [],
+        "visualIdentity": "Sunny paving with plenty of space for chalk marks."
+      }
+    ],
+    "entities": [
+      {
+        "entityId": "ravi-shadow",
+        "name": "Ravi's shadow",
+        "identity": "A dark silhouette with Ravi's short hair and hoodie shape, able to move independently.",
+        "ownerCharacterId": null,
+        "locationId": "school-yard",
+        "state": "Tiptoeing beside Ravi around the loop.",
+        "introducedAt": "b1"
+      },
+      {
+        "entityId": "white-chalk",
+        "name": "white chalk",
+        "identity": "A thick piece of chalk for drawing on paving.",
+        "ownerCharacterId": "ravi",
+        "locationId": "school-yard",
+        "state": "Held in Ravi's hand.",
+        "introducedAt": "b2"
+      },
+      {
+        "entityId": "chalk-circle",
+        "name": "chalk circle",
+        "identity": "A broad circle drawn around the runaway shadow.",
+        "ownerCharacterId": null,
+        "locationId": "school-yard",
+        "state": "Contains Ravi instead of his shadow.",
+        "introducedAt": "b2"
+      },
+      {
+        "entityId": "chalk-arrow",
+        "name": "chalk arrow",
+        "identity": "An arrow pointing into the empty chalk circle.",
+        "ownerCharacterId": null,
+        "locationId": "school-yard",
+        "state": "Points from the shadow into the circle.",
+        "introducedAt": "b4"
+      },
+      {
+        "entityId": "chalk-track",
+        "name": "chalk track",
+        "identity": "A trail of arrows ending in a small loop around Ravi's shoes.",
+        "ownerCharacterId": null,
+        "locationId": "school-yard",
+        "state": "Leads from the circle into a small loop around Ravi's shoes.",
+        "introducedAt": "b5"
+      }
+    ],
+    "beats": [
+      {
+        "beatId": "b1",
+        "role": "hook",
+        "locationId": "school-yard",
+        "charactersPresent": [
+          "ravi"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "ravi",
+            "trait": "bold",
+            "shows": "Plants both feet across the shadow's path."
+          }
+        ],
+        "problemFamily": "",
+        "because": "",
+        "resolvesProblem": false,
+        "action": "Ravi plants his feet. His shadow runs past his shoes.",
+        "emotion": "surprise",
+        "entitiesRequired": [
+          "ravi-shadow"
+        ],
+        "visualFocus": "Ravi's orange hoodie, grey trousers, and short black hair contrast with the escaping shadow.",
+        "shotType": "establishing",
+        "compositionIntent": "Separate the stationary child from the moving silhouette.",
+        "textPurpose": "Establish the impossible mismatch.",
+        "pageTurnHook": "The shadow leaves a gap behind Ravi.",
+        "textSafeRegion": "upper-left",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "ravi",
+              "locationId": "school-yard",
+              "clothing": "orange hoodie, grey trousers",
+              "carriedEntities": [],
+              "emotion": "steady",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": []
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "ravi",
+              "locationId": "school-yard",
+              "clothing": "orange hoodie, grey trousers",
+              "carriedEntities": [],
+              "emotion": "surprise",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "ravi-shadow",
+              "ownerCharacterId": null,
+              "locationId": "school-yard",
+              "state": "Running beyond Ravi's feet."
+            }
+          ]
+        }
+      },
+      {
+        "beatId": "b2",
+        "role": "attempt",
+        "locationId": "school-yard",
+        "charactersPresent": [
+          "ravi"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "ravi",
+            "trait": "inventive",
+            "shows": "Draws a chalk boundary around the moving silhouette."
+          }
+        ],
+        "problemFamily": "drawn-fence",
+        "because": "b1",
+        "resolvesProblem": false,
+        "action": "Ravi takes chalk from his pocket. He draws a circle around the shadow.",
+        "emotion": "determination",
+        "entitiesRequired": [
+          "ravi-shadow",
+          "white-chalk",
+          "chalk-circle"
+        ],
+        "visualFocus": "The white circle surrounding dark feet.",
+        "shotType": "overhead",
+        "compositionIntent": "Show Ravi completing a boundary around the shadow.",
+        "textPurpose": "Give Ravi a concrete first solution.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-right",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "ravi",
+              "locationId": "school-yard",
+              "clothing": "orange hoodie, grey trousers",
+              "carriedEntities": [],
+              "emotion": "surprise",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "ravi-shadow",
+              "ownerCharacterId": null,
+              "locationId": "school-yard",
+              "state": "Running beyond Ravi's feet."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "ravi",
+              "locationId": "school-yard",
+              "clothing": "orange hoodie, grey trousers",
+              "carriedEntities": [
+                "white-chalk"
+              ],
+              "emotion": "determination",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "ravi-shadow",
+              "ownerCharacterId": null,
+              "locationId": "school-yard",
+              "state": "Inside the chalk circle."
+            },
+            {
+              "entityId": "white-chalk",
+              "ownerCharacterId": "ravi",
+              "locationId": "school-yard",
+              "state": "Held in Ravi's hand."
+            },
+            {
+              "entityId": "chalk-circle",
+              "ownerCharacterId": null,
+              "locationId": "school-yard",
+              "state": "Drawn around the shadow."
+            }
+          ]
+        }
+      },
+      {
+        "beatId": "b3",
+        "role": "consequence",
+        "locationId": "school-yard",
+        "charactersPresent": [
+          "ravi"
+        ],
+        "absent": {},
+        "expresses": [],
+        "problemFamily": "wrong-prisoner",
+        "because": "b2",
+        "resolvesProblem": false,
+        "action": "The shadow hops over the line. Ravi steps into the empty circle.",
+        "emotion": "puzzlement",
+        "entitiesRequired": [
+          "ravi-shadow",
+          "white-chalk",
+          "chalk-circle"
+        ],
+        "visualFocus": "Ravi enclosed by chalk while the shadow stands outside.",
+        "shotType": "reaction",
+        "compositionIntent": "Put Ravi inside his own ineffective trap.",
+        "textPurpose": "Make the failed solution visibly mismatched.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-left",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "ravi",
+              "locationId": "school-yard",
+              "clothing": "orange hoodie, grey trousers",
+              "carriedEntities": [
+                "white-chalk"
+              ],
+              "emotion": "determination",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "ravi-shadow",
+              "ownerCharacterId": null,
+              "locationId": "school-yard",
+              "state": "Inside the chalk circle."
+            },
+            {
+              "entityId": "white-chalk",
+              "ownerCharacterId": "ravi",
+              "locationId": "school-yard",
+              "state": "Held in Ravi's hand."
+            },
+            {
+              "entityId": "chalk-circle",
+              "ownerCharacterId": null,
+              "locationId": "school-yard",
+              "state": "Drawn around the shadow."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "ravi",
+              "locationId": "school-yard",
+              "clothing": "orange hoodie, grey trousers",
+              "carriedEntities": [
+                "white-chalk"
+              ],
+              "emotion": "puzzlement",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "ravi-shadow",
+              "ownerCharacterId": null,
+              "locationId": "school-yard",
+              "state": "Outside the circle."
+            },
+            {
+              "entityId": "white-chalk",
+              "ownerCharacterId": "ravi",
+              "locationId": "school-yard",
+              "state": "Held in Ravi's hand."
+            },
+            {
+              "entityId": "chalk-circle",
+              "ownerCharacterId": null,
+              "locationId": "school-yard",
+              "state": "Contains Ravi instead of his shadow."
+            }
+          ]
+        }
+      },
+      {
+        "beatId": "b4",
+        "role": "discovery",
+        "locationId": "school-yard",
+        "charactersPresent": [
+          "ravi"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "ravi",
+            "trait": "inventive",
+            "shows": "Adds an arrow instead of another boundary."
+          }
+        ],
+        "problemFamily": "finding-directions",
+        "because": "b3",
+        "resolvesProblem": false,
+        "action": "Ravi draws an arrow into the circle. The shadow follows its point.",
+        "emotion": "interest",
+        "entitiesRequired": [
+          "ravi-shadow",
+          "white-chalk",
+          "chalk-circle",
+          "chalk-arrow"
+        ],
+        "visualFocus": "Dark toes following a white arrowhead.",
+        "shotType": "close",
+        "compositionIntent": "Connect the arrow's direction with the shadow's feet.",
+        "textPurpose": "Reveal that chalk directions work better than fences.",
+        "pageTurnHook": "Ravi holds the chalk beside his shoes.",
+        "textSafeRegion": "upper-right",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "ravi",
+              "locationId": "school-yard",
+              "clothing": "orange hoodie, grey trousers",
+              "carriedEntities": [
+                "white-chalk"
+              ],
+              "emotion": "puzzlement",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "ravi-shadow",
+              "ownerCharacterId": null,
+              "locationId": "school-yard",
+              "state": "Outside the circle."
+            },
+            {
+              "entityId": "white-chalk",
+              "ownerCharacterId": "ravi",
+              "locationId": "school-yard",
+              "state": "Held in Ravi's hand."
+            },
+            {
+              "entityId": "chalk-circle",
+              "ownerCharacterId": null,
+              "locationId": "school-yard",
+              "state": "Contains Ravi instead of his shadow."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "ravi",
+              "locationId": "school-yard",
+              "clothing": "orange hoodie, grey trousers",
+              "carriedEntities": [
+                "white-chalk"
+              ],
+              "emotion": "interest",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "ravi-shadow",
+              "ownerCharacterId": null,
+              "locationId": "school-yard",
+              "state": "Following the arrow into the circle."
+            },
+            {
+              "entityId": "white-chalk",
+              "ownerCharacterId": "ravi",
+              "locationId": "school-yard",
+              "state": "Held in Ravi's hand."
+            },
+            {
+              "entityId": "chalk-circle",
+              "ownerCharacterId": null,
+              "locationId": "school-yard",
+              "state": "Contains Ravi instead of his shadow."
+            },
+            {
+              "entityId": "chalk-arrow",
+              "ownerCharacterId": null,
+              "locationId": "school-yard",
+              "state": "Points from the shadow into the circle."
+            }
+          ]
+        }
+      },
+      {
+        "beatId": "b5",
+        "role": "setup",
+        "locationId": "school-yard",
+        "charactersPresent": [
+          "ravi"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "ravi",
+            "trait": "inventive",
+            "shows": "Links a trail of arrows to a small loop around his shoes."
+          }
+        ],
+        "problemFamily": "building-return-route",
+        "because": "b4",
+        "resolvesProblem": false,
+        "action": "Ravi draws arrows towards his shoes. They end in a tiny loop.",
+        "emotion": "purpose",
+        "entitiesRequired": [
+          "ravi-shadow",
+          "white-chalk",
+          "chalk-circle",
+          "chalk-arrow",
+          "chalk-track"
+        ],
+        "visualFocus": "A chalk trail leading from the circle to Ravi.",
+        "shotType": "high",
+        "compositionIntent": "Make the complete return route easy to see.",
+        "textPurpose": "Apply the discovered rule to the central problem.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-left",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "ravi",
+              "locationId": "school-yard",
+              "clothing": "orange hoodie, grey trousers",
+              "carriedEntities": [
+                "white-chalk"
+              ],
+              "emotion": "interest",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "ravi-shadow",
+              "ownerCharacterId": null,
+              "locationId": "school-yard",
+              "state": "Following the arrow into the circle."
+            },
+            {
+              "entityId": "white-chalk",
+              "ownerCharacterId": "ravi",
+              "locationId": "school-yard",
+              "state": "Held in Ravi's hand."
+            },
+            {
+              "entityId": "chalk-circle",
+              "ownerCharacterId": null,
+              "locationId": "school-yard",
+              "state": "Contains Ravi instead of his shadow."
+            },
+            {
+              "entityId": "chalk-arrow",
+              "ownerCharacterId": null,
+              "locationId": "school-yard",
+              "state": "Points from the shadow into the circle."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "ravi",
+              "locationId": "school-yard",
+              "clothing": "orange hoodie, grey trousers",
+              "carriedEntities": [
+                "white-chalk"
+              ],
+              "emotion": "purpose",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "ravi-shadow",
+              "ownerCharacterId": null,
+              "locationId": "school-yard",
+              "state": "Following the arrow into the circle."
+            },
+            {
+              "entityId": "white-chalk",
+              "ownerCharacterId": "ravi",
+              "locationId": "school-yard",
+              "state": "Held in Ravi's hand."
+            },
+            {
+              "entityId": "chalk-circle",
+              "ownerCharacterId": null,
+              "locationId": "school-yard",
+              "state": "Contains Ravi instead of his shadow."
+            },
+            {
+              "entityId": "chalk-arrow",
+              "ownerCharacterId": null,
+              "locationId": "school-yard",
+              "state": "Points from the shadow into the circle."
+            },
+            {
+              "entityId": "chalk-track",
+              "ownerCharacterId": null,
+              "locationId": "school-yard",
+              "state": "Leads from the circle into a small loop around Ravi's shoes."
+            }
+          ]
+        }
+      },
+      {
+        "beatId": "b6",
+        "role": "climax",
+        "locationId": "school-yard",
+        "charactersPresent": [
+          "ravi"
+        ],
+        "absent": {},
+        "expresses": [],
+        "problemFamily": "returning-shadow",
+        "because": "b5",
+        "resolvesProblem": false,
+        "action": "The shadow races along Ravi's arrows. It circles his shoes, staying close.",
+        "emotion": "delight",
+        "entitiesRequired": [
+          "ravi-shadow",
+          "white-chalk",
+          "chalk-circle",
+          "chalk-arrow",
+          "chalk-track"
+        ],
+        "visualFocus": "The shadow running beside Ravi's shoes rather than escaping.",
+        "shotType": "action",
+        "compositionIntent": "Show the long route feeding into the small loop.",
+        "textPurpose": "Settle the separation through the earlier chalk discovery.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-right",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "ravi",
+              "locationId": "school-yard",
+              "clothing": "orange hoodie, grey trousers",
+              "carriedEntities": [
+                "white-chalk"
+              ],
+              "emotion": "purpose",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "ravi-shadow",
+              "ownerCharacterId": null,
+              "locationId": "school-yard",
+              "state": "Following the arrow into the circle."
+            },
+            {
+              "entityId": "white-chalk",
+              "ownerCharacterId": "ravi",
+              "locationId": "school-yard",
+              "state": "Held in Ravi's hand."
+            },
+            {
+              "entityId": "chalk-circle",
+              "ownerCharacterId": null,
+              "locationId": "school-yard",
+              "state": "Contains Ravi instead of his shadow."
+            },
+            {
+              "entityId": "chalk-arrow",
+              "ownerCharacterId": null,
+              "locationId": "school-yard",
+              "state": "Points from the shadow into the circle."
+            },
+            {
+              "entityId": "chalk-track",
+              "ownerCharacterId": null,
+              "locationId": "school-yard",
+              "state": "Leads from the circle into a small loop around Ravi's shoes."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "ravi",
+              "locationId": "school-yard",
+              "clothing": "orange hoodie, grey trousers",
+              "carriedEntities": [
+                "white-chalk"
+              ],
+              "emotion": "delight",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "ravi-shadow",
+              "ownerCharacterId": null,
+              "locationId": "school-yard",
+              "state": "Running around the small loop beside Ravi's feet."
+            },
+            {
+              "entityId": "white-chalk",
+              "ownerCharacterId": "ravi",
+              "locationId": "school-yard",
+              "state": "Held in Ravi's hand."
+            },
+            {
+              "entityId": "chalk-circle",
+              "ownerCharacterId": null,
+              "locationId": "school-yard",
+              "state": "Contains Ravi instead of his shadow."
+            },
+            {
+              "entityId": "chalk-arrow",
+              "ownerCharacterId": null,
+              "locationId": "school-yard",
+              "state": "Points from the shadow into the circle."
+            },
+            {
+              "entityId": "chalk-track",
+              "ownerCharacterId": null,
+              "locationId": "school-yard",
+              "state": "Leads from the circle into a small loop around Ravi's shoes."
+            }
+          ]
+        }
+      },
+      {
+        "beatId": "b7",
+        "role": "resolution",
+        "locationId": "school-yard",
+        "charactersPresent": [
+          "ravi"
+        ],
+        "absent": {},
+        "expresses": [],
+        "problemFamily": "",
+        "because": "b6",
+        "resolvesProblem": true,
+        "action": "Ravi tiptoes around the tiny loop. His shadow tiptoes beside him.",
+        "emotion": "ease",
+        "entitiesRequired": [
+          "ravi-shadow",
+          "white-chalk",
+          "chalk-circle",
+          "chalk-arrow",
+          "chalk-track"
+        ],
+        "visualFocus": "Two pairs of toes moving together.",
+        "shotType": "medium",
+        "compositionIntent": "End with matching steps inside a comically small track.",
+        "textPurpose": "Replace the opening mismatch with a shared movement.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-left",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "ravi",
+              "locationId": "school-yard",
+              "clothing": "orange hoodie, grey trousers",
+              "carriedEntities": [
+                "white-chalk"
+              ],
+              "emotion": "delight",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "ravi-shadow",
+              "ownerCharacterId": null,
+              "locationId": "school-yard",
+              "state": "Running around the small loop beside Ravi's feet."
+            },
+            {
+              "entityId": "white-chalk",
+              "ownerCharacterId": "ravi",
+              "locationId": "school-yard",
+              "state": "Held in Ravi's hand."
+            },
+            {
+              "entityId": "chalk-circle",
+              "ownerCharacterId": null,
+              "locationId": "school-yard",
+              "state": "Contains Ravi instead of his shadow."
+            },
+            {
+              "entityId": "chalk-arrow",
+              "ownerCharacterId": null,
+              "locationId": "school-yard",
+              "state": "Points from the shadow into the circle."
+            },
+            {
+              "entityId": "chalk-track",
+              "ownerCharacterId": null,
+              "locationId": "school-yard",
+              "state": "Leads from the circle into a small loop around Ravi's shoes."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "ravi",
+              "locationId": "school-yard",
+              "clothing": "orange hoodie, grey trousers",
+              "carriedEntities": [
+                "white-chalk"
+              ],
+              "emotion": "ease",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "ravi-shadow",
+              "ownerCharacterId": null,
+              "locationId": "school-yard",
+              "state": "Tiptoeing beside Ravi around the loop."
+            },
+            {
+              "entityId": "white-chalk",
+              "ownerCharacterId": "ravi",
+              "locationId": "school-yard",
+              "state": "Held in Ravi's hand."
+            },
+            {
+              "entityId": "chalk-circle",
+              "ownerCharacterId": null,
+              "locationId": "school-yard",
+              "state": "Contains Ravi instead of his shadow."
+            },
+            {
+              "entityId": "chalk-arrow",
+              "ownerCharacterId": null,
+              "locationId": "school-yard",
+              "state": "Points from the shadow into the circle."
+            },
+            {
+              "entityId": "chalk-track",
+              "ownerCharacterId": null,
+              "locationId": "school-yard",
+              "state": "Leads from the circle into a small loop around Ravi's shoes."
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "storyProblems": [],
+  "planProblems": [],
+  "textProblems": [],
+  "pages": [
+    {
+      "pageId": "p1",
+      "beatId": "b1",
+      "locationId": "school-yard",
+      "charactersPresent": [
+        "ravi"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "ravi",
+            "locationId": "school-yard",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [],
+            "emotion": "steady",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": []
+      },
+      "action": "Ravi plants his feet. His shadow runs past his shoes.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "ravi",
+            "locationId": "school-yard",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [],
+            "emotion": "surprise",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "ravi-shadow",
+            "ownerCharacterId": null,
+            "locationId": "school-yard",
+            "state": "Running beyond Ravi's feet."
+          }
+        ]
+      },
+      "emotion": "surprise",
+      "entitiesRequired": [
+        "ravi-shadow"
+      ],
+      "visualFocus": "Ravi's orange hoodie, grey trousers, and short black hair contrast with the escaping shadow.",
+      "shotType": "establishing",
+      "compositionIntent": "Separate the stationary child from the moving silhouette.",
+      "textPurpose": "Establish the impossible mismatch.",
+      "pageTurnHook": "The shadow leaves a gap behind Ravi.",
+      "needsFromPrevious": null,
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "ravi",
+            "locationId": "school-yard",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [],
+            "emotion": "surprise",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "ravi-shadow",
+            "ownerCharacterId": null,
+            "locationId": "school-yard",
+            "state": "Running beyond Ravi's feet."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-left",
+      "sentences": [
+        {
+          "text": "Ravi plants his feet.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "His shadow races past his shoes.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "Ravi plants his feet. His shadow races past his shoes."
+    },
+    {
+      "pageId": "p2",
+      "beatId": "b2",
+      "locationId": "school-yard",
+      "charactersPresent": [
+        "ravi"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "ravi",
+            "locationId": "school-yard",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [],
+            "emotion": "surprise",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "ravi-shadow",
+            "ownerCharacterId": null,
+            "locationId": "school-yard",
+            "state": "Running beyond Ravi's feet."
+          }
+        ]
+      },
+      "action": "Ravi takes chalk from his pocket. He draws a circle around the shadow.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "ravi",
+            "locationId": "school-yard",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "white-chalk"
+            ],
+            "emotion": "determination",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "ravi-shadow",
+            "ownerCharacterId": null,
+            "locationId": "school-yard",
+            "state": "Inside the chalk circle."
+          },
+          {
+            "entityId": "white-chalk",
+            "ownerCharacterId": "ravi",
+            "locationId": "school-yard",
+            "state": "Held in Ravi's hand."
+          },
+          {
+            "entityId": "chalk-circle",
+            "ownerCharacterId": null,
+            "locationId": "school-yard",
+            "state": "Drawn around the shadow."
+          }
+        ]
+      },
+      "emotion": "determination",
+      "entitiesRequired": [
+        "ravi-shadow",
+        "white-chalk",
+        "chalk-circle"
+      ],
+      "visualFocus": "The white circle surrounding dark feet.",
+      "shotType": "overhead",
+      "compositionIntent": "Show Ravi completing a boundary around the shadow.",
+      "textPurpose": "Give Ravi a concrete first solution.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "ravi",
+            "locationId": "school-yard",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [],
+            "emotion": "surprise",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "ravi-shadow",
+            "ownerCharacterId": null,
+            "locationId": "school-yard",
+            "state": "Running beyond Ravi's feet."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "ravi",
+            "locationId": "school-yard",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "white-chalk"
+            ],
+            "emotion": "determination",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "ravi-shadow",
+            "ownerCharacterId": null,
+            "locationId": "school-yard",
+            "state": "Inside the chalk circle."
+          },
+          {
+            "entityId": "white-chalk",
+            "ownerCharacterId": "ravi",
+            "locationId": "school-yard",
+            "state": "Held in Ravi's hand."
+          },
+          {
+            "entityId": "chalk-circle",
+            "ownerCharacterId": null,
+            "locationId": "school-yard",
+            "state": "Drawn around the shadow."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-right",
+      "sentences": [
+        {
+          "text": "Ravi pulls chalk from his pocket.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "He circles his shadow with chalk.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "Ravi pulls chalk from his pocket. He circles his shadow with chalk."
+    },
+    {
+      "pageId": "p3",
+      "beatId": "b3",
+      "locationId": "school-yard",
+      "charactersPresent": [
+        "ravi"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "ravi",
+            "locationId": "school-yard",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "white-chalk"
+            ],
+            "emotion": "determination",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "ravi-shadow",
+            "ownerCharacterId": null,
+            "locationId": "school-yard",
+            "state": "Inside the chalk circle."
+          },
+          {
+            "entityId": "white-chalk",
+            "ownerCharacterId": "ravi",
+            "locationId": "school-yard",
+            "state": "Held in Ravi's hand."
+          },
+          {
+            "entityId": "chalk-circle",
+            "ownerCharacterId": null,
+            "locationId": "school-yard",
+            "state": "Drawn around the shadow."
+          }
+        ]
+      },
+      "action": "The shadow hops over the line. Ravi steps into the empty circle.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "ravi",
+            "locationId": "school-yard",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "white-chalk"
+            ],
+            "emotion": "puzzlement",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "ravi-shadow",
+            "ownerCharacterId": null,
+            "locationId": "school-yard",
+            "state": "Outside the circle."
+          },
+          {
+            "entityId": "white-chalk",
+            "ownerCharacterId": "ravi",
+            "locationId": "school-yard",
+            "state": "Held in Ravi's hand."
+          },
+          {
+            "entityId": "chalk-circle",
+            "ownerCharacterId": null,
+            "locationId": "school-yard",
+            "state": "Contains Ravi instead of his shadow."
+          }
+        ]
+      },
+      "emotion": "puzzlement",
+      "entitiesRequired": [
+        "ravi-shadow",
+        "white-chalk",
+        "chalk-circle"
+      ],
+      "visualFocus": "Ravi enclosed by chalk while the shadow stands outside.",
+      "shotType": "reaction",
+      "compositionIntent": "Put Ravi inside his own ineffective trap.",
+      "textPurpose": "Make the failed solution visibly mismatched.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "ravi",
+            "locationId": "school-yard",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "white-chalk"
+            ],
+            "emotion": "determination",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "ravi-shadow",
+            "ownerCharacterId": null,
+            "locationId": "school-yard",
+            "state": "Inside the chalk circle."
+          },
+          {
+            "entityId": "white-chalk",
+            "ownerCharacterId": "ravi",
+            "locationId": "school-yard",
+            "state": "Held in Ravi's hand."
+          },
+          {
+            "entityId": "chalk-circle",
+            "ownerCharacterId": null,
+            "locationId": "school-yard",
+            "state": "Drawn around the shadow."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "ravi",
+            "locationId": "school-yard",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "white-chalk"
+            ],
+            "emotion": "puzzlement",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "ravi-shadow",
+            "ownerCharacterId": null,
+            "locationId": "school-yard",
+            "state": "Outside the circle."
+          },
+          {
+            "entityId": "white-chalk",
+            "ownerCharacterId": "ravi",
+            "locationId": "school-yard",
+            "state": "Held in Ravi's hand."
+          },
+          {
+            "entityId": "chalk-circle",
+            "ownerCharacterId": null,
+            "locationId": "school-yard",
+            "state": "Contains Ravi instead of his shadow."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-left",
+      "sentences": [
+        {
+          "text": "His shadow hops over the line.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Ravi steps in.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "The circle catches Ravi instead.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "His shadow hops over the line. Ravi steps in. The circle catches Ravi instead."
+    },
+    {
+      "pageId": "p4",
+      "beatId": "b4",
+      "locationId": "school-yard",
+      "charactersPresent": [
+        "ravi"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "ravi",
+            "locationId": "school-yard",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "white-chalk"
+            ],
+            "emotion": "puzzlement",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "ravi-shadow",
+            "ownerCharacterId": null,
+            "locationId": "school-yard",
+            "state": "Outside the circle."
+          },
+          {
+            "entityId": "white-chalk",
+            "ownerCharacterId": "ravi",
+            "locationId": "school-yard",
+            "state": "Held in Ravi's hand."
+          },
+          {
+            "entityId": "chalk-circle",
+            "ownerCharacterId": null,
+            "locationId": "school-yard",
+            "state": "Contains Ravi instead of his shadow."
+          }
+        ]
+      },
+      "action": "Ravi draws an arrow into the circle. The shadow follows its point.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "ravi",
+            "locationId": "school-yard",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "white-chalk"
+            ],
+            "emotion": "interest",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "ravi-shadow",
+            "ownerCharacterId": null,
+            "locationId": "school-yard",
+            "state": "Following the arrow into the circle."
+          },
+          {
+            "entityId": "white-chalk",
+            "ownerCharacterId": "ravi",
+            "locationId": "school-yard",
+            "state": "Held in Ravi's hand."
+          },
+          {
+            "entityId": "chalk-circle",
+            "ownerCharacterId": null,
+            "locationId": "school-yard",
+            "state": "Contains Ravi instead of his shadow."
+          },
+          {
+            "entityId": "chalk-arrow",
+            "ownerCharacterId": null,
+            "locationId": "school-yard",
+            "state": "Points from the shadow into the circle."
+          }
+        ]
+      },
+      "emotion": "interest",
+      "entitiesRequired": [
+        "ravi-shadow",
+        "white-chalk",
+        "chalk-circle",
+        "chalk-arrow"
+      ],
+      "visualFocus": "Dark toes following a white arrowhead.",
+      "shotType": "close",
+      "compositionIntent": "Connect the arrow's direction with the shadow's feet.",
+      "textPurpose": "Reveal that chalk directions work better than fences.",
+      "pageTurnHook": "Ravi holds the chalk beside his shoes.",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "ravi",
+            "locationId": "school-yard",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "white-chalk"
+            ],
+            "emotion": "puzzlement",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "ravi-shadow",
+            "ownerCharacterId": null,
+            "locationId": "school-yard",
+            "state": "Outside the circle."
+          },
+          {
+            "entityId": "white-chalk",
+            "ownerCharacterId": "ravi",
+            "locationId": "school-yard",
+            "state": "Held in Ravi's hand."
+          },
+          {
+            "entityId": "chalk-circle",
+            "ownerCharacterId": null,
+            "locationId": "school-yard",
+            "state": "Contains Ravi instead of his shadow."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "ravi",
+            "locationId": "school-yard",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "white-chalk"
+            ],
+            "emotion": "interest",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "ravi-shadow",
+            "ownerCharacterId": null,
+            "locationId": "school-yard",
+            "state": "Following the arrow into the circle."
+          },
+          {
+            "entityId": "white-chalk",
+            "ownerCharacterId": "ravi",
+            "locationId": "school-yard",
+            "state": "Held in Ravi's hand."
+          },
+          {
+            "entityId": "chalk-circle",
+            "ownerCharacterId": null,
+            "locationId": "school-yard",
+            "state": "Contains Ravi instead of his shadow."
+          },
+          {
+            "entityId": "chalk-arrow",
+            "ownerCharacterId": null,
+            "locationId": "school-yard",
+            "state": "Points from the shadow into the circle."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-right",
+      "sentences": [
+        {
+          "text": "Ravi draws an arrow into the circle.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "His shadow follows the point.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "Ravi draws an arrow into the circle. His shadow follows the point."
+    },
+    {
+      "pageId": "p5",
+      "beatId": "b5",
+      "locationId": "school-yard",
+      "charactersPresent": [
+        "ravi"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "ravi",
+            "locationId": "school-yard",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "white-chalk"
+            ],
+            "emotion": "interest",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "ravi-shadow",
+            "ownerCharacterId": null,
+            "locationId": "school-yard",
+            "state": "Following the arrow into the circle."
+          },
+          {
+            "entityId": "white-chalk",
+            "ownerCharacterId": "ravi",
+            "locationId": "school-yard",
+            "state": "Held in Ravi's hand."
+          },
+          {
+            "entityId": "chalk-circle",
+            "ownerCharacterId": null,
+            "locationId": "school-yard",
+            "state": "Contains Ravi instead of his shadow."
+          },
+          {
+            "entityId": "chalk-arrow",
+            "ownerCharacterId": null,
+            "locationId": "school-yard",
+            "state": "Points from the shadow into the circle."
+          }
+        ]
+      },
+      "action": "Ravi draws arrows towards his shoes. They end in a tiny loop.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "ravi",
+            "locationId": "school-yard",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "white-chalk"
+            ],
+            "emotion": "purpose",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "ravi-shadow",
+            "ownerCharacterId": null,
+            "locationId": "school-yard",
+            "state": "Following the arrow into the circle."
+          },
+          {
+            "entityId": "white-chalk",
+            "ownerCharacterId": "ravi",
+            "locationId": "school-yard",
+            "state": "Held in Ravi's hand."
+          },
+          {
+            "entityId": "chalk-circle",
+            "ownerCharacterId": null,
+            "locationId": "school-yard",
+            "state": "Contains Ravi instead of his shadow."
+          },
+          {
+            "entityId": "chalk-arrow",
+            "ownerCharacterId": null,
+            "locationId": "school-yard",
+            "state": "Points from the shadow into the circle."
+          },
+          {
+            "entityId": "chalk-track",
+            "ownerCharacterId": null,
+            "locationId": "school-yard",
+            "state": "Leads from the circle into a small loop around Ravi's shoes."
+          }
+        ]
+      },
+      "emotion": "purpose",
+      "entitiesRequired": [
+        "ravi-shadow",
+        "white-chalk",
+        "chalk-circle",
+        "chalk-arrow",
+        "chalk-track"
+      ],
+      "visualFocus": "A chalk trail leading from the circle to Ravi.",
+      "shotType": "high",
+      "compositionIntent": "Make the complete return route easy to see.",
+      "textPurpose": "Apply the discovered rule to the central problem.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "ravi",
+            "locationId": "school-yard",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "white-chalk"
+            ],
+            "emotion": "interest",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "ravi-shadow",
+            "ownerCharacterId": null,
+            "locationId": "school-yard",
+            "state": "Following the arrow into the circle."
+          },
+          {
+            "entityId": "white-chalk",
+            "ownerCharacterId": "ravi",
+            "locationId": "school-yard",
+            "state": "Held in Ravi's hand."
+          },
+          {
+            "entityId": "chalk-circle",
+            "ownerCharacterId": null,
+            "locationId": "school-yard",
+            "state": "Contains Ravi instead of his shadow."
+          },
+          {
+            "entityId": "chalk-arrow",
+            "ownerCharacterId": null,
+            "locationId": "school-yard",
+            "state": "Points from the shadow into the circle."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "ravi",
+            "locationId": "school-yard",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "white-chalk"
+            ],
+            "emotion": "purpose",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "ravi-shadow",
+            "ownerCharacterId": null,
+            "locationId": "school-yard",
+            "state": "Following the arrow into the circle."
+          },
+          {
+            "entityId": "white-chalk",
+            "ownerCharacterId": "ravi",
+            "locationId": "school-yard",
+            "state": "Held in Ravi's hand."
+          },
+          {
+            "entityId": "chalk-circle",
+            "ownerCharacterId": null,
+            "locationId": "school-yard",
+            "state": "Contains Ravi instead of his shadow."
+          },
+          {
+            "entityId": "chalk-arrow",
+            "ownerCharacterId": null,
+            "locationId": "school-yard",
+            "state": "Points from the shadow into the circle."
+          },
+          {
+            "entityId": "chalk-track",
+            "ownerCharacterId": null,
+            "locationId": "school-yard",
+            "state": "Leads from the circle into a small loop around Ravi's shoes."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-left",
+      "sentences": [
+        {
+          "text": "Ravi draws arrows towards his shoes.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "He ends them in a tiny loop.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "Ravi draws arrows towards his shoes. He ends them in a tiny loop."
+    },
+    {
+      "pageId": "p6",
+      "beatId": "b6",
+      "locationId": "school-yard",
+      "charactersPresent": [
+        "ravi"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "ravi",
+            "locationId": "school-yard",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "white-chalk"
+            ],
+            "emotion": "purpose",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "ravi-shadow",
+            "ownerCharacterId": null,
+            "locationId": "school-yard",
+            "state": "Following the arrow into the circle."
+          },
+          {
+            "entityId": "white-chalk",
+            "ownerCharacterId": "ravi",
+            "locationId": "school-yard",
+            "state": "Held in Ravi's hand."
+          },
+          {
+            "entityId": "chalk-circle",
+            "ownerCharacterId": null,
+            "locationId": "school-yard",
+            "state": "Contains Ravi instead of his shadow."
+          },
+          {
+            "entityId": "chalk-arrow",
+            "ownerCharacterId": null,
+            "locationId": "school-yard",
+            "state": "Points from the shadow into the circle."
+          },
+          {
+            "entityId": "chalk-track",
+            "ownerCharacterId": null,
+            "locationId": "school-yard",
+            "state": "Leads from the circle into a small loop around Ravi's shoes."
+          }
+        ]
+      },
+      "action": "The shadow races along Ravi's arrows. It circles his shoes, staying close.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "ravi",
+            "locationId": "school-yard",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "white-chalk"
+            ],
+            "emotion": "delight",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "ravi-shadow",
+            "ownerCharacterId": null,
+            "locationId": "school-yard",
+            "state": "Running around the small loop beside Ravi's feet."
+          },
+          {
+            "entityId": "white-chalk",
+            "ownerCharacterId": "ravi",
+            "locationId": "school-yard",
+            "state": "Held in Ravi's hand."
+          },
+          {
+            "entityId": "chalk-circle",
+            "ownerCharacterId": null,
+            "locationId": "school-yard",
+            "state": "Contains Ravi instead of his shadow."
+          },
+          {
+            "entityId": "chalk-arrow",
+            "ownerCharacterId": null,
+            "locationId": "school-yard",
+            "state": "Points from the shadow into the circle."
+          },
+          {
+            "entityId": "chalk-track",
+            "ownerCharacterId": null,
+            "locationId": "school-yard",
+            "state": "Leads from the circle into a small loop around Ravi's shoes."
+          }
+        ]
+      },
+      "emotion": "delight",
+      "entitiesRequired": [
+        "ravi-shadow",
+        "white-chalk",
+        "chalk-circle",
+        "chalk-arrow",
+        "chalk-track"
+      ],
+      "visualFocus": "The shadow running beside Ravi's shoes rather than escaping.",
+      "shotType": "action",
+      "compositionIntent": "Show the long route feeding into the small loop.",
+      "textPurpose": "Settle the separation through the earlier chalk discovery.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "ravi",
+            "locationId": "school-yard",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "white-chalk"
+            ],
+            "emotion": "purpose",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "ravi-shadow",
+            "ownerCharacterId": null,
+            "locationId": "school-yard",
+            "state": "Following the arrow into the circle."
+          },
+          {
+            "entityId": "white-chalk",
+            "ownerCharacterId": "ravi",
+            "locationId": "school-yard",
+            "state": "Held in Ravi's hand."
+          },
+          {
+            "entityId": "chalk-circle",
+            "ownerCharacterId": null,
+            "locationId": "school-yard",
+            "state": "Contains Ravi instead of his shadow."
+          },
+          {
+            "entityId": "chalk-arrow",
+            "ownerCharacterId": null,
+            "locationId": "school-yard",
+            "state": "Points from the shadow into the circle."
+          },
+          {
+            "entityId": "chalk-track",
+            "ownerCharacterId": null,
+            "locationId": "school-yard",
+            "state": "Leads from the circle into a small loop around Ravi's shoes."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "ravi",
+            "locationId": "school-yard",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "white-chalk"
+            ],
+            "emotion": "delight",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "ravi-shadow",
+            "ownerCharacterId": null,
+            "locationId": "school-yard",
+            "state": "Running around the small loop beside Ravi's feet."
+          },
+          {
+            "entityId": "white-chalk",
+            "ownerCharacterId": "ravi",
+            "locationId": "school-yard",
+            "state": "Held in Ravi's hand."
+          },
+          {
+            "entityId": "chalk-circle",
+            "ownerCharacterId": null,
+            "locationId": "school-yard",
+            "state": "Contains Ravi instead of his shadow."
+          },
+          {
+            "entityId": "chalk-arrow",
+            "ownerCharacterId": null,
+            "locationId": "school-yard",
+            "state": "Points from the shadow into the circle."
+          },
+          {
+            "entityId": "chalk-track",
+            "ownerCharacterId": null,
+            "locationId": "school-yard",
+            "state": "Leads from the circle into a small loop around Ravi's shoes."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-right",
+      "sentences": [
+        {
+          "text": "His shadow races along the arrows.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Round his shoes it goes, staying close.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "His shadow races along the arrows. Round his shoes it goes, staying close."
+    },
+    {
+      "pageId": "p7",
+      "beatId": "b7",
+      "locationId": "school-yard",
+      "charactersPresent": [
+        "ravi"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "ravi",
+            "locationId": "school-yard",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "white-chalk"
+            ],
+            "emotion": "delight",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "ravi-shadow",
+            "ownerCharacterId": null,
+            "locationId": "school-yard",
+            "state": "Running around the small loop beside Ravi's feet."
+          },
+          {
+            "entityId": "white-chalk",
+            "ownerCharacterId": "ravi",
+            "locationId": "school-yard",
+            "state": "Held in Ravi's hand."
+          },
+          {
+            "entityId": "chalk-circle",
+            "ownerCharacterId": null,
+            "locationId": "school-yard",
+            "state": "Contains Ravi instead of his shadow."
+          },
+          {
+            "entityId": "chalk-arrow",
+            "ownerCharacterId": null,
+            "locationId": "school-yard",
+            "state": "Points from the shadow into the circle."
+          },
+          {
+            "entityId": "chalk-track",
+            "ownerCharacterId": null,
+            "locationId": "school-yard",
+            "state": "Leads from the circle into a small loop around Ravi's shoes."
+          }
+        ]
+      },
+      "action": "Ravi tiptoes around the tiny loop. His shadow tiptoes beside him.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "ravi",
+            "locationId": "school-yard",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "white-chalk"
+            ],
+            "emotion": "ease",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "ravi-shadow",
+            "ownerCharacterId": null,
+            "locationId": "school-yard",
+            "state": "Tiptoeing beside Ravi around the loop."
+          },
+          {
+            "entityId": "white-chalk",
+            "ownerCharacterId": "ravi",
+            "locationId": "school-yard",
+            "state": "Held in Ravi's hand."
+          },
+          {
+            "entityId": "chalk-circle",
+            "ownerCharacterId": null,
+            "locationId": "school-yard",
+            "state": "Contains Ravi instead of his shadow."
+          },
+          {
+            "entityId": "chalk-arrow",
+            "ownerCharacterId": null,
+            "locationId": "school-yard",
+            "state": "Points from the shadow into the circle."
+          },
+          {
+            "entityId": "chalk-track",
+            "ownerCharacterId": null,
+            "locationId": "school-yard",
+            "state": "Leads from the circle into a small loop around Ravi's shoes."
+          }
+        ]
+      },
+      "emotion": "ease",
+      "entitiesRequired": [
+        "ravi-shadow",
+        "white-chalk",
+        "chalk-circle",
+        "chalk-arrow",
+        "chalk-track"
+      ],
+      "visualFocus": "Two pairs of toes moving together.",
+      "shotType": "medium",
+      "compositionIntent": "End with matching steps inside a comically small track.",
+      "textPurpose": "Replace the opening mismatch with a shared movement.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "ravi",
+            "locationId": "school-yard",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "white-chalk"
+            ],
+            "emotion": "delight",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "ravi-shadow",
+            "ownerCharacterId": null,
+            "locationId": "school-yard",
+            "state": "Running around the small loop beside Ravi's feet."
+          },
+          {
+            "entityId": "white-chalk",
+            "ownerCharacterId": "ravi",
+            "locationId": "school-yard",
+            "state": "Held in Ravi's hand."
+          },
+          {
+            "entityId": "chalk-circle",
+            "ownerCharacterId": null,
+            "locationId": "school-yard",
+            "state": "Contains Ravi instead of his shadow."
+          },
+          {
+            "entityId": "chalk-arrow",
+            "ownerCharacterId": null,
+            "locationId": "school-yard",
+            "state": "Points from the shadow into the circle."
+          },
+          {
+            "entityId": "chalk-track",
+            "ownerCharacterId": null,
+            "locationId": "school-yard",
+            "state": "Leads from the circle into a small loop around Ravi's shoes."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "ravi",
+            "locationId": "school-yard",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "white-chalk"
+            ],
+            "emotion": "ease",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "ravi-shadow",
+            "ownerCharacterId": null,
+            "locationId": "school-yard",
+            "state": "Tiptoeing beside Ravi around the loop."
+          },
+          {
+            "entityId": "white-chalk",
+            "ownerCharacterId": "ravi",
+            "locationId": "school-yard",
+            "state": "Held in Ravi's hand."
+          },
+          {
+            "entityId": "chalk-circle",
+            "ownerCharacterId": null,
+            "locationId": "school-yard",
+            "state": "Contains Ravi instead of his shadow."
+          },
+          {
+            "entityId": "chalk-arrow",
+            "ownerCharacterId": null,
+            "locationId": "school-yard",
+            "state": "Points from the shadow into the circle."
+          },
+          {
+            "entityId": "chalk-track",
+            "ownerCharacterId": null,
+            "locationId": "school-yard",
+            "state": "Leads from the circle into a small loop around Ravi's shoes."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-left",
+      "sentences": [
+        {
+          "text": "Ravi tiptoes round the tiny loop.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "His shadow tiptoes right beside him.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "Ravi tiptoes round the tiny loop. His shadow tiptoes right beside him."
+    }
+  ],
+  "imageCalls": 0,
+  "imageDraws": 0,
+  "imageReason": "text_review",
+  "imageUsd": 0,
+  "id": "b",
+  "listedUsd": 0.047794,
+  "guardUsd": 0.095588
+}

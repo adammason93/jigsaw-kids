@@ -1,0 +1,847 @@
+{
+  "problems": [
+    "visual-repetition:p2"
+  ],
+  "visualArc": {
+    "intensity": "gentle",
+    "tone": "bedtime",
+    "phases": [
+      {
+        "id": "opening",
+        "intent": "Ordinary world, establishing.",
+        "spreadIds": [
+          "p1"
+        ]
+      },
+      {
+        "id": "discovery",
+        "intent": "Something in the world changes.",
+        "spreadIds": [
+          "p2"
+        ]
+      },
+      {
+        "id": "development",
+        "intent": "Action, feeling, or object state develops.",
+        "spreadIds": [
+          "p3",
+          "p4",
+          "p5",
+          "p6",
+          "p9"
+        ]
+      },
+      {
+        "id": "turn",
+        "intent": "A clearer change, kept at the story's own volume.",
+        "spreadIds": [
+          "p7",
+          "p8"
+        ]
+      },
+      {
+        "id": "climax",
+        "intent": "The strongest gentle change.",
+        "spreadIds": [
+          "p10"
+        ]
+      },
+      {
+        "id": "resolution",
+        "intent": "A new calm, or a world that has changed.",
+        "spreadIds": [
+          "p11"
+        ]
+      }
+    ]
+  },
+  "repetition": [
+    {
+      "spreadIds": [
+        "p2",
+        "p3",
+        "p4",
+        "p5",
+        "p6",
+        "p7"
+      ],
+      "from": "p2",
+      "to": "p7",
+      "length": 6,
+      "locationId": "flowerpot-corner",
+      "subLocationId": "",
+      "cast": [
+        "maya"
+      ],
+      "storyObjects": [
+        "hidden-star"
+      ],
+      "action": "in-place",
+      "emotionalRegister": "calm",
+      "reasons": [
+        "same-location",
+        "same-cast",
+        "same-story-objects",
+        "in-place-action",
+        "same-emotional-register"
+      ]
+    }
+  ],
+  "summary": {
+    "intensity": "gentle",
+    "repetitionRuns": 1,
+    "heroCount": 1
+  },
+  "spreads": [
+    {
+      "spreadId": "p1",
+      "beatId": "b1",
+      "role": "hook",
+      "actionFamily": "establish",
+      "phase": "opening",
+      "locationId": "flowerpot-corner",
+      "subLocationId": "",
+      "cast": [
+        "maya"
+      ],
+      "storyObjects": [],
+      "emotionalRegister": "calm",
+      "visualImportance": "quiet",
+      "pageRole": "left-page",
+      "pageKind": "page-pair",
+      "plannedTextRegion": "upper-left",
+      "gutterSafe": true,
+      "changedSincePrevious": [],
+      "newStoryInformation": [
+        "opening"
+      ],
+      "newVisualInformation": [
+        "opening"
+      ],
+      "consequenceVisible": false,
+      "recognisableWithoutText": true,
+      "storyProgressed": true,
+      "cameraOnly": false
+    },
+    {
+      "spreadId": "p2",
+      "beatId": "b2",
+      "role": "discovery",
+      "actionFamily": "discover",
+      "phase": "discovery",
+      "locationId": "flowerpot-corner",
+      "subLocationId": "",
+      "cast": [
+        "maya"
+      ],
+      "storyObjects": [
+        "hidden-star"
+      ],
+      "emotionalRegister": "calm",
+      "visualImportance": "normal",
+      "pageRole": "right-page",
+      "pageKind": "page-pair",
+      "plannedTextRegion": "upper-right",
+      "gutterSafe": true,
+      "changedSincePrevious": [
+        "scaleChanged",
+        "objectStateChanged",
+        "characterStateChanged",
+        "emotionalStateChanged",
+        "actionChanged",
+        "compositionChanged",
+        "revealChanged"
+      ],
+      "newStoryInformation": [
+        "new-object:hidden-star",
+        "action:discover",
+        "feeling:calm"
+      ],
+      "newVisualInformation": [
+        "object",
+        "scale",
+        "framing"
+      ],
+      "consequenceVisible": true,
+      "recognisableWithoutText": true,
+      "storyProgressed": true,
+      "cameraOnly": false
+    },
+    {
+      "spreadId": "p3",
+      "beatId": "b3",
+      "role": "reaction",
+      "actionFamily": "dwell",
+      "phase": "development",
+      "locationId": "flowerpot-corner",
+      "subLocationId": "",
+      "cast": [
+        "maya"
+      ],
+      "storyObjects": [
+        "hidden-star"
+      ],
+      "emotionalRegister": "calm",
+      "visualImportance": "quiet",
+      "pageRole": "left-page",
+      "pageKind": "page-pair",
+      "plannedTextRegion": "upper-left",
+      "gutterSafe": true,
+      "changedSincePrevious": [
+        "scaleChanged",
+        "objectStateChanged",
+        "characterStateChanged",
+        "emotionalStateChanged",
+        "actionChanged",
+        "compositionChanged"
+      ],
+      "newStoryInformation": [
+        "action:dwell",
+        "feeling:calm"
+      ],
+      "newVisualInformation": [
+        "object",
+        "scale",
+        "framing"
+      ],
+      "consequenceVisible": true,
+      "recognisableWithoutText": false,
+      "storyProgressed": true,
+      "cameraOnly": false
+    },
+    {
+      "spreadId": "p4",
+      "beatId": "b4",
+      "role": "relationship",
+      "actionFamily": "dwell",
+      "phase": "development",
+      "locationId": "flowerpot-corner",
+      "subLocationId": "",
+      "cast": [
+        "maya"
+      ],
+      "storyObjects": [
+        "hidden-star"
+      ],
+      "emotionalRegister": "calm",
+      "visualImportance": "normal",
+      "pageRole": "right-page",
+      "pageKind": "page-pair",
+      "plannedTextRegion": "upper-right",
+      "gutterSafe": true,
+      "changedSincePrevious": [
+        "objectStateChanged",
+        "characterStateChanged",
+        "emotionalStateChanged",
+        "compositionChanged"
+      ],
+      "newStoryInformation": [
+        "feeling:calm"
+      ],
+      "newVisualInformation": [
+        "object",
+        "framing"
+      ],
+      "consequenceVisible": true,
+      "recognisableWithoutText": false,
+      "storyProgressed": true,
+      "cameraOnly": false
+    },
+    {
+      "spreadId": "p5",
+      "beatId": "b5",
+      "role": "exploration",
+      "actionFamily": "dwell",
+      "phase": "development",
+      "locationId": "flowerpot-corner",
+      "subLocationId": "",
+      "cast": [
+        "maya"
+      ],
+      "storyObjects": [
+        "hidden-star"
+      ],
+      "emotionalRegister": "calm",
+      "visualImportance": "normal",
+      "pageRole": "left-page",
+      "pageKind": "page-pair",
+      "plannedTextRegion": "upper-left",
+      "gutterSafe": true,
+      "changedSincePrevious": [
+        "scaleChanged",
+        "objectStateChanged",
+        "characterStateChanged",
+        "emotionalStateChanged",
+        "compositionChanged"
+      ],
+      "newStoryInformation": [
+        "feeling:calm"
+      ],
+      "newVisualInformation": [
+        "object",
+        "scale",
+        "framing"
+      ],
+      "consequenceVisible": true,
+      "recognisableWithoutText": false,
+      "storyProgressed": true,
+      "cameraOnly": false
+    },
+    {
+      "spreadId": "p6",
+      "beatId": "b6",
+      "role": "attempt",
+      "actionFamily": "dwell",
+      "phase": "development",
+      "locationId": "flowerpot-corner",
+      "subLocationId": "",
+      "cast": [
+        "maya"
+      ],
+      "storyObjects": [
+        "hidden-star"
+      ],
+      "emotionalRegister": "calm",
+      "visualImportance": "normal",
+      "pageRole": "right-page",
+      "pageKind": "page-pair",
+      "plannedTextRegion": "upper-right",
+      "gutterSafe": true,
+      "changedSincePrevious": [
+        "scaleChanged",
+        "objectStateChanged",
+        "characterStateChanged",
+        "emotionalStateChanged",
+        "compositionChanged"
+      ],
+      "newStoryInformation": [
+        "feeling:calm"
+      ],
+      "newVisualInformation": [
+        "object",
+        "scale",
+        "framing"
+      ],
+      "consequenceVisible": true,
+      "recognisableWithoutText": false,
+      "storyProgressed": true,
+      "cameraOnly": false
+    },
+    {
+      "spreadId": "p7",
+      "beatId": "b7",
+      "role": "setback",
+      "actionFamily": "trouble",
+      "phase": "turn",
+      "locationId": "flowerpot-corner",
+      "subLocationId": "",
+      "cast": [
+        "maya"
+      ],
+      "storyObjects": [
+        "hidden-star"
+      ],
+      "emotionalRegister": "calm",
+      "visualImportance": "strong",
+      "pageRole": "left-page",
+      "pageKind": "page-pair",
+      "plannedTextRegion": "upper-left",
+      "gutterSafe": true,
+      "changedSincePrevious": [
+        "scaleChanged",
+        "objectStateChanged",
+        "characterStateChanged",
+        "emotionalStateChanged",
+        "actionChanged",
+        "compositionChanged"
+      ],
+      "newStoryInformation": [
+        "action:trouble",
+        "feeling:calm"
+      ],
+      "newVisualInformation": [
+        "object",
+        "scale",
+        "framing"
+      ],
+      "consequenceVisible": true,
+      "recognisableWithoutText": false,
+      "storyProgressed": true,
+      "cameraOnly": false
+    },
+    {
+      "spreadId": "p8",
+      "beatId": "b8",
+      "role": "approach",
+      "actionFamily": "move",
+      "phase": "turn",
+      "locationId": "open-garden",
+      "subLocationId": "",
+      "cast": [
+        "maya"
+      ],
+      "storyObjects": [
+        "hidden-star",
+        "sky-stars"
+      ],
+      "emotionalRegister": "calm",
+      "visualImportance": "strong",
+      "pageRole": "right-page",
+      "pageKind": "page-pair",
+      "plannedTextRegion": "upper-right",
+      "gutterSafe": true,
+      "changedSincePrevious": [
+        "locationChanged",
+        "scaleChanged",
+        "objectStateChanged",
+        "characterStateChanged",
+        "emotionalStateChanged",
+        "actionChanged",
+        "compositionChanged",
+        "revealChanged"
+      ],
+      "newStoryInformation": [
+        "new-object:sky-stars",
+        "action:move",
+        "place",
+        "feeling:calm"
+      ],
+      "newVisualInformation": [
+        "place",
+        "object",
+        "scale",
+        "framing"
+      ],
+      "consequenceVisible": true,
+      "recognisableWithoutText": true,
+      "storyProgressed": true,
+      "cameraOnly": false
+    },
+    {
+      "spreadId": "p9",
+      "beatId": "b9",
+      "role": "wonder",
+      "actionFamily": "dwell",
+      "phase": "development",
+      "locationId": "open-garden",
+      "subLocationId": "",
+      "cast": [
+        "maya"
+      ],
+      "storyObjects": [
+        "hidden-star",
+        "sky-stars"
+      ],
+      "emotionalRegister": "calm",
+      "visualImportance": "quiet",
+      "pageRole": "right-page",
+      "pageKind": "single-page",
+      "plannedTextRegion": "upper-right",
+      "gutterSafe": true,
+      "changedSincePrevious": [
+        "scaleChanged",
+        "objectStateChanged",
+        "characterStateChanged",
+        "emotionalStateChanged",
+        "actionChanged",
+        "compositionChanged"
+      ],
+      "newStoryInformation": [
+        "action:dwell",
+        "feeling:calm"
+      ],
+      "newVisualInformation": [
+        "object",
+        "scale",
+        "framing"
+      ],
+      "consequenceVisible": true,
+      "recognisableWithoutText": false,
+      "storyProgressed": true,
+      "cameraOnly": false
+    },
+    {
+      "spreadId": "p10",
+      "beatId": "b10",
+      "role": "climax",
+      "actionFamily": "peak",
+      "phase": "climax",
+      "locationId": "open-garden",
+      "subLocationId": "",
+      "cast": [
+        "maya"
+      ],
+      "storyObjects": [
+        "hidden-star",
+        "sky-stars"
+      ],
+      "emotionalRegister": "high",
+      "visualImportance": "hero",
+      "pageRole": "double-page-spread",
+      "pageKind": "double-page-spread",
+      "plannedTextRegion": "upper-right",
+      "gutterSafe": true,
+      "changedSincePrevious": [
+        "objectStateChanged",
+        "characterStateChanged",
+        "emotionalStateChanged",
+        "actionChanged",
+        "compositionChanged"
+      ],
+      "newStoryInformation": [
+        "action:peak",
+        "feeling:high"
+      ],
+      "newVisualInformation": [
+        "object",
+        "framing"
+      ],
+      "consequenceVisible": true,
+      "recognisableWithoutText": true,
+      "storyProgressed": true,
+      "cameraOnly": false
+    },
+    {
+      "spreadId": "p11",
+      "beatId": "b11",
+      "role": "resolution",
+      "actionFamily": "settle",
+      "phase": "resolution",
+      "locationId": "open-garden",
+      "subLocationId": "",
+      "cast": [
+        "maya"
+      ],
+      "storyObjects": [
+        "hidden-star",
+        "sky-stars"
+      ],
+      "emotionalRegister": "calm",
+      "visualImportance": "quiet",
+      "pageRole": "right-page",
+      "pageKind": "single-page",
+      "plannedTextRegion": "upper-right",
+      "gutterSafe": true,
+      "changedSincePrevious": [
+        "scaleChanged",
+        "characterStateChanged",
+        "emotionalStateChanged",
+        "actionChanged",
+        "compositionChanged"
+      ],
+      "newStoryInformation": [
+        "action:settle",
+        "feeling:calm"
+      ],
+      "newVisualInformation": [
+        "framing-only"
+      ],
+      "consequenceVisible": false,
+      "recognisableWithoutText": true,
+      "storyProgressed": true,
+      "cameraOnly": false
+    }
+  ],
+  "deltas": [
+    {
+      "from": "p1",
+      "to": "p2",
+      "visualDelta": {
+        "locationChanged": false,
+        "subLocationChanged": false,
+        "scaleChanged": true,
+        "worldStateChanged": false,
+        "objectStateChanged": true,
+        "characterStateChanged": true,
+        "castChanged": false,
+        "lightingChanged": false,
+        "timeChanged": false,
+        "emotionalStateChanged": true,
+        "actionChanged": true,
+        "compositionChanged": true,
+        "revealChanged": true
+      },
+      "storyProgressed": true,
+      "cameraOnly": false,
+      "worldIdentity": {
+        "samePlace": true,
+        "identityHeld": true,
+        "linked": true,
+        "sharedLandmarks": [
+          "clay-flowerpot",
+          "garden-wall"
+        ]
+      }
+    },
+    {
+      "from": "p2",
+      "to": "p3",
+      "visualDelta": {
+        "locationChanged": false,
+        "subLocationChanged": false,
+        "scaleChanged": true,
+        "worldStateChanged": false,
+        "objectStateChanged": true,
+        "characterStateChanged": true,
+        "castChanged": false,
+        "lightingChanged": false,
+        "timeChanged": false,
+        "emotionalStateChanged": true,
+        "actionChanged": true,
+        "compositionChanged": true,
+        "revealChanged": false
+      },
+      "storyProgressed": true,
+      "cameraOnly": false,
+      "worldIdentity": {
+        "samePlace": true,
+        "identityHeld": true,
+        "linked": true,
+        "sharedLandmarks": [
+          "clay-flowerpot",
+          "garden-wall"
+        ]
+      }
+    },
+    {
+      "from": "p3",
+      "to": "p4",
+      "visualDelta": {
+        "locationChanged": false,
+        "subLocationChanged": false,
+        "scaleChanged": false,
+        "worldStateChanged": false,
+        "objectStateChanged": true,
+        "characterStateChanged": true,
+        "castChanged": false,
+        "lightingChanged": false,
+        "timeChanged": false,
+        "emotionalStateChanged": true,
+        "actionChanged": false,
+        "compositionChanged": true,
+        "revealChanged": false
+      },
+      "storyProgressed": true,
+      "cameraOnly": false,
+      "worldIdentity": {
+        "samePlace": true,
+        "identityHeld": true,
+        "linked": true,
+        "sharedLandmarks": [
+          "clay-flowerpot",
+          "garden-wall"
+        ]
+      }
+    },
+    {
+      "from": "p4",
+      "to": "p5",
+      "visualDelta": {
+        "locationChanged": false,
+        "subLocationChanged": false,
+        "scaleChanged": true,
+        "worldStateChanged": false,
+        "objectStateChanged": true,
+        "characterStateChanged": true,
+        "castChanged": false,
+        "lightingChanged": false,
+        "timeChanged": false,
+        "emotionalStateChanged": true,
+        "actionChanged": false,
+        "compositionChanged": true,
+        "revealChanged": false
+      },
+      "storyProgressed": true,
+      "cameraOnly": false,
+      "worldIdentity": {
+        "samePlace": true,
+        "identityHeld": true,
+        "linked": true,
+        "sharedLandmarks": [
+          "clay-flowerpot",
+          "garden-wall"
+        ]
+      }
+    },
+    {
+      "from": "p5",
+      "to": "p6",
+      "visualDelta": {
+        "locationChanged": false,
+        "subLocationChanged": false,
+        "scaleChanged": true,
+        "worldStateChanged": false,
+        "objectStateChanged": true,
+        "characterStateChanged": true,
+        "castChanged": false,
+        "lightingChanged": false,
+        "timeChanged": false,
+        "emotionalStateChanged": true,
+        "actionChanged": false,
+        "compositionChanged": true,
+        "revealChanged": false
+      },
+      "storyProgressed": true,
+      "cameraOnly": false,
+      "worldIdentity": {
+        "samePlace": true,
+        "identityHeld": true,
+        "linked": true,
+        "sharedLandmarks": [
+          "clay-flowerpot",
+          "garden-wall"
+        ]
+      }
+    },
+    {
+      "from": "p6",
+      "to": "p7",
+      "visualDelta": {
+        "locationChanged": false,
+        "subLocationChanged": false,
+        "scaleChanged": true,
+        "worldStateChanged": false,
+        "objectStateChanged": true,
+        "characterStateChanged": true,
+        "castChanged": false,
+        "lightingChanged": false,
+        "timeChanged": false,
+        "emotionalStateChanged": true,
+        "actionChanged": true,
+        "compositionChanged": true,
+        "revealChanged": false
+      },
+      "storyProgressed": true,
+      "cameraOnly": false,
+      "worldIdentity": {
+        "samePlace": true,
+        "identityHeld": true,
+        "linked": true,
+        "sharedLandmarks": [
+          "clay-flowerpot",
+          "garden-wall"
+        ]
+      }
+    },
+    {
+      "from": "p7",
+      "to": "p8",
+      "visualDelta": {
+        "locationChanged": true,
+        "subLocationChanged": false,
+        "scaleChanged": true,
+        "worldStateChanged": false,
+        "objectStateChanged": true,
+        "characterStateChanged": true,
+        "castChanged": false,
+        "lightingChanged": false,
+        "timeChanged": false,
+        "emotionalStateChanged": true,
+        "actionChanged": true,
+        "compositionChanged": true,
+        "revealChanged": true
+      },
+      "storyProgressed": true,
+      "cameraOnly": false,
+      "worldIdentity": {
+        "samePlace": false,
+        "identityHeld": true,
+        "linked": true,
+        "sharedLandmarks": [
+          "clay-flowerpot",
+          "garden-wall"
+        ]
+      }
+    },
+    {
+      "from": "p8",
+      "to": "p9",
+      "visualDelta": {
+        "locationChanged": false,
+        "subLocationChanged": false,
+        "scaleChanged": true,
+        "worldStateChanged": false,
+        "objectStateChanged": true,
+        "characterStateChanged": true,
+        "castChanged": false,
+        "lightingChanged": false,
+        "timeChanged": false,
+        "emotionalStateChanged": true,
+        "actionChanged": true,
+        "compositionChanged": true,
+        "revealChanged": false
+      },
+      "storyProgressed": true,
+      "cameraOnly": false,
+      "worldIdentity": {
+        "samePlace": true,
+        "identityHeld": true,
+        "linked": true,
+        "sharedLandmarks": [
+          "clay-flowerpot",
+          "garden-wall"
+        ]
+      }
+    },
+    {
+      "from": "p9",
+      "to": "p10",
+      "visualDelta": {
+        "locationChanged": false,
+        "subLocationChanged": false,
+        "scaleChanged": false,
+        "worldStateChanged": false,
+        "objectStateChanged": true,
+        "characterStateChanged": true,
+        "castChanged": false,
+        "lightingChanged": false,
+        "timeChanged": false,
+        "emotionalStateChanged": true,
+        "actionChanged": true,
+        "compositionChanged": true,
+        "revealChanged": false
+      },
+      "storyProgressed": true,
+      "cameraOnly": false,
+      "worldIdentity": {
+        "samePlace": true,
+        "identityHeld": true,
+        "linked": true,
+        "sharedLandmarks": [
+          "clay-flowerpot",
+          "garden-wall"
+        ]
+      }
+    },
+    {
+      "from": "p10",
+      "to": "p11",
+      "visualDelta": {
+        "locationChanged": false,
+        "subLocationChanged": false,
+        "scaleChanged": true,
+        "worldStateChanged": false,
+        "objectStateChanged": false,
+        "characterStateChanged": true,
+        "castChanged": false,
+        "lightingChanged": false,
+        "timeChanged": false,
+        "emotionalStateChanged": true,
+        "actionChanged": true,
+        "compositionChanged": true,
+        "revealChanged": false
+      },
+      "storyProgressed": true,
+      "cameraOnly": false,
+      "worldIdentity": {
+        "samePlace": true,
+        "identityHeld": true,
+        "linked": true,
+        "sharedLandmarks": [
+          "clay-flowerpot",
+          "garden-wall"
+        ]
+      }
+    }
+  ]
+}

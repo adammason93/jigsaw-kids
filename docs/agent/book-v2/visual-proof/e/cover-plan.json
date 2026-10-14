@@ -1,0 +1,95 @@
+{
+  "pageId": "cover",
+  "coverId": "cover",
+  "bookId": "E",
+  "title": "A Blink for the Sky",
+  "subtitle": "",
+  "protagonists": [
+    "maya"
+  ],
+  "heroCharacterIds": [
+    "maya"
+  ],
+  "supportingCharacterIds": [],
+  "featuredEntityIds": [
+    "hidden-star"
+  ],
+  "settingId": "flowerpot-corner",
+  "locationId": "flowerpot-corner",
+  "motif": "Light covered, light uncovered, light answered.",
+  "tone": "bedtime",
+  "visualHook": "A small light under a flowerpot goes out whenever Maya looks up.",
+  "emotionalPromise": "A hidden flicker invites attention.",
+  "coverMoment": "A cover pose: Maya with the hidden star in the flowerpot corner, one still instant that invites the story, before the ending.",
+  "composition": "Picture-book front cover. One clear silhouette and one focal group in the lower two-thirds. The upper area stays open for type. This is not an interior page.",
+  "shot": "cover",
+  "angle": "a gentle low angle, with open air above the figures",
+  "characterPlacement": "lower two-thirds, one pose each, clear of the title area",
+  "entityPlacement": "with the hero, small enough to read at once, not hidden by type",
+  "environment": "the flowerpot corner. A sheltered corner beneath a tall garden wall, with one clay flowerpot and soft evening shadows. Open toward the wide night sky as depth behind the figures. Deep blue space with scattered warm points of light and generous quiet gaps.",
+  "lighting": "evening light, quiet contrast, warm points of light",
+  "atmosphere": "evening light, quiet contrast, warm points of light",
+  "titleSafeRegion": "upper",
+  "authorSafeRegion": "lower",
+  "logoSafeRegion": "lower-corner",
+  "spoilerConstraints": "Do not depict the resolution or the story already finished.",
+  "illustratorId": "wondii-picture-book",
+  "styleId": "wondii-picture-book",
+  "style": {
+    "styleId": "wondii-picture-book",
+    "status": "approved",
+    "scope": "book",
+    "illustrator": {
+      "rendering": "soft painted picture-book",
+      "characterRendering": "the same painted construction for every person and creature",
+      "shapeLanguage": "clear rounded shapes",
+      "edge": "soft painted edges",
+      "texture": "light painted texture",
+      "material": "painted surfaces",
+      "detail": "readable picture-book detail",
+      "depth": "gentle painted depth",
+      "facialRendering": "expressive painted faces with one construction",
+      "proportions": "storybook proportions",
+      "environmentRendering": "painted places, whatever the place contains",
+      "lightingPhilosophy": "painted light that follows the scene",
+      "colourTreatment": "harmonised painted colour",
+      "finish": "one picture-book finish"
+    },
+    "atmosphere": {
+      "tone": "bedtime",
+      "mood": "evening light, quiet contrast, warm points of light"
+    }
+  },
+  "referenceAssetIds": [
+    "maya-v1"
+  ],
+  "referenceAssets": [
+    {
+      "characterId": "maya",
+      "assetId": "maya-v1",
+      "file": "games/images/characters/maya-v1.jpg"
+    }
+  ],
+  "storyEntities": [
+    {
+      "entityId": "hidden-star",
+      "scope": "book",
+      "visualIdentity": "The same small five-pointed star in every picture, recognisable when tiny, in the hands, or rising.",
+      "shape": "five even points, a simple star",
+      "relativeScale": "small enough to rest in two open palms; the same shape when it is a speck or when it rises",
+      "materials": "soft light, not metal, not paper, not a sticker",
+      "colourLight": "warm gold-white glow",
+      "distinctiveFeatures": [
+        "five even points",
+        "warm gold-white glow",
+        "points fold inward when it hides",
+        "blinks by changing brightness"
+      ],
+      "referenceAssetIds": [],
+      "mutableState": "points open or folded, brightness, and position. The shape and glow stay the same.",
+      "face": "none"
+    }
+  ],
+  "sourceSpreadId": null,
+  "aliasesInterior": false
+}

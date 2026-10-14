@@ -1,0 +1,1176 @@
+{
+  "status": "REVIEWABLE",
+  "request": {
+    "castIds": [
+      "maya"
+    ],
+    "idea": "Maya finds a lonely star that is scared to go back into the sky.",
+    "yearGroup": "Year 2",
+    "length": "storybook",
+    "tone": "bedtime"
+  },
+  "modelCalls": 2,
+  "repairCalls": 0,
+  "repairs": [],
+  "stagesRepaired": [],
+  "bible": {
+    "title": "Maya and the Humming Star",
+    "yearGroup": "Year 2",
+    "readerAge": "Year 2",
+    "tone": "bedtime",
+    "targetLength": "storybook",
+    "userIdea": "Maya finds a lonely star that is scared to go back into the sky.",
+    "castIds": [
+      "maya"
+    ],
+    "visualStyle": "wondii-picture-book",
+    "premise": "Maya finds a lonely star that is scared to go back into the sky.",
+    "hook": "A trembling hum leads Maya to a star beneath the flowers.",
+    "goal": "Help the star return to the sky without feeling alone.",
+    "centralProblem": "The star floats when it hears humming, but fear silences it.",
+    "stakes": "Without a steady hum, the star must stay beneath the flowers.",
+    "climaxBeatId": "b5",
+    "resolutionBeatId": "b6",
+    "emotionalArc": [
+      "gentle wonder",
+      "understanding",
+      "hope",
+      "uncertainty",
+      "trust",
+      "peaceful connection"
+    ],
+    "motif": "A shared hum that bridges a quiet distance.",
+    "locations": [
+      {
+        "locationId": "moonlit-garden",
+        "name": "the moonlit garden",
+        "connectedTo": [
+          "open-night-sky"
+        ],
+        "visualIdentity": "Pale flowers, soft grass, and an unobstructed view overhead."
+      },
+      {
+        "locationId": "open-night-sky",
+        "name": "the open night sky",
+        "connectedTo": [
+          "moonlit-garden"
+        ],
+        "visualIdentity": "Deep blue space directly above the garden, with gentle moonlight."
+      }
+    ],
+    "entities": [
+      {
+        "entityId": "humming-star",
+        "name": "the star",
+        "identity": "A small, warm-gold star whose points tremble when frightened. It floats whenever it hears humming, including its own.",
+        "ownerCharacterId": null,
+        "locationId": "open-night-sky",
+        "state": "Humming steadily in the sky, continuing through Maya's pauses.",
+        "introducedAt": "b1"
+      }
+    ],
+    "beats": [
+      {
+        "beatId": "b1",
+        "role": "hook",
+        "locationId": "moonlit-garden",
+        "charactersPresent": [
+          "maya"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "maya",
+            "trait": "curious",
+            "shows": "Parts the flower stems and tilts her ear toward the trembling hum."
+          }
+        ],
+        "problemFamily": "hidden-humming",
+        "because": "",
+        "resolvesProblem": false,
+        "action": "Maya follows a trembling hum and finds a lonely star. It hovers beneath the flowers, scared to leave their shelter.",
+        "emotion": "gentle wonder",
+        "entitiesRequired": [
+          "humming-star"
+        ],
+        "visualFocus": "Maya's long dark curls and yellow cardigan beside glowing flowers; her white shirt and blue skirt remain visible.",
+        "shotType": "establishing",
+        "compositionIntent": "Keep Maya small within a quiet garden, bending toward golden light.",
+        "textPurpose": "Introduce Maya, the lonely star, and its reluctance to rise.",
+        "pageTurnHook": "What keeps the star beneath the flowers?",
+        "textSafeRegion": "upper-left",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "maya",
+              "locationId": "moonlit-garden",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [],
+              "emotion": "steady",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": []
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "maya",
+              "locationId": "moonlit-garden",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [],
+              "emotion": "gentle wonder",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "humming-star",
+              "ownerCharacterId": null,
+              "locationId": "moonlit-garden",
+              "state": "Humming faintly and hovering beneath the flower stems."
+            }
+          ]
+        }
+      },
+      {
+        "beatId": "b2",
+        "role": "discovery",
+        "locationId": "moonlit-garden",
+        "charactersPresent": [
+          "maya"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "maya",
+            "trait": "curious",
+            "shows": "Watches the star's height change as its humming fades."
+          }
+        ],
+        "problemFamily": "fear-silences",
+        "because": "b1",
+        "resolvesProblem": false,
+        "action": "The star explains that humming lifts it, but loneliness stops its song. Maya offers to hum while it goes back into the sky.",
+        "emotion": "understanding",
+        "entitiesRequired": [
+          "humming-star"
+        ],
+        "visualFocus": "The star settling onto grass as its hum ends.",
+        "shotType": "close",
+        "compositionIntent": "Bring Maya's listening face level with the star.",
+        "textPurpose": "Make the floating rule and Maya's goal clear, using one brief spoken turn.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-right",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "maya",
+              "locationId": "moonlit-garden",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [],
+              "emotion": "gentle wonder",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "humming-star",
+              "ownerCharacterId": null,
+              "locationId": "moonlit-garden",
+              "state": "Humming faintly and hovering beneath the flower stems."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "maya",
+              "locationId": "moonlit-garden",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [],
+              "emotion": "understanding",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "humming-star",
+              "ownerCharacterId": null,
+              "locationId": "moonlit-garden",
+              "state": "Silent and resting on the grass."
+            }
+          ]
+        }
+      },
+      {
+        "beatId": "b3",
+        "role": "attempt",
+        "locationId": "moonlit-garden",
+        "charactersPresent": [
+          "maya"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "maya",
+            "trait": "brave",
+            "shows": "Stands beneath the rising star and keeps humming toward it."
+          }
+        ],
+        "problemFamily": "borrowed-song",
+        "because": "b2",
+        "resolvesProblem": false,
+        "action": "Maya hums a simple tune, lifting the star above the flowers. She pauses for breath, leaving the star without a hum.",
+        "emotion": "hope with a small hesitation",
+        "entitiesRequired": [
+          "humming-star"
+        ],
+        "visualFocus": "A narrow gap opening between the star and the flowers.",
+        "shotType": "low",
+        "compositionIntent": "Look past Maya toward the star's modest rise.",
+        "textPurpose": "Show that Maya's help works but cannot remain uninterrupted.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-left",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "maya",
+              "locationId": "moonlit-garden",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [],
+              "emotion": "understanding",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "humming-star",
+              "ownerCharacterId": null,
+              "locationId": "moonlit-garden",
+              "state": "Silent and resting on the grass."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "maya",
+              "locationId": "moonlit-garden",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [],
+              "emotion": "hope with a small hesitation",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "humming-star",
+              "ownerCharacterId": null,
+              "locationId": "moonlit-garden",
+              "state": "Hovering above the flowers, beginning to sink during Maya's breath."
+            }
+          ]
+        }
+      },
+      {
+        "beatId": "b4",
+        "role": "complication",
+        "locationId": "moonlit-garden",
+        "charactersPresent": [
+          "maya"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "maya",
+            "trait": "curious",
+            "shows": "Hums the same tune without moving the stems, listening for an answer."
+          }
+        ],
+        "problemFamily": "flowers-hide-friend",
+        "because": "b3",
+        "resolvesProblem": false,
+        "action": "The star sinks behind thick flowers and cannot see Maya. Her repeated tune helps it locate her, and it hums back.",
+        "emotion": "uncertainty easing into recognition",
+        "entitiesRequired": [
+          "humming-star"
+        ],
+        "visualFocus": "Maya and the hidden star answering with the same tune.",
+        "shotType": "overhead",
+        "compositionIntent": "Show the flowers separating two nearby friends without making the space threatening.",
+        "textPurpose": "Turn the failed attempt into proof that sound preserves their connection.",
+        "pageTurnHook": "Can their answering hums keep the star rising?",
+        "textSafeRegion": "upper-right",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "maya",
+              "locationId": "moonlit-garden",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [],
+              "emotion": "hope with a small hesitation",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "humming-star",
+              "ownerCharacterId": null,
+              "locationId": "moonlit-garden",
+              "state": "Hovering above the flowers, beginning to sink during Maya's breath."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "maya",
+              "locationId": "moonlit-garden",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [],
+              "emotion": "uncertainty easing into recognition",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "humming-star",
+              "ownerCharacterId": null,
+              "locationId": "moonlit-garden",
+              "state": "Hidden behind flowers, answering Maya's tune and beginning to float."
+            }
+          ]
+        }
+      },
+      {
+        "beatId": "b5",
+        "role": "climax",
+        "locationId": "moonlit-garden",
+        "charactersPresent": [
+          "maya"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "maya",
+            "trait": "brave",
+            "shows": "Lets her own hum pause while holding her gaze on the rising star."
+          }
+        ],
+        "problemFamily": "shared-breaths",
+        "because": "b4",
+        "resolvesProblem": false,
+        "action": "Maya and the star hum together, covering each other's breaths. Their familiar tune carries the star back into the sky.",
+        "emotion": "quiet trust",
+        "entitiesRequired": [
+          "humming-star"
+        ],
+        "visualFocus": "The star continuing upward while Maya takes a breath.",
+        "shotType": "high",
+        "compositionIntent": "Frame Maya below the rising star, connected by their shared attention.",
+        "textPurpose": "Resolve the interrupted humming through the star's earlier answering song.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-left",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "maya",
+              "locationId": "moonlit-garden",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [],
+              "emotion": "uncertainty easing into recognition",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "humming-star",
+              "ownerCharacterId": null,
+              "locationId": "moonlit-garden",
+              "state": "Hidden behind flowers, answering Maya's tune and beginning to float."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "maya",
+              "locationId": "moonlit-garden",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [],
+              "emotion": "quiet trust",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "humming-star",
+              "ownerCharacterId": null,
+              "locationId": "open-night-sky",
+              "state": "Humming steadily in the sky, continuing through Maya's pauses."
+            }
+          ]
+        }
+      },
+      {
+        "beatId": "b6",
+        "role": "resolution",
+        "locationId": "moonlit-garden",
+        "charactersPresent": [
+          "maya"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "maya",
+            "trait": "curious",
+            "shows": "Lies on the grass and listens for the star's answering hum."
+          }
+        ],
+        "problemFamily": "",
+        "because": "b5",
+        "resolvesProblem": true,
+        "action": "Maya rests beneath the star, exchanging soft hums across the distance. Their shared tune makes being apart feel peaceful.",
+        "emotion": "settled companionship",
+        "entitiesRequired": [
+          "humming-star"
+        ],
+        "visualFocus": "Maya resting on the grass beneath the star's steady golden glow.",
+        "shotType": "vignette",
+        "compositionIntent": "Echo the opening garden, now open and restful rather than concealing.",
+        "textPurpose": "Show that the star can remain in the sky without loneliness, ending in calm.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-right",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "maya",
+              "locationId": "moonlit-garden",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [],
+              "emotion": "quiet trust",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "humming-star",
+              "ownerCharacterId": null,
+              "locationId": "open-night-sky",
+              "state": "Humming steadily in the sky, continuing through Maya's pauses."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "maya",
+              "locationId": "moonlit-garden",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [],
+              "emotion": "settled companionship",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "humming-star",
+              "ownerCharacterId": null,
+              "locationId": "open-night-sky",
+              "state": "Humming steadily in the sky, continuing through Maya's pauses."
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "storyProblems": [],
+  "planProblems": [],
+  "textProblems": [],
+  "pages": [
+    {
+      "pageId": "p1",
+      "beatId": "b1",
+      "locationId": "moonlit-garden",
+      "charactersPresent": [
+        "maya"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "moonlit-garden",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "steady",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": []
+      },
+      "action": "Maya follows a trembling hum and finds a lonely star. It hovers beneath the flowers, scared to leave their shelter.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "moonlit-garden",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "gentle wonder",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "humming-star",
+            "ownerCharacterId": null,
+            "locationId": "moonlit-garden",
+            "state": "Humming faintly and hovering beneath the flower stems."
+          }
+        ]
+      },
+      "emotion": "gentle wonder",
+      "entitiesRequired": [
+        "humming-star"
+      ],
+      "visualFocus": "Maya's long dark curls and yellow cardigan beside glowing flowers; her white shirt and blue skirt remain visible.",
+      "shotType": "establishing",
+      "compositionIntent": "Keep Maya small within a quiet garden, bending toward golden light.",
+      "textPurpose": "Introduce Maya, the lonely star, and its reluctance to rise.",
+      "pageTurnHook": "What keeps the star beneath the flowers?",
+      "needsFromPrevious": null,
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "moonlit-garden",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "gentle wonder",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "humming-star",
+            "ownerCharacterId": null,
+            "locationId": "moonlit-garden",
+            "state": "Humming faintly and hovering beneath the flower stems."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-left",
+      "sentences": [
+        {
+          "text": "Maya follows a trembling hum and finds a lonely star.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "It hovers beneath the flowers.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "The star is scared to leave their shelter.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "Maya follows a trembling hum and finds a lonely star. It hovers beneath the flowers. The star is scared to leave their shelter."
+    },
+    {
+      "pageId": "p2",
+      "beatId": "b2",
+      "locationId": "moonlit-garden",
+      "charactersPresent": [
+        "maya"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "moonlit-garden",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "gentle wonder",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "humming-star",
+            "ownerCharacterId": null,
+            "locationId": "moonlit-garden",
+            "state": "Humming faintly and hovering beneath the flower stems."
+          }
+        ]
+      },
+      "action": "The star explains that humming lifts it, but loneliness stops its song. Maya offers to hum while it goes back into the sky.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "moonlit-garden",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "understanding",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "humming-star",
+            "ownerCharacterId": null,
+            "locationId": "moonlit-garden",
+            "state": "Silent and resting on the grass."
+          }
+        ]
+      },
+      "emotion": "understanding",
+      "entitiesRequired": [
+        "humming-star"
+      ],
+      "visualFocus": "The star settling onto grass as its hum ends.",
+      "shotType": "close",
+      "compositionIntent": "Bring Maya's listening face level with the star.",
+      "textPurpose": "Make the floating rule and Maya's goal clear, using one brief spoken turn.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "moonlit-garden",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "gentle wonder",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "humming-star",
+            "ownerCharacterId": null,
+            "locationId": "moonlit-garden",
+            "state": "Humming faintly and hovering beneath the flower stems."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "moonlit-garden",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "understanding",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "humming-star",
+            "ownerCharacterId": null,
+            "locationId": "moonlit-garden",
+            "state": "Silent and resting on the grass."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-right",
+      "sentences": [
+        {
+          "text": "The star rests silently on the grass, then whispers.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "\"Humming lifts me, but I can't sing when I'm lonely.\"",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Maya offers to hum while it goes back into the sky.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "The star rests silently on the grass, then whispers. \"Humming lifts me, but I can't sing when I'm lonely.\" Maya offers to hum while it goes back into the sky."
+    },
+    {
+      "pageId": "p3",
+      "beatId": "b3",
+      "locationId": "moonlit-garden",
+      "charactersPresent": [
+        "maya"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "moonlit-garden",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "understanding",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "humming-star",
+            "ownerCharacterId": null,
+            "locationId": "moonlit-garden",
+            "state": "Silent and resting on the grass."
+          }
+        ]
+      },
+      "action": "Maya hums a simple tune, lifting the star above the flowers. She pauses for breath, leaving the star without a hum.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "moonlit-garden",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "hope with a small hesitation",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "humming-star",
+            "ownerCharacterId": null,
+            "locationId": "moonlit-garden",
+            "state": "Hovering above the flowers, beginning to sink during Maya's breath."
+          }
+        ]
+      },
+      "emotion": "hope with a small hesitation",
+      "entitiesRequired": [
+        "humming-star"
+      ],
+      "visualFocus": "A narrow gap opening between the star and the flowers.",
+      "shotType": "low",
+      "compositionIntent": "Look past Maya toward the star's modest rise.",
+      "textPurpose": "Show that Maya's help works but cannot remain uninterrupted.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "moonlit-garden",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "understanding",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "humming-star",
+            "ownerCharacterId": null,
+            "locationId": "moonlit-garden",
+            "state": "Silent and resting on the grass."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "moonlit-garden",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "hope with a small hesitation",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "humming-star",
+            "ownerCharacterId": null,
+            "locationId": "moonlit-garden",
+            "state": "Hovering above the flowers, beginning to sink during Maya's breath."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-left",
+      "sentences": [
+        {
+          "text": "Maya hums a simple tune.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "The star lifts above the flowers.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "She stops for a breath, and it begins to sink.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "Maya hums a simple tune. The star lifts above the flowers. She stops for a breath, and it begins to sink."
+    },
+    {
+      "pageId": "p4",
+      "beatId": "b4",
+      "locationId": "moonlit-garden",
+      "charactersPresent": [
+        "maya"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "moonlit-garden",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "hope with a small hesitation",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "humming-star",
+            "ownerCharacterId": null,
+            "locationId": "moonlit-garden",
+            "state": "Hovering above the flowers, beginning to sink during Maya's breath."
+          }
+        ]
+      },
+      "action": "The star sinks behind thick flowers and cannot see Maya. Her repeated tune helps it locate her, and it hums back.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "moonlit-garden",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "uncertainty easing into recognition",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "humming-star",
+            "ownerCharacterId": null,
+            "locationId": "moonlit-garden",
+            "state": "Hidden behind flowers, answering Maya's tune and beginning to float."
+          }
+        ]
+      },
+      "emotion": "uncertainty easing into recognition",
+      "entitiesRequired": [
+        "humming-star"
+      ],
+      "visualFocus": "Maya and the hidden star answering with the same tune.",
+      "shotType": "overhead",
+      "compositionIntent": "Show the flowers separating two nearby friends without making the space threatening.",
+      "textPurpose": "Turn the failed attempt into proof that sound preserves their connection.",
+      "pageTurnHook": "Can their answering hums keep the star rising?",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "moonlit-garden",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "hope with a small hesitation",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "humming-star",
+            "ownerCharacterId": null,
+            "locationId": "moonlit-garden",
+            "state": "Hovering above the flowers, beginning to sink during Maya's breath."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "moonlit-garden",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "uncertainty easing into recognition",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "humming-star",
+            "ownerCharacterId": null,
+            "locationId": "moonlit-garden",
+            "state": "Hidden behind flowers, answering Maya's tune and beginning to float."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-right",
+      "sentences": [
+        {
+          "text": "The star sinks behind thick flowers and cannot see Maya.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "She hums the same tune again, helping it find her.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "It hums back and begins to float.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "The star sinks behind thick flowers and cannot see Maya. She hums the same tune again, helping it find her. It hums back and begins to float."
+    },
+    {
+      "pageId": "p5",
+      "beatId": "b5",
+      "locationId": "moonlit-garden",
+      "charactersPresent": [
+        "maya"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "moonlit-garden",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "uncertainty easing into recognition",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "humming-star",
+            "ownerCharacterId": null,
+            "locationId": "moonlit-garden",
+            "state": "Hidden behind flowers, answering Maya's tune and beginning to float."
+          }
+        ]
+      },
+      "action": "Maya and the star hum together, covering each other's breaths. Their familiar tune carries the star back into the sky.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "moonlit-garden",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "quiet trust",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "humming-star",
+            "ownerCharacterId": null,
+            "locationId": "open-night-sky",
+            "state": "Humming steadily in the sky, continuing through Maya's pauses."
+          }
+        ]
+      },
+      "emotion": "quiet trust",
+      "entitiesRequired": [
+        "humming-star"
+      ],
+      "visualFocus": "The star continuing upward while Maya takes a breath.",
+      "shotType": "high",
+      "compositionIntent": "Frame Maya below the rising star, connected by their shared attention.",
+      "textPurpose": "Resolve the interrupted humming through the star's earlier answering song.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "moonlit-garden",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "uncertainty easing into recognition",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "humming-star",
+            "ownerCharacterId": null,
+            "locationId": "moonlit-garden",
+            "state": "Hidden behind flowers, answering Maya's tune and beginning to float."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "moonlit-garden",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "quiet trust",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "humming-star",
+            "ownerCharacterId": null,
+            "locationId": "open-night-sky",
+            "state": "Humming steadily in the sky, continuing through Maya's pauses."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-left",
+      "sentences": [
+        {
+          "text": "Maya finds the lonely star less scared with their familiar tune.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "They hum together, taking turns to breathe.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Their tune carries it back into the sky.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "Maya finds the lonely star less scared with their familiar tune. They hum together, taking turns to breathe. Their tune carries it back into the sky."
+    },
+    {
+      "pageId": "p6",
+      "beatId": "b6",
+      "locationId": "moonlit-garden",
+      "charactersPresent": [
+        "maya"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "moonlit-garden",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "quiet trust",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "humming-star",
+            "ownerCharacterId": null,
+            "locationId": "open-night-sky",
+            "state": "Humming steadily in the sky, continuing through Maya's pauses."
+          }
+        ]
+      },
+      "action": "Maya rests beneath the star, exchanging soft hums across the distance. Their shared tune makes being apart feel peaceful.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "moonlit-garden",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "settled companionship",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "humming-star",
+            "ownerCharacterId": null,
+            "locationId": "open-night-sky",
+            "state": "Humming steadily in the sky, continuing through Maya's pauses."
+          }
+        ]
+      },
+      "emotion": "settled companionship",
+      "entitiesRequired": [
+        "humming-star"
+      ],
+      "visualFocus": "Maya resting on the grass beneath the star's steady golden glow.",
+      "shotType": "vignette",
+      "compositionIntent": "Echo the opening garden, now open and restful rather than concealing.",
+      "textPurpose": "Show that the star can remain in the sky without loneliness, ending in calm.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "moonlit-garden",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "quiet trust",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "humming-star",
+            "ownerCharacterId": null,
+            "locationId": "open-night-sky",
+            "state": "Humming steadily in the sky, continuing through Maya's pauses."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "moonlit-garden",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "settled companionship",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "humming-star",
+            "ownerCharacterId": null,
+            "locationId": "open-night-sky",
+            "state": "Humming steadily in the sky, continuing through Maya's pauses."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-right",
+      "sentences": [
+        {
+          "text": "Maya finds the star isn't lonely or scared now.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "She rests beneath it, humming softly back into the quiet.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "The star answers, and being apart feels peaceful.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "Maya finds the star isn't lonely or scared now. She rests beneath it, humming softly back into the quiet. The star answers, and being apart feels peaceful."
+    }
+  ],
+  "imageCalls": 0,
+  "imageDraws": 0,
+  "imageReason": "images_disabled",
+  "imageUsd": 0,
+  "id": "e",
+  "listedUsd": 0.032798,
+  "guardUsd": 0.065596
+}

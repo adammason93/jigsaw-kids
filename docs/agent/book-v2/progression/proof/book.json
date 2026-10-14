@@ -1,0 +1,4988 @@
+{
+  "status": "REVIEWABLE",
+  "request": {
+    "castIds": [
+      "mina",
+      "leo"
+    ],
+    "idea": "Mina and Leo find a clockwork beetle living in a flooded library. It can walk only when one of them winds it, and each winding changes the building.",
+    "yearGroup": "Year 3",
+    "ageBand": "",
+    "length": "storybook",
+    "tone": "adventure",
+    "context": "school"
+  },
+  "modelCalls": 3,
+  "repairCalls": 1,
+  "repairs": [
+    {
+      "stage": "bible",
+      "problems": [
+        "movement-contradiction:p2",
+        "movement-contradiction:p4",
+        "movement-contradiction:p5",
+        "movement-contradiction:p11"
+      ]
+    }
+  ],
+  "stagesRepaired": [
+    "bible"
+  ],
+  "bible": {
+    "title": "The Beetle's Last Turn",
+    "yearGroup": "Year 3",
+    "ageBand": "",
+    "readerAge": "7–8",
+    "readerStage": "year3",
+    "narrativeComplexity": "a problem with a consequence the reader can connect",
+    "tone": "adventure",
+    "targetLength": "storybook",
+    "userIdea": "Mina and Leo find a clockwork beetle living in a flooded library. It can walk only when one of them winds it, and each winding changes the building.",
+    "castIds": [
+      "mina",
+      "leo"
+    ],
+    "storyCast": [
+      {
+        "characterId": "brass-beetle",
+        "name": "The clockwork beetle",
+        "origin": "story",
+        "type": "creature",
+        "species": "creature",
+        "face": "",
+        "head": "",
+        "body": "",
+        "relativeSize": "",
+        "covering": "",
+        "colouring": "",
+        "markings": "",
+        "eyes": "",
+        "ears": "",
+        "horns": "",
+        "tail": "",
+        "distinctiveFeatures": [],
+        "accessories": [],
+        "visualIdentifiers": [],
+        "referenceAssetIds": [],
+        "visualImportance": ""
+      }
+    ],
+    "visualStyle": "wondii-picture-book",
+    "premise": "In a flooded library, mina and Leo find a clockwork beetle living inside a book shelter. It can walk only after a child winds its key, and each winding changes the building through linked controls. Their first turns destroy their escape route and admit more water, so they must understand the mechanism before trying again.",
+    "hook": "Brass feet tap beneath a book while floodwater creeps toward its raised shelter.",
+    "goal": "Drain the library before the children's raised platform and the beetle's shelter disappear underwater.",
+    "centralProblem": "Winding the beetle operates the library, but guessing at the controls worsens the flood.",
+    "stakes": "The children could lose their last dry foothold, and the beetle could lose its book shelter.",
+    "climaxBeatId": "b10",
+    "resolutionBeatId": "b11",
+    "emotionalArc": [
+      "interest",
+      "surprise",
+      "urgency",
+      "alarm",
+      "steadiness",
+      "determination",
+      "release"
+    ],
+    "motif": "Small brass feet making enormous changes.",
+    "locations": [
+      {
+        "locationId": "raised-reading-dais",
+        "name": "the library reading dais",
+        "connectedTo": [],
+        "visualIdentity": "A broad stone dais surrounded by flooded green bookshelves. A fixed bench stands beside a waist-high brass control track. A shallow book shelf and a drain grille sit directly beneath the track, within arm's reach of the bench. A narrow entrance bridge joins the dais to the doorway.",
+        "zones": [
+          "fixed reading bench"
+        ],
+        "persistentObjects": []
+      }
+    ],
+    "entities": [
+      {
+        "entityId": "clockwork-beetle",
+        "name": "clockwork beetle",
+        "identity": "The brass-beetle cast member; winding powers its legs, and its feet press the control track.",
+        "landmark": false,
+        "ownerCharacterId": "mina",
+        "locationId": "raised-reading-dais",
+        "state": "Carried from the adjacent track beneath the atlas cover; key untouched.",
+        "introducedAt": "b1"
+      },
+      {
+        "entityId": "blue-atlas",
+        "name": "blue atlas",
+        "identity": "A thick blue atlas with a silver compass on its cover, propped like a shelter on the shallow shelf.",
+        "landmark": false,
+        "ownerCharacterId": null,
+        "locationId": "raised-reading-dais",
+        "state": "Propped on the dry bench as a shelter.",
+        "introducedAt": "b1"
+      },
+      {
+        "entityId": "brass-controls",
+        "name": "brass control track",
+        "identity": "A short track beside the bench with bridge, wave, drain, and sun plates. Engraved lines show their mechanical connections. The drain opens while its plate is pressed; the sun locks it open and closes the inlet.",
+        "landmark": false,
+        "ownerCharacterId": null,
+        "locationId": "raised-reading-dais",
+        "state": "All four plates unpressed; engraved connections visible.",
+        "introducedAt": "b1"
+      },
+      {
+        "entityId": "entrance-bridge",
+        "name": "entrance bridge",
+        "identity": "A narrow wooden bridge between the dais and the doorway, hinged to rise against the wall.",
+        "landmark": false,
+        "ownerCharacterId": null,
+        "locationId": "raised-reading-dais",
+        "state": "Folded against the wall; return route unavailable.",
+        "introducedAt": "b1"
+      },
+      {
+        "entityId": "wave-inlet",
+        "name": "water inlet",
+        "identity": "A low wall hatch marked with a wave.",
+        "landmark": false,
+        "ownerCharacterId": null,
+        "locationId": "raised-reading-dais",
+        "state": "Closed by the sun mechanism.",
+        "introducedAt": "b1"
+      },
+      {
+        "entityId": "dais-drain",
+        "name": "drain grille",
+        "identity": "A hinged square grille immediately beneath the atlas shelf and beside the fixed bench.",
+        "landmark": false,
+        "ownerCharacterId": null,
+        "locationId": "raised-reading-dais",
+        "state": "Locked open and draining freely.",
+        "introducedAt": "b1"
+      }
+    ],
+    "beats": [
+      {
+        "beatId": "b1",
+        "role": "hook",
+        "locationId": "raised-reading-dais",
+        "charactersPresent": [
+          "mina",
+          "leo"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "mina",
+            "trait": "observant",
+            "shows": "She follows tapping vibrations along the shelf to two brass feet."
+          }
+        ],
+        "problemFamily": "",
+        "because": "",
+        "resolvesProblem": false,
+        "action": "Mina spots brass feet tapping beneath a propped atlas. Leo crouches beside her on the library reading dais.",
+        "emotion": "interest",
+        "entitiesRequired": [
+          "clockwork-beetle",
+          "blue-atlas",
+          "brass-controls",
+          "entrance-bridge",
+          "wave-inlet",
+          "dais-drain"
+        ],
+        "visualFocus": "Brass feet beneath the atlas.",
+        "shotType": "establishing",
+        "compositionIntent": "Establish the fixed bench, reachable controls, shelf, bridge, and surrounding water.",
+        "textPurpose": "Introduce the resident and the threatened shelter.",
+        "pageTurnHook": "What is tapping beneath the cover?",
+        "textSafeRegion": "upper-left",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "mina",
+              "locationId": "raised-reading-dais",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "steady",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "leo",
+              "locationId": "raised-reading-dais",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "steady",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": []
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "mina",
+              "locationId": "raised-reading-dais",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "interest",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "leo",
+              "locationId": "raised-reading-dais",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "interest",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "clockwork-beetle",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Stationary beneath the atlas beside the beginning of the track."
+            },
+            {
+              "entityId": "blue-atlas",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Propped on the shallow shelf as a shelter."
+            },
+            {
+              "entityId": "brass-controls",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "All four plates unpressed; engraved connections visible."
+            },
+            {
+              "entityId": "entrance-bridge",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Lowered, providing the children's return route."
+            },
+            {
+              "entityId": "wave-inlet",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Closed."
+            },
+            {
+              "entityId": "dais-drain",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Closed beneath the shelf."
+            }
+          ]
+        },
+        "locationZone": "fixed reading bench",
+        "worldState": "The children are already on the dais; water surrounds it.",
+        "environmentalState": "",
+        "weather": "",
+        "timeOfDay": "",
+        "goalNow": "Identify the tapping beneath the atlas.",
+        "obstacleNow": "The cover hides the source.",
+        "discoveryNow": "",
+        "consequenceNow": "Mina locates a mechanical resident beside the controls.",
+        "relationshipNow": "",
+        "stakesNow": "",
+        "pageTurnIntent": "Reveal the source of the tapping.",
+        "entryFrom": "",
+        "exitToward": "",
+        "destinationHint": ""
+      },
+      {
+        "beatId": "b2",
+        "role": "discovery",
+        "locationId": "raised-reading-dais",
+        "charactersPresent": [
+          "mina",
+          "leo"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "mina",
+            "trait": "gentle",
+            "shows": "She eases the cover aside without scraping the beetle's shell."
+          }
+        ],
+        "problemFamily": "escape-retracted",
+        "because": "b1",
+        "resolvesProblem": false,
+        "action": "Mina winds the beetle, which walks onto the bridge plate. The entrance bridge folds against the wall.",
+        "emotion": "surprise",
+        "entitiesRequired": [
+          "clockwork-beetle",
+          "blue-atlas",
+          "brass-controls",
+          "entrance-bridge",
+          "wave-inlet",
+          "dais-drain"
+        ],
+        "visualFocus": "The bridge lifting away from the dais.",
+        "shotType": "action",
+        "compositionIntent": "Connect a tiny foot press with the folding bridge.",
+        "textPurpose": "Demonstrate the impossible rule and its cost.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-right",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "mina",
+              "locationId": "raised-reading-dais",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "interest",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "leo",
+              "locationId": "raised-reading-dais",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "interest",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "clockwork-beetle",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Stationary beneath the atlas beside the beginning of the track."
+            },
+            {
+              "entityId": "blue-atlas",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Propped on the shallow shelf as a shelter."
+            },
+            {
+              "entityId": "brass-controls",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "All four plates unpressed; engraved connections visible."
+            },
+            {
+              "entityId": "entrance-bridge",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Lowered, providing the children's return route."
+            },
+            {
+              "entityId": "wave-inlet",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Closed."
+            },
+            {
+              "entityId": "dais-drain",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Closed beneath the shelf."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "mina",
+              "locationId": "raised-reading-dais",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "surprise",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "leo",
+              "locationId": "raised-reading-dais",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "surprise",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "clockwork-beetle",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Spring exhausted just beyond the bridge plate."
+            },
+            {
+              "entityId": "blue-atlas",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Propped on the shallow shelf as a shelter."
+            },
+            {
+              "entityId": "brass-controls",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "All four plates unpressed; engraved connections visible."
+            },
+            {
+              "entityId": "entrance-bridge",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Folded against the wall; return route unavailable."
+            },
+            {
+              "entityId": "wave-inlet",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Closed."
+            },
+            {
+              "entityId": "dais-drain",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Closed beneath the shelf."
+            }
+          ]
+        },
+        "locationZone": "fixed reading bench",
+        "worldState": "The beetle cannot advance with its spring unwound.",
+        "environmentalState": "",
+        "weather": "",
+        "timeOfDay": "",
+        "goalNow": "Help it leave its wet shelter.",
+        "obstacleNow": "Its feet remain still.",
+        "discoveryNow": "",
+        "consequenceNow": "The first winding removes the children's escape route.",
+        "relationshipNow": "",
+        "stakesNow": "",
+        "pageTurnIntent": "",
+        "entryFrom": "",
+        "exitToward": "",
+        "destinationHint": ""
+      },
+      {
+        "beatId": "b3",
+        "role": "goal",
+        "locationId": "raised-reading-dais",
+        "charactersPresent": [
+          "mina",
+          "leo"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "leo",
+            "trait": "careful",
+            "shows": "He checks the bench bolts before choosing it as their higher foothold."
+          }
+        ],
+        "problemFamily": "unknown-controls",
+        "because": "b2",
+        "resolvesProblem": false,
+        "action": "Leo checks the fixed bench above the water. Mina points to the sun plate beyond the wave and drain.",
+        "emotion": "urgency",
+        "entitiesRequired": [
+          "clockwork-beetle",
+          "blue-atlas",
+          "brass-controls",
+          "entrance-bridge",
+          "wave-inlet",
+          "dais-drain"
+        ],
+        "visualFocus": "The sun at the track's far end.",
+        "shotType": "overhead",
+        "compositionIntent": "Show the plate order and the nearby bench clearly.",
+        "textPurpose": "Set a destination and establish the fallback foothold.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-left",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "mina",
+              "locationId": "raised-reading-dais",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "surprise",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "leo",
+              "locationId": "raised-reading-dais",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "surprise",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "clockwork-beetle",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Spring exhausted just beyond the bridge plate."
+            },
+            {
+              "entityId": "blue-atlas",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Propped on the shallow shelf as a shelter."
+            },
+            {
+              "entityId": "brass-controls",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "All four plates unpressed; engraved connections visible."
+            },
+            {
+              "entityId": "entrance-bridge",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Folded against the wall; return route unavailable."
+            },
+            {
+              "entityId": "wave-inlet",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Closed."
+            },
+            {
+              "entityId": "dais-drain",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Closed beneath the shelf."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "mina",
+              "locationId": "raised-reading-dais",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "urgency",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "leo",
+              "locationId": "raised-reading-dais",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "urgency",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "clockwork-beetle",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Spring exhausted just beyond the bridge plate."
+            },
+            {
+              "entityId": "blue-atlas",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Propped on the shallow shelf as a shelter."
+            },
+            {
+              "entityId": "brass-controls",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "All four plates unpressed; engraved connections visible."
+            },
+            {
+              "entityId": "entrance-bridge",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Folded against the wall; return route unavailable."
+            },
+            {
+              "entityId": "wave-inlet",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Closed."
+            },
+            {
+              "entityId": "dais-drain",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Closed beneath the shelf."
+            }
+          ]
+        },
+        "locationZone": "fixed reading bench",
+        "worldState": "The children cannot leave across the bridge.",
+        "environmentalState": "",
+        "weather": "",
+        "timeOfDay": "",
+        "goalNow": "Lower the water enough to leave across the floor.",
+        "obstacleNow": "They do not understand the remaining controls.",
+        "discoveryNow": "",
+        "consequenceNow": "They choose to advance toward the sun symbol.",
+        "relationshipNow": "",
+        "stakesNow": "",
+        "pageTurnIntent": "",
+        "entryFrom": "",
+        "exitToward": "",
+        "destinationHint": ""
+      },
+      {
+        "beatId": "b4",
+        "role": "attempt",
+        "locationId": "raised-reading-dais",
+        "charactersPresent": [
+          "mina",
+          "leo"
+        ],
+        "absent": {},
+        "expresses": [],
+        "problemFamily": "inlet-opened",
+        "because": "b3",
+        "resolvesProblem": false,
+        "action": "Leo winds the beetle toward the sun. Its feet press the wave plate, opening the wall hatch.",
+        "emotion": "unease",
+        "entitiesRequired": [
+          "clockwork-beetle",
+          "blue-atlas",
+          "brass-controls",
+          "entrance-bridge",
+          "wave-inlet",
+          "dais-drain"
+        ],
+        "visualFocus": "Water bulging through the hatch.",
+        "shotType": "close",
+        "compositionIntent": "Frame the pressed symbol with the matching hatch beyond.",
+        "textPurpose": "Make the attempted escape worsen the flood.",
+        "pageTurnHook": "The hatch opens inward.",
+        "textSafeRegion": "upper-right",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "mina",
+              "locationId": "raised-reading-dais",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "urgency",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "leo",
+              "locationId": "raised-reading-dais",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "urgency",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "clockwork-beetle",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Spring exhausted just beyond the bridge plate."
+            },
+            {
+              "entityId": "blue-atlas",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Propped on the shallow shelf as a shelter."
+            },
+            {
+              "entityId": "brass-controls",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "All four plates unpressed; engraved connections visible."
+            },
+            {
+              "entityId": "entrance-bridge",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Folded against the wall; return route unavailable."
+            },
+            {
+              "entityId": "wave-inlet",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Closed."
+            },
+            {
+              "entityId": "dais-drain",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Closed beneath the shelf."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "mina",
+              "locationId": "raised-reading-dais",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "unease",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "leo",
+              "locationId": "raised-reading-dais",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "unease",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "clockwork-beetle",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Stopped just beyond the wave plate."
+            },
+            {
+              "entityId": "blue-atlas",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Propped on the shallow shelf as a shelter."
+            },
+            {
+              "entityId": "brass-controls",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "All four plates unpressed; engraved connections visible."
+            },
+            {
+              "entityId": "entrance-bridge",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Folded against the wall; return route unavailable."
+            },
+            {
+              "entityId": "wave-inlet",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Open and admitting floodwater."
+            },
+            {
+              "entityId": "dais-drain",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Closed beneath the shelf."
+            }
+          ]
+        },
+        "locationZone": "fixed reading bench",
+        "worldState": "The next plate bears a wave.",
+        "environmentalState": "",
+        "weather": "",
+        "timeOfDay": "",
+        "goalNow": "Advance the beetle toward the sun.",
+        "obstacleNow": "The wave plate must be crossed.",
+        "discoveryNow": "",
+        "consequenceNow": "Their next winding admits more water.",
+        "relationshipNow": "",
+        "stakesNow": "",
+        "pageTurnIntent": "Anticipate the cost of opening the hatch.",
+        "entryFrom": "",
+        "exitToward": "",
+        "destinationHint": ""
+      },
+      {
+        "beatId": "b5",
+        "role": "consequence",
+        "locationId": "raised-reading-dais",
+        "charactersPresent": [
+          "mina",
+          "leo"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "leo",
+            "trait": "kind",
+            "shows": "He steadies Mina onto the bench before climbing beside her."
+          }
+        ],
+        "problemFamily": "shelter-displaced",
+        "because": "b4",
+        "resolvesProblem": false,
+        "action": "The surge slides the atlas off its shelf onto the drain grille. Leo helps Mina onto the bench.",
+        "emotion": "alarm",
+        "entitiesRequired": [
+          "clockwork-beetle",
+          "blue-atlas",
+          "brass-controls",
+          "entrance-bridge",
+          "wave-inlet",
+          "dais-drain"
+        ],
+        "visualFocus": "The atlas lying flat on the grille.",
+        "shotType": "high",
+        "compositionIntent": "Keep bench, track, and atlas within one arm's reach.",
+        "textPurpose": "Show the lost shelter and establish the later obstruction.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-left",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "mina",
+              "locationId": "raised-reading-dais",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "unease",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "leo",
+              "locationId": "raised-reading-dais",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "unease",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "clockwork-beetle",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Stopped just beyond the wave plate."
+            },
+            {
+              "entityId": "blue-atlas",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Propped on the shallow shelf as a shelter."
+            },
+            {
+              "entityId": "brass-controls",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "All four plates unpressed; engraved connections visible."
+            },
+            {
+              "entityId": "entrance-bridge",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Folded against the wall; return route unavailable."
+            },
+            {
+              "entityId": "wave-inlet",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Open and admitting floodwater."
+            },
+            {
+              "entityId": "dais-drain",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Closed beneath the shelf."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "mina",
+              "locationId": "raised-reading-dais",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "alarm",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "leo",
+              "locationId": "raised-reading-dais",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "alarm",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "clockwork-beetle",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Stopped just beyond the wave plate."
+            },
+            {
+              "entityId": "blue-atlas",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Waterlogged and covering the drain grille beside the bench."
+            },
+            {
+              "entityId": "brass-controls",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "All four plates unpressed; engraved connections visible."
+            },
+            {
+              "entityId": "entrance-bridge",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Folded against the wall; return route unavailable."
+            },
+            {
+              "entityId": "wave-inlet",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Open and admitting floodwater."
+            },
+            {
+              "entityId": "dais-drain",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Closed beneath the shelf."
+            }
+          ]
+        },
+        "locationZone": "fixed reading bench",
+        "worldState": "A surge washes over the dais and shallow shelf.",
+        "environmentalState": "",
+        "weather": "",
+        "timeOfDay": "",
+        "goalNow": "Keep both children above the water.",
+        "obstacleNow": "The dais is no longer a dry foothold.",
+        "discoveryNow": "",
+        "consequenceNow": "The children gain height, but the displaced atlas covers the drain.",
+        "relationshipNow": "",
+        "stakesNow": "",
+        "pageTurnIntent": "",
+        "entryFrom": "",
+        "exitToward": "",
+        "destinationHint": ""
+      },
+      {
+        "beatId": "b6",
+        "role": "relationship",
+        "locationId": "raised-reading-dais",
+        "charactersPresent": [
+          "mina",
+          "leo"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "leo",
+            "trait": "careful",
+            "shows": "He withdraws his hand from the key while Mina studies the engraved lines."
+          }
+        ],
+        "problemFamily": "guessing-paused",
+        "because": "b5",
+        "resolvesProblem": false,
+        "action": "Leo leaves the key untouched. Mina traces the engraved lines while he holds her sleeve above the water.",
+        "emotion": "steadiness",
+        "entitiesRequired": [
+          "clockwork-beetle",
+          "blue-atlas",
+          "brass-controls",
+          "entrance-bridge",
+          "wave-inlet",
+          "dais-drain"
+        ],
+        "visualFocus": "Their hands beside the untouched key.",
+        "shotType": "medium",
+        "compositionIntent": "Create a purposeful pause with rising water still visible.",
+        "textPurpose": "Change how they approach the mechanism.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-right",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "mina",
+              "locationId": "raised-reading-dais",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "alarm",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "leo",
+              "locationId": "raised-reading-dais",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "alarm",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "clockwork-beetle",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Stopped just beyond the wave plate."
+            },
+            {
+              "entityId": "blue-atlas",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Waterlogged and covering the drain grille beside the bench."
+            },
+            {
+              "entityId": "brass-controls",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "All four plates unpressed; engraved connections visible."
+            },
+            {
+              "entityId": "entrance-bridge",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Folded against the wall; return route unavailable."
+            },
+            {
+              "entityId": "wave-inlet",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Open and admitting floodwater."
+            },
+            {
+              "entityId": "dais-drain",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Closed beneath the shelf."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "mina",
+              "locationId": "raised-reading-dais",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "steadiness",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "leo",
+              "locationId": "raised-reading-dais",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "steadiness",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "clockwork-beetle",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Stopped just beyond the wave plate."
+            },
+            {
+              "entityId": "blue-atlas",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Waterlogged and covering the drain grille beside the bench."
+            },
+            {
+              "entityId": "brass-controls",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "All four plates unpressed; engraved connections visible."
+            },
+            {
+              "entityId": "entrance-bridge",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Folded against the wall; return route unavailable."
+            },
+            {
+              "entityId": "wave-inlet",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Open and admitting floodwater."
+            },
+            {
+              "entityId": "dais-drain",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Closed beneath the shelf."
+            }
+          ]
+        },
+        "locationZone": "fixed reading bench",
+        "worldState": "Both children stand on the bench beside the reachable track.",
+        "environmentalState": "",
+        "weather": "",
+        "timeOfDay": "",
+        "goalNow": "Understand the controls before winding again.",
+        "obstacleNow": "Water continues rising while they inspect.",
+        "discoveryNow": "",
+        "consequenceNow": "They replace guessing with shared observation.",
+        "relationshipNow": "",
+        "stakesNow": "",
+        "pageTurnIntent": "",
+        "entryFrom": "",
+        "exitToward": "",
+        "destinationHint": ""
+      },
+      {
+        "beatId": "b7",
+        "role": "reveal",
+        "locationId": "raised-reading-dais",
+        "charactersPresent": [
+          "mina",
+          "leo"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "mina",
+            "trait": "observant",
+            "shows": "She matches the sun's two engraved lines to the inlet catch and drain latch."
+          }
+        ],
+        "problemFamily": "linked-mechanism",
+        "because": "b6",
+        "resolvesProblem": false,
+        "action": "Mina traces the drain plate to the grille. The sun's lines reach the drain latch and inlet catch.",
+        "emotion": "determination",
+        "entitiesRequired": [
+          "clockwork-beetle",
+          "blue-atlas",
+          "brass-controls",
+          "entrance-bridge",
+          "wave-inlet",
+          "dais-drain"
+        ],
+        "visualFocus": "The sun's two branching lines.",
+        "shotType": "reveal",
+        "compositionIntent": "Make the mechanical connections legible without moving the children.",
+        "textPurpose": "Plant the complete solution before the climax.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-left",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "mina",
+              "locationId": "raised-reading-dais",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "steadiness",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "leo",
+              "locationId": "raised-reading-dais",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "steadiness",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "clockwork-beetle",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Stopped just beyond the wave plate."
+            },
+            {
+              "entityId": "blue-atlas",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Waterlogged and covering the drain grille beside the bench."
+            },
+            {
+              "entityId": "brass-controls",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "All four plates unpressed; engraved connections visible."
+            },
+            {
+              "entityId": "entrance-bridge",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Folded against the wall; return route unavailable."
+            },
+            {
+              "entityId": "wave-inlet",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Open and admitting floodwater."
+            },
+            {
+              "entityId": "dais-drain",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Closed beneath the shelf."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "mina",
+              "locationId": "raised-reading-dais",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "determination",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "leo",
+              "locationId": "raised-reading-dais",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "determination",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "clockwork-beetle",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Stopped just beyond the wave plate."
+            },
+            {
+              "entityId": "blue-atlas",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Waterlogged and covering the drain grille beside the bench."
+            },
+            {
+              "entityId": "brass-controls",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "All four plates unpressed; engraved connections visible."
+            },
+            {
+              "entityId": "entrance-bridge",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Folded against the wall; return route unavailable."
+            },
+            {
+              "entityId": "wave-inlet",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Open and admitting floodwater."
+            },
+            {
+              "entityId": "dais-drain",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Closed beneath the shelf."
+            }
+          ]
+        },
+        "locationZone": "fixed reading bench",
+        "worldState": "The engraved connections can be followed from the bench.",
+        "environmentalState": "",
+        "weather": "",
+        "timeOfDay": "",
+        "goalNow": "Identify how to drain the room safely.",
+        "obstacleNow": "The atlas blocks the drain mouth.",
+        "discoveryNow": "",
+        "consequenceNow": "They form a plan involving both the book and the beetle.",
+        "relationshipNow": "",
+        "stakesNow": "",
+        "pageTurnIntent": "",
+        "entryFrom": "",
+        "exitToward": "",
+        "destinationHint": ""
+      },
+      {
+        "beatId": "b8",
+        "role": "attempt",
+        "locationId": "raised-reading-dais",
+        "charactersPresent": [
+          "mina",
+          "leo"
+        ],
+        "absent": {},
+        "expresses": [],
+        "problemFamily": "suction-trap",
+        "because": "b7",
+        "resolvesProblem": false,
+        "action": "Mina winds the beetle onto the drain plate as Leo lifts the atlas. Water sucks the book firmly down.",
+        "emotion": "strain",
+        "entitiesRequired": [
+          "clockwork-beetle",
+          "blue-atlas",
+          "brass-controls",
+          "entrance-bridge",
+          "wave-inlet",
+          "dais-drain"
+        ],
+        "visualFocus": "The atlas corner bending without lifting.",
+        "shotType": "low",
+        "compositionIntent": "Show Leo's reach from the bench and water pressing the book flat.",
+        "textPurpose": "Expose the flaw in their timing.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-right",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "mina",
+              "locationId": "raised-reading-dais",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "determination",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "leo",
+              "locationId": "raised-reading-dais",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "determination",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "clockwork-beetle",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Stopped just beyond the wave plate."
+            },
+            {
+              "entityId": "blue-atlas",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Waterlogged and covering the drain grille beside the bench."
+            },
+            {
+              "entityId": "brass-controls",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "All four plates unpressed; engraved connections visible."
+            },
+            {
+              "entityId": "entrance-bridge",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Folded against the wall; return route unavailable."
+            },
+            {
+              "entityId": "wave-inlet",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Open and admitting floodwater."
+            },
+            {
+              "entityId": "dais-drain",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Closed beneath the shelf."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "mina",
+              "locationId": "raised-reading-dais",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "strain",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "leo",
+              "locationId": "raised-reading-dais",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "strain",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "clockwork-beetle",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Crossing the drain plate toward the sun."
+            },
+            {
+              "entityId": "blue-atlas",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Pinned against the open drain by water pressure."
+            },
+            {
+              "entityId": "brass-controls",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "All four plates unpressed; engraved connections visible."
+            },
+            {
+              "entityId": "entrance-bridge",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Folded against the wall; return route unavailable."
+            },
+            {
+              "entityId": "wave-inlet",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Open and admitting floodwater."
+            },
+            {
+              "entityId": "dais-drain",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Open while the beetle presses its plate, but blocked by the atlas."
+            }
+          ]
+        },
+        "locationZone": "fixed reading bench",
+        "worldState": "Leo can reach the atlas while Mina reaches the key.",
+        "environmentalState": "",
+        "weather": "",
+        "timeOfDay": "",
+        "goalNow": "Lift the book while opening the drain.",
+        "obstacleNow": "They underestimate the force of flowing water.",
+        "discoveryNow": "",
+        "consequenceNow": "The opened drain pins the atlas instead of freeing it.",
+        "relationshipNow": "",
+        "stakesNow": "",
+        "pageTurnIntent": "",
+        "entryFrom": "",
+        "exitToward": "",
+        "destinationHint": ""
+      },
+      {
+        "beatId": "b9",
+        "role": "setback",
+        "locationId": "raised-reading-dais",
+        "charactersPresent": [
+          "mina",
+          "leo"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "mina",
+            "trait": "observant",
+            "shows": "She points to the atlas corner rising as the grille shuts."
+          }
+        ],
+        "problemFamily": "brief-release",
+        "because": "b8",
+        "resolvesProblem": false,
+        "action": "The beetle leaves the drain plate and stops before the sun. The grille closes, releasing the atlas.",
+        "emotion": "renewed focus",
+        "entitiesRequired": [
+          "clockwork-beetle",
+          "blue-atlas",
+          "brass-controls",
+          "entrance-bridge",
+          "wave-inlet",
+          "dais-drain"
+        ],
+        "visualFocus": "The atlas lifting free of suction.",
+        "shotType": "reaction",
+        "compositionIntent": "Pair Mina's pointing hand with the newly floating corner.",
+        "textPurpose": "Provide an earned opportunity and correct the sequence.",
+        "pageTurnHook": "This time, the book can lift.",
+        "textSafeRegion": "upper-left",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "mina",
+              "locationId": "raised-reading-dais",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "strain",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "leo",
+              "locationId": "raised-reading-dais",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "strain",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "clockwork-beetle",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Crossing the drain plate toward the sun."
+            },
+            {
+              "entityId": "blue-atlas",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Pinned against the open drain by water pressure."
+            },
+            {
+              "entityId": "brass-controls",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "All four plates unpressed; engraved connections visible."
+            },
+            {
+              "entityId": "entrance-bridge",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Folded against the wall; return route unavailable."
+            },
+            {
+              "entityId": "wave-inlet",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Open and admitting floodwater."
+            },
+            {
+              "entityId": "dais-drain",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Open while the beetle presses its plate, but blocked by the atlas."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "mina",
+              "locationId": "raised-reading-dais",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "renewed focus",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "leo",
+              "locationId": "raised-reading-dais",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "renewed focus",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "clockwork-beetle",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Spring exhausted between the drain and sun plates."
+            },
+            {
+              "entityId": "blue-atlas",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Loose, with one corner floating beside the bench."
+            },
+            {
+              "entityId": "brass-controls",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "All four plates unpressed; engraved connections visible."
+            },
+            {
+              "entityId": "entrance-bridge",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Folded against the wall; return route unavailable."
+            },
+            {
+              "entityId": "wave-inlet",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Open and admitting floodwater."
+            },
+            {
+              "entityId": "dais-drain",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Closed because its plate is released and its latch remains unset."
+            }
+          ]
+        },
+        "locationZone": "fixed reading bench",
+        "worldState": "The winding runs out just before the sun plate.",
+        "environmentalState": "",
+        "weather": "",
+        "timeOfDay": "",
+        "goalNow": "Find a usable moment before the bench floods.",
+        "obstacleNow": "The last attempt has not lowered the water.",
+        "discoveryNow": "",
+        "consequenceNow": "The released plate closes the drain and frees the book.",
+        "relationshipNow": "",
+        "stakesNow": "",
+        "pageTurnIntent": "Reveal a useful consequence of failure.",
+        "entryFrom": "",
+        "exitToward": "",
+        "destinationHint": ""
+      },
+      {
+        "beatId": "b10",
+        "role": "climax",
+        "locationId": "raised-reading-dais",
+        "charactersPresent": [
+          "mina",
+          "leo"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "leo",
+            "trait": "careful",
+            "shows": "He lifts the whole atlas clear before nodding to Mina."
+          }
+        ],
+        "problemFamily": "ordered-cooperation",
+        "because": "b9",
+        "resolvesProblem": false,
+        "action": "Leo lifts the atlas clear; Mina winds the beetle onto the sun. The inlet closes and the drain locks open.",
+        "emotion": "release",
+        "entitiesRequired": [
+          "clockwork-beetle",
+          "blue-atlas",
+          "brass-controls",
+          "entrance-bridge",
+          "wave-inlet",
+          "dais-drain"
+        ],
+        "visualFocus": "The beetle's foot engaging the sun latch.",
+        "shotType": "action",
+        "compositionIntent": "Unite the lifted book, pressed sun, and falling water.",
+        "textPurpose": "Resolve the flood through the observed mechanism and corrected timing.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-right",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "mina",
+              "locationId": "raised-reading-dais",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "renewed focus",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "leo",
+              "locationId": "raised-reading-dais",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "renewed focus",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "clockwork-beetle",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Spring exhausted between the drain and sun plates."
+            },
+            {
+              "entityId": "blue-atlas",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Loose, with one corner floating beside the bench."
+            },
+            {
+              "entityId": "brass-controls",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "All four plates unpressed; engraved connections visible."
+            },
+            {
+              "entityId": "entrance-bridge",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Folded against the wall; return route unavailable."
+            },
+            {
+              "entityId": "wave-inlet",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Open and admitting floodwater."
+            },
+            {
+              "entityId": "dais-drain",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Closed because its plate is released and its latch remains unset."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "mina",
+              "locationId": "raised-reading-dais",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "release",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "leo",
+              "locationId": "raised-reading-dais",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [
+                "blue-atlas"
+              ],
+              "emotion": "release",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "clockwork-beetle",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Stopped beyond the sun plate after activating it."
+            },
+            {
+              "entityId": "blue-atlas",
+              "ownerCharacterId": "leo",
+              "locationId": "raised-reading-dais",
+              "state": "Held clear of the drain against Leo's chest."
+            },
+            {
+              "entityId": "brass-controls",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "All four plates unpressed; engraved connections visible."
+            },
+            {
+              "entityId": "entrance-bridge",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Folded against the wall; return route unavailable."
+            },
+            {
+              "entityId": "wave-inlet",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Closed by the sun mechanism."
+            },
+            {
+              "entityId": "dais-drain",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Locked open and draining freely."
+            }
+          ]
+        },
+        "locationZone": "fixed reading bench",
+        "worldState": "The book is loose and the sun plate is one short walk away.",
+        "environmentalState": "",
+        "weather": "",
+        "timeOfDay": "",
+        "goalNow": "Clear the drain before activating the sun.",
+        "obstacleNow": "Water is approaching the bench seat.",
+        "discoveryNow": "",
+        "consequenceNow": "The inlet closes and the unobstructed drain locks open.",
+        "relationshipNow": "",
+        "stakesNow": "",
+        "pageTurnIntent": "",
+        "entryFrom": "",
+        "exitToward": "",
+        "destinationHint": ""
+      },
+      {
+        "beatId": "b11",
+        "role": "resolution",
+        "locationId": "raised-reading-dais",
+        "charactersPresent": [
+          "mina",
+          "leo"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "mina",
+            "trait": "gentle",
+            "shows": "She cups the beetle around its shell, keeping her fingers away from the key."
+          }
+        ],
+        "problemFamily": "",
+        "because": "b10",
+        "resolvesProblem": true,
+        "action": "Leo props the atlas on the dry bench. Mina carries the beetle beneath its cover without touching the key.",
+        "emotion": "quiet satisfaction",
+        "entitiesRequired": [
+          "clockwork-beetle",
+          "blue-atlas",
+          "brass-controls",
+          "entrance-bridge",
+          "wave-inlet",
+          "dais-drain"
+        ],
+        "visualFocus": "The untouched key beneath the restored book shelter.",
+        "shotType": "vignette",
+        "compositionIntent": "Echo the opening brass feet beneath a cover, now safely above the water.",
+        "textPurpose": "Show restored shelter and changed handling through a visual callback.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-left",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "mina",
+              "locationId": "raised-reading-dais",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "release",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "leo",
+              "locationId": "raised-reading-dais",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [
+                "blue-atlas"
+              ],
+              "emotion": "release",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "clockwork-beetle",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Stopped beyond the sun plate after activating it."
+            },
+            {
+              "entityId": "blue-atlas",
+              "ownerCharacterId": "leo",
+              "locationId": "raised-reading-dais",
+              "state": "Held clear of the drain against Leo's chest."
+            },
+            {
+              "entityId": "brass-controls",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "All four plates unpressed; engraved connections visible."
+            },
+            {
+              "entityId": "entrance-bridge",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Folded against the wall; return route unavailable."
+            },
+            {
+              "entityId": "wave-inlet",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Closed by the sun mechanism."
+            },
+            {
+              "entityId": "dais-drain",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Locked open and draining freely."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "mina",
+              "locationId": "raised-reading-dais",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [
+                "clockwork-beetle"
+              ],
+              "emotion": "quiet satisfaction",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "leo",
+              "locationId": "raised-reading-dais",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "quiet satisfaction",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "clockwork-beetle",
+              "ownerCharacterId": "mina",
+              "locationId": "raised-reading-dais",
+              "state": "Carried from the adjacent track beneath the atlas cover; key untouched."
+            },
+            {
+              "entityId": "blue-atlas",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Propped on the dry bench as a shelter."
+            },
+            {
+              "entityId": "brass-controls",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "All four plates unpressed; engraved connections visible."
+            },
+            {
+              "entityId": "entrance-bridge",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Folded against the wall; return route unavailable."
+            },
+            {
+              "entityId": "wave-inlet",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Closed by the sun mechanism."
+            },
+            {
+              "entityId": "dais-drain",
+              "ownerCharacterId": null,
+              "locationId": "raised-reading-dais",
+              "state": "Locked open and draining freely."
+            }
+          ]
+        },
+        "locationZone": "fixed reading bench",
+        "worldState": "Water has fallen below the dais; the bench and shelf are dry.",
+        "environmentalState": "",
+        "weather": "",
+        "timeOfDay": "",
+        "goalNow": "Restore the beetle's shelter without operating the controls.",
+        "obstacleNow": "",
+        "discoveryNow": "",
+        "consequenceNow": "The shelter returns, and the children leave the key alone.",
+        "relationshipNow": "",
+        "stakesNow": "",
+        "pageTurnIntent": "",
+        "entryFrom": "",
+        "exitToward": "",
+        "destinationHint": ""
+      }
+    ]
+  },
+  "storyProblems": [],
+  "planProblems": [],
+  "textProblems": [],
+  "pages": [
+    {
+      "pageId": "p1",
+      "beatId": "b1",
+      "locationId": "raised-reading-dais",
+      "charactersPresent": [
+        "mina",
+        "leo"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "raised-reading-dais",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "steady",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "raised-reading-dais",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "steady",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": []
+      },
+      "action": "Mina spots brass feet tapping beneath a propped atlas. Leo crouches beside her on the library reading dais.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "raised-reading-dais",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "interest",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "raised-reading-dais",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "interest",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "clockwork-beetle",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Stationary beneath the atlas beside the beginning of the track."
+          },
+          {
+            "entityId": "blue-atlas",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Propped on the shallow shelf as a shelter."
+          },
+          {
+            "entityId": "brass-controls",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "All four plates unpressed; engraved connections visible."
+          },
+          {
+            "entityId": "entrance-bridge",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Lowered, providing the children's return route."
+          },
+          {
+            "entityId": "wave-inlet",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Closed."
+          },
+          {
+            "entityId": "dais-drain",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Closed beneath the shelf."
+          }
+        ]
+      },
+      "emotion": "interest",
+      "entitiesRequired": [
+        "clockwork-beetle",
+        "blue-atlas",
+        "brass-controls",
+        "entrance-bridge",
+        "wave-inlet",
+        "dais-drain"
+      ],
+      "visualFocus": "Brass feet beneath the atlas.",
+      "shotType": "establishing",
+      "compositionIntent": "Establish the fixed bench, reachable controls, shelf, bridge, and surrounding water.",
+      "textPurpose": "Introduce the resident and the threatened shelter.",
+      "pageTurnHook": "What is tapping beneath the cover?",
+      "needsFromPrevious": null,
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "raised-reading-dais",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "interest",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "raised-reading-dais",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "interest",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "clockwork-beetle",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Stationary beneath the atlas beside the beginning of the track."
+          },
+          {
+            "entityId": "blue-atlas",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Propped on the shallow shelf as a shelter."
+          },
+          {
+            "entityId": "brass-controls",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "All four plates unpressed; engraved connections visible."
+          },
+          {
+            "entityId": "entrance-bridge",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Lowered, providing the children's return route."
+          },
+          {
+            "entityId": "wave-inlet",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Closed."
+          },
+          {
+            "entityId": "dais-drain",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Closed beneath the shelf."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-left",
+      "sentences": [
+        {
+          "text": "Beneath the propped blue atlas, brass feet tapped without going anywhere.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Mina bent low over the library reading dais.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Leo crouched beside her, peering under the cover.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "narrativePhase": "SETUP",
+      "locationZone": "fixed reading bench",
+      "pageTurnIntent": "CONTINUE",
+      "layoutIntent": "SINGLE_PAGE_SCENE",
+      "progressionReason": "opening",
+      "worldState": "The children are already on the dais; water surrounds it.",
+      "visualNoveltyReason": "opening",
+      "prose": "Beneath the propped blue atlas, brass feet tapped without going anywhere. Mina bent low over the library reading dais. Leo crouched beside her, peering under the cover."
+    },
+    {
+      "pageId": "p2",
+      "beatId": "b2",
+      "locationId": "raised-reading-dais",
+      "charactersPresent": [
+        "mina",
+        "leo"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "raised-reading-dais",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "interest",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "raised-reading-dais",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "interest",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "clockwork-beetle",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Stationary beneath the atlas beside the beginning of the track."
+          },
+          {
+            "entityId": "blue-atlas",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Propped on the shallow shelf as a shelter."
+          },
+          {
+            "entityId": "brass-controls",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "All four plates unpressed; engraved connections visible."
+          },
+          {
+            "entityId": "entrance-bridge",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Lowered, providing the children's return route."
+          },
+          {
+            "entityId": "wave-inlet",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Closed."
+          },
+          {
+            "entityId": "dais-drain",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Closed beneath the shelf."
+          }
+        ]
+      },
+      "action": "Mina winds the beetle, which walks onto the bridge plate. The entrance bridge folds against the wall.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "raised-reading-dais",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "surprise",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "raised-reading-dais",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "surprise",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "clockwork-beetle",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Spring exhausted just beyond the bridge plate."
+          },
+          {
+            "entityId": "blue-atlas",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Propped on the shallow shelf as a shelter."
+          },
+          {
+            "entityId": "brass-controls",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "All four plates unpressed; engraved connections visible."
+          },
+          {
+            "entityId": "entrance-bridge",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Folded against the wall; return route unavailable."
+          },
+          {
+            "entityId": "wave-inlet",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Closed."
+          },
+          {
+            "entityId": "dais-drain",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Closed beneath the shelf."
+          }
+        ]
+      },
+      "emotion": "surprise",
+      "entitiesRequired": [
+        "clockwork-beetle",
+        "blue-atlas",
+        "brass-controls",
+        "entrance-bridge",
+        "wave-inlet",
+        "dais-drain"
+      ],
+      "visualFocus": "The bridge lifting away from the dais.",
+      "shotType": "action",
+      "compositionIntent": "Connect a tiny foot press with the folding bridge.",
+      "textPurpose": "Demonstrate the impossible rule and its cost.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "raised-reading-dais",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "interest",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "raised-reading-dais",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "interest",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "clockwork-beetle",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Stationary beneath the atlas beside the beginning of the track."
+          },
+          {
+            "entityId": "blue-atlas",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Propped on the shallow shelf as a shelter."
+          },
+          {
+            "entityId": "brass-controls",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "All four plates unpressed; engraved connections visible."
+          },
+          {
+            "entityId": "entrance-bridge",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Lowered, providing the children's return route."
+          },
+          {
+            "entityId": "wave-inlet",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Closed."
+          },
+          {
+            "entityId": "dais-drain",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Closed beneath the shelf."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "raised-reading-dais",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "surprise",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "raised-reading-dais",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "surprise",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "clockwork-beetle",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Spring exhausted just beyond the bridge plate."
+          },
+          {
+            "entityId": "blue-atlas",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Propped on the shallow shelf as a shelter."
+          },
+          {
+            "entityId": "brass-controls",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "All four plates unpressed; engraved connections visible."
+          },
+          {
+            "entityId": "entrance-bridge",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Folded against the wall; return route unavailable."
+          },
+          {
+            "entityId": "wave-inlet",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Closed."
+          },
+          {
+            "entityId": "dais-drain",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Closed beneath the shelf."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-right",
+      "sentences": [
+        {
+          "text": "Mina turned the beetle's key, and its feet carried it onto the bridge plate.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "The entrance bridge folded against the wall.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Beyond the plate, the beetle stopped; their way back was gone.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "narrativePhase": "DISCOVERY",
+      "locationZone": "fixed reading bench",
+      "pageTurnIntent": "CONTINUE",
+      "layoutIntent": "PAGE_PAIR",
+      "progressionReason": "goal, obstacle, action, consequence, world_state, information",
+      "worldState": "The beetle cannot advance with its spring unwound.",
+      "visualNoveltyReason": "goal, obstacle, action, consequence, world_state, information",
+      "prose": "Mina turned the beetle's key, and its feet carried it onto the bridge plate. The entrance bridge folded against the wall. Beyond the plate, the beetle stopped; their way back was gone."
+    },
+    {
+      "pageId": "p3",
+      "beatId": "b3",
+      "locationId": "raised-reading-dais",
+      "charactersPresent": [
+        "mina",
+        "leo"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "raised-reading-dais",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "surprise",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "raised-reading-dais",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "surprise",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "clockwork-beetle",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Spring exhausted just beyond the bridge plate."
+          },
+          {
+            "entityId": "blue-atlas",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Propped on the shallow shelf as a shelter."
+          },
+          {
+            "entityId": "brass-controls",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "All four plates unpressed; engraved connections visible."
+          },
+          {
+            "entityId": "entrance-bridge",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Folded against the wall; return route unavailable."
+          },
+          {
+            "entityId": "wave-inlet",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Closed."
+          },
+          {
+            "entityId": "dais-drain",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Closed beneath the shelf."
+          }
+        ]
+      },
+      "action": "Leo checks the fixed bench above the water. Mina points to the sun plate beyond the wave and drain.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "raised-reading-dais",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "urgency",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "raised-reading-dais",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "urgency",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "clockwork-beetle",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Spring exhausted just beyond the bridge plate."
+          },
+          {
+            "entityId": "blue-atlas",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Propped on the shallow shelf as a shelter."
+          },
+          {
+            "entityId": "brass-controls",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "All four plates unpressed; engraved connections visible."
+          },
+          {
+            "entityId": "entrance-bridge",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Folded against the wall; return route unavailable."
+          },
+          {
+            "entityId": "wave-inlet",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Closed."
+          },
+          {
+            "entityId": "dais-drain",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Closed beneath the shelf."
+          }
+        ]
+      },
+      "emotion": "urgency",
+      "entitiesRequired": [
+        "clockwork-beetle",
+        "blue-atlas",
+        "brass-controls",
+        "entrance-bridge",
+        "wave-inlet",
+        "dais-drain"
+      ],
+      "visualFocus": "The sun at the track's far end.",
+      "shotType": "overhead",
+      "compositionIntent": "Show the plate order and the nearby bench clearly.",
+      "textPurpose": "Set a destination and establish the fallback foothold.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "raised-reading-dais",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "surprise",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "raised-reading-dais",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "surprise",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "clockwork-beetle",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Spring exhausted just beyond the bridge plate."
+          },
+          {
+            "entityId": "blue-atlas",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Propped on the shallow shelf as a shelter."
+          },
+          {
+            "entityId": "brass-controls",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "All four plates unpressed; engraved connections visible."
+          },
+          {
+            "entityId": "entrance-bridge",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Folded against the wall; return route unavailable."
+          },
+          {
+            "entityId": "wave-inlet",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Closed."
+          },
+          {
+            "entityId": "dais-drain",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Closed beneath the shelf."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "raised-reading-dais",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "urgency",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "raised-reading-dais",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "urgency",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "clockwork-beetle",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Spring exhausted just beyond the bridge plate."
+          },
+          {
+            "entityId": "blue-atlas",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Propped on the shallow shelf as a shelter."
+          },
+          {
+            "entityId": "brass-controls",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "All four plates unpressed; engraved connections visible."
+          },
+          {
+            "entityId": "entrance-bridge",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Folded against the wall; return route unavailable."
+          },
+          {
+            "entityId": "wave-inlet",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Closed."
+          },
+          {
+            "entityId": "dais-drain",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Closed beneath the shelf."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-left",
+      "sentences": [
+        {
+          "text": "Leo tested the bench above the water; it held firm.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Mina pointed past the wave and drain plates to the sun.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "\"Let's get it there.\"",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "narrativePhase": "COMMITMENT",
+      "locationZone": "fixed reading bench",
+      "pageTurnIntent": "CONTINUE",
+      "layoutIntent": "PAGE_PAIR",
+      "progressionReason": "goal, obstacle, action, consequence, world_state, information",
+      "worldState": "The children cannot leave across the bridge.",
+      "visualNoveltyReason": "goal, obstacle, action, consequence, world_state, information",
+      "prose": "Leo tested the bench above the water; it held firm. Mina pointed past the wave and drain plates to the sun. \"Let's get it there.\""
+    },
+    {
+      "pageId": "p4",
+      "beatId": "b4",
+      "locationId": "raised-reading-dais",
+      "charactersPresent": [
+        "mina",
+        "leo"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "raised-reading-dais",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "urgency",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "raised-reading-dais",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "urgency",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "clockwork-beetle",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Spring exhausted just beyond the bridge plate."
+          },
+          {
+            "entityId": "blue-atlas",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Propped on the shallow shelf as a shelter."
+          },
+          {
+            "entityId": "brass-controls",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "All four plates unpressed; engraved connections visible."
+          },
+          {
+            "entityId": "entrance-bridge",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Folded against the wall; return route unavailable."
+          },
+          {
+            "entityId": "wave-inlet",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Closed."
+          },
+          {
+            "entityId": "dais-drain",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Closed beneath the shelf."
+          }
+        ]
+      },
+      "action": "Leo winds the beetle toward the sun. Its feet press the wave plate, opening the wall hatch.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "raised-reading-dais",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "unease",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "raised-reading-dais",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "unease",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "clockwork-beetle",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Stopped just beyond the wave plate."
+          },
+          {
+            "entityId": "blue-atlas",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Propped on the shallow shelf as a shelter."
+          },
+          {
+            "entityId": "brass-controls",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "All four plates unpressed; engraved connections visible."
+          },
+          {
+            "entityId": "entrance-bridge",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Folded against the wall; return route unavailable."
+          },
+          {
+            "entityId": "wave-inlet",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Open and admitting floodwater."
+          },
+          {
+            "entityId": "dais-drain",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Closed beneath the shelf."
+          }
+        ]
+      },
+      "emotion": "unease",
+      "entitiesRequired": [
+        "clockwork-beetle",
+        "blue-atlas",
+        "brass-controls",
+        "entrance-bridge",
+        "wave-inlet",
+        "dais-drain"
+      ],
+      "visualFocus": "Water bulging through the hatch.",
+      "shotType": "close",
+      "compositionIntent": "Frame the pressed symbol with the matching hatch beyond.",
+      "textPurpose": "Make the attempted escape worsen the flood.",
+      "pageTurnHook": "The hatch opens inward.",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "raised-reading-dais",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "urgency",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "raised-reading-dais",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "urgency",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "clockwork-beetle",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Spring exhausted just beyond the bridge plate."
+          },
+          {
+            "entityId": "blue-atlas",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Propped on the shallow shelf as a shelter."
+          },
+          {
+            "entityId": "brass-controls",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "All four plates unpressed; engraved connections visible."
+          },
+          {
+            "entityId": "entrance-bridge",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Folded against the wall; return route unavailable."
+          },
+          {
+            "entityId": "wave-inlet",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Closed."
+          },
+          {
+            "entityId": "dais-drain",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Closed beneath the shelf."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "raised-reading-dais",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "unease",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "raised-reading-dais",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "unease",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "clockwork-beetle",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Stopped just beyond the wave plate."
+          },
+          {
+            "entityId": "blue-atlas",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Propped on the shallow shelf as a shelter."
+          },
+          {
+            "entityId": "brass-controls",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "All four plates unpressed; engraved connections visible."
+          },
+          {
+            "entityId": "entrance-bridge",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Folded against the wall; return route unavailable."
+          },
+          {
+            "entityId": "wave-inlet",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Open and admitting floodwater."
+          },
+          {
+            "entityId": "dais-drain",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Closed beneath the shelf."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-right",
+      "sentences": [
+        {
+          "text": "Leo reached for the key, paused, then wound the beetle toward the sun.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Its brass feet pressed the wave plate.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "The wall hatch swung inward, letting floodwater pour through.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "narrativePhase": "ATTEMPT",
+      "locationZone": "fixed reading bench",
+      "pageTurnIntent": "ANTICIPATE",
+      "layoutIntent": "PAGE_PAIR",
+      "progressionReason": "goal, obstacle, action, consequence, world_state, information",
+      "worldState": "The next plate bears a wave.",
+      "visualNoveltyReason": "goal, obstacle, action, consequence, world_state, information",
+      "prose": "Leo reached for the key, paused, then wound the beetle toward the sun. Its brass feet pressed the wave plate. The wall hatch swung inward, letting floodwater pour through."
+    },
+    {
+      "pageId": "p5",
+      "beatId": "b5",
+      "locationId": "raised-reading-dais",
+      "charactersPresent": [
+        "mina",
+        "leo"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "raised-reading-dais",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "unease",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "raised-reading-dais",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "unease",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "clockwork-beetle",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Stopped just beyond the wave plate."
+          },
+          {
+            "entityId": "blue-atlas",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Propped on the shallow shelf as a shelter."
+          },
+          {
+            "entityId": "brass-controls",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "All four plates unpressed; engraved connections visible."
+          },
+          {
+            "entityId": "entrance-bridge",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Folded against the wall; return route unavailable."
+          },
+          {
+            "entityId": "wave-inlet",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Open and admitting floodwater."
+          },
+          {
+            "entityId": "dais-drain",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Closed beneath the shelf."
+          }
+        ]
+      },
+      "action": "The surge slides the atlas off its shelf onto the drain grille. Leo helps Mina onto the bench.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "raised-reading-dais",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "alarm",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "raised-reading-dais",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "alarm",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "clockwork-beetle",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Stopped just beyond the wave plate."
+          },
+          {
+            "entityId": "blue-atlas",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Waterlogged and covering the drain grille beside the bench."
+          },
+          {
+            "entityId": "brass-controls",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "All four plates unpressed; engraved connections visible."
+          },
+          {
+            "entityId": "entrance-bridge",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Folded against the wall; return route unavailable."
+          },
+          {
+            "entityId": "wave-inlet",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Open and admitting floodwater."
+          },
+          {
+            "entityId": "dais-drain",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Closed beneath the shelf."
+          }
+        ]
+      },
+      "emotion": "alarm",
+      "entitiesRequired": [
+        "clockwork-beetle",
+        "blue-atlas",
+        "brass-controls",
+        "entrance-bridge",
+        "wave-inlet",
+        "dais-drain"
+      ],
+      "visualFocus": "The atlas lying flat on the grille.",
+      "shotType": "high",
+      "compositionIntent": "Keep bench, track, and atlas within one arm's reach.",
+      "textPurpose": "Show the lost shelter and establish the later obstruction.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "raised-reading-dais",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "unease",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "raised-reading-dais",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "unease",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "clockwork-beetle",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Stopped just beyond the wave plate."
+          },
+          {
+            "entityId": "blue-atlas",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Propped on the shallow shelf as a shelter."
+          },
+          {
+            "entityId": "brass-controls",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "All four plates unpressed; engraved connections visible."
+          },
+          {
+            "entityId": "entrance-bridge",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Folded against the wall; return route unavailable."
+          },
+          {
+            "entityId": "wave-inlet",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Open and admitting floodwater."
+          },
+          {
+            "entityId": "dais-drain",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Closed beneath the shelf."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "raised-reading-dais",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "alarm",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "raised-reading-dais",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "alarm",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "clockwork-beetle",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Stopped just beyond the wave plate."
+          },
+          {
+            "entityId": "blue-atlas",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Waterlogged and covering the drain grille beside the bench."
+          },
+          {
+            "entityId": "brass-controls",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "All four plates unpressed; engraved connections visible."
+          },
+          {
+            "entityId": "entrance-bridge",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Folded against the wall; return route unavailable."
+          },
+          {
+            "entityId": "wave-inlet",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Open and admitting floodwater."
+          },
+          {
+            "entityId": "dais-drain",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Closed beneath the shelf."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-left",
+      "sentences": [
+        {
+          "text": "Water swept the atlas off its shelf and onto the drain grille.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Leo caught Mina's hand and helped her onto the bench.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Below them, the blue cover vanished under the surge.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "narrativePhase": "ESCALATION",
+      "locationZone": "fixed reading bench",
+      "pageTurnIntent": "CONTINUE",
+      "layoutIntent": "PAGE_PAIR",
+      "progressionReason": "goal, obstacle, action, consequence, world_state, information",
+      "worldState": "A surge washes over the dais and shallow shelf.",
+      "visualNoveltyReason": "goal, obstacle, action, consequence, world_state, information",
+      "prose": "Water swept the atlas off its shelf and onto the drain grille. Leo caught Mina's hand and helped her onto the bench. Below them, the blue cover vanished under the surge."
+    },
+    {
+      "pageId": "p6",
+      "beatId": "b6",
+      "locationId": "raised-reading-dais",
+      "charactersPresent": [
+        "mina",
+        "leo"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "raised-reading-dais",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "alarm",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "raised-reading-dais",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "alarm",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "clockwork-beetle",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Stopped just beyond the wave plate."
+          },
+          {
+            "entityId": "blue-atlas",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Waterlogged and covering the drain grille beside the bench."
+          },
+          {
+            "entityId": "brass-controls",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "All four plates unpressed; engraved connections visible."
+          },
+          {
+            "entityId": "entrance-bridge",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Folded against the wall; return route unavailable."
+          },
+          {
+            "entityId": "wave-inlet",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Open and admitting floodwater."
+          },
+          {
+            "entityId": "dais-drain",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Closed beneath the shelf."
+          }
+        ]
+      },
+      "action": "Leo leaves the key untouched. Mina traces the engraved lines while he holds her sleeve above the water.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "raised-reading-dais",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "steadiness",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "raised-reading-dais",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "steadiness",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "clockwork-beetle",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Stopped just beyond the wave plate."
+          },
+          {
+            "entityId": "blue-atlas",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Waterlogged and covering the drain grille beside the bench."
+          },
+          {
+            "entityId": "brass-controls",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "All four plates unpressed; engraved connections visible."
+          },
+          {
+            "entityId": "entrance-bridge",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Folded against the wall; return route unavailable."
+          },
+          {
+            "entityId": "wave-inlet",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Open and admitting floodwater."
+          },
+          {
+            "entityId": "dais-drain",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Closed beneath the shelf."
+          }
+        ]
+      },
+      "emotion": "steadiness",
+      "entitiesRequired": [
+        "clockwork-beetle",
+        "blue-atlas",
+        "brass-controls",
+        "entrance-bridge",
+        "wave-inlet",
+        "dais-drain"
+      ],
+      "visualFocus": "Their hands beside the untouched key.",
+      "shotType": "medium",
+      "compositionIntent": "Create a purposeful pause with rising water still visible.",
+      "textPurpose": "Change how they approach the mechanism.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "raised-reading-dais",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "alarm",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "raised-reading-dais",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "alarm",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "clockwork-beetle",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Stopped just beyond the wave plate."
+          },
+          {
+            "entityId": "blue-atlas",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Waterlogged and covering the drain grille beside the bench."
+          },
+          {
+            "entityId": "brass-controls",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "All four plates unpressed; engraved connections visible."
+          },
+          {
+            "entityId": "entrance-bridge",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Folded against the wall; return route unavailable."
+          },
+          {
+            "entityId": "wave-inlet",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Open and admitting floodwater."
+          },
+          {
+            "entityId": "dais-drain",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Closed beneath the shelf."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "raised-reading-dais",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "steadiness",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "raised-reading-dais",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "steadiness",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "clockwork-beetle",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Stopped just beyond the wave plate."
+          },
+          {
+            "entityId": "blue-atlas",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Waterlogged and covering the drain grille beside the bench."
+          },
+          {
+            "entityId": "brass-controls",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "All four plates unpressed; engraved connections visible."
+          },
+          {
+            "entityId": "entrance-bridge",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Folded against the wall; return route unavailable."
+          },
+          {
+            "entityId": "wave-inlet",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Open and admitting floodwater."
+          },
+          {
+            "entityId": "dais-drain",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Closed beneath the shelf."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-right",
+      "sentences": [
+        {
+          "text": "Leo's hand hovered over the key, then drew back.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Mina traced the engraved lines between the brass plates.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "He held her sleeve clear of the water while her finger followed each groove.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "narrativePhase": "COMMITMENT",
+      "locationZone": "fixed reading bench",
+      "pageTurnIntent": "CONTINUE",
+      "layoutIntent": "PAGE_PAIR",
+      "progressionReason": "goal, obstacle, action, consequence, world_state, information",
+      "worldState": "Both children stand on the bench beside the reachable track.",
+      "visualNoveltyReason": "goal, obstacle, action, consequence, world_state, information",
+      "prose": "Leo's hand hovered over the key, then drew back. Mina traced the engraved lines between the brass plates. He held her sleeve clear of the water while her finger followed each groove."
+    },
+    {
+      "pageId": "p7",
+      "beatId": "b7",
+      "locationId": "raised-reading-dais",
+      "charactersPresent": [
+        "mina",
+        "leo"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "raised-reading-dais",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "steadiness",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "raised-reading-dais",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "steadiness",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "clockwork-beetle",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Stopped just beyond the wave plate."
+          },
+          {
+            "entityId": "blue-atlas",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Waterlogged and covering the drain grille beside the bench."
+          },
+          {
+            "entityId": "brass-controls",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "All four plates unpressed; engraved connections visible."
+          },
+          {
+            "entityId": "entrance-bridge",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Folded against the wall; return route unavailable."
+          },
+          {
+            "entityId": "wave-inlet",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Open and admitting floodwater."
+          },
+          {
+            "entityId": "dais-drain",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Closed beneath the shelf."
+          }
+        ]
+      },
+      "action": "Mina traces the drain plate to the grille. The sun's lines reach the drain latch and inlet catch.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "raised-reading-dais",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "determination",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "raised-reading-dais",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "determination",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "clockwork-beetle",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Stopped just beyond the wave plate."
+          },
+          {
+            "entityId": "blue-atlas",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Waterlogged and covering the drain grille beside the bench."
+          },
+          {
+            "entityId": "brass-controls",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "All four plates unpressed; engraved connections visible."
+          },
+          {
+            "entityId": "entrance-bridge",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Folded against the wall; return route unavailable."
+          },
+          {
+            "entityId": "wave-inlet",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Open and admitting floodwater."
+          },
+          {
+            "entityId": "dais-drain",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Closed beneath the shelf."
+          }
+        ]
+      },
+      "emotion": "determination",
+      "entitiesRequired": [
+        "clockwork-beetle",
+        "blue-atlas",
+        "brass-controls",
+        "entrance-bridge",
+        "wave-inlet",
+        "dais-drain"
+      ],
+      "visualFocus": "The sun's two branching lines.",
+      "shotType": "reveal",
+      "compositionIntent": "Make the mechanical connections legible without moving the children.",
+      "textPurpose": "Plant the complete solution before the climax.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "raised-reading-dais",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "steadiness",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "raised-reading-dais",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "steadiness",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "clockwork-beetle",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Stopped just beyond the wave plate."
+          },
+          {
+            "entityId": "blue-atlas",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Waterlogged and covering the drain grille beside the bench."
+          },
+          {
+            "entityId": "brass-controls",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "All four plates unpressed; engraved connections visible."
+          },
+          {
+            "entityId": "entrance-bridge",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Folded against the wall; return route unavailable."
+          },
+          {
+            "entityId": "wave-inlet",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Open and admitting floodwater."
+          },
+          {
+            "entityId": "dais-drain",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Closed beneath the shelf."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "raised-reading-dais",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "determination",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "raised-reading-dais",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "determination",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "clockwork-beetle",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Stopped just beyond the wave plate."
+          },
+          {
+            "entityId": "blue-atlas",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Waterlogged and covering the drain grille beside the bench."
+          },
+          {
+            "entityId": "brass-controls",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "All four plates unpressed; engraved connections visible."
+          },
+          {
+            "entityId": "entrance-bridge",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Folded against the wall; return route unavailable."
+          },
+          {
+            "entityId": "wave-inlet",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Open and admitting floodwater."
+          },
+          {
+            "entityId": "dais-drain",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Closed beneath the shelf."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-left",
+      "sentences": [
+        {
+          "text": "The drain plate's engraved line led Mina's finger to the grille.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "From the sun, two more lines reached the drain latch and the inlet catch.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "\"Leo, this one joins both.\"",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "narrativePhase": "REVELATION",
+      "locationZone": "fixed reading bench",
+      "pageTurnIntent": "CONTINUE",
+      "layoutIntent": "PAGE_PAIR",
+      "progressionReason": "goal, obstacle, action, consequence, world_state, information",
+      "worldState": "The engraved connections can be followed from the bench.",
+      "visualNoveltyReason": "goal, obstacle, action, consequence, world_state, information",
+      "prose": "The drain plate's engraved line led Mina's finger to the grille. From the sun, two more lines reached the drain latch and the inlet catch. \"Leo, this one joins both.\""
+    },
+    {
+      "pageId": "p8",
+      "beatId": "b8",
+      "locationId": "raised-reading-dais",
+      "charactersPresent": [
+        "mina",
+        "leo"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "raised-reading-dais",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "determination",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "raised-reading-dais",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "determination",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "clockwork-beetle",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Stopped just beyond the wave plate."
+          },
+          {
+            "entityId": "blue-atlas",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Waterlogged and covering the drain grille beside the bench."
+          },
+          {
+            "entityId": "brass-controls",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "All four plates unpressed; engraved connections visible."
+          },
+          {
+            "entityId": "entrance-bridge",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Folded against the wall; return route unavailable."
+          },
+          {
+            "entityId": "wave-inlet",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Open and admitting floodwater."
+          },
+          {
+            "entityId": "dais-drain",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Closed beneath the shelf."
+          }
+        ]
+      },
+      "action": "Mina winds the beetle onto the drain plate as Leo lifts the atlas. Water sucks the book firmly down.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "raised-reading-dais",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "strain",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "raised-reading-dais",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "strain",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "clockwork-beetle",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Crossing the drain plate toward the sun."
+          },
+          {
+            "entityId": "blue-atlas",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Pinned against the open drain by water pressure."
+          },
+          {
+            "entityId": "brass-controls",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "All four plates unpressed; engraved connections visible."
+          },
+          {
+            "entityId": "entrance-bridge",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Folded against the wall; return route unavailable."
+          },
+          {
+            "entityId": "wave-inlet",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Open and admitting floodwater."
+          },
+          {
+            "entityId": "dais-drain",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Open while the beetle presses its plate, but blocked by the atlas."
+          }
+        ]
+      },
+      "emotion": "strain",
+      "entitiesRequired": [
+        "clockwork-beetle",
+        "blue-atlas",
+        "brass-controls",
+        "entrance-bridge",
+        "wave-inlet",
+        "dais-drain"
+      ],
+      "visualFocus": "The atlas corner bending without lifting.",
+      "shotType": "low",
+      "compositionIntent": "Show Leo's reach from the bench and water pressing the book flat.",
+      "textPurpose": "Expose the flaw in their timing.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "raised-reading-dais",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "determination",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "raised-reading-dais",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "determination",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "clockwork-beetle",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Stopped just beyond the wave plate."
+          },
+          {
+            "entityId": "blue-atlas",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Waterlogged and covering the drain grille beside the bench."
+          },
+          {
+            "entityId": "brass-controls",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "All four plates unpressed; engraved connections visible."
+          },
+          {
+            "entityId": "entrance-bridge",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Folded against the wall; return route unavailable."
+          },
+          {
+            "entityId": "wave-inlet",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Open and admitting floodwater."
+          },
+          {
+            "entityId": "dais-drain",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Closed beneath the shelf."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "raised-reading-dais",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "strain",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "raised-reading-dais",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "strain",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "clockwork-beetle",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Crossing the drain plate toward the sun."
+          },
+          {
+            "entityId": "blue-atlas",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Pinned against the open drain by water pressure."
+          },
+          {
+            "entityId": "brass-controls",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "All four plates unpressed; engraved connections visible."
+          },
+          {
+            "entityId": "entrance-bridge",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Folded against the wall; return route unavailable."
+          },
+          {
+            "entityId": "wave-inlet",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Open and admitting floodwater."
+          },
+          {
+            "entityId": "dais-drain",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Open while the beetle presses its plate, but blocked by the atlas."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-right",
+      "sentences": [
+        {
+          "text": "Mina wound the beetle onto the drain plate while Leo lifted the atlas.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "The drain opened beneath the book.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Water sucked it down, pinning the cover against the grille.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "narrativePhase": "ATTEMPT",
+      "locationZone": "fixed reading bench",
+      "pageTurnIntent": "CONTINUE",
+      "layoutIntent": "PAGE_PAIR",
+      "progressionReason": "goal, obstacle, action, consequence, world_state, information",
+      "worldState": "Leo can reach the atlas while Mina reaches the key.",
+      "visualNoveltyReason": "goal, obstacle, action, consequence, world_state, information",
+      "prose": "Mina wound the beetle onto the drain plate while Leo lifted the atlas. The drain opened beneath the book. Water sucked it down, pinning the cover against the grille."
+    },
+    {
+      "pageId": "p9",
+      "beatId": "b9",
+      "locationId": "raised-reading-dais",
+      "charactersPresent": [
+        "mina",
+        "leo"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "raised-reading-dais",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "strain",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "raised-reading-dais",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "strain",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "clockwork-beetle",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Crossing the drain plate toward the sun."
+          },
+          {
+            "entityId": "blue-atlas",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Pinned against the open drain by water pressure."
+          },
+          {
+            "entityId": "brass-controls",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "All four plates unpressed; engraved connections visible."
+          },
+          {
+            "entityId": "entrance-bridge",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Folded against the wall; return route unavailable."
+          },
+          {
+            "entityId": "wave-inlet",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Open and admitting floodwater."
+          },
+          {
+            "entityId": "dais-drain",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Open while the beetle presses its plate, but blocked by the atlas."
+          }
+        ]
+      },
+      "action": "The beetle leaves the drain plate and stops before the sun. The grille closes, releasing the atlas.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "raised-reading-dais",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "renewed focus",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "raised-reading-dais",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "renewed focus",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "clockwork-beetle",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Spring exhausted between the drain and sun plates."
+          },
+          {
+            "entityId": "blue-atlas",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Loose, with one corner floating beside the bench."
+          },
+          {
+            "entityId": "brass-controls",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "All four plates unpressed; engraved connections visible."
+          },
+          {
+            "entityId": "entrance-bridge",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Folded against the wall; return route unavailable."
+          },
+          {
+            "entityId": "wave-inlet",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Open and admitting floodwater."
+          },
+          {
+            "entityId": "dais-drain",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Closed because its plate is released and its latch remains unset."
+          }
+        ]
+      },
+      "emotion": "renewed focus",
+      "entitiesRequired": [
+        "clockwork-beetle",
+        "blue-atlas",
+        "brass-controls",
+        "entrance-bridge",
+        "wave-inlet",
+        "dais-drain"
+      ],
+      "visualFocus": "The atlas lifting free of suction.",
+      "shotType": "reaction",
+      "compositionIntent": "Pair Mina's pointing hand with the newly floating corner.",
+      "textPurpose": "Provide an earned opportunity and correct the sequence.",
+      "pageTurnHook": "This time, the book can lift.",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "raised-reading-dais",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "strain",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "raised-reading-dais",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "strain",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "clockwork-beetle",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Crossing the drain plate toward the sun."
+          },
+          {
+            "entityId": "blue-atlas",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Pinned against the open drain by water pressure."
+          },
+          {
+            "entityId": "brass-controls",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "All four plates unpressed; engraved connections visible."
+          },
+          {
+            "entityId": "entrance-bridge",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Folded against the wall; return route unavailable."
+          },
+          {
+            "entityId": "wave-inlet",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Open and admitting floodwater."
+          },
+          {
+            "entityId": "dais-drain",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Open while the beetle presses its plate, but blocked by the atlas."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "raised-reading-dais",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "renewed focus",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "raised-reading-dais",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "renewed focus",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "clockwork-beetle",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Spring exhausted between the drain and sun plates."
+          },
+          {
+            "entityId": "blue-atlas",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Loose, with one corner floating beside the bench."
+          },
+          {
+            "entityId": "brass-controls",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "All four plates unpressed; engraved connections visible."
+          },
+          {
+            "entityId": "entrance-bridge",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Folded against the wall; return route unavailable."
+          },
+          {
+            "entityId": "wave-inlet",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Open and admitting floodwater."
+          },
+          {
+            "entityId": "dais-drain",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Closed because its plate is released and its latch remains unset."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-left",
+      "sentences": [
+        {
+          "text": "The beetle stepped off the drain plate and stopped just short of the sun.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "The grille shut, and the atlas came loose.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "One blue corner floated up beside the bench.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "narrativePhase": "SETBACK",
+      "locationZone": "fixed reading bench",
+      "pageTurnIntent": "ANTICIPATE",
+      "layoutIntent": "PAGE_PAIR",
+      "progressionReason": "goal, obstacle, action, consequence, world_state, information",
+      "worldState": "The winding runs out just before the sun plate.",
+      "visualNoveltyReason": "goal, obstacle, action, consequence, world_state, information",
+      "prose": "The beetle stepped off the drain plate and stopped just short of the sun. The grille shut, and the atlas came loose. One blue corner floated up beside the bench."
+    },
+    {
+      "pageId": "p10",
+      "beatId": "b10",
+      "locationId": "raised-reading-dais",
+      "charactersPresent": [
+        "mina",
+        "leo"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "raised-reading-dais",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "renewed focus",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "raised-reading-dais",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "renewed focus",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "clockwork-beetle",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Spring exhausted between the drain and sun plates."
+          },
+          {
+            "entityId": "blue-atlas",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Loose, with one corner floating beside the bench."
+          },
+          {
+            "entityId": "brass-controls",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "All four plates unpressed; engraved connections visible."
+          },
+          {
+            "entityId": "entrance-bridge",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Folded against the wall; return route unavailable."
+          },
+          {
+            "entityId": "wave-inlet",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Open and admitting floodwater."
+          },
+          {
+            "entityId": "dais-drain",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Closed because its plate is released and its latch remains unset."
+          }
+        ]
+      },
+      "action": "Leo lifts the atlas clear; Mina winds the beetle onto the sun. The inlet closes and the drain locks open.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "raised-reading-dais",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "release",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "raised-reading-dais",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [
+              "blue-atlas"
+            ],
+            "emotion": "release",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "clockwork-beetle",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Stopped beyond the sun plate after activating it."
+          },
+          {
+            "entityId": "blue-atlas",
+            "ownerCharacterId": "leo",
+            "locationId": "raised-reading-dais",
+            "state": "Held clear of the drain against Leo's chest."
+          },
+          {
+            "entityId": "brass-controls",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "All four plates unpressed; engraved connections visible."
+          },
+          {
+            "entityId": "entrance-bridge",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Folded against the wall; return route unavailable."
+          },
+          {
+            "entityId": "wave-inlet",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Closed by the sun mechanism."
+          },
+          {
+            "entityId": "dais-drain",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Locked open and draining freely."
+          }
+        ]
+      },
+      "emotion": "release",
+      "entitiesRequired": [
+        "clockwork-beetle",
+        "blue-atlas",
+        "brass-controls",
+        "entrance-bridge",
+        "wave-inlet",
+        "dais-drain"
+      ],
+      "visualFocus": "The beetle's foot engaging the sun latch.",
+      "shotType": "action",
+      "compositionIntent": "Unite the lifted book, pressed sun, and falling water.",
+      "textPurpose": "Resolve the flood through the observed mechanism and corrected timing.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "raised-reading-dais",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "renewed focus",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "raised-reading-dais",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "renewed focus",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "clockwork-beetle",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Spring exhausted between the drain and sun plates."
+          },
+          {
+            "entityId": "blue-atlas",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Loose, with one corner floating beside the bench."
+          },
+          {
+            "entityId": "brass-controls",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "All four plates unpressed; engraved connections visible."
+          },
+          {
+            "entityId": "entrance-bridge",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Folded against the wall; return route unavailable."
+          },
+          {
+            "entityId": "wave-inlet",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Open and admitting floodwater."
+          },
+          {
+            "entityId": "dais-drain",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Closed because its plate is released and its latch remains unset."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "raised-reading-dais",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "release",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "raised-reading-dais",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [
+              "blue-atlas"
+            ],
+            "emotion": "release",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "clockwork-beetle",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Stopped beyond the sun plate after activating it."
+          },
+          {
+            "entityId": "blue-atlas",
+            "ownerCharacterId": "leo",
+            "locationId": "raised-reading-dais",
+            "state": "Held clear of the drain against Leo's chest."
+          },
+          {
+            "entityId": "brass-controls",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "All four plates unpressed; engraved connections visible."
+          },
+          {
+            "entityId": "entrance-bridge",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Folded against the wall; return route unavailable."
+          },
+          {
+            "entityId": "wave-inlet",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Closed by the sun mechanism."
+          },
+          {
+            "entityId": "dais-drain",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Locked open and draining freely."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-right",
+      "sentences": [
+        {
+          "text": "Leo lifted the atlas clear and hugged it against his chest.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Mina wound the beetle; its feet reached the sun plate.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "The inlet snapped shut, the drain locked open, and water rushed away.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "narrativePhase": "CLIMAX",
+      "locationZone": "fixed reading bench",
+      "pageTurnIntent": "CONTINUE",
+      "layoutIntent": "DOUBLE_PAGE_SPREAD",
+      "progressionReason": "goal, obstacle, action, consequence, world_state, entity_state, information",
+      "worldState": "The book is loose and the sun plate is one short walk away.",
+      "visualNoveltyReason": "goal, obstacle, action, consequence, world_state, entity_state, information",
+      "prose": "Leo lifted the atlas clear and hugged it against his chest. Mina wound the beetle; its feet reached the sun plate. The inlet snapped shut, the drain locked open, and water rushed away."
+    },
+    {
+      "pageId": "p11",
+      "beatId": "b11",
+      "locationId": "raised-reading-dais",
+      "charactersPresent": [
+        "mina",
+        "leo"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "raised-reading-dais",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "release",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "raised-reading-dais",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [
+              "blue-atlas"
+            ],
+            "emotion": "release",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "clockwork-beetle",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Stopped beyond the sun plate after activating it."
+          },
+          {
+            "entityId": "blue-atlas",
+            "ownerCharacterId": "leo",
+            "locationId": "raised-reading-dais",
+            "state": "Held clear of the drain against Leo's chest."
+          },
+          {
+            "entityId": "brass-controls",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "All four plates unpressed; engraved connections visible."
+          },
+          {
+            "entityId": "entrance-bridge",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Folded against the wall; return route unavailable."
+          },
+          {
+            "entityId": "wave-inlet",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Closed by the sun mechanism."
+          },
+          {
+            "entityId": "dais-drain",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Locked open and draining freely."
+          }
+        ]
+      },
+      "action": "Leo props the atlas on the dry bench. Mina carries the beetle beneath its cover without touching the key.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "raised-reading-dais",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [
+              "clockwork-beetle"
+            ],
+            "emotion": "quiet satisfaction",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "raised-reading-dais",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "quiet satisfaction",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "clockwork-beetle",
+            "ownerCharacterId": "mina",
+            "locationId": "raised-reading-dais",
+            "state": "Carried from the adjacent track beneath the atlas cover; key untouched."
+          },
+          {
+            "entityId": "blue-atlas",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Propped on the dry bench as a shelter."
+          },
+          {
+            "entityId": "brass-controls",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "All four plates unpressed; engraved connections visible."
+          },
+          {
+            "entityId": "entrance-bridge",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Folded against the wall; return route unavailable."
+          },
+          {
+            "entityId": "wave-inlet",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Closed by the sun mechanism."
+          },
+          {
+            "entityId": "dais-drain",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Locked open and draining freely."
+          }
+        ]
+      },
+      "emotion": "quiet satisfaction",
+      "entitiesRequired": [
+        "clockwork-beetle",
+        "blue-atlas",
+        "brass-controls",
+        "entrance-bridge",
+        "wave-inlet",
+        "dais-drain"
+      ],
+      "visualFocus": "The untouched key beneath the restored book shelter.",
+      "shotType": "vignette",
+      "compositionIntent": "Echo the opening brass feet beneath a cover, now safely above the water.",
+      "textPurpose": "Show restored shelter and changed handling through a visual callback.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "raised-reading-dais",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "release",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "raised-reading-dais",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [
+              "blue-atlas"
+            ],
+            "emotion": "release",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "clockwork-beetle",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Stopped beyond the sun plate after activating it."
+          },
+          {
+            "entityId": "blue-atlas",
+            "ownerCharacterId": "leo",
+            "locationId": "raised-reading-dais",
+            "state": "Held clear of the drain against Leo's chest."
+          },
+          {
+            "entityId": "brass-controls",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "All four plates unpressed; engraved connections visible."
+          },
+          {
+            "entityId": "entrance-bridge",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Folded against the wall; return route unavailable."
+          },
+          {
+            "entityId": "wave-inlet",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Closed by the sun mechanism."
+          },
+          {
+            "entityId": "dais-drain",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Locked open and draining freely."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "raised-reading-dais",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [
+              "clockwork-beetle"
+            ],
+            "emotion": "quiet satisfaction",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "raised-reading-dais",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "quiet satisfaction",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "clockwork-beetle",
+            "ownerCharacterId": "mina",
+            "locationId": "raised-reading-dais",
+            "state": "Carried from the adjacent track beneath the atlas cover; key untouched."
+          },
+          {
+            "entityId": "blue-atlas",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Propped on the dry bench as a shelter."
+          },
+          {
+            "entityId": "brass-controls",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "All four plates unpressed; engraved connections visible."
+          },
+          {
+            "entityId": "entrance-bridge",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Folded against the wall; return route unavailable."
+          },
+          {
+            "entityId": "wave-inlet",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Closed by the sun mechanism."
+          },
+          {
+            "entityId": "dais-drain",
+            "ownerCharacterId": null,
+            "locationId": "raised-reading-dais",
+            "state": "Locked open and draining freely."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-left",
+      "sentences": [
+        {
+          "text": "Leo propped the wet atlas on the dry bench.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Mina carried the beetle beneath its cover, keeping her fingers away from the key.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Under the blue shelter, its brass feet rested.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "narrativePhase": "RESOLUTION",
+      "locationZone": "fixed reading bench",
+      "pageTurnIntent": "RESOLVE",
+      "layoutIntent": "SINGLE_PAGE_SCENE",
+      "progressionReason": "goal, action, consequence, world_state, entity_state, information",
+      "worldState": "Water has fallen below the dais; the bench and shelf are dry.",
+      "visualNoveltyReason": "goal, action, consequence, world_state, entity_state, information",
+      "prose": "Leo propped the wet atlas on the dry bench. Mina carried the beetle beneath its cover, keeping her fingers away from the key. Under the blue shelter, its brass feet rested."
+    }
+  ],
+  "imageCalls": 0,
+  "imageDraws": 0,
+  "imageReason": "images_disabled",
+  "imageUsd": 0
+}

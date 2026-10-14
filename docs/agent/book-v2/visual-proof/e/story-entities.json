@@ -1,0 +1,19 @@
+[
+  {
+    "entityId": "hidden-star",
+    "visualIdentity": "The same small five-pointed star in every picture, recognisable when tiny, in the hands, or rising.",
+    "shape": "five even points, a simple star",
+    "relativeScale": "small enough to rest in two open palms; the same shape when it is a speck or when it rises",
+    "materials": "soft light, not metal, not paper, not a sticker",
+    "colourLight": "warm gold-white glow",
+    "distinctiveFeatures": [
+      "five even points",
+      "warm gold-white glow",
+      "points fold inward when it hides",
+      "blinks by changing brightness"
+    ],
+    "needsReference": false,
+    "mutableState": "points open or folded, brightness, and position. The shape and glow stay the same.",
+    "faceRequired": false
+  }
+]

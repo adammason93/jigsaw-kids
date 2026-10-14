@@ -1,0 +1,34 @@
+{
+  "title": "A Blink for the Sky",
+  "book": "E",
+  "status": "awaiting human review",
+  "classroomReady": false,
+  "coverGenerated": false,
+  "finished": false,
+  "contactSheet": "docs/agent/book-v2/visual-proof/e/review-contact.jpg",
+  "approvedReused": ["p2", "p5", "p10"],
+  "generatedThisRun": ["p1", "p4", "p6", "p7", "p8", "p9", "p11"],
+  "recovered": ["p3"],
+  "notGenerated": [],
+  "styleCoherence": { "ok": true, "problems": [], "note": "Vision style readings for p1 and p3–p4 and p6–p9 and p11 stay painted picture-book. p2, p5, and p10 remain the approved anchors; their older vision files have no style object, so they are not in the numeric drift check." },
+  "coherenceForHumanReview": [
+    "p3 now sits between the close discovery under the pot (p2) and the sheltered sit with the star in Maya's hands (p4). p3 is also seated at the pot, so it is nearer p4 than p2. The difference is the raised arm and the star resting on the stones, glowing softly, rather than held.",
+    "p3 shows the green clip. A second small green clip may be visible in the curls. The lock is one green clip. Left for review.",
+    "p8 and p9 are similar standing poses with the star in Maya's hands; the change is dusk to night and the answering lights.",
+    "p6 shows open sunset above the wall. The beat says the wall hides the wider sky and no light answers.",
+    "p11 shows one open-hands pose. The sentence also says she closes her hands."
+  ],
+  "spreads": [
+    {"spread": "p1", "image": "VISUAL_REVIEWABLE", "cast": "one Maya, identity and outfit confirmed", "entity": "flowerpot and wall confirmed; flicker only", "state": "searching at the pot", "style": "painted picture-book", "textSafe": "usable", "repairs": 0, "file": "docs/agent/book-v2/visual-proof/e/images/p1.jpg"},
+    {"spread": "p2", "image": "approved, reused", "cast": "one Maya", "entity": "star under the rim", "state": "approved", "style": "approved anchor", "textSafe": "usable", "repairs": 0, "file": "docs/agent/book-v2/visual-proof/e/images/p2.jpg"},
+    {"spread": "p3", "image": "VISUAL_REVIEWABLE", "cast": "one Maya, identity and outfit confirmed", "entity": "one faceless five-point star, pot and wall confirmed", "state": "seated beside the pot, looking up, star glowing softly on the stones", "style": "painted picture-book", "textSafe": "usable", "repairs": 0, "file": "docs/agent/book-v2/visual-proof/e/images/p3.jpg"},
+    {"spread": "p4", "image": "VISUAL_REVIEWABLE", "cast": "one Maya, identity and outfit confirmed", "entity": "star, pot, wall confirmed", "state": "seated, star in her hands", "style": "painted picture-book", "textSafe": "usable", "repairs": 0, "file": "docs/agent/book-v2/visual-proof/e/images/p4.jpg"},
+    {"spread": "p5", "image": "approved, reused", "cast": "one Maya", "entity": "one star, open hands", "state": "approved", "style": "approved anchor", "textSafe": "usable", "repairs": 0, "file": "docs/agent/book-v2/visual-proof/e/images/p5.jpg"},
+    {"spread": "p6", "image": "VISUAL_REVIEWABLE", "cast": "one Maya, identity and outfit confirmed", "entity": "star, pot, wall confirmed", "state": "low view, star lifted, wall fills the right", "style": "painted picture-book", "textSafe": "usable", "repairs": 0, "file": "docs/agent/book-v2/visual-proof/e/images/p6.jpg"},
+    {"spread": "p7", "image": "VISUAL_REVIEWABLE", "cast": "one Maya, identity and outfit confirmed", "entity": "star, pot, wall confirmed", "state": "overhead, sheltered corner beside open grass", "style": "painted picture-book", "textSafe": "usable", "repairs": 0, "file": "docs/agent/book-v2/visual-proof/e/images/p7.jpg"},
+    {"spread": "p8", "image": "VISUAL_REVIEWABLE", "cast": "one Maya, identity and outfit confirmed", "entity": "star and wall confirmed; pot is visible", "state": "open garden at dusk, star in her hands", "style": "painted picture-book", "textSafe": "usable", "repairs": 0, "file": "docs/agent/book-v2/visual-proof/e/images/p8.jpg"},
+    {"spread": "p9", "image": "VISUAL_REVIEWABLE", "cast": "one Maya, identity and outfit confirmed", "entity": "star, two sky stars, pot, wall confirmed", "state": "open garden, distant lights reply", "style": "painted picture-book", "textSafe": "usable", "repairs": 0, "file": "docs/agent/book-v2/visual-proof/e/images/p9.jpg"},
+    {"spread": "p10", "image": "approved, reused", "cast": "one Maya", "entity": "star rising, sky answering", "state": "approved", "style": "approved anchor", "textSafe": "usable", "repairs": 0, "file": "docs/agent/book-v2/visual-proof/e/images/p10.jpg"},
+    {"spread": "p11", "image": "VISUAL_REVIEWABLE", "cast": "one Maya, identity and outfit confirmed", "entity": "one star in the sky, pot and wall confirmed", "state": "empty open hands, one answering star", "style": "painted picture-book", "textSafe": "usable", "repairs": 0, "file": "docs/agent/book-v2/visual-proof/e/images/p11.jpg"}
+  ]
+}

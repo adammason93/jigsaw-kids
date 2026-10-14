@@ -1,0 +1,2251 @@
+{
+  "status": "REVIEWABLE",
+  "request": {
+    "castIds": [
+      "mina",
+      "maya"
+    ],
+    "idea": "They wake up and discover their town is floating in the clouds.",
+    "yearGroup": "Year 3",
+    "length": "storybook",
+    "tone": "adventure"
+  },
+  "modelCalls": 3,
+  "repairCalls": 1,
+  "repairs": [
+    {
+      "stage": "prose",
+      "problems": [
+        "age-amount:p4"
+      ]
+    }
+  ],
+  "stagesRepaired": [
+    "prose"
+  ],
+  "bible": {
+    "title": "Footsteps Above the Clouds",
+    "yearGroup": "Year 3",
+    "readerAge": "Year 3",
+    "tone": "adventure",
+    "targetLength": "storybook",
+    "userIdea": "They wake up and discover their town is floating in the clouds.",
+    "castIds": [
+      "mina",
+      "maya"
+    ],
+    "visualStyle": "wondii-picture-book",
+    "premise": "Mina and Maya wake up and discover their town is floating in the clouds. The town follows their footsteps, so they must learn to move together before its cloud support disappears.",
+    "hook": "Clouds fill the space beneath the town, and Maya's first step makes every rooftop sway.",
+    "goal": "Guide the town onto a broad cloud bank before the thin clouds beneath it break apart.",
+    "centralProblem": "The town follows the children's footsteps, but their different directions twist it dangerously.",
+    "stakes": "Their hurried movements could tip the town off its thinning cloud support.",
+    "climaxBeatId": "b5",
+    "resolutionBeatId": "b6",
+    "emotionalArc": [
+      "Astonishment",
+      "Urgency",
+      "Determination",
+      "Alarm and regret",
+      "Trust",
+      "Relief with a reminder of the cost"
+    ],
+    "motif": "Two pairs of shoes finding one steady rhythm.",
+    "locations": [
+      {
+        "locationId": "shared-bedroom",
+        "name": "their upstairs bedroom",
+        "connectedTo": [
+          "fountain-square"
+        ],
+        "visualIdentity": "Two beds, an open window, and cloud light reflected across the ceiling."
+      },
+      {
+        "locationId": "fountain-square",
+        "name": "the fountain square",
+        "connectedTo": [
+          "shared-bedroom"
+        ],
+        "visualIdentity": "A round fountain, pale paving stones, and a garden fence bordering the open cloud edge."
+      }
+    ],
+    "entities": [
+      {
+        "entityId": "floating-town",
+        "name": "the floating town",
+        "identity": "A small town that moves with Mina and Maya's footsteps; conflicting directions make it twist.",
+        "ownerCharacterId": null,
+        "locationId": "fountain-square",
+        "state": "Resting level and still on thick clouds while the children remain seated.",
+        "introducedAt": "b1"
+      },
+      {
+        "entityId": "thin-cloud-support",
+        "name": "the thin clouds",
+        "identity": "Fraying clouds beneath the town, with widening gaps showing blue sky.",
+        "ownerCharacterId": null,
+        "locationId": "fountain-square",
+        "state": "Breaking into smaller wisps beneath the town.",
+        "introducedAt": "b1"
+      },
+      {
+        "entityId": "broad-cloud-bank",
+        "name": "the broad cloud bank",
+        "identity": "A wide, dense bank of clouds beyond the square's garden edge.",
+        "ownerCharacterId": null,
+        "locationId": "fountain-square",
+        "state": "Supporting the whole town.",
+        "introducedAt": "b2"
+      },
+      {
+        "entityId": "square-fountain",
+        "name": "the fountain",
+        "identity": "A low circular stone fountain that divides the walking space in the square.",
+        "ownerCharacterId": null,
+        "locationId": "fountain-square",
+        "state": "Blocking a straight route across the square.",
+        "introducedAt": "b2"
+      },
+      {
+        "entityId": "garden-fence",
+        "name": "the garden fence",
+        "identity": "A painted wooden fence along the town's exposed garden edge.",
+        "ownerCharacterId": null,
+        "locationId": "fountain-square",
+        "state": "Broken away and falling out of reach into the clouds.",
+        "introducedAt": "b2"
+      }
+    ],
+    "beats": [
+      {
+        "beatId": "b1",
+        "role": "hook",
+        "locationId": "shared-bedroom",
+        "charactersPresent": [
+          "mina",
+          "maya"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "mina",
+            "trait": "observant",
+            "shows": "Checks the window ledge against the moving cloud line."
+          },
+          {
+            "characterId": "maya",
+            "trait": "curious",
+            "shows": "Takes one testing step while watching the rooftops."
+          }
+        ],
+        "problemFamily": "",
+        "because": "",
+        "resolvesProblem": false,
+        "action": "Mina and Maya wake up and discover their town floating in the clouds. Maya steps toward the window, and the rooftops shift with her.",
+        "emotion": "Astonishment with an uneasy wobble.",
+        "entitiesRequired": [
+          "floating-town",
+          "thin-cloud-support"
+        ],
+        "visualFocus": "Mina's black hair in two buns, purple dress and white socks; Maya's long dark curls, yellow cardigan, white shirt and blue skirt.",
+        "shotType": "establishing",
+        "compositionIntent": "Frame both children and the impossible view through the open window.",
+        "textPurpose": "Raise the floating-town premise and connect its first movement to a footstep.",
+        "pageTurnHook": "What happens if they take another step?",
+        "textSafeRegion": "upper-left",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "mina",
+              "locationId": "shared-bedroom",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "steady",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "maya",
+              "locationId": "shared-bedroom",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [],
+              "emotion": "steady",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": []
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "mina",
+              "locationId": "shared-bedroom",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "Astonishment with an uneasy wobble.",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "maya",
+              "locationId": "shared-bedroom",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [],
+              "emotion": "Astonishment with an uneasy wobble.",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "floating-town",
+              "ownerCharacterId": null,
+              "locationId": "shared-bedroom",
+              "state": "Floating outside the window and shifting with Maya's step."
+            },
+            {
+              "entityId": "thin-cloud-support",
+              "ownerCharacterId": null,
+              "locationId": "shared-bedroom",
+              "state": "Visible beneath the town, with gaps between its wisps."
+            }
+          ]
+        }
+      },
+      {
+        "beatId": "b2",
+        "role": "discovery",
+        "locationId": "fountain-square",
+        "charactersPresent": [
+          "mina",
+          "maya"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "mina",
+            "trait": "observant",
+            "shows": "Stops beside Maya and compares their shoe directions with the town's turning."
+          }
+        ],
+        "problemFamily": "vanishing-support",
+        "because": "b1",
+        "resolvesProblem": false,
+        "action": "They reach the square and discover that different footsteps twist the town above thinning clouds. A broad cloud bank offers safety.",
+        "emotion": "Wonder becoming urgency.",
+        "entitiesRequired": [
+          "floating-town",
+          "thin-cloud-support",
+          "broad-cloud-bank",
+          "square-fountain",
+          "garden-fence"
+        ],
+        "visualFocus": "Two shoe directions beside the round fountain.",
+        "shotType": "overhead",
+        "compositionIntent": "Show the children's divergent footprints, the twisting town edge, and the nearby safe cloud bank.",
+        "textPurpose": "Establish the movement rule and make the destination plain.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-right",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "mina",
+              "locationId": "shared-bedroom",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "Astonishment with an uneasy wobble.",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "maya",
+              "locationId": "shared-bedroom",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [],
+              "emotion": "Astonishment with an uneasy wobble.",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "floating-town",
+              "ownerCharacterId": null,
+              "locationId": "shared-bedroom",
+              "state": "Floating outside the window and shifting with Maya's step."
+            },
+            {
+              "entityId": "thin-cloud-support",
+              "ownerCharacterId": null,
+              "locationId": "shared-bedroom",
+              "state": "Visible beneath the town, with gaps between its wisps."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "mina",
+              "locationId": "fountain-square",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "Wonder becoming urgency.",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "maya",
+              "locationId": "fountain-square",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [],
+              "emotion": "Wonder becoming urgency.",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "floating-town",
+              "ownerCharacterId": null,
+              "locationId": "fountain-square",
+              "state": "Twisting when the children's steps point in different directions."
+            },
+            {
+              "entityId": "thin-cloud-support",
+              "ownerCharacterId": null,
+              "locationId": "fountain-square",
+              "state": "Breaking into smaller wisps beneath the town."
+            },
+            {
+              "entityId": "broad-cloud-bank",
+              "ownerCharacterId": null,
+              "locationId": "fountain-square",
+              "state": "Within reach beyond the garden edge."
+            },
+            {
+              "entityId": "square-fountain",
+              "ownerCharacterId": null,
+              "locationId": "fountain-square",
+              "state": "Blocking a straight route across the square."
+            },
+            {
+              "entityId": "garden-fence",
+              "ownerCharacterId": null,
+              "locationId": "fountain-square",
+              "state": "Standing intact along the garden edge."
+            }
+          ]
+        }
+      },
+      {
+        "beatId": "b3",
+        "role": "attempt",
+        "locationId": "fountain-square",
+        "charactersPresent": [
+          "mina",
+          "maya"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "maya",
+            "trait": "brave",
+            "shows": "Starts toward the exposed garden edge instead of retreating indoors."
+          }
+        ],
+        "problemFamily": "split-route",
+        "because": "b2",
+        "resolvesProblem": false,
+        "action": "They hurry toward the cloud bank, taking opposite routes around the fountain. Their diverging footsteps swing the town sideways.",
+        "emotion": "Determination overtaken by alarm.",
+        "entitiesRequired": [
+          "floating-town",
+          "thin-cloud-support",
+          "broad-cloud-bank",
+          "square-fountain",
+          "garden-fence"
+        ],
+        "visualFocus": "Maya curving one way and Mina curving the other.",
+        "shotType": "action",
+        "compositionIntent": "Make the fountain visibly separate their routes while the horizon tilts.",
+        "textPurpose": "Make their urgent attempt cause a worse problem.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-left",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "mina",
+              "locationId": "fountain-square",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "Wonder becoming urgency.",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "maya",
+              "locationId": "fountain-square",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [],
+              "emotion": "Wonder becoming urgency.",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "floating-town",
+              "ownerCharacterId": null,
+              "locationId": "fountain-square",
+              "state": "Twisting when the children's steps point in different directions."
+            },
+            {
+              "entityId": "thin-cloud-support",
+              "ownerCharacterId": null,
+              "locationId": "fountain-square",
+              "state": "Breaking into smaller wisps beneath the town."
+            },
+            {
+              "entityId": "broad-cloud-bank",
+              "ownerCharacterId": null,
+              "locationId": "fountain-square",
+              "state": "Within reach beyond the garden edge."
+            },
+            {
+              "entityId": "square-fountain",
+              "ownerCharacterId": null,
+              "locationId": "fountain-square",
+              "state": "Blocking a straight route across the square."
+            },
+            {
+              "entityId": "garden-fence",
+              "ownerCharacterId": null,
+              "locationId": "fountain-square",
+              "state": "Standing intact along the garden edge."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "mina",
+              "locationId": "fountain-square",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "Determination overtaken by alarm.",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "maya",
+              "locationId": "fountain-square",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [],
+              "emotion": "Determination overtaken by alarm.",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "floating-town",
+              "ownerCharacterId": null,
+              "locationId": "fountain-square",
+              "state": "Swinging sideways under conflicting, hurried footsteps."
+            },
+            {
+              "entityId": "thin-cloud-support",
+              "ownerCharacterId": null,
+              "locationId": "fountain-square",
+              "state": "Breaking into smaller wisps beneath the town."
+            },
+            {
+              "entityId": "broad-cloud-bank",
+              "ownerCharacterId": null,
+              "locationId": "fountain-square",
+              "state": "Within reach beyond the garden edge."
+            },
+            {
+              "entityId": "square-fountain",
+              "ownerCharacterId": null,
+              "locationId": "fountain-square",
+              "state": "Blocking a straight route across the square."
+            },
+            {
+              "entityId": "garden-fence",
+              "ownerCharacterId": null,
+              "locationId": "fountain-square",
+              "state": "Standing intact along the garden edge."
+            }
+          ]
+        }
+      },
+      {
+        "beatId": "b4",
+        "role": "complication",
+        "locationId": "fountain-square",
+        "charactersPresent": [
+          "mina",
+          "maya"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "mina",
+            "trait": "gentle",
+            "shows": "Offers Maya a steady hand and waits until both feet are planted."
+          }
+        ],
+        "problemFamily": "tilting-edge",
+        "because": "b3",
+        "resolvesProblem": false,
+        "action": "The sideways swing tips the square, snapping the garden fence into the clouds. Mina helps Maya stop, and the town's turning stops too.",
+        "emotion": "Alarm, loss, and a small discovery.",
+        "entitiesRequired": [
+          "floating-town",
+          "thin-cloud-support",
+          "broad-cloud-bank",
+          "square-fountain",
+          "garden-fence"
+        ],
+        "visualFocus": "Their joined hands above the broken garden edge.",
+        "shotType": "low",
+        "compositionIntent": "Show the sloping paving and falling fence beyond the children’s planted shoes.",
+        "textPurpose": "Give the attempt a real cost and reveal that stillness controls the turning.",
+        "pageTurnHook": "Can they make their footsteps match?",
+        "textSafeRegion": "upper-right",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "mina",
+              "locationId": "fountain-square",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "Determination overtaken by alarm.",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "maya",
+              "locationId": "fountain-square",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [],
+              "emotion": "Determination overtaken by alarm.",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "floating-town",
+              "ownerCharacterId": null,
+              "locationId": "fountain-square",
+              "state": "Swinging sideways under conflicting, hurried footsteps."
+            },
+            {
+              "entityId": "thin-cloud-support",
+              "ownerCharacterId": null,
+              "locationId": "fountain-square",
+              "state": "Breaking into smaller wisps beneath the town."
+            },
+            {
+              "entityId": "broad-cloud-bank",
+              "ownerCharacterId": null,
+              "locationId": "fountain-square",
+              "state": "Within reach beyond the garden edge."
+            },
+            {
+              "entityId": "square-fountain",
+              "ownerCharacterId": null,
+              "locationId": "fountain-square",
+              "state": "Blocking a straight route across the square."
+            },
+            {
+              "entityId": "garden-fence",
+              "ownerCharacterId": null,
+              "locationId": "fountain-square",
+              "state": "Standing intact along the garden edge."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "mina",
+              "locationId": "fountain-square",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "Alarm, loss, and a small discovery.",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "maya",
+              "locationId": "fountain-square",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [],
+              "emotion": "Alarm, loss, and a small discovery.",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "floating-town",
+              "ownerCharacterId": null,
+              "locationId": "fountain-square",
+              "state": "Tilted but no longer turning while both children stand still."
+            },
+            {
+              "entityId": "thin-cloud-support",
+              "ownerCharacterId": null,
+              "locationId": "fountain-square",
+              "state": "Breaking into smaller wisps beneath the town."
+            },
+            {
+              "entityId": "broad-cloud-bank",
+              "ownerCharacterId": null,
+              "locationId": "fountain-square",
+              "state": "Within reach beyond the garden edge."
+            },
+            {
+              "entityId": "square-fountain",
+              "ownerCharacterId": null,
+              "locationId": "fountain-square",
+              "state": "Blocking a straight route across the square."
+            },
+            {
+              "entityId": "garden-fence",
+              "ownerCharacterId": null,
+              "locationId": "fountain-square",
+              "state": "Broken away and falling out of reach into the clouds."
+            }
+          ]
+        }
+      },
+      {
+        "beatId": "b5",
+        "role": "climax",
+        "locationId": "fountain-square",
+        "charactersPresent": [
+          "mina",
+          "maya"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "mina",
+            "trait": "observant",
+            "shows": "Checks Maya's shoes before placing each matching step."
+          },
+          {
+            "characterId": "maya",
+            "trait": "brave",
+            "shows": "Keeps walking beside Mina toward the broken edge."
+          }
+        ],
+        "problemFamily": "matched-steering",
+        "because": "b4",
+        "resolvesProblem": false,
+        "action": "Starting from stillness, they take matching steps along one side of the fountain. The floating town glides onto the broad cloud bank.",
+        "emotion": "Focused trust.",
+        "entitiesRequired": [
+          "floating-town",
+          "thin-cloud-support",
+          "broad-cloud-bank",
+          "square-fountain",
+          "garden-fence"
+        ],
+        "visualFocus": "Two matching strides and the cloud bank spreading beneath the town.",
+        "shotType": "high",
+        "compositionIntent": "Align their paired steps with the town's straight path onto dense clouds.",
+        "textPurpose": "Resolve the danger using the movement rule and the stopping discovery.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-left",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "mina",
+              "locationId": "fountain-square",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "Alarm, loss, and a small discovery.",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "maya",
+              "locationId": "fountain-square",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [],
+              "emotion": "Alarm, loss, and a small discovery.",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "floating-town",
+              "ownerCharacterId": null,
+              "locationId": "fountain-square",
+              "state": "Tilted but no longer turning while both children stand still."
+            },
+            {
+              "entityId": "thin-cloud-support",
+              "ownerCharacterId": null,
+              "locationId": "fountain-square",
+              "state": "Breaking into smaller wisps beneath the town."
+            },
+            {
+              "entityId": "broad-cloud-bank",
+              "ownerCharacterId": null,
+              "locationId": "fountain-square",
+              "state": "Within reach beyond the garden edge."
+            },
+            {
+              "entityId": "square-fountain",
+              "ownerCharacterId": null,
+              "locationId": "fountain-square",
+              "state": "Blocking a straight route across the square."
+            },
+            {
+              "entityId": "garden-fence",
+              "ownerCharacterId": null,
+              "locationId": "fountain-square",
+              "state": "Broken away and falling out of reach into the clouds."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "mina",
+              "locationId": "fountain-square",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "Focused trust.",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "maya",
+              "locationId": "fountain-square",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [],
+              "emotion": "Focused trust.",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "floating-town",
+              "ownerCharacterId": null,
+              "locationId": "fountain-square",
+              "state": "Moving straight and settling level on the broad cloud bank."
+            },
+            {
+              "entityId": "thin-cloud-support",
+              "ownerCharacterId": null,
+              "locationId": "fountain-square",
+              "state": "Breaking into smaller wisps beneath the town."
+            },
+            {
+              "entityId": "broad-cloud-bank",
+              "ownerCharacterId": null,
+              "locationId": "fountain-square",
+              "state": "Supporting the whole town."
+            },
+            {
+              "entityId": "square-fountain",
+              "ownerCharacterId": null,
+              "locationId": "fountain-square",
+              "state": "Blocking a straight route across the square."
+            },
+            {
+              "entityId": "garden-fence",
+              "ownerCharacterId": null,
+              "locationId": "fountain-square",
+              "state": "Broken away and falling out of reach into the clouds."
+            }
+          ]
+        }
+      },
+      {
+        "beatId": "b6",
+        "role": "resolution",
+        "locationId": "fountain-square",
+        "charactersPresent": [
+          "mina",
+          "maya"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "mina",
+            "trait": "gentle",
+            "shows": "Keeps hold of Maya's hand as they sit well back from the broken edge."
+          }
+        ],
+        "problemFamily": "",
+        "because": "b5",
+        "resolvesProblem": true,
+        "action": "They sit beside the fountain, keeping their town still above the clouds; the garden edge remains bare. Together, they can rest.",
+        "emotion": "Earned relief, with the missing fence still visible.",
+        "entitiesRequired": [
+          "floating-town",
+          "thin-cloud-support",
+          "broad-cloud-bank",
+          "square-fountain",
+          "garden-fence"
+        ],
+        "visualFocus": "Joined hands, planted shoes, and the gap where the fence stood.",
+        "shotType": "medium",
+        "compositionIntent": "Hold the resting children in the foreground and the lasting damage behind them.",
+        "textPurpose": "Show safety, retain the cost, and end with shared rest.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-right",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "mina",
+              "locationId": "fountain-square",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "Focused trust.",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "maya",
+              "locationId": "fountain-square",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [],
+              "emotion": "Focused trust.",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "floating-town",
+              "ownerCharacterId": null,
+              "locationId": "fountain-square",
+              "state": "Moving straight and settling level on the broad cloud bank."
+            },
+            {
+              "entityId": "thin-cloud-support",
+              "ownerCharacterId": null,
+              "locationId": "fountain-square",
+              "state": "Breaking into smaller wisps beneath the town."
+            },
+            {
+              "entityId": "broad-cloud-bank",
+              "ownerCharacterId": null,
+              "locationId": "fountain-square",
+              "state": "Supporting the whole town."
+            },
+            {
+              "entityId": "square-fountain",
+              "ownerCharacterId": null,
+              "locationId": "fountain-square",
+              "state": "Blocking a straight route across the square."
+            },
+            {
+              "entityId": "garden-fence",
+              "ownerCharacterId": null,
+              "locationId": "fountain-square",
+              "state": "Broken away and falling out of reach into the clouds."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "mina",
+              "locationId": "fountain-square",
+              "clothing": "purple dress, white socks",
+              "carriedEntities": [],
+              "emotion": "Earned relief, with the missing fence still visible.",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "maya",
+              "locationId": "fountain-square",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [],
+              "emotion": "Earned relief, with the missing fence still visible.",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "floating-town",
+              "ownerCharacterId": null,
+              "locationId": "fountain-square",
+              "state": "Resting level and still on thick clouds while the children remain seated."
+            },
+            {
+              "entityId": "thin-cloud-support",
+              "ownerCharacterId": null,
+              "locationId": "fountain-square",
+              "state": "Breaking into smaller wisps beneath the town."
+            },
+            {
+              "entityId": "broad-cloud-bank",
+              "ownerCharacterId": null,
+              "locationId": "fountain-square",
+              "state": "Supporting the whole town."
+            },
+            {
+              "entityId": "square-fountain",
+              "ownerCharacterId": null,
+              "locationId": "fountain-square",
+              "state": "Blocking a straight route across the square."
+            },
+            {
+              "entityId": "garden-fence",
+              "ownerCharacterId": null,
+              "locationId": "fountain-square",
+              "state": "Broken away and falling out of reach into the clouds."
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "storyProblems": [],
+  "planProblems": [],
+  "textProblems": [],
+  "pages": [
+    {
+      "pageId": "p1",
+      "beatId": "b1",
+      "locationId": "shared-bedroom",
+      "charactersPresent": [
+        "mina",
+        "maya"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "shared-bedroom",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "steady",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "shared-bedroom",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "steady",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": []
+      },
+      "action": "Mina and Maya wake up and discover their town floating in the clouds. Maya steps toward the window, and the rooftops shift with her.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "shared-bedroom",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Astonishment with an uneasy wobble.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "shared-bedroom",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Astonishment with an uneasy wobble.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floating-town",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Floating outside the window and shifting with Maya's step."
+          },
+          {
+            "entityId": "thin-cloud-support",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Visible beneath the town, with gaps between its wisps."
+          }
+        ]
+      },
+      "emotion": "Astonishment with an uneasy wobble.",
+      "entitiesRequired": [
+        "floating-town",
+        "thin-cloud-support"
+      ],
+      "visualFocus": "Mina's black hair in two buns, purple dress and white socks; Maya's long dark curls, yellow cardigan, white shirt and blue skirt.",
+      "shotType": "establishing",
+      "compositionIntent": "Frame both children and the impossible view through the open window.",
+      "textPurpose": "Raise the floating-town premise and connect its first movement to a footstep.",
+      "pageTurnHook": "What happens if they take another step?",
+      "needsFromPrevious": null,
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "shared-bedroom",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Astonishment with an uneasy wobble.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "shared-bedroom",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Astonishment with an uneasy wobble.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floating-town",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Floating outside the window and shifting with Maya's step."
+          },
+          {
+            "entityId": "thin-cloud-support",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Visible beneath the town, with gaps between its wisps."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-left",
+      "sentences": [
+        {
+          "text": "Mina and Maya wake up and discover their town floating in the clouds.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Maya steps toward the window, and the rooftops shift with her.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Below, gaps open between wisps of cloud.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "Mina and Maya wake up and discover their town floating in the clouds. Maya steps toward the window, and the rooftops shift with her. Below, gaps open between wisps of cloud."
+    },
+    {
+      "pageId": "p2",
+      "beatId": "b2",
+      "locationId": "fountain-square",
+      "charactersPresent": [
+        "mina",
+        "maya"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "shared-bedroom",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Astonishment with an uneasy wobble.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "shared-bedroom",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Astonishment with an uneasy wobble.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floating-town",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Floating outside the window and shifting with Maya's step."
+          },
+          {
+            "entityId": "thin-cloud-support",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Visible beneath the town, with gaps between its wisps."
+          }
+        ]
+      },
+      "action": "They reach the square and discover that different footsteps twist the town above thinning clouds. A broad cloud bank offers safety.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "fountain-square",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Wonder becoming urgency.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "fountain-square",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Wonder becoming urgency.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floating-town",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Twisting when the children's steps point in different directions."
+          },
+          {
+            "entityId": "thin-cloud-support",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Breaking into smaller wisps beneath the town."
+          },
+          {
+            "entityId": "broad-cloud-bank",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Within reach beyond the garden edge."
+          },
+          {
+            "entityId": "square-fountain",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Blocking a straight route across the square."
+          },
+          {
+            "entityId": "garden-fence",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Standing intact along the garden edge."
+          }
+        ]
+      },
+      "emotion": "Wonder becoming urgency.",
+      "entitiesRequired": [
+        "floating-town",
+        "thin-cloud-support",
+        "broad-cloud-bank",
+        "square-fountain",
+        "garden-fence"
+      ],
+      "visualFocus": "Two shoe directions beside the round fountain.",
+      "shotType": "overhead",
+      "compositionIntent": "Show the children's divergent footprints, the twisting town edge, and the nearby safe cloud bank.",
+      "textPurpose": "Establish the movement rule and make the destination plain.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "shared-bedroom",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Astonishment with an uneasy wobble.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "shared-bedroom",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Astonishment with an uneasy wobble.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floating-town",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Floating outside the window and shifting with Maya's step."
+          },
+          {
+            "entityId": "thin-cloud-support",
+            "ownerCharacterId": null,
+            "locationId": "shared-bedroom",
+            "state": "Visible beneath the town, with gaps between its wisps."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "fountain-square",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Wonder becoming urgency.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "fountain-square",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Wonder becoming urgency.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floating-town",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Twisting when the children's steps point in different directions."
+          },
+          {
+            "entityId": "thin-cloud-support",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Breaking into smaller wisps beneath the town."
+          },
+          {
+            "entityId": "broad-cloud-bank",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Within reach beyond the garden edge."
+          },
+          {
+            "entityId": "square-fountain",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Blocking a straight route across the square."
+          },
+          {
+            "entityId": "garden-fence",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Standing intact along the garden edge."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-right",
+      "sentences": [
+        {
+          "text": "In the fountain square, each different footstep twists the town, breaking the clouds into smaller wisps.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Beyond the garden fence stretches a broad cloud bank.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "\"We can get there,\" says Mina.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "In the fountain square, each different footstep twists the town, breaking the clouds into smaller wisps. Beyond the garden fence stretches a broad cloud bank. \"We can get there,\" says Mina."
+    },
+    {
+      "pageId": "p3",
+      "beatId": "b3",
+      "locationId": "fountain-square",
+      "charactersPresent": [
+        "mina",
+        "maya"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "fountain-square",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Wonder becoming urgency.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "fountain-square",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Wonder becoming urgency.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floating-town",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Twisting when the children's steps point in different directions."
+          },
+          {
+            "entityId": "thin-cloud-support",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Breaking into smaller wisps beneath the town."
+          },
+          {
+            "entityId": "broad-cloud-bank",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Within reach beyond the garden edge."
+          },
+          {
+            "entityId": "square-fountain",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Blocking a straight route across the square."
+          },
+          {
+            "entityId": "garden-fence",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Standing intact along the garden edge."
+          }
+        ]
+      },
+      "action": "They hurry toward the cloud bank, taking opposite routes around the fountain. Their diverging footsteps swing the town sideways.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "fountain-square",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Determination overtaken by alarm.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "fountain-square",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Determination overtaken by alarm.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floating-town",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Swinging sideways under conflicting, hurried footsteps."
+          },
+          {
+            "entityId": "thin-cloud-support",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Breaking into smaller wisps beneath the town."
+          },
+          {
+            "entityId": "broad-cloud-bank",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Within reach beyond the garden edge."
+          },
+          {
+            "entityId": "square-fountain",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Blocking a straight route across the square."
+          },
+          {
+            "entityId": "garden-fence",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Standing intact along the garden edge."
+          }
+        ]
+      },
+      "emotion": "Determination overtaken by alarm.",
+      "entitiesRequired": [
+        "floating-town",
+        "thin-cloud-support",
+        "broad-cloud-bank",
+        "square-fountain",
+        "garden-fence"
+      ],
+      "visualFocus": "Maya curving one way and Mina curving the other.",
+      "shotType": "action",
+      "compositionIntent": "Make the fountain visibly separate their routes while the horizon tilts.",
+      "textPurpose": "Make their urgent attempt cause a worse problem.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "fountain-square",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Wonder becoming urgency.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "fountain-square",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Wonder becoming urgency.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floating-town",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Twisting when the children's steps point in different directions."
+          },
+          {
+            "entityId": "thin-cloud-support",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Breaking into smaller wisps beneath the town."
+          },
+          {
+            "entityId": "broad-cloud-bank",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Within reach beyond the garden edge."
+          },
+          {
+            "entityId": "square-fountain",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Blocking a straight route across the square."
+          },
+          {
+            "entityId": "garden-fence",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Standing intact along the garden edge."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "fountain-square",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Determination overtaken by alarm.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "fountain-square",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Determination overtaken by alarm.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floating-town",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Swinging sideways under conflicting, hurried footsteps."
+          },
+          {
+            "entityId": "thin-cloud-support",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Breaking into smaller wisps beneath the town."
+          },
+          {
+            "entityId": "broad-cloud-bank",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Within reach beyond the garden edge."
+          },
+          {
+            "entityId": "square-fountain",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Blocking a straight route across the square."
+          },
+          {
+            "entityId": "garden-fence",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Standing intact along the garden edge."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-left",
+      "sentences": [
+        {
+          "text": "They hurry toward the cloud bank.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Mina goes one way around the fountain; Maya goes the other.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "The town swings sideways beneath their racing steps.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "They hurry toward the cloud bank. Mina goes one way around the fountain; Maya goes the other. The town swings sideways beneath their racing steps."
+    },
+    {
+      "pageId": "p4",
+      "beatId": "b4",
+      "locationId": "fountain-square",
+      "charactersPresent": [
+        "mina",
+        "maya"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "fountain-square",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Determination overtaken by alarm.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "fountain-square",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Determination overtaken by alarm.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floating-town",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Swinging sideways under conflicting, hurried footsteps."
+          },
+          {
+            "entityId": "thin-cloud-support",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Breaking into smaller wisps beneath the town."
+          },
+          {
+            "entityId": "broad-cloud-bank",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Within reach beyond the garden edge."
+          },
+          {
+            "entityId": "square-fountain",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Blocking a straight route across the square."
+          },
+          {
+            "entityId": "garden-fence",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Standing intact along the garden edge."
+          }
+        ]
+      },
+      "action": "The sideways swing tips the square, snapping the garden fence into the clouds. Mina helps Maya stop, and the town's turning stops too.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "fountain-square",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Alarm, loss, and a small discovery.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "fountain-square",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Alarm, loss, and a small discovery.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floating-town",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Tilted but no longer turning while both children stand still."
+          },
+          {
+            "entityId": "thin-cloud-support",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Breaking into smaller wisps beneath the town."
+          },
+          {
+            "entityId": "broad-cloud-bank",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Within reach beyond the garden edge."
+          },
+          {
+            "entityId": "square-fountain",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Blocking a straight route across the square."
+          },
+          {
+            "entityId": "garden-fence",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Broken away and falling out of reach into the clouds."
+          }
+        ]
+      },
+      "emotion": "Alarm, loss, and a small discovery.",
+      "entitiesRequired": [
+        "floating-town",
+        "thin-cloud-support",
+        "broad-cloud-bank",
+        "square-fountain",
+        "garden-fence"
+      ],
+      "visualFocus": "Their joined hands above the broken garden edge.",
+      "shotType": "low",
+      "compositionIntent": "Show the sloping paving and falling fence beyond the children’s planted shoes.",
+      "textPurpose": "Give the attempt a real cost and reveal that stillness controls the turning.",
+      "pageTurnHook": "Can they make their footsteps match?",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "fountain-square",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Determination overtaken by alarm.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "fountain-square",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Determination overtaken by alarm.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floating-town",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Swinging sideways under conflicting, hurried footsteps."
+          },
+          {
+            "entityId": "thin-cloud-support",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Breaking into smaller wisps beneath the town."
+          },
+          {
+            "entityId": "broad-cloud-bank",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Within reach beyond the garden edge."
+          },
+          {
+            "entityId": "square-fountain",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Blocking a straight route across the square."
+          },
+          {
+            "entityId": "garden-fence",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Standing intact along the garden edge."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "fountain-square",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Alarm, loss, and a small discovery.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "fountain-square",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Alarm, loss, and a small discovery.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floating-town",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Tilted but no longer turning while both children stand still."
+          },
+          {
+            "entityId": "thin-cloud-support",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Breaking into smaller wisps beneath the town."
+          },
+          {
+            "entityId": "broad-cloud-bank",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Within reach beyond the garden edge."
+          },
+          {
+            "entityId": "square-fountain",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Blocking a straight route across the square."
+          },
+          {
+            "entityId": "garden-fence",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Broken away and falling out of reach into the clouds."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-right",
+      "sentences": [
+        {
+          "text": "The square tipped, and the garden fence snapped away, tumbling out of reach into the clouds.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Mina caught Maya's arm and helped her stop; the floating town stopped turning beneath them.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Under the tilted town, its cloud support broke into wisps; could their next footsteps match?",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "The square tipped, and the garden fence snapped away, tumbling out of reach into the clouds. Mina caught Maya's arm and helped her stop; the floating town stopped turning beneath them. Under the tilted town, its cloud support broke into wisps; could their next footsteps match?"
+    },
+    {
+      "pageId": "p5",
+      "beatId": "b5",
+      "locationId": "fountain-square",
+      "charactersPresent": [
+        "mina",
+        "maya"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "fountain-square",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Alarm, loss, and a small discovery.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "fountain-square",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Alarm, loss, and a small discovery.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floating-town",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Tilted but no longer turning while both children stand still."
+          },
+          {
+            "entityId": "thin-cloud-support",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Breaking into smaller wisps beneath the town."
+          },
+          {
+            "entityId": "broad-cloud-bank",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Within reach beyond the garden edge."
+          },
+          {
+            "entityId": "square-fountain",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Blocking a straight route across the square."
+          },
+          {
+            "entityId": "garden-fence",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Broken away and falling out of reach into the clouds."
+          }
+        ]
+      },
+      "action": "Starting from stillness, they take matching steps along one side of the fountain. The floating town glides onto the broad cloud bank.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "fountain-square",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Focused trust.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "fountain-square",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Focused trust.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floating-town",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Moving straight and settling level on the broad cloud bank."
+          },
+          {
+            "entityId": "thin-cloud-support",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Breaking into smaller wisps beneath the town."
+          },
+          {
+            "entityId": "broad-cloud-bank",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Supporting the whole town."
+          },
+          {
+            "entityId": "square-fountain",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Blocking a straight route across the square."
+          },
+          {
+            "entityId": "garden-fence",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Broken away and falling out of reach into the clouds."
+          }
+        ]
+      },
+      "emotion": "Focused trust.",
+      "entitiesRequired": [
+        "floating-town",
+        "thin-cloud-support",
+        "broad-cloud-bank",
+        "square-fountain",
+        "garden-fence"
+      ],
+      "visualFocus": "Two matching strides and the cloud bank spreading beneath the town.",
+      "shotType": "high",
+      "compositionIntent": "Align their paired steps with the town's straight path onto dense clouds.",
+      "textPurpose": "Resolve the danger using the movement rule and the stopping discovery.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "fountain-square",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Alarm, loss, and a small discovery.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "fountain-square",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Alarm, loss, and a small discovery.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floating-town",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Tilted but no longer turning while both children stand still."
+          },
+          {
+            "entityId": "thin-cloud-support",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Breaking into smaller wisps beneath the town."
+          },
+          {
+            "entityId": "broad-cloud-bank",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Within reach beyond the garden edge."
+          },
+          {
+            "entityId": "square-fountain",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Blocking a straight route across the square."
+          },
+          {
+            "entityId": "garden-fence",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Broken away and falling out of reach into the clouds."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "fountain-square",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Focused trust.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "fountain-square",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Focused trust.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floating-town",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Moving straight and settling level on the broad cloud bank."
+          },
+          {
+            "entityId": "thin-cloud-support",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Breaking into smaller wisps beneath the town."
+          },
+          {
+            "entityId": "broad-cloud-bank",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Supporting the whole town."
+          },
+          {
+            "entityId": "square-fountain",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Blocking a straight route across the square."
+          },
+          {
+            "entityId": "garden-fence",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Broken away and falling out of reach into the clouds."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-left",
+      "sentences": [
+        {
+          "text": "When you wake and discover your town floating in clouds, where do you step?",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Mina and Maya start together: one step, then another, along the same side of the fountain.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Their town glides straight onto the broad cloud bank and settles level.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "When you wake and discover your town floating in clouds, where do you step? Mina and Maya start together: one step, then another, along the same side of the fountain. Their town glides straight onto the broad cloud bank and settles level."
+    },
+    {
+      "pageId": "p6",
+      "beatId": "b6",
+      "locationId": "fountain-square",
+      "charactersPresent": [
+        "mina",
+        "maya"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "fountain-square",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Focused trust.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "fountain-square",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Focused trust.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floating-town",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Moving straight and settling level on the broad cloud bank."
+          },
+          {
+            "entityId": "thin-cloud-support",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Breaking into smaller wisps beneath the town."
+          },
+          {
+            "entityId": "broad-cloud-bank",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Supporting the whole town."
+          },
+          {
+            "entityId": "square-fountain",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Blocking a straight route across the square."
+          },
+          {
+            "entityId": "garden-fence",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Broken away and falling out of reach into the clouds."
+          }
+        ]
+      },
+      "action": "They sit beside the fountain, keeping their town still above the clouds; the garden edge remains bare. Together, they can rest.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "fountain-square",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Earned relief, with the missing fence still visible.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "fountain-square",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Earned relief, with the missing fence still visible.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floating-town",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Resting level and still on thick clouds while the children remain seated."
+          },
+          {
+            "entityId": "thin-cloud-support",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Breaking into smaller wisps beneath the town."
+          },
+          {
+            "entityId": "broad-cloud-bank",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Supporting the whole town."
+          },
+          {
+            "entityId": "square-fountain",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Blocking a straight route across the square."
+          },
+          {
+            "entityId": "garden-fence",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Broken away and falling out of reach into the clouds."
+          }
+        ]
+      },
+      "emotion": "Earned relief, with the missing fence still visible.",
+      "entitiesRequired": [
+        "floating-town",
+        "thin-cloud-support",
+        "broad-cloud-bank",
+        "square-fountain",
+        "garden-fence"
+      ],
+      "visualFocus": "Joined hands, planted shoes, and the gap where the fence stood.",
+      "shotType": "medium",
+      "compositionIntent": "Hold the resting children in the foreground and the lasting damage behind them.",
+      "textPurpose": "Show safety, retain the cost, and end with shared rest.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "fountain-square",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Focused trust.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "fountain-square",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Focused trust.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floating-town",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Moving straight and settling level on the broad cloud bank."
+          },
+          {
+            "entityId": "thin-cloud-support",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Breaking into smaller wisps beneath the town."
+          },
+          {
+            "entityId": "broad-cloud-bank",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Supporting the whole town."
+          },
+          {
+            "entityId": "square-fountain",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Blocking a straight route across the square."
+          },
+          {
+            "entityId": "garden-fence",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Broken away and falling out of reach into the clouds."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "mina",
+            "locationId": "fountain-square",
+            "clothing": "purple dress, white socks",
+            "carriedEntities": [],
+            "emotion": "Earned relief, with the missing fence still visible.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "maya",
+            "locationId": "fountain-square",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Earned relief, with the missing fence still visible.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floating-town",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Resting level and still on thick clouds while the children remain seated."
+          },
+          {
+            "entityId": "thin-cloud-support",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Breaking into smaller wisps beneath the town."
+          },
+          {
+            "entityId": "broad-cloud-bank",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Supporting the whole town."
+          },
+          {
+            "entityId": "square-fountain",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Blocking a straight route across the square."
+          },
+          {
+            "entityId": "garden-fence",
+            "ownerCharacterId": null,
+            "locationId": "fountain-square",
+            "state": "Broken away and falling out of reach into the clouds."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-right",
+      "sentences": [
+        {
+          "text": "Some days you wake and discover your town floating in clouds.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Mina and Maya sit beside the fountain, keeping the town still; the garden edge stays bare.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Together, they can rest.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "Some days you wake and discover your town floating in clouds. Mina and Maya sit beside the fountain, keeping the town still; the garden edge stays bare. Together, they can rest."
+    }
+  ],
+  "imageCalls": 0,
+  "imageDraws": 0,
+  "imageReason": "images_disabled",
+  "imageUsd": 0,
+  "id": "c",
+  "listedUsd": 0.049394,
+  "guardUsd": 0.098788
+}

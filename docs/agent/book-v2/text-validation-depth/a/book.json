@@ -1,0 +1,1965 @@
+{
+  "status": "REVIEWABLE",
+  "request": {
+    "castIds": [
+      "maya",
+      "leo"
+    ],
+    "idea": "They find a tiny dragon hiding underneath their school.",
+    "yearGroup": "Year 1",
+    "ageBand": "",
+    "length": "quick",
+    "tone": "magical",
+    "context": "school"
+  },
+  "modelCalls": 2,
+  "repairCalls": 0,
+  "repairs": [],
+  "stagesRepaired": [],
+  "bible": {
+    "title": "A Tune Under the Floor",
+    "yearGroup": "Year 1",
+    "ageBand": "",
+    "readerAge": "5–6",
+    "readerStage": "year1",
+    "narrativeComplexity": "a simple cause the reader can follow",
+    "tone": "magical",
+    "targetLength": "quick",
+    "userIdea": "They find a tiny dragon hiding underneath their school.",
+    "castIds": [
+      "maya",
+      "leo"
+    ],
+    "visualStyle": "wondii-picture-book",
+    "premise": "Maya and Leo find a tiny dragon hiding below their school floor. Its scales shine only while someone hums. They must share a tune to guide it into daylight.",
+    "hook": "Maya's humming makes light shine through a floor hatch.",
+    "goal": "Help the dragon reach the sunny floor above.",
+    "centralProblem": "The dragon cannot see its way through the dark. Its light goes out whenever the humming stops.",
+    "stakes": "Without a steady tune, the dragon must stay below.",
+    "climaxBeatId": "b6",
+    "resolutionBeatId": "b7",
+    "emotionalArc": [
+      "Maya bends toward an unexplained glow.",
+      "Leo reaches toward the dragon.",
+      "Both children keep close when the light fades.",
+      "Their hands relax once the dragon reaches daylight."
+    ],
+    "motif": "A shared tune and a small patch of light.",
+    "locations": [
+      {
+        "locationId": "sunny-school-hall",
+        "name": "the sunny school hall",
+        "connectedTo": [
+          "under-school-floor"
+        ],
+        "visualIdentity": "A broad sunbeam crosses wooden floorboards beside a small hinged hatch."
+      },
+      {
+        "locationId": "under-school-floor",
+        "name": "under the school floor",
+        "connectedTo": [
+          "sunny-school-hall"
+        ],
+        "visualIdentity": "A shallow, dark space with beams overhead and three steps leading to the hatch."
+      }
+    ],
+    "entities": [
+      {
+        "entityId": "floor-hatch",
+        "name": "floor hatch",
+        "identity": "A small wooden hatch with a round handle and three steps beneath it.",
+        "ownerCharacterId": null,
+        "locationId": "sunny-school-hall",
+        "state": "Open above the steps.",
+        "introducedAt": "b1"
+      },
+      {
+        "entityId": "humming-dragon",
+        "name": "tiny dragon",
+        "identity": "A palm-sized dragon with silver scales. Its scales glow only while someone hums within hearing.",
+        "ownerCharacterId": null,
+        "locationId": "sunny-school-hall",
+        "state": "Resting beside Maya's shoe in daylight; scales no longer glow.",
+        "introducedAt": "b2"
+      }
+    ],
+    "beats": [
+      {
+        "beatId": "b1",
+        "role": "hook",
+        "locationId": "sunny-school-hall",
+        "charactersPresent": [
+          "maya",
+          "leo"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "maya",
+            "trait": "curious",
+            "shows": "She lowers her face toward the crack without stopping her tune."
+          }
+        ],
+        "problemFamily": "hidden-light",
+        "because": "",
+        "resolvesProblem": false,
+        "action": "Maya hums beside a school floor hatch. Light shines through its crack.",
+        "emotion": "Interest shown by moving closer.",
+        "entitiesRequired": [
+          "floor-hatch"
+        ],
+        "visualFocus": "A thin glow between the floorboards.",
+        "shotType": "establishing",
+        "compositionIntent": "Place both children beside the hatch, with daylight beyond them.",
+        "textPurpose": "Connect Maya's tune with the unexplained light.",
+        "pageTurnHook": "What is shining below the floor?",
+        "textSafeRegion": "upper-left",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "maya",
+              "locationId": "sunny-school-hall",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [],
+              "emotion": "steady",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "leo",
+              "locationId": "sunny-school-hall",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "steady",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": []
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "maya",
+              "locationId": "sunny-school-hall",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [],
+              "emotion": "Interest shown by moving closer.",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "leo",
+              "locationId": "sunny-school-hall",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "Interest shown by moving closer.",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "floor-hatch",
+              "ownerCharacterId": null,
+              "locationId": "sunny-school-hall",
+              "state": "Closed, with light shining through its crack."
+            }
+          ]
+        }
+      },
+      {
+        "beatId": "b2",
+        "role": "discovery",
+        "locationId": "under-school-floor",
+        "charactersPresent": [
+          "maya",
+          "leo"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "leo",
+            "trait": "careful",
+            "shows": "He holds the hatch open until Maya clears the steps."
+          },
+          {
+            "characterId": "maya",
+            "trait": "curious",
+            "shows": "She pauses her tune, watches the scales, and hums again."
+          }
+        ],
+        "problemFamily": "light-rule",
+        "because": "b1",
+        "resolvesProblem": false,
+        "action": "They open the hatch and find a tiny dragon. Its scales glow only while Maya hums.",
+        "emotion": "Interest shown by testing the tune.",
+        "entitiesRequired": [
+          "floor-hatch",
+          "humming-dragon"
+        ],
+        "visualFocus": "Silver scales lighting the dark space.",
+        "shotType": "reveal",
+        "compositionIntent": "Frame the children through the open hatch above the dragon.",
+        "textPurpose": "Reveal the dragon and establish the single magical rule.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-right",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "maya",
+              "locationId": "sunny-school-hall",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [],
+              "emotion": "Interest shown by moving closer.",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "leo",
+              "locationId": "sunny-school-hall",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "Interest shown by moving closer.",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "floor-hatch",
+              "ownerCharacterId": null,
+              "locationId": "sunny-school-hall",
+              "state": "Closed, with light shining through its crack."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "maya",
+              "locationId": "under-school-floor",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [],
+              "emotion": "Interest shown by testing the tune.",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "leo",
+              "locationId": "under-school-floor",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "Interest shown by testing the tune.",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "floor-hatch",
+              "ownerCharacterId": null,
+              "locationId": "sunny-school-hall",
+              "state": "Open above the steps."
+            },
+            {
+              "entityId": "humming-dragon",
+              "ownerCharacterId": null,
+              "locationId": "under-school-floor",
+              "state": "Hiding beside a beam; scales glow during humming and darken during silence."
+            }
+          ]
+        }
+      },
+      {
+        "beatId": "b3",
+        "role": "goal",
+        "locationId": "under-school-floor",
+        "charactersPresent": [
+          "maya",
+          "leo"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "leo",
+            "trait": "kind",
+            "shows": "He offers an open hand at the dragon's height."
+          }
+        ],
+        "problemFamily": "dark-path",
+        "because": "b2",
+        "resolvesProblem": false,
+        "action": "The dragon stretches toward the bright hatch. Leo offers to carry it up the dark steps.",
+        "emotion": "Concern shown by offering help.",
+        "entitiesRequired": [
+          "floor-hatch",
+          "humming-dragon"
+        ],
+        "visualFocus": "Leo's open hand beside the dragon.",
+        "shotType": "medium",
+        "compositionIntent": "Align the dragon's reaching paw with the light overhead.",
+        "textPurpose": "Give the dragon a visible wish and the children a goal.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-left",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "maya",
+              "locationId": "under-school-floor",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [],
+              "emotion": "Interest shown by testing the tune.",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "leo",
+              "locationId": "under-school-floor",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "Interest shown by testing the tune.",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "floor-hatch",
+              "ownerCharacterId": null,
+              "locationId": "sunny-school-hall",
+              "state": "Open above the steps."
+            },
+            {
+              "entityId": "humming-dragon",
+              "ownerCharacterId": null,
+              "locationId": "under-school-floor",
+              "state": "Hiding beside a beam; scales glow during humming and darken during silence."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "maya",
+              "locationId": "under-school-floor",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [],
+              "emotion": "Concern shown by offering help.",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "leo",
+              "locationId": "under-school-floor",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "Concern shown by offering help.",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "floor-hatch",
+              "ownerCharacterId": null,
+              "locationId": "sunny-school-hall",
+              "state": "Open above the steps."
+            },
+            {
+              "entityId": "humming-dragon",
+              "ownerCharacterId": null,
+              "locationId": "under-school-floor",
+              "state": "Hiding beside a beam; scales glow during humming and darken during silence."
+            }
+          ]
+        }
+      },
+      {
+        "beatId": "b4",
+        "role": "attempt",
+        "locationId": "under-school-floor",
+        "charactersPresent": [
+          "maya",
+          "leo"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "maya",
+            "trait": "brave",
+            "shows": "She leads toward the steps with one hand extended into darkness."
+          },
+          {
+            "characterId": "leo",
+            "trait": "careful",
+            "shows": "He cups both hands beneath the dragon before lifting it."
+          }
+        ],
+        "problemFamily": "single-singer",
+        "because": "b3",
+        "resolvesProblem": false,
+        "action": "Leo lifts the dragon while Maya keeps humming. Its glow lights their first step.",
+        "emotion": "Concern shown by staying close together.",
+        "entitiesRequired": [
+          "floor-hatch",
+          "humming-dragon"
+        ],
+        "visualFocus": "The dragon lighting the children's feet.",
+        "shotType": "low",
+        "compositionIntent": "Show the first step illuminated from Leo's hands.",
+        "textPurpose": "Use the established rule for their first attempt.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-right",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "maya",
+              "locationId": "under-school-floor",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [],
+              "emotion": "Concern shown by offering help.",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "leo",
+              "locationId": "under-school-floor",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "Concern shown by offering help.",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "floor-hatch",
+              "ownerCharacterId": null,
+              "locationId": "sunny-school-hall",
+              "state": "Open above the steps."
+            },
+            {
+              "entityId": "humming-dragon",
+              "ownerCharacterId": null,
+              "locationId": "under-school-floor",
+              "state": "Hiding beside a beam; scales glow during humming and darken during silence."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "maya",
+              "locationId": "under-school-floor",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [],
+              "emotion": "Concern shown by staying close together.",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "leo",
+              "locationId": "under-school-floor",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [
+                "humming-dragon"
+              ],
+              "emotion": "Concern shown by staying close together.",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "floor-hatch",
+              "ownerCharacterId": null,
+              "locationId": "sunny-school-hall",
+              "state": "Open above the steps."
+            },
+            {
+              "entityId": "humming-dragon",
+              "ownerCharacterId": "leo",
+              "locationId": "under-school-floor",
+              "state": "Carried in cupped hands, glowing while Maya hums."
+            }
+          ]
+        }
+      },
+      {
+        "beatId": "b5",
+        "role": "setback",
+        "locationId": "under-school-floor",
+        "charactersPresent": [
+          "maya",
+          "leo"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "leo",
+            "trait": "careful",
+            "shows": "He plants both feet and holds his hands still."
+          }
+        ],
+        "problemFamily": "breath-gap",
+        "because": "b4",
+        "resolvesProblem": false,
+        "action": "Maya stops humming to take a breath. The glow fades, so Leo stops on the step.",
+        "emotion": "Concern shown by stopping rather than stumbling.",
+        "entitiesRequired": [
+          "floor-hatch",
+          "humming-dragon"
+        ],
+        "visualFocus": "Silver scales without their glow.",
+        "shotType": "close",
+        "compositionIntent": "Keep the darkened dragon and Leo's steady hands prominent.",
+        "textPurpose": "Expose the practical limit of one child's humming.",
+        "pageTurnHook": "How can the tune keep going?",
+        "textSafeRegion": "upper-left",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "maya",
+              "locationId": "under-school-floor",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [],
+              "emotion": "Concern shown by staying close together.",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "leo",
+              "locationId": "under-school-floor",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [
+                "humming-dragon"
+              ],
+              "emotion": "Concern shown by staying close together.",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "floor-hatch",
+              "ownerCharacterId": null,
+              "locationId": "sunny-school-hall",
+              "state": "Open above the steps."
+            },
+            {
+              "entityId": "humming-dragon",
+              "ownerCharacterId": "leo",
+              "locationId": "under-school-floor",
+              "state": "Carried in cupped hands, glowing while Maya hums."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "maya",
+              "locationId": "under-school-floor",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [],
+              "emotion": "Concern shown by stopping rather than stumbling.",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "leo",
+              "locationId": "under-school-floor",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [
+                "humming-dragon"
+              ],
+              "emotion": "Concern shown by stopping rather than stumbling.",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "floor-hatch",
+              "ownerCharacterId": null,
+              "locationId": "sunny-school-hall",
+              "state": "Open above the steps."
+            },
+            {
+              "entityId": "humming-dragon",
+              "ownerCharacterId": "leo",
+              "locationId": "under-school-floor",
+              "state": "Still in Leo's hands, with its glow extinguished during Maya's breath."
+            }
+          ]
+        }
+      },
+      {
+        "beatId": "b6",
+        "role": "climax",
+        "locationId": "sunny-school-hall",
+        "charactersPresent": [
+          "maya",
+          "leo"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "leo",
+            "trait": "kind",
+            "shows": "He takes up Maya's tune while she draws breath."
+          },
+          {
+            "characterId": "maya",
+            "trait": "brave",
+            "shows": "She leads up the remaining steps as their tune continues."
+          }
+        ],
+        "problemFamily": "shared-tune",
+        "because": "b5",
+        "resolvesProblem": false,
+        "action": "Leo hums while Maya breathes; Maya hums while Leo breathes. The dragon lights their climb into the school hall.",
+        "emotion": "Concern eased through working together.",
+        "entitiesRequired": [
+          "floor-hatch",
+          "humming-dragon"
+        ],
+        "visualFocus": "An unbroken glow between the two children.",
+        "shotType": "action",
+        "compositionIntent": "Show their final step from darkness into the sunbeam.",
+        "textPurpose": "Resolve the dark passage using the known rule and shared breaths.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-right",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "maya",
+              "locationId": "under-school-floor",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [],
+              "emotion": "Concern shown by stopping rather than stumbling.",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "leo",
+              "locationId": "under-school-floor",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [
+                "humming-dragon"
+              ],
+              "emotion": "Concern shown by stopping rather than stumbling.",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "floor-hatch",
+              "ownerCharacterId": null,
+              "locationId": "sunny-school-hall",
+              "state": "Open above the steps."
+            },
+            {
+              "entityId": "humming-dragon",
+              "ownerCharacterId": "leo",
+              "locationId": "under-school-floor",
+              "state": "Still in Leo's hands, with its glow extinguished during Maya's breath."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "maya",
+              "locationId": "sunny-school-hall",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [],
+              "emotion": "Concern eased through working together.",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "leo",
+              "locationId": "sunny-school-hall",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [
+                "humming-dragon"
+              ],
+              "emotion": "Concern eased through working together.",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "floor-hatch",
+              "ownerCharacterId": null,
+              "locationId": "sunny-school-hall",
+              "state": "Open above the steps."
+            },
+            {
+              "entityId": "humming-dragon",
+              "ownerCharacterId": "leo",
+              "locationId": "sunny-school-hall",
+              "state": "Carried safely into daylight, glowing through their overlapping humming."
+            }
+          ]
+        }
+      },
+      {
+        "beatId": "b7",
+        "role": "resolution",
+        "locationId": "sunny-school-hall",
+        "charactersPresent": [
+          "maya",
+          "leo"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "leo",
+            "trait": "kind",
+            "shows": "He lowers his hands to let the dragon step into sunlight."
+          }
+        ],
+        "problemFamily": "",
+        "because": "b6",
+        "resolvesProblem": true,
+        "action": "Leo sets the dragon in the sunbeam. It curls beside Maya's shoe as their humming stops.",
+        "emotion": "Ease shown by resting beside the children.",
+        "entitiesRequired": [
+          "floor-hatch",
+          "humming-dragon"
+        ],
+        "visualFocus": "The dragon resting openly beside Maya's shoe.",
+        "shotType": "vignette",
+        "compositionIntent": "Gather the dragon, yellow cardigan, and green sleeve within the warm sunbeam.",
+        "textPurpose": "Replace hiding in darkness with resting in daylight.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-left",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "maya",
+              "locationId": "sunny-school-hall",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [],
+              "emotion": "Concern eased through working together.",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "leo",
+              "locationId": "sunny-school-hall",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [
+                "humming-dragon"
+              ],
+              "emotion": "Concern eased through working together.",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "floor-hatch",
+              "ownerCharacterId": null,
+              "locationId": "sunny-school-hall",
+              "state": "Open above the steps."
+            },
+            {
+              "entityId": "humming-dragon",
+              "ownerCharacterId": "leo",
+              "locationId": "sunny-school-hall",
+              "state": "Carried safely into daylight, glowing through their overlapping humming."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "maya",
+              "locationId": "sunny-school-hall",
+              "clothing": "yellow cardigan, white shirt, blue skirt",
+              "carriedEntities": [],
+              "emotion": "Ease shown by resting beside the children.",
+              "storyRole": "friend"
+            },
+            {
+              "characterId": "leo",
+              "locationId": "sunny-school-hall",
+              "clothing": "green jumper, dark trousers",
+              "carriedEntities": [],
+              "emotion": "Ease shown by resting beside the children.",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "floor-hatch",
+              "ownerCharacterId": null,
+              "locationId": "sunny-school-hall",
+              "state": "Open above the steps."
+            },
+            {
+              "entityId": "humming-dragon",
+              "ownerCharacterId": null,
+              "locationId": "sunny-school-hall",
+              "state": "Resting beside Maya's shoe in daylight; scales no longer glow."
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "storyProblems": [],
+  "planProblems": [],
+  "textProblems": [],
+  "pages": [
+    {
+      "pageId": "p1",
+      "beatId": "b1",
+      "locationId": "sunny-school-hall",
+      "charactersPresent": [
+        "maya",
+        "leo"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "sunny-school-hall",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "steady",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "sunny-school-hall",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "steady",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": []
+      },
+      "action": "Maya hums beside a school floor hatch. Light shines through its crack.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "sunny-school-hall",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Interest shown by moving closer.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "sunny-school-hall",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "Interest shown by moving closer.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floor-hatch",
+            "ownerCharacterId": null,
+            "locationId": "sunny-school-hall",
+            "state": "Closed, with light shining through its crack."
+          }
+        ]
+      },
+      "emotion": "Interest shown by moving closer.",
+      "entitiesRequired": [
+        "floor-hatch"
+      ],
+      "visualFocus": "A thin glow between the floorboards.",
+      "shotType": "establishing",
+      "compositionIntent": "Place both children beside the hatch, with daylight beyond them.",
+      "textPurpose": "Connect Maya's tune with the unexplained light.",
+      "pageTurnHook": "What is shining below the floor?",
+      "needsFromPrevious": null,
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "sunny-school-hall",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Interest shown by moving closer.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "sunny-school-hall",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "Interest shown by moving closer.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floor-hatch",
+            "ownerCharacterId": null,
+            "locationId": "sunny-school-hall",
+            "state": "Closed, with light shining through its crack."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-left",
+      "sentences": [
+        {
+          "text": "Maya hummed beside the closed floor hatch.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Light shone through the crack, and she bent closer.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "Maya hummed beside the closed floor hatch. Light shone through the crack, and she bent closer."
+    },
+    {
+      "pageId": "p2",
+      "beatId": "b2",
+      "locationId": "under-school-floor",
+      "charactersPresent": [
+        "maya",
+        "leo"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "sunny-school-hall",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Interest shown by moving closer.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "sunny-school-hall",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "Interest shown by moving closer.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floor-hatch",
+            "ownerCharacterId": null,
+            "locationId": "sunny-school-hall",
+            "state": "Closed, with light shining through its crack."
+          }
+        ]
+      },
+      "action": "They open the hatch and find a tiny dragon. Its scales glow only while Maya hums.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "under-school-floor",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Interest shown by testing the tune.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "under-school-floor",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "Interest shown by testing the tune.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floor-hatch",
+            "ownerCharacterId": null,
+            "locationId": "sunny-school-hall",
+            "state": "Open above the steps."
+          },
+          {
+            "entityId": "humming-dragon",
+            "ownerCharacterId": null,
+            "locationId": "under-school-floor",
+            "state": "Hiding beside a beam; scales glow during humming and darken during silence."
+          }
+        ]
+      },
+      "emotion": "Interest shown by testing the tune.",
+      "entitiesRequired": [
+        "floor-hatch",
+        "humming-dragon"
+      ],
+      "visualFocus": "Silver scales lighting the dark space.",
+      "shotType": "reveal",
+      "compositionIntent": "Frame the children through the open hatch above the dragon.",
+      "textPurpose": "Reveal the dragon and establish the single magical rule.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "sunny-school-hall",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Interest shown by moving closer.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "sunny-school-hall",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "Interest shown by moving closer.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floor-hatch",
+            "ownerCharacterId": null,
+            "locationId": "sunny-school-hall",
+            "state": "Closed, with light shining through its crack."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "under-school-floor",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Interest shown by testing the tune.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "under-school-floor",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "Interest shown by testing the tune.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floor-hatch",
+            "ownerCharacterId": null,
+            "locationId": "sunny-school-hall",
+            "state": "Open above the steps."
+          },
+          {
+            "entityId": "humming-dragon",
+            "ownerCharacterId": null,
+            "locationId": "under-school-floor",
+            "state": "Hiding beside a beam; scales glow during humming and darken during silence."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-right",
+      "sentences": [
+        {
+          "text": "They opened the hatch.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "A tiny dragon glowed as Maya hummed.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "She paused, and its scales went dark.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "They opened the hatch. A tiny dragon glowed as Maya hummed. She paused, and its scales went dark."
+    },
+    {
+      "pageId": "p3",
+      "beatId": "b3",
+      "locationId": "under-school-floor",
+      "charactersPresent": [
+        "maya",
+        "leo"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "under-school-floor",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Interest shown by testing the tune.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "under-school-floor",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "Interest shown by testing the tune.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floor-hatch",
+            "ownerCharacterId": null,
+            "locationId": "sunny-school-hall",
+            "state": "Open above the steps."
+          },
+          {
+            "entityId": "humming-dragon",
+            "ownerCharacterId": null,
+            "locationId": "under-school-floor",
+            "state": "Hiding beside a beam; scales glow during humming and darken during silence."
+          }
+        ]
+      },
+      "action": "The dragon stretches toward the bright hatch. Leo offers to carry it up the dark steps.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "under-school-floor",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Concern shown by offering help.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "under-school-floor",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "Concern shown by offering help.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floor-hatch",
+            "ownerCharacterId": null,
+            "locationId": "sunny-school-hall",
+            "state": "Open above the steps."
+          },
+          {
+            "entityId": "humming-dragon",
+            "ownerCharacterId": null,
+            "locationId": "under-school-floor",
+            "state": "Hiding beside a beam; scales glow during humming and darken during silence."
+          }
+        ]
+      },
+      "emotion": "Concern shown by offering help.",
+      "entitiesRequired": [
+        "floor-hatch",
+        "humming-dragon"
+      ],
+      "visualFocus": "Leo's open hand beside the dragon.",
+      "shotType": "medium",
+      "compositionIntent": "Align the dragon's reaching paw with the light overhead.",
+      "textPurpose": "Give the dragon a visible wish and the children a goal.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "under-school-floor",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Interest shown by testing the tune.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "under-school-floor",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "Interest shown by testing the tune.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floor-hatch",
+            "ownerCharacterId": null,
+            "locationId": "sunny-school-hall",
+            "state": "Open above the steps."
+          },
+          {
+            "entityId": "humming-dragon",
+            "ownerCharacterId": null,
+            "locationId": "under-school-floor",
+            "state": "Hiding beside a beam; scales glow during humming and darken during silence."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "under-school-floor",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Concern shown by offering help.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "under-school-floor",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "Concern shown by offering help.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floor-hatch",
+            "ownerCharacterId": null,
+            "locationId": "sunny-school-hall",
+            "state": "Open above the steps."
+          },
+          {
+            "entityId": "humming-dragon",
+            "ownerCharacterId": null,
+            "locationId": "under-school-floor",
+            "state": "Hiding beside a beam; scales glow during humming and darken during silence."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-left",
+      "sentences": [
+        {
+          "text": "The dragon stretched towards the bright hatch.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Leo waited, then checked the dark steps.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "\"I'll carry you up.\"",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "The dragon stretched towards the bright hatch. Leo waited, then checked the dark steps. \"I'll carry you up.\""
+    },
+    {
+      "pageId": "p4",
+      "beatId": "b4",
+      "locationId": "under-school-floor",
+      "charactersPresent": [
+        "maya",
+        "leo"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "under-school-floor",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Concern shown by offering help.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "under-school-floor",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "Concern shown by offering help.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floor-hatch",
+            "ownerCharacterId": null,
+            "locationId": "sunny-school-hall",
+            "state": "Open above the steps."
+          },
+          {
+            "entityId": "humming-dragon",
+            "ownerCharacterId": null,
+            "locationId": "under-school-floor",
+            "state": "Hiding beside a beam; scales glow during humming and darken during silence."
+          }
+        ]
+      },
+      "action": "Leo lifts the dragon while Maya keeps humming. Its glow lights their first step.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "under-school-floor",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Concern shown by staying close together.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "under-school-floor",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [
+              "humming-dragon"
+            ],
+            "emotion": "Concern shown by staying close together.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floor-hatch",
+            "ownerCharacterId": null,
+            "locationId": "sunny-school-hall",
+            "state": "Open above the steps."
+          },
+          {
+            "entityId": "humming-dragon",
+            "ownerCharacterId": "leo",
+            "locationId": "under-school-floor",
+            "state": "Carried in cupped hands, glowing while Maya hums."
+          }
+        ]
+      },
+      "emotion": "Concern shown by staying close together.",
+      "entitiesRequired": [
+        "floor-hatch",
+        "humming-dragon"
+      ],
+      "visualFocus": "The dragon lighting the children's feet.",
+      "shotType": "low",
+      "compositionIntent": "Show the first step illuminated from Leo's hands.",
+      "textPurpose": "Use the established rule for their first attempt.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "under-school-floor",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Concern shown by offering help.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "under-school-floor",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "Concern shown by offering help.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floor-hatch",
+            "ownerCharacterId": null,
+            "locationId": "sunny-school-hall",
+            "state": "Open above the steps."
+          },
+          {
+            "entityId": "humming-dragon",
+            "ownerCharacterId": null,
+            "locationId": "under-school-floor",
+            "state": "Hiding beside a beam; scales glow during humming and darken during silence."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "under-school-floor",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Concern shown by staying close together.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "under-school-floor",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [
+              "humming-dragon"
+            ],
+            "emotion": "Concern shown by staying close together.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floor-hatch",
+            "ownerCharacterId": null,
+            "locationId": "sunny-school-hall",
+            "state": "Open above the steps."
+          },
+          {
+            "entityId": "humming-dragon",
+            "ownerCharacterId": "leo",
+            "locationId": "under-school-floor",
+            "state": "Carried in cupped hands, glowing while Maya hums."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-right",
+      "sentences": [
+        {
+          "text": "Leo cupped his hands and lifted the dragon.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Maya kept humming, lighting their first step.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "Leo cupped his hands and lifted the dragon. Maya kept humming, lighting their first step."
+    },
+    {
+      "pageId": "p5",
+      "beatId": "b5",
+      "locationId": "under-school-floor",
+      "charactersPresent": [
+        "maya",
+        "leo"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "under-school-floor",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Concern shown by staying close together.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "under-school-floor",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [
+              "humming-dragon"
+            ],
+            "emotion": "Concern shown by staying close together.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floor-hatch",
+            "ownerCharacterId": null,
+            "locationId": "sunny-school-hall",
+            "state": "Open above the steps."
+          },
+          {
+            "entityId": "humming-dragon",
+            "ownerCharacterId": "leo",
+            "locationId": "under-school-floor",
+            "state": "Carried in cupped hands, glowing while Maya hums."
+          }
+        ]
+      },
+      "action": "Maya stops humming to take a breath. The glow fades, so Leo stops on the step.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "under-school-floor",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Concern shown by stopping rather than stumbling.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "under-school-floor",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [
+              "humming-dragon"
+            ],
+            "emotion": "Concern shown by stopping rather than stumbling.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floor-hatch",
+            "ownerCharacterId": null,
+            "locationId": "sunny-school-hall",
+            "state": "Open above the steps."
+          },
+          {
+            "entityId": "humming-dragon",
+            "ownerCharacterId": "leo",
+            "locationId": "under-school-floor",
+            "state": "Still in Leo's hands, with its glow extinguished during Maya's breath."
+          }
+        ]
+      },
+      "emotion": "Concern shown by stopping rather than stumbling.",
+      "entitiesRequired": [
+        "floor-hatch",
+        "humming-dragon"
+      ],
+      "visualFocus": "Silver scales without their glow.",
+      "shotType": "close",
+      "compositionIntent": "Keep the darkened dragon and Leo's steady hands prominent.",
+      "textPurpose": "Expose the practical limit of one child's humming.",
+      "pageTurnHook": "How can the tune keep going?",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "under-school-floor",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Concern shown by staying close together.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "under-school-floor",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [
+              "humming-dragon"
+            ],
+            "emotion": "Concern shown by staying close together.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floor-hatch",
+            "ownerCharacterId": null,
+            "locationId": "sunny-school-hall",
+            "state": "Open above the steps."
+          },
+          {
+            "entityId": "humming-dragon",
+            "ownerCharacterId": "leo",
+            "locationId": "under-school-floor",
+            "state": "Carried in cupped hands, glowing while Maya hums."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "under-school-floor",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Concern shown by stopping rather than stumbling.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "under-school-floor",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [
+              "humming-dragon"
+            ],
+            "emotion": "Concern shown by stopping rather than stumbling.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floor-hatch",
+            "ownerCharacterId": null,
+            "locationId": "sunny-school-hall",
+            "state": "Open above the steps."
+          },
+          {
+            "entityId": "humming-dragon",
+            "ownerCharacterId": "leo",
+            "locationId": "under-school-floor",
+            "state": "Still in Leo's hands, with its glow extinguished during Maya's breath."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-left",
+      "sentences": [
+        {
+          "text": "Maya stopped humming to take a breath.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "The dragon went dark, and Leo stopped on the step.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "Maya stopped humming to take a breath. The dragon went dark, and Leo stopped on the step."
+    },
+    {
+      "pageId": "p6",
+      "beatId": "b6",
+      "locationId": "sunny-school-hall",
+      "charactersPresent": [
+        "maya",
+        "leo"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "under-school-floor",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Concern shown by stopping rather than stumbling.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "under-school-floor",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [
+              "humming-dragon"
+            ],
+            "emotion": "Concern shown by stopping rather than stumbling.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floor-hatch",
+            "ownerCharacterId": null,
+            "locationId": "sunny-school-hall",
+            "state": "Open above the steps."
+          },
+          {
+            "entityId": "humming-dragon",
+            "ownerCharacterId": "leo",
+            "locationId": "under-school-floor",
+            "state": "Still in Leo's hands, with its glow extinguished during Maya's breath."
+          }
+        ]
+      },
+      "action": "Leo hums while Maya breathes; Maya hums while Leo breathes. The dragon lights their climb into the school hall.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "sunny-school-hall",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Concern eased through working together.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "sunny-school-hall",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [
+              "humming-dragon"
+            ],
+            "emotion": "Concern eased through working together.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floor-hatch",
+            "ownerCharacterId": null,
+            "locationId": "sunny-school-hall",
+            "state": "Open above the steps."
+          },
+          {
+            "entityId": "humming-dragon",
+            "ownerCharacterId": "leo",
+            "locationId": "sunny-school-hall",
+            "state": "Carried safely into daylight, glowing through their overlapping humming."
+          }
+        ]
+      },
+      "emotion": "Concern eased through working together.",
+      "entitiesRequired": [
+        "floor-hatch",
+        "humming-dragon"
+      ],
+      "visualFocus": "An unbroken glow between the two children.",
+      "shotType": "action",
+      "compositionIntent": "Show their final step from darkness into the sunbeam.",
+      "textPurpose": "Resolve the dark passage using the known rule and shared breaths.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "under-school-floor",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Concern shown by stopping rather than stumbling.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "under-school-floor",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [
+              "humming-dragon"
+            ],
+            "emotion": "Concern shown by stopping rather than stumbling.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floor-hatch",
+            "ownerCharacterId": null,
+            "locationId": "sunny-school-hall",
+            "state": "Open above the steps."
+          },
+          {
+            "entityId": "humming-dragon",
+            "ownerCharacterId": "leo",
+            "locationId": "under-school-floor",
+            "state": "Still in Leo's hands, with its glow extinguished during Maya's breath."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "sunny-school-hall",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Concern eased through working together.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "sunny-school-hall",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [
+              "humming-dragon"
+            ],
+            "emotion": "Concern eased through working together.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floor-hatch",
+            "ownerCharacterId": null,
+            "locationId": "sunny-school-hall",
+            "state": "Open above the steps."
+          },
+          {
+            "entityId": "humming-dragon",
+            "ownerCharacterId": "leo",
+            "locationId": "sunny-school-hall",
+            "state": "Carried safely into daylight, glowing through their overlapping humming."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-right",
+      "sentences": [
+        {
+          "text": "Leo hummed while Maya breathed.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Maya hummed while Leo breathed.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "The dragon glowed all the way into the sunny hall.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "Leo hummed while Maya breathed. Maya hummed while Leo breathed. The dragon glowed all the way into the sunny hall."
+    },
+    {
+      "pageId": "p7",
+      "beatId": "b7",
+      "locationId": "sunny-school-hall",
+      "charactersPresent": [
+        "maya",
+        "leo"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "sunny-school-hall",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Concern eased through working together.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "sunny-school-hall",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [
+              "humming-dragon"
+            ],
+            "emotion": "Concern eased through working together.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floor-hatch",
+            "ownerCharacterId": null,
+            "locationId": "sunny-school-hall",
+            "state": "Open above the steps."
+          },
+          {
+            "entityId": "humming-dragon",
+            "ownerCharacterId": "leo",
+            "locationId": "sunny-school-hall",
+            "state": "Carried safely into daylight, glowing through their overlapping humming."
+          }
+        ]
+      },
+      "action": "Leo sets the dragon in the sunbeam. It curls beside Maya's shoe as their humming stops.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "sunny-school-hall",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Ease shown by resting beside the children.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "sunny-school-hall",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "Ease shown by resting beside the children.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floor-hatch",
+            "ownerCharacterId": null,
+            "locationId": "sunny-school-hall",
+            "state": "Open above the steps."
+          },
+          {
+            "entityId": "humming-dragon",
+            "ownerCharacterId": null,
+            "locationId": "sunny-school-hall",
+            "state": "Resting beside Maya's shoe in daylight; scales no longer glow."
+          }
+        ]
+      },
+      "emotion": "Ease shown by resting beside the children.",
+      "entitiesRequired": [
+        "floor-hatch",
+        "humming-dragon"
+      ],
+      "visualFocus": "The dragon resting openly beside Maya's shoe.",
+      "shotType": "vignette",
+      "compositionIntent": "Gather the dragon, yellow cardigan, and green sleeve within the warm sunbeam.",
+      "textPurpose": "Replace hiding in darkness with resting in daylight.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "sunny-school-hall",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Concern eased through working together.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "sunny-school-hall",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [
+              "humming-dragon"
+            ],
+            "emotion": "Concern eased through working together.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floor-hatch",
+            "ownerCharacterId": null,
+            "locationId": "sunny-school-hall",
+            "state": "Open above the steps."
+          },
+          {
+            "entityId": "humming-dragon",
+            "ownerCharacterId": "leo",
+            "locationId": "sunny-school-hall",
+            "state": "Carried safely into daylight, glowing through their overlapping humming."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "maya",
+            "locationId": "sunny-school-hall",
+            "clothing": "yellow cardigan, white shirt, blue skirt",
+            "carriedEntities": [],
+            "emotion": "Ease shown by resting beside the children.",
+            "storyRole": "friend"
+          },
+          {
+            "characterId": "leo",
+            "locationId": "sunny-school-hall",
+            "clothing": "green jumper, dark trousers",
+            "carriedEntities": [],
+            "emotion": "Ease shown by resting beside the children.",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "floor-hatch",
+            "ownerCharacterId": null,
+            "locationId": "sunny-school-hall",
+            "state": "Open above the steps."
+          },
+          {
+            "entityId": "humming-dragon",
+            "ownerCharacterId": null,
+            "locationId": "sunny-school-hall",
+            "state": "Resting beside Maya's shoe in daylight; scales no longer glow."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-left",
+      "sentences": [
+        {
+          "text": "Leo set the dragon in the sunbeam.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Their humming stopped, and its scales went dark.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "It curled beside Maya's shoe.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "Leo set the dragon in the sunbeam. Their humming stopped, and its scales went dark. It curled beside Maya's shoe."
+    }
+  ],
+  "imageCalls": 0,
+  "imageDraws": 0,
+  "imageReason": "images_disabled",
+  "imageUsd": 0,
+  "id": "a",
+  "listedUsd": 0.03881,
+  "guardUsd": 0.07762
+}

@@ -1,0 +1,19 @@
+{
+  "provider": "OpenAI",
+  "model": "gpt-image-2.5-sunburst",
+  "size": "1536x1024",
+  "quality": "medium",
+  "visionModel": "gpt-4o-mini",
+  "imageCallsPlanned": 4,
+  "repairAllowance": "1 per story spread, so at most 3 extra images",
+  "listedUsdIfNoRepairs": 0.2748,
+  "listedUsdIfEveryRepair": 0.5301,
+  "cast": [
+    "maya"
+  ],
+  "spreads": [
+    "p2",
+    "p5",
+    "p10"
+  ]
+}

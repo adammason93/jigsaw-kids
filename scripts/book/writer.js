@@ -1,0 +1,411 @@
+"use strict";
+
+/* Turns a teacher's cast, idea, year, and length into a text book.
+   The model may invent the events and the sentences.
+   This file does not invent the schema, the cast, or the pictures. */
+
+var Book = require("../../js/book-brain.js");
+var Cast = require("../../js/character-bible.js");
+
+var SHAPE = {
+  quick: "Aim for 6 to 8 spreads. Keep it complete: a hook, a discovery, an attempt, a change, a climax, and a resolution. Concise, not unfinished.",
+  storybook: "Aim for 10 to 12 spreads, and stay between 9 and 13. This is a full picture book. Use the room for a reaction, a relationship, a setback, and a quiet beat where the story needs them. Do not spend two spreads on one event.",
+  adventure: "Aim for 14 to 18 spreads. Add real exploration, another attempt, and a setback that changes the story. Do not stretch a shorter book with filler."
+};
+
+function unique(list) {
+  var seen = {};
+  return (list || []).filter(function (item) {
+    if (seen[item]) return false;
+    seen[item] = 1;
+    return true;
+  });
+}
+
+function unwrap(draft) {
+  if (!draft || draft.__error) return {};
+  if (Array.isArray(draft.beats)) return draft;
+  if (draft.book && Array.isArray(draft.book.beats)) return draft.book;
+  if (draft.story && Array.isArray(draft.story.beats)) return draft.story;
+  return draft;
+}
+
+function pagesOf(payload) {
+  if (!payload || payload.__error) return [];
+  var pages = Array.isArray(payload) ? payload : (payload.pages || (payload.book && payload.book.pages) || []);
+  return pages.map(function (page) {
+    var sentences = page.sentences || [];
+    if (!sentences.length && page.prose) sentences = String(page.prose).split(/(?<=[.!?])\s+/);
+    return { pageId: page.pageId, sentences: sentences };
+  });
+}
+
+function mergeSpoken(base, patch) {
+  var map = {};
+  pagesOf(base).forEach(function (page) { map[page.pageId] = page; });
+  pagesOf(patch).forEach(function (page) {
+    if (page.pageId && page.sentences && page.sentences.length) map[page.pageId] = page;
+  });
+  return Object.keys(map).map(function (id) { return map[id]; });
+}
+
+function castBrief(ids) {
+  return ids.map(function (id) {
+    var character = Cast.getCharacter(id);
+    if (!character) return id + ": unknown";
+    return [
+      character.characterId + " (" + character.name + ")",
+      "Show these through what they do, and never name the words: " + character.personality.join(", ") + ".",
+      "They stay this person: " + character.ageAppearance + "; " + character.hair + "; " + character.defaultClothing + "."
+    ].join(" ");
+  }).join("\n");
+}
+
+function bibleBrief(ask) {
+  var profile = Book.lengthProfile(ask.length);
+  var reader = Book.readerProfile(ask);
+  var limits = reader ? reader.limits : null;
+  var words = Book.contentWords(ask.idea).join(", ");
+  var sample = Cast.getCharacter(ask.castIds[0]) || { characterId: "child", name: "Child", personality: ["kind"] };
+  var sampleTrait = sample.personality[0];
+  return {
+    system: [
+      "You plan a Wondii children's picture book. Return one JSON object and nothing else.",
+      "You invent the events. You do not invent the output shape, the cast, the year, the length, or the tone.",
+      "Do not write the finished page prose. The action field is the event, in one or two plain sentences.",
+      "The teacher's idea is the premise. The story must be about it. Do not paste that sentence into the premise, the hook, or any action.",
+      "If that premise were removed, the hook, the problem, the middle, the climax, and the resolution should stop making sense.",
+      "Build a causal chain. Each beat happens because of the one before it. Do not write an 'and then' list.",
+      "The story state must change across the book. A new shot of the same moment is not a new beat.",
+      "The place may stay the same when the world state, the obstacle, the goal, or a consequence changes. Do not change place only to make the pictures different.",
+      "Do not repeat the same interaction in the same state for several beats. An attempt is followed by its consequence, not by another interchangeable attempt.",
+      "A quiet beat is allowed when it has a job: a reaction, a pause, or anticipation. It still has to belong to the chain.",
+      "A recurring creature who is not one of the selected children belongs in storyCast, with one locked look, and then in charactersPresent. Do not invent an extra person. If the story needs no recurring creature, storyCast is an empty array.",
+      "The climax settles the central problem by using something that happened earlier. It is not a new obstacle.",
+      "The resolution shows what changed: a behaviour, a final image, or a callback. It must not explain the climax again, name the feeling, or say that everyone was happy.",
+      "Selected children must change what happens. Give every selected child at least one expresses note.",
+      "expresses.shows is a behaviour, such as kneeling to listen. It must not be the personality word, and it must not say 'was curious' or 'felt brave'.",
+      "Do not add a person who is not in the cast. A creature, object, place, or force is an entity.",
+      "If an object matters later, introduce it with introduce:true on the beat it first appears. Leave it out of later entityState arrays unless its owner or state changes.",
+      "A character can change place only along connectedTo. If they carry an object, set that object's ownerCharacterId.",
+      "Give a pageTurnHook only where a turn helps. Leave it empty on most beats, and always on the resolution. Do not repeat the same kind of turn.",
+      "problemFamily is a short slug. It must change every beat. The hook and the resolution may use an empty string.",
+      "shotType must be one of the allowed shots and must not match the previous beat.",
+      "Do not use: suddenly, little did they know, couldn't believe their eyes, the adventure had only just begun.",
+      "Do not copy any sample story. Invent this idea only."
+    ].join(" "),
+    user: [
+      "Cast, and the only people allowed:",
+      castBrief(ask.castIds),
+      "",
+      "SOURCE PREMISE — SEMANTIC CONSTRAINT ONLY. NEVER COPY AS PROSE:",
+      ask.idea,
+      "Plan check only, not reader wording. These words must remain somewhere in the premise, and at least one must sit in the climax action and in the resolution action: " + words,
+      "Reader: " + (ask.yearGroup || ask.ageBand) + ". " + (reader ? reader.narrativeComplexity : ""),
+      "How this reader should feel: " + (Book.YEAR_WRITING[(reader && reader.constraintYear) || ask.yearGroup] || ""),
+      "Later reading load, so keep each event sayable inside it: about " + limits.maxSentences + " sentences on a page, under " + limits.maxPageWords + " words, no sentence longer than " + limits.maxSentenceWords + " words, at most " + limits.maxDialogueTurns + " spoken turns. One extra short sentence is acceptable. A page of long sentences is not.",
+      "Length: " + ask.length + ". " + (profile ? profile.line + " " + profile.scope + "." : ""),
+      "Use between " + (profile ? profile.minSpreads : "?") + " and " + (profile ? profile.maxSpreads : "?") + " beats. The first role is hook. The last role is resolution. One beat is climax, and it comes before the resolution.",
+      "Allowed roles: hook, world, discovery, reaction, goal, exploration, attempt, consequence, complication, relationship, setback, reveal, setup, payoff, approach, climax, resolution, breath, turn, wonder, humour, anticipation.",
+      "Each beat must add something: new information, a decision, a consequence, a relationship, a setup, a payoff, or an earned quiet moment (wonder, reaction, humour, anticipation). A quiet beat is allowed. A repeated event is not.",
+      "Do not split one moment across two beats. Do not add a walk that changes nothing.",
+      "Reader level decides the language. Length decides how much story there is. A young reader can have a long simple story. An older reader can have a short subtle one.",
+      SHAPE[ask.length] || "",
+      "Tone: " + (ask.tone || "surprise"),
+      Book.TONE_WRITING[ask.tone || "surprise"] || "",
+      "A bedtime book is quiet. A funny book is a mismatch in what someone does. A mystery answers the question it opened. A magical book keeps one impossible rule. An adventure has a cost. Do not tell every tone as a chase.",
+      "",
+      "Return this JSON shape. The ids below are field examples, not a plot and not extra characters:",
+      "{",
+      '  "title": "",',
+      '  "premise": "",',
+      '  "hook": "",',
+      '  "goal": "",',
+      '  "centralProblem": "",',
+      '  "stakes": "",',
+      '  "motif": "",',
+      '  "emotionalArc": [],',
+      '  "storyCast": [],',
+      '  "locations": [{ "locationId": "place-a", "name": "first place", "connectedTo": ["place-b"], "zones": [], "visualIdentity": "" }],',
+      '  "entities": [{ "entityId": "story-thing", "name": "story thing", "identity": "" }],',
+      '  "beats": [{',
+      '    "role": "hook",',
+      '    "locationId": "place-a",',
+      '    "locationZone": "",',
+      '    "worldState": "",',
+      '    "goalNow": "",',
+      '    "obstacleNow": "",',
+      '    "consequenceNow": "",',
+      '    "pageTurnIntent": "",',
+      '    "entryFrom": "",',
+      '    "exitToward": "",',
+      '    "charactersPresent": ["' + sample.characterId + '"],',
+      '    "absent": {},',
+      '    "expresses": [{ "characterId": "' + sample.characterId + '", "trait": "' + sampleTrait + '", "shows": "A behaviour, never the trait word." }],',
+      '    "problemFamily": "",',
+      '    "action": "",',
+      '    "emotion": "",',
+      '    "shotType": "establishing",',
+      '    "compositionIntent": "",',
+      '    "visualFocus": "",',
+      '    "textPurpose": "",',
+      '    "pageTurnHook": "",',
+      '    "entityState": [{ "entityId": "story-thing", "introduce": true, "ownerCharacterId": null, "locationId": "place-a", "state": "here" }]',
+      "  }]",
+      "}",
+      "Do not reuse story-thing, place-a, or the sample behaviour. Invent this idea only.",
+      "locationId and entityId are lowercase slugs. A location name should be the phrase spoken on pages set there, and should not be a short word that other pages will need.",
+      "Allowed shotType values: " + Book.SHOTS.join(", ") + ".",
+      "charactersPresent may contain only: " + ask.castIds.join(", ") + ".",
+      "If a selected child is off a beat, charactersPresent omits them and absent explains why, for example { \"leo\": \"waiting upstairs\" }.",
+      "traits allowed: " + ask.castIds.map(function (id) {
+        var character = Cast.getCharacter(id);
+        return id + " " + (character ? character.personality.join("/") : "");
+      }).join("; ") + "."
+    ].join("\n")
+  };
+}
+
+function repairBibleBrief(ask, draft, problems) {
+  var base = bibleBrief(ask);
+  base.system += " The previous plan failed. Return a full replacement in the same shape. Keep the teacher's idea and the same cast. Change what the failed checks require.";
+  base.user += "\n\nFailed checks:\n" + unique(problems).join("\n") + "\n\nPrevious JSON:\n" + JSON.stringify(unwrap(draft));
+  return base;
+}
+
+var VOICE = {
+  curious: "notices first",
+  brave: "moves when someone else pauses",
+  careful: "hesitates, then checks",
+  kind: "reassures without taking over",
+  inventive: "tries an experiment, and can get it wrong",
+  bold: "steps in",
+  observant: "sees the small thing the others miss",
+  gentle: "steadies someone"
+};
+
+function voiceLines(ids) {
+  return ids.map(function (id) {
+    var character = Cast.getCharacter(id);
+    if (!character) return "";
+    var habits = character.personality.map(function (trait) { return VOICE[trait] || trait; }).join("; ");
+    return character.name + " (" + habits + "). Let this change who notices, who acts, who hesitates, and how they speak. No catchphrase.";
+  }).filter(Boolean).join("\n");
+}
+
+function roleNote(role) {
+  if (role === "climax") return "Show the turn that settles the problem. Do not announce a moral.";
+  if (role === "resolution") return "Show what changed: behaviour, a final image, or a callback. Do not explain the solution again. Do not name the feeling if the action already shows it.";
+  return "Write this moment. Do not summarise the whole story.";
+}
+
+function proseBrief(bible, pages, onlyIds) {
+  var reader = Book.readerProfile({ yearGroup: bible.yearGroup, ageBand: bible.ageBand });
+  var limits = Book.limitsFor(bible);
+  var stage = reader ? reader.constraintYear : bible.yearGroup;
+  var wanted = pages.filter(function (page) {
+    return !onlyIds || onlyIds.indexOf(page.pageId) >= 0;
+  });
+  var young = stage === "Reception" || stage === "Year 1";
+  var progress = require("../../js/book-progression.js").review({ bible: bible, pages: pages });
+  function stepFor(page) {
+    var row = progress.storyProgressionMap.filter(function (item) {
+      return item.spreadId === page.pageId || item.beatId === page.beatId;
+    })[0];
+    if (!row) return "";
+    var changed = (row.newInformation || []).filter(function (item) { return item !== "opening" && item !== "none" && item !== "EMOTION"; });
+    return "progression: " + row.narrativePhase + ". Why this page exists: " + row.progressionReason + "." + (changed.length ? " What changed: " + changed.join(", ") + "." : "") + (row.locationZone ? " Zone: " + row.locationZone + "." : "");
+  }
+  return {
+    system: [
+      "You write the read-aloud words for a children's picture book whose events are already fixed.",
+      "Return one JSON object: { \"pages\": [ { \"pageId\": \"p1\", \"sentences\": [\"...\"] } ] }.",
+      "Do not change the events, the cast, the places, or the ending.",
+      "If a page's progression moves the place, changes the world, or reveals something, the sentences must say that change. Do not flatten a new beat back into the previous moment.",
+      "The source premise is meaning only. Do not quote it. Do not closely paraphrase it as narration. Do not address the reader by restating it. Do not use it as a concluding moral or summary.",
+      "The story's own nouns still belong on the page. A story about a shadow may say shadow. Do not copy the premise sentence around those nouns.",
+      "Write from the current page's event. The story has already established the premise.",
+      "Show action, image, and behaviour before any explanation of a feeling.",
+      "Once the climax shows how the problem is settled, the resolution must not explain that solution again.",
+      "The resolution answers what changed, how the characters behave now, and what final image closes the book.",
+      "Write for the ear. Vary the sentence length.",
+      young ? "For this young reader, short concrete lines are the right prose. A repeated short line is welcome when it is the book's rhythm." : "Do not lean on the same opening. Nearby pages should not all start with they find, they climb, or they look.",
+      "Dialogue must sound like that child, inside the spoken-turn limit, with straight double quotes. Do not put the explanation in someone's mouth twice.",
+      "Do not narrate the picture's every detail. Leave room for the illustration.",
+      "Do not name a personality trait. Do not write 'was curious', 'felt brave', 'wasn't scared', or 'wasn't lonely'.",
+      "Do not start three sentences in a row with the same name.",
+      "Do not use: suddenly, little did they know, couldn't believe their eyes, could not believe their eyes, the adventure had only just begun, with a twinkle, adventure awaits.",
+      "Do not write like a worksheet or a plot summary.",
+      "Name only objects that are already in that page's entities. Name only the place that page is in."
+    ].join(" "),
+    user: [
+      "Title: " + bible.title,
+      "SOURCE PREMISE — SEMANTIC CONSTRAINT ONLY. NEVER COPY AS PROSE:",
+      bible.userIdea || "",
+      "Reader: " + (bible.ageBand || bible.yearGroup) + ". " + (Book.YEAR_WRITING[stage] || ""),
+      "Tone: " + (bible.tone || "surprise") + ". " + (Book.TONE_WRITING[bible.tone || "surprise"] || ""),
+      "Reading load: aim for about " + limits.maxSentences + " sentences. One extra short sentence is fine. Keep the page under " + limits.maxPageWords + " words. No sentence longer than " + limits.maxSentenceWords + " words. At most " + limits.maxDialogueTurns + " quoted turns.",
+      "Voices:",
+      voiceLines(bible.castIds || []),
+      "Write only these pages:",
+      wanted.map(function (page, index) {
+        var place = (bible.locations || []).filter(function (item) { return item.locationId === page.locationId; })[0];
+        var names = (page.charactersPresent || []).map(function (id) {
+          var character = Cast.getCharacter(id);
+          return character ? character.name : id;
+        }).join(", ");
+        var entities = (page.stateAfter && page.stateAfter.entities || []).map(function (entity) {
+          return entity.entityId + " owner=" + (entity.ownerCharacterId || "nobody") + " state=" + entity.state;
+        }).join("; ");
+        var neighbour = "";
+        if (onlyIds) {
+          var at = pages.indexOf(page);
+          var prev = at > 0 ? pages[at - 1] : null;
+          var next = at >= 0 && at < pages.length - 1 ? pages[at + 1] : null;
+          neighbour = "\nPrevious page: " + (prev && prev.prose ? prev.prose : "(none)") + "\nNext page: " + (next && next.prose ? next.prose : "(none)");
+        }
+        var role = pageRole(bible, page);
+        var step = stepFor(page);
+        return [
+          page.pageId + " role=" + role,
+          roleNote(role),
+          step,
+          "place: " + (place ? place.name : page.locationId),
+          "present: " + names,
+          "event: " + page.action,
+          "entities: " + (entities || "none"),
+          page.pageTurnHook ? "The page may end toward: " + page.pageTurnHook : "No page-turn hook.",
+          neighbour
+        ].join("\n");
+      }).join("\n\n")
+    ].join("\n")
+  };
+}
+
+function pageRole(bible, page) {
+  var beat = (bible.beats || []).filter(function (item) { return item.beatId === page.beatId; })[0];
+  return beat ? beat.role : "";
+}
+
+function repairProseBrief(bible, pages, spoken, problems) {
+  var ids = [];
+  unique(problems).forEach(function (problem) {
+    var parts = String(problem).split(":");
+    if (parts.length > 1 && /^p\d+$/.test(parts[parts.length - 1])) ids.push(parts[parts.length - 1]);
+  });
+  if (/idea-not-structural|resolution-missing|climax-missing/.test((problems || []).join(" "))) {
+    pages.forEach(function (page) {
+      if (page.beatId === bible.climaxBeatId || page.beatId === bible.resolutionBeatId) ids.push(page.pageId);
+    });
+  }
+  ids = unique(ids);
+  if (!ids.length) ids = pages.map(function (page) { return page.pageId; });
+  var current = pages.map(function (page) {
+    var found = pagesOf(spoken).filter(function (item) { return item.pageId === page.pageId; })[0];
+    return Object.assign({}, page, { prose: found ? (found.sentences || []).join(" ") : page.prose || "" });
+  });
+  var brief = proseBrief(bible, current, ids);
+  brief.system += " Repair only the listed pages. Rewrite them from the Book Bible, the current beat, the page plan, stateBefore, stateAfter, the previous page, the current page, and the next page. The original idea is labeled SOURCE PREMISE, SEMANTIC CONSTRAINT ONLY, NEVER COPY AS PROSE. Do not paste it back in to satisfy a check.";
+  brief.user += "\n\nFailed checks:\n" + unique(problems).join("\n");
+  return brief;
+}
+
+function compileOrFail(draft, ask) {
+  if (!draft || draft.__error) return { ok: false, problems: ["model-error"], bible: null };
+  return Book.compileStory(unwrap(draft), ask);
+}
+
+function failingStage(problems) {
+  var joined = (problems || []).join(" ");
+  if (/prompt-echo|ending-repeated|emotion-told|reader-address|idea-not-structural|resolution-missing|climax-missing|ending/.test(joined)) return "ending";
+  return "prose";
+}
+
+async function generateBook(request, ports) {
+  var ask = Book.publicRequest(request || {});
+  var repairs = [];
+  var calls = 0;
+  var imageDraws = 0;
+  var modelName = ports.model || "gpt-6.1-sol";
+  if (!Book.lengthProfile(ask.length) || !Book.readerProfile(ask) || !ask.idea || ask.castIds.length < 1) {
+    return result("NOT_REVIEWABLE", { ok: false, problems: ["request"], bible: null }, null, null, null);
+  }
+
+  async function model(brief, purpose, tokens) {
+    calls += 1;
+    try {
+      return await ports.callModel(brief, {
+        purpose: purpose,
+        maxTokens: tokens,
+        model: modelName,
+        effort: ports.effort || "low"
+      });
+    } catch (error) {
+      return { __error: String(error && error.message || error) };
+    }
+  }
+
+  var bibleTokens = ask.length === "adventure" ? 10000 : ask.length === "storybook" ? 8000 : 6000;
+  var proseTokens = ask.length === "adventure" ? 8000 : ask.length === "storybook" ? 6000 : 4000;
+  var draft = await model(bibleBrief(ask), "book-bible", bibleTokens);
+  var compiled = compileOrFail(draft, ask);
+  var tries = 0;
+  while (!compiled.ok && tries < Book.MAX_REPAIRS) {
+    tries += 1;
+    repairs.push({ stage: "bible", problems: unique(compiled.problems) });
+    draft = await model(repairBibleBrief(ask, draft, compiled.problems), "book-bible-repair", bibleTokens);
+    compiled = compileOrFail(draft, ask);
+  }
+  if (!compiled.ok) return result("NOT_REVIEWABLE", compiled, null, null, null);
+
+  var planned = Book.planPages(compiled.bible);
+  tries = 0;
+  while (!planned.ok && tries < Book.MAX_REPAIRS) {
+    tries += 1;
+    repairs.push({ stage: "page-plan", problems: unique(planned.problems) });
+    draft = await model(repairBibleBrief(ask, draft, planned.problems), "page-plan-repair", bibleTokens);
+    compiled = compileOrFail(draft, ask);
+    planned = compiled.ok ? Book.planPages(compiled.bible) : { ok: false, problems: compiled.problems, pages: null };
+  }
+  if (!compiled.ok || !planned.ok) return result("NOT_REVIEWABLE", compiled, planned, null, null);
+
+  var spoken = await model(proseBrief(compiled.bible, planned.pages, null), "book-prose", proseTokens);
+  var attached = Book.attachSpokenProse(compiled.bible, planned.pages, pagesOf(spoken));
+  tries = 0;
+  while (!attached.ok && tries < Book.MAX_REPAIRS) {
+    tries += 1;
+    repairs.push({ stage: failingStage(attached.problems), problems: unique(attached.problems) });
+    var patch = await model(repairProseBrief(compiled.bible, attached.pages, spoken, attached.problems), "book-prose-repair", proseTokens);
+    spoken = mergeSpoken(spoken, patch);
+    attached = Book.attachSpokenProse(compiled.bible, planned.pages, spoken);
+  }
+
+  var images = Book.requestImages(
+    { textReview: attached, storyReview: { ok: compiled.ok } },
+    { draw: function () { imageDraws += 1; } }
+  );
+  var status = attached.ok && planned.ok && images.imageCalls === 0 && imageDraws === 0 ? "REVIEWABLE" : "NOT_REVIEWABLE";
+  return result(status, compiled, planned, attached, images);
+
+  function result(status, story, plan, text, images) {
+    return {
+      status: status,
+      request: ask,
+      modelCalls: calls,
+      repairCalls: repairs.length,
+      repairs: repairs,
+      stagesRepaired: unique(repairs.map(function (item) { return item.stage; })),
+      bible: story && story.bible,
+      storyProblems: unique(story && story.problems),
+      planProblems: unique(plan && plan.problems),
+      textProblems: unique(text && text.problems),
+      pages: text && text.pages ? text.pages : (plan && plan.pages) || null,
+      imageCalls: images ? images.imageCalls : 0,
+      imageDraws: imageDraws,
+      imageReason: images ? images.reason : "not-run",
+      imageUsd: 0
+    };
+  }
+}
+
+module.exports = { generateBook: generateBook, bibleBrief: bibleBrief, proseBrief: proseBrief };

@@ -1,0 +1,1278 @@
+{
+  "status": "REVIEWABLE",
+  "request": {
+    "castIds": [
+      "ravi"
+    ],
+    "idea": "Ravi's shadow keeps running away from him.",
+    "yearGroup": "Reception",
+    "length": "quick",
+    "tone": "funny"
+  },
+  "modelCalls": 2,
+  "repairCalls": 0,
+  "repairs": [],
+  "stagesRepaired": [],
+  "bible": {
+    "title": "Feet Too Big",
+    "yearGroup": "Reception",
+    "readerAge": "Reception",
+    "tone": "funny",
+    "targetLength": "quick",
+    "userIdea": "Ravi's shadow keeps running away from him.",
+    "castIds": [
+      "ravi"
+    ],
+    "visualStyle": "wondii-picture-book",
+    "premise": "ravi's shadow keeps running away to empty chalk footprints. Ravi must find a way to share its chosen feet.",
+    "hook": "Ravi stands still. His shadow runs across the playground.",
+    "goal": "Bring the shadow back under Ravi's feet.",
+    "centralProblem": "The shadow chooses empty chalk footprints instead of Ravi's feet.",
+    "stakes": "Ravi cannot walk with his shadow beside him.",
+    "climaxBeatId": "b4",
+    "resolutionBeatId": "b5",
+    "emotionalArc": [
+      "surprise",
+      "interest",
+      "expectation",
+      "determination",
+      "ease"
+    ],
+    "motif": "Feet that do not fit",
+    "locations": [
+      {
+        "locationId": "chalk-playground",
+        "name": "the chalk playground",
+        "connectedTo": [],
+        "visualIdentity": "A sunny paved playground with ample blank space and white chalk marks."
+      }
+    ],
+    "entities": [
+      {
+        "entityId": "wandering-shadow",
+        "name": "Ravi's shadow",
+        "identity": "A dark silhouette matching Ravi's short hair, hoodie and trousers; drawn footprints attract its feet.",
+        "ownerCharacterId": "ravi",
+        "locationId": "chalk-playground",
+        "state": "Reattached to Ravi at his shoes.",
+        "introducedAt": "b1"
+      },
+      {
+        "entityId": "chalk-footprints",
+        "name": "chalk footprints",
+        "identity": "Empty white outlines of two feet, later extended into a trail ending in an oversized pair.",
+        "ownerCharacterId": null,
+        "locationId": "chalk-playground",
+        "state": "The giant pair is occupied by Ravi and his shadow together.",
+        "introducedAt": "b2"
+      },
+      {
+        "entityId": "white-chalk",
+        "name": "white chalk",
+        "identity": "A thick piece of white pavement chalk.",
+        "ownerCharacterId": "ravi",
+        "locationId": "chalk-playground",
+        "state": "Held in Ravi's hand.",
+        "introducedAt": "b2"
+      }
+    ],
+    "beats": [
+      {
+        "beatId": "b1",
+        "role": "hook",
+        "locationId": "chalk-playground",
+        "charactersPresent": [
+          "ravi"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "ravi",
+            "trait": "bold",
+            "shows": "Steps towards the fleeing silhouette rather than backing away."
+          }
+        ],
+        "problemFamily": "",
+        "because": "",
+        "resolvesProblem": false,
+        "action": "Ravi stands still. His shadow runs away.",
+        "emotion": "surprise",
+        "entitiesRequired": [
+          "wandering-shadow"
+        ],
+        "visualFocus": "Ravi's planted shoes and the shadow's running legs.",
+        "shotType": "establishing",
+        "compositionIntent": "Separate Ravi from his moving silhouette across a broad stretch of pavement.",
+        "textPurpose": "Establish the impossible separation.",
+        "pageTurnHook": "Show where the shadow stops.",
+        "textSafeRegion": "upper-left",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "ravi",
+              "locationId": "chalk-playground",
+              "clothing": "orange hoodie, grey trousers",
+              "carriedEntities": [],
+              "emotion": "steady",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": []
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "ravi",
+              "locationId": "chalk-playground",
+              "clothing": "orange hoodie, grey trousers",
+              "carriedEntities": [],
+              "emotion": "surprise",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "wandering-shadow",
+              "ownerCharacterId": null,
+              "locationId": "chalk-playground",
+              "state": "Running independently away from Ravi."
+            }
+          ]
+        }
+      },
+      {
+        "beatId": "b2",
+        "role": "discovery",
+        "locationId": "chalk-playground",
+        "charactersPresent": [
+          "ravi"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "ravi",
+            "trait": "inventive",
+            "shows": "Crouches beside the outlines and compares them with the shadow's feet."
+          }
+        ],
+        "problemFamily": "empty-feet",
+        "because": "b1",
+        "resolvesProblem": false,
+        "action": "The shadow stops in chalk footprints. Ravi finds chalk beside them.",
+        "emotion": "interest",
+        "entitiesRequired": [
+          "wandering-shadow",
+          "chalk-footprints",
+          "white-chalk"
+        ],
+        "visualFocus": "Two dark feet inside white outlines, with chalk nearby.",
+        "shotType": "overhead",
+        "compositionIntent": "Make the shadow's feet fitting the outlines unmistakable.",
+        "textPurpose": "Reveal what attracts the runaway shadow.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-right",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "ravi",
+              "locationId": "chalk-playground",
+              "clothing": "orange hoodie, grey trousers",
+              "carriedEntities": [],
+              "emotion": "surprise",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "wandering-shadow",
+              "ownerCharacterId": null,
+              "locationId": "chalk-playground",
+              "state": "Running independently away from Ravi."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "ravi",
+              "locationId": "chalk-playground",
+              "clothing": "orange hoodie, grey trousers",
+              "carriedEntities": [],
+              "emotion": "interest",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "wandering-shadow",
+              "ownerCharacterId": null,
+              "locationId": "chalk-playground",
+              "state": "Standing in the chalk footprints."
+            },
+            {
+              "entityId": "chalk-footprints",
+              "ownerCharacterId": null,
+              "locationId": "chalk-playground",
+              "state": "One empty pair now occupied by the shadow."
+            },
+            {
+              "entityId": "white-chalk",
+              "ownerCharacterId": null,
+              "locationId": "chalk-playground",
+              "state": "Lying beside the footprints."
+            }
+          ]
+        }
+      },
+      {
+        "beatId": "b3",
+        "role": "attempt",
+        "locationId": "chalk-playground",
+        "charactersPresent": [
+          "ravi"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "ravi",
+            "trait": "inventive",
+            "shows": "Draws a footprint trail towards himself, making the final pair extra large."
+          }
+        ],
+        "problemFamily": "oversized-lure",
+        "because": "b2",
+        "resolvesProblem": false,
+        "action": "Ravi draws footprints, ending with giant feet. The shadow runs into the giant pair.",
+        "emotion": "expectation",
+        "entitiesRequired": [
+          "wandering-shadow",
+          "chalk-footprints",
+          "white-chalk"
+        ],
+        "visualFocus": "The shadow stretching its legs to fit the giant feet.",
+        "shotType": "action",
+        "compositionIntent": "Lead the eye along the new trail to oversized outlines just beyond Ravi.",
+        "textPurpose": "Make Ravi's solution create a concrete mismatch.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-left",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "ravi",
+              "locationId": "chalk-playground",
+              "clothing": "orange hoodie, grey trousers",
+              "carriedEntities": [],
+              "emotion": "interest",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "wandering-shadow",
+              "ownerCharacterId": null,
+              "locationId": "chalk-playground",
+              "state": "Standing in the chalk footprints."
+            },
+            {
+              "entityId": "chalk-footprints",
+              "ownerCharacterId": null,
+              "locationId": "chalk-playground",
+              "state": "One empty pair now occupied by the shadow."
+            },
+            {
+              "entityId": "white-chalk",
+              "ownerCharacterId": null,
+              "locationId": "chalk-playground",
+              "state": "Lying beside the footprints."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "ravi",
+              "locationId": "chalk-playground",
+              "clothing": "orange hoodie, grey trousers",
+              "carriedEntities": [
+                "white-chalk"
+              ],
+              "emotion": "expectation",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "wandering-shadow",
+              "ownerCharacterId": null,
+              "locationId": "chalk-playground",
+              "state": "Occupying the giant pair beyond Ravi's shoes."
+            },
+            {
+              "entityId": "chalk-footprints",
+              "ownerCharacterId": null,
+              "locationId": "chalk-playground",
+              "state": "Extended into a trail ending in a widely spaced giant pair."
+            },
+            {
+              "entityId": "white-chalk",
+              "ownerCharacterId": "ravi",
+              "locationId": "chalk-playground",
+              "state": "Held in Ravi's hand."
+            }
+          ]
+        }
+      },
+      {
+        "beatId": "b4",
+        "role": "climax",
+        "locationId": "chalk-playground",
+        "charactersPresent": [
+          "ravi"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "ravi",
+            "trait": "bold",
+            "shows": "Spreads his legs and plants both shoes inside the oversized outlines."
+          }
+        ],
+        "problemFamily": "shared-footing",
+        "because": "b3",
+        "resolvesProblem": false,
+        "action": "Ravi steps into those giant footprints. His shadow joins his shoes.",
+        "emotion": "determination",
+        "entitiesRequired": [
+          "wandering-shadow",
+          "chalk-footprints",
+          "white-chalk"
+        ],
+        "visualFocus": "Small shoes sharing giant outlines with dark shadow feet.",
+        "shotType": "low",
+        "compositionIntent": "Frame the wide stance and the restored contact at both soles.",
+        "textPurpose": "Settle the separation using Ravi's earlier drawing.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-right",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "ravi",
+              "locationId": "chalk-playground",
+              "clothing": "orange hoodie, grey trousers",
+              "carriedEntities": [
+                "white-chalk"
+              ],
+              "emotion": "expectation",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "wandering-shadow",
+              "ownerCharacterId": null,
+              "locationId": "chalk-playground",
+              "state": "Occupying the giant pair beyond Ravi's shoes."
+            },
+            {
+              "entityId": "chalk-footprints",
+              "ownerCharacterId": null,
+              "locationId": "chalk-playground",
+              "state": "Extended into a trail ending in a widely spaced giant pair."
+            },
+            {
+              "entityId": "white-chalk",
+              "ownerCharacterId": "ravi",
+              "locationId": "chalk-playground",
+              "state": "Held in Ravi's hand."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "ravi",
+              "locationId": "chalk-playground",
+              "clothing": "orange hoodie, grey trousers",
+              "carriedEntities": [
+                "wandering-shadow",
+                "white-chalk"
+              ],
+              "emotion": "determination",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "wandering-shadow",
+              "ownerCharacterId": "ravi",
+              "locationId": "chalk-playground",
+              "state": "Reattached to Ravi at his shoes."
+            },
+            {
+              "entityId": "chalk-footprints",
+              "ownerCharacterId": null,
+              "locationId": "chalk-playground",
+              "state": "The giant pair is occupied by Ravi and his shadow together."
+            },
+            {
+              "entityId": "white-chalk",
+              "ownerCharacterId": "ravi",
+              "locationId": "chalk-playground",
+              "state": "Held in Ravi's hand."
+            }
+          ]
+        }
+      },
+      {
+        "beatId": "b5",
+        "role": "resolution",
+        "locationId": "chalk-playground",
+        "charactersPresent": [
+          "ravi"
+        ],
+        "absent": {},
+        "expresses": [
+          {
+            "characterId": "ravi",
+            "trait": "inventive",
+            "shows": "Tests tiny steps while watching the silhouette copy his feet."
+          }
+        ],
+        "problemFamily": "",
+        "because": "b4",
+        "resolvesProblem": true,
+        "action": "Ravi takes tiny steps. His shadow takes tiny steps too.",
+        "emotion": "ease",
+        "entitiesRequired": [
+          "wandering-shadow",
+          "chalk-footprints",
+          "white-chalk"
+        ],
+        "visualFocus": "Ravi and his attached shadow making identical tiny strides.",
+        "shotType": "medium",
+        "compositionIntent": "Leave the giant footprints behind the matching small steps.",
+        "textPurpose": "Close with changed behaviour and a size-mismatch callback.",
+        "pageTurnHook": "",
+        "textSafeRegion": "upper-left",
+        "stateBefore": {
+          "characters": [
+            {
+              "characterId": "ravi",
+              "locationId": "chalk-playground",
+              "clothing": "orange hoodie, grey trousers",
+              "carriedEntities": [
+                "wandering-shadow",
+                "white-chalk"
+              ],
+              "emotion": "determination",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "wandering-shadow",
+              "ownerCharacterId": "ravi",
+              "locationId": "chalk-playground",
+              "state": "Reattached to Ravi at his shoes."
+            },
+            {
+              "entityId": "chalk-footprints",
+              "ownerCharacterId": null,
+              "locationId": "chalk-playground",
+              "state": "The giant pair is occupied by Ravi and his shadow together."
+            },
+            {
+              "entityId": "white-chalk",
+              "ownerCharacterId": "ravi",
+              "locationId": "chalk-playground",
+              "state": "Held in Ravi's hand."
+            }
+          ]
+        },
+        "stateAfter": {
+          "characters": [
+            {
+              "characterId": "ravi",
+              "locationId": "chalk-playground",
+              "clothing": "orange hoodie, grey trousers",
+              "carriedEntities": [
+                "wandering-shadow",
+                "white-chalk"
+              ],
+              "emotion": "ease",
+              "storyRole": "friend"
+            }
+          ],
+          "entities": [
+            {
+              "entityId": "wandering-shadow",
+              "ownerCharacterId": "ravi",
+              "locationId": "chalk-playground",
+              "state": "Reattached to Ravi at his shoes."
+            },
+            {
+              "entityId": "chalk-footprints",
+              "ownerCharacterId": null,
+              "locationId": "chalk-playground",
+              "state": "The giant pair is occupied by Ravi and his shadow together."
+            },
+            {
+              "entityId": "white-chalk",
+              "ownerCharacterId": "ravi",
+              "locationId": "chalk-playground",
+              "state": "Held in Ravi's hand."
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "storyProblems": [],
+  "planProblems": [],
+  "textProblems": [],
+  "pages": [
+    {
+      "pageId": "p1",
+      "beatId": "b1",
+      "locationId": "chalk-playground",
+      "charactersPresent": [
+        "ravi"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "ravi",
+            "locationId": "chalk-playground",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [],
+            "emotion": "steady",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": []
+      },
+      "action": "Ravi stands still. His shadow runs away.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "ravi",
+            "locationId": "chalk-playground",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [],
+            "emotion": "surprise",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "wandering-shadow",
+            "ownerCharacterId": null,
+            "locationId": "chalk-playground",
+            "state": "Running independently away from Ravi."
+          }
+        ]
+      },
+      "emotion": "surprise",
+      "entitiesRequired": [
+        "wandering-shadow"
+      ],
+      "visualFocus": "Ravi's planted shoes and the shadow's running legs.",
+      "shotType": "establishing",
+      "compositionIntent": "Separate Ravi from his moving silhouette across a broad stretch of pavement.",
+      "textPurpose": "Establish the impossible separation.",
+      "pageTurnHook": "Show where the shadow stops.",
+      "needsFromPrevious": null,
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "ravi",
+            "locationId": "chalk-playground",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [],
+            "emotion": "surprise",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "wandering-shadow",
+            "ownerCharacterId": null,
+            "locationId": "chalk-playground",
+            "state": "Running independently away from Ravi."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-left",
+      "sentences": [
+        {
+          "text": "Ravi stood still.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "His shadow ran away.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "Ravi stood still. His shadow ran away."
+    },
+    {
+      "pageId": "p2",
+      "beatId": "b2",
+      "locationId": "chalk-playground",
+      "charactersPresent": [
+        "ravi"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "ravi",
+            "locationId": "chalk-playground",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [],
+            "emotion": "surprise",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "wandering-shadow",
+            "ownerCharacterId": null,
+            "locationId": "chalk-playground",
+            "state": "Running independently away from Ravi."
+          }
+        ]
+      },
+      "action": "The shadow stops in chalk footprints. Ravi finds chalk beside them.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "ravi",
+            "locationId": "chalk-playground",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [],
+            "emotion": "interest",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "wandering-shadow",
+            "ownerCharacterId": null,
+            "locationId": "chalk-playground",
+            "state": "Standing in the chalk footprints."
+          },
+          {
+            "entityId": "chalk-footprints",
+            "ownerCharacterId": null,
+            "locationId": "chalk-playground",
+            "state": "One empty pair now occupied by the shadow."
+          },
+          {
+            "entityId": "white-chalk",
+            "ownerCharacterId": null,
+            "locationId": "chalk-playground",
+            "state": "Lying beside the footprints."
+          }
+        ]
+      },
+      "emotion": "interest",
+      "entitiesRequired": [
+        "wandering-shadow",
+        "chalk-footprints",
+        "white-chalk"
+      ],
+      "visualFocus": "Two dark feet inside white outlines, with chalk nearby.",
+      "shotType": "overhead",
+      "compositionIntent": "Make the shadow's feet fitting the outlines unmistakable.",
+      "textPurpose": "Reveal what attracts the runaway shadow.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "ravi",
+            "locationId": "chalk-playground",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [],
+            "emotion": "surprise",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "wandering-shadow",
+            "ownerCharacterId": null,
+            "locationId": "chalk-playground",
+            "state": "Running independently away from Ravi."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "ravi",
+            "locationId": "chalk-playground",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [],
+            "emotion": "interest",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "wandering-shadow",
+            "ownerCharacterId": null,
+            "locationId": "chalk-playground",
+            "state": "Standing in the chalk footprints."
+          },
+          {
+            "entityId": "chalk-footprints",
+            "ownerCharacterId": null,
+            "locationId": "chalk-playground",
+            "state": "One empty pair now occupied by the shadow."
+          },
+          {
+            "entityId": "white-chalk",
+            "ownerCharacterId": null,
+            "locationId": "chalk-playground",
+            "state": "Lying beside the footprints."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-right",
+      "sentences": [
+        {
+          "text": "The shadow stopped in chalk footprints.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "Ravi found chalk beside them.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "The shadow stopped in chalk footprints. Ravi found chalk beside them."
+    },
+    {
+      "pageId": "p3",
+      "beatId": "b3",
+      "locationId": "chalk-playground",
+      "charactersPresent": [
+        "ravi"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "ravi",
+            "locationId": "chalk-playground",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [],
+            "emotion": "interest",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "wandering-shadow",
+            "ownerCharacterId": null,
+            "locationId": "chalk-playground",
+            "state": "Standing in the chalk footprints."
+          },
+          {
+            "entityId": "chalk-footprints",
+            "ownerCharacterId": null,
+            "locationId": "chalk-playground",
+            "state": "One empty pair now occupied by the shadow."
+          },
+          {
+            "entityId": "white-chalk",
+            "ownerCharacterId": null,
+            "locationId": "chalk-playground",
+            "state": "Lying beside the footprints."
+          }
+        ]
+      },
+      "action": "Ravi draws footprints, ending with giant feet. The shadow runs into the giant pair.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "ravi",
+            "locationId": "chalk-playground",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "white-chalk"
+            ],
+            "emotion": "expectation",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "wandering-shadow",
+            "ownerCharacterId": null,
+            "locationId": "chalk-playground",
+            "state": "Occupying the giant pair beyond Ravi's shoes."
+          },
+          {
+            "entityId": "chalk-footprints",
+            "ownerCharacterId": null,
+            "locationId": "chalk-playground",
+            "state": "Extended into a trail ending in a widely spaced giant pair."
+          },
+          {
+            "entityId": "white-chalk",
+            "ownerCharacterId": "ravi",
+            "locationId": "chalk-playground",
+            "state": "Held in Ravi's hand."
+          }
+        ]
+      },
+      "emotion": "expectation",
+      "entitiesRequired": [
+        "wandering-shadow",
+        "chalk-footprints",
+        "white-chalk"
+      ],
+      "visualFocus": "The shadow stretching its legs to fit the giant feet.",
+      "shotType": "action",
+      "compositionIntent": "Lead the eye along the new trail to oversized outlines just beyond Ravi.",
+      "textPurpose": "Make Ravi's solution create a concrete mismatch.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "ravi",
+            "locationId": "chalk-playground",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [],
+            "emotion": "interest",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "wandering-shadow",
+            "ownerCharacterId": null,
+            "locationId": "chalk-playground",
+            "state": "Standing in the chalk footprints."
+          },
+          {
+            "entityId": "chalk-footprints",
+            "ownerCharacterId": null,
+            "locationId": "chalk-playground",
+            "state": "One empty pair now occupied by the shadow."
+          },
+          {
+            "entityId": "white-chalk",
+            "ownerCharacterId": null,
+            "locationId": "chalk-playground",
+            "state": "Lying beside the footprints."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "ravi",
+            "locationId": "chalk-playground",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "white-chalk"
+            ],
+            "emotion": "expectation",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "wandering-shadow",
+            "ownerCharacterId": null,
+            "locationId": "chalk-playground",
+            "state": "Occupying the giant pair beyond Ravi's shoes."
+          },
+          {
+            "entityId": "chalk-footprints",
+            "ownerCharacterId": null,
+            "locationId": "chalk-playground",
+            "state": "Extended into a trail ending in a widely spaced giant pair."
+          },
+          {
+            "entityId": "white-chalk",
+            "ownerCharacterId": "ravi",
+            "locationId": "chalk-playground",
+            "state": "Held in Ravi's hand."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-left",
+      "sentences": [
+        {
+          "text": "Ravi drew footprints, then two giant feet.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "The shadow ran into the giant pair.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "Ravi drew footprints, then two giant feet. The shadow ran into the giant pair."
+    },
+    {
+      "pageId": "p4",
+      "beatId": "b4",
+      "locationId": "chalk-playground",
+      "charactersPresent": [
+        "ravi"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "ravi",
+            "locationId": "chalk-playground",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "white-chalk"
+            ],
+            "emotion": "expectation",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "wandering-shadow",
+            "ownerCharacterId": null,
+            "locationId": "chalk-playground",
+            "state": "Occupying the giant pair beyond Ravi's shoes."
+          },
+          {
+            "entityId": "chalk-footprints",
+            "ownerCharacterId": null,
+            "locationId": "chalk-playground",
+            "state": "Extended into a trail ending in a widely spaced giant pair."
+          },
+          {
+            "entityId": "white-chalk",
+            "ownerCharacterId": "ravi",
+            "locationId": "chalk-playground",
+            "state": "Held in Ravi's hand."
+          }
+        ]
+      },
+      "action": "Ravi steps into those giant footprints. His shadow joins his shoes.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "ravi",
+            "locationId": "chalk-playground",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "wandering-shadow",
+              "white-chalk"
+            ],
+            "emotion": "determination",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "wandering-shadow",
+            "ownerCharacterId": "ravi",
+            "locationId": "chalk-playground",
+            "state": "Reattached to Ravi at his shoes."
+          },
+          {
+            "entityId": "chalk-footprints",
+            "ownerCharacterId": null,
+            "locationId": "chalk-playground",
+            "state": "The giant pair is occupied by Ravi and his shadow together."
+          },
+          {
+            "entityId": "white-chalk",
+            "ownerCharacterId": "ravi",
+            "locationId": "chalk-playground",
+            "state": "Held in Ravi's hand."
+          }
+        ]
+      },
+      "emotion": "determination",
+      "entitiesRequired": [
+        "wandering-shadow",
+        "chalk-footprints",
+        "white-chalk"
+      ],
+      "visualFocus": "Small shoes sharing giant outlines with dark shadow feet.",
+      "shotType": "low",
+      "compositionIntent": "Frame the wide stance and the restored contact at both soles.",
+      "textPurpose": "Settle the separation using Ravi's earlier drawing.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "ravi",
+            "locationId": "chalk-playground",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "white-chalk"
+            ],
+            "emotion": "expectation",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "wandering-shadow",
+            "ownerCharacterId": null,
+            "locationId": "chalk-playground",
+            "state": "Occupying the giant pair beyond Ravi's shoes."
+          },
+          {
+            "entityId": "chalk-footprints",
+            "ownerCharacterId": null,
+            "locationId": "chalk-playground",
+            "state": "Extended into a trail ending in a widely spaced giant pair."
+          },
+          {
+            "entityId": "white-chalk",
+            "ownerCharacterId": "ravi",
+            "locationId": "chalk-playground",
+            "state": "Held in Ravi's hand."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "ravi",
+            "locationId": "chalk-playground",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "wandering-shadow",
+              "white-chalk"
+            ],
+            "emotion": "determination",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "wandering-shadow",
+            "ownerCharacterId": "ravi",
+            "locationId": "chalk-playground",
+            "state": "Reattached to Ravi at his shoes."
+          },
+          {
+            "entityId": "chalk-footprints",
+            "ownerCharacterId": null,
+            "locationId": "chalk-playground",
+            "state": "The giant pair is occupied by Ravi and his shadow together."
+          },
+          {
+            "entityId": "white-chalk",
+            "ownerCharacterId": "ravi",
+            "locationId": "chalk-playground",
+            "state": "Held in Ravi's hand."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-right",
+      "sentences": [
+        {
+          "text": "Ravi stepped into the giant footprints.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "His shadow slid back to his shoes.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "Ravi stepped into the giant footprints. His shadow slid back to his shoes."
+    },
+    {
+      "pageId": "p5",
+      "beatId": "b5",
+      "locationId": "chalk-playground",
+      "charactersPresent": [
+        "ravi"
+      ],
+      "stateBefore": {
+        "characters": [
+          {
+            "characterId": "ravi",
+            "locationId": "chalk-playground",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "wandering-shadow",
+              "white-chalk"
+            ],
+            "emotion": "determination",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "wandering-shadow",
+            "ownerCharacterId": "ravi",
+            "locationId": "chalk-playground",
+            "state": "Reattached to Ravi at his shoes."
+          },
+          {
+            "entityId": "chalk-footprints",
+            "ownerCharacterId": null,
+            "locationId": "chalk-playground",
+            "state": "The giant pair is occupied by Ravi and his shadow together."
+          },
+          {
+            "entityId": "white-chalk",
+            "ownerCharacterId": "ravi",
+            "locationId": "chalk-playground",
+            "state": "Held in Ravi's hand."
+          }
+        ]
+      },
+      "action": "Ravi takes tiny steps. His shadow takes tiny steps too.",
+      "stateAfter": {
+        "characters": [
+          {
+            "characterId": "ravi",
+            "locationId": "chalk-playground",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "wandering-shadow",
+              "white-chalk"
+            ],
+            "emotion": "ease",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "wandering-shadow",
+            "ownerCharacterId": "ravi",
+            "locationId": "chalk-playground",
+            "state": "Reattached to Ravi at his shoes."
+          },
+          {
+            "entityId": "chalk-footprints",
+            "ownerCharacterId": null,
+            "locationId": "chalk-playground",
+            "state": "The giant pair is occupied by Ravi and his shadow together."
+          },
+          {
+            "entityId": "white-chalk",
+            "ownerCharacterId": "ravi",
+            "locationId": "chalk-playground",
+            "state": "Held in Ravi's hand."
+          }
+        ]
+      },
+      "emotion": "ease",
+      "entitiesRequired": [
+        "wandering-shadow",
+        "chalk-footprints",
+        "white-chalk"
+      ],
+      "visualFocus": "Ravi and his attached shadow making identical tiny strides.",
+      "shotType": "medium",
+      "compositionIntent": "Leave the giant footprints behind the matching small steps.",
+      "textPurpose": "Close with changed behaviour and a size-mismatch callback.",
+      "pageTurnHook": "",
+      "needsFromPrevious": {
+        "characters": [
+          {
+            "characterId": "ravi",
+            "locationId": "chalk-playground",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "wandering-shadow",
+              "white-chalk"
+            ],
+            "emotion": "determination",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "wandering-shadow",
+            "ownerCharacterId": "ravi",
+            "locationId": "chalk-playground",
+            "state": "Reattached to Ravi at his shoes."
+          },
+          {
+            "entityId": "chalk-footprints",
+            "ownerCharacterId": null,
+            "locationId": "chalk-playground",
+            "state": "The giant pair is occupied by Ravi and his shadow together."
+          },
+          {
+            "entityId": "white-chalk",
+            "ownerCharacterId": "ravi",
+            "locationId": "chalk-playground",
+            "state": "Held in Ravi's hand."
+          }
+        ]
+      },
+      "mustHoldForNext": {
+        "characters": [
+          {
+            "characterId": "ravi",
+            "locationId": "chalk-playground",
+            "clothing": "orange hoodie, grey trousers",
+            "carriedEntities": [
+              "wandering-shadow",
+              "white-chalk"
+            ],
+            "emotion": "ease",
+            "storyRole": "friend"
+          }
+        ],
+        "entities": [
+          {
+            "entityId": "wandering-shadow",
+            "ownerCharacterId": "ravi",
+            "locationId": "chalk-playground",
+            "state": "Reattached to Ravi at his shoes."
+          },
+          {
+            "entityId": "chalk-footprints",
+            "ownerCharacterId": null,
+            "locationId": "chalk-playground",
+            "state": "The giant pair is occupied by Ravi and his shadow together."
+          },
+          {
+            "entityId": "white-chalk",
+            "ownerCharacterId": "ravi",
+            "locationId": "chalk-playground",
+            "state": "Held in Ravi's hand."
+          }
+        ]
+      },
+      "textSafeRegion": "upper-left",
+      "sentences": [
+        {
+          "text": "Ravi took tiny steps.",
+          "entities": [],
+          "locations": []
+        },
+        {
+          "text": "His shadow took tiny steps too.",
+          "entities": [],
+          "locations": []
+        }
+      ],
+      "prose": "Ravi took tiny steps. His shadow took tiny steps too."
+    }
+  ],
+  "imageCalls": 0,
+  "imageDraws": 0,
+  "imageReason": "images_disabled",
+  "imageUsd": 0,
+  "id": "b",
+  "listedUsd": 0.027152,
+  "guardUsd": 0.054304
+}

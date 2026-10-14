@@ -1,0 +1,23 @@
+{
+  "status": "COVER_REVIEWABLE",
+  "contract": {
+    "ok": true,
+    "problems": []
+  },
+  "quality": {
+    "notes": [
+      "The yellow cardigan and the glowing star read at a small size. The night sky is a natural home for the title, and the title does not cover Maya or the star.",
+      "It feels like the same painted book: garden wall, clay pot, one small gold-white star, no face on the star.",
+      "A lit hillside beyond the wall is new scenery. The interiors stay in the garden. Left for review.",
+      "Maya holds the star. That shows the relationship and does not show the ending, and it also appears inside the book. The portrait frame and open sky are what make this a cover."
+    ],
+    "regenerate": false
+  },
+  "repairs": 0,
+  "repairRejected": false,
+  "firstProblems": [],
+  "locksHeld": true,
+  "cleanArt": "docs/agent/book-v2/visual-proof/e/images/cover.jpg",
+  "preview": "docs/agent/book-v2/visual-proof/e/cover-preview.html",
+  "finished": false
+}
